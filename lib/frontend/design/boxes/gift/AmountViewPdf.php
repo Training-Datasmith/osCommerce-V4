@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,12 +16,9 @@ namespace frontend\design\boxes\gift;
 
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use frontend\design\Info;
 
 class AmountViewPdf extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -37,7 +36,7 @@ class AmountViewPdf extends Widget
 
         $giftCard = \common\models\VirtualGiftCardInfo::find()->where([
             'virtual_gift_card_info_id' => $gift_card_id,
-            'customers_id' => $customer->customers_id
+            'customers_id' => $customer->customers_id,
         ])->asArray()->one();
 
         return $currencies->display_gift_card_price($giftCard['products_price'], \common\helpers\Tax::get_tax_rate($giftCard['products_tax_class_id']), $giftCard['currency_code']);

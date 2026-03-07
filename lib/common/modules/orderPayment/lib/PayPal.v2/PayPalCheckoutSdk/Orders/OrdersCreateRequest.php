@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // This class was generated on Wed, 01 Aug 2018 16:35:39 PDT by version 0.1.0-dev+0ee05a-dirty of Braintree SDK Generator
 // OrdersCreateRequest.php
 // @version 0.1.0-dev+0ee05a-dirty
@@ -13,19 +15,18 @@ use PayPalHttp\HttpRequest;
 
 class OrdersCreateRequest extends HttpRequest
 {
-    function __construct()
+    public function __construct()
     {
-        parent::__construct("/v2/checkout/orders?", "POST");
-        $this->headers["Content-Type"] = "application/json";
+        parent::__construct('/v2/checkout/orders?', 'POST');
+        $this->headers['Content-Type'] = 'application/json';
     }
-
 
     public function payPalPartnerAttributionId($payPalPartnerAttributionId)
     {
-        $this->headers["PayPal-Partner-Attribution-Id"] = $payPalPartnerAttributionId;
+        $this->headers['PayPal-Partner-Attribution-Id'] = $payPalPartnerAttributionId;
     }
     public function prefer($prefer)
     {
-        $this->headers["Prefer"] = $prefer;
+        $this->headers['Prefer'] = $prefer;
     }
 }

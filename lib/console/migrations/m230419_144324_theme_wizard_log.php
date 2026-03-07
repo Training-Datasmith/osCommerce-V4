@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230419_144324_theme_wizard_log extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/design',[
+        $this->addTranslation('admin/design', [
             'REMOVED_PAGE_TEMPLATE' => 'removed page template',
             'CHANGED_STYLES' => 'changed styles',
             'COPIED_PAGE' => 'copied page',

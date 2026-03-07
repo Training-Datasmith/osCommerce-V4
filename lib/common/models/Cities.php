@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
 use yii\db\ActiveRecord;
@@ -30,7 +32,7 @@ class Cities extends ActiveRecord
 
         PostalCodes::updateAll([
             'city_id' => 0,
-        ], ['city_id'=>$this->city_id]);
+        ], ['city_id' => $this->city_id]);
 
         return true;
     }

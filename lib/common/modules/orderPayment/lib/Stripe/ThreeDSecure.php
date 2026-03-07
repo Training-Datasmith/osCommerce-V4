@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -22,10 +24,9 @@ namespace Stripe;
  */
 class ThreeDSecure extends ApiResource
 {
-    const OBJECT_NAME = 'three_d_secure';
-
     use ApiOperations\Create;
     use ApiOperations\Retrieve;
+    public const OBJECT_NAME = 'three_d_secure';
 
     /**
      * @return string the endpoint URL for the given class

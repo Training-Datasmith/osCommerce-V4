@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,13 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
 use frontend\design\Info;
+use Yii;
+use yii\base\Widget;
 
 class BatchSelectedProducts extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -39,7 +40,7 @@ class BatchSelectedProducts extends Widget
             foreach (array_keys($products) as $idx) {
                 unset($products[$idx]['products_groups_name']);
             }
-        }else {
+        } else {
             $products = Info::getListProductsDetails($selectedProducts, $this->settings);
         }
 
@@ -65,8 +66,8 @@ class BatchSelectedProducts extends Widget
                 'products' => $products,
                 'total_amount' => $total_amount,
                 'settings' => $this->settings,
-                'id' => $this->id
-            ]
+                'id' => $this->id,
+            ],
         ]);
     }
 }

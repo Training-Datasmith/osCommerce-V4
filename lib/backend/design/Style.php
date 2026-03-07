@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,10 +15,10 @@
 namespace backend\design;
 
 use common\models\ThemesSettings;
+use common\models\ThemesStyles;
 use common\models\ThemesStylesMain;
 use Yii;
 use yii\helpers\ArrayHelper;
-use common\models\ThemesStyles;
 
 class Style
 {
@@ -25,7 +27,7 @@ class Style
 
     public static function hide($class)
     {
-        $arr = array();
+        $arr = [];
 
         if ($class == 'body') {
             $arr = [
@@ -90,7 +92,7 @@ class Style
 
     public static function show($class)
     {
-        $arr = array();
+        $arr = [];
 
         if (
             $class == '.w-tabs .tab-a' ||
@@ -123,21 +125,21 @@ class Style
     public static function cssCompile($css, $theme_name, $accessibility = '')
     {
         $css = preg_replace('/\/\*.+\*\//', ' ', $css);
-        $attributes = array();
+        $attributes = [];
 
         //foreach (self::explodeByAccessibility($css) as $accessibility => $styles) {
 
-            $blocks = self::explodeByMediaBlocks($css, $theme_name);
+        $blocks = self::explodeByMediaBlocks($css, $theme_name);
 
-            $attributes = array_merge($attributes, self::parsBlock($blocks['no_media'], '', '', $accessibility, $theme_name));
+        $attributes = array_merge($attributes, self::parsBlock($blocks['no_media'], '', '', $accessibility, $theme_name));
 
-            foreach ($blocks['visibility'] as $key => $value) {
-                $attributes = array_merge($attributes, self::parsBlock($value, $key, '', $accessibility, $theme_name));
-            }
+        foreach ($blocks['visibility'] as $key => $value) {
+            $attributes = array_merge($attributes, self::parsBlock($value, $key, '', $accessibility, $theme_name));
+        }
 
-            foreach ($blocks['media'] as $key => $value) {
-                $attributes = array_merge($attributes, self::parsBlock($value, '', $key, $accessibility, $theme_name));
-            }
+        foreach ($blocks['media'] as $key => $value) {
+            $attributes = array_merge($attributes, self::parsBlock($value, '', $key, $accessibility, $theme_name));
+        }
         //}
 
         return $attributes;
@@ -165,9 +167,9 @@ class Style
         static $classes = [];
 
         if (count($classes) == 0) {
-            $query = tep_db_query("
+            $query = tep_db_query('
                 select distinct setting_value 
-                from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " 
+                from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " 
                 where setting_name = 'style_class'");
             while ($item = tep_db_fetch_array($query)) {
                 $styleClass = $item['setting_value'];
@@ -191,7 +193,7 @@ class Style
     public static function parsBlock($block, $visibility = '', $media = '', $accessibility = '', $theme_name = '')
     {
         $classArr = explode('}', $block);
-        $attributes = array();
+        $attributes = [];
         foreach ($classArr as $class) {
             $vClass = $visibility;
             $first = stripos($class, '{');
@@ -255,14 +257,14 @@ class Style
                 if (stripos($psClass, ':after') !== false) {
                     $vClass .= ($vClass ? ',' : '') . 4;
                 }
-                $arr = array();
+                $arr = [];
                 foreach ($selectorArr as $item) {
                     $arr[] = str_replace($psClass, '', $item);
                 }
                 $selector = implode(',', $arr);
             }
 
-            $content = trim(substr($class, $first+1));
+            $content = trim(substr($class, $first + 1));
 
             $rows = explode(';', $content);
             foreach ($rows as $row) {
@@ -290,7 +292,7 @@ class Style
 
     public static function parsAttributes($attribute, $value)
     {
-        $attr = array();
+        $attr = [];
         $default = false;
 
         $attributeValueSize = ['top', 'left', 'right', 'bottom', 'width', 'min-width', 'max-width', 'height', 'min-height', 'max-height', 'font-size', 'line-height', 'padding-top', 'padding-left', 'padding-right', 'padding-bottom', 'margin-top', 'margin-left', 'margin-right', 'margin-bottom'];
@@ -306,165 +308,165 @@ class Style
             if (preg_match('/^([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'padding-top',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_top_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'padding-right',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 if ($matches[4] && $matches[4] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_right_measure',
-                        'value' => $matches[4]
+                        'value' => $matches[4],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'padding-bottom',
-                    'value' => $matches[5]
+                    'value' => $matches[5],
                 ];
                 if ($matches[6] && $matches[6] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_bottom_measure',
-                        'value' => $matches[6]
+                        'value' => $matches[6],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'padding-left',
-                    'value' => $matches[7]
+                    'value' => $matches[7],
                 ];
                 if ($matches[8] && $matches[8] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_left_measure',
-                        'value' => $matches[8]
+                        'value' => $matches[8],
                     ];
                 }
             } elseif (preg_match('/^([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'padding-top',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_top_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'padding-right',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 if ($matches[4] && $matches[4] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_right_measure',
-                        'value' => $matches[4]
+                        'value' => $matches[4],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'padding-bottom',
-                    'value' => $matches[5]
+                    'value' => $matches[5],
                 ];
                 if ($matches[6] && $matches[6] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_bottom_measure',
-                        'value' => $matches[6]
+                        'value' => $matches[6],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'padding-left',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 if ($matches[4] && $matches[4] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_left_measure',
-                        'value' => $matches[4]
+                        'value' => $matches[4],
                     ];
                 }
             } elseif (preg_match('/^([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'padding-top',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_top_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'padding-right',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 if ($matches[4] && $matches[4] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_right_measure',
-                        'value' => $matches[4]
+                        'value' => $matches[4],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'padding-bottom',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_bottom_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'padding-left',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 if ($matches[4] && $matches[4] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_left_measure',
-                        'value' => $matches[4]
+                        'value' => $matches[4],
                     ];
                 }
             } elseif (preg_match('/^([\-0-9\.]+)([a-z\%]{0,})$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'padding-top',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_top_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'padding-right',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_right_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'padding-bottom',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_bottom_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'padding-left',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'padding_left_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
             } else {
@@ -474,165 +476,165 @@ class Style
             if (preg_match('/^([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'margin-top',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_top_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'margin-right',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 if ($matches[4] && $matches[4] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_right_measure',
-                        'value' => $matches[4]
+                        'value' => $matches[4],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'margin-bottom',
-                    'value' => $matches[5]
+                    'value' => $matches[5],
                 ];
                 if ($matches[6] && $matches[6] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_bottom_measure',
-                        'value' => $matches[6]
+                        'value' => $matches[6],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'margin-left',
-                    'value' => $matches[7]
+                    'value' => $matches[7],
                 ];
                 if ($matches[8] && $matches[8] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_left_measure',
-                        'value' => $matches[8]
+                        'value' => $matches[8],
                     ];
                 }
             } elseif (preg_match('/^([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'margin-top',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_top_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'margin-right',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 if ($matches[4] && $matches[4] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_right_measure',
-                        'value' => $matches[4]
+                        'value' => $matches[4],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'margin-bottom',
-                    'value' => $matches[5]
+                    'value' => $matches[5],
                 ];
                 if ($matches[6] && $matches[6] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_bottom_measure',
-                        'value' => $matches[6]
+                        'value' => $matches[6],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'margin-left',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 if ($matches[4] && $matches[4] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_left_measure',
-                        'value' => $matches[4]
+                        'value' => $matches[4],
                     ];
                 }
             } elseif (preg_match('/^([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'margin-top',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_top_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'margin-right',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 if ($matches[4] && $matches[4] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_right_measure',
-                        'value' => $matches[4]
+                        'value' => $matches[4],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'margin-bottom',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_bottom_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'margin-left',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 if ($matches[4] && $matches[4] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_left_measure',
-                        'value' => $matches[4]
+                        'value' => $matches[4],
                     ];
                 }
             } elseif (preg_match('/^([\-0-9\.]+)([a-z\%]{0,})$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'margin-top',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_top_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'margin-right',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_right_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'margin-bottom',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_bottom_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'margin-left',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'margin_left_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
             } else {
@@ -642,12 +644,12 @@ class Style
             if (preg_match('/^([\-0-9\.]+)([a-z\%]{0,})$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => $attribute,
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'em') {
                     $attr[] = [
                         'attribute' => 'line_height_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
             } else {
@@ -657,7 +659,7 @@ class Style
             if (preg_match('/^rotate\(([\-0-9\.]+)deg\)$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'rotate',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
             } else {
                 $default = true;
@@ -666,155 +668,155 @@ class Style
             if ($value == "''" || $value == '""') {
                 $attr[] = [
                     'attribute' => 'content',
-                    'value' => '\\_'
+                    'value' => '\\_',
                 ];
             } else {
                 $attr[] = [
                     'attribute' => 'content',
-                    'value' => substr(substr($value, 0, -1), 1)
+                    'value' => substr(substr($value, 0, -1), 1),
                 ];
             }
         } elseif (in_array($attribute, $attributeValueSize)) {
             if (preg_match('/^([\-0-9\.]+)([a-z\%]{0,})$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => $attribute,
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] && $matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => str_replace('-', '_', $attribute) . '_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
             } else {
                 $attr[] = [
                     'attribute' => $attribute,
-                    'value' => $value
+                    'value' => $value,
                 ];
             }
         } elseif ($attribute == 'border-radius') {
             if (preg_match('/^([0-9\.]+)([a-z\%]{0,})$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'border-top-left-radius',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 $attr[] = [
                     'attribute' => 'border_radius_1_measure',
-                    'value' => $matches[2]
+                    'value' => $matches[2],
                 ];
                 $attr[] = [
                     'attribute' => 'border-top-right-radius',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 $attr[] = [
                     'attribute' => 'border_radius_2_measure',
-                    'value' => $matches[2]
+                    'value' => $matches[2],
                 ];
                 $attr[] = [
                     'attribute' => 'border-bottom-right-radius',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 $attr[] = [
                     'attribute' => 'border_radius_3_measure',
-                    'value' => $matches[2]
+                    'value' => $matches[2],
                 ];
                 $attr[] = [
                     'attribute' => 'border-bottom-left-radius',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 $attr[] = [
                     'attribute' => 'border_radius_4_measure',
-                    'value' => $matches[2]
+                    'value' => $matches[2],
                 ];
             } elseif (preg_match('/^([0-9\.]+)([a-z\%]{0,})[\s]+([0-9\.]+)([a-z\%]{0,})[\s]+([0-9\.]+)([a-z\%]{0,})[\s]+([0-9\.]+)([a-z\%]{0,})$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'border-top-left-radius',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 $attr[] = [
                     'attribute' => 'border_radius_1_measure',
-                    'value' => $matches[2]
+                    'value' => $matches[2],
                 ];
                 $attr[] = [
                     'attribute' => 'border-top-right-radius',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 $attr[] = [
                     'attribute' => 'border_radius_2_measure',
-                    'value' => $matches[4]
+                    'value' => $matches[4],
                 ];
                 $attr[] = [
                     'attribute' => 'border-bottom-right-radius',
-                    'value' => $matches[5]
+                    'value' => $matches[5],
                 ];
                 $attr[] = [
                     'attribute' => 'border_radius_3_measure',
-                    'value' => $matches[6]
+                    'value' => $matches[6],
                 ];
                 $attr[] = [
                     'attribute' => 'border-bottom-left-radius',
-                    'value' => $matches[7]
+                    'value' => $matches[7],
                 ];
                 $attr[] = [
                     'attribute' => 'border_radius_4_measure',
-                    'value' => $matches[8]
+                    'value' => $matches[8],
                 ];
             } else {
                 $attr[] = [
                     'attribute' => $attribute,
-                    'value' => $value
+                    'value' => $value,
                 ];
             }
         } elseif ($attribute == 'border') {
-            if ($value == 'inherit'){
+            if ($value == 'inherit') {
                 $attr[] = [
                     'attribute' => 'border',
-                    'value' => 'inherit'
+                    'value' => 'inherit',
                 ];
-            } elseif ($value == 'none'){
+            } elseif ($value == 'none') {
                 $attr[] = [
                     'attribute' => 'border',
-                    'value' => 'none'
+                    'value' => 'none',
                 ];
-            } elseif ($value == 'hidden'){
+            } elseif ($value == 'hidden') {
                 $attr[] = [
                     'attribute' => 'border',
-                    'value' => 'hidden'
+                    'value' => 'hidden',
                 ];
             } else {
                 if (preg_match('/([0-9\.]+)([a-z\%]+)/', $value, $matches)) {
                     $attr[] = [
                         'attribute' => 'border-top-width',
-                        'value' => $matches[1]
+                        'value' => $matches[1],
                     ];
                     $attr[] = [
                         'attribute' => 'border-left-width',
-                        'value' => $matches[1]
+                        'value' => $matches[1],
                     ];
                     $attr[] = [
                         'attribute' => 'border-right-width',
-                        'value' => $matches[1]
+                        'value' => $matches[1],
                     ];
                     $attr[] = [
                         'attribute' => 'border-bottom-width',
-                        'value' => $matches[1]
+                        'value' => $matches[1],
                     ];
                     if ($matches[2] != 'px') {
                         $attr[] = [
                             'attribute' => 'border_top_width_measure',
-                            'value' => $matches[2]
+                            'value' => $matches[2],
                         ];
                         $attr[] = [
                             'attribute' => 'border_left_width_measure',
-                            'value' => $matches[2]
+                            'value' => $matches[2],
                         ];
                         $attr[] = [
                             'attribute' => 'border_right_width_measure',
-                            'value' => $matches[2]
+                            'value' => $matches[2],
                         ];
                         $attr[] = [
                             'attribute' => 'border_bottom_width_measure',
-                            'value' => $matches[2]
+                            'value' => $matches[2],
                         ];
                     }
                 }
@@ -840,19 +842,19 @@ class Style
                 if ($borderStyle) {
                     $attr[] = [
                         'attribute' => 'border-top-style',
-                        'value' => $borderStyle
+                        'value' => $borderStyle,
                     ];
                     $attr[] = [
                         'attribute' => 'border-left-style',
-                        'value' => $borderStyle
+                        'value' => $borderStyle,
                     ];
                     $attr[] = [
                         'attribute' => 'border-right-style',
-                        'value' => $borderStyle
+                        'value' => $borderStyle,
                     ];
                     $attr[] = [
                         'attribute' => 'border-bottom-style',
-                        'value' => $borderStyle
+                        'value' => $borderStyle,
                     ];
                 }
 
@@ -867,19 +869,19 @@ class Style
                 if ($borderColor) {
                     $attr[] = [
                         'attribute' => 'border-top-color',
-                        'value' => $borderColor
+                        'value' => $borderColor,
                     ];
                     $attr[] = [
                         'attribute' => 'border-left-color',
-                        'value' => $borderColor
+                        'value' => $borderColor,
                     ];
                     $attr[] = [
                         'attribute' => 'border-right-color',
-                        'value' => $borderColor
+                        'value' => $borderColor,
                     ];
                     $attr[] = [
                         'attribute' => 'border-bottom-color',
-                        'value' => $borderColor
+                        'value' => $borderColor,
                     ];
                 }
             }
@@ -889,31 +891,31 @@ class Style
             $attribute == 'border-right' ||
             $attribute == 'border-bottom'
         ) {
-            if ($value == 'inherit'){
+            if ($value == 'inherit') {
                 $attr[] = [
                     'attribute' => $attribute,
-                    'value' => 'inherit'
+                    'value' => 'inherit',
                 ];
-            } elseif ($value == 'none'){
+            } elseif ($value == 'none') {
                 $attr[] = [
                     'attribute' => $attribute,
-                    'value' => 'none'
+                    'value' => 'none',
                 ];
-            } elseif ($value == 'hidden'){
+            } elseif ($value == 'hidden') {
                 $attr[] = [
                     'attribute' => $attribute,
-                    'value' => 'hidden'
+                    'value' => 'hidden',
                 ];
             } else {
                 if (preg_match('/([0-9\.]+)([a-z\%]{0,})/', $value, $matches)) {
                     $attr[] = [
                         'attribute' => $attribute . '-width',
-                        'value' => $matches[1]
+                        'value' => $matches[1],
                     ];
                     if ($matches[2] != 'px') {
                         $attr[] = [
                             'attribute' => str_replace('-', '_', $attribute) . '_width_measure',
-                            'value' => $matches[2]
+                            'value' => $matches[2],
                         ];
                     }
                 }
@@ -939,7 +941,7 @@ class Style
                 if ($borderStyle) {
                     $attr[] = [
                         'attribute' => $attribute . '-style',
-                        'value' => $borderStyle
+                        'value' => $borderStyle,
                     ];
                 }
 
@@ -956,7 +958,7 @@ class Style
                 if ($borderColor) {
                     $attr[] = [
                         'attribute' => $attribute . '-color',
-                        'value' => $borderColor
+                        'value' => $borderColor,
                     ];
                 }
             }
@@ -969,12 +971,12 @@ class Style
             if (preg_match('/([0-9\.]+)([a-z\%]{0,})/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => $attribute,
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => str_replace('-', '_', $attribute) . '_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
             }
@@ -990,19 +992,19 @@ class Style
             if ($borderColor) {
                 $attr[] = [
                     'attribute' => 'border-top-color',
-                    'value' => $borderColor
+                    'value' => $borderColor,
                 ];
                 $attr[] = [
                     'attribute' => 'border-left-color',
-                    'value' => $borderColor
+                    'value' => $borderColor,
                 ];
                 $attr[] = [
                     'attribute' => 'border-right-color',
-                    'value' => $borderColor
+                    'value' => $borderColor,
                 ];
                 $attr[] = [
                     'attribute' => 'border-bottom-color',
-                    'value' => $borderColor
+                    'value' => $borderColor,
                 ];
             }
         } elseif ($attribute == 'border-style') {
@@ -1031,55 +1033,55 @@ class Style
             if ($borderStyle) {
                 $attr[] = [
                     'attribute' => 'border-top-style',
-                    'value' => $borderStyle
+                    'value' => $borderStyle,
                 ];
                 $attr[] = [
                     'attribute' => 'border-left-style',
-                    'value' => $borderStyle
+                    'value' => $borderStyle,
                 ];
                 $attr[] = [
                     'attribute' => 'border-right-style',
-                    'value' => $borderStyle
+                    'value' => $borderStyle,
                 ];
                 $attr[] = [
                     'attribute' => 'border-bottom-style',
-                    'value' => $borderStyle
+                    'value' => $borderStyle,
                 ];
             }
         } elseif ($attribute == 'border-width') {
             if (preg_match('/([0-9\.]+)([a-z\%]{0,})/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'border-top-width',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 $attr[] = [
                     'attribute' => 'border-left-width',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 $attr[] = [
                     'attribute' => 'border-right-width',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 $attr[] = [
                     'attribute' => 'border-bottom-width',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 if ($matches[2] != 'px') {
                     $attr[] = [
                         'attribute' => 'border_top_width_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                     $attr[] = [
                         'attribute' => 'border_left_width_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                     $attr[] = [
                         'attribute' => 'border_right_width_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                     $attr[] = [
                         'attribute' => 'border_bottom_width_measure',
-                        'value' => $matches[2]
+                        'value' => $matches[2],
                     ];
                 }
             }
@@ -1087,36 +1089,36 @@ class Style
             if (preg_match('/^([\-0-9\.]+)([a-z\%]{0,})[\s]+([\-0-9\.]+)([a-z\%]{0,})[\s]+([0-9\.]+)([a-z\%]{0,})[\s]+([0-9a-zA-Z\(\)\,\s\#]+)$/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'text_shadow_left',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
                 $attr[] = [
                     'attribute' => 'text_shadow_left_measure',
-                    'value' => $matches[2]
+                    'value' => $matches[2],
                 ];
                 $attr[] = [
                     'attribute' => 'text_shadow_top',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 $attr[] = [
                     'attribute' => 'text_shadow_top_measure',
-                    'value' => $matches[4]
+                    'value' => $matches[4],
                 ];
                 $attr[] = [
                     'attribute' => 'text_shadow_size',
-                    'value' => $matches[5]
+                    'value' => $matches[5],
                 ];
                 $attr[] = [
                     'attribute' => 'text_shadow_size_measure',
-                    'value' => $matches[6]
+                    'value' => $matches[6],
                 ];
                 $attr[] = [
                     'attribute' => 'text_shadow_color',
-                    'value' => $matches[7]
+                    'value' => $matches[7],
                 ];
             } else {
                 $attr[] = [
                     'attribute' => $attribute,
-                    'value' => $value
+                    'value' => $value,
                 ];
             }
         } elseif ($attribute == 'box-shadow') {
@@ -1124,108 +1126,108 @@ class Style
                 if ($matches[1] == 'inset') {
                     $attr[] = [
                         'attribute' => 'box_shadow_set',
-                        'value' => $matches[1]
+                        'value' => $matches[1],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'box_shadow_left',
-                    'value' => $matches[2]
+                    'value' => $matches[2],
                 ];
                 $attr[] = [
                     'attribute' => 'box_shadow_left_measure',
-                    'value' => $matches[3]
+                    'value' => $matches[3],
                 ];
                 $attr[] = [
                     'attribute' => 'box_shadow_top',
-                    'value' => $matches[4]
+                    'value' => $matches[4],
                 ];
                 $attr[] = [
                     'attribute' => 'box_shadow_top_measure',
-                    'value' => $matches[5]
+                    'value' => $matches[5],
                 ];
                 $attr[] = [
                     'attribute' => 'box_shadow_blur',
-                    'value' => $matches[6]
+                    'value' => $matches[6],
                 ];
                 $attr[] = [
                     'attribute' => 'box_shadow_blur_measure',
-                    'value' => $matches[7]
+                    'value' => $matches[7],
                 ];
                 if ($matches[8]) {
                     $attr[] = [
                         'attribute' => 'box_shadow_spread',
-                        'value' => $matches[8]
+                        'value' => $matches[8],
                     ];
                     $attr[] = [
                         'attribute' => 'box_shadow_spread_measure',
-                        'value' => $matches[9]
+                        'value' => $matches[9],
                     ];
                 }
                 $attr[] = [
                     'attribute' => 'box_shadow_color',
-                    'value' => $matches[10]
+                    'value' => $matches[10],
                 ];
             } else {
                 $attr[] = [
                     'attribute' => $attribute,
-                    'value' => $value
+                    'value' => $value,
                 ];
             }
         } elseif ($attribute == 'background') {
-            if ($value == 'inherit'){
+            if ($value == 'inherit') {
                 $attr[] = [
                     'attribute' => 'background',
-                    'value' => 'inherit'
+                    'value' => 'inherit',
                 ];
-            } elseif ($value == 'none'){
+            } elseif ($value == 'none') {
                 $attr[] = [
                     'attribute' => 'background',
-                    'value' => 'none'
+                    'value' => 'none',
                 ];
-            } elseif ($value == 'transparent'){
+            } elseif ($value == 'transparent') {
                 $attr[] = [
                     'attribute' => 'background',
-                    'value' => 'transparent'
+                    'value' => 'transparent',
                 ];
-            } elseif (strpos($value, 'gradient') !== false){
+            } elseif (strpos($value, 'gradient') !== false) {
                 $default = true;
             } else {
                 if (strpos($value, 'fixed') !== false) {
                     $attr[] = [
                         'attribute' => 'background-attachment',
-                        'value' => 'fixed'
+                        'value' => 'fixed',
                     ];
                 } elseif (strpos($value, 'scroll') !== false) {
                     $attr[] = [
                         'attribute' => 'background-attachment',
-                        'value' => 'scroll'
+                        'value' => 'scroll',
                     ];
                 } elseif (strpos($value, 'local') !== false) {
                     $attr[] = [
                         'attribute' => 'background-attachment',
-                        'value' => 'local'
+                        'value' => 'local',
                     ];
                 }
 
                 if (strpos($value, 'no-repeat') !== false) {
                     $attr[] = [
                         'attribute' => 'background-repeat',
-                        'value' => 'no-repeat'
+                        'value' => 'no-repeat',
                     ];
                 } elseif (strpos($value, 'repeat') !== false) {
                     $attr[] = [
                         'attribute' => 'background-repeat',
-                        'value' => 'repeat'
+                        'value' => 'repeat',
                     ];
                 } elseif (strpos($value, 'repeat-x') !== false) {
                     $attr[] = [
                         'attribute' => 'background-repeat',
-                        'value' => 'repeat-x'
+                        'value' => 'repeat-x',
                     ];
                 } elseif (strpos($value, 'repeat-y') !== false) {
                     $attr[] = [
                         'attribute' => 'background-repeat',
-                        'value' => 'repeat-y'
+                        'value' => 'repeat-y',
                     ];
                 }
 
@@ -1246,41 +1248,41 @@ class Style
                 if ($horizontal && $vertical) {
                     $attr[] = [
                         'attribute' => 'background-position',
-                        'value' => $vertical . ' ' . $horizontal
+                        'value' => $vertical . ' ' . $horizontal,
                     ];
                 } elseif ($horizontal || $vertical) {
                     $attr[] = [
                         'attribute' => 'background-position',
-                        'value' => $vertical . $horizontal
+                        'value' => $vertical . $horizontal,
                     ];
                 } elseif (preg_match('/[\s]+([\-0-9\.]+[a-z\%]+[\s]+[\-0-9\.]+[a-z\%]+)/', $value, $matches)) {
                     $attr[] = [
                         'attribute' => 'background-position',
-                        'value' => $matches[1]
+                        'value' => $matches[1],
                     ];
                 }
 
                 if (preg_match('/url\([\'\"](.+)[\'\"]\)/', $value, $matches)) {
                     $attr[] = [
                         'attribute' => 'background_image',
-                        'value' => $matches[1]
+                        'value' => $matches[1],
                     ];
                 }
 
                 if (preg_match('/(rgb[a]{0,1}\([\-0-9\.\,\s]+\))/', $value, $matches)) {
                     $attr[] = [
                         'attribute' => 'background-color',
-                        'value' => $matches[1]
+                        'value' => $matches[1],
                     ];
                 } elseif (preg_match('/(\#[\-0-9a-fA-F]{3,6})/', $value, $matches)) {
                     $attr[] = [
                         'attribute' => 'background-color',
-                        'value' => $matches[1]
+                        'value' => $matches[1],
                     ];
                 } elseif (preg_match('/(\$[\-0-9a-z]+)/', $value, $matches)) {
                     $attr[] = [
                         'attribute' => 'background-color',
-                        'value' => $matches[1]
+                        'value' => $matches[1],
                     ];
                 }
 
@@ -1289,7 +1291,7 @@ class Style
             if (preg_match('/url\([\'\"](.+)[\'\"]\)/', $value, $matches)) {
                 $attr[] = [
                     'attribute' => 'background_image',
-                    'value' => $matches[1]
+                    'value' => $matches[1],
                 ];
             } else {
                 $default = true;
@@ -1301,7 +1303,7 @@ class Style
         if ($default) {
             $attr[] = [
                 'attribute' => $attribute,
-                'value' => $value
+                'value' => $value,
             ];
         }
 
@@ -1310,7 +1312,7 @@ class Style
             foreach ($attr as $attrItem) {
                 $attrTmp[] = [
                     'attribute' => $attrItem['attribute'] . '_important',
-                    'value' => 'important'
+                    'value' => 'important',
                 ];
             }
         }
@@ -1323,9 +1325,9 @@ class Style
     {
         $areaExplodeArr = explode('@area', $css);
         $counter = 0;
-        $areaBlocks = array();
+        $areaBlocks = [];
         foreach ($areaExplodeArr as $areaExplode) {
-            if ($counter == 0){
+            if ($counter == 0) {
                 $areaBlocks[''] = $areaExplode;
             } else {
                 $first = stripos($areaExplode, '{');
@@ -1333,7 +1335,7 @@ class Style
 
                 $last = strrpos($areaExplode, '}');
 
-                $areaBlocks[$areaName] = substr($areaExplode, $first+1, $last-$first-1);
+                $areaBlocks[$areaName] = substr($areaExplode, $first + 1, $last - $first - 1);
             }
             $counter++;
 
@@ -1347,10 +1349,10 @@ class Style
         $noMedia = '';
         $mediaExplodeArr = explode('@media', $css);
         $counter = 0;
-        $visibilityBlock = array();
-        $mediaBlock = array();
+        $visibilityBlock = [];
+        $mediaBlock = [];
         foreach ($mediaExplodeArr as $mediaExplode) {
-            if ($counter == 0){
+            if ($counter == 0) {
                 $noMedia .= $mediaExplode;
             } else {
                 $visibility = 0;
@@ -1364,19 +1366,19 @@ class Style
                     $visibility = $matches[1] . 'w';
                 }
                 if ($visibility) {
-                    $vidAr = tep_db_fetch_array(tep_db_query("select id from " . TABLE_THEMES_SETTINGS . " where
+                    $vidAr = tep_db_fetch_array(tep_db_query('select id from ' . TABLE_THEMES_SETTINGS . " where
                     theme_name = '" . tep_db_input($theme_name) . "' and
                     setting_group = 'extend' and
                     setting_name = 'media_query' and
                     setting_value = '" . tep_db_input($visibility) . "'
                     "));
                     if (!$vidAr) {
-                        tep_db_perform(TABLE_THEMES_SETTINGS, array(
+                        tep_db_perform(TABLE_THEMES_SETTINGS, [
                             'theme_name' => $theme_name,
                             'setting_group' => 'extend',
                             'setting_name' => 'media_query',
-                            'setting_value' => $visibility
-                        ));
+                            'setting_value' => $visibility,
+                        ]);
                         $vid = tep_db_insert_id();
                     } else {
                         $vid = $vidAr['id'];
@@ -1386,8 +1388,8 @@ class Style
                 $mediaExplodeTmp = preg_split('/\}[\s\n]+\}/', $mediaExplode);
                 $noMedia .= $mediaExplodeTmp[1];
 
-                $block = trim(substr($mediaExplodeTmp[0], $first+1)) . '}';
-                
+                $block = trim(substr($mediaExplodeTmp[0], $first + 1)) . '}';
+
                 if ($visibility) {
                     $visibilityBlock[$vid] = $block;
                 } else {
@@ -1405,17 +1407,17 @@ class Style
         ];
     }
 
-    public static function getCss($theme_name, $widgets = array(), $page = '', $all = true, $cachedAccessibility = null )
+    public static function getCss($theme_name, $widgets = [], $page = '', $all = true, $cachedAccessibility = null)
     {
         $css = '';
         $tab = '  ';
         $displacement = '';
-        $byMedia = array();
-        $areaArr = array();
+        $byMedia = [];
+        $areaArr = [];
         if (!is_array($widgets) && !$widgets) {
-            $widgets = array();
+            $widgets = [];
         } elseif (is_string($widgets) && $widgets) {
-            $widgets = array($widgets);
+            $widgets = [$widgets];
         }
 
         if ($all && $page) {
@@ -1450,7 +1452,7 @@ class Style
             } else {
                 static $cmd = null; // unfortunately prepared queries has not enought effect
                 if (is_null($cmd)) {
-                    $cmd = \Yii::$app->db->createCommand("select * from " . TABLE_THEMES_STYLES . " where theme_name = :theme and accessibility = :area order by accessibility, media, selector, attribute, visibility");
+                    $cmd = \Yii::$app->db->createCommand('select * from ' . TABLE_THEMES_STYLES . ' where theme_name = :theme and accessibility = :area order by accessibility, media, selector, attribute, visibility');
                 }
                 $reader = $cmd->bindValues([':theme' => tep_db_input($theme_name), ':area' => reset($areaArr)])->query();
             }
@@ -1462,7 +1464,7 @@ class Style
             $reader = $reader->each();
         }
 
-        foreach($reader as $item) {
+        foreach ($reader as $item) {
             $vArr = self::vArr($item['visibility']);
             $visibility = '';
             foreach ($vArr as $vKey => $vItem) {
@@ -1474,7 +1476,7 @@ class Style
             if (
                 self::$cssFrontend &&
                 $item['accessibility'] &&
-                (strpos($item['accessibility'], '.b-') === 0 || strpos($item['accessibility'], '.s-') === 0 ) &&
+                (strpos($item['accessibility'], '.b-') === 0 || strpos($item['accessibility'], '.s-') === 0) &&
                 strpos($item['selector'], $item['accessibility']) !== false
             ) {
                 $item['selector'] = trim(str_replace($item['accessibility'], '', $item['selector']));
@@ -1482,16 +1484,16 @@ class Style
             if (count($vArr) > 0) {
                 $selectorArr = explode(',', $item['selector']);
                 foreach ($selectorArr as $sItem => $class) {
-                    if (in_array(2, $vArr)){
+                    if (in_array(2, $vArr)) {
                         $selectorArr[$sItem] .= '.active';
                     }
-                    if (in_array(3, $vArr)){
+                    if (in_array(3, $vArr)) {
                         $selectorArr[$sItem] .= ':before';
                     }
-                    if (in_array(4, $vArr)){
+                    if (in_array(4, $vArr)) {
                         $selectorArr[$sItem] .= ':after';
                     }
-                    if (in_array(1, $vArr)){
+                    if (in_array(1, $vArr)) {
                         $selectorArr[$sItem] .= ':hover';
                     }
                 }
@@ -1527,11 +1529,10 @@ class Style
             }
         }
 
-
         if (!self::$cssFrontend && (count($widgets) == 0 || $widgets[0] == 'block_box')) {
-            $boxes = tep_db_query("
+            $boxes = tep_db_query('
             select bs.box_id, bs.setting_value, bs.visibility, bs.setting_name
-            from " . TABLE_DESIGN_BOXES_TMP . " b, " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs 
+            from ' . TABLE_DESIGN_BOXES_TMP . ' b, ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs 
             where 
                 b.theme_name = '" . tep_db_input($theme_name) . "' and
                 b.id = bs.box_id
@@ -1580,11 +1581,10 @@ class Style
             }
         }
 
-
         $cssArr = [
             'general' => '',
             'visibility' => '',
-            'media' => ''
+            'media' => '',
         ];
 
         foreach ($byMedia as $key => $item) {
@@ -1593,9 +1593,9 @@ class Style
             } elseif ($key == 'visibility') {
 
                 static $cachedMediaSizes = [];
-                if (!is_array($mediaSizes[tep_db_input($theme_name)]??null)) {
+                if (!is_array($mediaSizes[tep_db_input($theme_name)] ?? null)) {
                     $mediaSizes = [];
-                    $mediaSizesQuery = tep_db_query("select id, setting_value from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_group = 'extend' and setting_name = 'media_query'");
+                    $mediaSizesQuery = tep_db_query('select id, setting_value from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_group = 'extend' and setting_name = 'media_query'");
 
                     while ($mediaSize = tep_db_fetch_array($mediaSizesQuery)) {
                         $arr2 = explode('w', $mediaSize['setting_value']);
@@ -1614,21 +1614,20 @@ class Style
 
                 foreach ($mediaSizes as $media) {
                     $arr = $item[$media] ?? null;
-                    $query = tep_db_fetch_array(tep_db_query("select setting_value from " . TABLE_THEMES_SETTINGS . " where id = '" . $media . "'"));
+                    $query = tep_db_fetch_array(tep_db_query('select setting_value from ' . TABLE_THEMES_SETTINGS . " where id = '" . $media . "'"));
                     $arr2 = explode('w', $query['setting_value']);
                     $media = '';
-                    if (isset($arr2[0]) && $arr2[0]){
+                    if (isset($arr2[0]) && $arr2[0]) {
                         $media .= '(min-width:' . $arr2[0] . 'px)';
                     }
-                    if (isset($arr2[0]) && $arr2[0] && isset($arr2[1]) && $arr2[1]){
+                    if (isset($arr2[0]) && $arr2[0] && isset($arr2[1]) && $arr2[1]) {
                         $media .= ' and ';
                     }
-                    if (isset($arr2[1]) && $arr2[1]){
+                    if (isset($arr2[1]) && $arr2[1]) {
                         $media .= '(max-width:' . $arr2[1] . 'px)';
                     }
                     $cssArr['visibility'] = $cssArr['visibility'] . self::getCssMedia($arr, $media, $tab, $displacement);
                 }
-
 
             } elseif ($key == 'media') {
                 foreach ($item as $media => $arr) {
@@ -1664,19 +1663,19 @@ class Style
             $css .= $displacement . $key . ' {' . $br;
             $displacement = $displacement . $tab;
             $css .= self::getAttributes($item, $displacement, $br, true);
-            $displacement = substr ($displacement, strlen($tab));
+            $displacement = substr($displacement, strlen($tab));
             $css .= $displacement . '}' . $br;
         }
 
         if ($media) {
-            $displacement = substr ($displacement, strlen($tab));
+            $displacement = substr($displacement, strlen($tab));
             $css .= $displacement . '}' . $br;
         }
 
         return $css;
     }
 
-    public static $attributesHaveRules = ['rotate', 'content', 'display', 'left_measure', 'right_measure', 'width_measure', 'min_width_measure', 'max_width_measure', 'height_measure', 'min_height_measure', 'max_height_measure', 'p_width', 'font-family', 'font_size_measure', 'line_height_measure', 'text_shadow_left', 'text_shadow_left_measure', 'text_shadow_top', 'text_shadow_top_measure', 'text_shadow_size', 'text_shadow_size_measure', 'text_shadow_color', 'box_shadow_blur', 'box_shadow_blur_measure', 'box_shadow_spread', 'box_shadow_spread_measure', 'box_shadow_color', 'box_shadow_left', 'box_shadow_left_measure', 'box_shadow_top', 'box_shadow_top_measure', 'box_shadow_set', 'background_image', 'padding-top', 'padding-left', 'padding-right', 'padding-bottom', 'padding_top_measure',  'padding_left_measure', 'padding_right_measure', 'padding_bottom_measure', 'margin-top', 'margin-left', 'margin-right', 'margin-bottom', 'margin_top_measure', 'margin_left_measure', 'margin_right_measure', 'margin_bottom_measure', 'border-top-width', 'border_top_width_measure', 'border-top-color', 'border-top-style', 'border-left-width', 'border_left_width_measure', 'border-left-color', 'border-left-style', 'border-right-width', 'border_right_width_measure', 'border-right-style', 'border-right-color', 'border-bottom-width', 'border_bottom_width_measure', 'border-bottom-style', 'border-bottom-color', 'border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius', 'border_radius_1_measure', 'border_radius_2_measure', 'border_radius_3_measure', 'border_radius_4_measure', 'display_none', 'box_align', 'line-height'
+    public static $attributesHaveRules = ['rotate', 'content', 'display', 'left_measure', 'right_measure', 'width_measure', 'min_width_measure', 'max_width_measure', 'height_measure', 'min_height_measure', 'max_height_measure', 'p_width', 'font-family', 'font_size_measure', 'line_height_measure', 'text_shadow_left', 'text_shadow_left_measure', 'text_shadow_top', 'text_shadow_top_measure', 'text_shadow_size', 'text_shadow_size_measure', 'text_shadow_color', 'box_shadow_blur', 'box_shadow_blur_measure', 'box_shadow_spread', 'box_shadow_spread_measure', 'box_shadow_color', 'box_shadow_left', 'box_shadow_left_measure', 'box_shadow_top', 'box_shadow_top_measure', 'box_shadow_set', 'background_image', 'padding-top', 'padding-left', 'padding-right', 'padding-bottom', 'padding_top_measure',  'padding_left_measure', 'padding_right_measure', 'padding_bottom_measure', 'margin-top', 'margin-left', 'margin-right', 'margin-bottom', 'margin_top_measure', 'margin_left_measure', 'margin_right_measure', 'margin_bottom_measure', 'border-top-width', 'border_top_width_measure', 'border-top-color', 'border-top-style', 'border-left-width', 'border_left_width_measure', 'border-left-color', 'border-left-style', 'border-right-width', 'border_right_width_measure', 'border-right-style', 'border-right-color', 'border-bottom-width', 'border_bottom_width_measure', 'border-bottom-style', 'border-bottom-color', 'border-top-left-radius', 'border-top-right-radius', 'border-bottom-right-radius', 'border-bottom-left-radius', 'border_radius_1_measure', 'border_radius_2_measure', 'border_radius_3_measure', 'border_radius_4_measure', 'display_none', 'box_align', 'line-height',
 ];//these attributes have rules
 
     public static $attributesNoRules = ['animation-delay', 'background', 'background-attachment', 'background-clip', 'background-color',  'background-origin', 'background-position', 'background-position-x', 'background-position-y', 'background-repeat', 'background-size', 'border', 'border-bottom', 'border-collapse', 'border-color', 'border-image', 'border-left', 'border-radius', 'border-right', 'border-spacing', 'border-style', 'border-top', 'border-width', 'box-shadow', 'box-sizing', 'caption-side', 'clear', 'clip', 'color', 'column-count', 'column-gap', 'column-rule', 'column-width', 'columns', 'counter-increment', 'counter-reset', 'cursor', 'direction', 'empty-cells', 'filter', 'float', 'font', 'font-stretch', 'font-style', 'font-variant', 'font-weight', 'hasLayout', 'hyphens', 'image-rendering', 'letter-spacing', 'list-style', 'list-style-image', 'list-style-position', 'list-style-type', 'opacity', 'orphans', 'outline', 'outline-color', 'outline-offset', 'outline-style', 'outline-width', 'overflow', 'overflow-x', 'overflow-y', 'page-break-after', 'page-break-before', 'page-break-inside', 'position', 'quotes', 'resize', 'scrollbar-3dlight-color', 'scrollbar-arrow-color', 'scrollbar-base-color', 'scrollbar-darkshadow-color', 'scrollbar-face-color', 'scrollbar-highlight-color', 'scrollbar-shadow-color', 'scrollbar-track-color', 'tab-size', 'table-layout', 'text-align', 'text-align-last', 'text-decoration', 'text-decoration-color', 'text-decoration-line', 'text-decoration-style', 'text-indent', 'text-overflow', 'text-shadow', 'text-transform', 'transform', 'transform-origin', 'transform-style', 'transition', 'transition-delay', 'transition-property', 'transition-timing-function', 'unicode-bidi', 'vertical-align', 'visibility', 'white-space', 'widows', 'word-break', 'word-spacing', 'word-wrap', 'writing-mode', 'z-index', 'zoom', 'flex-direction', 'flex-wrap', 'flex-flow', 'justify-content', 'align-items', 'align-content', 'margin', 'padding'];
@@ -1738,9 +1737,13 @@ class Style
             $style .= '-ms-flex:' . $attributes['flex-grow'] . ';';
         }
         if (isset($attributes['align-items']) && !$displacement) {
-            if ($attributes['align-items'] == 'flex-start') $flexAttr = 'start';
-            elseif ($attributes['align-items'] == 'flex-end') $flexAttr = 'end';
-            else $flexAttr = $attributes['align-items'];
+            if ($attributes['align-items'] == 'flex-start') {
+                $flexAttr = 'start';
+            } elseif ($attributes['align-items'] == 'flex-end') {
+                $flexAttr = 'end';
+            } else {
+                $flexAttr = $attributes['align-items'];
+            }
             $style .= '-ms-flex-align:' . $flexAttr . ';';
         }
         if (isset($attributes['line-height'])) {
@@ -1769,7 +1772,7 @@ class Style
         if (method_exists(Yii::$app->request, 'get')) {
             $to_pdf = (int)Yii::$app->request->get('to_pdf', 0);
         }
-        if (isset($attributes['font-family']) && !$to_pdf){
+        if (isset($attributes['font-family']) && !$to_pdf) {
             if (Yii::$app->controller->action->id == 'get-css' || stripos($attributes['font-family'], "'") !== false || stripos($attributes['font-family'], '"') !== false) {
                 $style .= $displacement . 'font-family:' . $attributes['font-family'] . '' . $importantArr['font-family'] . ';' . $br;
             } else {
@@ -1785,18 +1788,27 @@ class Style
             isset($attributes['text_shadow_top']) ||
             isset($attributes['text_shadow_size']) ||
             (isset($attributes['text_shadow_color']) && $attributes['text_shadow_color'])
-        ){
+        ) {
             $text_shadow_left = $attributes['text_shadow_left'];
             $text_shadow_top = $attributes['text_shadow_top'];
             $text_shadow_size = $attributes['text_shadow_size'];
             $text_shadow_color = $attributes['text_shadow_color'];
-            if ($text_shadow_left) $text_shadow_left .= 'px';
-            else $text_shadow_left = '0';
-            if ($text_shadow_top) $text_shadow_top .= 'px';
-            else $text_shadow_top = '0';
-            if ($text_shadow_size) $text_shadow_size .= 'px';
-            else $text_shadow_size = '0';
-            if ($text_shadow_size && $text_shadow_color){
+            if ($text_shadow_left) {
+                $text_shadow_left .= 'px';
+            } else {
+                $text_shadow_left = '0';
+            }
+            if ($text_shadow_top) {
+                $text_shadow_top .= 'px';
+            } else {
+                $text_shadow_top = '0';
+            }
+            if ($text_shadow_size) {
+                $text_shadow_size .= 'px';
+            } else {
+                $text_shadow_size = '0';
+            }
+            if ($text_shadow_size && $text_shadow_color) {
                 $style .= $displacement . 'text-shadow:' . $text_shadow_left.' '.$text_shadow_top.' '.$text_shadow_size.' '.$text_shadow_color . ArrayHelper::getValue($importantArr, 'text-shadow') . ';' . $br;
             }
         }
@@ -1804,23 +1816,35 @@ class Style
             (isset($attributes['box_shadow_blur']) ||
                 isset($attributes['box_shadow_spread'])) &&
             $attributes['box_shadow_color']
-        ){
+        ) {
             $box_shadow_left = $attributes['box_shadow_left'] ?? null;
             $box_shadow_top = $attributes['box_shadow_top'] ?? null;
             $box_shadow_blur = $attributes['box_shadow_blur'] ?? null;
             $box_shadow_spread = $attributes['box_shadow_spread'] ?? null;
-            if ($box_shadow_left) $box_shadow_left .= 'px';
-            else $box_shadow_left = '0';
-            if ($box_shadow_top) $box_shadow_top .= 'px';
-            else $box_shadow_top = '0';
-            if ($box_shadow_blur) $box_shadow_blur .= 'px';
-            else $box_shadow_blur = '0';
-            if ($box_shadow_spread) $box_shadow_spread .= 'px';
-            else $box_shadow_spread = '0';
+            if ($box_shadow_left) {
+                $box_shadow_left .= 'px';
+            } else {
+                $box_shadow_left = '0';
+            }
+            if ($box_shadow_top) {
+                $box_shadow_top .= 'px';
+            } else {
+                $box_shadow_top = '0';
+            }
+            if ($box_shadow_blur) {
+                $box_shadow_blur .= 'px';
+            } else {
+                $box_shadow_blur = '0';
+            }
+            if ($box_shadow_spread) {
+                $box_shadow_spread .= 'px';
+            } else {
+                $box_shadow_spread = '0';
+            }
             $style .= $displacement . 'box-shadow:' . ArrayHelper::getValue($attributes, 'box_shadow_set').' ' . $box_shadow_left.' '.
                 $box_shadow_top.' '.$box_shadow_blur.' '.$box_shadow_spread.' '.$attributes['box_shadow_color'] . ArrayHelper::getValue($importantArr, 'box-shadow') . ';' . $br;
         }
-        if (isset($attributes['background_image']) && $attributes['background_image']){
+        if (isset($attributes['background_image']) && $attributes['background_image']) {
             $style .= $displacement . 'background-image:url(\'' . \frontend\design\Info::themeImage($attributes['background_image']) . '\')' . ArrayHelper::getValue($importantArr, 'background-image') . ';' . $br;
         }
 
@@ -1922,7 +1946,6 @@ class Style
             }
         }
 
-
         $attributes['border_radius_1_measure'] = $attributes['border_radius_1_measure'] ?? null;
         $attributes['border_radius_2_measure'] = $attributes['border_radius_2_measure'] ?? null;
         $attributes['border_radius_3_measure'] = $attributes['border_radius_3_measure'] ?? null;
@@ -2015,7 +2038,7 @@ class Style
                 $style .= $displacement . 'margin:' .
                     $attributes['margin-top'] . self::dimension($attributes['margin_top_measure']) . ' ' .
                     (
-                    $attributes['margin_right_measure'] == 'auto' ?
+                        $attributes['margin_right_measure'] == 'auto' ?
                         'auto' :
                         $attributes['margin-right'] . self::dimension($attributes['margin_right_measure'], '', $attributes['margin-right'])
                     ) . ' ' .
@@ -2034,7 +2057,7 @@ class Style
                     ) . ' ' .
                     $attributes['margin-bottom'] . self::dimension($attributes['margin_bottom_measure']) . ' ' .
                     (
-                    $attributes['margin_left_measure'] == 'auto' ?
+                        $attributes['margin_left_measure'] == 'auto' ?
                         'auto' :
                         $attributes['margin-left'] . self::dimension($attributes['margin_left_measure'], '', $attributes['margin-left'])
                     ) . self::cssImportant($importantArr, 'margin') . ';' . $br;
@@ -2058,7 +2081,6 @@ class Style
             }
         }
 
-
         return $style;
     }
 
@@ -2068,8 +2090,8 @@ class Style
             return '';
         }
 
-        if ($dimension){
-            if ($dimension == 'pr'){
+        if ($dimension) {
+            if ($dimension == 'pr') {
                 $dimension = '%';
             }
             $text = $dimension;
@@ -2124,28 +2146,30 @@ class Style
 
         $str = implode(',', $arr);
 
-        if (!$str) $str = '';
+        if (!$str) {
+            $str = '';
+        }
 
         return $str;
     }
 
     private static function addThemeStyleCacheRecord($theme_name, $accessibility, $accessibilityStyles)
     {
-        $css = self::getCss($theme_name, array($accessibility), '', true, $accessibilityStyles);
-        $sqlDataArray = array(
+        $css = self::getCss($theme_name, [$accessibility], '', true, $accessibilityStyles);
+        $sqlDataArray = [
             'theme_name' => $theme_name,
             'accessibility' => $accessibility,
             'css' => $css,
-        );
+        ];
         tep_db_perform(TABLE_THEMES_STYLES_CACHE, $sqlDataArray);
         return $css;
     }
 
     public static function createCache($theme_name, $accessibility = false, $needDelete = true)
     {
-        if ($accessibility == 'all'){
+        if ($accessibility == 'all') {
             $accessibility = false;
-        } elseif ($accessibility == 'main'){
+        } elseif ($accessibility == 'main') {
             $accessibility = '';
         }
 
@@ -2153,7 +2177,7 @@ class Style
         $themesPath = DIR_FS_CATALOG . 'themes' . DIRECTORY_SEPARATOR . $theme_name . DIRECTORY_SEPARATOR;
 
         if ($needDelete) {
-            tep_db_query("delete from " . TABLE_THEMES_STYLES_CACHE . " where theme_name = '" . tep_db_input($theme_name) . "'" . ($accessibility !== false ? " and accessibility = '" . $accessibility . "'" : ""));
+            tep_db_query('delete from ' . TABLE_THEMES_STYLES_CACHE . " where theme_name = '" . tep_db_input($theme_name) . "'" . ($accessibility !== false ? " and accessibility = '" . $accessibility . "'" : ''));
         }
 
         $bottom = '';
@@ -2167,7 +2191,7 @@ class Style
 
             $accessibilityStyles = [];
             $prevAccessibility = null;
-            foreach($query->each() as $item) {
+            foreach ($query->each() as $item) {
                 if ($item['accessibility'] != $prevAccessibility && !empty($accessibilityStyles)) {
                     $css = self::addThemeStyleCacheRecord($theme_name, $prevAccessibility, $accessibilityStyles);
                     if ($prevAccessibility == '.b-bottom') {
@@ -2192,12 +2216,12 @@ class Style
             file_put_contents($filePath . 'style.css', $bottom);
 
         } else {
-            $css = self::getCss($theme_name, array($accessibility));
-            $sqlDataArray = array(
+            $css = self::getCss($theme_name, [$accessibility]);
+            $sqlDataArray = [
                 'theme_name' => $theme_name,
                 'accessibility' => $accessibility,
                 'css' => $css,
-            );
+            ];
             tep_db_perform(TABLE_THEMES_STYLES_CACHE, $sqlDataArray);
 
             if ($accessibility == '.b-bottom') {
@@ -2213,7 +2237,7 @@ class Style
         if (file_exists($themesPath . 'cache' . DIRECTORY_SEPARATOR)) {
             \yii\helpers\FileHelper::removeDirectory($themesPath . 'cache' . DIRECTORY_SEPARATOR);
         }
-        
+
     }
 
     public static function compareAttributes($attr1, $attr2)
@@ -2252,7 +2276,7 @@ class Style
      * */
     public static function paramsFromOneInput($values)
     {
-        if (is_array($values)){
+        if (is_array($values)) {
             $params1 = $values;
         } else {
             $params1 = json_decode($values, true);
@@ -2267,7 +2291,7 @@ class Style
             foreach ($keys as $i => $val) {
                 $keys[$i] = str_replace(']', '', $val);
             }
-            if (isset($keys[0])){
+            if (isset($keys[0])) {
                 if (isset($keys[1])) {
                     if (isset($keys[2])) {
                         if (isset($keys[3])) {
@@ -2295,7 +2319,6 @@ class Style
         return $params;
     }
 
-
     /*
      * changeCssAttributes change all old css attributes (not general) to new
      * it can be removed after update all projects
@@ -2303,17 +2326,17 @@ class Style
     public static function changeCssAttributes($theme_name)
     {
 
-        $query = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . $theme_name . "' and setting_group = 'hide' and setting_name = 'new_attributes'");
+        $query = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . $theme_name . "' and setting_group = 'hide' and setting_name = 'new_attributes'");
 
         if (tep_db_num_rows($query) === 0) {
-            tep_db_perform(TABLE_THEMES_SETTINGS, array(
+            tep_db_perform(TABLE_THEMES_SETTINGS, [
                 'theme_name' => $theme_name,
                 'setting_group' => 'hide',
                 'setting_name' => 'new_attributes',
-                'setting_value' => '1'
-            ));
+                'setting_value' => '1',
+            ]);
 
-            $query = tep_db_query("select * from " . TABLE_THEMES_STYLES . " where theme_name = '" . $theme_name . "'");
+            $query = tep_db_query('select * from ' . TABLE_THEMES_STYLES . " where theme_name = '" . $theme_name . "'");
 
             $attributesArr = ['z_index', 'vertical_align', 'text_transform', 'text_decoration', 'min_width', 'max_width', 'min_height', 'max_height', 'padding_left', 'padding_right', 'border_left_width', 'border_right_width', 'font_family', 'font_size', 'font_weight', 'font_style', 'line_height', 'text_align', 'background_color', 'background_position', 'background_repeat', 'background_size', 'padding_top', 'padding_bottom', 'margin_top', 'margin_left', 'margin_right', 'margin_bottom', 'border_top_width', 'border_top_color', 'border_left_color', 'border_right_color', 'border_bottom_width', 'border_bottom_color'];
 
@@ -2324,54 +2347,61 @@ class Style
             while ($item = tep_db_fetch_array($query)) {
                 if (in_array($item['attribute'], $attributesArr)) {
 
-                    tep_db_perform(TABLE_THEMES_STYLES, array('attribute' => str_replace('_', '-', $item['attribute'])), 'update', " id = '" . $item['id'] . "'");
+                    tep_db_perform(TABLE_THEMES_STYLES, ['attribute' => str_replace('_', '-', $item['attribute'])], 'update', " id = '" . $item['id'] . "'");
                     //tep_db_perform(TABLE_THEMES_STYLES_TMP, array('attribute' => str_replace('_', '-', $item['attribute'])), 'update', " id = '" . $item['id'] . "'");
 
                 } elseif (in_array($item['attribute'], $attributesArr2)) {
 
-                    tep_db_perform(TABLE_THEMES_STYLES, array('attribute' => str_replace('_dimension', '_measure', $item['attribute'])), 'update', " id = '" . $item['id'] . "'");
+                    tep_db_perform(TABLE_THEMES_STYLES, ['attribute' => str_replace('_dimension', '_measure', $item['attribute'])], 'update', " id = '" . $item['id'] . "'");
                     //tep_db_perform(TABLE_THEMES_STYLES_TMP, array('attribute' => str_replace('_dimension', '_measure', $item['attribute'])), 'update', " id = '" . $item['id'] . "'");
 
                 } elseif (in_array($item['attribute'], $attributesArr3)) {
 
                     switch ($item['attribute']) {
-                        case 'border_radius_1': $attr = 'border-top-left-radius'; break;
-                        case 'border_radius_2': $attr = 'border-top-right-radius'; break;
-                        case 'border_radius_3': $attr = 'border-bottom-right-radius'; break;
-                        case 'border_radius_4': $attr = 'border-bottom-left-radius'; break;
+                        case 'border_radius_1': $attr = 'border-top-left-radius';
+                            break;
+                        case 'border_radius_2': $attr = 'border-top-right-radius';
+                            break;
+                        case 'border_radius_3': $attr = 'border-bottom-right-radius';
+                            break;
+                        case 'border_radius_4': $attr = 'border-bottom-left-radius';
+                            break;
 
                     }
-                    tep_db_perform(TABLE_THEMES_STYLES, array('attribute' => $attr), 'update', " id = '" . $item['id'] . "'");
+                    tep_db_perform(TABLE_THEMES_STYLES, ['attribute' => $attr], 'update', " id = '" . $item['id'] . "'");
                     //tep_db_perform(TABLE_THEMES_STYLES_TMP, array('attribute' => $attr), 'update', " id = '" . $item['id'] . "'");
 
                 }
             }
 
-
-            $query = tep_db_query("select * from " . TABLE_DESIGN_BOXES_SETTINGS_TMP);
+            $query = tep_db_query('select * from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP);
 
             while ($item = tep_db_fetch_array($query)) {
                 if (in_array($item['setting_name'], $attributesArr)) {
 
-                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array('setting_name' => str_replace('_', '-', $item['setting_name'])), 'update', " id = '" . $item['id'] . "'");
-                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS_TMP, array('setting_name' => str_replace('_', '-', $item['setting_name'])), 'update', " id = '" . $item['id'] . "'");
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, ['setting_name' => str_replace('_', '-', $item['setting_name'])], 'update', " id = '" . $item['id'] . "'");
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS_TMP, ['setting_name' => str_replace('_', '-', $item['setting_name'])], 'update', " id = '" . $item['id'] . "'");
 
                 } elseif (in_array($item['setting_name'], $attributesArr2)) {
 
-                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array('setting_name' => str_replace('_dimension', '_measure', $item['setting_name'])), 'update', " id = '" . $item['id'] . "'");
-                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS_TMP, array('setting_name' => str_replace('_dimension', '_measure', $item['setting_name'])), 'update', " id = '" . $item['id'] . "'");
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, ['setting_name' => str_replace('_dimension', '_measure', $item['setting_name'])], 'update', " id = '" . $item['id'] . "'");
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS_TMP, ['setting_name' => str_replace('_dimension', '_measure', $item['setting_name'])], 'update', " id = '" . $item['id'] . "'");
 
                 } elseif (in_array($item['attribute'] ?? null, $attributesArr3)) {
 
                     switch ($item['attribute']) {
-                        case 'border_radius_1': $attr = 'border-top-left-radius'; break;
-                        case 'border_radius_2': $attr = 'border-top-right-radius'; break;
-                        case 'border_radius_3': $attr = 'border-bottom-right-radius'; break;
-                        case 'border_radius_4': $attr = 'border-bottom-left-radius'; break;
+                        case 'border_radius_1': $attr = 'border-top-left-radius';
+                            break;
+                        case 'border_radius_2': $attr = 'border-top-right-radius';
+                            break;
+                        case 'border_radius_3': $attr = 'border-bottom-right-radius';
+                            break;
+                        case 'border_radius_4': $attr = 'border-bottom-left-radius';
+                            break;
 
                     }
-                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array('setting_name' => $attr), 'update', " id = '" . $item['id'] . "'");
-                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS_TMP, array('setting_name' => $attr), 'update', " id = '" . $item['id'] . "'");
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, ['setting_name' => $attr], 'update', " id = '" . $item['id'] . "'");
+                    tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS_TMP, ['setting_name' => $attr], 'update', " id = '" . $item['id'] . "'");
 
                 }
             }
@@ -2383,7 +2413,7 @@ class Style
     {
         $listArr = [];
 
-        $query = tep_db_query("select distinct accessibility from " . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($theme_name) . "' order by accessibility");
+        $query = tep_db_query('select distinct accessibility from ' . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($theme_name) . "' order by accessibility");
 
         while ($item = tep_db_fetch_array($query)) {
             $listArr[] = $item['accessibility'];
@@ -2396,9 +2426,9 @@ class Style
     {
         $updates = [];
 
-        $update = tep_db_fetch_array(tep_db_query("
+        $update = tep_db_fetch_array(tep_db_query('
                 select setting_value 
-                from " . TABLE_THEMES_SETTINGS . " 
+                from ' . TABLE_THEMES_SETTINGS . " 
                 where 
                     theme_name = '" . tep_db_input($theme_name) . "' and
                     setting_group = 'hide' and
@@ -2429,9 +2459,9 @@ class Style
 
     public static function saveUpdateDate($theme_name, $date)
     {
-        $update = tep_db_fetch_array(tep_db_query("
+        $update = tep_db_fetch_array(tep_db_query('
                 select id 
-                from " . TABLE_THEMES_SETTINGS . " 
+                from ' . TABLE_THEMES_SETTINGS . " 
                 where 
                     theme_name = '" . tep_db_input($theme_name) . "' and
                     setting_group = 'hide' and
@@ -2439,17 +2469,17 @@ class Style
             "));
 
         if ($update['id']) {
-            $sql_data_array = array(
-                'setting_value' => $date
-            );
+            $sql_data_array = [
+                'setting_value' => $date,
+            ];
             tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array, 'update', " id = '" . (int)$update['id'] . "'");
         } else {
-            $sql_data_array = array(
+            $sql_data_array = [
                 'theme_name' => $theme_name,
                 'setting_group' => 'hide',
                 'setting_name' => 'theme_update',
                 'setting_value' => $date,
-            );
+            ];
             tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
         }
     }
@@ -2460,9 +2490,9 @@ class Style
             $visibilityArr = explode(',', $array[$key]['visibility']);
             foreach ($visibilityArr as $i => $id) {
                 if ($id > 10) {
-                    $width = tep_db_fetch_array(tep_db_query("
+                    $width = tep_db_fetch_array(tep_db_query('
                         select setting_value
-                        from " . TABLE_THEMES_SETTINGS . " 
+                        from ' . TABLE_THEMES_SETTINGS . " 
                         where id = '" . (int)$id . "' and 	setting_name = 'media_query'
                     "));
                     $visibilityArr[$i] = $width['setting_value'];
@@ -2480,20 +2510,20 @@ class Style
             $visibilityArr = explode(',', $array[$key]['visibility']);
             foreach ($visibilityArr as $i => $width) {
                 if (strlen($width) > 1) {
-                    $id = tep_db_fetch_array(tep_db_query("
+                    $id = tep_db_fetch_array(tep_db_query('
                         select id
-                        from " . TABLE_THEMES_SETTINGS . " 
+                        from ' . TABLE_THEMES_SETTINGS . " 
                         where setting_value = '" . tep_db_input($width) . "' and setting_name = 'media_query'
                     "));
                     if ($id['id']) {
                         $visibilityArr[$i] = $id['id'];
                     } else {
-                        $sql_data_array = array(
+                        $sql_data_array = [
                             'theme_name' => $theme_name,
                             'setting_group' => 'extend',
                             'setting_name' => 'media_query',
                             'setting_value' => $width,
-                        );
+                        ];
                         tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
                         $visibilityArr[$i] = tep_db_insert_id();
                     }
@@ -2573,7 +2603,7 @@ class Style
         return [
             'attributes_new' => $attributesNew,
             'attributes_changed' => $attributesChanged,
-            'attributes_delete' => $attributesDelete
+            'attributes_delete' => $attributesDelete,
         ];
 
     }
@@ -2588,9 +2618,9 @@ class Style
 
                 $update[$newChangedDelete][$i]['local_id'] = $i;
 
-                $query = tep_db_fetch_array(tep_db_query("
+                $query = tep_db_fetch_array(tep_db_query('
                     select * 
-                    from " . TABLE_THEMES_STYLES . " 
+                    from ' . TABLE_THEMES_STYLES . " 
                     where 
                         theme_name = '" . tep_db_input($theme_name) . "' and
                         selector = '" . tep_db_input($attribute['selector']) . "' and
@@ -2626,16 +2656,16 @@ class Style
                             $selectorArr = explode(',', $attribute['selector']);
                             foreach ($selectorArr as $sItem => $class) {
                                 $selectorArr[$sItem] = trim($selectorArr[$sItem]);
-                                if ($visibilityId == 2){
+                                if ($visibilityId == 2) {
                                     $selectorArr[$sItem] .= '.active';
                                 }
-                                if ($visibilityId == 3){
+                                if ($visibilityId == 3) {
                                     $selectorArr[$sItem] .= ':before';
                                 }
-                                if ($visibilityId == 4){
+                                if ($visibilityId == 4) {
                                     $selectorArr[$sItem] .= ':after';
                                 }
-                                if ($visibilityId == 1){
+                                if ($visibilityId == 1) {
                                     $selectorArr[$sItem] .= ':hover';
                                 }
                             }
@@ -2685,9 +2715,9 @@ class Style
 
         if ($visibilityAndMedia == 'all' || $visibilityAndMedia == 'visibility') {
             $queriesTmp = [];
-            $mediaQueries = tep_db_query("
+            $mediaQueries = tep_db_query('
                 select id, setting_value 
-                from " . TABLE_THEMES_SETTINGS . " 
+                from ' . TABLE_THEMES_SETTINGS . " 
                 where
                     theme_name = '" . tep_db_input($theme_name) . "' and
                     setting_name = 'media_query'
@@ -2710,7 +2740,7 @@ class Style
                 $queriesTmp[($arr2[1] ? $arr2[1] : $arr2[0])] = [
                     'id' => $item['id'],
                     'full' => $full,
-                    'short' => $item['setting_value']
+                    'short' => $item['setting_value'],
                 ];
             }
 
@@ -2720,16 +2750,16 @@ class Style
         }
 
         if ($visibilityAndMedia == 'all' || $visibilityAndMedia == 'media') {
-            $mediaQueries = tep_db_query("
+            $mediaQueries = tep_db_query('
                 select distinct media 
-                from " . TABLE_THEMES_STYLES . " 
+                from ' . TABLE_THEMES_STYLES . " 
                 where
                     theme_name = '" . tep_db_input($theme_name) . "' and
                     media != ''
             ");
             while ($item = tep_db_fetch_array($mediaQueries)) {
                 $queries[] = [
-                    'full' => $item['media']
+                    'full' => $item['media'],
                 ];
             }
         }
@@ -2748,7 +2778,7 @@ class Style
 
                     if ($tideName == 'attributes_new' || $tideName == 'attributes_changed') {
 
-                        $query = tep_db_fetch_array(tep_db_query("select id from " . TABLE_THEMES_STYLES . " where
+                        $query = tep_db_fetch_array(tep_db_query('select id from ' . TABLE_THEMES_STYLES . " where
                                 theme_name = '" . tep_db_input($theme_name) . "' and
                                 selector = '" . tep_db_input($attribute['selector']) . "' and
                                 attribute = '" . tep_db_input($attribute['attribute']) . "' and
@@ -2756,9 +2786,9 @@ class Style
                                 media = '" . tep_db_input($attribute['media']) . "'
                         "));
                         if ($query['id']) {
-                            $sql_data_array = array(
-                                'value' => tep_db_input($attribute['value'])
-                            );
+                            $sql_data_array = [
+                                'value' => tep_db_input($attribute['value']),
+                            ];
                             tep_db_perform(TABLE_THEMES_STYLES, $sql_data_array, 'update', "
                                 theme_name = '" . tep_db_input($theme_name) . "' and
                                 selector = '" . tep_db_input($attribute['selector']) . "' and
@@ -2767,22 +2797,22 @@ class Style
                                 media = '" . tep_db_input($attribute['media']) . "'
                             ");
                         } else {
-                            $sql_data_array = array(
+                            $sql_data_array = [
                                 'theme_name' => $theme_name,
                                 'selector' => $attribute['selector'],
                                 'attribute' => $attribute['attribute'],
                                 'value' => $attribute['value'],
                                 'visibility' => $attribute['visibility'],
                                 'media' => $attribute['media'],
-                            );
+                            ];
                             tep_db_perform(TABLE_THEMES_STYLES, $sql_data_array);
                         }
 
                     } elseif ($tideName == 'attributes_delete') {
 
-                        tep_db_query("
+                        tep_db_query('
                             delete 
-                            from " . TABLE_THEMES_STYLES . " 
+                            from ' . TABLE_THEMES_STYLES . " 
                             where
                                 theme_name = '" . tep_db_input($theme_name) . "' and
                                 selector = '" . tep_db_input($attribute['selector']) . "' and
@@ -2804,9 +2834,9 @@ class Style
         $count3 = 0;
         $count4 = 0;
 
-        $boxes = tep_db_query("
+        $boxes = tep_db_query('
             select bs.box_id, bs.setting_value, bs.visibility, bs.setting_name
-            from " . TABLE_DESIGN_BOXES_TMP . " b, " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs 
+            from ' . TABLE_DESIGN_BOXES_TMP . ' b, ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs 
             where 
                 b.theme_name = '" . tep_db_input($theme_name) . "' and
                 b.id = bs.box_id
@@ -2827,7 +2857,7 @@ class Style
                 'box_id' => $item['box_id'],
                 'attribute' => $item['attribute'],
                 'value' => $item['value'],
-                'visibility' => $item['visibility']
+                'visibility' => $item['visibility'],
             ];
 
             $find = false;
@@ -2858,15 +2888,15 @@ class Style
                             'attribute' => $attr['attribute'],
                             'value_old' => $item['value'],
                             'value' => $attr['value'],
-                            'visibility' => $attr['visibility']
+                            'visibility' => $attr['visibility'],
                         ];
 
-                        tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, array('setting_value' => $attr['value']), 'update', "
+                        tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, ['setting_value' => $attr['value']], 'update', "
                             box_id = '" . tep_db_input($item['box_id']) . "' and
                             setting_name = '" . tep_db_input($item['attribute']) . "' and
                             visibility = '" . tep_db_input($item['visibility']) . "'
                       ");
-                        tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS_TMP, array('setting_value' => $attr['value']), 'update', "
+                        tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS_TMP, ['setting_value' => $attr['value']], 'update', "
                             box_id = '" . tep_db_input($item['box_id']) . "' and
                             setting_name = '" . tep_db_input($item['attribute']) . "' and
                             visibility = '" . tep_db_input($item['visibility']) . "'
@@ -2890,15 +2920,15 @@ class Style
                     'box_id' => $item['box_id'],
                     'setting_name' => $item['attribute'],
                     'setting_value' => $item['value'],
-                    'visibility' => $item['visibility']
+                    'visibility' => $item['visibility'],
                 ];
-                tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS . "
+                tep_db_query('delete from ' . TABLE_DESIGN_BOXES_SETTINGS . "
                           where 
                             box_id = '" . tep_db_input($item['box_id']) . "' and
                             setting_name = '" . tep_db_input($item['attribute']) . "' and
                             visibility = '" . tep_db_input($item['visibility']) . "'
               ");
-                tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . "
+                tep_db_query('delete from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . "
                           where 
                             box_id = '" . tep_db_input($item['box_id']) . "' and
                             setting_name = '" . tep_db_input($item['attribute']) . "' and
@@ -2922,7 +2952,7 @@ class Style
                 'box_id' => $attr['box_id'],
                 'setting_name' => $attr['attribute'],
                 'setting_value' => $attr['value'],
-                'visibility' => $attr['visibility']
+                'visibility' => $attr['visibility'],
             ];
             $attributesNew[] = $sglArray;
             tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, $sglArray);
@@ -2956,13 +2986,13 @@ class Style
 
         $allAttr = count($attributes);
 
-        $at = array();
-        $attributesOld = array();
-        $attributesChanged = array();
-        $attributesDelete = array();
-        $attributesNew = array();
-        $query = tep_db_query("select * from " . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($params['theme_name']) . "'" . ($accessibility !== false ? " and accessibility = '" . tep_db_input($accessibility) . "' " : ""));
-        $keys = array();
+        $at = [];
+        $attributesOld = [];
+        $attributesChanged = [];
+        $attributesDelete = [];
+        $attributesNew = [];
+        $query = tep_db_query('select * from ' . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($params['theme_name']) . "'" . ($accessibility !== false ? " and accessibility = '" . tep_db_input($accessibility) . "' " : ''));
+        $keys = [];
         $count1 = 0;
         $count2 = 0;
         $count3 = 0;
@@ -2980,7 +3010,7 @@ class Style
                     'value' => $item['value'],
                     'visibility' => $item['visibility'],
                     'media' => $item['media'],
-                    'accessibility' => $item['accessibility']
+                    'accessibility' => $item['accessibility'],
                 ];
 
                 $find = false;
@@ -3009,10 +3039,10 @@ class Style
                                 'value' => $attr['value'],
                                 'visibility' => $attr['visibility'],
                                 'media' => $attr['media'],
-                                'accessibility' => $attr['accessibility']
+                                'accessibility' => $attr['accessibility'],
                             ];
 
-                            tep_db_perform(TABLE_THEMES_STYLES, array('value' => $attr['value']), 'update', "
+                            tep_db_perform(TABLE_THEMES_STYLES, ['value' => $attr['value']], 'update', "
                             theme_name = '" . tep_db_input($params['theme_name']) . "' and
                             selector = '" . tep_db_input($item['selector']) . "' and
                             attribute = '" . tep_db_input($item['attribute']) . "' and
@@ -3042,9 +3072,9 @@ class Style
                         'value' => $item['value'],
                         'visibility' => $item['visibility'],
                         'media' => $item['media'],
-                        'accessibility' => $item['accessibility']
+                        'accessibility' => $item['accessibility'],
                     ];
-                    tep_db_query("delete from " . TABLE_THEMES_STYLES . "
+                    tep_db_query('delete from ' . TABLE_THEMES_STYLES . "
                           where 
                             theme_name = '" . tep_db_input($params['theme_name']) . "' and
                             selector = '" . tep_db_input($item['selector']) . "' and
@@ -3068,7 +3098,7 @@ class Style
                     'value' => $attr['value'],
                     'visibility' => $attr['visibility'],
                     'media' => $attr['media'],
-                    'accessibility' => $attr['accessibility']
+                    'accessibility' => $attr['accessibility'],
                 ];
                 $attributesNew[] = $sglArray;
                 tep_db_perform(TABLE_THEMES_STYLES, $sglArray);
@@ -3076,7 +3106,7 @@ class Style
             }
         }
 
-        tep_db_query("delete from " . TABLE_THEMES_SETTINGS . "
+        tep_db_query('delete from ' . TABLE_THEMES_SETTINGS . "
                           where 
                             theme_name = '" . tep_db_input($params['theme_name']) . "' and
                             setting_group = 'css' and
@@ -3124,14 +3154,13 @@ class Style
 
     }
 
-
     public static function getStylesByClasses($theme_name, $accessibility)
     {
         $styles = ThemesStyles::find()
             ->select(['selector', 'attribute', 'value'])
             ->where([
                 'theme_name' => $theme_name,
-                'accessibility' => $accessibility
+                'accessibility' => $accessibility,
             ])
             ->asArray()
             ->all();
@@ -3150,11 +3179,12 @@ class Style
 
         return [
             'attributesArray' => $classes,
-            'attributesText' => $stylesByClasses
+            'attributesText' => $stylesByClasses,
         ];
     }
 
-    public static function getStylesWrapper($blockStyles){
+    public static function getStylesWrapper($blockStyles)
+    {
         $styles = (isset($blockStyles[0]) ? $blockStyles[0] : '');
 
         $mediaArr = \common\models\ThemesSettings::find()
@@ -3174,13 +3204,13 @@ class Style
             $item = $media[$id];
             $arr = explode('w', $item['setting_value']);
             $styles .= '@media';
-            if ($arr[0]){
+            if ($arr[0]) {
                 $styles .= ' (min-width:' . $arr[0] . 'px)';
             }
-            if ($arr[0] && $arr[1]){
+            if ($arr[0] && $arr[1]) {
                 $styles .= ' and ';
             }
-            if ($arr[1]){
+            if ($arr[1]) {
                 $styles .= ' (max-width:' . $arr[1] . 'px)';
             }
             $styles .= '{';
@@ -3191,7 +3221,8 @@ class Style
         return $styles;
     }
 
-    public static function schema($val, $selector){
+    public static function schema($val, $selector)
+    {
         $htm = '';
         $block_table = $selector . '{display:flex;flex-direction:column} ';
         $flex = $selector . '{display:flex;flex-wrap:wrap;} ';
@@ -3204,7 +3235,7 @@ class Style
         $footer = 'order:3;';
         $float_none = 'float:none;';
 
-        switch ($val){
+        switch ($val) {
             case '2-2':
             case '3-4':
             case '4-2':
@@ -3321,17 +3352,17 @@ class Style
         return $htm;
     }
 
-    public static function getCreateCss($stylesRawArray, $mediaSizesArr, $widgets = array(), $page = '', $all = true)
+    public static function getCreateCss($stylesRawArray, $mediaSizesArr, $widgets = [], $page = '', $all = true)
     {
         $css = '';
         $tab = '  ';
         $displacement = '';
-        $byMedia = array();
-        $areaArr = array();
+        $byMedia = [];
+        $areaArr = [];
         if (!is_array($widgets) && !$widgets) {
-            $widgets = array();
+            $widgets = [];
         } elseif (is_string($widgets) && $widgets) {
-            $widgets = array($widgets);
+            $widgets = [$widgets];
         }
 
         if ($all && $page) {
@@ -3369,7 +3400,7 @@ class Style
             if (
                 self::$cssFrontend &&
                 $item['accessibility'] &&
-                (strpos($item['accessibility'], '.b-') === 0 || strpos($item['accessibility'], '.s-') === 0 ) &&
+                (strpos($item['accessibility'], '.b-') === 0 || strpos($item['accessibility'], '.s-') === 0) &&
                 strpos($item['selector'], $item['accessibility']) !== false
             ) {
                 $item['selector'] = trim(str_replace($item['accessibility'], '', $item['selector']));
@@ -3377,16 +3408,16 @@ class Style
             if (count($vArr) > 0) {
                 $selectorArr = explode(',', $item['selector']);
                 foreach ($selectorArr as $sItem => $class) {
-                    if (in_array(2, $vArr)){
+                    if (in_array(2, $vArr)) {
                         $selectorArr[$sItem] .= '.active';
                     }
-                    if (in_array(3, $vArr)){
+                    if (in_array(3, $vArr)) {
                         $selectorArr[$sItem] .= ':before';
                     }
-                    if (in_array(4, $vArr)){
+                    if (in_array(4, $vArr)) {
                         $selectorArr[$sItem] .= ':after';
                     }
-                    if (in_array(1, $vArr)){
+                    if (in_array(1, $vArr)) {
                         $selectorArr[$sItem] .= ':hover';
                     }
                 }
@@ -3402,11 +3433,10 @@ class Style
             }
         }
 
-
         $cssArr = [
             'general' => '',
             'visibility' => '',
-            'media' => ''
+            'media' => '',
         ];
 
         foreach ($byMedia as $key => $item) {
@@ -3424,18 +3454,17 @@ class Style
                     $arr = $item[$mediaId];
                     $arr2 = explode('w', $media);
                     $mediaStr = '';
-                    if ($arr2[0]){
+                    if ($arr2[0]) {
                         $mediaStr .= '(min-width:' . $arr2[0] . 'px)';
                     }
-                    if ($arr2[0] && $arr2[1]){
+                    if ($arr2[0] && $arr2[1]) {
                         $mediaStr .= ' and ';
                     }
-                    if ($arr2[1]){
+                    if ($arr2[1]) {
                         $mediaStr .= '(max-width:' . $arr2[1] . 'px)';
                     }
                     $cssArr['visibility'] = $cssArr['visibility'] . self::getCssMedia($arr, $mediaStr, $tab, $displacement);
                 }
-
 
             } elseif ($key == 'media') {
                 foreach ($item as $media => $arr) {
@@ -3475,7 +3504,7 @@ class Style
     public static function mainStyles($themeName)
     {
         static $styles = [];
-        if ($styles[$themeName]??null) {
+        if ($styles[$themeName] ?? null) {
             return $styles[$themeName];
         }
         $styles[$themeName] = [];
@@ -3492,7 +3521,8 @@ class Style
         return $styles[$themeName];
     }
 
-    public static function getStyleValue($name, $styles) {
+    public static function getStyleValue($name, $styles)
+    {
         foreach ($styles as $style) {
             if ($style['name'] != $name) {
                 continue;
@@ -3552,11 +3582,13 @@ class Style
     }
 
     private static $needResetStyleCache = false;
-    public static function invalidateCache() {
+    public static function invalidateCache()
+    {
         self::$needResetStyleCache = true;
     }
 
-    public static function validateCache() {
+    public static function validateCache()
+    {
         if (self::$needResetStyleCache) {
             self::flushCacheAll();
             self::$needResetStyleCache = false;
@@ -3598,7 +3630,7 @@ class Style
             if (strlen($style['visibility']) > 1) {
                 $arr = explode(',', $style['visibility']);
                 $width = ThemesSettings::find()->select('setting_value')->where(['id' => $arr[0]])->scalar();
-                $themesStyles[$key]['visibility'] = $width . (($arr[1]??false) ? ',' . $arr[1] : '');
+                $themesStyles[$key]['visibility'] = $width . (($arr[1] ?? false) ? ',' . $arr[1] : '');
             }
         }
 
@@ -3620,7 +3652,7 @@ class Style
                     'theme_name' => $themeName,
                     'setting_group' => 'extend',
                     'setting_name' => 'media_query',
-                    'setting_value' => $arr[0]
+                    'setting_value' => $arr[0],
                 ])->scalar();
 
                 if (!$widthId) {

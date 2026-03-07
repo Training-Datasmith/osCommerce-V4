@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "admin_login_session".
@@ -56,7 +56,7 @@ class AdminLoginSession extends \yii\db\ActiveRecord
         $deviceId = trim($deviceId);
         try {
             $adminLoginSessionRecord = \common\models\AdminLoginSession::findOne([
-                'als_admin_id' => $adminId, 'als_device_id' => $deviceId
+                'als_admin_id' => $adminId, 'als_device_id' => $deviceId,
             ]);
             if (!($adminLoginSessionRecord instanceof \common\models\AdminLoginSession)) {
                 $adminLoginSessionRecord = new \common\models\AdminLoginSession();
@@ -67,7 +67,8 @@ class AdminLoginSession extends \yii\db\ActiveRecord
             $adminLoginSessionRecord->als_date_activity = date('Y-m-d H:i:s');
             $adminLoginSessionRecord->save();
             $return = true;
-        } catch (\Exception $exc) {}
+        } catch (\Exception $exc) {
+        }
         unset($adminLoginSessionRecord);
         unset($deviceId);
         unset($adminId);
@@ -80,7 +81,7 @@ class AdminLoginSession extends \yii\db\ActiveRecord
         $adminId = (int)$adminId;
         $deviceId = trim($deviceId);
         $adminLoginSessionRecord = \common\models\AdminLoginSession::findOne([
-            'als_admin_id' => $adminId, 'als_device_id' => $deviceId
+            'als_admin_id' => $adminId, 'als_device_id' => $deviceId,
         ]);
         if (!($adminLoginSessionRecord instanceof \common\models\AdminLoginSession)) {
             $return = false;
@@ -98,7 +99,8 @@ class AdminLoginSession extends \yii\db\ActiveRecord
                     try {
                         $adminLoginSessionRecord->als_date_activity = date('Y-m-d H:i:s');
                         $adminLoginSessionRecord->save();
-                    } catch (\Exception $exc) {}
+                    } catch (\Exception $exc) {
+                    }
                 }
             }
         }

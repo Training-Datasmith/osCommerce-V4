@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
 * This file is part of osCommerce ecommerce platform.
 * osCommerce the ecommerce
@@ -16,13 +18,16 @@ namespace common\extensions\ErrorLogViewer;
 use yii\base\Application;
 use yii\base\BootstrapInterface;
 
-class Bootstrap implements BootstrapInterface {
-
+class Bootstrap implements BootstrapInterface
+{
     /**
      * @param Application $app
      */
-    public function bootstrap($app) {
-        if (!ErrorLogViewer::enabled()) return;
+    public function bootstrap($app)
+    {
+        if (!ErrorLogViewer::enabled()) {
+            return;
+        }
         \Yii::setAlias('@ext-error-log-viewer', dirname(__FILE__));
         if ($app instanceof \yii\web\Application) {
             if ($app->id == 'app-backend') {

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,23 +18,23 @@ namespace common\api\Classes;
 class Attribute extends AbstractClass
 {
     public $attributeId = 0;
-    public $attributeRecord = array();
-    public $descriptionRecordArray = array();
-    public $valueRecordArray = array();
-    public $productRecordArray = array();
+    public $attributeRecord = [];
+    public $descriptionRecordArray = [];
+    public $valueRecordArray = [];
+    public $productRecordArray = [];
 
     private static $descriptionRecordFieldList = [
         'language_id' => true,
         'products_options_name' => true,
         'products_options_image' => true,
-        'products_options_color' => true
+        'products_options_color' => true,
     ];
 
     private static $valueDescriptionRecordFieldList = [
         'language_id' => true,
         'products_options_values_name' => true,
         'products_options_values_image' => true,
-        'products_options_values_color' => true
+        'products_options_values_color' => true,
     ];
 
     public function getId()
@@ -60,8 +62,8 @@ class Attribute extends AbstractClass
             $this->attributeId = $attributeId;
             $attributeRecord['products_options_name'] = trim($attributeRecord['products_options_name']);
             if (!isset($this->attributeRecord['products_options_id'])
-                OR ($this->attributeRecord['products_options_name'] == '')
-                OR (($attributeRecord['language_id'] == \common\classes\language::defaultId()) AND ($attributeRecord['products_options_name'] != ''))
+                or ($this->attributeRecord['products_options_name'] == '')
+                or (($attributeRecord['language_id'] == \common\classes\language::defaultId()) and ($attributeRecord['products_options_name'] != ''))
             ) {
                 $this->attributeRecord = $attributeRecord;
             }
@@ -79,10 +81,10 @@ class Attribute extends AbstractClass
             ) {
                 $valueRecord['products_options_values_name'] = trim($valueRecord['products_options_values_name']);
                 $valueRecord['descriptionRecordArray'] = (isset($this->valueRecordArray[$valueRecord['products_options_values_id']]['descriptionRecordArray'])
-                    ? $this->valueRecordArray[$valueRecord['products_options_values_id']]['descriptionRecordArray'] : array());
+                    ? $this->valueRecordArray[$valueRecord['products_options_values_id']]['descriptionRecordArray'] : []);
                 if (!isset($this->valueRecordArray[$valueRecord['products_options_values_id']])
-                    OR ($this->valueRecordArray[$valueRecord['products_options_values_id']]['products_options_values_name'] == '')
-                    OR (($valueRecord['language_id'] == \common\classes\language::defaultId()) AND ($valueRecord['products_options_values_name'] != ''))
+                    or ($this->valueRecordArray[$valueRecord['products_options_values_id']]['products_options_values_name'] == '')
+                    or (($valueRecord['language_id'] == \common\classes\language::defaultId()) and ($valueRecord['products_options_values_name'] != ''))
                 ) {
                     $this->valueRecordArray[$valueRecord['products_options_values_id']] = $valueRecord;
                 }
@@ -129,18 +131,20 @@ class Attribute extends AbstractClass
             $this->messageAdd('Attribute is invalid!');
             return false;
         }
-        $defaultName = trim(isset($this->attributeRecord['products_options_name'])
+        $defaultName = trim(
+            isset($this->attributeRecord['products_options_name'])
             ? $this->attributeRecord['products_options_name'] : ''
         );
         // DESCRIPTION
-        $this->descriptionRecordArray = (is_array($this->descriptionRecordArray) ? $this->descriptionRecordArray : array());
+        $this->descriptionRecordArray = (is_array($this->descriptionRecordArray) ? $this->descriptionRecordArray : []);
         foreach ($this->descriptionRecordArray as $keyD => &$descriptionRecord) {
             $descriptionRecord['language_id'] = (int)(isset($descriptionRecord['language_id']) ? $descriptionRecord['language_id'] : 0);
             if (isset($descriptionRecord['language_code'])) {
                 $descriptionRecord['language_id'] = $this->getLanguageIdByCode($descriptionRecord['language_code'], $descriptionRecord['language_id']);
             }
             if ($descriptionRecord['language_id'] > 0) {
-                $descriptionRecord['products_options_name'] = trim(isset($descriptionRecord['products_options_name'])
+                $descriptionRecord['products_options_name'] = trim(
+                    isset($descriptionRecord['products_options_name'])
                     ? $descriptionRecord['products_options_name'] : ''
                 );
                 $defaultName = (($defaultName == '') ? $descriptionRecord['products_options_name'] : $defaultName);
@@ -158,7 +162,7 @@ class Attribute extends AbstractClass
         unset($descriptionRecord);
         unset($keyD);
         // EOF DESCRIPTION
-        if (($defaultName == '') OR (count($this->descriptionRecordArray) == 0)) {
+        if (($defaultName == '') or (count($this->descriptionRecordArray) == 0)) {
             $this->messageAdd('Attribute Description is invalid!');
             return false;
         }
@@ -173,16 +177,18 @@ class Attribute extends AbstractClass
         unset($field);
         unset($null);
         // VALUE
-        $this->valueRecordArray = (is_array($this->valueRecordArray) ? $this->valueRecordArray : array());
+        $this->valueRecordArray = (is_array($this->valueRecordArray) ? $this->valueRecordArray : []);
         foreach ($this->valueRecordArray as $keyV => &$valueRecord) {
             unset($valueRecord['products_options_id']);
             unset($valueRecord['products_options_values_to_products_options_id']);
-            $defaultValueName = trim(isset($valueRecord['products_options_values_name'])
+            $defaultValueName = trim(
+                isset($valueRecord['products_options_values_name'])
                 ? $valueRecord['products_options_values_name'] : ''
             );
             // VALUE DESCRIPTION
-            $valueRecord['descriptionRecordArray'] = ((isset($valueRecord['descriptionRecordArray']) AND is_array($valueRecord['descriptionRecordArray']))
-                ? $valueRecord['descriptionRecordArray'] : array()
+            $valueRecord['descriptionRecordArray'] = (
+                (isset($valueRecord['descriptionRecordArray']) and is_array($valueRecord['descriptionRecordArray']))
+                ? $valueRecord['descriptionRecordArray'] : []
             );
             foreach ($valueRecord['descriptionRecordArray'] as $keyVD => &$descriptionRecord) {
                 $descriptionRecord['language_id'] = (int)(isset($descriptionRecord['language_id']) ? $descriptionRecord['language_id'] : 0);
@@ -190,7 +196,8 @@ class Attribute extends AbstractClass
                     $descriptionRecord['language_id'] = $this->getLanguageIdByCode($descriptionRecord['language_code'], $descriptionRecord['language_id']);
                 }
                 if ($descriptionRecord['language_id'] > 0) {
-                    $descriptionRecord['products_options_values_name'] = trim(isset($descriptionRecord['products_options_values_name'])
+                    $descriptionRecord['products_options_values_name'] = trim(
+                        isset($descriptionRecord['products_options_values_name'])
                         ? $descriptionRecord['products_options_values_name'] : ''
                     );
                     $defaultValueName = (($defaultValueName == '') ? $descriptionRecord['products_options_values_name'] : $defaultValueName);
@@ -208,7 +215,7 @@ class Attribute extends AbstractClass
             unset($descriptionRecord);
             unset($keyVD);
             // EOF VALUE DESCRIPTION
-            if (($defaultValueName != '') AND (count($valueRecord['descriptionRecordArray']) > 0)) {
+            if (($defaultValueName != '') and (count($valueRecord['descriptionRecordArray']) > 0)) {
                 $valueRecord['products_options_values_name_default'] = $defaultValueName;
                 foreach ($valueRecord as $field => $null) {
                     if (isset(self::$valueDescriptionRecordFieldList[$field])) {
@@ -225,7 +232,7 @@ class Attribute extends AbstractClass
         unset($valueRecord);
         unset($keyV);
         // VALUE
-        $this->productRecordArray = (is_array($this->productRecordArray) ? $this->productRecordArray : array());
+        $this->productRecordArray = (is_array($this->productRecordArray) ? $this->productRecordArray : []);
         return true;
     }
 
@@ -341,7 +348,7 @@ class Attribute extends AbstractClass
             unset($valueRecord['products_options_values_name_default']);
             // VALUE TO ATTRIBUTE
             $isSaveVA = false;
-            if (($attributeValueId > 0) AND (count($valueRecord['descriptionRecordArray']) > 0)) {
+            if (($attributeValueId > 0) and (count($valueRecord['descriptionRecordArray']) > 0)) {
                 $valueRecord['descriptionRecordArray'] = array_values($valueRecord['descriptionRecordArray']);
                 try {
                     $attributeValueClass = \common\models\ProductsOptions2ProductsOptionsValues::findOne(['products_options_id' => $this->attributeId, 'products_options_values_id' => $attributeValueId]);

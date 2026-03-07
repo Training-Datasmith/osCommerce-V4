@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +12,7 @@
  */
 
 declare(strict_types=1);
-if (getenv("HTTP_HOST")){
+if (getenv('HTTP_HOST')) {
     $bootstrap = ['log', 'common\components\SessionFlow'];
 } else {
     $bootstrap = [];
@@ -79,5 +80,3 @@ function getClassFromPath(string $path): string
 {
     return str_replace([dirname(__FILE__, 3) . DIRECTORY_SEPARATOR, '/', '.php'], ['', '\\', ''], $path);
 }
-
-

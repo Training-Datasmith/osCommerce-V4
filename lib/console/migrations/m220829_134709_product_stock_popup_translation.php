@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -27,10 +29,10 @@ class m220829_134709_product_stock_popup_translation extends Migration
             'TEXT_BACKEND_ALLOCATED_STOCK' => 'Back-end allocated stock',
             'TEXT_LOCATION' => 'Location',
             'TEXT_ORDER_ALLOCATE_DEFICIT' => 'Order allocation deficit',
-            'TEXT_ALLOCATE_TIME' => 'Allocation time'
+            'TEXT_ALLOCATE_TIME' => 'Allocation time',
         ]);
         $this->addTranslation('admin/main', [
-            'TEXT_MINUTES_COMMON' => 'minutes'
+            'TEXT_MINUTES_COMMON' => 'minutes',
         ]);
     }
 
@@ -45,10 +47,10 @@ class m220829_134709_product_stock_popup_translation extends Migration
             'TEXT_BACKEND_ALLOCATED_STOCK',
             'TEXT_LOCATION',
             'TEXT_ORDER_ALLOCATE_DEFICIT',
-            'TEXT_ALLOCATE_TIME'
+            'TEXT_ALLOCATE_TIME',
         ]);
         $this->removeTranslation('admin/main', [
-            'TEXT_MINUTES_COMMON'
+            'TEXT_MINUTES_COMMON',
         ]);
     }
 }

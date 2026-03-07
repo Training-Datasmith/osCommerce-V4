@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,15 +15,15 @@
 
 namespace common\api\Xml;
 
-use yii\httpclient\FormatterInterface;
 use DOMDocument;
 use DOMElement;
 use DOMText;
 use SimpleXMLElement;
+use Yii;
 use yii\base\Arrayable;
 use yii\base\BaseObject;
-use Yii;
 use yii\helpers\StringHelper;
+use yii\httpclient\FormatterInterface;
 
 /**
  * XmlFormatter formats HTTP message as XML.
@@ -59,7 +61,6 @@ class XmlFormatter extends BaseObject implements FormatterInterface
      */
     public $useTraversableAsArray = true;
 
-
     /**
      * @inheritdoc
      */
@@ -88,10 +89,11 @@ class XmlFormatter extends BaseObject implements FormatterInterface
         return $content;
     }
 
-    protected function validName($name) {
+    protected function validName($name)
+    {
         return preg_replace('/[^a-z0-9_-]/si', '_', trim($name));
     }
-    
+
     /**
      * @param DOMElement $element
      * @param mixed $data

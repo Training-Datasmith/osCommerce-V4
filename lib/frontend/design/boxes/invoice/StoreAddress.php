@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\invoice;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\Info;
+use yii\base\Widget;
 
 class StoreAddress extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -30,7 +30,7 @@ class StoreAddress extends Widget
 
     public function run()
     {
-        if (isset($this->settings[0]['address_spacer']) && $this->settings[0]['address_spacer']){
+        if (isset($this->settings[0]['address_spacer']) && $this->settings[0]['address_spacer']) {
             $spacer = $this->settings[0]['address_spacer'];
         } else {
             $spacer = '<br>';
@@ -40,7 +40,7 @@ class StoreAddress extends Widget
         } else {
             $data = Info::platformData();
         }
-        if (isset($this->settings[0]['pdf']) && $this->settings[0]['pdf']){
+        if (isset($this->settings[0]['pdf']) && $this->settings[0]['pdf']) {
             return \common\helpers\Address::address_format(\common\helpers\Address::get_address_format_id($data['country_id']), $data, 1, ' ', $spacer);
         } else {
             return '<div>' . \common\helpers\Address::address_format(\common\helpers\Address::get_address_format_id($data['country_id']), $data, 1, ' ', $spacer) . '</div>';

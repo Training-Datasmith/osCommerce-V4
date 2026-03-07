@@ -1,35 +1,38 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace backend\design\editor;
 
-
 use Yii;
 use yii\base\Widget;
 
-class Product extends Widget {
-    
+class Product extends Widget
+{
     public $manager;
     public $product;
     public $edit = false;
-    
-    public function init(){
+
+    public function init()
+    {
         parent::init();
-    }    
-    
-    public function run(){
-        
-        if ($this->product){
-            
+    }
+
+    public function run()
+    {
+
+        if ($this->product) {
+
             return $this->render('product', [
                 'manager' => $this->manager,
                 'queryParams' => array_merge(['editor/show-basket'], Yii::$app->request->getQueryParams()),
@@ -38,7 +41,7 @@ class Product extends Widget {
                 'edit' => $this->edit,
                 'product' => $this->product,
             ]);
-                                    
+
             $render = 'product_details';
             if ($this->edit) {
                 /*$uprid = urldecode($params['products_id']);
@@ -73,13 +76,12 @@ class Product extends Widget {
             if ($ext = \common\helpers\Acl::checkExtensionAllowed('PackUnits', 'allowed')) {
                 $params['product_details'] = $ext::quantityBoxFrontend($params['product'], $params);
             }
-            
+
             $params['queryParams'] = array_merge(['editor/show-basket'], Yii::$app->request->getQueryParams());
             $params['manager'] = $this->manager;
             return $this->render('product', $params);
         }
-        
-        
+
     }
-    
+
 }

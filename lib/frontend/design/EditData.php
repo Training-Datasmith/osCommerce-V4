@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -75,7 +77,8 @@ class EditData
 
     }
 
-    public static function getAccessRule ($pageType){
+    public static function getAccessRule($pageType)
+    {
         switch ($pageType) {
             case 'seo': return ['BOX_HEADING_SEO', 'BOX_META_TAGS'];
             case 'info': return ['BOX_HEADING_DESIGN_CONTROLS', 'BOX_INFORMATION_MANAGER'];
@@ -97,6 +100,5 @@ class EditData
             return $content;
         }
     }
-
 
 }

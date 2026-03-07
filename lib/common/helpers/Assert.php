@@ -1,19 +1,21 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\helpers;
 
-class Assert {
-
+class Assert
+{
     public static function error(string $message)
     {
         throw new \Exception($message);
@@ -41,8 +43,8 @@ class Assert {
 
     protected static function errorMsg($message, $message_def)
     {
-        $message = $message ?? "Assertion: %s";
-        static::error( sprintf($message, $message_def) );
+        $message = $message ?? 'Assertion: %s';
+        static::error(sprintf($message, $message_def));
     }
 
     public static function isSet(bool $isSet, $varName, string $message = null)
@@ -85,14 +87,14 @@ class Assert {
     public static function isEmpty($value, string $message = null)
     {
         if (!empty($value)) {
-            static::errorMsg($message, 'expect empty value, but given: ' . self::ident($value) );
+            static::errorMsg($message, 'expect empty value, but given: ' . self::ident($value));
         }
     }
 
     public static function hasMethod($obj, $method, string $message = null)
     {
         if (!method_exists($obj, $method)) {
-            $def = sprintf("%s has not method %s", self::ident($obj), self::ident($method));
+            $def = sprintf('%s has not method %s', self::ident($obj), self::ident($method));
             static::errorMsg($message, $def);
         }
     }
@@ -100,7 +102,7 @@ class Assert {
     public static function stringMatched($str, string $match, string $message = null)
     {
         if (!preg_match($match, $str)) {
-            $def = sprintf("%s does not match %s", self::ident($str), self::ident($match));
+            $def = sprintf('%s does not match %s', self::ident($str), self::ident($match));
             static::errorMsg($message, $def);
         }
     }
@@ -108,7 +110,7 @@ class Assert {
     public static function fileExists($fn, string $message = null)
     {
         if (!file_exists($fn)) {
-            $def = sprintf("file %s does not exist", self::ident($fn));
+            $def = sprintf('file %s does not exist', self::ident($fn));
             static::errorMsg($message, $def);
         }
     }
@@ -116,7 +118,7 @@ class Assert {
     public static function isObject($obj, string $message = null)
     {
         if (!is_object($obj)) {
-            $def = sprintf("%s is not object", self::ident($obj));
+            $def = sprintf('%s is not object', self::ident($obj));
             static::errorMsg($message, $def);
         }
     }
@@ -124,7 +126,7 @@ class Assert {
     public static function instanceOf($obj, $class, string $message = null)
     {
         if (!($obj instanceof $class)) {
-            $def = sprintf("%s is not instance of %s", self::ident($obj), self::ident($class));
+            $def = sprintf('%s is not instance of %s', self::ident($obj), self::ident($class));
             static::errorMsg($message, $def);
         }
     }
@@ -132,14 +134,14 @@ class Assert {
     public static function classExists($className, string $message = null)
     {
         if (!class_exists($className)) {
-            $def = sprintf("Class %s does not exist", self::ident($className));
+            $def = sprintf('Class %s does not exist', self::ident($className));
             static::errorMsg($message, $def);
         }
     }
     public static function classImplements($class, $interface, string $message = null)
     {
         if (!\common\helpers\Php::isClassImplementsInterface($class, $interface)) {
-            $def = sprintf("%s does not implements %s", self::ident($class), self::ident($interface));
+            $def = sprintf('%s does not implements %s', self::ident($class), self::ident($interface));
             static::errorMsg($message, $def);
         }
     }
@@ -147,7 +149,7 @@ class Assert {
     public static function isArray($arr, string $message = null)
     {
         if (!is_array($arr)) {
-            $def = sprintf("%s is not array", self::ident($arr));
+            $def = sprintf('%s is not array', self::ident($arr));
             static::errorMsg($message, $def);
         }
     }
@@ -156,7 +158,7 @@ class Assert {
     {
         static::isArray($arr, $message);
         if (!(isset($arr[$key]) || \array_key_exists($key, $arr))) {
-            $def = sprintf("Key %s is not exist in %s", self::ident($key), self::ident($arr));
+            $def = sprintf('Key %s is not exist in %s', self::ident($key), self::ident($arr));
             static::errorMsg($message, $def);
         }
     }
@@ -173,7 +175,7 @@ class Assert {
     public static function match($pattern, $value, string $message = null)
     {
         if (!preg_match($pattern, $value)) {
-            $def = sprintf("%s is not match template", self::ident($value));
+            $def = sprintf('%s is not match template', self::ident($value));
             static::errorMsg($message, $def);
         }
     }
@@ -186,10 +188,9 @@ class Assert {
     public static function isExtensionAllowed(string $extCode, string $message = null)
     {
         if (!\common\helpers\Extensions::isAllowed($extCode)) {
-            $def = sprintf("Extension %s is not allowed", self::ident($extCode));
+            $def = sprintf('Extension %s is not allowed', self::ident($extCode));
             static::errorMsg($message, $def);
         }
     }
-
 
 }

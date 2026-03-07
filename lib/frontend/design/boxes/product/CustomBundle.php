@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\product;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class CustomBundle extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -43,8 +44,8 @@ class CustomBundle extends Widget
                     'old' => $details['custom_bundle_full_price'],
                     'price' => $details['custom_bundle_full_price'],
                     'isAjax' => false,
-                    'id' => $this->id
-                ]
+                    'id' => $this->id,
+                ],
             ]);
         } else {
             return '';

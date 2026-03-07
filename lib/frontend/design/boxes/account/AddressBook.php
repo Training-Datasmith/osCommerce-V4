@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\account;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class AddressBook extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -44,11 +45,11 @@ class AddressBook extends Widget
         $page = \common\classes\design::pageName($this->settings[0]['link']);
 
         $customer = Yii::$app->user->getIdentity();
-        
+
         $aBooks = $customer->getAddressBooks(true, true);
         $aBooks = \common\helpers\Address::skipEntryKey($aBooks);
-        $address_array = array();
-        foreach($aBooks as $addresses){
+        $address_array = [];
+        foreach ($aBooks as $addresses) {
             $format_id = \common\helpers\Address::get_address_format_id($addresses['country_id']);
             $addresses['text'] = $addresses['city'] . ' ' . $addresses['postcode'] . ' ' . \common\helpers\Country::get_country_name($addresses['country_id']);
             $addresses['format'] = \common\helpers\Address::address_format($format_id, $addresses, true, '', '<br>');
@@ -72,7 +73,6 @@ class AddressBook extends Widget
             $address_array[] = $addresses;
         }
 
-
         $page_add = \common\classes\design::pageName($this->settings[0]['link_add']);
         $link_add = Yii::$app->urlManager->createUrl(['account', 'page_name' => $page_add]);
 
@@ -82,9 +82,8 @@ class AddressBook extends Widget
         if (!$text_add) {
             $text_add = $this->settings[0]['link_add'];
         }
-        
+
         $this->settings[0]['like_button'] = (isset($this->settings[0]['like_button']) ? $this->settings[0]['like_button'] : 0);
-        
 
         return IncludeTpl::widget(['file' => 'boxes/account/address-book.tpl', 'params' => [
             'address_array' => $address_array,

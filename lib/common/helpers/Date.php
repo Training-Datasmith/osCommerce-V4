@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,28 +16,28 @@ namespace common\helpers;
 
 class Date
 {
+    public const DATE_FORMAT = 'j M Y';
+    public const DATE_TIME_FORMAT = 'j M Y, g:i a';
+    public const CALENDAR_DATE_FORMAT = 'j M Y'; // d-m-Y j M Y
+    public const DATABASE_DATE_FORMAT = 'Y-m-d';
+    public const DATABASE_DATETIME_FORMAT = 'Y-m-d H:i:s';
+    public const JS_DATE_FORMAT = 'D MMM YYYY'; // DD-MM-YYYY D MMM YYYY
+    public const JS_DATE_TIME_FORMAT = 'd M Y h:i a';
 
-    const DATE_FORMAT = 'j M Y';
-    const DATE_TIME_FORMAT = 'j M Y, g:i a';
-    const CALENDAR_DATE_FORMAT = 'j M Y'; // d-m-Y j M Y
-    const DATABASE_DATE_FORMAT = 'Y-m-d';
-    const DATABASE_DATETIME_FORMAT = 'Y-m-d H:i:s';
-    const JS_DATE_FORMAT = 'D MMM YYYY'; // DD-MM-YYYY D MMM YYYY
-    const JS_DATE_TIME_FORMAT = 'd M Y h:i a';
-
-    public static function checkInputDate($date, $wTime = false) {
+    public static function checkInputDate($date, $wTime = false)
+    {
         $patterns = [];
         $replacements = [];
-        for ($m=1; $m<=12; $m++) {
-            $patterns[] = '/' . strftime("%B", mktime(0,0,0,$m)) . '/ui';
-            $replacements[] = date('F', mktime(0,0,0,$m));
-            $patterns[] = '/' . strftime("%b", mktime(0,0,0,$m)) . '/ui';
-            $replacements[] = date('M', mktime(0,0,0,$m));
+        for ($m = 1; $m <= 12; $m++) {
+            $patterns[] = '/' . strftime('%B', mktime(0, 0, 0, $m)) . '/ui';
+            $replacements[] = date('F', mktime(0, 0, 0, $m));
+            $patterns[] = '/' . strftime('%b', mktime(0, 0, 0, $m)) . '/ui';
+            $replacements[] = date('M', mktime(0, 0, 0, $m));
         }
-        if ( $wTime){
+        if ($wTime) {
             $time = strftime('%P', strtotime($date));
-            if (strtolower($time) == 'pm'){
-                $patterns[] = '/' . strftime("%l", strtotime($date)) . ':/ui';
+            if (strtolower($time) == 'pm') {
+                $patterns[] = '/' . strftime('%l', strtotime($date)) . ':/ui';
                 $replacements[] = ' '.(date('g', strtotime($date)) + 12) . ':';
             }
             $patterns[] = '/\s' . $time . '/ui';
@@ -45,64 +47,71 @@ class Date
         return $date;
     }
 
-    public static function prepareInputDate($date, $wTime = false) {
+    public static function prepareInputDate($date, $wTime = false)
+    {
         $date = self::checkInputDate($date/*, $wTime*/);
         if (defined('DATE_FORMAT_DATEPICKER_PHP')) {
-            if ($wTime){
-                if ( preg_match('/M$/i', $date) ){
+            if ($wTime) {
+                if (preg_match('/M$/i', $date)) {
                     $dateFormat = date_create_from_format(DATE_FORMAT_DATEPICKER_PHP.' g:i A', $date);
-                }else{
+                } else {
                     $dateFormat = date_create_from_format(DATE_FORMAT_DATEPICKER_PHP.' H:i:s', $date);
                 }
-                return $dateFormat?$dateFormat->format(self::DATABASE_DATETIME_FORMAT):'';
+                return $dateFormat ? $dateFormat->format(self::DATABASE_DATETIME_FORMAT) : '';
             } else {
                 $dateFormat = date_create_from_format(DATE_FORMAT_DATEPICKER_PHP, $date);
-                return $dateFormat?$dateFormat->format(self::DATABASE_DATE_FORMAT):'';
+                return $dateFormat ? $dateFormat->format(self::DATABASE_DATE_FORMAT) : '';
             }
         }
-        if ($wTime){
+        if ($wTime) {
             return date(self::DATABASE_DATETIME_FORMAT, strtotime($date));
         } else {
             return date(self::DATABASE_DATE_FORMAT, strtotime($date));
         }
     }
 
-    public static function formatDate($date) {
+    public static function formatDate($date)
+    {
         if ($date == '0000-00-00' || empty($date)) {
             return '';
         }
         return date(self::DATE_FORMAT, strtotime($date));
     }
 
-    public static function formatDateTime($date) {
+    public static function formatDateTime($date)
+    {
         if ($date == '0000-00-00 00:00:00' || empty($date)) {
             return '';
         }
         return date(self::DATE_TIME_FORMAT, strtotime($date));
     }
 
-    public static function formatDateTimeJS($date) {
+    public static function formatDateTimeJS($date)
+    {
         if ($date == '0000-00-00 00:00:00' || empty($date)) {
             return '';
         }
         return date(self::JS_DATE_TIME_FORMAT, strtotime($date));
     }
 
-    public static function formatCalendarDate($date) {
+    public static function formatCalendarDate($date)
+    {
         if ($date == '0000-00-00' || $date == '0000-00-00 00:00:00' || empty($date)) {
             return '';
         }
         return date(self::CALENDAR_DATE_FORMAT, strtotime($date));
     }
 
-    public static function unformatCalendarDate($date) {
+    public static function unformatCalendarDate($date)
+    {
         if ($date == '0000-00-00' || empty($date)) {
             return '';
         }
         return date(self::DATABASE_DATE_FORMAT, strtotime($date));
     }
 
-    public static function getDateRange($start_date, $end_date) {
+    public static function getDateRange($start_date, $end_date)
+    {
         if ($start_date == '0000-00-00' || empty($start_date)) {
             return '';
         }
@@ -155,9 +164,11 @@ class Date
         return $response;
     }
 
-    public static function date_long($raw_date, $format = DATE_FORMAT_LONG) {
-        if (($raw_date == '0000-00-00 00:00:00') || ($raw_date == ''))
+    public static function date_long($raw_date, $format = DATE_FORMAT_LONG)
+    {
+        if (($raw_date == '0000-00-00 00:00:00') || ($raw_date == '')) {
             return false;
+        }
 
         $year = (int) substr($raw_date, 0, 4);
         $month = (int) substr($raw_date, 5, 2);
@@ -169,12 +180,14 @@ class Date
         return strftime($format, mktime($hour, $minute, $second, $month, $day, $year));
     }
 
-    public static function date_short($raw_date, $format=null) {
+    public static function date_short($raw_date, $format = null)
+    {
         if (is_null($format)) {
-            $format = defined('DATE_FORMAT_SHORT')? DATE_FORMAT_SHORT : '%d %b %Y';
+            $format = defined('DATE_FORMAT_SHORT') ? DATE_FORMAT_SHORT : '%d %b %Y';
         }
-        if (($raw_date == '0000-00-00 00:00:00') || ($raw_date == '0000-00-00') || ($raw_date == ''))
+        if (($raw_date == '0000-00-00 00:00:00') || ($raw_date == '0000-00-00') || ($raw_date == '')) {
             return false;
+        }
 
         $year = substr($raw_date, 0, 4);
         $month = (int) substr($raw_date, 5, 2);
@@ -186,9 +199,11 @@ class Date
         return strftime($format, mktime($hour, $minute, $second, $month, $day, $year));
     }
 
-    public static function datetime_short($raw_datetime) {
-        if (($raw_datetime == '0000-00-00 00:00:00') || ($raw_datetime == ''))
+    public static function datetime_short($raw_datetime)
+    {
+        if (($raw_datetime == '0000-00-00 00:00:00') || ($raw_datetime == '')) {
             return false;
+        }
 
         $year = (int) substr($raw_datetime, 0, 4);
         $month = (int) substr($raw_datetime, 5, 2);
@@ -200,18 +215,21 @@ class Date
         return strftime(defined('DATE_TIME_FORMAT') ? DATE_TIME_FORMAT : '%d %b %Y %H:%M:%S', mktime($hour, $minute, $second, $month, $day, $year));
     }
 
-    public static function date_raw($date, $reverse = false) {
+    public static function date_raw($date, $reverse = false)
+    {
         if ($reverse) {
             return substr($date, 0, 2) . substr($date, 3, 2) . substr($date, 6, 4);
         } else {
-            return date("Y-m-d H:i:s", strtotime($date));
+            return date('Y-m-d H:i:s', strtotime($date));
             //return substr($date, 6, 4) . substr($date, 3, 2) . substr($date, 0, 2);
         }
     }
 
-    public static function date_format($raw_date, $format) {
-        if (($raw_date == '0000-00-00 00:00:00') || ($raw_date == ''))
+    public static function date_format($raw_date, $format)
+    {
+        if (($raw_date == '0000-00-00 00:00:00') || ($raw_date == '')) {
             return false;
+        }
 
         $year = (int) substr($raw_date, 0, 4);
         $month = (int) substr($raw_date, 5, 2);
@@ -223,62 +241,72 @@ class Date
         return strftime($format, mktime($hour, $minute, $second, $month, $day, $year));
     }
 
-    public static function datepicker_date($date) {
-        if (($date == '0000-00-00 00:00:00') || ($date == '0000-00-00') || ($date == ''))
+    public static function datepicker_date($date)
+    {
+        if (($date == '0000-00-00 00:00:00') || ($date == '0000-00-00') || ($date == '')) {
             return false;
+        }
         return date(DATE_FORMAT_DATEPICKER_PHP, strtotime($date));
     }
 
-    public static function datepicker_date_time($date) {
-        if (($date == '0000-00-00 00:00:00') || ($date == '0000-00-00') || ($date == ''))
+    public static function datepicker_date_time($date)
+    {
+        if (($date == '0000-00-00 00:00:00') || ($date == '0000-00-00') || ($date == '')) {
             return false;
+        }
         if (defined('DATE_FORMAT_DATEPTIMEICKER_PHP')) {
-          $format = constant('DATE_FORMAT_DATEPTIMEICKER_PHP');
+            $format = constant('DATE_FORMAT_DATEPTIMEICKER_PHP');
         } else {
-          $format = constant('DATE_FORMAT_DATEPICKER_PHP') . ' H:i';
+            $format = constant('DATE_FORMAT_DATEPICKER_PHP') . ' H:i';
         }
         return date($format, strtotime($date));
     }
 
-    public static function isUnixDate($date){
+    public static function isUnixDate($date)
+    {
         return preg_match("/[\d]{10}/", $date);
     }
 
     public static function getDefaultServerTimeZone()
     {
-        return defined('TIMEZONE_SERVER')?TIMEZONE_SERVER:'Europe/London';
+        return defined('TIMEZONE_SERVER') ? TIMEZONE_SERVER : 'Europe/London';
     }
 
-    public static function setServerTimeZone( $new_zone='' )
+    public static function setServerTimeZone($new_zone = '')
     {
-        if ( !empty($new_zone) ) {
+        if (!empty($new_zone)) {
             date_default_timezone_set($new_zone);
         }
         tep_db_query("SET SESSION time_zone = '".date('P')."'");
     }
 
-    public static function getHolidays($platform_id, $format = '', $year = ''){
+    public static function getHolidays($platform_id, $format = '', $year = '')
+    {
         $dates = [];
         $search_year = '';
-        if (!is_array($platform_id)){ $platform_id = [$platform_id]; }
-        if (is_string($year)){
-            if (!empty($year) && !checkdate(1,1, $year)) return $dates;
+        if (!is_array($platform_id)) {
+            $platform_id = [$platform_id];
+        }
+        if (is_string($year)) {
+            if (!empty($year) && !checkdate(1, 1, $year)) {
+                return $dates;
+            }
             $search_year = " and year(holidate) = '" . $year. "'";
         }
-        if (is_array($year)){
-            foreach($year as $k => $_year){
+        if (is_array($year)) {
+            foreach ($year as $k => $_year) {
                 if (empty($_year) ||
-                    !empty($_year) && !checkdate(1,1, $_year)) {
+                    !empty($_year) && !checkdate(1, 1, $_year)) {
                     unset($year[$k]);
                 }
             }
-            $search_year = " and year(holidate) in (" . implode(',', $year). ")";
+            $search_year = ' and year(holidate) in (' . implode(',', $year). ')';
         }
 
-        $query = tep_db_query("select * from platforms_holidays where platform_id in (" . implode(',', $platform_id) . ") " . $search_year . " order by holidate asc");
-        if (tep_db_num_rows($query)){
-            while($row = tep_db_fetch_array($query)){
-                if (!empty($format)){
+        $query = tep_db_query('select * from platforms_holidays where platform_id in (' . implode(',', $platform_id) . ') ' . $search_year . ' order by holidate asc');
+        if (tep_db_num_rows($query)) {
+            while ($row = tep_db_fetch_array($query)) {
+                if (!empty($format)) {
                     $dates[] = date($format, strtotime($row['holidate']));
                 } else {
                     $dates[] = $row['holidate'];
@@ -294,28 +322,30 @@ class Date
      * @param type $from
      * @return DateInterval|false
      */
-    public static function getLeftIntervalTo($to, $from = null){
-        if ($lastTime = strtotime($to)){
+    public static function getLeftIntervalTo($to, $from = null)
+    {
+        if ($lastTime = strtotime($to)) {
             $end = new \DateTime();
             $end->setTimestamp($lastTime);
             $start = new \DateTime();
-            if (!is_null($from) && strtotime($from)){
+            if (!is_null($from) && strtotime($from)) {
                 $start->setTimestamp(strtotime($from));
             } else {
-                $start->setTimestamp(date("U"));
+                $start->setTimestamp(date('U'));
             }
             return $start->diff($end, false);
         }
         return false;
     }
 
-    public static function translateDate($rawDate, $languageId) {
+    public static function translateDate($rawDate, $languageId)
+    {
         if ($languageId == 1) {
             return $rawDate;
         }
 
         $keys = [
-            'DATEPICKER_DAY_FR', 'DATEPICKER_DAY_FRI', 'DATEPICKER_DAY_FRIDAY', 'DATEPICKER_DAY_MO', 'DATEPICKER_DAY_MON', 'DATEPICKER_DAY_MONDAY', 'DATEPICKER_DAY_SA', 'DATEPICKER_DAY_SAT', 'DATEPICKER_DAY_SATURDAY', 'DATEPICKER_DAY_SU', 'DATEPICKER_DAY_SUN', 'DATEPICKER_DAY_SUNDAY', 'DATEPICKER_DAY_TH', 'DATEPICKER_DAY_THU', 'DATEPICKER_DAY_THURSDAY', 'DATEPICKER_DAY_TU', 'DATEPICKER_DAY_TUE', 'DATEPICKER_DAY_TUESDAY', 'DATEPICKER_DAY_WE', 'DATEPICKER_DAY_WED', 'DATEPICKER_DAY_WEDNESAY', 'DATEPICKER_MONTH_APR', 'DATEPICKER_MONTH_APRIL', 'DATEPICKER_MONTH_AUG', 'DATEPICKER_MONTH_AUGUST', 'DATEPICKER_MONTH_DEC', 'DATEPICKER_MONTH_DECEMBER', 'DATEPICKER_MONTH_FEB', 'DATEPICKER_MONTH_FEBRUARY', 'DATEPICKER_MONTH_JAN', 'DATEPICKER_MONTH_JANUARY', 'DATEPICKER_MONTH_JUL', 'DATEPICKER_MONTH_JULY', 'DATEPICKER_MONTH_JUN', 'DATEPICKER_MONTH_JUNE', 'DATEPICKER_MONTH_MAR', 'DATEPICKER_MONTH_MARCH', 'DATEPICKER_MONTH_MAY', 'DATEPICKER_MONTH_NOV', 'DATEPICKER_MONTH_NOVEMBER', 'DATEPICKER_MONTH_OCT', 'DATEPICKER_MONTH_OCTOBER', 'DATEPICKER_MONTH_SEP', 'DATEPICKER_MONTH_SEPTEMBER'
+            'DATEPICKER_DAY_FR', 'DATEPICKER_DAY_FRI', 'DATEPICKER_DAY_FRIDAY', 'DATEPICKER_DAY_MO', 'DATEPICKER_DAY_MON', 'DATEPICKER_DAY_MONDAY', 'DATEPICKER_DAY_SA', 'DATEPICKER_DAY_SAT', 'DATEPICKER_DAY_SATURDAY', 'DATEPICKER_DAY_SU', 'DATEPICKER_DAY_SUN', 'DATEPICKER_DAY_SUNDAY', 'DATEPICKER_DAY_TH', 'DATEPICKER_DAY_THU', 'DATEPICKER_DAY_THURSDAY', 'DATEPICKER_DAY_TU', 'DATEPICKER_DAY_TUE', 'DATEPICKER_DAY_TUESDAY', 'DATEPICKER_DAY_WE', 'DATEPICKER_DAY_WED', 'DATEPICKER_DAY_WEDNESAY', 'DATEPICKER_MONTH_APR', 'DATEPICKER_MONTH_APRIL', 'DATEPICKER_MONTH_AUG', 'DATEPICKER_MONTH_AUGUST', 'DATEPICKER_MONTH_DEC', 'DATEPICKER_MONTH_DECEMBER', 'DATEPICKER_MONTH_FEB', 'DATEPICKER_MONTH_FEBRUARY', 'DATEPICKER_MONTH_JAN', 'DATEPICKER_MONTH_JANUARY', 'DATEPICKER_MONTH_JUL', 'DATEPICKER_MONTH_JULY', 'DATEPICKER_MONTH_JUN', 'DATEPICKER_MONTH_JUNE', 'DATEPICKER_MONTH_MAR', 'DATEPICKER_MONTH_MARCH', 'DATEPICKER_MONTH_MAY', 'DATEPICKER_MONTH_NOV', 'DATEPICKER_MONTH_NOVEMBER', 'DATEPICKER_MONTH_OCT', 'DATEPICKER_MONTH_OCTOBER', 'DATEPICKER_MONTH_SEP', 'DATEPICKER_MONTH_SEPTEMBER',
         ];
 
         $translations = \common\models\Translation::find()

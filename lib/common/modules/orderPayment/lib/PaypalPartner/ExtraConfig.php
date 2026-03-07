@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * Transactional Midle Ware for Paypal modules
  * This file is part of osCommerce ecommerce platform.
@@ -13,8 +15,8 @@
 
 namespace common\modules\orderPayment\lib\PaypalPartner;
 
-class ExtraConfig extends \yii\base\Widget {
-
+class ExtraConfig extends \yii\base\Widget
+{
     /** @prop models\SellerInfo $seller */
     public $seller;
     public $address;
@@ -26,11 +28,13 @@ class ExtraConfig extends \yii\base\Widget {
     public $mode = 'form';
     public $link_params;
 
-    public function init() {
+    public function init()
+    {
 
     }
 
-    public function run() {
+    public function run()
+    {
 
         $ret = '';
         $next = \Yii::$app->request->get('ppp_next', 0);
@@ -41,7 +45,7 @@ class ExtraConfig extends \yii\base\Widget {
         $loginLink = \Yii::$app->urlManager->createAbsoluteUrl($urlParams + ['action' => 'processOnBoard', 'ppexists' => 1], null, true);
         $boardLink = \Yii::$app->urlManager->createAbsoluteUrl($urlParams + ['action' => 'processOnBoard', 'seller_type' => ($next == 3 ? 'i' : 'b')], null, true);
         $checkBoardLink = \Yii::$app->urlManager->createAbsoluteUrl($urlParams + ['action' => 'checkOnBoarded', 'result' => 'show'], null, true);
-        $checkLink = \Yii::$app->urlManager->createAbsoluteUrl($urlParams + ['action' => 'processOnBoard', 'subaction'=> 'checkDetails', 'result' => 'show'], null, true);
+        $checkLink = \Yii::$app->urlManager->createAbsoluteUrl($urlParams + ['action' => 'processOnBoard', 'subaction' => 'checkDetails', 'result' => 'show'], null, true);
 
         //$unBoardLink = tep_catalog_href_link('callback/webhooks.payment.' . $this->module->code, http_build_query(['action'=>'deleteSeller', 'platform_id' => $platform_id]));
         $unBoardLink = \Yii::$app->urlManager->createAbsoluteUrl($urlParams + ['action' => 'deleteSeller', 'ck' => $this->seller->tracking_id], null, true);
@@ -61,7 +65,7 @@ class ExtraConfig extends \yii\base\Widget {
             $base_url = \Yii::$app->get('platform')->getConfig($platform_id)->getCatalogBaseUrl(true); ///mmmmm shit
         }
 
-//2check and remove - callback controller is updated.
+        //2check and remove - callback controller is updated.
         $curUrl = \Yii::$app->urlManager->createAbsoluteUrl('/');
         if (strpos($curUrl, $base_url) !== 0) {
             $cor = true;
@@ -71,7 +75,7 @@ class ExtraConfig extends \yii\base\Widget {
         $ownAPILink = \Yii::$app->urlManager->createAbsoluteUrl(['modules/edit', 'platform_id' => $platform_id, 'set' => 'payment', 'module' => $this->module->code, 'ppp_next' => 4, 'test_mode' => ($mode != 'Live')]) . '#extra';
         $editLink = \Yii::$app->urlManager->createAbsoluteUrl(['modules/edit', 'platform_id' => $platform_id, 'set' => 'payment', 'module' => $this->module->code]) . '#extra';
 
-        if ($this->mode == 'form' && !empty($this->seller->payer_id) && $this->seller->status>0 /*&& !($this->module->hasOwnKeys() || $next == 4)*/) {
+        if ($this->mode == 'form' && !empty($this->seller->payer_id) && $this->seller->status > 0 /*&& !($this->module->hasOwnKeys() || $next == 4)*/) {
             $tmp = $this->module->getBoardingDetails($platform_id, $this->seller);
         }
         $ccpActive = false;
@@ -133,7 +137,7 @@ class ExtraConfig extends \yii\base\Widget {
                   'webhooksRequiredList' => $neededWebHooks,
                   'whSubscribeLink' => $whSubscribeLink,
                   'checkLink' => $checkLink,
-                  'ppp_mode' => ($this->module->getPartnerId('Sandbox') == $this->seller->partner_id)?'Sandbox':'Live',
+                  'ppp_mode' => ($this->module->getPartnerId('Sandbox') == $this->seller->partner_id) ? 'Sandbox' : 'Live',
                   'checkVal' => md5(\Yii::$app->params['secKey.global']),
                 ]);
                 break;
@@ -151,7 +155,7 @@ class ExtraConfig extends \yii\base\Widget {
                   'boardingMode' => $this->module::BOARDING_MODE,
                   'link_params' => $this->link_params,
                   'fetchKeysUrl' => $fetchKeysUrl,
-                  'mode' => $mode
+                  'mode' => $mode,
                 ]);
                 break;
             case 'info':

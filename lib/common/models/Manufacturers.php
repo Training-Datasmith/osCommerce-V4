@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "manufacturers".
@@ -36,7 +36,7 @@ class Manufacturers extends \yii\db\ActiveRecord
             [['sort_order'], 'integer'],
             [['manufacturers_name'], 'string', 'max' => 32],
             [['manufacturers_image'], 'string', 'max' => 256],
-            [['manufacturers_old_seo_page_name'], 'string', 'max' => 128]
+            [['manufacturers_old_seo_page_name'], 'string', 'max' => 128],
         ];
     }
 
@@ -58,22 +58,22 @@ class Manufacturers extends \yii\db\ActiveRecord
 
     public function getProducts()
     {
-        return $this->hasMany(Products::className(),['manufacturer_id' => 'manufacturers_id']);
+        return $this->hasMany(Products::className(), ['manufacturer_id' => 'manufacturers_id']);
     }
 
     public function getSupplierDiscounts()
     {
-        return $this->hasMany(SuppliersCatalogDiscount::className(),['manufacturer_id' => 'manufacturers_id']);
+        return $this->hasMany(SuppliersCatalogDiscount::className(), ['manufacturer_id' => 'manufacturers_id']);
     }
 
     public function getSupplierPriceRules()
     {
-        return $this->hasMany(SuppliersCatalogPriceRules::className(),['manufacturer_id' => 'manufacturers_id']);
+        return $this->hasMany(SuppliersCatalogPriceRules::className(), ['manufacturer_id' => 'manufacturers_id']);
     }
 
     public function getManufacturersInfo()
     {
-      $languages_id = \Yii::$app->settings->get('languages_id');
-      return $this->hasOne(ManufacturersInfo::className(),['manufacturers_id' => 'manufacturers_id'])->andOnCondition(['languages_id' => (int)$languages_id]);
+        $languages_id = \Yii::$app->settings->get('languages_id');
+        return $this->hasOne(ManufacturersInfo::className(), ['manufacturers_id' => 'manufacturers_id'])->andOnCondition(['languages_id' => (int)$languages_id]);
     }
 }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -34,7 +36,9 @@ class m230130_231004_paypal_tracking extends Migration
         //if (!$this->isTableExists('tracking_numbers_export')) {}
 
         try {
-            $this->createTableIfNotExists('tracking_numbers_export', [
+            $this->createTableIfNotExists(
+                'tracking_numbers_export',
+                [
               'id' =>  $this->primaryKey(11)->append('AUTO_INCREMENT'),
               'tracking_numbers_id' => $this->integer(11)->notNull()->defaultValue(0),
               'orders_payment_id' => $this->integer(11)->notNull()->defaultValue(0),
@@ -45,8 +49,8 @@ class m230130_231004_paypal_tracking extends Migration
               'message' => $this->text()->notNull()->defaultValue(''),
               'date_added' => $this->dateTime()->notNull()->defaultExpression('CURRENT_TIMESTAMP'),
               ],
-              null,
-              [
+                null,
+                [
                 'idx_classname_ext_id' => ['classname', 'external_id'],
                 'unique:unq_tracking_numbers_id' => ['tracking_numbers_id', 'orders_payment_id'],
                 'idx_orders_id' => ['orders_id'],
@@ -57,7 +61,6 @@ class m230130_231004_paypal_tracking extends Migration
             echo $e->getMessage();
             return false;
         }
-        
 
     }
 
@@ -66,9 +69,9 @@ class m230130_231004_paypal_tracking extends Migration
      */
     public function safeDown()
     {
-//        echo "m230130_231004_paypal_tracking cannot be reverted.\n";
+        //        echo "m230130_231004_paypal_tracking cannot be reverted.\n";
 
-//        return false;
+        //        return false;
     }
 
     /*

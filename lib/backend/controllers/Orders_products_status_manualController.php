@@ -23,27 +23,29 @@ class Orders_products_status_manualController extends Sceleton
 
     public function actionIndex()
     {
-        $this->selectedMenu = array('settings', 'status', 'orders_products_status_manual');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('orders_products_status_manual/index'), 'title' => HEADING_TITLE_ORDERS_PRODUCTS_STATUS);
+        $this->selectedMenu = ['settings', 'status', 'orders_products_status_manual'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('orders_products_status_manual/index'), 'title' => HEADING_TITLE_ORDERS_PRODUCTS_STATUS];
         $this->view->headingTitle = HEADING_TITLE_ORDERS_PRODUCTS_STATUS;
         $this->topButtons[] = '<a href="#" class="btn btn-primary" onclick="return statusEdit(0)">' . TEXT_INFO_HEADING_NEW_ORDERS_PRODUCTS_STATUS . '</a>';
-        $this->view->StatusTable = array(
-            array(
+        $this->view->StatusTable = [
+            [
                 'title' => TABLE_HEADING_ORDERS_PRODUCTS_STATUS,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => '',
-                'not_important' => 0
-            )
-        );
+                'not_important' => 0,
+            ],
+        ];
         $messages = [];
         if (isset($_SESSION['messages'])) {
             $messages = $_SESSION['messages'];
             unset($_SESSION['messages']);
-            if (!is_array($messages)) $messages = [];
+            if (!is_array($messages)) {
+                $messages = [];
+            }
         }
-        return $this->render('index', array('messages' => $messages));
+        return $this->render('index', ['messages' => $messages]);
     }
 
     public function actionList()
@@ -58,20 +60,20 @@ class Orders_products_status_manualController extends Sceleton
         if (isset($_GET['search']['value']) && tep_not_null($_GET['search']['value'])) {
             $opsmQuery->andWhere(['or',
                 ['like', 'orders_products_status_manual_name', tep_db_input(tep_db_prepare_input($_GET['search']['value']))],
-                ['like', 'orders_products_status_manual_name_long', tep_db_input(tep_db_prepare_input($_GET['search']['value']))]
+                ['like', 'orders_products_status_manual_name_long', tep_db_input(tep_db_prepare_input($_GET['search']['value']))],
             ]);
         }
         if (isset($_GET['order'][0]['column']) && $_GET['order'][0]['dir']) {
             switch ($_GET['order'][0]['column']) {
                 case 0:
                     $opsmQuery->orderBy('orders_products_status_manual_name_long ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 case 1:
                     $opsmQuery->orderBy('orders_products_status_manual_name ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 default:
                     $opsmQuery->orderBy('orders_products_status_manual_id ASC');
-                break;
+                    break;
             }
         } else {
             $opsmQuery->orderBy('orders_products_status_manual_id ASC');
@@ -83,17 +85,17 @@ class Orders_products_status_manualController extends Sceleton
         $opsmQuery = $opsmQuery->asArray(true)->all();
         $responseList = [];
         foreach ($opsmQuery as $opsmRecord) {
-            $responseList[] = array(
+            $responseList[] = [
                 $opsmRecord['orders_products_status_manual_name_long'] . tep_draw_hidden_field('id', $opsmRecord['orders_products_status_manual_id'], 'class="cell_identify"'),
-                $opsmRecord['orders_products_status_manual_name']
-            );
+                $opsmRecord['orders_products_status_manual_name'],
+            ];
         }
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $orders_products_status_manual_query_numrows,
             'recordsFiltered' => $orders_products_status_manual_query_numrows,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         echo json_encode($response);
     }
 
@@ -105,7 +107,7 @@ class Orders_products_status_manualController extends Sceleton
         $this->layout = false;
         $opsmRecord = \common\models\OrdersProductsStatusManual::findOne([
             'orders_products_status_manual_id' => Yii::$app->request->post('orders_products_status_manual_id', 0),
-            'language_id' => $languages_id
+            'language_id' => $languages_id,
         ]);
         if ($opsmRecord) {
             echo '<div class="or_box_head" style="color: ' . $opsmRecord->getColour() . '">' . $opsmRecord->orders_products_status_manual_name_long . ' / ' . $opsmRecord->orders_products_status_manual_name . '</div>';
@@ -130,7 +132,7 @@ class Orders_products_status_manualController extends Sceleton
         \common\helpers\Translation::init('admin/orders_products_status_manual');
         $opsmRecord = \common\models\OrdersProductsStatusManual::findOne([
             'orders_products_status_manual_id' => Yii::$app->request->get('orders_products_status_manual_id', 0),
-            'language_id' => $languages_id
+            'language_id' => $languages_id,
         ]);
         $orders_products_status_manual_id = 0;
         $orders_products_status_manual_colour = '#000000';
@@ -142,12 +144,14 @@ class Orders_products_status_manualController extends Sceleton
         $languages = \common\helpers\Language::get_languages();
         for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
             $orders_products_status_manual_inputs_string[$languages[$i]['id']] = \yii\helpers\Html::input(
-                'text', 'orders_products_status_manual_name[' . $languages[$i]['id'] . ']',
+                'text',
+                'orders_products_status_manual_name[' . $languages[$i]['id'] . ']',
                 \common\helpers\Order::get_orders_products_status_manual_name($orders_products_status_manual_id, $languages[$i]['id'], false),
                 ['class' => 'form-control']
             );
             $orders_products_status_manual_inputs_string_long[$languages[$i]['id']] = \yii\helpers\Html::input(
-                'text', 'orders_products_status_manual_name_long[' . $languages[$i]['id'] . ']',
+                'text',
+                'orders_products_status_manual_name_long[' . $languages[$i]['id'] . ']',
                 \common\helpers\Order::get_orders_products_status_manual_name($orders_products_status_manual_id, $languages[$i]['id']),
                 ['class' => 'form-control']
             );
@@ -162,7 +166,7 @@ class Orders_products_status_manualController extends Sceleton
                     'orders_products_status_matrix[' . $opsRecord->orders_products_status_id . ']',
                     isset($opsmmArray[$opsRecord->orders_products_status_id]),
                     ['id' => $opsId, 'class' => 'form-control']
-                )
+                ),
             ];
         }
         if ($orders_products_status_manual_id) {
@@ -170,16 +174,16 @@ class Orders_products_status_manualController extends Sceleton
         } else {
             $title = TEXT_INFO_HEADING_NEW_ORDERS_PRODUCTS_STATUS;
         }
-        $this->selectedMenu = array('settings', 'status', 'orders_products_status_manual');
+        $this->selectedMenu = ['settings', 'status', 'orders_products_status_manual'];
         $this->view->headingTitle = $title;
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('orders_products_status_manual/index'), 'title' => $title);
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('orders_products_status_manual/index'), 'title' => $title];
         return $this->render('edit', [
             'orders_products_status_manual_id' => $orders_products_status_manual_id,
             'orders_products_status_manual_colour' => $orders_products_status_manual_colour,
             'orders_products_status_manual_inputs_string' => $orders_products_status_manual_inputs_string,
             'orders_products_status_manual_inputs_string_long' => $orders_products_status_manual_inputs_string_long,
             'orders_products_status_matrix_string' => $orders_products_status_matrix_string,
-            'languages' => $languages
+            'languages' => $languages,
         ]);
     }
 
@@ -199,7 +203,7 @@ class Orders_products_status_manualController extends Sceleton
             $language_id = $languages[$i]['id'];
             $opsmRecord = \common\models\OrdersProductsStatusManual::findOne([
                 'orders_products_status_manual_id' => $orders_products_status_manual_id,
-                'language_id' => (int)$language_id
+                'language_id' => (int)$language_id,
             ]);
             $action = 'updated';
             $added = false;
@@ -222,7 +226,7 @@ class Orders_products_status_manualController extends Sceleton
             }
         }
         $opsmRecord = \common\models\OrdersProductsStatusManual::findOne([
-            'orders_products_status_manual_id' => ($orders_products_status_manual_id == 0 ? $insert_id : $orders_products_status_manual_id)
+            'orders_products_status_manual_id' => ($orders_products_status_manual_id == 0 ? $insert_id : $orders_products_status_manual_id),
         ]);
         if ($opsmRecord) {
             if (($opsmRecord = $opsmRecord->setMatrixArray(array_keys((array)$_POST['orders_products_status_matrix']))) !== true) {
@@ -245,15 +249,15 @@ class Orders_products_status_manualController extends Sceleton
         if ($orders_products_status_manual_id) {
             $remove_status = true;
             $product = \common\models\OrdersProducts::find()->select('COUNT(*) AS count')->andWhere(['orders_products_status_manual' => $orders_products_status_manual_id])->asArray(true)->one();
-            $error = array();
+            $error = [];
             if ($product['count'] > 0) {
                 $remove_status = false;
-                $error = array('message' => ERROR_ORDERS_PRODUCTS_STATUS_USED_IN_ORDERS_PRODUCTS, 'messageType' => 'alert-danger');
+                $error = ['message' => ERROR_ORDERS_PRODUCTS_STATUS_USED_IN_ORDERS_PRODUCTS, 'messageType' => 'alert-danger'];
             } else {
                 $history = \common\models\OrdersProductsStatusHistory::find()->select('COUNT(*) AS count')->andWhere(['orders_products_status_manual_id' => $orders_products_status_manual_id])->asArray(true)->one();
                 if ($history['count'] > 0) {
                     $remove_status = false;
-                    $error = array('message' => ERROR_ORDERS_PRODUCTS_STATUS_USED_IN_ORDERS_PRODUCTS_HISTORY, 'messageType' => 'alert-danger');
+                    $error = ['message' => ERROR_ORDERS_PRODUCTS_STATUS_USED_IN_ORDERS_PRODUCTS_HISTORY, 'messageType' => 'alert-danger'];
                 }
             }
             if (!$remove_status) {
@@ -265,10 +269,10 @@ class Orders_products_status_manualController extends Sceleton
                 <?php
             } else {
                 $opsmRecord = \common\models\OrdersProductsStatusManual::findOne([
-                    'orders_products_status_manual_id' => $orders_products_status_manual_id
+                    'orders_products_status_manual_id' => $orders_products_status_manual_id,
                 ]);
                 if ($opsmRecord) {
-                    $opsmRecord = $opsmRecord->setMatrixArray(array());
+                    $opsmRecord = $opsmRecord->setMatrixArray([]);
                 }
                 \common\models\OrdersProductsStatusManual::deleteAll(['orders_products_status_manual_id' => $orders_products_status_manual_id]);
                 echo 'reset';

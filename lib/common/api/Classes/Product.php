@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -80,7 +82,7 @@ class Product extends AbstractClass
             /**
              * Attributes
              */
-            foreach (\common\models\ProductsAttributes::find()->where(['products_id' => $productId])->asArray(true)->all() as $productsAttributesRecord ) {
+            foreach (\common\models\ProductsAttributes::find()->where(['products_id' => $productId])->asArray(true)->all() as $productsAttributesRecord) {
                 $productsAttributesRecord['productsAttributesPricesRecordArray'] = \common\models\ProductsAttributesPrices::find()->where(['products_attributes_id' => $productsAttributesRecord['products_attributes_id']])->asArray(true)->all();
                 $productsAttributesRecord['productsAttributesDownloadRecord'] = \common\models\ProductsAttributesDownload::find()->where(['products_attributes_id' => $productsAttributesRecord['products_attributes_id']])->one();
                 $this->productsAttributesRecordArray[] = $productsAttributesRecord;
@@ -101,7 +103,7 @@ class Product extends AbstractClass
             /**
              * Images
              */
-            foreach (\common\models\ProductsImages::find()->where(['products_id' => $productId])->asArray(true)->all() as $productsImagesRecord ) {
+            foreach (\common\models\ProductsImages::find()->where(['products_id' => $productId])->asArray(true)->all() as $productsImagesRecord) {
                 $productsImagesRecord['productsImagesDescriptionRecordArray'] = \common\models\ProductsImagesDescription::find()->where(['products_images_id' => $productsImagesRecord['products_images_id']])->asArray(true)->all();
                 $productsImagesRecord['productsImagesAttributesRecordArray'] = \common\models\ProductsImagesAttributes::find()->where(['products_images_id' => $productsImagesRecord['products_images_id']])->asArray(true)->all();
                 $productsImagesRecord['productsImagesExternalUrlRecordArray'] = \common\models\ProductsImagesExternalUrl::find()->where(['products_images_id' => $productsImagesRecord['products_images_id']])->asArray(true)->all();
@@ -113,7 +115,7 @@ class Product extends AbstractClass
             /**
              * Inventory
              */
-            foreach (\common\models\Inventory::find()->where(['prid' => $productId])->asArray(true)->all() as $inventoryRecord ) {
+            foreach (\common\models\Inventory::find()->where(['prid' => $productId])->asArray(true)->all() as $inventoryRecord) {
                 $inventoryRecord['inventoryPricesRecordArray'] = \common\models\InventoryPrices::find()->where(['inventory_id' => $inventoryRecord['inventory_id']])->asArray(true)->all();
 
                 if ($extScl = \common\helpers\Acl::checkExtensionAllowed('StockControl', 'allowed')) {
@@ -273,50 +275,50 @@ class Product extends AbstractClass
             return false;
         }
         unset($this->productRecord['products_id']);
-        $this->descriptionRecordArray = (is_array($this->descriptionRecordArray) ? $this->descriptionRecordArray : array());
-        $this->productsPricesRecordArray = (is_array($this->productsPricesRecordArray) ? $this->productsPricesRecordArray : array());
-        $this->productsAttributesRecordArray = (is_array($this->productsAttributesRecordArray) ? $this->productsAttributesRecordArray : array());
+        $this->descriptionRecordArray = (is_array($this->descriptionRecordArray) ? $this->descriptionRecordArray : []);
+        $this->productsPricesRecordArray = (is_array($this->productsPricesRecordArray) ? $this->productsPricesRecordArray : []);
+        $this->productsAttributesRecordArray = (is_array($this->productsAttributesRecordArray) ? $this->productsAttributesRecordArray : []);
         foreach ($this->productsAttributesRecordArray as $key => $productsAttributesRecord) {
-            $this->productsAttributesRecordArray[$key]['productsAttributesPricesRecordArray'] = (is_array($productsAttributesRecord['productsAttributesPricesRecordArray']) ? $productsAttributesRecord['productsAttributesPricesRecordArray'] : array());
+            $this->productsAttributesRecordArray[$key]['productsAttributesPricesRecordArray'] = (is_array($productsAttributesRecord['productsAttributesPricesRecordArray']) ? $productsAttributesRecord['productsAttributesPricesRecordArray'] : []);
             $this->productsAttributesRecordArray[$key]['productsAttributesDownloadRecord'] = (is_array($productsAttributesRecord['productsAttributesDownloadRecord']) ? $productsAttributesRecord['productsAttributesDownloadRecord'] : null);
         }
         unset($productsAttributesRecord);
         unset($key);
-        $this->productsToCategoriesRecordArray = (is_array($this->productsToCategoriesRecordArray) ? $this->productsToCategoriesRecordArray : array());
-        $this->platformsProductsRecordArray = (is_array($this->platformsProductsRecordArray) ? $this->platformsProductsRecordArray : array());
-        $this->departmentsProductsRecordArray = (is_array($this->departmentsProductsRecordArray) ? $this->departmentsProductsRecordArray : array());
-        $this->productsImagesRecordArray = (is_array($this->productsImagesRecordArray) ? $this->productsImagesRecordArray : array());
+        $this->productsToCategoriesRecordArray = (is_array($this->productsToCategoriesRecordArray) ? $this->productsToCategoriesRecordArray : []);
+        $this->platformsProductsRecordArray = (is_array($this->platformsProductsRecordArray) ? $this->platformsProductsRecordArray : []);
+        $this->departmentsProductsRecordArray = (is_array($this->departmentsProductsRecordArray) ? $this->departmentsProductsRecordArray : []);
+        $this->productsImagesRecordArray = (is_array($this->productsImagesRecordArray) ? $this->productsImagesRecordArray : []);
         foreach ($this->productsImagesRecordArray as $key => $productsImagesRecord) {
-            $this->productsImagesRecordArray[$key]['productsImagesDescriptionRecordArray'] = (is_array($productsImagesRecord['productsImagesDescriptionRecordArray']) ? $productsImagesRecord['productsImagesDescriptionRecordArray'] : array());
-            $this->productsImagesRecordArray[$key]['productsImagesAttributesRecordArray'] = (is_array($productsImagesRecord['productsImagesAttributesRecordArray']) ? $productsImagesRecord['productsImagesAttributesRecordArray'] : array());
-            $this->productsImagesRecordArray[$key]['productsImagesExternalUrlRecordArray'] = (is_array($productsImagesRecord['productsImagesExternalUrlRecordArray']) ? $productsImagesRecord['productsImagesExternalUrlRecordArray'] : array());
-            $this->productsImagesRecordArray[$key]['productsImagesInventoryRecordArray'] = (is_array($productsImagesRecord['productsImagesInventoryRecordArray']) ? $productsImagesRecord['productsImagesInventoryRecordArray'] : array());
+            $this->productsImagesRecordArray[$key]['productsImagesDescriptionRecordArray'] = (is_array($productsImagesRecord['productsImagesDescriptionRecordArray']) ? $productsImagesRecord['productsImagesDescriptionRecordArray'] : []);
+            $this->productsImagesRecordArray[$key]['productsImagesAttributesRecordArray'] = (is_array($productsImagesRecord['productsImagesAttributesRecordArray']) ? $productsImagesRecord['productsImagesAttributesRecordArray'] : []);
+            $this->productsImagesRecordArray[$key]['productsImagesExternalUrlRecordArray'] = (is_array($productsImagesRecord['productsImagesExternalUrlRecordArray']) ? $productsImagesRecord['productsImagesExternalUrlRecordArray'] : []);
+            $this->productsImagesRecordArray[$key]['productsImagesInventoryRecordArray'] = (is_array($productsImagesRecord['productsImagesInventoryRecordArray']) ? $productsImagesRecord['productsImagesInventoryRecordArray'] : []);
         }
         unset($productsImagesRecord);
         unset($key);
-        $this->newProductsImagesArray = (is_array($this->newProductsImagesArray) ? $this->newProductsImagesArray : array());
-        $this->inventoryRecordArray = (is_array($this->inventoryRecordArray) ? $this->inventoryRecordArray : array());
+        $this->newProductsImagesArray = (is_array($this->newProductsImagesArray) ? $this->newProductsImagesArray : []);
+        $this->inventoryRecordArray = (is_array($this->inventoryRecordArray) ? $this->inventoryRecordArray : []);
         foreach ($this->inventoryRecordArray as $key => $inventoryRecord) {
-            $this->inventoryRecordArray[$key]['inventoryPricesRecordArray'] = (is_array($inventoryRecord['inventoryPricesRecordArray']) ? $inventoryRecord['inventoryPricesRecordArray'] : array());
-            $this->inventoryRecordArray[$key]['platformInventoryControlRecordArray'] = (is_array($inventoryRecord['platformInventoryControlRecordArray']) ? $inventoryRecord['platformInventoryControlRecordArray'] : array());
-            $this->inventoryRecordArray[$key]['warehouseInventoryControlRecordArray'] = (is_array($inventoryRecord['warehouseInventoryControlRecordArray']) ? $inventoryRecord['warehouseInventoryControlRecordArray'] : array());
+            $this->inventoryRecordArray[$key]['inventoryPricesRecordArray'] = (is_array($inventoryRecord['inventoryPricesRecordArray']) ? $inventoryRecord['inventoryPricesRecordArray'] : []);
+            $this->inventoryRecordArray[$key]['platformInventoryControlRecordArray'] = (is_array($inventoryRecord['platformInventoryControlRecordArray']) ? $inventoryRecord['platformInventoryControlRecordArray'] : []);
+            $this->inventoryRecordArray[$key]['warehouseInventoryControlRecordArray'] = (is_array($inventoryRecord['warehouseInventoryControlRecordArray']) ? $inventoryRecord['warehouseInventoryControlRecordArray'] : []);
         }
         unset($inventoryRecord);
         unset($key);
-        $this->giveAwayProductsRecordArray = (is_array($this->giveAwayProductsRecordArray) ? $this->giveAwayProductsRecordArray : array());
-        $this->featuredRecordArray = (is_array($this->featuredRecordArray) ? $this->featuredRecordArray : array());
-        $this->productsXsellRecordArray = (is_array($this->productsXsellRecordArray) ? $this->productsXsellRecordArray : array());
-        $this->productsUpsellRecordArray = (is_array($this->productsUpsellRecordArray) ? $this->productsUpsellRecordArray : array());
-        $this->propertiesToPropductsRecordArray = (is_array($this->propertiesToPropductsRecordArray) ? $this->propertiesToPropductsRecordArray : array());
-        $this->productsVideosRecordArray = (is_array($this->productsVideosRecordArray) ? $this->productsVideosRecordArray : array());
-        $this->giftWrapProductsRecordArray = (is_array($this->giftWrapProductsRecordArray) ? $this->giftWrapProductsRecordArray : array());
-        $this->productsNotesRecordArray = (is_array($this->productsNotesRecordArray) ? $this->productsNotesRecordArray : array());
-        $this->suppliersProductsRecordArray = (is_array($this->suppliersProductsRecordArray) ? $this->suppliersProductsRecordArray : array());
-        $this->warehousesProductsRecordArray = (is_array($this->warehousesProductsRecordArray) ? $this->warehousesProductsRecordArray : array());
-        $this->platformStockControlRecordArray = (is_array($this->platformStockControlRecordArray) ? $this->platformStockControlRecordArray : array());
-        $this->warehouseStockControlRecordArray = (is_array($this->warehouseStockControlRecordArray) ? $this->warehouseStockControlRecordArray : array());
-        $this->oldSeoRedirectArray = (is_array($this->oldSeoRedirectArray) ? $this->oldSeoRedirectArray : array());
-        $this->specialsArray = (is_array($this->specialsArray) ? $this->specialsArray : array());
+        $this->giveAwayProductsRecordArray = (is_array($this->giveAwayProductsRecordArray) ? $this->giveAwayProductsRecordArray : []);
+        $this->featuredRecordArray = (is_array($this->featuredRecordArray) ? $this->featuredRecordArray : []);
+        $this->productsXsellRecordArray = (is_array($this->productsXsellRecordArray) ? $this->productsXsellRecordArray : []);
+        $this->productsUpsellRecordArray = (is_array($this->productsUpsellRecordArray) ? $this->productsUpsellRecordArray : []);
+        $this->propertiesToPropductsRecordArray = (is_array($this->propertiesToPropductsRecordArray) ? $this->propertiesToPropductsRecordArray : []);
+        $this->productsVideosRecordArray = (is_array($this->productsVideosRecordArray) ? $this->productsVideosRecordArray : []);
+        $this->giftWrapProductsRecordArray = (is_array($this->giftWrapProductsRecordArray) ? $this->giftWrapProductsRecordArray : []);
+        $this->productsNotesRecordArray = (is_array($this->productsNotesRecordArray) ? $this->productsNotesRecordArray : []);
+        $this->suppliersProductsRecordArray = (is_array($this->suppliersProductsRecordArray) ? $this->suppliersProductsRecordArray : []);
+        $this->warehousesProductsRecordArray = (is_array($this->warehousesProductsRecordArray) ? $this->warehousesProductsRecordArray : []);
+        $this->platformStockControlRecordArray = (is_array($this->platformStockControlRecordArray) ? $this->platformStockControlRecordArray : []);
+        $this->warehouseStockControlRecordArray = (is_array($this->warehouseStockControlRecordArray) ? $this->warehouseStockControlRecordArray : []);
+        $this->oldSeoRedirectArray = (is_array($this->oldSeoRedirectArray) ? $this->oldSeoRedirectArray : []);
+        $this->specialsArray = (is_array($this->specialsArray) ? $this->specialsArray : []);
         // ...
         return true;
     }
@@ -822,7 +824,7 @@ class Product extends AbstractClass
                 }
                 if ($inventoryId > 0) {
                     if (isset($inventoryRecord['inventoryImagesArray'])) {
-                        foreach ((is_array($inventoryRecord['inventoryImagesArray']) ? $inventoryRecord['inventoryImagesArray'] : array()) as $inventoryImage) {
+                        foreach ((is_array($inventoryRecord['inventoryImagesArray']) ? $inventoryRecord['inventoryImagesArray'] : []) as $inventoryImage) {
                             $productImageId = $this->findImageId($inventoryImage);
                             if ($productImageId > 0) {
 
@@ -840,7 +842,6 @@ class Product extends AbstractClass
                                     $this->messageAdd($imagesInventoryClass->getErrorSummary(true));
                                 }
                                 unset($imagesInventoryClass);
-
 
                             }
                             unset($productImageId);
@@ -1173,7 +1174,7 @@ class Product extends AbstractClass
                                 'language_id' => $languageId,
                                 'redirects_type' => 'product',
                                 'owner_id' => $this->productId,
-                                'old_seo_page_name' => $seoRedirectArray['old_seo_page_name']
+                                'old_seo_page_name' => $seoRedirectArray['old_seo_page_name'],
                             ];
                             $seoRedirectRecord = $seoModel::findOne($searchArray);
                             if (!($seoRedirectRecord instanceof $seoModel)) {
@@ -1201,10 +1202,10 @@ class Product extends AbstractClass
                     $specialId = $special['specials_id'] ?? null;
                     unset($special['products_id']);
                     $searchArray = [
-                        'products_id' => $this->productId
+                        'products_id' => $this->productId,
                     ];
                     $specialRecord = null;
-                    if ( $specialId > 0) {
+                    if ($specialId > 0) {
                         $searchArray['specials_id'] = $specialId;
                         $specialRecord = \common\models\Specials::findOne($searchArray);
                     }
@@ -1230,7 +1231,7 @@ class Product extends AbstractClass
                     $specialPricesRecord->specials_new_products_price = $specialRecord->specials_new_products_price;
                     $specialPricesRecord->save();
 
-                }  catch (\Throwable $exc) {
+                } catch (\Throwable $exc) {
                     \Yii::warning($exc->getMessage() . "\n" . $exc->getTraceAsString());
                 }
                 unset($specialRecord);
@@ -1251,12 +1252,12 @@ class Product extends AbstractClass
     {
         $check = \common\models\ProductsImages::find()
                 ->select(['pi.products_images_id'])
-                ->from(\common\models\ProductsImages::tableName() . " pi")
-                ->leftJoin(\common\models\ProductsImagesDescription::tableName() . " pid", "pi.products_images_id = pid.products_images_id")
+                ->from(\common\models\ProductsImages::tableName() . ' pi')
+                ->leftJoin(\common\models\ProductsImagesDescription::tableName() . ' pid', 'pi.products_images_id = pid.products_images_id')
                 ->where(['pi.products_id' => $this->productId, 'pid.language_id' => 0, 'pid.orig_file_name' => $origFilename ])
                 ->asArray()
                 ->one();
-        return $check['products_images_id']??null;
+        return $check['products_images_id'] ?? null;
     }
 
     private function attachNewImage($newProductsImages)
@@ -1282,7 +1283,7 @@ class Product extends AbstractClass
                 $languageId = (int)\Yii::$app->settings->get('languages_id');
                 $platformId = \common\classes\platform::defaultId();
 
-                $hashName = md5($origFilename . "_" . date('dmYHis') . "_" . microtime(true));
+                $hashName = md5($origFilename . '_' . date('dmYHis') . '_' . microtime(true));
 
                 $ProductsImagesClass = new \common\models\ProductsImages();
                 $ProductsImagesClass->loadDefaultValues();

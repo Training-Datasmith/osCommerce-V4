@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Common;
 
 use PayPal\Validation\JsonValidator;
@@ -11,8 +13,7 @@ use PayPal\Validation\JsonValidator;
  */
 class PayPalModel
 {
-
-    private $_propMap = array();
+    private $_propMap = [];
 
     /**
      * OAuth Credentials to use for this call
@@ -44,13 +45,13 @@ class PayPalModel
     public function __construct($data = null)
     {
         switch (gettype($data)) {
-            case "NULL":
+            case 'NULL':
                 break;
-            case "string":
+            case 'string':
                 JsonValidator::validate($data);
                 $this->fromJson($data);
                 break;
-            case "array":
+            case 'array':
                 $this->fromArray($data);
                 break;
             default:
@@ -76,7 +77,7 @@ class PayPalModel
             return new static(json_encode($data));
         }
 
-        $list = array();
+        $list = [];
 
         if (is_array($data)) {
             $data = json_encode($data);
@@ -139,7 +140,7 @@ class PayPalModel
      */
     private function convertToCamelCase($key)
     {
-        return str_replace(' ', '', ucwords(str_replace(array('_', '-'), ' ', $key)));
+        return str_replace(' ', '', ucwords(str_replace(['_', '-'], ' ', $key)));
     }
 
     /**
@@ -171,12 +172,12 @@ class PayPalModel
      */
     private function _convertToArray($param)
     {
-        $ret = array();
+        $ret = [];
         foreach ($param as $k => $v) {
             if ($v instanceof PayPalModel) {
                 $ret[$k] = $v->toArray();
             } elseif (is_array($v) && sizeof($v) <= 0) {
-                $ret[$k] = array();
+                $ret[$k] = [];
             } elseif (is_array($v)) {
                 $ret[$k] = $this->_convertToArray($v);
             } else {
@@ -211,7 +212,7 @@ class PayPalModel
                         if (empty($v)) {
                             if (ReflectionUtil::isPropertyClassArray(get_class($this), $k)) {
                                 // It means, it is an array of objects.
-                                $this->assignValue($k, array());
+                                $this->assignValue($k, []);
                                 continue;
                             }
                             $o = new $clazz();
@@ -224,7 +225,7 @@ class PayPalModel
                             $this->assignValue($k, $o);
                         } else {
                             // Else, value is an array of object/data
-                            $arr = array();
+                            $arr = [];
                             // Iterate through each element in that array.
                             foreach ($v as $nk => $nv) {
                                 if (is_array($nv)) {

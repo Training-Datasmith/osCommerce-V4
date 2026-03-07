@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,16 +14,13 @@
 
 namespace frontend\design\boxes\catalog;
 
+use frontend\design\IncludeTpl;
+use frontend\design\Info;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use common\helpers\Product;
-use common\classes\Images;
-use frontend\design\Info;
 
 class Compare extends Widget
 {
-
     public $file;
     public $params;
     public $content;
@@ -43,9 +42,9 @@ class Compare extends Widget
         if (!is_array($compare) /*|| count($compare) < 2 || count($compare) > 4*/) {
             $error_text = TEXT_PLEASE_SELECT_COMPARE;
         } else {
-            $properties_array = array();
-            $values_array = array();
-            $properties_query = tep_db_query("select p.properties_id, if(p2p.values_id > 0, p2p.values_id, p2p.values_flag) as values_id from " . TABLE_PROPERTIES_TO_PRODUCTS . " p2p, " . TABLE_PROPERTIES . " p where p2p.properties_id = p.properties_id and p.display_compare = '1' and p2p.products_id in ('" . implode("','", array_map('intval', $compare)) . "')");
+            $properties_array = [];
+            $values_array = [];
+            $properties_query = tep_db_query('select p.properties_id, if(p2p.values_id > 0, p2p.values_id, p2p.values_flag) as values_id from ' . TABLE_PROPERTIES_TO_PRODUCTS . ' p2p, ' . TABLE_PROPERTIES . " p where p2p.properties_id = p.properties_id and p.display_compare = '1' and p2p.products_id in ('" . implode("','", array_map('intval', $compare)) . "')");
             while ($properties = tep_db_fetch_array($properties_query)) {
                 if (!in_array($properties['properties_id'], $properties_array)) {
                     $properties_array[] = $properties['properties_id'];
@@ -54,14 +53,14 @@ class Compare extends Widget
             }
             $properties_tree_array = \common\helpers\Properties::generate_properties_tree(0, $properties_array, $values_array);
 
-            $products_data_array = array();
+            $products_data_array = [];
             foreach ($compare as $products_id) {
-                $products_arr = tep_db_fetch_array(tep_db_query("select products_id, products_model, products_price, products_tax_class_id from " . TABLE_PRODUCTS . " where products_id = '" . (int)$products_id . "'"));
+                $products_arr = tep_db_fetch_array(tep_db_query('select products_id, products_model, products_price, products_tax_class_id from ' . TABLE_PRODUCTS . " where products_id = '" . (int)$products_id . "'"));
                 $products_data_array[$products_id]['id'] = $products_id;
 
-                $properties_array = array();
-                $values_array = array();
-                $properties_query = tep_db_query("select p.properties_id, if(p2p.values_id > 0, p2p.values_id, p2p.values_flag) as values_id from " . TABLE_PROPERTIES_TO_PRODUCTS . " p2p, " . TABLE_PROPERTIES . " p where p2p.properties_id = p.properties_id and p.display_compare = '1' and p2p.products_id = '" . (int)$products_id . "'");
+                $properties_array = [];
+                $values_array = [];
+                $properties_query = tep_db_query('select p.properties_id, if(p2p.values_id > 0, p2p.values_id, p2p.values_flag) as values_id from ' . TABLE_PROPERTIES_TO_PRODUCTS . ' p2p, ' . TABLE_PROPERTIES . " p where p2p.properties_id = p.properties_id and p.display_compare = '1' and p2p.products_id = '" . (int)$products_id . "'");
                 while ($properties = tep_db_fetch_array($properties_query)) {
                     if (!in_array($properties['properties_id'], $properties_array)) {
                         $properties_array[] = $properties['properties_id'];
@@ -72,7 +71,7 @@ class Compare extends Widget
             }
 
             foreach ($properties_tree_array as $properties_id => $property) {
-                $values_array = array();
+                $values_array = [];
                 foreach ($products_data_array as $products_id => $products_data) {
                     if (is_array($products_data['properties_tree'][$properties_id]['values'])) {
                         $values_array[] = trim(implode(' ', $products_data['properties_tree'][$properties_id]['values']));
@@ -91,7 +90,7 @@ class Compare extends Widget
 
         $compareCategoryId = 0;
         foreach ($_SESSION['compare'] as $catId => $compareArr) {
-            if (in_array($compareArr[0], $compare)){
+            if (in_array($compareArr[0], $compare)) {
                 $compareCategoryId = $catId;
                 break;
             }
@@ -99,7 +98,7 @@ class Compare extends Widget
         Info::addJsData(['compare' => [
             'currentCategory' => [
                 'id' => $compareCategoryId,
-            ]
+            ],
         ]]);
 
         $this->settings['listing_type'] = 'compare';
@@ -109,7 +108,7 @@ class Compare extends Widget
         $productListing = \frontend\design\boxes\ProductListing::widget([
             'products' => Yii::$container->get('products')->getAllProducts($this->settings['listing_type']),
             'settings' => $this->settings,
-            'id' => $this->id
+            'id' => $this->id,
         ]);
 
         return IncludeTpl::widget(['file' => 'boxes/catalog/compare.tpl', 'params' => [

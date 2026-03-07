@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230207_124828_translate extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/main',[
+        $this->addTranslation('admin/main', [
             'DATA_FROM_NETWORK_CHANGED' => 'Some data from your network or your browser has changed, some features will not work, please re-login to fix it.',
         ]);
     }

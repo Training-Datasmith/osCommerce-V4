@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,8 +15,6 @@
 
 namespace common\models;
 
-use Imagine\Exception\RuntimeException;
-use Yii;
 use yii\db\ActiveRecord;
 
 /**
@@ -40,17 +40,19 @@ use yii\db\ActiveRecord;
  * @property string $entry_telephone
  * @property string $entry_email_address
  */
-class AddressBook extends ActiveRecord {
-
+class AddressBook extends ActiveRecord
+{
     /**
      * set table name
      * @return string
      */
-    public static function tableName() {
+    public static function tableName()
+    {
         return 'address_book';
     }
 
-    public static function create(array $attributes): self {
+    public static function create(array $attributes): self
+    {
         $book = new static();
         foreach ($attributes as $attribute => $value) {
             if ($book->hasAttribute($attribute)) {
@@ -60,7 +62,8 @@ class AddressBook extends ActiveRecord {
         return $book;
     }
 
-    public function edit(array $attributes) {
+    public function edit(array $attributes)
+    {
         foreach ($attributes as $attribute => $value) {
             if ($this->hasAttribute($attribute)) {
                 $this->setAttribute($attribute, $value);
@@ -68,11 +71,13 @@ class AddressBook extends ActiveRecord {
         }
     }
 
-    public function getCustomer() {
+    public function getCustomer()
+    {
         return $this->hasOne(Customers::className(), ['customers_id' => 'customers_id']);
     }
-    
-    public function getCountry(){
+
+    public function getCountry()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
         return $this->hasOne(Countries::className(), ['countries_id' => 'entry_country_id'])
                 ->andOnCondition([Countries::tableName().'.language_id' => (int)$languages_id]);

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,11 @@
 
 namespace backend\models\ProductEdit;
 
-use yii;
 use common\models\Products;
+use yii;
 
 class SaveSubProductMainDetails
 {
-
     protected $product;
 
     public function __construct(Products $product)
@@ -37,7 +38,9 @@ class SaveSubProductMainDetails
         $sql_data_array['products_status'] = (int) Yii::$app->request->post('products_status');
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('AutomaticallyStatus', 'allowed')) {
             $_sql_data = $ext::onProductSave();
-            if ( is_array($_sql_data) ) $sql_data_array = array_merge($sql_data_array,$_sql_data);
+            if (is_array($_sql_data)) {
+                $sql_data_array = array_merge($sql_data_array, $_sql_data);
+            }
         }
         //TODO: ???? separate prepare - ACL collision
         // Moved to SeoRedirectsNamed
@@ -52,7 +55,6 @@ class SaveSubProductMainDetails
         $sql_data_array['products_upc'] = Yii::$app->request->post('products_upc');
         $sql_data_array['products_asin'] = Yii::$app->request->post('products_asin');
         $sql_data_array['products_isbn'] = Yii::$app->request->post('products_isbn');
-
 
         $sql_data_array['subscription'] = (int) Yii::$app->request->post('subscription');
         $sql_data_array['subscription_code'] = Yii::$app->request->post('subscription_code');
@@ -81,7 +83,7 @@ class SaveSubProductMainDetails
         $sql_data_array['stock_control'] = $parent_data['stock_control'];
         $sql_data_array['stock_reorder_level'] = $parent_data['stock_reorder_level'];
         $sql_data_array['stock_reorder_quantity'] = $parent_data['stock_reorder_quantity'];
-        
+
         $sql_data_array['stock_limit'] = $parent_data['stock_limit'];
 
         $this->product->setAttributes($sql_data_array, false);

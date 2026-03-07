@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230126_171904_personal_catalog extends Migration
      */
     public function safeUp()
     {
-        if(method_exists($this, 'isOldExtension')) {
+        if (method_exists($this, 'isOldExtension')) {
             if (!$this->isOldExtension('PersonalCatalog')) {
                 if (!\common\helpers\Extensions::isInstalled('PersonalCatalog')) {
                     $this->dropTables(['personal_catalog', 'personal_catalog_list']);

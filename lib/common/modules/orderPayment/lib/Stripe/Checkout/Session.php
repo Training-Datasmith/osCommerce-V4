@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe\Checkout;
@@ -52,26 +54,25 @@ namespace Stripe\Checkout;
  */
 class Session extends \Stripe\ApiResource
 {
-    const OBJECT_NAME = 'checkout.session';
-
     use \Stripe\ApiOperations\All;
     use \Stripe\ApiOperations\Create;
     use \Stripe\ApiOperations\NestedResource;
     use \Stripe\ApiOperations\Retrieve;
+    public const OBJECT_NAME = 'checkout.session';
 
-    const BILLING_ADDRESS_COLLECTION_AUTO = 'auto';
-    const BILLING_ADDRESS_COLLECTION_REQUIRED = 'required';
+    public const BILLING_ADDRESS_COLLECTION_AUTO = 'auto';
+    public const BILLING_ADDRESS_COLLECTION_REQUIRED = 'required';
 
-    const PAYMENT_STATUS_NO_PAYMENT_REQUIRED = 'no_payment_required';
-    const PAYMENT_STATUS_PAID = 'paid';
-    const PAYMENT_STATUS_UNPAID = 'unpaid';
+    public const PAYMENT_STATUS_NO_PAYMENT_REQUIRED = 'no_payment_required';
+    public const PAYMENT_STATUS_PAID = 'paid';
+    public const PAYMENT_STATUS_UNPAID = 'unpaid';
 
-    const SUBMIT_TYPE_AUTO = 'auto';
-    const SUBMIT_TYPE_BOOK = 'book';
-    const SUBMIT_TYPE_DONATE = 'donate';
-    const SUBMIT_TYPE_PAY = 'pay';
+    public const SUBMIT_TYPE_AUTO = 'auto';
+    public const SUBMIT_TYPE_BOOK = 'book';
+    public const SUBMIT_TYPE_DONATE = 'donate';
+    public const SUBMIT_TYPE_PAY = 'pay';
 
-    const PATH_LINE_ITEMS = '/line_items';
+    public const PATH_LINE_ITEMS = '/line_items';
 
     /**
      * @param string $id the ID of the session on which to retrieve the items

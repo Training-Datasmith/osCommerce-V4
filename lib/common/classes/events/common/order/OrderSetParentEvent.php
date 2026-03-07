@@ -1,11 +1,11 @@
 <?php
-declare (strict_types=1);
 
+declare (strict_types=1);
 
 namespace common\classes\events\common\order;
 
-use common\classes\Order;
 use common\classes\extended\OrderAbstract;
+use common\classes\Order;
 
 class OrderSetParentEvent
 {
@@ -16,14 +16,15 @@ class OrderSetParentEvent
     public function __construct(OrderAbstract $parentOrder, $order)
     {
         $this->parentOrder = $parentOrder;
-        if (is_scalar($order)){
+        if (is_scalar($order)) {
             $this->order = new Order($order);
-        } else if ($order instanceof Order){
+        } elseif ($order instanceof Order) {
             $this->order = $order;
         }
-        
-        if(!is_object($this->order)) 
-            throw new \Exception("Order not found");
+
+        if (!is_object($this->order)) {
+            throw new \Exception('Order not found');
+        }
     }
 
     /**
@@ -33,7 +34,7 @@ class OrderSetParentEvent
     {
         return $this->parentOrder;
     }
-    
+
     public function getOrder(): Order
     {
         return $this->order;

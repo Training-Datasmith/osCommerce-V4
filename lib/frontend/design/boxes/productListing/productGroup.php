@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,15 +12,12 @@
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-
 namespace frontend\design\boxes\productListing;
-
 
 use yii\base\Widget;
 
 class productGroup extends Widget
 {
-
     public $file;
     public $params;
     public $settings;

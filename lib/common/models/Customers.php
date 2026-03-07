@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -13,13 +15,10 @@
 namespace common\models;
 
 use common\models\queries\CustomersQuery;
-use Yii;
 use yii\db\ActiveRecord;
-use common\models\Orders;
 use yii\db\ColumnSchema;
 use yii\db\Query;
 use yii\helpers\ArrayHelper;
-
 
 /**
  * This is the model class for table "customers".
@@ -70,14 +69,14 @@ use yii\helpers\ArrayHelper;
  * @property int $language_id
  * @property string $auth_key [varchar(32)]
  */
-class Customers extends ActiveRecord 
+class Customers extends ActiveRecord
 {
-    const STATUS_ACTIVE = 1;
-    const STATUS_DISABLE = 0;
-    
+    public const STATUS_ACTIVE = 1;
+    public const STATUS_DISABLE = 0;
+
     public $multi_customer_id = 0;
     public $cart_uid = 0;
-    
+
     /**
      * set table name
      * @return string
@@ -91,9 +90,9 @@ class Customers extends ActiveRecord
     {
         if ($customerOrModelOrId instanceof self) {
             return $customerOrModelOrId;
-        } elseif($customerOrModelOrId instanceof \common\components\Customer)
+        } elseif ($customerOrModelOrId instanceof \common\components\Customer) {
             return self::findIdentity($customerOrModelOrId->customers_id);
-        elseif (is_numeric($customerOrModelOrId)) {
+        } elseif (is_numeric($customerOrModelOrId)) {
             return self::findIdentity($customerOrModelOrId);
         }
     }
@@ -106,16 +105,16 @@ class Customers extends ActiveRecord
         return $res;
     }
 
-    public static function findIdentity($id){
+    public static function findIdentity($id)
+    {
         return static::findOne(['customers_id' => $id]);
     }
-    
+
     public static function findIdentityByAccessToken($token, $type = null)
     {
         return static::findOne(['access_token' => $token]);
     }
-       
- 
+
     public function getAuthKey()
     {
         if (!empty(\Yii::$app->params['enableAutoLogin']) && isset($this->auth_key) && empty($this->auth_key)) {
@@ -123,12 +122,12 @@ class Customers extends ActiveRecord
             try {
                 $this->save(false);
             } catch (\Exception $ex) {
-                \Yii::warning(" #### " . print_r($ex->getMessage(), true), 'TLDEBUG');
+                \Yii::warning(' #### ' . print_r($ex->getMessage(), true), 'TLDEBUG');
             }
         }
         return $this->auth_key;
     }
- 
+
     public function validateAuthKey($authKey)
     {
         return $this->auth_key === $authKey;
@@ -142,32 +141,37 @@ class Customers extends ActiveRecord
                 ->limit(1)->one();
     }
 
-// personal_catalolog moved to extension. relation is used nowhere in osc and extensions but maybe somethere in old projects?
-//    public function getProducts(){
-//        return $this->hasMany(\common\models\Products::className(), ['products_id' => 'products_id'])
-//                    ->viaTable('personal_catalog', ['customers_id' => 'customers_id']);
-//    }
+    // personal_catalolog moved to extension. relation is used nowhere in osc and extensions but maybe somethere in old projects?
+    //    public function getProducts(){
+    //        return $this->hasMany(\common\models\Products::className(), ['products_id' => 'products_id'])
+    //                    ->viaTable('personal_catalog', ['customers_id' => 'customers_id']);
+    //    }
 
-    public function getAddressBooks(){
+    public function getAddressBooks()
+    {
         return $this->hasMany(AddressBook::className(), ['customers_id' => 'customers_id'])->joinWith('country');
     }
-    
-    public function hasAddressBooks(){
+
+    public function hasAddressBooks()
+    {
         return count($this->getAddressBooks());
     }
 
-    public function init() {
-        if($this->isNewRecord){
+    public function init()
+    {
+        if ($this->isNewRecord) {
             $this->platform_id = \common\classes\platform::currentId();
         }
         parent::init();
     }
 
-    public function getCustomersEmails(){
+    public function getCustomersEmails()
+    {
         return $this->hasMany(CustomersEmails::className(), ['customers_id' => 'customers_id']);
     }
 
-    public function getCustomersPhones(){
+    public function getCustomersPhones()
+    {
         return $this->hasMany(CustomersPhones::className(), ['customers_id' => 'customers_id']);
     }
 
@@ -175,16 +179,18 @@ class Customers extends ActiveRecord
     public function getAddressBook(){
         return $this->hasMany(AddressBook::className(), ['customers_id' => 'customers_id']);
     }*/
-    public function getAddressBook($id){
+    public function getAddressBook($id)
+    {
         return $this->hasOne(AddressBook::className(), ['customers_id' => 'customers_id'])
                 ->onCondition(['address_book_id' => $id])->joinWith('country');
     }
 
-/**
- * @deprecated all subscribed customers are in subscribers table now use it (subscribersToLists) instead
- * @return type
- */
-    public function getSubscribersToLists() {
+    /**
+     * @deprecated all subscribed customers are in subscribers table now use it (subscribersToLists) instead
+     * @return type
+     */
+    public function getSubscribersToLists()
+    {
         /** @var \common\extensions\Subscribers\Subscribers $subscr  */
         if ($subscr = \common\helpers\Acl::checkExtensionAllowed('Subscribers', 'allowed')) {
             return $this->hasMany(\common\extensions\Subscribers\models\CustomersToLists::class, ['customers_id' => 'customers_id']);
@@ -193,7 +199,8 @@ class Customers extends ActiveRecord
         }
     }
 
-    public function getSubscribersLists() {
+    public function getSubscribersLists()
+    {
         /** @var \common\extensions\Subscribers\Subscribers $subscr  */
         if ($subscr = \common\helpers\Acl::checkExtensionAllowed('Subscribers', 'allowed')) {
             $languages_id = (int) \Yii::$app->settings->get('languages_id');
@@ -205,7 +212,8 @@ class Customers extends ActiveRecord
         }
     }
 
-    public function getCustomersInfo(){
+    public function getCustomersInfo()
+    {
         return $this->hasOne(CustomersInfo::className(), ['customers_info_id' => 'customers_id']);
     }
 
@@ -214,13 +222,14 @@ class Customers extends ActiveRecord
      *
      * @return Customers
      */
-    public static function findByEmail($email) {
+    public static function findByEmail($email)
+    {
 
         $customerModel = static::find()
             ->where([ 'customers_email_address' => $email ])
             ->limit(1)
             ->one();
-        if ( !$customerModel ) {
+        if (!$customerModel) {
             $customerModel = static::find()
                 ->joinWith('customersEmails')
                 ->where([ CustomersEmails::tableName() . '.customers_email' => $email ])
@@ -237,40 +246,41 @@ class Customers extends ActiveRecord
             ->one();
         */
     }
-    
+
     /**
      * @param $email
      *
      * @return Customers
      */
-    public static function findByMultiEmail($email) {
+    public static function findByMultiEmail($email)
+    {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('DealersMultiCustomers', 'allowed')) {
             return $ext::findByMultiEmail($email);
         }
-      if ($CustomersMultiEmails = \common\helpers\Acl::checkExtensionAllowed('CustomersMultiEmails', 'allowed')) {
-        //2do same agent (email) of several customers
-        $multi = \common\extensions\CustomersMultiEmails\models\CustomersMultiEmails::find()
-                ->where(['customers_email' => $email])
-                ->limit(1)->one();
-        if (is_object($multi)) {
-            $customer = static::find()
-                ->where(['customers_id' => $multi->customers_id])
-                ->andWhere(['customers_status' => 1, 'opc_temp_account' => 0])
-                ->limit(1)->one();
-            if (is_object($customer)) {
-                $customer->customers_email_address = $multi->customers_email;
-                $customer->customers_password = $multi->customers_password;
-                $customer->customers_firstname = $multi->customers_firstname;
-                $customer->customers_lastname = $multi->customers_lastname;
-                
-                $customer->multi_customer_id = $multi->id;
-                $customer->cart_uid = $multi->cart_uid;
+        if ($CustomersMultiEmails = \common\helpers\Acl::checkExtensionAllowed('CustomersMultiEmails', 'allowed')) {
+            //2do same agent (email) of several customers
+            $multi = \common\extensions\CustomersMultiEmails\models\CustomersMultiEmails::find()
+                    ->where(['customers_email' => $email])
+                    ->limit(1)->one();
+            if (is_object($multi)) {
+                $customer = static::find()
+                    ->where(['customers_id' => $multi->customers_id])
+                    ->andWhere(['customers_status' => 1, 'opc_temp_account' => 0])
+                    ->limit(1)->one();
+                if (is_object($customer)) {
+                    $customer->customers_email_address = $multi->customers_email;
+                    $customer->customers_password = $multi->customers_password;
+                    $customer->customers_firstname = $multi->customers_firstname;
+                    $customer->customers_lastname = $multi->customers_lastname;
 
-                return $customer;
+                    $customer->multi_customer_id = $multi->id;
+                    $customer->cart_uid = $multi->cart_uid;
+
+                    return $customer;
+                }
             }
         }
-      }
-      return NULL;
+        return null;
     }
 
     /**
@@ -278,7 +288,8 @@ class Customers extends ActiveRecord
      *
      * @return Customers
      */
-    public static function findByPhone($email) {
+    public static function findByPhone($email)
+    {
         return static::find()
             ->joinWith('customersPhones')
             ->where([ CustomersPhones::tableName() . '.customers_phone' => $email ])
@@ -287,9 +298,10 @@ class Customers extends ActiveRecord
             ->one();
     }
 
-    public function addPhone($phone){
-        if(!($customer = static::findByPhone($phone))){
-            if(!trim($this->customers_telephone)){
+    public function addPhone($phone)
+    {
+        if (!($customer = static::findByPhone($phone))) {
+            if (!trim($this->customers_telephone)) {
                 $this->customers_telephone = $phone;
                 $this->save(false);
                 (new CustomersPhones(['customers_phone' => $phone]))->link('customer', $this);
@@ -298,23 +310,25 @@ class Customers extends ActiveRecord
         return $this;
     }
 
-    public function addEmail($email){
-        if(!($customer = static::findByPhone($email))){
-            if(!trim($this->customers_email_address)) {
+    public function addEmail($email)
+    {
+        if (!($customer = static::findByPhone($email))) {
+            if (!trim($this->customers_email_address)) {
                 $this->customers_email_address = $email;
                 $this->save(false);
-                (new CustomersEmails([ 'customers_email' => $email ]))->link( 'customer', $this );
+                (new CustomersEmails([ 'customers_email' => $email ]))->link('customer', $this);
             }
         }
         return $this;
     }
-    
+
     public function getOrders()
     {
         return $this->hasMany(Orders::className(), ['customers_id' => 'customers_id']);
     }
-    
-    public function getOrdersTotals(){
+
+    public function getOrdersTotals()
+    {
         return $this->hasMany(OrdersTotal::className(), ['orders_id' => 'orders_id'])->viaTable(Orders::tableName(), ['customers_id' => 'customers_id']);
     }
 
@@ -322,26 +336,29 @@ class Customers extends ActiveRecord
     * @param $withTax boolean, $from, $to - datetime db format or null
     * @return ordered total amount
     **/
-    public function fetchOrderTotalAmount($withTax = false, $from = null, $to = null){
+    public function fetchOrderTotalAmount($withTax = false, $from = null, $to = null)
+    {
         $amount = 0;
         $query = $this->getOrdersTotals()->onCondition('class="ot_total"')->innerJoinWith([
-            'order' => function (\yii\db\ActiveQuery $query) use ($from, $to){
-                if (!is_null($from)){
+            'order' => function (\yii\db\ActiveQuery $query) use ($from, $to) {
+                if (!is_null($from)) {
                     $query->andOnCondition(['>=','date_purchased', $from]);
                 }
-                if (!is_null($to)){
+                if (!is_null($to)) {
                     $query->andOnCondition(['<=','date_purchased', $to]);
                 }
-                if (defined('ORDER_COMPLETE_STATUSES')){
-                    $completedStatuses = array_map("intval", explode(",", ORDER_COMPLETE_STATUSES));
-                    if ($completedStatuses) $query->andOnCondition(['orders_status' => $completedStatuses]);
+                if (defined('ORDER_COMPLETE_STATUSES')) {
+                    $completedStatuses = array_map('intval', explode(',', ORDER_COMPLETE_STATUSES));
+                    if ($completedStatuses) {
+                        $query->andOnCondition(['orders_status' => $completedStatuses]);
+                    }
                 }
-            }
+            },
         ]);
-        
+
         $list = $query->asArray()->all();
-        if ($list){
-            if ($withTax){
+        if ($list) {
+            if ($withTax) {
                 $amount = array_sum(ArrayHelper::getColumn($list, 'value_inc_tax'));
             } else {
                 $amount = array_sum(ArrayHelper::getColumn($list, 'value_exc_vat'));
@@ -350,12 +367,14 @@ class Customers extends ActiveRecord
         return $amount;
     }
 
-    public function getDefaultAddress(){
-    	return $this->hasOne(AddressBook::className(), ['address_book_id' => 'customers_default_address_id'])
+    public function getDefaultAddress()
+    {
+        return $this->hasOne(AddressBook::className(), ['address_book_id' => 'customers_default_address_id'])
                 ->joinWith('country');
     }
-    
-    public function getDefaultShippingAddress() {
+
+    public function getDefaultShippingAddress()
+    {
         if (\common\helpers\Acl::checkExtensionAllowed('SplitCustomerAddresses', 'allowed')) {
             return $this->hasOne(AddressBook::className(), ['address_book_id' => 'customers_shipping_address_id'])
                 ->joinWith('country');
@@ -363,12 +382,14 @@ class Customers extends ActiveRecord
         return $this->getDefaultAddress();
     }
 
-    public function getInfo(){
-    	return $this->hasOne(CustomersInfo::class, ['customers_info_id' => 'customers_id']);
+    public function getInfo()
+    {
+        return $this->hasOne(CustomersInfo::class, ['customers_info_id' => 'customers_id']);
     }
 
-    public function getGroup(){
-    	return $this->hasOne(Groups::class, ['groups_id' => 'groups_id']);
+    public function getGroup()
+    {
+        return $this->hasOne(Groups::class, ['groups_id' => 'groups_id']);
     }
 
     public function editCustomersPassword($customersPassword): void
@@ -409,8 +430,9 @@ class Customers extends ActiveRecord
     {
         return new CustomersQuery(get_called_class());
     }
-    
-    public function beforeDelete() {
+
+    public function beforeDelete()
+    {
         AddressBook::deleteAll(['customers_id' => $this->customers_id]);
         CustomersBasket::deleteAll(['customers_id' => $this->customers_id]);
         CustomersBasketAttributes::deleteAll(['customers_id' => $this->customers_id]);
@@ -426,26 +448,26 @@ class Customers extends ActiveRecord
         if (!parent::beforeSave($insert)) {
             return false;
         }
-        if ( $insert ) {
-            
+        if ($insert) {
+
             $this->auth_key = \Yii::$app->security->generateRandomString();
 
             foreach ($this->getTableSchema()->columns as $column) {
                 /**
                  * @var $column ColumnSchema
                  */
-                if (!$column->allowNull && ($this->getAttribute($column->name) === null || $column->dbTypecast($this->getAttribute($column->name))===null) ) {
+                if (!$column->allowNull && ($this->getAttribute($column->name) === null || $column->dbTypecast($this->getAttribute($column->name)) === null)) {
                     $defValue = $column->defaultValue;
-                    if ( $column->dbTypecast($defValue)===null ) {
+                    if ($column->dbTypecast($defValue) === null) {
                         $defTypeValue = [
                             'boolean' => 0,
                             'float' => 0.0,
                             'decimal' => 0.0,
                         ];
-                        if ( stripos($column->type,'int')!==false ) {
+                        if (stripos($column->type, 'int') !== false) {
                             $defValue = 0;
-                        }else{
-                            $defValue = isset($defTypeValue[$column->type])?$defTypeValue[$column->type]:'';
+                        } else {
+                            $defValue = isset($defTypeValue[$column->type]) ? $defTypeValue[$column->type] : '';
                         }
                     }
                     $this->setAttribute($column->name, $defValue);

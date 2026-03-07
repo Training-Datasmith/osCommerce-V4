@@ -1,34 +1,36 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of True Loaded.
- * 
+ *
  * @link http://www.holbi.co.uk
  * @copyright Copyright (c) 2005 Holbi Group LTD
- * 
+ *
  * For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
  */
 
 namespace backend\controllers;
 
-use Yii;
-
 use common\models\Emails;
+
 use common\models\Themes;
 use common\models\ThemesSettings;
+use Yii;
 use yii\db\Expression;
-
 
 /**
  * default controller to handle user requests.
  */
-class EmailEditorController extends Sceleton {
-
+class EmailEditorController extends Sceleton
+{
     public $acl = ['BOX_HEADING_DESIGN_CONTROLS', 'BOX_HEADING_BUILD_NEWSLETTER'];
-    
-    public function actionIndex() {
 
-        $this->selectedMenu = array('design_controls', 'email-editor');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('email-editor'), 'title' => BOX_HEADING_BUILD_NEWSLETTER);
+    public function actionIndex()
+    {
+
+        $this->selectedMenu = ['design_controls', 'email-editor'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('email-editor'), 'title' => BOX_HEADING_BUILD_NEWSLETTER];
         $this->view->headingTitle = BOX_HEADING_BUILD_NEWSLETTER;
         $this->topButtons[] = '<a href="' . Yii::$app->urlManager->createUrl('email-editor/edit') . '" class="btn btn-primary">' . IMAGE_NEW . '</a>';
 
@@ -53,9 +55,12 @@ class EmailEditorController extends Sceleton {
         }
 
         switch ($order[0]['column']) {
-            case 0: $sortCol = 'subject'; break;
-            case 1: $sortCol = 'date_modified'; break;
-            case 2: $sortCol = 'date_added'; break;
+            case 0: $sortCol = 'subject';
+                break;
+            case 1: $sortCol = 'date_modified';
+                break;
+            case 2: $sortCol = 'date_added';
+                break;
             default: $sortCol = 'subject';
         }
 
@@ -71,30 +76,30 @@ class EmailEditorController extends Sceleton {
         $responseList = [];
         foreach ($emails as $email) {
 
-            $responseList[] = array(
+            $responseList[] = [
                 '<div class="item" data-item-id="'. $email->emails_id . '">'. $email->subject . '</div>',
                 \common\helpers\Date::datetime_short($email->date_modified),
                 \common\helpers\Date::datetime_short($email->date_added),
-            );
+            ];
         }
 
         $countItems = Emails::find()->count();
 
-        $response = array(
+        $response = [
             'draw'            => $draw,
             'recordsTotal'    => $countItems,
             'recordsFiltered' => $countItems,
-            'data'            => $responseList
-        );
-        echo json_encode( $response );
+            'data'            => $responseList,
+        ];
+        echo json_encode($response);
     }
 
     public function actionEdit()
     {
         $emailId = (int)Yii::$app->request->get('email_id', 0);
 
-        $this->selectedMenu = array('design_controls', 'email-editor');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('email-editor'), 'title' => BOX_HEADING_BUILD_NEWSLETTER);
+        $this->selectedMenu = ['design_controls', 'email-editor'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('email-editor'), 'title' => BOX_HEADING_BUILD_NEWSLETTER];
         $this->view->headingTitle = BOX_HEADING_BUILD_NEWSLETTER;
         $this->topButtons[] = '
             <span class="btn btn-confirm btn-save-boxes btn-elements">' . IMAGE_SAVE . '</span>
@@ -103,7 +108,6 @@ class EmailEditorController extends Sceleton {
             <a href="' . Yii::$app->urlManager->createUrl(['email-editor', 'item_id' => $emailId]) . '"
                 class="btn btn-cancel">' . IMAGE_CANCEL . '</a>
                 ';
-
 
         $themes = Themes::find()
             ->orderBy('title')
@@ -119,7 +123,7 @@ class EmailEditorController extends Sceleton {
                 ->where([
                     'setting_group' => 'added_page',
                     'setting_name' => 'email',
-                    'theme_name' => $theme['theme_name']
+                    'theme_name' => $theme['theme_name'],
                 ])
                 ->asArray()
                 ->all();
@@ -143,8 +147,6 @@ class EmailEditorController extends Sceleton {
             }
         }
 
-
-
         $email = Emails::findOne($emailId);
 
         return $this->render('edit.tpl', [
@@ -159,7 +161,7 @@ class EmailEditorController extends Sceleton {
             'styles' => json_encode($styles),
             'tr' => \common\helpers\Translation::translationsForJs(['DROP_IMAGE_HERE', 'DROP_PRODUCT_HERE',
                 'EDIT_WIDGET', 'MOVE_BLOCK', 'REMOVE_WIDGET', 'IMAGE_SAVE', 'IMAGE_CANCEL', 'PRODUCTS_IN_ROW',
-                'EDIT_PRODUCTS_ROW', 'CHOOSE_IMAGE', 'CHOOSE_PRODUCT', 'START_TYPING_PRODUCT_NAME', 'EDIT_TEXT'])
+                'EDIT_PRODUCTS_ROW', 'CHOOSE_IMAGE', 'CHOOSE_PRODUCT', 'START_TYPING_PRODUCT_NAME', 'EDIT_TEXT']),
         ]);
     }
 
@@ -176,7 +178,7 @@ class EmailEditorController extends Sceleton {
         $this->layout = false;
         return $this->render('bar.tpl', [
             'emailId' => $emailId,
-            'title' => $email->subject
+            'title' => $email->subject,
         ]);
     }
 
@@ -195,19 +197,19 @@ class EmailEditorController extends Sceleton {
                 $response[] = [
                     'status' => 'error',
                     'text' => sprintf(ERROR_DATA_DIRECTORY_NOT_WRITEABLE, $uploadFile),
-                    'file' => $name
+                    'file' => $name,
                 ];
             } elseif (!is_uploaded_file($_FILES['file']['tmp_name']) || filesize($_FILES['file']['tmp_name']) == 0) {
                 $response[] = [
                     'status' => 'error',
                     'text' => WARNING_NO_FILE_UPLOADED,
-                    'file' => $name
+                    'file' => $name,
                 ];
             } elseif (is_file($uploadFile)) {
                 $response[] = [
                     'status' => 'choice',
                     'text' => FILE_ALREADY_EXIST . ' <span>' . DO_YOU_WANT_USE_UPLOADED_FILE . '</span>',
-                    'file' => $name
+                    'file' => $name,
                 ];
             } elseif (move_uploaded_file($_FILES['file']['tmp_name'], $uploadFile)) {
 
@@ -216,14 +218,14 @@ class EmailEditorController extends Sceleton {
                 $response[] = [
                     'status' => 'ok',
                     'text' => TEXT_MESSEAGE_SUCCESS_ADDED,
-                    'file' => $name
+                    'file' => $name,
                 ];
 
             } else {
                 $response[] = [
                     'status' => 'error',
-                    'text'=> 'error',
-                    'file' => $name
+                    'text' => 'error',
+                    'file' => $name,
                 ];
             }
 
@@ -231,7 +233,8 @@ class EmailEditorController extends Sceleton {
         return json_encode($response);
     }
 
-    public static function resizeImg($uploadFile, $path, $name){
+    public static function resizeImg($uploadFile, $path, $name)
+    {
 
         $imagine = new \Imagine\Gd\Imagine();
         $artImage = $imagine->open($uploadFile);
@@ -240,20 +243,19 @@ class EmailEditorController extends Sceleton {
         $width = $size[0];
         $height = $size[1];
 
-
-        $options = array(
+        $options = [
             'resolution-units' => \Imagine\Image\ImageInterface::RESOLUTION_PIXELSPERINCH,
             'resolution-x' => 72,
             'resolution-y' => 72,
             'resampling-filter' => \Imagine\Image\ImageInterface::FILTER_LANCZOS,
             'png_compression_level' => 9,
-        );
+        ];
 
         if ($width > 100 || $height > 100) {
-            $scaledSize = $artImage->getSize()->scale(min(array(
+            $scaledSize = $artImage->getSize()->scale(min([
                 100 / $artImage->getSize()->getWidth(),
                 100 / $artImage->getSize()->getHeight(),
-            )));
+            ]));
             $artImage = $artImage->resize($scaledSize);
         }
 
@@ -270,9 +272,15 @@ class EmailEditorController extends Sceleton {
         $data = Yii::$app->request->post('data', '');
         $theme_name = Yii::$app->request->post('theme_name', '');
         $template = Yii::$app->request->post('template', '');
-        if (!$subject) $subject = ' ';
-        if (!$html) $html = ' ';
-        if (!$data) $data = '{}';
+        if (!$subject) {
+            $subject = ' ';
+        }
+        if (!$html) {
+            $html = ' ';
+        }
+        if (!$data) {
+            $data = '{}';
+        }
 
         $attr = [
             'subject' => $subject,
@@ -298,7 +306,7 @@ class EmailEditorController extends Sceleton {
 
         $response = [
             'status' => 'ok',
-            'text'=> 'Saved',
+            'text' => 'Saved',
             'email_id' => $email->emails_id,
         ];
         return json_encode($response);
@@ -313,7 +321,7 @@ class EmailEditorController extends Sceleton {
         $this->layout = false;
         return $this->render('delete-confirm.tpl', [
             'emails_id' => $emailId,
-            'title' => $email->subject
+            'title' => $email->subject,
         ]);
     }
 
@@ -329,14 +337,15 @@ class EmailEditorController extends Sceleton {
 
         $response = [
             'status' => 'ok',
-            'text'=> 'Removed',
+            'text' => 'Removed',
             'emails_id' => $emailId,
         ];
 
         return json_encode($response);
     }
 
-    public function actionGallery() {
+    public function actionGallery()
+    {
 
         $path = DIR_FS_CATALOG . 'images' . DIRECTORY_SEPARATOR . 'emails' . DIRECTORY_SEPARATOR;
         if (!file_exists($path)) {
@@ -348,9 +357,9 @@ class EmailEditorController extends Sceleton {
 
         $images = [];
         $files = scandir($path);
-        foreach ($files as $item){
+        foreach ($files as $item) {
             $s = strtolower(substr($item, -3));
-            if ($s == 'gif' || $s == 'png' || $s == 'jpg' || $s == 'peg'){
+            if ($s == 'gif' || $s == 'png' || $s == 'jpg' || $s == 'peg') {
                 if (!file_exists($path . DIRECTORY_SEPARATOR . 'thumbnails' . DIRECTORY_SEPARATOR)) {
                     mkdir($path . 'thumbnails' . DIRECTORY_SEPARATOR);
                 }
@@ -368,10 +377,10 @@ class EmailEditorController extends Sceleton {
 
     public function actionPass()
     {
-      $platform_id = Yii::$app->request->get('platform_id');
-      $email_id = Yii::$app->request->get('email_id');
-      $update = Yii::$app->request->get('update', 0);
-      $ret = \common\extensions\Newsletters\Newsletters::passHTMLTemplateConfirm($platform_id, $email_id, $update);
-      echo json_encode($ret );
+        $platform_id = Yii::$app->request->get('platform_id');
+        $email_id = Yii::$app->request->get('email_id');
+        $update = Yii::$app->request->get('update', 0);
+        $ret = \common\extensions\Newsletters\Newsletters::passHTMLTemplateConfirm($platform_id, $email_id, $update);
+        echo json_encode($ret);
     }
 }

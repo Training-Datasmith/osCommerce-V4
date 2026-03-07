@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,15 +15,17 @@
 
 namespace common\classes\modules;
 
-abstract class ModuleCollection {
-   
-    protected function getAllModules(){
+abstract class ModuleCollection
+{
+    protected function getAllModules()
+    {
         return $this->include_modules;
     }
-    
-    public function getModule($class){
+
+    public function getModule($class)
+    {
         $modules = $this->getAllModules();
         return is_object($modules[$class] ?? null) ? $modules[$class] : false;
     }
-   
+
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalResourceModel;
@@ -173,10 +175,10 @@ class PaymentInstruction extends PayPalResourceModel
     public static function get($paymentId, $apiContext = null, $restCall = null)
     {
         ArgumentValidator::validate($paymentId, 'paymentId');
-        $payLoad = "";
+        $payLoad = '';
         $json = self::executeCall(
             "/v1/payments/payment/$paymentId/payment-instruction",
-            "GET",
+            'GET',
             $payLoad,
             null,
             $apiContext,

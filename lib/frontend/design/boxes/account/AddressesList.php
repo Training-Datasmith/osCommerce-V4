@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\account;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class AddressesList extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -43,7 +44,7 @@ class AddressesList extends Widget
 
         $addresses = \common\helpers\Customer::get_address_book_data($customersId);
 
-        foreach ($addresses as $key => $item){
+        foreach ($addresses as $key => $item) {
             $addresses[$key]['address'] = \common\helpers\Address::address_format(\common\helpers\Address::get_address_format_id($item['country_id']), $item, 1, ' ', ',');
 
         }

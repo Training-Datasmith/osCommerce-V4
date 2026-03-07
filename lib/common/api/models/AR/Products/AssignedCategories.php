@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace common\api\models\AR\Products;
 
-
 use common\api\models\AR\EPMap;
 use yii\helpers\ArrayHelper;
 
 class AssignedCategories extends EPMap
 {
-
     protected $hideFields = [
         'products_id',
     ];
@@ -36,12 +36,12 @@ class AssignedCategories extends EPMap
     public function exportArray(array $fields = [])
     {
         $data = parent::exportArray($fields);
-        if (count($fields)==0 || in_array('categories_path', $fields) || in_array('categories_path_array',$fields)) {
+        if (count($fields) == 0 || in_array('categories_path', $fields) || in_array('categories_path_array', $fields)) {
             $categoriesArr = \common\helpers\Categories::generate_category_path($this->categories_id);
-            if (count($fields)==0 || in_array('categories_path', $fields)) {
+            if (count($fields) == 0 || in_array('categories_path', $fields)) {
                 $data['categories_path'] = implode(';', ArrayHelper::getColumn($categoriesArr[0], 'text'));
             }
-            if (count($fields)==0 || in_array('categories_path_array',$fields)) {
+            if (count($fields) == 0 || in_array('categories_path_array', $fields)) {
                 $data['categories_path_array'] = $categoriesArr[0];
             }
         }
@@ -64,10 +64,9 @@ class AssignedCategories extends EPMap
         parent::parentEPMap($parentObject);
     }
 
-
     public function matchIndexedValue(EPMap $importedObject)
     {
-        if ( !is_null($importedObject->categories_id) && !is_null($this->categories_id) && $importedObject->categories_id==$this->categories_id ){
+        if (!is_null($importedObject->categories_id) && !is_null($this->categories_id) && $importedObject->categories_id == $this->categories_id) {
             $this->pendingRemoval = false;
             return true;
         }

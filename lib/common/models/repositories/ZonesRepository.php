@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,10 +14,8 @@
 
 namespace common\models\repositories;
 
-
 use common\models\Zones;
 use common\models\ZonesToGeoZones;
-use yii\db\ActiveQuery;
 
 final class ZonesRepository
 {

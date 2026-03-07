@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class Breadcrumb extends Widget
 {
-
     public $params;
     public $settings;
 
@@ -38,15 +38,15 @@ class Breadcrumb extends Widget
                 'itemListElement' => [[
                     '@type' => 'ListItem',
                     'position' => $count,
-                    'item' => ['@id' => (isset($item['link']) ? $item['link'] : ''), 'name' => strip_tags($item['name'])]
-                ]]
+                    'item' => ['@id' => (isset($item['link']) ? $item['link'] : ''), 'name' => strip_tags($item['name'])],
+                ]],
             ]]);
             $count++;
         }
 
         return IncludeTpl::widget(['file' => 'boxes/breadcrumb.tpl', 'params' => [
             'breadcrumb' => $breadcrumb_trail,
-            'settings' => $this->settings
+            'settings' => $this->settings,
         ]]);
     }
 }

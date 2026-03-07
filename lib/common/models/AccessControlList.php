@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "access_control_list".
@@ -10,7 +10,7 @@ use Yii;
  * @property integer $access_control_list_id
  * @property integer $parent_id
  * @property string $access_control_list_key
- * @property integer $sort_order 
+ * @property integer $sort_order
  */
 class AccessControlList extends \yii\db\ActiveRecord
 {
@@ -30,7 +30,7 @@ class AccessControlList extends \yii\db\ActiveRecord
         return [
             [['parent_id', 'sort_order'], 'integer'],
             [['access_control_list_key'], 'required'],
-            [['access_control_list_key'], 'string', 'max' => 64]
+            [['access_control_list_key'], 'string', 'max' => 64],
         ];
     }
 
@@ -43,7 +43,7 @@ class AccessControlList extends \yii\db\ActiveRecord
             'access_control_list_id' => 'Access Control List ID',
             'parent_id' => 'Parent ID',
             'access_control_list_key' => 'Access Control List Key',
-            'sort_order' => 'Sort Order', 
+            'sort_order' => 'Sort Order',
         ];
     }
 }

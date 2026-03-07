@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace backend\design\boxes;
 
-use Yii;
 use yii\base\Widget;
 
 class Tabs extends Widget
 {
-
     public $id;
     public $params;
     public $settings;
@@ -35,19 +35,18 @@ class Tabs extends Widget
         $oldTabs = false;
 
         $languages = \common\helpers\Language::get_languages();
-        $lang = array();
-        for ($i=0, $n=sizeof($languages); $i<$n; $i++) {
+        $lang = [];
+        for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
             $languages[$i]['logo'] = $languages[$i]['image'];
             $lang[] = $languages[$i];
 
-            for ($tab = 1; $tab < 11; $tab++){
+            for ($tab = 1; $tab < 11; $tab++) {
                 if ($this->settings[$languages[$i]['id']]['tab_' . $tab] ?? null) {
                     $oldTabs = true;
                     break;
                 }
             }
         }
-
 
         return $this->render('tabs.tpl', [
             'id' => $this->id,

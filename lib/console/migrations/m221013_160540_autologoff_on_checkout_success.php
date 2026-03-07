@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -42,9 +44,9 @@ class m221013_160540_autologoff_on_checkout_success extends Migration
      */
     public function safeDown()
     {
-//        echo "m221013_160540_autologoff_on_checkout_success cannot be reverted.\n";
+        //        echo "m221013_160540_autologoff_on_checkout_success cannot be reverted.\n";
 
-  //      return false;
+        //      return false;
     }
 
     /*

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,8 +16,8 @@ namespace common\helpers;
 
 use common\classes\modules\ModuleVer;
 
-class ModulesMigrations {
-
+class ModulesMigrations
+{
     public static function up($code, $sinceVer = null, $type = 'extension', $toVer = null)
     {
         if (empty($sinceVer)) {
@@ -40,7 +42,6 @@ class ModulesMigrations {
         self::up_down(false, $code, $type, $downtoVer, $sinceVer);
     }
 
-
     private static function up_down($up, $code, $type, $sinceVer, $toVer)
     {
         $sinceVer = ModuleVer::parse($sinceVer);
@@ -55,7 +56,7 @@ class ModulesMigrations {
         if (!is_array($migrations)) {
             return;
         }
-        $func = $up? 'safeUp' : 'safeDown';
+        $func = $up ? 'safeUp' : 'safeDown';
         foreach ($migrations as $class) {
             if (!class_exists($class)) {
                 \Yii::warning("Can't apply migration: $class does not exist");

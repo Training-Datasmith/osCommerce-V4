@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\product;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Dimensions extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -35,7 +36,7 @@ class Dimensions extends Widget
         } else {
             $productsId = Yii::$app->request->get('products_id');
         }
-        if (!$productsId ) {
+        if (!$productsId) {
             return '';
         }
 
@@ -49,7 +50,7 @@ class Dimensions extends Widget
 
         return IncludeTpl::widget(['file' => 'boxes/product/dimensions.tpl', 'params' => [
             'data' => $data,
-            'settings' => $this->settings[0]
+            'settings' => $this->settings[0],
         ]]);
     }
 }

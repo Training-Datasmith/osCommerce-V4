@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,12 @@
 
 namespace common\api\models\AR;
 
-
 use common\api\models\AR\Manufacturer\Info;
 use yii\db\Expression;
 use yii\helpers\FileHelper;
 
 class Manufacturer extends EPMap
 {
-
     protected $childCollections = [
         'infos' => [],//'\\common\\api\\models\\AR\\Manufacturer\\Info',
     ];
@@ -51,22 +51,21 @@ class Manufacturer extends EPMap
      */
     public function getInfos()
     {
-        return $this->hasMany(Info::className(), ['manufacturers_id'=>'manufacturers_id']);
+        return $this->hasMany(Info::className(), ['manufacturers_id' => 'manufacturers_id']);
     }
 
-// SeoRedirectsNamed moved to extensions/SeoRedirectsNamed/models/
-//    public function getSeoRedirectsNamed()
-//    {
-//        return $this->hasMany(\common\models\SeoRedirectsNamed::className(), ['owner_id' => 'manufacturers_id'])->andWhere(['redirects_type'=>'brand']);
-//    }
-
+    // SeoRedirectsNamed moved to extensions/SeoRedirectsNamed/models/
+    //    public function getSeoRedirectsNamed()
+    //    {
+    //        return $this->hasMany(\common\models\SeoRedirectsNamed::className(), ['owner_id' => 'manufacturers_id'])->andWhere(['redirects_type'=>'brand']);
+    //    }
 
     public function getPossibleKeys()
     {
         $possibleKeys = parent::getPossibleKeys();
         $nestedCollectObject = new Info();
         $infoKeys = $nestedCollectObject->getPossibleKeys();
-        foreach(Info::getAllKeyCodes() as $keyCode=>$lookupPK){
+        foreach (Info::getAllKeyCodes() as $keyCode => $lookupPK) {
             foreach ($infoKeys as $infoKey) {
                 $possibleKeys[] = 'infos.' . $keyCode . '.'.$infoKey;
             }
@@ -74,15 +73,14 @@ class Manufacturer extends EPMap
         return $possibleKeys;
     }
 
-
     public function initCollectionByLookupKey_Infos($lookupKeys)
     {
-        $loadAll = in_array('*',$lookupKeys);
-        foreach(Info::getAllKeyCodes() as $keyCode=>$lookupPK){
+        $loadAll = in_array('*', $lookupKeys);
+        foreach (Info::getAllKeyCodes() as $keyCode => $lookupPK) {
             $this->childCollections['infos'][$keyCode] = null;
-            if ( is_null($this->manufacturers_id) ) {
+            if (is_null($this->manufacturers_id)) {
                 $this->childCollections['infos'][$keyCode] = new Info($lookupPK);
-            }elseif( $loadAll || in_array($keyCode,$lookupKeys) ) {
+            } elseif ($loadAll || in_array($keyCode, $lookupKeys)) {
                 if (!isset($this->childCollections['infos'][$keyCode])) {
                     $lookupPK['manufacturers_id'] = $this->manufacturers_id;
                     $this->childCollections['infos'][$keyCode] = Info::findOne($lookupPK);
@@ -109,10 +107,10 @@ class Manufacturer extends EPMap
 
         $data = parent::exportArray($fields);
 
-        if ( (count($fields)==0 || array_key_exists('manufacturers_image_source_url', $fields)) && !empty($this->manufacturers_image_source_url) ) {
+        if ((count($fields) == 0 || array_key_exists('manufacturers_image_source_url', $fields)) && !empty($this->manufacturers_image_source_url)) {
             $data['manufacturers_image_source_url'] = $this->manufacturers_image_source_url;
         }
-        if ( (count($fields)==0 || array_key_exists('manufacturers_image_data', $fields)) && !empty($this->manufacturers_image_data) ) {
+        if ((count($fields) == 0 || array_key_exists('manufacturers_image_data', $fields)) && !empty($this->manufacturers_image_data)) {
             $data['manufacturers_image_data'] = base64_encode($this->manufacturers_image_data);
         }
 
@@ -123,9 +121,9 @@ class Manufacturer extends EPMap
     {
         $result = parent::importArray($data);
 
-        if ( isset($data['manufacturers_image_data']) && !empty($data['manufacturers_image_data']) ) {
+        if (isset($data['manufacturers_image_data']) && !empty($data['manufacturers_image_data'])) {
             $this->manufacturers_image_data = base64_decode($data['manufacturers_image_data']);
-        }elseif ( array_key_exists('manufacturers_image_source_url',$data) && !empty($data['manufacturers_image_source_url']) ){
+        } elseif (array_key_exists('manufacturers_image_source_url', $data) && !empty($data['manufacturers_image_source_url'])) {
             $this->manufacturers_image_source_url = $data['manufacturers_image_source_url'];
         }
 
@@ -135,20 +133,21 @@ class Manufacturer extends EPMap
     public function beforeSave($insert)
     {
         $targetDir = \common\classes\Images::getFSCatalogImagesPath();
-        if ( !empty($this->manufacturers_image_source_url) || !empty($this->manufacturers_image_data) ) {
-            $targetFilename = !empty($this->manufacturers_image)?$this->manufacturers_image:basename($this->manufacturers_image_source_url);
-            if ( !empty($this->manufacturers_image_source_url) ) {
-                if ( !is_dir(dirname($targetDir.$targetFilename)) ) {
+        if (!empty($this->manufacturers_image_source_url) || !empty($this->manufacturers_image_data)) {
+            $targetFilename = !empty($this->manufacturers_image) ? $this->manufacturers_image : basename($this->manufacturers_image_source_url);
+            if (!empty($this->manufacturers_image_source_url)) {
+                if (!is_dir(dirname($targetDir.$targetFilename))) {
                     try {
                         FileHelper::createDirectory(dirname($targetDir.$targetFilename), 0777);
-                    }catch (\Exception $ex){}
+                    } catch (\Exception $ex) {
+                    }
                 }
                 @copy($this->manufacturers_image_source_url, $targetDir.$targetFilename);
-            }elseif (!empty($this->manufacturers_image_data) && !empty($targetFilename)) {
+            } elseif (!empty($this->manufacturers_image_data) && !empty($targetFilename)) {
                 @file_put_contents($targetDir.$targetFilename, $this->manufacturers_image_data);
                 unset($this->manufacturers_image_data);
             }
-            if ( empty($this->manufacturers_image) ) {
+            if (empty($this->manufacturers_image)) {
                 $this->manufacturers_image_after_save = [
                     $targetDir.$targetFilename,
                     $targetDir.'brands/%ID/gallery/'.$targetFilename,
@@ -157,11 +156,11 @@ class Manufacturer extends EPMap
             }
         }
 
-        if ( $insert ) {
-            if ( empty($this->date_added) ) {
+        if ($insert) {
+            if (empty($this->date_added)) {
                 $this->date_added = new Expression('NOW()');
             }
-        }else {
+        } else {
             if ($this->isModified()) {
                 $this->last_modified = new Expression('NOW()');
             }
@@ -172,12 +171,12 @@ class Manufacturer extends EPMap
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
-        if (is_array($this->manufacturers_image_after_save) && !empty($this->manufacturers_image_after_save)){
+        if (is_array($this->manufacturers_image_after_save) && !empty($this->manufacturers_image_after_save)) {
             $moveFrom = $this->manufacturers_image_after_save[0];
             $moveTo = str_replace('%ID', $this->manufacturers_id, $this->manufacturers_image_after_save[1]);
             $relName = str_replace('%ID', $this->manufacturers_id, $this->manufacturers_image_after_save[2]);
-            if (@rename($moveFrom, $moveTo)){
-                \common\classes\Images::createWebp($relName,true);
+            if (@rename($moveFrom, $moveTo)) {
+                \common\classes\Images::createWebp($relName, true);
                 \common\classes\Images::createResizeImages($relName, 'Brand gallery', true);
             }
             $this->manufacturers_image = $relName;
@@ -185,6 +184,5 @@ class Manufacturer extends EPMap
             $this->save(false);
         }
     }
-
 
 }

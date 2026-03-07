@@ -1,25 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\classes;
 
-use common\models\TrackingNumbers;
 use yii\base\InvalidParamException;
 use yii\db\Expression;
 
 class Order extends extended\OrderAbstract implements extended\TransactionsInterface
 {
-    function query($order_id)
+    public function query($order_id)
     {
         parent::query($order_id);
 
@@ -28,14 +29,16 @@ class Order extends extended\OrderAbstract implements extended\TransactionsInter
 
     protected function trackingNumberLoad()
     {
-        $tabledNumbers = array();
+        $tabledNumbers = [];
         $tracking_table = OrderTrackingNumber::getTrackingFromTable($this->order_id);
         foreach ($tracking_table as $tracking_model) {
             $tabledNumbers[$tracking_model->number] = $tracking_model;
         }
 
         $normalizeOrderRecord = false;
-        if (!is_array($this->info['tracking_number'])) $this->info['tracking_number'] = array();
+        if (!is_array($this->info['tracking_number'])) {
+            $this->info['tracking_number'] = [];
+        }
         foreach ($this->info['tracking_number'] as $_idx => $tracking) {
             if (!is_object($tracking)) {
                 $parsedTracking = OrderTrackingNumber::instanceFromString($tracking, $this->order_id);
@@ -80,15 +83,15 @@ class Order extends extended\OrderAbstract implements extended\TransactionsInter
 
     public function addTrackingNumber($trackingNumber)
     {
-        if ( !is_object($trackingNumber) || !($trackingNumber instanceOf \common\models\TrackingNumbers) ) {
+        if (!is_object($trackingNumber) || !($trackingNumber instanceof \common\models\TrackingNumbers)) {
             $trackingNumber = OrderTrackingNumber::instanceFromString(strval($trackingNumber), $this->order_id);
         }
 
-        if ( empty($trackingNumber->number) ) {
+        if (empty($trackingNumber->number)) {
             throw new InvalidParamException('Empty tracking number');
         }
-        foreach ($this->info['tracking_number'] as $currentTrackingNumber){
-            if ( strtolower($trackingNumber->number)==strtolower($currentTrackingNumber->number) ) {
+        foreach ($this->info['tracking_number'] as $currentTrackingNumber) {
+            if (strtolower($trackingNumber->number) == strtolower($currentTrackingNumber->number)) {
                 throw new InvalidParamException('Tracking number "'.$trackingNumber->number.'" already added to order');
             }
         }
@@ -142,23 +145,23 @@ class Order extends extended\OrderAbstract implements extended\TransactionsInter
             $notify_comments = '';
             $customer_notified = 0;
 
-            $email_params_tracking = array(
+            $email_params_tracking = [
                 'TRACKING_NUMBER' => '',
                 'TRACKING_NUMBER_URL' => '',
-            );
+            ];
             $TEXT_TRACKING_NUMBER = \common\helpers\Translation::getTranslationValue('TEXT_TRACKING_NUMBER', 'admin/orders', $order->info['language_id']);
             foreach ($emailTrackingNumber as $TrackingNumber) {
                 $tracking_data = \common\helpers\Order::parse_tracking_number($TrackingNumber);
-                $strTrackingNumber = (empty($tracking_data['carrier'])?'':"{$tracking_data['carrier']} ").$tracking_data['number'];
+                $strTrackingNumber = (empty($tracking_data['carrier']) ? '' : "{$tracking_data['carrier']} ").$tracking_data['number'];
                 $notify_comments .= $TEXT_TRACKING_NUMBER . ': ' . $strTrackingNumber . "\n";
                 $email_params_tracking['TRACKING_NUMBER'] .= (empty($email_params_tracking['TRACKING_NUMBER']) ? '' : ', ') . $strTrackingNumber;
-                if ( function_exists('tep_catalog_href_link') ) {
+                if (function_exists('tep_catalog_href_link')) {
                     $email_params_tracking['TRACKING_NUMBER_URL'] .=
                         (empty($email_params_tracking['TRACKING_NUMBER_URL']) ? '' : ', ') .
                         '<a href="' . $tracking_data['url'] . '" target="_blank">' .
                         '<img border="0" alt="' . $tracking_data['number'] . '" src="' . tep_catalog_href_link('account/order-qrcode', 'oID=' . (int)$this->order_id . '&cID=' . (int)$this->customer['customer_id'] . '&tracking=1&tracking_number=' . urlencode($tracking_data['number']), 'SSL') . '">' .
                         '</a>';
-                }else{
+                } else {
                     $email_params_tracking['TRACKING_NUMBER_URL'] .=
                         (empty($email_params_tracking['TRACKING_NUMBER_URL']) ? '' : ', ') .
                         '<a href="' . $tracking_data['url'] . '" target="_blank">' .
@@ -178,59 +181,67 @@ class Order extends extended\OrderAbstract implements extended\TransactionsInter
 
                 list($email_subject, $email_text) = \common\helpers\Mail::get_parsed_email_template('Add Tracking Number', $email_params, $order->info['language_id'], $order->info['platform_id']);
                 \common\helpers\Mail::send(
-                    $order->customer['name'], $order->customer['email_address'],
-                    $email_subject, $email_text,
-                    $STORE_OWNER, $STORE_OWNER_EMAIL_ADDRESS
+                    $order->customer['name'],
+                    $order->customer['email_address'],
+                    $email_subject,
+                    $email_text,
+                    $STORE_OWNER,
+                    $STORE_OWNER_EMAIL_ADDRESS
                 );
                 $customer_notified = 1;
             }
 
             if ($addStatusHistory) {
-                tep_db_perform(TABLE_ORDERS_STATUS_HISTORY, array(
+                tep_db_perform(TABLE_ORDERS_STATUS_HISTORY, [
                     'orders_id' => $order->order_id,
                     'orders_status_id' => $order->info['order_status'],
                     'date_added' => 'now()',
                     'customer_notified' => $customer_notified,
                     'comments' => $notify_comments,
-                    'admin_id' => (isset($_SESSION['login_id'])?(int)$_SESSION['login_id']:0),
-                ));
+                    'admin_id' => (isset($_SESSION['login_id']) ? (int)$_SESSION['login_id'] : 0),
+                ]);
             }
 
             \Yii::$app->get('platform')->config($_keep_platform_id);
         }
     }
-    
-    public static function getARModel($new = false){
-        if($new){
+
+    public static function getARModel($new = false)
+    {
+        if ($new) {
             return parent::getARModelNew(new \common\models\Orders());
         } else {
             return \common\models\Orders::find();
         }
     }
-    
-    public function getProductsARModel(){
+
+    public function getProductsARModel()
+    {
         return \common\models\OrdersProducts::find();
     }
-    
-    public function getStatusHistoryARModel(){
+
+    public function getStatusHistoryARModel()
+    {
         return \common\models\OrdersStatusHistory::find()->orderBy('date_added, orders_status_history_id');
     }
-    
-    public function getHistoryARModel(){
+
+    public function getHistoryARModel()
+    {
         return \common\models\OrdersHistory::find();
     }
 
     public function isHoldOn()
     {
         $details = $this->getDetails();
-        if (!empty($details['hold_on_date']) && $details['hold_on_date']>2000 && $details['hold_on_date']>date('Y-m-d H:i:s')) {
+        if (!empty($details['hold_on_date']) && $details['hold_on_date'] > 2000 && $details['hold_on_date'] > date('Y-m-d H:i:s')) {
             return true;
         }
         return false;
     }
 
-    public function removeOrder($restock = false){
-        if ($this->order_id){
+    public function removeOrder($restock = false)
+    {
+        if ($this->order_id) {
             if ($restock) {
                 \common\helpers\Order::restock($this->order_id);
             }
@@ -238,16 +249,17 @@ class Order extends extended\OrderAbstract implements extended\TransactionsInter
 
             \common\models\TrackingNumbers::deleteAll(['orders_id' => (int)$this->order_id]);
             \common\models\TrackingNumbersToOrdersProducts::deleteAll(['orders_id' => (int)$this->order_id]);
-            
+
             parent::removeOrder();
         }
     }
-    
-    public function getParent(){
-        if ($this->order_id){
+
+    public function getParent()
+    {
+        if ($this->order_id) {
             $parent = \common\models\OrdersParent::findOne($this->order_id);
-            if ($parent){
-                if (class_exists($parent->owner_class)){
+            if ($parent) {
+                if (class_exists($parent->owner_class)) {
                     $class = new \ReflectionClass($parent->owner_class);
                     $class->model = $parent->owner_class::getARModel()->where(['child_id' => $this->order_id])->one();
                     return $class;
@@ -256,56 +268,63 @@ class Order extends extended\OrderAbstract implements extended\TransactionsInter
         }
         return false;
     }
-    
-    public function hasTransactions(){
-        if ($this->order_id){
+
+    public function hasTransactions()
+    {
+        if ($this->order_id) {
             return \common\models\OrdersTransactions::find()
                     ->where(['orders_id' => $this->order_id])->exists();
         }
         return 0;
     }
-    
-    public function maintainSplittering(){
+
+    public function maintainSplittering()
+    {
         return true;
     }
-    
+
     protected $splinters = [];
     /**
-     * set spinters id in orders_splinters history 
+     * set spinters id in orders_splinters history
      * @params $splinters - rows for creating splinter instance
     **/
-    public function setSplinters(array $splinters){
+    public function setSplinters(array $splinters)
+    {
         $this->splinters = $splinters;
     }
-    
-    public function getSplinters(){
+
+    public function getSplinters()
+    {
         return $this->splinters;
     }
-    
-    public function save_order($order_id = 0) {
+
+    public function save_order($order_id = 0)
+    {
         parent::save_order($order_id);
         \common\helpers\System::ga_detection($this->manager);
         return $this->order_id;
     }
-    
-    public function notify_customer($products_ordered,$emailParams = [], $emailTemplate = ''){
+
+    public function notify_customer($products_ordered, $emailParams = [], $emailTemplate = '')
+    {
         $notify_status = parent::notify_customer($products_ordered, $emailParams, $emailTemplate);
-        if ($notify_status){
+        if ($notify_status) {
             $this->notifyGiftCards();
         }
         return $notify_status;
     }
-    
-    public function notifyGiftCards(){
-        if (is_array($this->products)){
-            foreach ($this->products as $product){
-                if ($product['model'] == \common\helpers\Gifts::getVirtualGiftCardModel()){
-                    if (isset($product['attributes'][0]['value_id']) && $product['attributes'][0]['value_id']){
+
+    public function notifyGiftCards()
+    {
+        if (is_array($this->products)) {
+            foreach ($this->products as $product) {
+                if ($product['model'] == \common\helpers\Gifts::getVirtualGiftCardModel()) {
+                    if (isset($product['attributes'][0]['value_id']) && $product['attributes'][0]['value_id']) {
                         \common\helpers\Gifts::activate($product['attributes'][0]['value_id'], $this);
                     }
                 }
             }
         }
     }
-    
+
 }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -31,7 +33,7 @@ class m221017_132017_admin_token_date extends Migration
                 'configuration_description' => 'Forgotten administrator password recovery token expiration time (minutes)',
                 'configuration_group_id' => 'BOX_CONFIGURATION_MYSTORE',
                 'sort_order' => 100,
-                'date_added' => date('Y-m-d H:i:s')
+                'date_added' => date('Y-m-d H:i:s'),
             ]);
         }
         return true;

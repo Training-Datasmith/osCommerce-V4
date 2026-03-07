@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,37 +14,37 @@
 
 namespace common\models\queries;
 
-
-use yii\db\ActiveQuery;
-use paulzi\nestedsets\NestedSetsQueryTrait;
 use common\models\Categories;
+use paulzi\nestedsets\NestedSetsQueryTrait;
+use yii\db\ActiveQuery;
 
-class CategoriesQuery extends ActiveQuery{
+class CategoriesQuery extends ActiveQuery
+{
+    use NestedSetsQueryTrait;
 
-  use NestedSetsQueryTrait;
-
-    public function withListDescription( ) {
-      $languages_id = \Yii::$app->settings->get('languages_id');
-      return $this->withDescription($languages_id);
+    public function withListDescription()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
+        return $this->withDescription($languages_id);
     }
 
-
-
-/**
- * link to products_to_categories
- * @return \yii\db\ActiveQuery
- */
-    public function withProductIds() {
-       return $this->joinWith('productIds');
+    /**
+     * link to products_to_categories
+     * @return \yii\db\ActiveQuery
+     */
+    public function withProductIds()
+    {
+        return $this->joinWith('productIds');
     }
 
-    public function withDescription( $language  = null) {
+    public function withDescription($language  = null)
+    {
 
-        if(!$language){
-            return $this->joinWith( [ 'descriptions'] );
+        if (!$language) {
+            return $this->joinWith([ 'descriptions']);
         }
 
-        return $this->joinWith( [ 'descriptions' => function (ActiveQuery $query ) USE ($language) {
+        return $this->joinWith([ 'descriptions' => function (ActiveQuery $query) use ($language) {
             $query->andWhere(['categories_description.language_id' => $language ]);
         }]);
     }

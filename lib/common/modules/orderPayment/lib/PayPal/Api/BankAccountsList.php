@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -21,12 +23,12 @@ class BankAccountsList extends PayPalModel
      * A list of bank account resources
      *
      * @param \PayPal\Api\BankAccount[] $bank_accounts
-     * 
+     *
      * @return $this
      */
     public function setBankAccounts($bank_accounts)
     {
-        $this->{"bank-accounts"} = $bank_accounts;
+        $this->{'bank-accounts'} = $bank_accounts;
         return $this;
     }
 
@@ -37,7 +39,7 @@ class BankAccountsList extends PayPalModel
      */
     public function getBankAccounts()
     {
-        return $this->{"bank-accounts"};
+        return $this->{'bank-accounts'};
     }
 
     /**
@@ -49,10 +51,10 @@ class BankAccountsList extends PayPalModel
     public function addBankAccount($bankAccount)
     {
         if (!$this->getBankAccounts()) {
-            return $this->setBankAccounts(array($bankAccount));
+            return $this->setBankAccounts([$bankAccount]);
         } else {
             return $this->setBankAccounts(
-                array_merge($this->getBankAccounts(), array($bankAccount))
+                array_merge($this->getBankAccounts(), [$bankAccount])
             );
         }
     }
@@ -66,7 +68,7 @@ class BankAccountsList extends PayPalModel
     public function removeBankAccount($bankAccount)
     {
         return $this->setBankAccounts(
-            array_diff($this->getBankAccounts(), array($bankAccount))
+            array_diff($this->getBankAccounts(), [$bankAccount])
         );
     }
 
@@ -74,7 +76,7 @@ class BankAccountsList extends PayPalModel
      * Number of items returned in each range of results. Note that the last results range could have fewer items than the requested number of items.
      *
      * @param int $count
-     * 
+     *
      * @return $this
      */
     public function setCount($count)
@@ -97,7 +99,7 @@ class BankAccountsList extends PayPalModel
      * Identifier of the next element to get the next range of results.
      *
      * @param string $next_id
-     * 
+     *
      * @return $this
      */
     public function setNextId($next_id)

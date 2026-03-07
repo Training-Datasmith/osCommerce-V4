@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,9 +24,9 @@ class m230227_194319_upd_new_feb_themes extends Migration
      */
     public function Up()
     {
-		$this->updateTheme('deals', 'lib/console/migrations/themes/b2b-supermarket/migration-deals-1677526809945.json');
-		$this->updateTheme('furniture', 'lib/console/migrations/themes/furniture/desktop/migration-furniture-1677526755634.json');
-		$this->updateTheme('furniture-mobile', 'lib/console/migrations/themes/furniture/mobile/migration-furniture-mobile-1677526705067.json');
+        $this->updateTheme('deals', 'lib/console/migrations/themes/b2b-supermarket/migration-deals-1677526809945.json');
+        $this->updateTheme('furniture', 'lib/console/migrations/themes/furniture/desktop/migration-furniture-1677526755634.json');
+        $this->updateTheme('furniture-mobile', 'lib/console/migrations/themes/furniture/mobile/migration-furniture-mobile-1677526705067.json');
     }
 
     /**

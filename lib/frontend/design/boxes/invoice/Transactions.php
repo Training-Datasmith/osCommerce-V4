@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,7 +16,6 @@ namespace frontend\design\boxes\invoice;
 
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Transactions extends Widget
 {
@@ -32,11 +33,11 @@ class Transactions extends Widget
         \common\helpers\Translation::init('admin/orders');
         \common\helpers\Translation::init('admin/design');
         \common\helpers\Translation::init('admin/main');
-        $order = $this->params["order"];
+        $order = $this->params['order'];
 
         if ($order->parent_id) {
             $order_id = $order->parent_id;
-        } elseif ( method_exists($order, 'getOrderNumber') ) {
+        } elseif (method_exists($order, 'getOrderNumber')) {
             $order_id = $order->getOrderNumber();
         } else {
             $order_id = $order->order_id;

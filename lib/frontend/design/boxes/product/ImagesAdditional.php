@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,31 +14,32 @@
 
 namespace frontend\design\boxes\product;
 
+use common\classes\Images as cImages;
+use frontend\design\IncludeTpl;
+use frontend\design\Info;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use common\classes\Images as cImages;
-use frontend\design\Info;
 
 class ImagesAdditional extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
 
     public function init()
     {
-        if (!is_array($this->params) ) $this->params = array();
+        if (!is_array($this->params)) {
+            $this->params = [];
+        }
         parent::init();
     }
 
     public function run()
     {
-        if ( isset($this->params['uprid']) && $this->params['uprid']>0 ) {
+        if (isset($this->params['uprid']) && $this->params['uprid'] > 0) {
             $show_uprid = $this->params['uprid'];
-        }else {
-            $show_uprid = Yii::$app->request->get('products_id',0);
+        } else {
+            $show_uprid = Yii::$app->request->get('products_id', 0);
         }
 
         if (!$show_uprid) {
@@ -44,29 +47,29 @@ class ImagesAdditional extends Widget
         }
 
         $images = \common\classes\Images::getImageList($show_uprid);
-        if ( count($images)==0 ) {
+        if (count($images) == 0) {
             $show_uprid = \common\helpers\Inventory::get_prid($show_uprid);
             $images = \common\classes\Images::getImageList($show_uprid);
         }
-        
+
         $languageId = (int)Yii::$app->settings->get('languages_id');
         $productId = (int)Yii::$app->request->get('products_id');
-        
+
         $productsVideos = \common\models\ProductsVideos::find()->where(['products_id' => $productId])->asArray()->all();
 
         $video = [];
         foreach ($productsVideos as $item) {
             $video[$item['video_id']] = $item;
         }
-        
+
         $imagesArr = [];
         $defaultImage = '';
         $count = 0;
-        foreach( $images as $imgId => $__image ) {
+        foreach ($images as $imgId => $__image) {
             if (isset($video[$__image['link_video_id']])) {
                 $item = $video[$__image['link_video_id']];
-                
-                if ($this->settings[0]['by_language'] && $item['language_id'] != $languageId ) {
+
+                if ($this->settings[0]['by_language'] && $item['language_id'] != $languageId) {
                     continue;
                 }
                 if ($item['type'] == 1) {
@@ -83,21 +86,21 @@ class ImagesAdditional extends Widget
                     } elseif (strrpos($item['video'], 'youtube.com') && strrpos($item['video'], '/watch?')) {
                         preg_match_all("/v=([a-zA-Z0-9\-\_]+)/", $item['video'], $arr);
                         $item['code'] = $arr[1][0];
-                    }  elseif (strrpos($item['video'], 'youtube.com')) {
+                    } elseif (strrpos($item['video'], 'youtube.com')) {
                         preg_match_all("/\/([^\/^?^\"]+)[\"\?]/", $item['video'], $arr);
                         $item['code'] = $arr[1][0];
-                    } elseif (preg_match("/^[a-zA-z0-9]+$/", $item['video'])) {
+                    } elseif (preg_match('/^[a-zA-z0-9]+$/', $item['video'])) {
                         $item['code'] = $item['video'];
                     }
                     $item['video_type'] = '0';
                     if (!$item['code']) {
                         continue;
                     }
-                    $item['video_preview'] = "https://img.youtube.com/vi/".$item['code']."/0.jpg";
+                    $item['video_preview'] = 'https://img.youtube.com/vi/'.$item['code'].'/0.jpg';
                     if (isset($__image['image']['Small']['url'])) {
                         $item['video_preview'] = $__image['image']['Small']['url'];
                     }
-                    
+
                 }
                 $item['type'] = 'video';
                 $imagesArr['video-' . $item['video_id']] = $item;
@@ -120,21 +123,20 @@ class ImagesAdditional extends Widget
                 if ($__image['defaut']) {
                     $defaultImage = 'image-' . $imgId;
                     Info::addJsData(['products' => [
-                        $show_uprid => ['defaultImage' => 'image-' . $imgId]
+                        $show_uprid => ['defaultImage' => 'image-' . $imgId],
                     ]]);
                 }
             }
         }
 
-
         Info::addJsData(['widgets' => [
             $this->id => [
                 'alignPosition' => $this->settings[0]['align_position'],
-            ]]
+            ]],
         ]);
 
         foreach ($video as $item) {
-            if ($this->settings[0]['by_language'] && $item['language_id'] != $languageId ) {
+            if ($this->settings[0]['by_language'] && $item['language_id'] != $languageId) {
                 continue;
             }
             if ($item['type'] == 1) {
@@ -151,17 +153,17 @@ class ImagesAdditional extends Widget
                 } elseif (strrpos($item['video'], 'youtube.com') && strrpos($item['video'], '/watch?')) {
                     preg_match_all("/v=([a-zA-Z0-9\-\_]+)/", $item['video'], $arr);
                     $item['code'] = $arr[1][0];
-                }  elseif (strrpos($item['video'], 'youtube.com')) {
+                } elseif (strrpos($item['video'], 'youtube.com')) {
                     preg_match_all("/\/([^\/^?^\"]+)[\"\?]/", $item['video'], $arr);
                     $item['code'] = $arr[1][0];
-                } elseif (preg_match("/^[a-zA-z0-9]+$/", $item['video'])) {
+                } elseif (preg_match('/^[a-zA-z0-9]+$/', $item['video'])) {
                     $item['code'] = $item['video'];
                 }
                 $item['video_type'] = '0';
                 if (!$item['code']) {
                     continue;
                 }
-                $item['video_preview'] = "https://img.youtube.com/vi/".$item['code']."/0.jpg";
+                $item['video_preview'] = 'https://img.youtube.com/vi/'.$item['code'].'/0.jpg';
             }
             $item['type'] = 'video';
             $imagesArr['video-' . $item['video_id']] = $item;
@@ -171,12 +173,11 @@ class ImagesAdditional extends Widget
             }
         }
 
-        
         Info::addJsData(['products' => [
             $productId => [
                 'images' => $imagesArr,
-                'defaultImage' => $defaultImage
-            ]
+                'defaultImage' => $defaultImage,
+            ],
         ]]);
 
         if ($this->params['no_tpl']) {
@@ -186,7 +187,7 @@ class ImagesAdditional extends Widget
         return IncludeTpl::widget(['file' => 'boxes/product/images-additional.tpl', 'params' => [
             'images' => $imagesArr,
             'images_count' => count($imagesArr),
-            'settings' => $this->settings
+            'settings' => $this->settings,
         ]]);
     }
 }

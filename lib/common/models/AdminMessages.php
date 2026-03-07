@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,8 @@
 
 namespace common\models;
 
-use Yii;
-use yii\db\ActiveRecord;
 use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
 
 class AdminMessages extends ActiveRecord
 {
@@ -26,8 +27,9 @@ class AdminMessages extends ActiveRecord
     {
         return 'admin_messages';
     }
-    
-    public function behaviors() {
+
+    public function behaviors()
+    {
         return [
             [
                 'class' => TimestampBehavior::className(),
@@ -38,8 +40,9 @@ class AdminMessages extends ActiveRecord
             ],
         ];
     }
-    
-    public static function getUnread(){
+
+    public static function getUnread()
+    {
         return self::find()->where(['status' => 'unread']);
     }
 }

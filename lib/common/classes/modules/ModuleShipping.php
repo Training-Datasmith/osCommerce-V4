@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,11 +15,11 @@
 
 namespace common\classes\modules;
 
-abstract class ModuleShipping extends Module {
-   
+abstract class ModuleShipping extends Module
+{
     public $shipping_weight;
     public $shipping_num_boxes;
-        
+
     public $platform_id;
     public $tracking = false;
 
@@ -26,15 +28,17 @@ abstract class ModuleShipping extends Module {
         return [];
     }
 
-    function quote($method = '') {
-        
+    public function quote($method = '')
+    {
+
     }
 
     /**
      * @param int $order_id
      * @return bool
      */
-    public function shipment_exists (int $order_id) {
+    public function shipment_exists(int $order_id)
+    {
         $check_order = \common\models\Orders::find()
             ->select(['orders_id', 'shipping_class', 'tracking_number', 'parcel_label_pdf'])
             ->andWhere(['orders_id' => $order_id])
@@ -49,37 +53,44 @@ abstract class ModuleShipping extends Module {
             return false;
         }
     }
-    
+
     /**
      * check delivery date
      * @param type $delivery_date
      * @return boolean
      */
-    public function checkDeliveryDate($delivery_date) {
-        if (tep_not_null($delivery_date) && $delivery_date != '0000-00-00')
+    public function checkDeliveryDate($delivery_date)
+    {
+        if (tep_not_null($delivery_date) && $delivery_date != '0000-00-00') {
             return true;
+        }
         return false;
     }
-    
+
     /*if used physical delivery*/
-    public function useDelivery() {
+    public function useDelivery()
+    {
         return true;
     }
-    
-    public function setWeight($weight){
+
+    public function setWeight($weight)
+    {
         $this->shipping_weight = $weight;
     }
-    
-    public function setNumBoxes($numBoxes){
+
+    public function setNumBoxes($numBoxes)
+    {
         $this->shipping_num_boxes = $numBoxes;
     }
-        
-    public function setPlatform(int $platform_id){
+
+    public function setPlatform(int $platform_id)
+    {
         $this->platform_id = $platform_id;
         //$this->checkLabels(); //??!! use hasLabelModule
     }
-    
-    public function getPreferredLabels() {
+
+    public function getPreferredLabels()
+    {
         $visibilityAccess = [];
         $modulesLabels = \common\models\ModulesLabels::findOne(['platform_id' => $this->platform_id, 'code' => $this->code]);
         if (!is_null($modulesLabels) && !empty($modulesLabels->labels_list)) {
@@ -87,7 +98,8 @@ abstract class ModuleShipping extends Module {
         }
         return $visibilityAccess;
     }
-    public function checkLabels() {
+    public function checkLabels()
+    {
         $modulesLabels = \common\models\ModulesLabels::findOne(['platform_id' => $this->platform_id, 'code' => $this->code]);
         if (!is_null($modulesLabels) && !empty($modulesLabels->labels_list)) {
             $this->tracking = true;
@@ -108,21 +120,24 @@ abstract class ModuleShipping extends Module {
         return false;
         */
     }
-    
-    public function getLabels($platform_id) {
-        if ( (int)$platform_id==0 ) return '';
-        
+
+    public function getLabels($platform_id)
+    {
+        if ((int)$platform_id == 0) {
+            return '';
+        }
+
         $labels = \common\helpers\Modules::getLabelsList($platform_id);
-        
+
         $modulesLabels = \common\models\ModulesLabels::findOne(['platform_id' => $platform_id, 'code' => $this->code]);
         $visibilityAccess = [];
-        
+
         if (!is_null($modulesLabels) && !empty($modulesLabels->labels_list)) {
             $visibilityAccess = explode(',', $modulesLabels->labels_list);
         }
-        
-        $response = '<br><br><table width="50%" id="module_labels_restriction" style="max-height:350px"><thead><tr><th>' . MODULE_SHIPPING_TRACKING_STATUS . ' ' . tep_draw_checkbox_field('enable_tracking', '1', !is_null($modulesLabels), '', 'onchange="return updateLabels(this);" class="uniform" ' ) . '</th></thead><tbody>';
-        
+
+        $response = '<br><br><table width="50%" id="module_labels_restriction" style="max-height:350px"><thead><tr><th>' . MODULE_SHIPPING_TRACKING_STATUS . ' ' . tep_draw_checkbox_field('enable_tracking', '1', !is_null($modulesLabels), '', 'onchange="return updateLabels(this);" class="uniform" ') . '</th></thead><tbody>';
+
         foreach ($labels as $id => $name) {
             $response .= '<tr><td>';
             $params = 'class="uniform" ';
@@ -130,24 +145,27 @@ abstract class ModuleShipping extends Module {
                 $params .= 'disabled';
             }
             $response .= '<label>';
-            $response .= tep_draw_checkbox_field('labels[]', $id, in_array($id, $visibilityAccess), '', $params );
+            $response .= tep_draw_checkbox_field('labels[]', $id, in_array($id, $visibilityAccess), '', $params);
             $response .= $name;
             $response .= '</label>';
             $response .= '</td></tr>';
         }
-        
+
         $response .= '</tbody></table>';
         $response .= '<script type="text/javascript">function updateLabels(obj) { if ( $(obj).is(":checked") ) { $("input[name^=\'labels\']").prop("disabled", false); $("#module_labels_restriction div.checker").length && $("#module_labels_restriction div.checker.disabled").removeClass("disabled"); } else { $("input[name^=\'labels\']").prop("disabled", true); $("#module_labels_restriction div.checker").length && $("#module_labels_restriction tbody div.checker").addClass("disabled"); } }</script>';
         return $response;
-        
+
     }
-   
-    public function setLabels() {
+
+    public function setLabels()
+    {
         $platform_id = (int)\Yii::$app->request->post('platform_id');
-        if ( (int)$platform_id==0 ) return false;
-        
+        if ((int)$platform_id == 0) {
+            return false;
+        }
+
         $modulesLabels = \common\models\ModulesLabels::findOne(['platform_id' => $platform_id, 'code' => $this->code]);
-            
+
         $enable_tracking = (int)\Yii::$app->request->post('enable_tracking');
         if ($enable_tracking == 1) {
             $labels = \Yii::$app->request->post('labels', []);
@@ -195,13 +213,14 @@ abstract class ModuleShipping extends Module {
     {
         return false;
     }
-    
+
     public function getExtraDisabledDays()
     {
         return false;
     }
 
-    public function isOnline() {
+    public function isOnline()
+    {
         return false;
     }
 }

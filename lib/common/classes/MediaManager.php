@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -36,9 +38,9 @@ class MediaManager extends Component
         ];
     }
 
-    public function loadPlatformSettings($platformId=null)
+    public function loadPlatformSettings($platformId = null)
     {
-        if ( empty($platformId) ) {
+        if (empty($platformId)) {
             $platformId = \Yii::$app->get('platform')->config()->getId();
         }
         $platform_config = \Yii::$app->get('platform')->config();
@@ -49,33 +51,35 @@ class MediaManager extends Component
         ];
 
         // Don't use when run in console (e.g. PdfCatalogGen)
-        if (\Yii::$app instanceof \yii\console\Application) return;
+        if (\Yii::$app instanceof \yii\console\Application) {
+            return;
+        }
 
         $cdn_server = $platform_config->getImagesCdnUrl();
-        if ( !empty($cdn_server) ) {
+        if (!empty($cdn_server)) {
             \Yii::setAlias('@webCatalogImages', $cdn_server);
         }
 
         $isSecureRequest = \Yii::$app->request->getIsSecureConnection();
-        foreach($platform_config->getAdditionalUrls() as $additionalUrl)
-        {
-            if ( $isSecureRequest && $additionalUrl['ssl_enabled']==0 ) continue;
+        foreach ($platform_config->getAdditionalUrls() as $additionalUrl) {
+            if ($isSecureRequest && $additionalUrl['ssl_enabled'] == 0) {
+                continue;
+            }
 
-            if ( $isSecureRequest || $additionalUrl['ssl_enabled']==2 ) {
+            if ($isSecureRequest || $additionalUrl['ssl_enabled'] == 2) {
                 $schema = 'https';
-            }else{
+            } else {
                 $schema = 'http';
             }
 
-            $url = $schema.'://'.rtrim($additionalUrl['url'],'/').'/';
-            if ( $additionalUrl['url_type']=='/' )
-            {
+            $url = $schema.'://'.rtrim($additionalUrl['url'], '/').'/';
+            if ($additionalUrl['url_type'] == '/') {
                 $this->groupByType['themes'][] = $url . 'themes/';
                 $this->groupByType['images'][] = $url.DIR_WS_IMAGES;
-            }else{
-                if ( $additionalUrl['url_type']=='/themes' ) {
+            } else {
+                if ($additionalUrl['url_type'] == '/themes') {
                     $this->groupByType['themes'][] = $url;
-                }else {
+                } else {
                     $this->groupByType[trim($additionalUrl['url_type'], '/')][] = $url;
                 }
             }
@@ -86,21 +90,21 @@ class MediaManager extends Component
 
     public function allowUrlTypeAlias($type, $flag)
     {
-        if ( $flag ) {
+        if ($flag) {
             unset($this->disableUrlTypeAlias[$type]);
-        }else{
+        } else {
             $this->disableUrlTypeAlias[$type] = $type;
         }
     }
 
     public function getAlias($alias)
     {
-        if ( count($this->previousAliasMap)>300 ) {
+        if (count($this->previousAliasMap) > 300) {
             array_shift($this->previousAliasMap);
         }
-        if ( !isset($this->disableUrlTypeAlias['images']) && count($this->groupByType['images'])>0 && strpos($alias,'@webCatalogImages/')!==false ) {
+        if (!isset($this->disableUrlTypeAlias['images']) && count($this->groupByType['images']) > 0 && strpos($alias, '@webCatalogImages/') !== false) {
             $urlTo = current($this->groupByType['images']);
-            if (!next($this->groupByType['images'])){
+            if (!next($this->groupByType['images'])) {
                 reset($this->groupByType['images']);
             };
             if (!isset($this->previousAliasMap[$alias])) {
@@ -108,9 +112,9 @@ class MediaManager extends Component
             }
             return $this->previousAliasMap[$alias];
         }
-        if ( !isset($this->disableUrlTypeAlias['images']) && count($this->groupByType['themes'])>0 && strpos($alias,'@webThemes/')!==false ) {
+        if (!isset($this->disableUrlTypeAlias['images']) && count($this->groupByType['themes']) > 0 && strpos($alias, '@webThemes/') !== false) {
             $urlTo = current($this->groupByType['themes']);
-            if (!next($this->groupByType['themes'])){
+            if (!next($this->groupByType['themes'])) {
                 reset($this->groupByType['themes']);
             };
             if (!isset($this->previousAliasMap[$alias])) {
@@ -118,10 +122,9 @@ class MediaManager extends Component
             }
 
             return $this->previousAliasMap[$alias];
-        }elseif(strpos($alias,'@webThemes//')!==false){
-            $alias = str_replace('@webThemes//','@webThemes/',$alias);
+        } elseif (strpos($alias, '@webThemes//') !== false) {
+            $alias = str_replace('@webThemes//', '@webThemes/', $alias);
         }
-
 
         return \Yii::getAlias($alias);
     }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,7 +19,6 @@ use common\api\models\AR\EPMap;
 
 class Xsell extends EPMap
 {
-
     protected $hideFields = [
         'ID',
         'products_id',
@@ -42,10 +43,10 @@ class Xsell extends EPMap
     public function matchIndexedValue(EPMap $importedObject)
     {
         if (
-            !is_null($importedObject->xsell_id) && !is_null($this->xsell_id) && $importedObject->xsell_id==$this->xsell_id
+            !is_null($importedObject->xsell_id) && !is_null($this->xsell_id) && $importedObject->xsell_id == $this->xsell_id
             &&
-            !is_null($importedObject->xsell_type_id) && !is_null($this->xsell_type_id) && $importedObject->xsell_type_id==$this->xsell_type_id
-        ){
+            !is_null($importedObject->xsell_type_id) && !is_null($this->xsell_type_id) && $importedObject->xsell_type_id == $this->xsell_type_id
+        ) {
             $this->pendingRemoval = false;
             return true;
         }
@@ -68,6 +69,5 @@ class Xsell extends EPMap
         }
         return parent::importArray($data);
     }
-
 
 }

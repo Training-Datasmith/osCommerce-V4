@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,11 +14,8 @@
 
 namespace backend\models\ProductEdit;
 
-use common\models\Products;
-
 class ViewStockInfo
 {
-
     /**
      * @var \objectInfo
      */
@@ -31,10 +30,10 @@ class ViewStockInfo
     protected function wrap($pInfo)
     {
         $products_id = $pInfo->products_id;
-        if ( $pInfo->parent_products_id && $pInfo->products_id_stock ) {
+        if ($pInfo->parent_products_id && $pInfo->products_id_stock) {
             $products_id = $pInfo->products_id_stock;
             $pDataInfo = new \objectInfo(\common\models\Products::findOne($products_id)->getAttributes());
-        }else{
+        } else {
             $pDataInfo = $pInfo;
         }
 

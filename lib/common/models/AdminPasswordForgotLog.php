@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "admin_password_forgot_log".
@@ -60,7 +60,8 @@ class AdminPasswordForgotLog extends \yii\db\ActiveRecord
         $checkAttempt = 3;
         $checkPeriod = '1 hour';
         return (
-            (int)(self::find()
+            (int)(
+                self::find()
                 ->where(['apflDeviceId' => self::getDeviceId()])
                 ->andWhere(['>=', 'apflDateCreate', date('Y-m-d H:i:s', strtotime('-' . $checkPeriod))])
                 ->count()

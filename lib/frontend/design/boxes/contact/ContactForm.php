@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,13 @@
 
 namespace frontend\design\boxes\contact;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
 use frontend\forms\contact\Contact;
+use Yii;
+use yii\base\Widget;
 
 class ContactForm extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -37,7 +38,7 @@ class ContactForm extends Widget
             'captcha' => $this->settings[0]['show_captcha'],
             'contact_config' => [
                 'show_honeypot' => $this->settings[0]['show_honeypot'],
-            ]
+            ],
         ]);
         $customer = null;
         if (!Yii::$app->user->isGuest) {
@@ -46,12 +47,12 @@ class ContactForm extends Widget
         }
 
         $info = [];
-        if (Yii::$app->request->isPost && $action == 'send'){
-            if ( $contact->load(Yii::$app->request->post()) && $contact->validate() ){
-                $contact->sendMessage();                
+        if (Yii::$app->request->isPost && $action == 'send') {
+            if ($contact->load(Yii::$app->request->post()) && $contact->validate()) {
+                $contact->sendMessage();
                 tep_redirect(tep_href_link(FILENAME_CONTACT_US, 'action=success'));
             } else {
-                foreach($contact->getErrors() as $error){
+                foreach ($contact->getErrors() as $error) {
                     $info[] = $error[0] ?? '';
                 }
             }
@@ -63,12 +64,12 @@ class ContactForm extends Widget
             $product = $products->getProduct($productId);
             $contact->content = $product['products_name'];
         }
-        
+
         return IncludeTpl::widget(['file' => 'boxes/contact/contact-form.tpl', 'params' => [
             'info' => $info,
             'action' => $action,
             'settings' => $this->settings,
-            'id' => $this->id,            
+            'id' => $this->id,
             'contact' => $contact,
             'info_id' => Yii::$app->request->get('info_id'),
         ]]);

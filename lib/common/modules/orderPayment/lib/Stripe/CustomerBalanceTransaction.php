@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -33,17 +35,17 @@ namespace Stripe;
  */
 class CustomerBalanceTransaction extends ApiResource
 {
-    const OBJECT_NAME = 'customer_balance_transaction';
+    public const OBJECT_NAME = 'customer_balance_transaction';
 
-    const TYPE_ADJUSTMENT = 'adjustment';
-    const TYPE_APPLIED_TO_INVOICE = 'applied_to_invoice';
-    const TYPE_CREDIT_NOTE = 'credit_note';
-    const TYPE_INITIAL = 'initial';
-    const TYPE_INVOICE_TOO_LARGE = 'invoice_too_large';
-    const TYPE_INVOICE_TOO_SMALL = 'invoice_too_small';
-    const TYPE_UNSPENT_RECEIVER_CREDIT = 'unspent_receiver_credit';
+    public const TYPE_ADJUSTMENT = 'adjustment';
+    public const TYPE_APPLIED_TO_INVOICE = 'applied_to_invoice';
+    public const TYPE_CREDIT_NOTE = 'credit_note';
+    public const TYPE_INITIAL = 'initial';
+    public const TYPE_INVOICE_TOO_LARGE = 'invoice_too_large';
+    public const TYPE_INVOICE_TOO_SMALL = 'invoice_too_small';
+    public const TYPE_UNSPENT_RECEIVER_CREDIT = 'unspent_receiver_credit';
 
-    const TYPE_ADJUSTEMENT = 'adjustment';
+    public const TYPE_ADJUSTEMENT = 'adjustment';
 
     /**
      * @return string the API URL for this balance transaction

@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "page_status".
@@ -40,7 +40,7 @@ class PageStatus extends \yii\db\ActiveRecord
             'page_status_id' => 'Page Status ID',
             'type' => 'Type',
             'page_id' => 'Page ID',
-            'status' => 'Status'
+            'status' => 'Status',
         ];
     }
 }

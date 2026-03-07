@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -20,7 +22,6 @@ namespace Stripe;
  */
 class AccountLink extends ApiResource
 {
-    const OBJECT_NAME = 'account_link';
-
     use ApiOperations\Create;
+    public const OBJECT_NAME = 'account_link';
 }

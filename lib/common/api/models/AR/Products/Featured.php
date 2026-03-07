@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace common\api\models\AR\Products;
 
-
 use common\api\models\AR\EPMap;
 
 class Featured extends EPMap
 {
-
     public static function tableName()
     {
         return 'featured';
@@ -42,7 +42,7 @@ class Featured extends EPMap
 
     public function beforeSave($insert)
     {
-        if ( $insert && empty($this->featured_date_added)){
+        if ($insert && empty($this->featured_date_added)) {
             $this->featured_date_added = new \yii\db\Expression('NOW()');
         }
         return parent::beforeSave($insert);

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -26,7 +28,7 @@ class m240315_093052_menu_item_settings extends Migration
             $this->addColumn('menu_items', 'settings', $this->string(255));
         }
         $this->addTranslation('admin/menus', [
-            'SORTING_FROM_CATALOGUE' => 'Sorting from catalogue'
+            'SORTING_FROM_CATALOGUE' => 'Sorting from catalogue',
         ]);
     }
 

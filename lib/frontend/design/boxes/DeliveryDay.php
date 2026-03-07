@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class DeliveryDay extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -31,9 +31,9 @@ class DeliveryDay extends Widget
     public function run()
     {
         //$this->settings[0]['show_day'] = '', 'today', 'next_day', 'today_next_day', 'today_and_next_day'
-        
+
         $deliveryEnds = [];
-        
+
         $cutOffTime = new \common\classes\CutOffTime();
         $showTodayDayDelivery = $cutOffTime->isTodayDelivery();
         $showNexDayDelivery = $cutOffTime->isNextDayDelivery();
@@ -42,30 +42,30 @@ class DeliveryDay extends Widget
             if ($showTodayDayDelivery) {
                 $deliveryEnds[] = [
                     'title' => TEXT_TODAY_DELIVERY,
-                    'interval' => \common\helpers\Date::getLeftIntervalTo($cutOffTime->getTodayDeliveryDate())
+                    'interval' => \common\helpers\Date::getLeftIntervalTo($cutOffTime->getTodayDeliveryDate()),
                 ];
                 if ($this->settings[0]['show_day'] == 'today_next_day') {
                     $showNexDayDelivery = false;
                 }
             }
         }
-        
+
         if (in_array($this->settings[0]['show_day'], ['today_next_day', 'today_and_next_day'])) {
             if ($showNexDayDelivery) {
                 $deliveryEnds[] = [
                     'title' => TEXT_NEXT_DAY_DELIVERY,
-                    'interval' => \common\helpers\Date::getLeftIntervalTo($cutOffTime->getNextDayDeliveryDate())
+                    'interval' => \common\helpers\Date::getLeftIntervalTo($cutOffTime->getNextDayDeliveryDate()),
                 ];
             }
         }
-        
+
         if (count($deliveryEnds) == 0) {
             return '';
         }
-        
+
         return IncludeTpl::widget(['file' => 'boxes/delivery-day.tpl', 'params' => [
             'deliveryEnds' => $deliveryEnds,
-            'id'=> $this->id
+            'id' => $this->id,
         ]]);
     }
 }

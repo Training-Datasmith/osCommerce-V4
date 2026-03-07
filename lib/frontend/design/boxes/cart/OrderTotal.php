@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\cart;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class OrderTotal extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -35,12 +36,12 @@ class OrderTotal extends Widget
         $manager = $this->params['manager'];
 
         $coupon_remove_action = Yii::$app->urlManager->createUrl(['shopping-cart', 'action' => 'remove_cart_total']);
-        if ( is_object($manager) && $manager->hasCart() ){
+        if (is_object($manager) && $manager->hasCart()) {
             $is_empty_cart = $manager->getCart()->count_contents() == 0;
-            if ( $manager->getCart() instanceof \common\extensions\Quotations\QuoteCart ){
+            if ($manager->getCart() instanceof \common\extensions\Quotations\QuoteCart) {
                 $coupon_remove_action = Yii::$app->urlManager->createUrl(['quote-cart', 'action' => 'remove_cart_total']);
             }
-        }else{
+        } else {
             $is_empty_cart = $cart->count_contents() == 0;
         }
 
@@ -48,7 +49,7 @@ class OrderTotal extends Widget
         if ($is_empty_cart) {
             $result[] = [
                 'title' => TEXT_TOTAL,
-                'text' => \Yii::$container->get('currencies')->format( 0 ),
+                'text' => \Yii::$container->get('currencies')->format(0),
                 'code' => 'empty_cart',
             ];
         } else {
@@ -71,7 +72,7 @@ class OrderTotal extends Widget
 
         return IncludeTpl::widget([
             'file' => 'boxes/cart/order-total.tpl',
-            'params' => $this->params
+            'params' => $this->params,
         ]);
     }
 }

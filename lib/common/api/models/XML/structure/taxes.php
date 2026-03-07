@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -19,12 +21,12 @@ return [
             'withRelated' => [
                 'taxRateList' => [
                     'xmlCollection' => 'TaxRates>TaxRate',
-                    'properties' =>[
-                        'tax_zone_id' => ['class'=>'IOMap', 'table'=>'tax_zones', 'attribute'=>'geo_zone_id'],
-                    ]
+                    'properties' => [
+                        'tax_zone_id' => ['class' => 'IOMap', 'table' => 'tax_zones', 'attribute' => 'geo_zone_id'],
+                    ],
                 ],
             ],
-         ]
+         ],
     ],
     'covered_tables' => [ 'tax_class', 'tax_rates', ],
 ];

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -32,7 +34,7 @@ class m230118_153127_account_captcha extends Migration
                 'configuration_value' => 'False',
                 'sort_order' => '200',
                 'date_added' => (new yii\db\Expression('now()')),
-                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),'
+                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),',
             ]);
         }
 
@@ -46,7 +48,7 @@ class m230118_153127_account_captcha extends Migration
                 'configuration_value' => 'False',
                 'sort_order' => '200',
                 'date_added' => (new yii\db\Expression('now()')),
-                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),'
+                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),',
             ]);
         }
 

@@ -1,20 +1,24 @@
 <?php
+
+declare(strict_types=1);
+
 namespace common\modules\orderPayment\lib;
+
 //2do orderpay - do not alllow change address
 //2check customer details update- refresh applerequest
 //    https://developer.apple.com/documentation/apple_pay_on_the_web/applepaysession/1778008-completeshippingcontactselection
-
 
 /**
  * Applepay and googlepay related
  */
 
-trait PaypalPartnerTraitWallets {
-
-/**
- * Process payment JS
- */
-    protected function registerWalletProcessJs() {
+trait PaypalPartnerTraitWallets
+{
+    /**
+     * Process payment JS
+     */
+    protected function registerWalletProcessJs()
+    {
         $ret = '';
         if ($this->isApplePayAllowed()) {
             $ret = '';
@@ -22,10 +26,10 @@ trait PaypalPartnerTraitWallets {
             $paymentRequestUrlOnShippingCost = \Yii::$app->urlManager->createAbsoluteUrl(["callback/webhooks.payment.{$this->code}", 'action' => 'aplpPaymentRequestShCost']);
             $createUrl = \Yii::$app->urlManager->createAbsoluteUrl(["callback/webhooks.payment.{$this->code}", 'action' => 'createOrder', 'option' => 'applepay', 'partlypaid' => $this->isPartlyPaid()]);
             $retrieveUrl = \Yii::$app->urlManager->createAbsoluteUrl(["callback/webhooks.payment.{$this->code}", 'action' => 'retrieveOrder', 'partlypaid' => $this->isPartlyPaid()]);
-            $generalError = str_replace(["'", "\n"], ["\\'", '<br>'], defined('PAYPAL_PARTNER_TEXT_ERROR_CAPTURE')?PAYPAL_PARTNER_TEXT_ERROR_CAPTURE:'Payment could not be captured.');
+            $generalError = str_replace(["'", "\n"], ["\\'", '<br>'], defined('PAYPAL_PARTNER_TEXT_ERROR_CAPTURE') ? PAYPAL_PARTNER_TEXT_ERROR_CAPTURE : 'Payment could not be captured.');
             $generalErrorModule = str_replace(["'", "\n"], ["\\'", '<br>'], defined('MODULE_PAYMENT_PAYPAL_PARTNER_GENERAL_ERROR') ? MODULE_PAYMENT_PAYPAL_PARTNER_GENERAL_ERROR : "Can't create order");
             $storeName = $this->pppAppleMerchantName();
-            $_dbg = $this->debug?1:0;
+            $_dbg = $this->debug ? 1 : 0;
 
             $ret = "
 
@@ -242,14 +246,14 @@ try {
         \Yii::$app->getView()->registerJs($ret, \common\components\View::POS_HEAD);
     }
 
-
-/**
- * show buttons
- */
-    protected function registerWalletInitJs() {
+    /**
+     * show buttons
+     */
+    protected function registerWalletInitJs()
+    {
         $ret = $aplpret = '';
 
-//<div id="{$this->code}-applepay-container" class="{$this->code}"></div>
+        //<div id="{$this->code}-applepay-container" class="{$this->code}"></div>
         if ($this->isApplePayAllowed()) {
             $paymentRequestUrl = \Yii::$app->urlManager->createAbsoluteUrl(["callback/webhooks.payment.{$this->code}", 'action' => 'aplpPaymentRequest', 'partlypaid' => $this->isPartlyPaid()]);
 
@@ -257,7 +261,7 @@ try {
             if (!empty($this->onlySiteAddress)) {
                 $extraApplePayPaymentRequestParams .= "data.ApplePayShippingContactEditingMode='storePickup';\n";
             }
-            $partlyPaid = ($this->isPartlyPaid()?1:0);
+            $partlyPaid = ($this->isPartlyPaid() ? 1 : 0);
             //2do supportedCountries ['iso2']
 
             $aplpinitJsLib = <<< EOD
@@ -303,17 +307,17 @@ window.{$this->code}AplpBillingDetails = function () {
     });
 }
 EOD;
-        $color = defined('MODULE_PAYMENT_PAYPAL_PARTNER_BUTTON_COLOR') ? MODULE_PAYMENT_PAYPAL_PARTNER_BUTTON_COLOR : 'gold';
-        if ($color=='white') {
-            //$aplpcolor = 'white';
-            $aplpcolor = 'white-outline';
-        } elseif ($color=='silver') {
-            $aplpcolor = 'white-outline';
-        } else {
-            $aplpcolor = 'black';
-        }
-        //types https://developer.apple.com/documentation/apple_pay_on_the_web/applepaybuttontype (buy or plain)
-        $aplpret = <<< EOD
+            $color = defined('MODULE_PAYMENT_PAYPAL_PARTNER_BUTTON_COLOR') ? MODULE_PAYMENT_PAYPAL_PARTNER_BUTTON_COLOR : 'gold';
+            if ($color == 'white') {
+                //$aplpcolor = 'white';
+                $aplpcolor = 'white-outline';
+            } elseif ($color == 'silver') {
+                $aplpcolor = 'white-outline';
+            } else {
+                $aplpcolor = 'black';
+            }
+            //types https://developer.apple.com/documentation/apple_pay_on_the_web/applepaybuttontype (buy or plain)
+            $aplpret = <<< EOD
             if (!window.ApplePaySession) {
               console.error('This device does not support Apple Pay');
             } else {
@@ -346,31 +350,32 @@ EOD;
 EOD;
 
             \Yii::$app->getView()->registerJs($aplpinitJsLib, \common\components\View::POS_HEAD);
-            \Yii::$app->getView()->registerJs($aplpret,\common\components\View::POS_LOAD);
+            \Yii::$app->getView()->registerJs($aplpret, \common\components\View::POS_LOAD);
         }
 
         $this->registerWalletProcessJs();
     }
 
-/**
- * external JS SDK + css
- */
-    protected function registerWalletAssets() {
+    /**
+     * external JS SDK + css
+     */
+    protected function registerWalletAssets()
+    {
         if ($this->isApplePayAllowed()) {
-            \Yii::$app->getView()->registerJsFile("https://applepay.cdn-apple.com/jsapi/v1.1.0/apple-pay-sdk.js", ['position' => \common\components\View::POS_HEAD, 'async'=>true,  'crossorigin'=>true]);
+            \Yii::$app->getView()->registerJsFile('https://applepay.cdn-apple.com/jsapi/v1.1.0/apple-pay-sdk.js', ['position' => \common\components\View::POS_HEAD, 'async' => true,  'crossorigin' => true]);
             //\Yii::$app->getView()->registerJsFile('https://applepay.cdn-apple.com/jsapi/v1/apple-pay-sdk.js');
             //display: none;
             $shape = defined('MODULE_PAYMENT_PAYPAL_PARTNER_BUTTON_SHAPE') ? MODULE_PAYMENT_PAYPAL_PARTNER_BUTTON_SHAPE : 'pill';
-            if ($shape=='pill') {
+            if ($shape == 'pill') {
                 $css_br = 'border-radius: 50vh;';
             } else {
                 $css_br = 'border-radius: 5px;';
             }
             $color = defined('MODULE_PAYMENT_PAYPAL_PARTNER_BUTTON_COLOR') ? MODULE_PAYMENT_PAYPAL_PARTNER_BUTTON_COLOR : 'gold';
-            if ($color=='white') {
+            if ($color == 'white') {
                 $css_c = '  background-image: -webkit-named-image(apple-pay-logo-black);
                             background-color: white;';
-            } elseif ($color=='silver') {
+            } elseif ($color == 'silver') {
                 $css_c = '  background-image: -webkit-named-image(apple-pay-logo-black);
                             background-color: white;
                             border: .5px solid black;';
@@ -403,14 +408,15 @@ EOD;
                 ');
         }
         if ($this->isGooglePayAllowed()) {
-            \Yii::$app->getView()->registerJsFile("https://pay.google.com/gp/p/js/pay.js", ['position' => \common\components\View::POS_HEAD, 'onload' => 'onGooglePayLoaded()']);
+            \Yii::$app->getView()->registerJsFile('https://pay.google.com/gp/p/js/pay.js', ['position' => \common\components\View::POS_HEAD, 'onload' => 'onGooglePayLoaded()']);
             \Yii::$app->getView()->registerCss(
                 '.' . $this->code. '-googlepay-container {width:100%}'
-                );
+            );
         }
     }
 
-    protected function walletComponents() {
+    protected function walletComponents()
+    {
         $ret = [];
 
         if ($this->isApplePayAllowed()) {
@@ -424,16 +430,19 @@ EOD;
         return $ret;
     }
 
-    private function isApplePayAllowed() {
+    private function isApplePayAllowed()
+    {
         return (defined('MODULE_PAYMENT_PAYPAL_PARTNER_APPLEPAY') && MODULE_PAYMENT_PAYPAL_PARTNER_APPLEPAY == 'True');
     }
 
-    private function isGooglePayAllowed() {
+    private function isGooglePayAllowed()
+    {
         return (defined('MODULE_PAYMENT_PAYPAL_PARTNER_GOOGLEPAY') && MODULE_PAYMENT_PAYPAL_PARTNER_GOOGLEPAY == 'True');
     }
 
-//2do orderpay - do not allow change address
-    protected function pppApplePayPaymentRequest() {
+    //2do orderpay - do not allow change address
+    protected function pppApplePayPaymentRequest()
+    {
         $ret = '';
         $this->isPartlyPaid(); //load instance if partly paid
         /** @var \common\classes\Order $order */
@@ -451,14 +460,13 @@ EOD;
         $currency = \Yii::$app->settings->get('currency');
         $currencies = \Yii::$container->get('currencies');
         $cur = $currencies->get_value($currency);
-        if ($order->order_id > 0 || $order->info['orders_id']>0) {
+        if ($order->order_id > 0 || $order->info['orders_id'] > 0) {
             $total = $order->getDueAmount();
         } else {
             $total = (float)$order->info['total_inc_tax'];
         }
-        $currency_value = $order->info['currency_value']??($cur??1);
+        $currency_value = $order->info['currency_value'] ?? ($cur ?? 1);
         $total = $this->formatRaw($total, $currency, $currency_value);
-
 
         $appleMerchantName = $this->pppAppleMerchantName();
         //https://developer.apple.com/documentation/apple_pay_on_the_web/applepaypaymentrequest
@@ -469,12 +477,12 @@ EOD;
                 //'ApplePayLineItemType' => ($this->onlySiteAddress?'final': 'pending'),// 'final'; no shipping selected
                 'ApplePayLineItemType' => 'pending',// not 'final'; as no shipping selected //2check orderpay (final, no shipping options)
                 'label' => $appleMerchantName,
-                'amount' => $total
+                'amount' => $total,
              ],
         ];
 
         //2do lineItems ??
-        if ($order->order_id > 0 || $order->info['orders_id']>0) {
+        if ($order->order_id > 0 || $order->info['orders_id'] > 0) {
             $data['total']['ApplePayLineItemType'] = 'final';
 
         } elseif ($this->manager && $this->manager->getCustomerAssigned()) {
@@ -493,13 +501,13 @@ EOD;
 
             if (!empty($ppData['payer'])) {
                 $contact = [
-                  'phoneNumber' => $ppData['payer']['telephone']??'',
+                  'phoneNumber' => $ppData['payer']['telephone'] ?? '',
                   'emailAddress' => $ppData['payer']['email_address'],
-                  'givenName' => $ppData['payer']['name']['given_name']??'',
-                  'familyName' => $ppData['payer']['name']['surname']??'',
+                  'givenName' => $ppData['payer']['name']['given_name'] ?? '',
+                  'familyName' => $ppData['payer']['name']['surname'] ?? '',
                   'addressLines' => [
-                    $ppData['payer']['address']['address_line_1']??'',
-                    $ppData['payer']['address']['address_line_2']??'',
+                    $ppData['payer']['address']['address_line_1'] ?? '',
+                    $ppData['payer']['address']['address_line_2'] ?? '',
                     ],
                   'locality' => $ppData['payer']['address']['admin_area_1'],
                   'administrativeArea' => $ppData['payer']['address']['admin_area_2'],
@@ -512,19 +520,19 @@ EOD;
                 $tmp = $ppData['purchase_units'][0]['shipping']['address'];
                 $names = [];
                 if (!empty($ppData['purchase_units'][0]['shipping']['name']['full_name'])) {
-                    if (($ppData['payer']['name']['given_name']??'') . ' ' .
-                        ($ppData['payer']['name']['familyName']??'') == $ppData['purchase_units'][0]['shipping']['name']['full_name']
-                        ) {
-                        $names = [$ppData['payer']['name']['given_name']??'', $ppData['payer']['name']['familyName']??''];
+                    if (($ppData['payer']['name']['given_name'] ?? '') . ' ' .
+                        ($ppData['payer']['name']['familyName'] ?? '') == $ppData['purchase_units'][0]['shipping']['name']['full_name']
+                    ) {
+                        $names = [$ppData['payer']['name']['given_name'] ?? '', $ppData['payer']['name']['familyName'] ?? ''];
                     } else {
                         $names = explode(' ', $ppData['purchase_units'][0]['shipping']['name']['full_name'], 2);
                     }
                 }
                 $contact = [
-                  'phoneNumber' => $ppData['payer']['telephone']??'',
-                  'emailAddress' => $ppData['payer']['email_address']??'',
-                  'givenName' => $names[0]??'',
-                  'familyName' => $names[1]??'',
+                  'phoneNumber' => $ppData['payer']['telephone'] ?? '',
+                  'emailAddress' => $ppData['payer']['email_address'] ?? '',
+                  'givenName' => $names[0] ?? '',
+                  'familyName' => $names[1] ?? '',
                   'addressLines' => [
                     $tmp['address_line_1'],
                     $tmp['address_line_2'],
@@ -537,7 +545,7 @@ EOD;
                 $data['shippingContact'] = $contact;
             }
 
-        //shippingMethods []
+            //shippingMethods []
             $currency_code = \Yii::$app->settings->get('currency');
             if (!empty($order->info['currency'])) {
                 $currency_code = $order->info['currency'];
@@ -546,18 +554,17 @@ EOD;
             if ($this->manager->isShippingNeeded()) {
                 //$this->manager->prepareEstimateData();
                 $_save = $this->sendExVat;
-                if ((defined('DISPLAY_PRICE_WITH_TAX') && DISPLAY_PRICE_WITH_TAX=='true')) {
+                if ((defined('DISPLAY_PRICE_WITH_TAX') && DISPLAY_PRICE_WITH_TAX == 'true')) {
                     $this->sendExVat = false;
                 }
                 $options = $this->getShippingOptions($currencies, $currency_code);
                 $this->sendExVat = $_save;
 
-                if (!empty($options) ) {
+                if (!empty($options)) {
                     $data['shippingMethods'] = [];
-                    usort($options , function($a, $b) {
+                    usort($options, function ($a, $b) {
                         return $a['selected'] < $b['selected'];
                     });
-
 
                     foreach ($options as $option) {
                         $data['shippingMethods'][] = [
@@ -569,9 +576,9 @@ EOD;
                     }
                 } elseif ($this->manager->isShippingNeeded()) {
                     //shipping is needed but not available
-                    return []; 
+                    return [];
                 }
-                
+
             } else {
                 $data['shippingType'] = 'servicePickup'; //storePickup |shipping |delivery
             }
@@ -583,166 +590,168 @@ EOD;
 
     }
 
-    protected function pppAppleMerchantName() {
+    protected function pppAppleMerchantName()
+    {
         $ret = substr(STORE_NAME, 0, 255);
         /*
         if (empty(self::$applePayMerchantNameKey) || !defined(self::$applePayMerchantNameKey)
             || (defined(self::$applePayMerchantNameKey) && empty(constant(self::$applePayMerchantNameKey)) )) {
-            
+
         } else {
             $ret = constant(self::$applePayMerchantNameKey);
         }*/
         return $ret;
     }
 
-    protected function pppApplePayPaymentRequestShipping() {
+    protected function pppApplePayPaymentRequestShipping()
+    {
         $ret = '';
         $request = \Yii::$app->request->post();
         /** @var \common\classes\Currencies $currencies */
         $currencies = \Yii::$container->get('currencies');
 
         if ($this->debug) {
-            \Yii::warning("pppApplePayPaymentRequestShipping \$request " . print_r($request, true), 'TLDEBUG');
+            \Yii::warning('pppApplePayPaymentRequestShipping $request ' . print_r($request, true), 'TLDEBUG');
         }
-        
+
         if (!$this->manager->isInstance()) {
             if (!$this->isPartlyPaid()) {
                 $order = $this->manager->createOrderInstance('\common\classes\Order');
             }
         }
         if ($this->manager->isInstance() && !empty($request['shipping_address']['countryCode'])) {
-                $currency_code = \Yii::$app->settings->get('currency');
-                if (!empty($order->info['currency'])) {
-                    $currency_code = $order->info['currency'];
+            $currency_code = \Yii::$app->settings->get('currency');
+            if (!empty($order->info['currency'])) {
+                $currency_code = $order->info['currency'];
+            }
+
+            $estimateShippingChanged = true;
+            if (!empty($request['shipping_address'])) {
+
+                /*
+                 'locality': 'Cupertino',
+                'country': 'United States',
+                'postalCode': '95014-2083',
+                'administrativeArea': 'CA',
+                'emailAddress': 'ravipatel@example.com',
+                'familyName': 'Patel',
+                'addressLines': [
+                '1 Infinite Loop'
+                ],
+                'givenName': 'Ravi',
+                'countryCode': 'US',
+                'phoneNumber': '(408) 555-5555'
+                 */
+                $country = \common\helpers\Country::get_country_info_by_iso($request['shipping_address']['countryCode']);
+                $zone_id = \common\helpers\Zones::get_zone_id($country['id'], $request['shipping_address']['administrativeArea']);
+                /*
+                if ($this->manager->has('estimate_ship')) {
+                    $old = $this->manager->get('estimate_ship');
+                    //2check - old is empty
                 }
 
-                $estimateShippingChanged = true;
-                if (!empty($request['shipping_address'])) {
-
-/*
- 'locality': 'Cupertino',
-'country': 'United States',
-'postalCode': '95014-2083',
-'administrativeArea': 'CA',
-'emailAddress': 'ravipatel@example.com',
-'familyName': 'Patel',
-'addressLines': [
-'1 Infinite Loop'
-],
-'givenName': 'Ravi',
-'countryCode': 'US',
-'phoneNumber': '(408) 555-5555'
- */
-                    $country = \common\helpers\Country::get_country_info_by_iso($request['shipping_address']['countryCode']);
-                    $zone_id = \common\helpers\Zones::get_zone_id($country['id'], $request['shipping_address']['administrativeArea']);
-                    /*
-                    if ($this->manager->has('estimate_ship')) {
-                        $old = $this->manager->get('estimate_ship');
-                        //2check - old is empty
-                    }
-
-                    if (!empty($old) &&
-                        !empty($old['country_id']) && isset($old['postcode']) && isset($old['zone']) &&
-                        $old['country_id'] == $country['id'] &&
-                        $old['postcode'] == $request['shipping_address']['postalCode'] &&
-                        $old['zone'] == $request['shipping_address']['state']
-                    ) {
-                        $estimateShippingChanged = false;
-                    }*/
-                    $ab = [
-                        'country_id' => $country['id'],
-                        'postcode' => $request['shipping_address']['postalCode'],
-                        'zone' => $zone_id,
-                        'state' => $request['shipping_address']['administrativeArea'],
-                        'city' => $request['shipping_address']['locality'],
-                        'email_address' => $request['shipping_address']['emailAddress']??'',
-                        'telephone' => preg_replace('/[^0-9]+/', '', $request['shipping_address']['phoneNumber']??''),
-                        'firstname ' => $request['shipping_address']['givenName'],
-                        'lastname ' => $request['shipping_address']['familyName'],
-                    ];
-                    if (!empty($request['shipping_address']['addressLines']) && is_array($request['shipping_address']['addressLines'])) {
-                        if (count($request['shipping_address']['addressLines'])>2) {
-                            $cnt = round(count($request['shipping_address']['addressLines'])/2);
-                        } else {
-                            $cnt = 1;
-                        }
-                        foreach ($request['shipping_address']['addressLines'] as $line) {
-                            if ($cnt > 0) {
-                                $ab['street_address'] .= ' ' . $line;
-                                $cnt --;
-                            } else {
-                                $ab['suburb'] .= ' ' . $line;
-                            }
-                        }
-                        trim($ab['suburb']);
-                        trim($ab['street_address']);
-                    }
-
-                    $this->manager->set('estimate_ship', $ab);
-                    $this->manager->set('estimate_bill', $ab);
-                } else {
+                if (!empty($old) &&
+                    !empty($old['country_id']) && isset($old['postcode']) && isset($old['zone']) &&
+                    $old['country_id'] == $country['id'] &&
+                    $old['postcode'] == $request['shipping_address']['postalCode'] &&
+                    $old['zone'] == $request['shipping_address']['state']
+                ) {
                     $estimateShippingChanged = false;
-                }
-
-                if ($this->manager->isShippingNeeded()) {
-                    $this->manager->resetDeliveryAddress();
-                }
-                if (\Yii::$app->user->isGuest) {
-                    $this->manager->resetBillingAddress();
-                }
-                $this->manager->getShippingQuotesByChoice();
-                $this->manager->checkoutOrderWithAddresses();
-
-                $this->manager->totalProcess();
-
-                $order = $this->manager->getOrderInstance();
-                $appleMerchantName = $this->pppAppleMerchantName();
-                $resp = [
-                            'status' => '', //ApplePaySession.STATUS_SUCCESS in JS
-                            //'newShippingMethods' => [],
-                            'newTotal' => [
-                              'ApplePayLineItemType' => 'pending',// 'final'; no shipping selected
-                              'label' => $appleMerchantName,
-                              'amount' => $this->formatRaw($order->info['total_inc_tax']),
-                            ]
+                }*/
+                $ab = [
+                    'country_id' => $country['id'],
+                    'postcode' => $request['shipping_address']['postalCode'],
+                    'zone' => $zone_id,
+                    'state' => $request['shipping_address']['administrativeArea'],
+                    'city' => $request['shipping_address']['locality'],
+                    'email_address' => $request['shipping_address']['emailAddress'] ?? '',
+                    'telephone' => preg_replace('/[^0-9]+/', '', $request['shipping_address']['phoneNumber'] ?? ''),
+                    'firstname ' => $request['shipping_address']['givenName'],
+                    'lastname ' => $request['shipping_address']['familyName'],
                 ];
-
-
-                $options = [];
-                if ($estimateShippingChanged && $this->manager->isShippingNeeded()) {
-                    //$this->manager->prepareEstimateData();
-                    $options = $this->getShippingOptions($currencies, $currency_code);
-
-                    if (!empty($options) && $estimateShippingChanged) {
-                        foreach ($options as $option) {
-                            $resp['newShippingMethods'][] = [
-                                  'identifier' => $option['id'],
-                                  'label' => $option['label'],
-                                  'detail' => '',
-                                  'amount' => $option['amount']['value'],
-                            ];
-                        }
-                    } elseif ($this->manager->isShippingNeeded()) {
-                        //shipping is needed but not available
-                        \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-                        return []; // in JS STATUS_FAILURE
+                if (!empty($request['shipping_address']['addressLines']) && is_array($request['shipping_address']['addressLines'])) {
+                    if (count($request['shipping_address']['addressLines']) > 2) {
+                        $cnt = round(count($request['shipping_address']['addressLines']) / 2);
+                    } else {
+                        $cnt = 1;
                     }
+                    foreach ($request['shipping_address']['addressLines'] as $line) {
+                        if ($cnt > 0) {
+                            $ab['street_address'] .= ' ' . $line;
+                            $cnt--;
+                        } else {
+                            $ab['suburb'] .= ' ' . $line;
+                        }
+                    }
+                    trim($ab['suburb']);
+                    trim($ab['street_address']);
                 }
-                if ($this->debug ) {
-                    \Yii::warning("patchOrder resp " . print_r($resp, true), 'TLDEBUG');
+
+                $this->manager->set('estimate_ship', $ab);
+                $this->manager->set('estimate_bill', $ab);
+            } else {
+                $estimateShippingChanged = false;
+            }
+
+            if ($this->manager->isShippingNeeded()) {
+                $this->manager->resetDeliveryAddress();
+            }
+            if (\Yii::$app->user->isGuest) {
+                $this->manager->resetBillingAddress();
+            }
+            $this->manager->getShippingQuotesByChoice();
+            $this->manager->checkoutOrderWithAddresses();
+
+            $this->manager->totalProcess();
+
+            $order = $this->manager->getOrderInstance();
+            $appleMerchantName = $this->pppAppleMerchantName();
+            $resp = [
+                        'status' => '', //ApplePaySession.STATUS_SUCCESS in JS
+                        //'newShippingMethods' => [],
+                        'newTotal' => [
+                          'ApplePayLineItemType' => 'pending',// 'final'; no shipping selected
+                          'label' => $appleMerchantName,
+                          'amount' => $this->formatRaw($order->info['total_inc_tax']),
+                        ],
+            ];
+
+            $options = [];
+            if ($estimateShippingChanged && $this->manager->isShippingNeeded()) {
+                //$this->manager->prepareEstimateData();
+                $options = $this->getShippingOptions($currencies, $currency_code);
+
+                if (!empty($options) && $estimateShippingChanged) {
+                    foreach ($options as $option) {
+                        $resp['newShippingMethods'][] = [
+                              'identifier' => $option['id'],
+                              'label' => $option['label'],
+                              'detail' => '',
+                              'amount' => $option['amount']['value'],
+                        ];
+                    }
+                } elseif ($this->manager->isShippingNeeded()) {
+                    //shipping is needed but not available
+                    \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
+                    return []; // in JS STATUS_FAILURE
                 }
+            }
+            if ($this->debug) {
+                \Yii::warning('patchOrder resp ' . print_r($resp, true), 'TLDEBUG');
+            }
         }
         return $resp;
     }
 
-    protected function pppApplePayPaymentRequestShippingCost() {
+    protected function pppApplePayPaymentRequestShippingCost()
+    {
         $resp = [];
         $request = \Yii::$app->request->post();
         /** @var \common\classes\Currencies $currencies */
         $currencies = \Yii::$container->get('currencies');
 
         if ($this->debug) {
-            \Yii::warning("pppApplePayPaymentRequestShippingCost \$request " . print_r($request, true), 'TLDEBUG');
+            \Yii::warning('pppApplePayPaymentRequestShippingCost $request ' . print_r($request, true), 'TLDEBUG');
         }
 
         if (!$this->manager->isInstance()) {
@@ -785,39 +794,40 @@ EOD;
                           'ApplePayLineItemType' => 'final',
                           'label' => $appleMerchantName,
                           'amount' => $this->formatRaw($order->info['total_inc_tax']),
-                        ]
+                        ],
             ];
 
         }
         return $resp;
     }
-    
-    protected function toPPAddress($aplp) {
+
+    protected function toPPAddress($aplp)
+    {
         $_suburb = $_street_address = '';
         if (!empty($aplp['addressLines']) && is_array($aplp['addressLines'])) {
-            if (count($aplp['addressLines'])>2) {
-                $cnt = round(count($aplp['addressLines'])/2);
+            if (count($aplp['addressLines']) > 2) {
+                $cnt = round(count($aplp['addressLines']) / 2);
             } else {
                 $cnt = 1;
             }
             foreach ($aplp['addressLines'] as $line) {
                 if ($cnt > 0) {
                     $_street_address .= ' ' . $line;
-                    $cnt --;
+                    $cnt--;
                 } else {
                     $_suburb .= ' ' . $line;
                 }
             }
         }
         return [
-            'firstname' => $aplp['givenName']??'',
-            'lastname' => $aplp['familyName']??'',
-            'postal_code' => $aplp['postalCode']??'',
+            'firstname' => $aplp['givenName'] ?? '',
+            'lastname' => $aplp['familyName'] ?? '',
+            'postal_code' => $aplp['postalCode'] ?? '',
             'address_line_1' => trim($_street_address),
             'address_line_2' => trim($_suburb),
-            'admin_area_2' => $aplp['locality']??'',
-            'state' => $aplp['administrativeArea']??'',
-            'country_code' => $aplp['countryCode']??'',
+            'admin_area_2' => $aplp['locality'] ?? '',
+            'state' => $aplp['administrativeArea'] ?? '',
+            'country_code' => $aplp['countryCode'] ?? '',
         ];
     }
 

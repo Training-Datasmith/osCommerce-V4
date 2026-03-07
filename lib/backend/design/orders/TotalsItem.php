@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,29 +14,30 @@
 
 namespace backend\design\orders;
 
-
-use Yii;
 use yii\base\Widget;
 
-class TotalsItem extends Widget {
-
+class TotalsItem extends Widget
+{
     public $order;
     public $manager;
 
-    public function init(){
+    public function init()
+    {
         parent::init();
     }
 
-    public function run(){
+    public function run()
+    {
 
         $pData = false;
-        if(\common\helpers\Acl::checkExtensionAllowed('CollectionPoints') && $this->order->info['pointto'] > 0){
+        if (\common\helpers\Acl::checkExtensionAllowed('CollectionPoints') && $this->order->info['pointto'] > 0) {
             $pData = \common\extensions\CollectionPoints\models\CollectionPoints::findOne($this->order->info['pointto']);
         }
 
         $parent = false;
-        if ($this->order && method_exists($this->order, 'getParent'))
+        if ($this->order && method_exists($this->order, 'getParent')) {
             $parent = $this->order->getParent();
+        }
 
         $totalItem = 0;
         foreach ($this->order->products as $opRecord) {

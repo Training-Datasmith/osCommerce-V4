@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 class ProductsSettings extends ActiveRecord
@@ -25,23 +26,24 @@ class ProductsSettings extends ActiveRecord
     {
         return 'products_settings';
     }
-    
-    public function saveSettings($products_id, array $settings){
+
+    public function saveSettings($products_id, array $settings)
+    {
         $isNew = false;
-        if ($this->isNewRecord){
+        if ($this->isNewRecord) {
             $isNew = true;
             $this->setOldAttributes($this->getAttributes());
         }
-        
-        foreach($settings as $field => $setting){
-            if ($this->hasAttribute($field)){
+
+        foreach ($settings as $field => $setting) {
+            if ($this->hasAttribute($field)) {
                 $this->setAttribute($field, $setting);
             }
         }
-        
-        if ($this->getDirtyAttributes()){
+
+        if ($this->getDirtyAttributes()) {
             $this->setAttribute('products_id', intval($products_id));
-            if ($isNew){
+            if ($isNew) {
                 $this->insert(false);
             } else {
                 $this->update();

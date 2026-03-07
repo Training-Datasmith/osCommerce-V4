@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,14 @@
 
 namespace frontend\design\boxes;
 
+use frontend\design\IncludeTpl;
+use frontend\design\Info;
 use Yii;
 use yii\base\Widget;
 use yii\helpers\ArrayHelper;
-use frontend\design\IncludeTpl;
-use frontend\design\Info;
 
 class Categories extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -30,9 +31,9 @@ class Categories extends Widget
         parent::init();
 
         Info::addJsData(['widgets' => [
-            $this->id => [ 'lazyLoad' => ArrayHelper::getValue($this->settings, [0, 'lazy_load'])]
+            $this->id => [ 'lazyLoad' => ArrayHelper::getValue($this->settings, [0, 'lazy_load'])],
         ]]);
-        if (ArrayHelper::getValue($this->settings,[0, 'view_as']) == 'carousel') {
+        if (ArrayHelper::getValue($this->settings, [0, 'view_as']) == 'carousel') {
             Info::addBoxToCss('slick');
         }
     }
@@ -50,7 +51,7 @@ class Categories extends Widget
             ->joinWith('currentPlatform', false)
             ->with('platformSettings')
             ->select('{{%categories}}.categories_id, parent_id, {{%categories}}.maps_id, {{%categories}}.categories_image, {{%categories}}.categories_image_3, {{%categories}}.show_on_home')
-            ->orderBy("sort_order, categories_name");
+            ->orderBy('sort_order, categories_name');
 
         if ($this->settings[0]['max_items'] ?? null) {
             $categories->limit((int)$this->settings[0]['max_items']);
@@ -92,14 +93,14 @@ class Categories extends Widget
                     Info::themeSetting('na_category', 'hide'),
                     $this->settings[0]['lazy_load'] ?? null
                 );
-                if ( empty($this->settings[0]['skip_product_image']) && !is_file(\common\classes\Images::getFSCatalogImagesPath().$img) ) {
-                    $cats[$k]['img'] = \common\helpers\Html::tag('picture',\common\helpers\Html::img($this->getCategoryImage($category['categories_id']),[
+                if (empty($this->settings[0]['skip_product_image']) && !is_file(\common\classes\Images::getFSCatalogImagesPath().$img)) {
+                    $cats[$k]['img'] = \common\helpers\Html::tag('picture', \common\helpers\Html::img($this->getCategoryImage($category['categories_id']), [
                         'alt' => $cats[$k]['categories_name'],
                         'title' => $cats[$k]['categories_name'],
                         'class' => 'category_image_from_product',
                     ]));
                 }
-            }else{
+            } else {
                 $cats[$k]['img'] = '';
             }
             unset($cats[$k]['platformSettings']);
@@ -119,35 +120,41 @@ class Categories extends Widget
                 'lazy_load' => $this->settings[0]['lazy_load'] ?? null,
                 'settings' => $this->settings,
                 'id' => $this->id,
-            ]
+            ],
         ]);
     }
 
-    protected function getCategoryImage($cid){
+    protected function getCategoryImage($cid)
+    {
         $category_na_image = Info::themeSetting('na_category', 'hide');
-        $image = empty($category_na_image)?'no':$category_na_image;
+        $image = empty($category_na_image) ? 'no' : $category_na_image;
         $naProductImage = Info::themeSetting('na_product', 'hide');
         $ids = \common\helpers\Categories::ids_products_in_category($cid);
-        if (is_array($ids) && count($ids)){
+        if (is_array($ids) && count($ids)) {
             //sort($ids);
             $enough = false;
-            do{
+            do {
                 $id = current($ids);
                 $image = \common\classes\Images::getImageUrl($id, 'Medium');
                 $item = next($ids);
-                if ($naProductImage!==$image)
+                if ($naProductImage !== $image) {
                     $enough = true;
-                if (!$item){ return $image; }
-            } while(!$enough);
+                }
+                if (!$item) {
+                    return $image;
+                }
+            } while (!$enough);
         } else {
-            if (\common\helpers\Categories::has_category_subcategories($cid)){
+            if (\common\helpers\Categories::has_category_subcategories($cid)) {
                 $subs = [];
                 \common\helpers\Categories::get_subcategories($subs, $cid, false);
                 //return $image;
-                if ($subs){
-                    foreach($subs as $sub){
+                if ($subs) {
+                    foreach ($subs as $sub) {
                         $image = $this->getCategoryImage($sub);
-                        if ($image!='no' && $image!=$category_na_image && $naProductImage!==$image) break;
+                        if ($image != 'no' && $image != $category_na_image && $naProductImage !== $image) {
+                            break;
+                        }
                         //return $this->getCategoryImage($sub);
                     }
                 }

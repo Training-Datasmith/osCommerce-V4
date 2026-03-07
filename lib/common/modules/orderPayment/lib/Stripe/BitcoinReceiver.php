@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -33,10 +35,9 @@ namespace Stripe;
  */
 class BitcoinReceiver extends ApiResource
 {
-    const OBJECT_NAME = 'bitcoin_receiver';
-
     use ApiOperations\All;
     use ApiOperations\Retrieve;
+    public const OBJECT_NAME = 'bitcoin_receiver';
 
     /**
      * @return string The class URL for this resource. It needs to be special

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -19,7 +21,7 @@ return [
                 'addressBook' => [
                     'xmlCollection' => 'AddressBooks>AddressBook',
                     'properties' => [
-                        'entry_country_id' => ['rename'=>'CountryId', 'class' => 'IOCountryMap'],
+                        'entry_country_id' => ['rename' => 'CountryId', 'class' => 'IOCountryMap'],
                     ],
                 ],
                 'openHours' => [

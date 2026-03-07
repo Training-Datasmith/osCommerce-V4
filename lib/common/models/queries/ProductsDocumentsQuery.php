@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models\queries;
 
-use yii\db\ActiveQuery;
 use common\models\Product\ProductsDocuments;
+use yii\db\ActiveQuery;
 
 /**
  * This is the ActiveQuery class for [[ProductsDocuments]].
@@ -39,7 +41,7 @@ class ProductsDocumentsQuery extends ActiveQuery
         if (!$languageId) {
             return $this->joinWith(['titles pdt']);
         }
-        return $this->joinWith(['title pdt' => function (ActiveQuery $query) USE ($languageId) {
+        return $this->joinWith(['title pdt' => function (ActiveQuery $query) use ($languageId) {
             $query->andOnCondition(['language_id' => $languageId]);
         }]);
     }

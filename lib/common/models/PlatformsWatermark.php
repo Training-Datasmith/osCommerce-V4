@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 /**
@@ -56,7 +57,7 @@ class PlatformsWatermark extends ActiveRecord
         return [
             [['platform_id'], 'required'],
             [['platform_id', 'status'], 'integer'],
-            [['watermark30', 'watermark170', 'watermark300', 'top_watermark30', 'top_watermark170', 'top_watermark300', 'bottom_watermark30', 'bottom_watermark170', 'bottom_watermark300', 'left_watermark30', 'left_watermark170', 'left_watermark300', 'right_watermark30', 'right_watermark170', 'right_watermark300', 'top_left_watermark30', 'top_left_watermark170', 'top_left_watermark300', 'top_right_watermark30', 'top_right_watermark170', 'top_right_watermark300', 'bottom_left_watermark30', 'bottom_left_watermark170', 'bottom_left_watermark300', 'bottom_right_watermark30', 'bottom_right_watermark170', 'bottom_right_watermark300'], 'string', 'max' => 64]
+            [['watermark30', 'watermark170', 'watermark300', 'top_watermark30', 'top_watermark170', 'top_watermark300', 'bottom_watermark30', 'bottom_watermark170', 'bottom_watermark300', 'left_watermark30', 'left_watermark170', 'left_watermark300', 'right_watermark30', 'right_watermark170', 'right_watermark300', 'top_left_watermark30', 'top_left_watermark170', 'top_left_watermark300', 'top_right_watermark30', 'top_right_watermark170', 'top_right_watermark300', 'bottom_left_watermark30', 'bottom_left_watermark170', 'bottom_left_watermark300', 'bottom_right_watermark30', 'bottom_right_watermark170', 'bottom_right_watermark300'], 'string', 'max' => 64],
         ];
     }
 

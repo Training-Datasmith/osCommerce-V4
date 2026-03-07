@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -16,14 +18,9 @@ namespace common\helpers;
 use common\models\BannersGroups;
 use common\models\BannersGroupsSizes;
 use common\models\BannersToPlatform;
-use common\models\MenuTitles;
-use Yii;
-use common\models\Menus;
-use common\models\MenuItems;
 
-
-class Banner {
-
+class Banner
+{
     public static function groupData($group, $platforms = [], $activeStatus = false)
     {
         $bannersData = [];
@@ -50,7 +47,7 @@ class Banner {
                 $groupsImages = [];
                 $bannersGroupsImages = \common\models\BannersGroupsImages::find()->where([
                     'banners_id' => $banner['banners_id'],
-                    'language_id' => $language['language_id']
+                    'language_id' => $language['language_id'],
                 ])->asArray()->all();
                 foreach ($bannersGroupsImages as $groupsImage) {
                     $groupsImages[] = [
@@ -134,13 +131,12 @@ class Banner {
             }
         }
 
-
         return [$images, $groupData];
     }
 
     private static function imageKey($imagePath, $images)
     {
-        $imgKey = array_pop( explode('/', $imagePath) );
+        $imgKey = array_pop(explode('/', $imagePath));
         if (isset($images[$imgKey]) && $images[$imgKey] && $imagePath != $images[$imgKey]) {
             $imgKeyArr = explode('.', $imgKey);
             $fileName = $imgKeyArr[0];
@@ -226,7 +222,7 @@ class Banner {
 
     public static function setupBanner($banner, $groupName, $imagePath, $platformIds = [], $forceCreate = false)
     {
-        if (!$forceCreate){
+        if (!$forceCreate) {
             foreach ($banner['languages'] as $languageKey => $language) {
                 $languageData = Language::get_language_id($languageKey);
                 if (!($languageData['languages_id'] ?? false)) {
@@ -271,7 +267,9 @@ class Banner {
         $bannerModel->group_id = $groupId;
         $bannerModel->save(false);
         $bannerId = $bannerModel->getPrimaryKey();
-        if (!$bannerId) return '';
+        if (!$bannerId) {
+            return '';
+        }
 
         foreach ($banner['languages'] as $languageKey => $language) {
 
@@ -285,7 +283,7 @@ class Banner {
                 'banners_id' => $bannerId,
                 'banners_title' => $language['banners_title'],
                 'banners_url' => $language['banners_url'],
-                'banners_image' => $bannerImage,//
+                'banners_image' => $bannerImage,
                 'banners_html_text' => $language['banners_html_text'],
                 'language_id' => (int)$languageData['languages_id'],
                 'target' => $language['target'],
@@ -315,7 +313,7 @@ class Banner {
                     'banners_id' => $bannerId,
                     'language_id' => (int)$languageData['languages_id'],
                     'image_width' => $groupsImage['image_width'],
-                    'image' => $bannerImageGroup
+                    'image' => $bannerImageGroup,
                 ];
                 $groupsImageModel->save();
             }
@@ -331,7 +329,7 @@ class Banner {
             $imageInDb = \common\models\BannersLanguages::find()->where(['banners_image' => $language['banners_image']])->count();
             if ($imageInDb && !is_file($path . $language['banners_image']) && is_file($imagePath . $language['banners_image'])) {
 
-                $destination = substr($language['banners_image'], 0, strrpos($language['banners_image'], "/"));
+                $destination = substr($language['banners_image'], 0, strrpos($language['banners_image'], '/'));
                 \yii\helpers\FileHelper::createDirectory($path . $destination, 0777);
 
                 copy($imagePath . $language['banners_image'], $path . $language['banners_image']);
@@ -341,7 +339,7 @@ class Banner {
                 $imageInDb = \common\models\BannersGroupsImages::find()->where(['image' => $groupsImage['image']])->count();
                 if ($imageInDb && !is_file($path . $groupsImage['image']) && is_file($imagePath . $groupsImage['image'])) {
 
-                    $destination = substr($groupsImage['image'], 0, strrpos($groupsImage['image'], "/"));
+                    $destination = substr($groupsImage['image'], 0, strrpos($groupsImage['image'], '/'));
                     \yii\helpers\FileHelper::createDirectory($path . $destination, 0777);
 
                     copy($imagePath . $groupsImage['image'], $path . $groupsImage['image']);

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230220_093254_banners extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/design',[
+        $this->addTranslation('admin/design', [
             'BANNERS_FROM_GROUP' => 'Banners from group',
             'BANNER_TITLE' => 'Banner title',
             'ASSIGNED_SALES_CHANNELS' => 'Assigned sales channels',

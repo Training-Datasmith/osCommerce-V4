@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,11 +14,10 @@
 
 namespace common\api\models\AR\Products;
 
-
 use backend\models\EP\Tools;
 use common\api\models\AR\EPMap;
-use common\models\Suppliers;
 use common\helpers\PriceFormula;
+use common\models\Suppliers;
 use yii\db\Expression;
 
 class SuppliersData extends EPMap
@@ -34,7 +35,6 @@ class SuppliersData extends EPMap
     {
         return ['products_id', 'uprid', 'suppliers_id'];
     }
-
 
     public static function tableName()
     {
@@ -58,9 +58,9 @@ class SuppliersData extends EPMap
     public function parentEPMap(EPMap $parentObject)
     {
         $this->products_id = $parentObject->products_id;
-        if ( isset($parentObject->uprid) ) {
+        if (isset($parentObject->uprid)) {
             $this->uprid = $parentObject->uprid;
-        }else{
+        } else {
             $this->uprid = $this->products_id;
         }
         $this->parentObject = $parentObject;
@@ -70,9 +70,9 @@ class SuppliersData extends EPMap
 
     public function matchIndexedValue(EPMap $importedObject)
     {
-        $objectMatch = ($importedObject->products_id==$this->products_id) && ($importedObject->uprid==$this->uprid) && ($importedObject->suppliers_id == $this->suppliers_id);
+        $objectMatch = ($importedObject->products_id == $this->products_id) && ($importedObject->uprid == $this->uprid) && ($importedObject->suppliers_id == $this->suppliers_id);
 
-        if ( $objectMatch ) {
+        if ($objectMatch) {
             $this->pendingRemoval = false;
             return true;
         }
@@ -82,9 +82,9 @@ class SuppliersData extends EPMap
     public function exportArray(array $fields = [])
     {
         $data = parent::exportArray($fields);
-        if ( count($fields)==0 || array_key_exists('suppliers_name', $fields) ) {
+        if (count($fields) == 0 || array_key_exists('suppliers_name', $fields)) {
             static $fetched = [];
-            if ( !isset($fetched[$this->suppliers_id]) ) {
+            if (!isset($fetched[$this->suppliers_id])) {
                 $fetched[$this->suppliers_id] = '';
                 $supplierName = Suppliers::find()->select('suppliers_name')->where(['suppliers_id' => $this->suppliers_id])->asArray(true)->one();
                 if (is_array($supplierName)) {
@@ -97,27 +97,26 @@ class SuppliersData extends EPMap
         return $data;
     }
 
-
     public function beforeSave($insert)
     {
-        if ( $insert ) {
-            if ( empty($this->date_added) ) {
-                $this->date_added = new Expression("NOW()");
+        if ($insert) {
+            if (empty($this->date_added)) {
+                $this->date_added = new Expression('NOW()');
             }
-            if ( is_null($this->suppliers_surcharge_amount) || is_null($this->suppliers_margin_percentage) ) {
+            if (is_null($this->suppliers_surcharge_amount) || is_null($this->suppliers_margin_percentage)) {
                 $supplierData = Tools::getInstance()->supplierData($this->suppliers_id);
-                if ( is_array($supplierData) ) {
-                    if ( is_null($this->suppliers_surcharge_amount) && $supplierData['suppliers_surcharge_amount'] ) {
+                if (is_array($supplierData)) {
+                    if (is_null($this->suppliers_surcharge_amount) && $supplierData['suppliers_surcharge_amount']) {
                         $this->suppliers_surcharge_amount = $supplierData['suppliers_surcharge_amount'];
                     }
-                    if ( is_null($this->suppliers_margin_percentage) && $supplierData['suppliers_margin_percentage'] ) {
+                    if (is_null($this->suppliers_margin_percentage) && $supplierData['suppliers_margin_percentage']) {
                         $this->suppliers_margin_percentage = $supplierData['suppliers_margin_percentage'];
                     }
                 }
             }
-        }else{
-            if ( $this->isModified() ) {
-                $this->last_modified = new Expression("NOW()");
+        } else {
+            if ($this->isModified()) {
+                $this->last_modified = new Expression('NOW()');
             }
         }
         return parent::beforeSave($insert);
@@ -127,10 +126,9 @@ class SuppliersData extends EPMap
     {
         parent::afterSave($insert, $changedAttributes);
 
-        if ( count($changedAttributes)>0 ) {
+        if (count($changedAttributes) > 0) {
             PriceFormula::applyDb($this->products_id);
         }
     }
-
 
 }

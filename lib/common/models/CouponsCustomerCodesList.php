@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "coupons_description".
@@ -29,7 +29,7 @@ class CouponsCustomerCodesList extends \yii\db\ActiveRecord
     {
         return [
             [['customercode_id', 'coupon_id'], 'integer'],
-            [['coupon_code', 'only_for_customer'], 'string'],   
+            [['coupon_code', 'only_for_customer'], 'string'],
             ['date_added', 'datetime', 'format' => 'php:Y-m-d H:i:s'],
         ];
     }
@@ -42,7 +42,7 @@ class CouponsCustomerCodesList extends \yii\db\ActiveRecord
         return [
             'coupon_id' => 'Coupon ID',
             'only_for_customer' => 'Only For Customer',
-            'coupon_code' => 'Coupon Code',           
+            'coupon_code' => 'Coupon Code',
         ];
     }
 }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,12 +19,12 @@ return [
         'common\\models\\OrdersStatus' => [
             'xmlCollection' => 'OrdersStatuses>OrdersStatus',
             'properties' => [
-                'orders_status_groups_id' => ['class'=>'IOMap', 'table'=>'orders_status_groups', 'attribute'=>'orders_status_groups_id'],
-                'language_id' => ['class'=>'IOLanguageMap']
+                'orders_status_groups_id' => ['class' => 'IOMap', 'table' => 'orders_status_groups', 'attribute' => 'orders_status_groups_id'],
+                'language_id' => ['class' => 'IOLanguageMap'],
             ],
-            'afterImport' => function($model, $data) {
+            'afterImport' => function ($model, $data) {
                 \common\models\OrdersStatus::updateAll(['orders_status_groups_id' => 1, 'orders_status_allocate_allow' => 1], 'orders_status_groups_id = 0');
-            }
+            },
         ],
     ],
     'covered_tables' => ['orders_status',],

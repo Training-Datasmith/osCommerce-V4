@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,13 +24,13 @@ class m231116_114310_coupon_maximum_amount_lmit extends Migration
      */
     public function safeUp()
     {
-            if (!$this->isFieldExists('coupon_amount_maximum', 'coupons')) {
-                $this->addColumn('coupons', 'coupon_amount_maximum', $this->decimal(15,2)->notNull());
-                $this->addTranslation('admin/coupon_admin', [
-                    'COUPON_AMOUNT_MAXIMUM' => 'Coupon Amount Maximum',
-                    'COUPON_AMOUNT_MAXIMUM_HELP' => 'The maximum coupon amount if discount is bigger',
-                ]);
-            }
+        if (!$this->isFieldExists('coupon_amount_maximum', 'coupons')) {
+            $this->addColumn('coupons', 'coupon_amount_maximum', $this->decimal(15, 2)->notNull());
+            $this->addTranslation('admin/coupon_admin', [
+                'COUPON_AMOUNT_MAXIMUM' => 'Coupon Amount Maximum',
+                'COUPON_AMOUNT_MAXIMUM_HELP' => 'The maximum coupon amount if discount is bigger',
+            ]);
+        }
     }
 
     /**

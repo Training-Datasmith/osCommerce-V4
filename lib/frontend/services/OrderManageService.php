@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: user
@@ -13,27 +15,28 @@ use common\models\OrdersStatusHistory;
 use common\models\repositories\OrderRepository;
 use yii\web\NotFoundHttpException;
 
+class OrderManageService
+{
+    private $orderRepository;
 
-class OrderManageService {
+    public function __construct(OrderRepository $orderRepository)
+    {
+        $this->orderRepository = $orderRepository;
+    }
 
-	private $orderRepository;
-
-	public function __construct( OrderRepository $orderRepository ) {
-		$this->orderRepository = $orderRepository;
-	}
-
-	public function changeStatus( $order_id, $status, $comments = '' ) {
-		$order = Orders::findOne( $order_id );
-		if( is_object( $order ) ) {
-			$ordersStatusHistory  = OrdersStatusHistory::create( $order_id, $status, 0, $comments );
-			$order->orders_status = $status;
-			if( ! $order->save() ) {
-				throw new \DomainException( "Order saving error" );
-			}
-			$ordersStatusHistory->link( 'order', $order );
-		} else {
-			throw new NotFoundHttpException( "Order not found" );
-		}
-	}
+    public function changeStatus($order_id, $status, $comments = '')
+    {
+        $order = Orders::findOne($order_id);
+        if (is_object($order)) {
+            $ordersStatusHistory  = OrdersStatusHistory::create($order_id, $status, 0, $comments);
+            $order->orders_status = $status;
+            if (! $order->save()) {
+                throw new \DomainException('Order saving error');
+            }
+            $ordersStatusHistory->link('order', $order);
+        } else {
+            throw new NotFoundHttpException('Order not found');
+        }
+    }
 
 }

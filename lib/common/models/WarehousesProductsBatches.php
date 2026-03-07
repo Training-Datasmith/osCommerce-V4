@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of True Loaded.
  *
@@ -9,8 +11,6 @@
  */
 
 namespace common\models;
-
-use Yii;
 
 /**
  * This is the model class for table "warehouses_products_batches".

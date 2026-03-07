@@ -1,8 +1,8 @@
 <?php
 
-namespace common\extensions\OscLink\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\extensions\OscLink\models;
 
 /**
  * This is the model class for table "connector_osclink_configuration".

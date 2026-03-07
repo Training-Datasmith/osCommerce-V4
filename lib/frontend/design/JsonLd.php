@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -20,7 +22,7 @@ class JsonLd
 
     private static function organization()
     {
-        foreach (\common\helpers\Hooks::getList('frontend/jsonld-organization') as $filename){
+        foreach (\common\helpers\Hooks::getList('frontend/jsonld-organization') as $filename) {
             $result = include($filename);
             if ($result === false) {
                 return $result;
@@ -128,7 +130,7 @@ class JsonLd
 
     private static function product()
     {
-        foreach (\common\helpers\Hooks::getList('frontend/jsonld-product') as $filename){
+        foreach (\common\helpers\Hooks::getList('frontend/jsonld-product') as $filename) {
             $result = include($filename);
             if ($result === false) {
                 return $result;
@@ -172,10 +174,10 @@ class JsonLd
 
     public static function hasValue($arr)
     {
-        if (!isset($arr[0])){
+        if (!isset($arr[0])) {
             return false;
         }
-        if (!$arr[0]){
+        if (!$arr[0]) {
             return false;
         }
         if (!isset(self::$schema[$arr[0]])) {
@@ -184,52 +186,52 @@ class JsonLd
         if (!self::$schema[$arr[0]]) {
             return false;
         }
-        if (!isset($arr[1])){
+        if (!isset($arr[1])) {
             return true;
         }
-        if (!$arr[1]){
+        if (!$arr[1]) {
             return true;
         }
         if (!isset(self::$schema[$arr[0]][$arr[1]])) {
             return false;
         }
-        if (!self::$schema[$arr[0]][$arr[1]] ) {
+        if (!self::$schema[$arr[0]][$arr[1]]) {
             return false;
         }
-        if (!isset($arr[2])){
+        if (!isset($arr[2])) {
             return true;
         }
-        if (!$arr[2]){
+        if (!$arr[2]) {
             return true;
         }
         if (!isset(self::$schema[$arr[0]][$arr[1]][$arr[2]])) {
             return false;
         }
-        if (!self::$schema[$arr[0]][$arr[1]][$arr[2]] ) {
+        if (!self::$schema[$arr[0]][$arr[1]][$arr[2]]) {
             return false;
         }
-        if (!isset($arr[3])){
+        if (!isset($arr[3])) {
             return true;
         }
-        if (!$arr[3]){
+        if (!$arr[3]) {
             return true;
         }
         if (!isset(self::$schema[$arr[0]][$arr[1]][$arr[2]][$arr[3]])) {
             return false;
         }
-        if (!self::$schema[$arr[0]][$arr[1]][$arr[2]][$arr[3]] ) {
+        if (!self::$schema[$arr[0]][$arr[1]][$arr[2]][$arr[3]]) {
             return false;
         }
-        if (!isset($arr[4])){
+        if (!isset($arr[4])) {
             return true;
         }
-        if (!$arr[4]){
+        if (!$arr[4]) {
             return true;
         }
         if (!isset(self::$schema[$arr[0]][$arr[1]][$arr[2]][$arr[3]][$arr[4]])) {
             return false;
         }
-        if (!self::$schema[$arr[0]][$arr[1]][$arr[2]][$arr[3]][$arr[4]] ) {
+        if (!self::$schema[$arr[0]][$arr[1]][$arr[2]][$arr[3]][$arr[4]]) {
             return false;
         }
         return true;

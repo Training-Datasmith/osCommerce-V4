@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\product;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class QuantityDiscounts extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -50,14 +51,14 @@ class QuantityDiscounts extends Widget
         $product = $products->getProduct($get['products_id']);
         $discounts[] = [
             'count' => '1',
-            'price' => $currencies->display_price($product['special_price'] ? $product['special_price'] : $product['products_price'], $product['tax_rate'])
+            'price' => $currencies->display_price($product['special_price'] ? $product['special_price'] : $product['products_price'], $product['tax_rate']),
         ];
         $counter = 1;
-        for ($i=0, $n=sizeof($dt); $i<$n; $i=$i+2) {
+        for ($i = 0, $n = sizeof($dt); $i < $n; $i = $i + 2) {
             if ($dt[$i] > 0) {
                 $discounts[] = [
                     'count' => $dt[$i],
-                    'price' => $currencies->display_price($dt[$i+1], $product['tax_rate'])
+                    'price' => $currencies->display_price($dt[$i + 1], $product['tax_rate']),
                 ];
                 if ($discounts[$counter - 1]) {
                     $discounts[$counter - 1]['count'] = $discounts[$counter - 1]['count'] . ' - ' . ($discounts[$counter]['count'] - 1);
@@ -70,7 +71,7 @@ class QuantityDiscounts extends Widget
             $discounts[$counter - 1]['count'] = $discounts[$counter - 1]['count'] . ' + ';
         }
 
-        if (count($discounts)>0) {
+        if (count($discounts) > 0) {
             return IncludeTpl::widget(['file' => 'boxes/product/quantity-discounts.tpl', 'params' => [
                 'discounts' => $discounts,
             ]]);

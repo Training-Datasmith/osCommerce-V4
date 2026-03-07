@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,8 +13,6 @@
  */
 
 namespace OscLink;
-
-use \common\helpers\Assert;
 
 class Progress
 {
@@ -45,7 +45,7 @@ class Progress
                 $params['text'] = self::$last_not_important_params['text'] ?? self::getTextDef($params['progress']);
             }
 
-            echo ('<script>window.parent.doProgressUpdate(' . json_encode($params) . ')</script>'
+            echo('<script>window.parent.doProgressUpdate(' . json_encode($params) . ')</script>'
                 . "\n" . str_repeat(' ', (1024 * 8 * 4)) . "\n"
             );
             while (ob_get_level() > 0) {
@@ -59,7 +59,6 @@ class Progress
         }
     }
 
-
     public static function Log($msg)
     {
         self::Update(['message' => $msg]);
@@ -69,7 +68,7 @@ class Progress
     {
         $value = $value > 100 ? 100 : $value;
         if (self::$percent_in_cur_stage != 100) {
-            $value = intval( self::$percent_prev_stage + ($value * self::$percent_in_cur_stage / 100) );
+            $value = intval(self::$percent_prev_stage + ($value * self::$percent_in_cur_stage / 100));
         }
 
         $txt = $txt ?? self::getTextDef($value);
@@ -85,14 +84,14 @@ class Progress
         if ($success) {
             $arr['progress'] = 100;
             $arr['text'] = '100%';
-        } 
+        }
         self::Update($arr);
     }
 
     public static function showLogFile($format = 'Detailed log: %s <a href="extensions?module=OscLink&action=adminActionShowLog&log=%s" target="_blank">view</a>')
     {
         $fn = \OscLink\Logger::get()->getFilename();
-        \OscLink\Progress::Log( sprintf($format, $fn, basename($fn, '.log')) );
+        \OscLink\Progress::Log(sprintf($format, $fn, basename($fn, '.log')));
     }
 
 }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * @link http://www.yiiframework.com/
  * @copyright Copyright (c) 2008 Yii Software LLC
@@ -40,7 +42,7 @@ class Alert extends \yii\bootstrap\Widget
         'success' => 'alert-success',
         'info'    => 'alert-info',
         'warning' => 'alert-warning',
-        'limit_prop' => 'limit-prop'
+        'limit_prop' => 'limit-prop',
     ];
 
     /**

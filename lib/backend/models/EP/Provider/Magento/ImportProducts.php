@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,21 +15,16 @@
 
 namespace backend\models\EP\Provider\Magento;
 
-use Yii;
-use backend\models\EP\Exception;
 use backend\models\EP\Messages;
 use backend\models\EP\Provider\DatasourceInterface;
-use backend\models\EP\Tools;
+use backend\models\EP\Provider\Magento\helpers\ImageSource;
+use backend\models\EP\Provider\Magento\helpers\SoapClient;
 use common\api\models\AR\Categories;
 use common\api\models\AR\Products;
-use common\classes\language;
-use backend\models\EP\Provider\Magento\helpers\SoapClient;
-use backend\models\EP\Directory;
-use backend\models\EP\Provider\Magento\helpers\ImageSource;
 use common\helpers\Seo;
 
-class ImportProducts implements DatasourceInterface {
-
+class ImportProducts implements DatasourceInterface
+{
     protected $total_count = 0;
     protected $row_count = 0;
     protected $products_list;
@@ -39,7 +36,8 @@ class ImportProducts implements DatasourceInterface {
     protected $attributes_options = [];
     public $job_id;
 
-    function __construct($config) {
+    public function __construct($config)
+    {
         if (substr($config['client']['location'], -1) == '/') {
             $config['client']['location'] = substr($config['client']['location'], 0, -1);
         }
@@ -47,38 +45,41 @@ class ImportProducts implements DatasourceInterface {
         $this->initDB();
     }
 
-    public function allowRunInPopup() {
+    public function allowRunInPopup()
+    {
         return true;
     }
 
-    public function initDB() {
-        tep_db_query("CREATE TABLE IF NOT EXISTS ep_holbi_soap_link_products_cols(
+    public function initDB()
+    {
+        tep_db_query('CREATE TABLE IF NOT EXISTS ep_holbi_soap_link_products_cols(
    ep_directory_id INT(11) NOT NULL,
    remote_products_id INT(11) NOT NULL,
    remote_products_sku varchar(255),
    remote_group_name varchar(128),
    KEY(ep_directory_id, remote_products_id),
    UNIQUE KEY(remote_products_id)
-);");
+);');
 
-        tep_db_query("CREATE TABLE IF NOT EXISTS ep_holbi_soap_link_products(
+        tep_db_query('CREATE TABLE IF NOT EXISTS ep_holbi_soap_link_products(
    ep_directory_id INT(11) NOT NULL,
    remote_products_id INT(11) NOT NULL,
    local_products_id INT(11) NOT NULL,
    KEY(ep_directory_id, remote_products_id),
    UNIQUE KEY(local_products_id)
-);");
+);');
 
-        tep_db_query("CREATE TABLE IF NOT EXISTS ep_holbi_soap_link_categories(
+        tep_db_query('CREATE TABLE IF NOT EXISTS ep_holbi_soap_link_categories(
    ep_directory_id INT(11) NOT NULL,
    remote_category_id INT(11) NOT NULL,
    local_category_id INT(11) NOT NULL,
    PRIMARY KEY(ep_directory_id, remote_category_id),
    KEY(local_category_id)
-);");
+);');
     }
 
-    public function getProgress() {
+    public function getProgress()
+    {
         if ($this->total_count > 0) {
             $percentDone = min(100, ($this->row_count / $this->total_count) * 100);
         } else {
@@ -87,7 +88,8 @@ class ImportProducts implements DatasourceInterface {
         return number_format($percentDone, 1, '.', '');
     }
 
-    public function prepareProcess(Messages $message) {
+    public function prepareProcess(Messages $message)
+    {
         //$key = "jkajsdhfajfg&^jsaji0123";
         $mg = new SoapClient($this->config['client']);
         $this->client = $mg->getClient();
@@ -99,8 +101,8 @@ class ImportProducts implements DatasourceInterface {
         $this->getCategoriesTree()->importCategories();
 
         $this->total_count = count($this->getProductsList());
-        
-        if (is_array($this->config['attributes']) && count($this->config['attributes'])){
+
+        if (is_array($this->config['attributes']) && count($this->config['attributes'])) {
             $this->loadProductAttributes();
         }
 
@@ -108,21 +110,25 @@ class ImportProducts implements DatasourceInterface {
         $this->afterProcessFile = fopen($this->afterProcessFilename, 'w+');
     }
 
-    public function getStoresList() {
+    public function getStoresList()
+    {
         try {
             $result = $this->client->call($this->session, 'store.list');
         } catch (\Exception $ex) {
             throw new \Exception('Download remote stores info error');
         }
     }
-    
-    public function loadProductAttributes(){
+
+    public function loadProductAttributes()
+    {
         $sets = [];
-        if (is_array($this->config['attributes'])){
-            foreach($this->config['attributes'] as $at){
-                if (!empty($at) && preg_match("/;/", $at)){
-                    $ex = explode(";", $at);
-                    if (!isset($sets[$ex[0]])) $sets[$ex[0]] = [];
+        if (is_array($this->config['attributes'])) {
+            foreach ($this->config['attributes'] as $at) {
+                if (!empty($at) && preg_match('/;/', $at)) {
+                    $ex = explode(';', $at);
+                    if (!isset($sets[$ex[0]])) {
+                        $sets[$ex[0]] = [];
+                    }
                     $sets[$ex[0]][] = $ex[1];
                 }
             }
@@ -130,30 +136,31 @@ class ImportProducts implements DatasourceInterface {
         }
         $to_load = [];
         try {
-            foreach($sets as $setID => $attr_code){
-                $result = $this->client->call($this->session, 'catalog_product_attribute.list',$setID);
-                if (is_array($result)){
-                    foreach($result as $rem_att){
-                        if (isset($rem_att['code']) && in_array($rem_att['code'], $attr_code)){
+            foreach ($sets as $setID => $attr_code) {
+                $result = $this->client->call($this->session, 'catalog_product_attribute.list', $setID);
+                if (is_array($result)) {
+                    foreach ($result as $rem_att) {
+                        if (isset($rem_att['code']) && in_array($rem_att['code'], $attr_code)) {
                             $to_load[] = $rem_att['code'];
                         }
                     }
                 }
             }
-            if (count($to_load)){
+            if (count($to_load)) {
                 $this->loadAttributesOptions($to_load);
-            }            
+            }
         } catch (\Exception $ex) {
             throw new \Exception('Download remote category info error');
         }
         return $result;
     }
-    
-    public function loadAttributesOptions($to_load = []){
+
+    public function loadAttributesOptions($to_load = [])
+    {
         try {
-            foreach($to_load as $attr_code){
+            foreach ($to_load as $attr_code) {
                 $result = $this->client->call($this->session, 'catalog_product_attribute.options', $attr_code);
-                if ($result){
+                if ($result) {
                     $this->attributes_options[$attr_code] = $result;
                 }
             }
@@ -163,7 +170,8 @@ class ImportProducts implements DatasourceInterface {
         return $result;
     }
 
-    public function importCategories() {
+    public function importCategories()
+    {
         if (is_array($this->categories_tree)) {
             if (isset($this->config['trunkate_categories'])) {
                 \common\helpers\Categories::trunk_categories();
@@ -183,7 +191,8 @@ class ImportProducts implements DatasourceInterface {
         }
     }
 
-    public function getCategoryInfo($id) {
+    public function getCategoryInfo($id)
+    {
         try {
             $result = $this->client->call($this->session, 'catalog_category.info', $id);
         } catch (\Exception $ex) {
@@ -192,7 +201,8 @@ class ImportProducts implements DatasourceInterface {
         return $result;
     }
 
-    public function getLoacalAssignedCatetegoryID($id) {
+    public function getLoacalAssignedCatetegoryID($id)
+    {
         $check = tep_db_fetch_array(tep_db_query("select local_category_id from ep_holbi_soap_link_categories where remote_category_id = '" . (int) $id . "' and ep_directory_id = '" . (int) $this->config['directoryId'] . "'"));
         if ($check) {
             return $check['local_category_id'];
@@ -200,7 +210,8 @@ class ImportProducts implements DatasourceInterface {
         return false;
     }
 
-    public function processCategory($top_level, $parent_id) {
+    public function processCategory($top_level, $parent_id)
+    {
         if (is_array($top_level)) {
             foreach ($top_level as $mg_category) {
                 $category_id = $this->getLoacalAssignedCatetegoryID($mg_category['category_id']);
@@ -223,11 +234,11 @@ class ImportProducts implements DatasourceInterface {
 //                                'categories_seo_page_name' => (string) $seo,
                                 'categories_head_desc_tag' => (string) $data['meta_description'],
                                 'categories_head_keywords_tag' => (string) $data['meta_keywords'],
-                            ]
+                            ],
                         ],
                         'assigned_platforms' => [
                             ['platform_id' => $this->config['assign_platform']],
-                        ]
+                        ],
                     ]);
 
                     $category->save();
@@ -243,7 +254,7 @@ class ImportProducts implements DatasourceInterface {
                         $source = ImageSource::getInstance($this->config)->loadResource($data['image'], 'category');
                         if ($source) {
                             $category->importArray([
-                                'categories_image' => $source
+                                'categories_image' => $source,
                             ]);
                             $category->update();
                         }
@@ -257,7 +268,8 @@ class ImportProducts implements DatasourceInterface {
         }
     }
 
-    public function getCategoriesTree() {
+    public function getCategoriesTree()
+    {
         try {
             $result = $this->client->call($this->session, 'catalog_category.tree');
         } catch (\Exception $ex) {
@@ -270,7 +282,8 @@ class ImportProducts implements DatasourceInterface {
         return $this;
     }
 
-    protected function getProductsList() {
+    protected function getProductsList()
+    {
         try {
             /*$filters = array(
                 'filters' => array(
@@ -289,28 +302,30 @@ class ImportProducts implements DatasourceInterface {
         return $this->products_list;
     }
 
-    public function processRow(Messages $message) {
+    public function processRow(Messages $message)
+    {
         set_time_limit(0);
         $remoteProductId = current($this->products_list);
 
-        if (!$remoteProductId)
+        if (!$remoteProductId) {
             return false;
+        }
         try {
             $this->processRemoteProduct($remoteProductId['product_id'], true);
-            tep_db_perform(TABLE_EP_JOB, array(
+            tep_db_perform(TABLE_EP_JOB, [
                 'last_cron_run' => 'now()',
-                    ), 'update', "job_id='" . $this->job_id . "'");
+                    ], 'update', "job_id='" . $this->job_id . "'");
         } catch (\Exception $ex) {
             throw new \Exception('Processing product error (' . $remoteProductId['sku'] . ')');
         }
-
 
         $this->row_count++;
         next($this->products_list);
         return true;
     }
 
-    public function getProductInfo($id) {
+    public function getProductInfo($id)
+    {
         try {
             $result = $this->client->call($this->session, 'catalog_product.info', $id);
             $stock = $this->client->call($this->session, 'cataloginventory_stock_item.list', $id);
@@ -323,7 +338,8 @@ class ImportProducts implements DatasourceInterface {
         return $result;
     }
 
-    public function getProductOptions($remoteProductId) {
+    public function getProductOptions($remoteProductId)
+    {
         try {
             $result = $this->client->call($this->session, 'product_custom_option.list', $remoteProductId);
             if ($result) {
@@ -335,7 +351,8 @@ class ImportProducts implements DatasourceInterface {
         return $result;
     }
 
-    public function getProductOptionsValues($option_id) {
+    public function getProductOptionsValues($option_id)
+    {
         try {
             $result = $this->client->call($this->session, 'product_custom_option.info', $option_id);
         } catch (\Exception $ex) {
@@ -344,7 +361,8 @@ class ImportProducts implements DatasourceInterface {
         return $result;
     }
 
-    public function SynhronizeOptions(&$options) {
+    public function SynhronizeOptions(&$options)
+    {
         global $languages_id;
         try {
             if (is_array($options)) {
@@ -366,7 +384,8 @@ class ImportProducts implements DatasourceInterface {
         return;
     }
 
-    public function getProductMedia($remoteProductId) {
+    public function getProductMedia($remoteProductId)
+    {
         try {
             $result = $this->client->call($this->session, 'catalog_product_attribute_media.list', $remoteProductId);
         } catch (\Exception $ex) {
@@ -375,7 +394,8 @@ class ImportProducts implements DatasourceInterface {
         return $result;
     }
 
-    protected function processRemoteProduct($remoteProductId, $useAfterProcess = false) {
+    protected function processRemoteProduct($remoteProductId, $useAfterProcess = false)
+    {
 
         static $timing = [
             'soap' => 0,
@@ -411,8 +431,9 @@ class ImportProducts implements DatasourceInterface {
                         break;
                 }
 
-                if (!is_array($importArray) || !count($importArray))
+                if (!is_array($importArray) || !count($importArray)) {
                     return false;
+                }
 
                 $localId = false;
                 $localProduct = \common\api\models\AR\Products::find()
@@ -430,7 +451,7 @@ class ImportProducts implements DatasourceInterface {
                         $importArray['assigned_platforms'] = [
                             [
                                 'platform_id' => $this->config['assign_platform'],
-                            ]
+                            ],
                         ];
                     }
                     unset($importArray['product_id']);
@@ -443,7 +464,7 @@ class ImportProducts implements DatasourceInterface {
 
                         if ($patch_platform_assign) {
                             tep_db_query(
-                                    "INSERT IGNORE INTO platforms_products (platform_id, products_id) " .
+                                'INSERT IGNORE INTO platforms_products (platform_id, products_id) ' .
                                     "VALUES ('" . intval(\common\classes\platform::defaultId()) . "', '" . intval($localProduct->products_id) . "')"
                             );
                         }
@@ -459,10 +480,11 @@ class ImportProducts implements DatasourceInterface {
         //echo '<pre>';  var_dump($timing);    echo '</pre>';
     }
 
-    protected function lookupLocalId($remoteId) {
+    protected function lookupLocalId($remoteId)
+    {
         $get_local_id_r = tep_db_query(
-                "SELECT local_products_id " .
-                "FROM ep_holbi_soap_link_products " .
+            'SELECT local_products_id ' .
+                'FROM ep_holbi_soap_link_products ' .
                 "WHERE ep_directory_id='" . (int) $this->config['directoryId'] . "' " .
                 " AND remote_products_id='" . $remoteId . "'"
         );
@@ -474,17 +496,19 @@ class ImportProducts implements DatasourceInterface {
         return false;
     }
 
-    protected function linkRemoteWithLocalId($remoteId, $localId) {
+    protected function linkRemoteWithLocalId($remoteId, $localId)
+    {
         tep_db_query(
-                "INSERT INTO ep_holbi_soap_link_products(ep_directory_id, remote_products_id, local_products_id ) " .
-                " VALUES " .
+            'INSERT INTO ep_holbi_soap_link_products(ep_directory_id, remote_products_id, local_products_id ) ' .
+                ' VALUES ' .
                 " ('" . (int) $this->config['directoryId'] . "', '" . $remoteId . "','" . $localId . "') " .
                 "ON DUPLICATE KEY UPDATE ep_directory_id='" . (int) $this->config['directoryId'] . "', remote_products_id='" . $remoteId . "'"
         );
         return true;
     }
 
-    public function categories($data) {
+    public function categories($data)
+    {
         if (is_array($data)) {
             $newAssignedCategories = [];
             foreach ($data as $assigned_category) {
@@ -500,7 +524,8 @@ class ImportProducts implements DatasourceInterface {
         return $data;
     }
 
-    public function attributes($data) {
+    public function attributes($data)
+    {
         if (is_array($data)) {
             $newAttributes = [];
             $current = current($this->products_list);
@@ -515,7 +540,7 @@ class ImportProducts implements DatasourceInterface {
                             'products_model' => $value['sku'],
                             'prices' => [
                                 'attributes_group_price' => '-2',
-                            ]
+                            ],
                         ];
                     }
                 } else {
@@ -532,7 +557,8 @@ class ImportProducts implements DatasourceInterface {
         return $data;
     }
 
-    public function inventory($data) {
+    public function inventory($data)
+    {
         if (is_array($data)) {
             $newInventory = [];
             foreach ($data as $options) {
@@ -555,7 +581,8 @@ class ImportProducts implements DatasourceInterface {
         return $data;
     }
 
-    public function images($data) {
+    public function images($data)
+    {
         if (is_array($data)) {
             $newImages = [];
             $is_default = true;
@@ -574,7 +601,7 @@ class ImportProducts implements DatasourceInterface {
                             'image_source_url' => $source,
                             'orig_file_name' => pathinfo($source, PATHINFO_BASENAME),
                             'image_title' => (string) $images['label'],
-                        ]
+                        ],
                     ];
                     $newImages[] = $pattern;
                 }
@@ -590,13 +617,15 @@ class ImportProducts implements DatasourceInterface {
     * grouped products in magento are union of simple products
     * grouped products saved during process and joined to collection afterprocess
     */
-    protected function transformGrouppedProduct($responseObject) {
+    protected function transformGrouppedProduct($responseObject)
+    {
         $product = json_decode(json_encode($responseObject), true);
         $this->saveGrouppedProducts($product);
         return;
     }
 
-    protected function transformSimpleProduct($responseObject) {
+    protected function transformSimpleProduct($responseObject)
+    {
         $product = json_decode(json_encode($responseObject), true);
 
         $map = [
@@ -613,11 +642,11 @@ class ImportProducts implements DatasourceInterface {
             'descriptions' => [
                 'products_name' => 'name',
                 'products_description' => 'description',
-                'products_description_short' => 'short_description'
+                'products_description_short' => 'short_description',
             ],
             'products_status' => 'status',
             'attributes' => 'attributes',
-            'images' => 'images'
+            'images' => 'images',
         ];
 
         $t1 = microtime(true);
@@ -648,27 +677,26 @@ class ImportProducts implements DatasourceInterface {
                 unset($product[$mg_key]);
             }
         }
-        
+
         $simple['attributes'] = $this->getMainAttributes($product, $simple['attributes']);
-        
+
         $simple['inventory'] = $this->inventory($simple['attributes']);
         $tools = new \backend\models\EP\Tools();
         $simple['stock_indication_id'] = ((int) $product['is_in_stock'] ? $tools->lookupStockIndicationId('In stock') : $tools->lookupStockIndicationId('Currently out of Stock'));
         $simple['stock_delivery_terms_id'] = $simple['stock_indication_id'];
         $simple['products_status'] = ($simple['products_status'] == 1 ? 1 : 0);
         $simple['product_id'] = $product['product_id'];
-        
-        
-        //echo '<pre>';print_r($simple);die;
 
+        //echo '<pre>';print_r($simple);die;
 
         return $simple;
     }
-    
-    public function getMainAttributes($product, $attributes){
-        if (is_array($this->attributes_options) && count($this->attributes_options)){
-            foreach($this->attributes_options as $a_code => $values){
-                if (isset($product[$a_code]) && is_array($values)){
+
+    public function getMainAttributes($product, $attributes)
+    {
+        if (is_array($this->attributes_options) && count($this->attributes_options)) {
+            foreach ($this->attributes_options as $a_code => $values) {
+                if (isset($product[$a_code]) && is_array($values)) {
                     $mapped = \yii\helpers\ArrayHelper::map($values, 'value', 'label');
                     $attributes[] = [
                         'options_name' => ucfirst($a_code),
@@ -680,18 +708,19 @@ class ImportProducts implements DatasourceInterface {
         return $attributes;
     }
 
-    protected function lookupLocalCategoryId($remoteId) {
+    protected function lookupLocalCategoryId($remoteId)
+    {
         static $cached = [];
         $key = (int) $this->config['directoryId'] . '^' . (int) $remoteId;
         if (isset($cached[$key])) {
             return $cached[$key];
         }
         $getMap_r = tep_db_query(
-                "SELECT local_category_id " .
-                "FROM ep_holbi_soap_link_categories " .
+            'SELECT local_category_id ' .
+                'FROM ep_holbi_soap_link_categories ' .
                 "WHERE ep_directory_id='" . (int) $this->config['directoryId'] . "' " .
                 " AND remote_category_id='" . $remoteId . "' " .
-                "LIMIT 1 "
+                'LIMIT 1 '
         );
         if (tep_db_num_rows($getMap_r) > 0) {
             $getMap = tep_db_fetch_array($getMap_r);
@@ -701,29 +730,32 @@ class ImportProducts implements DatasourceInterface {
         return false;
     }
 
-    protected function saveGrouppedProducts($remoteProduct) {
+    protected function saveGrouppedProducts($remoteProduct)
+    {
         $data = [
             'ep_directory_id' => (int) $this->config['directoryId'],
             'remote_products_id' => (int) $remoteProduct['product_id'],
-            'remote_products_sku' => implode(";", array_map('trim', explode("-", $remoteProduct['sku']))),
+            'remote_products_sku' => implode(';', array_map('trim', explode('-', $remoteProduct['sku']))),
             'remote_group_name' => $remoteProduct['name'],
         ];
         tep_db_perform('ep_holbi_soap_link_products_cols', $data);
         return;
     }
 
-    public function postProcess(Messages $message) {
+    public function postProcess(Messages $message)
+    {
 
         if (!\common\helpers\Acl::checkExtensionAllowed('ProductsCollections')) {
             return;
         }
-        
+
         $grouped = tep_db_query("select * from ep_holbi_soap_link_products_cols where ep_directory_id = '" . (int) $this->config['directoryId'] . "'");
         if (tep_db_num_rows($grouped)) { //do collections
             $languages = \common\helpers\Language::get_languages();
             $default_language = \common\helpers\Language::get_default_language_id();
-            if (!array($languages))
+            if (![$languages]) {
                 return;
+            }
             while ($row = tep_db_fetch_array($grouped)) {
                 $collection = \common\models\Collections::find()->where('collections_name = :name and language_id = :lid', [':name' => $row['remote_group_name'], ':lid' => $default_language])->one();
                 if (!$collection) {
@@ -735,11 +767,12 @@ class ImportProducts implements DatasourceInterface {
                         'collections_id' => $cid,
                         'collections_name' => $row['remote_group_name'],
                             ], false);
-                    
+
                     $collection->save(false);
                     foreach ($languages as $_l) {
-                        if ($_l['id'] == $default_language)
+                        if ($_l['id'] == $default_language) {
                             continue;
+                        }
                         $lCollection = new \common\models\Collections();
                         $lCollection->setAttributes([
                             'language_id' => $_l['id'],
@@ -750,7 +783,7 @@ class ImportProducts implements DatasourceInterface {
                     }
                 }
                 if (!empty($row['remote_products_sku']) && $collection) {
-                    $sku_array = explode(";", $row['remote_products_sku']);
+                    $sku_array = explode(';', $row['remote_products_sku']);
                     if (is_array($sku_array) && count($sku_array)) {
                         \common\models\CollectionsProducts::deleteAll('collections_id =:id', [':id' => $collection->collections_id]);
                         foreach ($sku_array as $sku_item) {

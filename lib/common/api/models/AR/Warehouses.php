@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2005 Holbi Group Ltd
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -19,7 +21,6 @@ use yii\db\Expression;
 
 class Warehouses extends EPMap
 {
-
     protected $hideFields = [
     ];
 
@@ -43,7 +44,8 @@ class Warehouses extends EPMap
         return ['warehouse_id'];
     }
 
-    public function rules() {
+    public function rules()
+    {
         return array_merge(
             parent::rules(),
             [
@@ -54,7 +56,7 @@ class Warehouses extends EPMap
 
     public function initCollectionByLookupKey_Addresses($lookupKeys)
     {
-        if ( !is_array($this->childCollections['addresses']) ) {
+        if (!is_array($this->childCollections['addresses'])) {
             $this->childCollections['addresses'] = [];
             if ($this->warehouse_id) {
                 $this->childCollections['addresses'] =
@@ -67,10 +69,9 @@ class Warehouses extends EPMap
         return $this->childCollections['addresses'];
     }
 
-
     public function initCollectionByLookupKey_Info($lookupKeys)
     {
-        if ( !is_array($this->childCollections['info'])) {
+        if (!is_array($this->childCollections['info'])) {
             $this->childCollections['info'] = [];
             if ($this->warehouse_id) {
                 $this->childCollections['info'][] =
@@ -89,27 +90,26 @@ class Warehouses extends EPMap
 
     public function importArray($data)
     {
-/*        if ( array_key_exists('customers_currency', $data) ) {
-            $data['customers_currency_id'] = \common\helpers\Currencies::getCurrencyId($data['customers_currency']);
-        }
-*/
+        /*        if ( array_key_exists('customers_currency', $data) ) {
+                    $data['customers_currency_id'] = \common\helpers\Currencies::getCurrencyId($data['customers_currency']);
+                }
+        */
         $importResult = parent::importArray($data);
         return $importResult;
     }
 
-
     public function beforeSave($insert)
     {
-        if ( $insert && (!is_array($this->childCollections['info']) || count($this->childCollections['info'])==0) ) {
+        if ($insert && (!is_array($this->childCollections['info']) || count($this->childCollections['info']) == 0)) {
             $this->childCollections['info'] = [];
             $this->childCollections['info'][] = new Info();
         }
-        if ( $insert ) {
-            if ( is_null($this->date_added) ) {
-                $this->date_added = new Expression("NOW()");
+        if ($insert) {
+            if (is_null($this->date_added)) {
+                $this->date_added = new Expression('NOW()');
             }
-        }else{
-            $this->last_modified = new Expression("NOW()");
+        } else {
+            $this->last_modified = new Expression('NOW()');
         }
         /*
         if ( !$insert ) {

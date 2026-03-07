@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,7 +16,6 @@ namespace backend\design;
 
 use common\models\ThemesStylesGroups;
 use common\models\ThemesStylesMain;
-use Yii;
 use yii\base\Widget;
 
 class SelectStyle extends Widget
@@ -24,7 +25,8 @@ class SelectStyle extends Widget
     public $type;
     public $theme_name;
 
-    public function init(){
+    public function init()
+    {
         parent::init();
     }
 
@@ -32,7 +34,7 @@ class SelectStyle extends Widget
     {
         $styles = ThemesStylesMain::find()->where([
             'theme_name' => $this->theme_name,
-            'type' => $this->type
+            'type' => $this->type,
         ])->asArray()->all();
 
         $groupStyles = ThemesStylesGroups::find()->where([

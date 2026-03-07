@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,11 @@
 
 namespace frontend\design\boxes\cart;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
-use common\classes\Images;
+use yii\base\Widget;
 
 class GiveAway extends Widget
 {
-
     public $type;
     public $settings;
     public $params;
@@ -38,7 +37,7 @@ class GiveAway extends Widget
 
         $products = \common\helpers\Gifts::getGiveAways();
 
-        if ( !is_array($products) || count($products)==0 ) {
+        if (!is_array($products) || count($products) == 0) {
             return \frontend\design\Info::hideBox($this->id, $this->settings[0]['hide_parents']);
         }
 

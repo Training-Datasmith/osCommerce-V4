@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -38,9 +40,9 @@ class m220831_210444_stock_texts extends Migration
      */
     public function safeDown()
     {
-//        echo "m220831_210444_stock_texts cannot be reverted.\n";
+        //        echo "m220831_210444_stock_texts cannot be reverted.\n";
 
-  //      return false;
+        //      return false;
     }
 
     /*

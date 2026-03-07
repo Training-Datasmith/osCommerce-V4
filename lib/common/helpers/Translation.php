@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -24,24 +26,31 @@ class Translation
     {
         global $languages_id, $language;
 
-        if (!$language_id) $language_id = $languages_id;
+        if (!$language_id) {
+            $language_id = $languages_id;
+        }
 
         // {{ double define
         static $loaded_by_key = [];
-        $key = strval($entity).'^'.(int)$language_id.'^'.($skipEmptyKeys?'1':'0');
-        if ( isset($loaded_by_key[$key]) ) return;
+        $key = strval($entity).'^'.(int)$language_id.'^'.($skipEmptyKeys ? '1' : '0');
+        if (isset($loaded_by_key[$key])) {
+            return;
+        }
         $loaded_by_key[$key] = 1;
         // }} double define
 
-
         $translations = \Yii::$app->getCache()->getOrSet(
-            'translation_'.str_replace('/','.',$entity).'_'.(int)$language_id, function() use ($entity, $language_id){
+            'translation_'.str_replace('/', '.', $entity).'_'.(int)$language_id,
+            function () use ($entity, $language_id) {
                 return \common\models\Translation::find()
                     ->select(['translation_key', 'translation_value'])
                     ->where(['translation_entity' => $entity, 'language_id' => (int)$language_id])
                     ->asArray()
                     ->all();
-        },0, new \yii\caching\TagDependency(['tags'=>['translation', self::getTagNameForEntity($entity)]]));
+            },
+            0,
+            new \yii\caching\TagDependency(['tags' => ['translation', self::getTagNameForEntity($entity)]])
+        );
         /*
         $translations = [];
         $translation_query = tep_db_query("select translation_key, translation_value from " . TABLE_TRANSLATION . " where translation_entity = '" . tep_db_input($entity) . "' and language_id = '" . (int)$language_id . "'");
@@ -49,7 +58,7 @@ class Translation
             $translations[] = $translation;
         }
         */
-        foreach($translations as $translation) {
+        foreach ($translations as $translation) {
             if ($skipEmptyKeys && empty($translation['translation_value'])) {
                 continue;
             }
@@ -58,8 +67,8 @@ class Translation
         }
 
         $lang = \common\helpers\Language::get_language_id(DEFAULT_LANGUAGE);
-        if (isset($lang['languages_id']) && $lang['languages_id'] !=$language_id) {
-            $translation_query = tep_db_query("select translation_key, translation_value from " . TABLE_TRANSLATION . " where translation_entity = '" . tep_db_input($entity) . "' and language_id = '" . (int)$lang['languages_id'] . "'");
+        if (isset($lang['languages_id']) && $lang['languages_id'] != $language_id) {
+            $translation_query = tep_db_query('select translation_key, translation_value from ' . TABLE_TRANSLATION . " where translation_entity = '" . tep_db_input($entity) . "' and language_id = '" . (int)$lang['languages_id'] . "'");
             while ($translation = tep_db_fetch_array($translation_query)) {
                 self::defineKeys($translation, $entity);
             }
@@ -76,7 +85,7 @@ class Translation
         $translation['translation_value'] = self::checkIncludedConstants($translation['translation_value']);
 
         static $define_flag;
-        if ( is_null($define_flag) ){
+        if (is_null($define_flag)) {
             $define_flag = !\common\helpers\Acl::isFrontendTranslation() && !(Info::isAdmin() && method_exists(\Yii::$app->request, 'get') && \Yii::$app->request->get('texts'));
         }
         if ($define_flag) {
@@ -99,36 +108,39 @@ class Translation
 
         return true;
     }
-    
-    public static function checkIncludedConstants($value){
+
+    public static function checkIncludedConstants($value)
+    {
         $value = preg_replace_callback(
-           '/##(.*?)##/',
+            '/##(.*?)##/',
             function ($found) {
-              return ( defined($found[1]) ? CONSTANT($found[1]) : '');
+                return (defined($found[1]) ? CONSTANT($found[1]) : '');
             },
             $value
         );
         return $value;
     }
 
-/**
- *
- * @global int $languages_id 
- * @param string $translation_key
- * @param string $translation_entity
- * @param int $language_id optional
- * @return translation or false
- */
+    /**
+     *
+     * @global int $languages_id
+     * @param string $translation_key
+     * @param string $translation_entity
+     * @param int $language_id optional
+     * @return translation or false
+     */
     public static function getTranslationValue($translation_key, $translation_entity = '', $language_id = '')
     {
         global $languages_id;
 
-        if (!$language_id) $language_id = $languages_id;
+        if (!$language_id) {
+            $language_id = $languages_id;
+        }
         $ret = false;
-  
-        $translation_query = tep_db_query("select translation_value from " . TABLE_TRANSLATION . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
+
+        $translation_query = tep_db_query('select translation_value from ' . TABLE_TRANSLATION . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
         if ($translation = tep_db_fetch_array($translation_query)) {
-          $ret = $translation['translation_value'];
+            $ret = $translation['translation_value'];
         }
 
         return $ret;
@@ -137,7 +149,9 @@ class Translation
     public static function getValue($translation_key, $translation_entity = 'configuration', $default = '##key##')
     {
         $languages_id = \Yii::$app->settings->get('languages_id');
-        if (defined($translation_key)) return constant($translation_key);
+        if (defined($translation_key)) {
+            return constant($translation_key);
+        }
 
         $res = self::getTranslationValue($translation_key, $translation_entity, $languages_id);
         $defLanguageId = \common\helpers\Language::get_default_language_id();
@@ -146,15 +160,21 @@ class Translation
         }
 
         // return
-        if ($res) return $res;
-        if (is_null($default)) return false;
-        if ($default=='##key##') return $translation_key;
+        if ($res) {
+            return $res;
+        }
+        if (is_null($default)) {
+            return false;
+        }
+        if ($default == '##key##') {
+            return $translation_key;
+        }
         return $default;
     }
 
     public static function setTranslationValue($translation_key, $translation_entity, $language_id, $translation_value)
     {
-        $translation_query = tep_db_query("select * from " . TABLE_TRANSLATION . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
+        $translation_query = tep_db_query('select * from ' . TABLE_TRANSLATION . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
         if (tep_db_num_rows($translation_query) > 0) {
             $sql_data_array = [
                 'translation_value' => $translation_value,
@@ -172,10 +192,10 @@ class Translation
             tep_db_perform(TABLE_TRANSLATION, $sql_data_array);
         }
     }
-    
+
     public static function replaceTranslationValueByKey($translation_key, $translation_entity, $language_id, $translation_value)
     {
-        $translation_query = tep_db_query("select * from " . TABLE_TRANSLATION . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
+        $translation_query = tep_db_query('select * from ' . TABLE_TRANSLATION . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
         if (tep_db_num_rows($translation_query) == 0) {
             $hash = md5($translation_key . '-' . $translation_entity);
             $sql_data_array = [
@@ -192,10 +212,10 @@ class Translation
         ];
         tep_db_perform(TABLE_TRANSLATION, $sql_data_array, 'update', "language_id = '" . (int)$language_id . "' and translation_key = '" . tep_db_input($translation_key) . "'");
     }
-    
+
     public static function replaceTranslationValueByOldValue($translation_key, $translation_entity, $language_id, $translation_value)
     {
-        $translation_query = tep_db_query("select * from " . TABLE_TRANSLATION . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
+        $translation_query = tep_db_query('select * from ' . TABLE_TRANSLATION . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
         if (tep_db_num_rows($translation_query) > 0) {
             $translation = tep_db_fetch_array($translation_query);
             $old_translation_value = $translation['translation_value'];
@@ -222,67 +242,74 @@ class Translation
             tep_db_perform(TABLE_TRANSLATION, $sql_data_array);
         }
     }
-    
-    public static function loadJS($translation_entity, $language_id = 0){
-      global $languages_id, $lng;
-      
-      $language_id =  !$language_id ? $languages_id : $language_id;
 
-      $translation_query = tep_db_query("select t1.translation_key, if(length(t1.translation_value)>0, t1.translation_value, t2.translation_value) as translation_value from " . TABLE_TRANSLATION . " t1 left join " . TABLE_TRANSLATION . " t2 on (t2.language_id = (select l.languages_id from " . TABLE_LANGUAGES . " l where l.code = '" . DEFAULT_LANGUAGE . "') and t1.translation_key = t2.translation_key and t1.translation_entity = t2.translation_entity) where t1.translation_entity = '" . tep_db_input($translation_entity) . "' and t1.language_id = '" . (int)$language_id . "'");
+    public static function loadJS($translation_entity, $language_id = 0)
+    {
+        global $languages_id, $lng;
 
-      $translations = [];
-      
-      if (tep_db_num_rows($translation_query)){
+        $language_id =  !$language_id ? $languages_id : $language_id;
+
+        $translation_query = tep_db_query('select t1.translation_key, if(length(t1.translation_value)>0, t1.translation_value, t2.translation_value) as translation_value from ' . TABLE_TRANSLATION . ' t1 left join ' . TABLE_TRANSLATION . ' t2 on (t2.language_id = (select l.languages_id from ' . TABLE_LANGUAGES . " l where l.code = '" . DEFAULT_LANGUAGE . "') and t1.translation_key = t2.translation_key and t1.translation_entity = t2.translation_entity) where t1.translation_entity = '" . tep_db_input($translation_entity) . "' and t1.language_id = '" . (int)$language_id . "'");
+
+        $translations = [];
+
+        if (tep_db_num_rows($translation_query)) {
             while ($translation = tep_db_fetch_array($translation_query)) {
                 if (!isset($translations[$translation['translation_key']])) {
                     $translations[$translation['translation_key']] = $translation['translation_value'];
                 }
-            }        
-      }
-      
-      return $translations;
+            }
+        }
+
+        return $translations;
     }
-    
+
     public static function isTranslated($translation_key, $translation_entity = '', $language_id = '')
     {
         global $languages_id;
 
-        if (!$language_id) $language_id = $languages_id;
+        if (!$language_id) {
+            $language_id = $languages_id;
+        }
 
-        $translation_query = tep_db_query("select translated from " . TABLE_TRANSLATION . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
+        $translation_query = tep_db_query('select translated from ' . TABLE_TRANSLATION . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
         $translation = tep_db_fetch_array($translation_query);
         return $translation['translated'] ?? null;
-        
+
     }
 
     public static function setTranslated($translation_key, $translation_entity, $language_id, $status = 0)
     {
-      tep_db_query("update " . TABLE_TRANSLATION . " set translated = " . (int)$status . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
-    } 
-    
+        tep_db_query('update ' . TABLE_TRANSLATION . ' set translated = ' . (int)$status . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
+    }
+
     public static function isChecked($translation_key, $translation_entity = '', $language_id = '')
     {
         global $languages_id;
 
-        if (!$language_id) $language_id = $languages_id;
+        if (!$language_id) {
+            $language_id = $languages_id;
+        }
 
-        $translation_query = tep_db_query("select checked from " . TABLE_TRANSLATION . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
+        $translation_query = tep_db_query('select checked from ' . TABLE_TRANSLATION . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
         $translation = tep_db_fetch_array($translation_query);
         return $translation['checked'] ?? null;
-        
-    }    
-    
+
+    }
+
     public static function setChecked($translation_key, $translation_entity, $language_id, $status = 0)
     {
-      tep_db_query("update " . TABLE_TRANSLATION . " set checked = " . (int)$status . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
+        tep_db_query('update ' . TABLE_TRANSLATION . ' set checked = ' . (int)$status . " where translation_key = '" . tep_db_input($translation_key) . "' and translation_entity = '" . tep_db_input($translation_entity) . "' and language_id = '" . (int)$language_id . "'");
     }
 
     public static function translationsForJs($keys, $json = true)
     {
-        if (!$keys || !is_array($keys)) return [];
+        if (!$keys || !is_array($keys)) {
+            return [];
+        }
 
         $jsKeys = [];
-        foreach ($keys as $key){
+        foreach ($keys as $key) {
             if (defined($key)) {
                 $jsKeys[$key] = constant($key);
             } else {
@@ -303,7 +330,7 @@ class Translation
             return $content;
         }
 
-        $content = preg_replace_callback('|([a-zA-Z\-]+)=\"[\s]{0,}(##([A-Z0-9_]+)##)[\s]{0,}\"|', function($matches){
+        $content = preg_replace_callback('|([a-zA-Z\-]+)=\"[\s]{0,}(##([A-Z0-9_]+)##)[\s]{0,}\"|', function ($matches) {
 
             return str_replace($matches[2], self::$translations[$matches[3]]['value'], $matches[0])
                 . ' data-translation'
@@ -312,16 +339,16 @@ class Translation
 
         }, $content);
 
-        $content = preg_replace_callback('|([a-zA-Z\-]+)=\'[\s]{0,}(##([A-Z0-9_]+)##)[\s]{0,}\'|', function($matches){
+        $content = preg_replace_callback('|([a-zA-Z\-]+)=\'[\s]{0,}(##([A-Z0-9_]+)##)[\s]{0,}\'|', function ($matches) {
 
             return str_replace($matches[2], self::$translations[$matches[3]]['value'], $matches[0])
-                . " data-translation"
+                . ' data-translation'
                 . " data-translation-key-' . $matches[1] . '='" . $matches[3] . "'"
                 . " data-translation-entity-' . $matches[1] . '='" . self::$translations[$matches[3]]['entity'] . "'";
 
         }, $content);
 
-        $content = preg_replace_callback('|<option([^>]+)>(.*(##([A-Z0-9_]+)##).*?)</option>[\s\n]{0,}|', function($matches){
+        $content = preg_replace_callback('|<option([^>]+)>(.*(##([A-Z0-9_]+)##).*?)</option>[\s\n]{0,}|', function ($matches) {
 
             return '<option class="translation-key-option" '
                 . $matches[1]
@@ -349,24 +376,23 @@ class Translation
 
     public static function resetCache()
     {
-        \yii\caching\TagDependency::invalidate(\Yii::$app->getCache(),'translation');
+        \yii\caching\TagDependency::invalidate(\Yii::$app->getCache(), 'translation');
     }
 
     public static function resetCacheEnity($entity)
     {
-        \yii\caching\TagDependency::invalidate(\Yii::$app->getCache(),self::getTagNameForEntity($entity));
+        \yii\caching\TagDependency::invalidate(\Yii::$app->getCache(), self::getTagNameForEntity($entity));
     }
 
     private static function getTagNameForEntity($entity)
     {
-        return 'translate_'.str_replace('/','.',$entity);
+        return 'translate_'.str_replace('/', '.', $entity);
     }
-
 
     public static function forceConst($constNames, $entity)
     {
         if (!is_array($constNames)) {
-            $const = array($constNames);
+            $const = [$constNames];
         }
         foreach ($constNames as $constName) {
             defined($constName) or define($constName, self::getValue($constName, $entity));

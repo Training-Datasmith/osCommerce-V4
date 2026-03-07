@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -27,7 +29,7 @@ class CurrencyConversion extends PayPalModel
      * Date of validity for the conversion rate.
      *
      * @param string $conversion_date
-     * 
+     *
      * @return $this
      */
     public function setConversionDate($conversion_date)
@@ -50,7 +52,7 @@ class CurrencyConversion extends PayPalModel
      * 3 letter currency code
      *
      * @param string $from_currency
-     * 
+     *
      * @return $this
      */
     public function setFromCurrency($from_currency)
@@ -70,10 +72,10 @@ class CurrencyConversion extends PayPalModel
     }
 
     /**
-     * Amount participating in currency conversion, set to 1 as default 
+     * Amount participating in currency conversion, set to 1 as default
      *
      * @param string $from_amount
-     * 
+     *
      * @return $this
      */
     public function setFromAmount($from_amount)
@@ -83,7 +85,7 @@ class CurrencyConversion extends PayPalModel
     }
 
     /**
-     * Amount participating in currency conversion, set to 1 as default 
+     * Amount participating in currency conversion, set to 1 as default
      *
      * @return string
      */
@@ -96,7 +98,7 @@ class CurrencyConversion extends PayPalModel
      * 3 letter currency code
      *
      * @param string $to_currency
-     * 
+     *
      * @return $this
      */
     public function setToCurrency($to_currency)
@@ -119,7 +121,7 @@ class CurrencyConversion extends PayPalModel
      * Amount resulting from currency conversion.
      *
      * @param string $to_amount
-     * 
+     *
      * @return $this
      */
     public function setToAmount($to_amount)
@@ -143,7 +145,7 @@ class CurrencyConversion extends PayPalModel
      * Valid Values: ["PAYPAL", "VENDOR"]
      *
      * @param string $conversion_type
-     * 
+     *
      * @return $this
      */
     public function setConversionType($conversion_type)
@@ -166,7 +168,7 @@ class CurrencyConversion extends PayPalModel
      * Allow Payer to change conversion type.
      *
      * @param bool $conversion_type_changeable
-     * 
+     *
      * @return $this
      */
     public function setConversionTypeChangeable($conversion_type_changeable)
@@ -195,7 +197,7 @@ class CurrencyConversion extends PayPalModel
      */
     public function setWebUrl($web_url)
     {
-        UrlValidator::validate($web_url, "WebUrl");
+        UrlValidator::validate($web_url, 'WebUrl');
         $this->web_url = $web_url;
         return $this;
     }
@@ -214,7 +216,7 @@ class CurrencyConversion extends PayPalModel
      * Sets Links
      *
      * @param \PayPal\Api\Links[] $links
-     * 
+     *
      * @return $this
      */
     public function setLinks($links)
@@ -242,10 +244,10 @@ class CurrencyConversion extends PayPalModel
     public function addLink($links)
     {
         if (!$this->getLinks()) {
-            return $this->setLinks(array($links));
+            return $this->setLinks([$links]);
         } else {
             return $this->setLinks(
-                array_merge($this->getLinks(), array($links))
+                array_merge($this->getLinks(), [$links])
             );
         }
     }
@@ -259,7 +261,7 @@ class CurrencyConversion extends PayPalModel
     public function removeLink($links)
     {
         return $this->setLinks(
-            array_diff($this->getLinks(), array($links))
+            array_diff($this->getLinks(), [$links])
         );
     }
 

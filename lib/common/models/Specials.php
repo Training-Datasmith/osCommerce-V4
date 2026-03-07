@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use common\models\queries\SpecialsQuery;
 
 /**
@@ -25,9 +26,9 @@ use common\models\queries\SpecialsQuery;
  * @property string $specials_last_modified
  * @property string $expires_date
  * @property string $date_status_change
- * @property int $status 
- * @property int $specials_enabled 
- * @property int $specials_disabled 
+ * @property int $status
+ * @property int $specials_enabled
+ * @property int $specials_disabled
  * @property string $start_date
  */
 class Specials extends \yii\db\ActiveRecord
@@ -75,58 +76,64 @@ class Specials extends \yii\db\ActiveRecord
         ];
     }
 
-    public function beforeDelete() {
-      SpecialsPrices::deleteAll(['specials_id' => $this->specials_id]);
-      return parent::beforeDelete();
+    public function beforeDelete()
+    {
+        SpecialsPrices::deleteAll(['specials_id' => $this->specials_id]);
+        return parent::beforeDelete();
     }
-    
-    public function beforeSave($insert) {
-      $this->specials_last_modified = date(\common\helpers\Date::DATABASE_DATETIME_FORMAT);
-      return parent::beforeSave($insert);
+
+    public function beforeSave($insert)
+    {
+        $this->specials_last_modified = date(\common\helpers\Date::DATABASE_DATETIME_FORMAT);
+        return parent::beforeSave($insert);
     }
-    
+
     public static function find()
     {
         return new SpecialsQuery(get_called_class());
 
     }
-    public function getPrices() {
-      return $this->hasMany(\common\models\SpecialsPrices::class, ['specials_id' => 'specials_id']);
+    public function getPrices()
+    {
+        return $this->hasMany(\common\models\SpecialsPrices::class, ['specials_id' => 'specials_id']);
     }
 
-    public function getProductPrices() {
-      return $this->hasMany(\common\models\ProductsPrices::class, ['products_id' => 'products_id']);
+    public function getProductPrices()
+    {
+        return $this->hasMany(\common\models\ProductsPrices::class, ['products_id' => 'products_id']);
     }
 
-    public function getProduct() {
-      return $this->hasOne(\common\models\Products::class, ['products_id' => 'products_id']);
+    public function getProduct()
+    {
+        return $this->hasOne(\common\models\Products::class, ['products_id' => 'products_id']);
     }
 
-    public function getBackendProductDescription() {
-      $languages_id = \Yii::$app->settings->get('languages_id');
+    public function getBackendProductDescription()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
 
-      if (\backend\models\ProductNameDecorator::instance()->useInternalNameForListing()) {
-        $nameColumn = new \yii\db\Expression("IF(LENGTH(products_internal_name), products_internal_name, products_name)");
-      } else {
-        $nameColumn = 'products_name';
-      }
+        if (\backend\models\ProductNameDecorator::instance()->useInternalNameForListing()) {
+            $nameColumn = new \yii\db\Expression('IF(LENGTH(products_internal_name), products_internal_name, products_name)');
+        } else {
+            $nameColumn = 'products_name';
+        }
 
-      return $this->hasOne(\common\models\ProductsDescription::class, ['products_id' => 'products_id'])->via('product')
-                ->select(['products_name' => $nameColumn])
-                ->addSelect(['platform_id', 'products_id', 'language_id'])
-                ->andOnCondition(['language_id' => (int)$languages_id,
-                         'platform_id' => intval(\common\classes\platform::defaultId())
-                  ])
-                ->orderBy($nameColumn);
+        return $this->hasOne(\common\models\ProductsDescription::class, ['products_id' => 'products_id'])->via('product')
+                  ->select(['products_name' => $nameColumn])
+                  ->addSelect(['platform_id', 'products_id', 'language_id'])
+                  ->andOnCondition(['language_id' => (int)$languages_id,
+                           'platform_id' => intval(\common\classes\platform::defaultId()),
+                    ])
+                  ->orderBy($nameColumn);
     }
 
+    public function getSpecialsType()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
 
-    public function getSpecialsType() {
-      $languages_id = \Yii::$app->settings->get('languages_id');
-
-      return $this->hasOne(\common\models\SpecialsTypes::class, ['specials_type_id' => 'specials_type_id'])
-                ->andOnCondition([\common\models\SpecialsTypes::tableName() . '.language_id' => (int)$languages_id
-                  ]);
+        return $this->hasOne(\common\models\SpecialsTypes::class, ['specials_type_id' => 'specials_type_id'])
+                  ->andOnCondition([\common\models\SpecialsTypes::tableName() . '.language_id' => (int)$languages_id,
+                    ]);
     }
 
 }

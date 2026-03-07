@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,21 +15,22 @@
 
 namespace frontend\design\boxes;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use frontend\design\ListingSql;
 
-class FiltersSimple extends Widget {
-
+class FiltersSimple extends Widget
+{
     public $params;
     public $settings;
 
-    public function init() {
+    public function init()
+    {
         parent::init();
     }
 
-    public function run() {
+    public function run()
+    {
         if ($ext = \common\helpers\Acl::checkExtension('ProductPropertiesFilters', 'inFilters')) {
             if (!$ext::allowed()) {
                 return '';
@@ -53,8 +56,8 @@ class FiltersSimple extends Widget {
             }
 
             foreach ($data['filters_array'] as $filter) {
-                if ($filter['name'] == 'p' || $filter['name'] == 'price_data'){
-                    if ($filter['min_price']){
+                if ($filter['name'] == 'p' || $filter['name'] == 'price_data') {
+                    if ($filter['min_price']) {
                         $data['min_price'] = $currencies->display_price($filter['min_price'], 0);
                     }
                     if ($filter['max_price']) {
@@ -65,14 +68,15 @@ class FiltersSimple extends Widget {
             }
 
             $filterItems = explode(';', $this->settings[0]['filter_items']);
-            if (is_array($filterItems))
-            foreach ($filterItems as $filterItem) {
-                $item = str_replace('keywords-0', 'keywords', $filterItem);
-                $item = str_replace('price-0', 'p', $item);
-                $item = str_replace('category-0', 'cat', $item);
-                $item = str_replace('attribute-', 'at', $item);
-                $item = str_replace('property-', 'pr', $item);
-                $data['added_filter_items'][] = $item;
+            if (is_array($filterItems)) {
+                foreach ($filterItems as $filterItem) {
+                    $item = str_replace('keywords-0', 'keywords', $filterItem);
+                    $item = str_replace('price-0', 'p', $item);
+                    $item = str_replace('category-0', 'cat', $item);
+                    $item = str_replace('attribute-', 'at', $item);
+                    $item = str_replace('property-', 'pr', $item);
+                    $data['added_filter_items'][] = $item;
+                }
             }
 
             $data['id'] = $this->id;
@@ -83,18 +87,18 @@ class FiltersSimple extends Widget {
                 $data['product_url'] = Yii::$app->urlManager->createUrl(['catalog/product', 'products_id' => $product_ids[0]]);
             }
 
-            $data['list_url'] = preg_replace("/id=[0-9]+/", '', $data['filters_url_full']);
-            $data['list_url'] = preg_replace("/get_json=1/", '', $data['list_url']);
+            $data['list_url'] = preg_replace('/id=[0-9]+/', '', $data['filters_url_full']);
+            $data['list_url'] = preg_replace('/get_json=1/', '', $data['list_url']);
             $data['list_url'] = preg_replace("/\&$/", '', $data['list_url']);
             $data['list_url'] = preg_replace("/\?$/", '', $data['list_url']);
 
             $data = array_merge($data, [
-                'jsonData' => addslashes(json_encode($data))
+                'jsonData' => addslashes(json_encode($data)),
             ]);
 
             return IncludeTpl::widget([
                 'file' => 'boxes/filters-simple.tpl',
-                'params' => $data
+                'params' => $data,
             ]);
         }
     }

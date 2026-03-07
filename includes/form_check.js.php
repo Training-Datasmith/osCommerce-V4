@@ -2,10 +2,10 @@
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -102,19 +102,29 @@ function check_form(form_name) {
   form = form_name;
   error_message = "<?php echo JS_ERROR; ?>";
 
-<?php if (ACCOUNT_GENDER == 'required' || ACCOUNT_GENDER == 'required_register') echo '  check_radio("gender", "' . ENTRY_GENDER_ERROR . '");' . "\n"; ?>
+<?php if (ACCOUNT_GENDER == 'required' || ACCOUNT_GENDER == 'required_register') {
+    echo '  check_radio("gender", "' . ENTRY_GENDER_ERROR . '");' . "\n";
+} ?>
 
-<?php if (ACCOUNT_FIRSTNAME == 'required' || ACCOUNT_FIRSTNAME == 'required_register') echo '  check_input("firstname", ' . ENTRY_FIRST_NAME_MIN_LENGTH . ', "' . ENTRY_FIRST_NAME_ERROR . '");' . "\n"; ?>
-<?php if (ACCOUNT_LASTNAME == 'required' || ACCOUNT_LASTNAME == 'required_register') echo '  check_input("lastname", ' . ENTRY_LAST_NAME_MIN_LENGTH . ', "' . ENTRY_LAST_NAME_ERROR . '");' . "\n"; ?>
+<?php if (ACCOUNT_FIRSTNAME == 'required' || ACCOUNT_FIRSTNAME == 'required_register') {
+    echo '  check_input("firstname", ' . ENTRY_FIRST_NAME_MIN_LENGTH . ', "' . ENTRY_FIRST_NAME_ERROR . '");' . "\n";
+} ?>
+<?php if (ACCOUNT_LASTNAME == 'required' || ACCOUNT_LASTNAME == 'required_register') {
+    echo '  check_input("lastname", ' . ENTRY_LAST_NAME_MIN_LENGTH . ', "' . ENTRY_LAST_NAME_ERROR . '");' . "\n";
+} ?>
 
-<?php if (ACCOUNT_DOB == 'required' || ACCOUNT_DOB == 'required_register') echo '  check_input("dob", ' . ENTRY_DOB_MIN_LENGTH . ', "' . ENTRY_DATE_OF_BIRTH_ERROR . '");' . "\n"; ?>
+<?php if (ACCOUNT_DOB == 'required' || ACCOUNT_DOB == 'required_register') {
+    echo '  check_input("dob", ' . ENTRY_DOB_MIN_LENGTH . ', "' . ENTRY_DATE_OF_BIRTH_ERROR . '");' . "\n";
+} ?>
 
   check_input("email_address", <?php echo ENTRY_EMAIL_ADDRESS_MIN_LENGTH; ?>, "<?php echo ENTRY_EMAIL_ADDRESS_ERROR; ?>");
   check_input("street_address", <?php echo ENTRY_STREET_ADDRESS_MIN_LENGTH; ?>, "<?php echo ENTRY_STREET_ADDRESS_ERROR; ?>");
   check_input("postcode", <?php echo ENTRY_POSTCODE_MIN_LENGTH; ?>, "<?php echo ENTRY_POST_CODE_ERROR; ?>");
   check_input("city", <?php echo ENTRY_CITY_MIN_LENGTH; ?>, "<?php echo ENTRY_CITY_ERROR; ?>");
 
-<?php if (ACCOUNT_STATE == 'required') echo '  check_input("state", ' . ENTRY_STATE_MIN_LENGTH . ', "' . ENTRY_STATE_ERROR . '");' . "\n"; ?>
+<?php if (ACCOUNT_STATE == 'required') {
+    echo '  check_input("state", ' . ENTRY_STATE_MIN_LENGTH . ', "' . ENTRY_STATE_ERROR . '");' . "\n";
+} ?>
 
   check_select("country", "", "<?php echo ENTRY_COUNTRY_ERROR; ?>");
 

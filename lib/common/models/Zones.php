@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "zones".
@@ -17,7 +17,7 @@ class Zones extends \yii\db\ActiveRecord
     /**
      * @inheritdoc
      */
-    public static function tableName():string
+    public static function tableName(): string
     {
         return 'zones';
     }
@@ -56,11 +56,11 @@ class Zones extends \yii\db\ActiveRecord
 
         Cities::updateAll([
             'city_zone_id' => 0,
-        ], ['city_zone_id'=>$this->zone_id]);
+        ], ['city_zone_id' => $this->zone_id]);
 
         PostalCodes::updateAll([
             'zone_id' => 0,
-        ], ['zone_id'=>$this->zone_id]);
+        ], ['zone_id' => $this->zone_id]);
 
         return true;
     }

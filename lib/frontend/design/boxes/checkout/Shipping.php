@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\checkout;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class Shipping extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -31,12 +31,14 @@ class Shipping extends Widget
 
     public function run()
     {
-        if (is_object($this->manager)){
+        if (is_object($this->manager)) {
             $this->params['manager'] = $this->manager;
         }
-        if (is_object($this->params['manager'])){
-            if (!$this->params['manager']->isChargedOrder()) return '';
-        }        
+        if (is_object($this->params['manager'])) {
+            if (!$this->params['manager']->isChargedOrder()) {
+                return '';
+            }
+        }
 
         return IncludeTpl::widget([
               'file' => 'boxes/checkout/shipping.tpl',

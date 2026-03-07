@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,13 @@
 
 namespace frontend\design\boxes;
 
+use common\classes\ReCaptcha;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use common\classes\ReCaptcha;
 
 class SendForm extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -33,7 +34,7 @@ class SendForm extends Widget
     {
         $post = Yii::$app->request->post();
 
-        if (is_array($post) && $post['send_form']){
+        if (is_array($post) && $post['send_form']) {
 
             $request = self::validateFormData($post, $this->settings);
 
@@ -64,7 +65,7 @@ class SendForm extends Widget
         //TODO: add validate form by 'required' field from $formData
 
         if (strpos(self::getField($settings, 'text'), '<captcha></captcha>') !== false) {
-            if (!$captcha->checkVerification($_POST['g-recaptcha-response'])){
+            if (!$captcha->checkVerification($_POST['g-recaptcha-response'])) {
                 return UNSUCCESSFULL_ROBOT_VERIFICATION;
             }
         }
@@ -99,7 +100,6 @@ class SendForm extends Widget
         $post = Yii::$app->request->post();
         $platformData = \frontend\design\Info::platformData();
 
-
         $platform_config = Yii::$app->get('platform')->config($platform_id);
         /**
          * @var $platform_config \common\classes\platform_config
@@ -115,7 +115,7 @@ class SendForm extends Widget
         } else {
             $to_email_address = $platform_config->landingContactEmail();
         }
-        if ( strpos($to_email_address,',')!==false ) {
+        if (strpos($to_email_address, ',') !== false) {
             $to_name = '';
         }
 
@@ -133,7 +133,6 @@ class SendForm extends Widget
         $from_email_name = $platformData['platform_name'];
         $from_email_address = $platformData['platform_email_from'];
 
-
         $email_params = [];
         $email_params['STORE_NAME'] = '';
         $formData = self::getFormData(self::getField($settings, 'text'));
@@ -149,7 +148,7 @@ class SendForm extends Widget
             $languages_id,
             $platform_id
         );
-        if ( !empty($email_subject) && !empty($email_text) ) {
+        if (!empty($email_subject) && !empty($email_text)) {
             \common\helpers\Mail::send(
                 $to_name,
                 $to_email_address,
@@ -157,7 +156,10 @@ class SendForm extends Widget
                 $email_text,
                 $from_email_name,
                 $from_email_address,
-                [], '', '', ['add_br' => 'no']
+                [],
+                '',
+                '',
+                ['add_br' => 'no']
             );
         }
     }
@@ -166,7 +168,7 @@ class SendForm extends Widget
     {
         $languages_id = \Yii::$app->settings->get('languages_id');
 
-        if ( $settings[0][$field]) {
+        if ($settings[0][$field]) {
             return $settings[0][$field];
         } elseif ($settings[$languages_id][$field]) {
             return $settings[$languages_id][$field];
@@ -183,7 +185,7 @@ class SendForm extends Widget
         $inputs = [];
         $formData = [];
         if (preg_match_all('/\<input[^>]+\>/', $text, $inputs)) {
-            foreach ($inputs[0] as $input){
+            foreach ($inputs[0] as $input) {
                 $name = '';
                 if (preg_match_all('/name\=\'([^\']+)\'/', $input, $tmpName)) {
                     $name = $tmpName[1][0];
@@ -211,12 +213,12 @@ class SendForm extends Widget
                     'name' => $name,
                     'type' => $type,
                     'required' => $required,
-                    'checked' => $checked
+                    'checked' => $checked,
                 ];
             }
         }
         if (preg_match_all('/\<textarea[^>]+\>/', $text, $textarea)) {
-            foreach ($textarea[0] as $input){
+            foreach ($textarea[0] as $input) {
                 $name = '';
                 if (preg_match_all('/name\=\'([^\']+)\'/', $input, $tmpName)) {
                     $name = $tmpName[1][0];
@@ -232,12 +234,12 @@ class SendForm extends Widget
                     'teg' => 'textarea',
                     'name' => $name,
                     'required' => $required,
-                    'checked' => $checked
+                    'checked' => $checked,
                 ];
             }
         }
         if (preg_match_all('/\<select[^>]+\>/', $text, $select)) {
-            foreach ($select[0] as $input){
+            foreach ($select[0] as $input) {
                 $name = '';
                 if (preg_match_all('/name\=\'([^\']+)\'/', $input, $tmpName)) {
                     $name = $tmpName[1][0];
@@ -253,7 +255,7 @@ class SendForm extends Widget
                     'teg' => 'textarea',
                     'name' => $name,
                     'required' => $required,
-                    'checked' => $checked
+                    'checked' => $checked,
                 ];
             }
         }

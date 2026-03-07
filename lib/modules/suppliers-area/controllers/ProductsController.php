@@ -1,12 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace suppliersarea\controllers;
 
 use Yii;
 
-class ProductsController extends Sceleton {
-
-    public function behaviors() {
+class ProductsController extends Sceleton
+{
+    public function behaviors()
+    {
 
         return [
             'access' => [
@@ -14,30 +17,31 @@ class ProductsController extends Sceleton {
                 'rules' => [
                     [
                         'allow' => true,
-                        'roles' => ['@']
-                    ]
+                        'roles' => ['@'],
+                    ],
                 ],
                 'denyCallback' => function ($rule, $action) {
                     return $this->redirect(['index/login']);
                 },
-            ]
+            ],
         ];
     }
 
-    public function actionIndex() {
+    public function actionIndex()
+    {
 
         $supplier_id = $this->module->user->getId();
 
         $query = \common\models\Products::find()->joinWith([
-                    'inventories' => function($query) use ($supplier_id) {
+                    'inventories' => function ($query) use ($supplier_id) {
                         $query->with([
-                            'suppliersProducts' => function($query)use ($supplier_id) {
+                            'suppliersProducts' => function ($query) use ($supplier_id) {
                                 $query->onCondition(['suppliers_id' => $supplier_id]);
                             },
                         ]);
                     },
                 ])->with([
-                    'suppliersProducts' => function($query) use ($supplier_id) {
+                    'suppliersProducts' => function ($query) use ($supplier_id) {
                         $query->where(['suppliers_id' => $supplier_id]);
                     }])->joinWith('description');
 
@@ -66,9 +70,9 @@ class ProductsController extends Sceleton {
                 'class' => 'yii\grid\DataColumn',
                 'attribute' => 'products_name',
                 'enableSorting' => true,
-                'value' => function($model, $key, $index, $object) {
+                'value' => function ($model, $key, $index, $object) {
                     return $model->description->products_name;
-                }
+                },
             ],
             [
                 'class' => 'yii\grid\DataColumn',
@@ -77,9 +81,9 @@ class ProductsController extends Sceleton {
             ],
             [
                 'class' => 'yii\grid\DataColumn',
-                'label' => "Supplier Model",
+                'label' => 'Supplier Model',
                 'attribute' => 'suppliers_model',
-                'value' => function($model, $key, $index, $object) {
+                'value' => function ($model, $key, $index, $object) {
                     if (!$model->inventories) {
                         if ($model->suppliersProducts[0]) {
                             return $model->suppliersProducts[0]->suppliers_model;
@@ -90,8 +94,8 @@ class ProductsController extends Sceleton {
             ],
             [
                 'class' => 'yii\grid\Column',
-                'header' => "Supplier Price",
-                'content' => function($model, $key, $index) use ($cMap, $_currencies, $_baseUrl) {
+                'header' => 'Supplier Price',
+                'content' => function ($model, $key, $index) use ($cMap, $_currencies, $_baseUrl) {
                     if (!$model->inventories) {
                         if ($model->suppliersProducts[0]) {
                             return \suppliersarea\widgets\PriceEditor::widget([
@@ -101,12 +105,12 @@ class ProductsController extends Sceleton {
                         }
                     }
                     return '';
-                }
+                },
             ],
             [
                 'class' => 'yii\grid\Column',
                 'header' => 'Supplier Discount, %',
-                'content' => function($model, $key, $index) {
+                'content' => function ($model, $key, $index) {
                     if (!$model->inventories) {
                         if ($model->suppliersProducts[0]) {
                             return \suppliersarea\widgets\DiscountEditor::widget([
@@ -115,7 +119,7 @@ class ProductsController extends Sceleton {
                         }
                     }
                     return '';
-                }
+                },
             ],
             [
                 'class' => 'yii\grid\Column',
@@ -151,7 +155,7 @@ class ProductsController extends Sceleton {
             [
                 'class' => 'yii\grid\Column',
                 'header' => 'Action',
-                'content' => function($model, $key, $index, $column) use ($_baseUrl) {
+                'content' => function ($model, $key, $index, $column) use ($_baseUrl) {
                     if (!$model->inventories) {
                         if ($model->suppliersProducts[0]) {
                             return \suppliersarea\widgets\ActionButton::widget(['template' => '{update}', 'url' => Yii::$app->urlManager->createUrl([$_baseUrl . '/products/update', 'uprid' => $model->products_id])]);
@@ -160,7 +164,7 @@ class ProductsController extends Sceleton {
                         }
                     }
                 },
-            ]
+            ],
         ];
 
         return $this->render('index', [
@@ -173,7 +177,8 @@ class ProductsController extends Sceleton {
         ]);
     }
 
-    public function actionChangeStatus() {
+    public function actionChangeStatus()
+    {
         $sid = Yii::$app->request->post('sid');
         $uprid = Yii::$app->request->post('uprid');
         $status = Yii::$app->request->post('value', '');
@@ -195,7 +200,8 @@ class ProductsController extends Sceleton {
         return \common\widgets\Alert::widget();
     }
 
-    public function actionUpdate() {
+    public function actionUpdate()
+    {
 
         $messageStack = Yii::$container->get('message_stack');
 
@@ -250,7 +256,8 @@ class ProductsController extends Sceleton {
         ]);
     }
 
-    public function actionSavePrice() {
+    public function actionSavePrice()
+    {
 
         $suppliers_data = Yii::$app->request->post('suppliers_data');
         if (is_array($suppliers_data)) {
@@ -271,8 +278,9 @@ class ProductsController extends Sceleton {
                 'currencies' => $this->service->get('currencies'),
         ]);
     }
-    
-    public function actionSaveQuantity() {
+
+    public function actionSaveQuantity()
+    {
 
         $suppliers_data = Yii::$app->request->post('suppliers_data');
         if (is_array($suppliers_data)) {
@@ -280,7 +288,7 @@ class ProductsController extends Sceleton {
                 $sProduct = \common\models\SuppliersProducts::findOne(['suppliers_id' => $this->module->user->getId(), 'uprid' => $uprid]);
                 if ($sProduct) {
                     $sProduct->setAttributes([
-                        'suppliers_quantity' => floatval($spData['suppliers_quantity']),                        
+                        'suppliers_quantity' => floatval($spData['suppliers_quantity']),
                             ], false);
                     $sProduct->save();
                 }
@@ -288,11 +296,12 @@ class ProductsController extends Sceleton {
         }
 
         return \suppliersarea\widgets\QuantityEditor::widget([
-                'product' => $sProduct,                    
+                'product' => $sProduct,
         ]);
     }
-    
-    public function actionSaveDiscount() {
+
+    public function actionSaveDiscount()
+    {
 
         $suppliers_data = Yii::$app->request->post('suppliers_data');
         if (is_array($suppliers_data)) {
@@ -300,7 +309,7 @@ class ProductsController extends Sceleton {
                 $sProduct = \common\models\SuppliersProducts::findOne(['suppliers_id' => $this->module->user->getId(), 'uprid' => $uprid]);
                 if ($sProduct) {
                     $sProduct->setAttributes([
-                        'supplier_discount' => floatval($spData['supplier_discount']),                        
+                        'supplier_discount' => floatval($spData['supplier_discount']),
                             ], false);
                     $sProduct->save();
                 }
@@ -308,11 +317,12 @@ class ProductsController extends Sceleton {
         }
 
         return \suppliersarea\widgets\DiscountEditor::widget([
-                'product' => $sProduct,                    
+                'product' => $sProduct,
         ]);
     }
 
-    public function actionCalculateProductPrice() {
+    public function actionCalculateProductPrice()
+    {
         $uprid = Yii::$app->request->post('uprid');
 
         $newPrice = null;
@@ -340,7 +350,7 @@ class ProductsController extends Sceleton {
                             'surcharge' => floatval($sProduct->suppliers_surcharge_amount),
                             'discount' => floatval($discount)
                 ]);*/
-                
+
                 $params = [
                     'products_id' => (int)$uprid,
                     'categories_id' => [],
@@ -352,9 +362,9 @@ class ProductsController extends Sceleton {
                     'DISCOUNT' => floatval($discount),
                 ];
                 $data = [];
-                if ( $params['PRICE']>0 ) {
+                if ($params['PRICE'] > 0) {
                     $data['result'] = \common\helpers\PriceFormula::applyRules($params, $this->module->user->getId());
-                    if ( $data['result']===false ) {
+                    if ($data['result'] === false) {
                         $data['error'] = 'No applicable rule found';
                     } else {
                         $taxRate = \common\helpers\Tax::get_tax_rate_value($product->products_tax_class_id);
@@ -370,7 +380,8 @@ class ProductsController extends Sceleton {
         return $response;
     }
 
-    public function actionPropose() {
+    public function actionPropose()
+    {
 
         $messageStack = Yii::$container->get('message_stack');
 
@@ -409,7 +420,8 @@ class ProductsController extends Sceleton {
         ]);
     }
 
-    private function handleSupplierData($sProduct, $uprid) {
+    private function handleSupplierData($sProduct, $uprid)
+    {
         $messageStack = Yii::$container->get('message_stack');
 
         $suppliers_data = Yii::$app->request->post('suppliers_data');

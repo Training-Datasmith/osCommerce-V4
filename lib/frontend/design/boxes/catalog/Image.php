@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -15,13 +17,12 @@ namespace frontend\design\boxes\catalog;
 use common\classes\platform;
 use common\models\CategoriesImages;
 use common\models\ImageTypes;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Image extends Widget
 {
-
     public $file;
     public $params;
     public $content;
@@ -54,10 +55,10 @@ class Image extends Widget
             }
 
             $categoriesImages = CategoriesImages::find()->alias('ci')
-                ->leftJoin(ImageTypes::tableName() . ' it', "ci.image_types_id = it.image_types_id")
+                ->leftJoin(ImageTypes::tableName() . ' it', 'ci.image_types_id = it.image_types_id')
                 ->where([
                     'ci.categories_id' => $current_category_id,
-                    'it.image_types_name' => 'Category hero'
+                    'it.image_types_name' => 'Category hero',
                 ])
                 ->andWhere(['or', ['ci.platform_id' => $platformId], ['ci.platform_id' => 0]])
                 ->asArray()->all();
@@ -88,9 +89,11 @@ class Image extends Widget
                 [
                     'alt' => $category['categories_name'],
                     'title' => $category['categories_name'],
-                    'id' => 'cat-img-' . $this->id
+                    'id' => 'cat-img-' . $this->id,
                 ],
-                false, false, $responsiveImages
+                false,
+                false,
+                $responsiveImages
             );
 
             if ($category['img'] === false) {
@@ -100,7 +103,7 @@ class Image extends Widget
         } elseif ($manufacturers_id > 0) {
 
             // Get the manufacturer name and image
-            $manufacturer_query = tep_db_query("select m.manufacturers_name as categories_name,  m.manufacturers_image_2 as categories_image from " . TABLE_MANUFACTURERS . " m left join " . TABLE_MANUFACTURERS_INFO . " mi on (m.manufacturers_id = mi.manufacturers_id and mi.languages_id = '" . (int)$languages_id . "')  where m.manufacturers_id = '" . (int)$manufacturers_id . "'");
+            $manufacturer_query = tep_db_query('select m.manufacturers_name as categories_name,  m.manufacturers_image_2 as categories_image from ' . TABLE_MANUFACTURERS . ' m left join ' . TABLE_MANUFACTURERS_INFO . " mi on (m.manufacturers_id = mi.manufacturers_id and mi.languages_id = '" . (int)$languages_id . "')  where m.manufacturers_id = '" . (int)$manufacturers_id . "'");
             $category = tep_db_fetch_array($manufacturer_query);
 
             if (!$category['categories_image']) {
@@ -125,7 +128,6 @@ class Image extends Widget
                 'img' => 'no',
             ];
         }
-
 
         return IncludeTpl::widget(['file' => 'boxes/catalog/image.tpl', 'params' => ['category' => $category]]);
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -21,7 +23,7 @@ class PaymentHistory extends PayPalModel
      * A list of Payment resources
      *
      * @param \PayPal\Api\Payment[] $payments
-     * 
+     *
      * @return $this
      */
     public function setPayments($payments)
@@ -49,10 +51,10 @@ class PaymentHistory extends PayPalModel
     public function addPayment($payment)
     {
         if (!$this->getPayments()) {
-            return $this->setPayments(array($payment));
+            return $this->setPayments([$payment]);
         } else {
             return $this->setPayments(
-                array_merge($this->getPayments(), array($payment))
+                array_merge($this->getPayments(), [$payment])
             );
         }
     }
@@ -66,7 +68,7 @@ class PaymentHistory extends PayPalModel
     public function removePayment($payment)
     {
         return $this->setPayments(
-            array_diff($this->getPayments(), array($payment))
+            array_diff($this->getPayments(), [$payment])
         );
     }
 
@@ -74,7 +76,7 @@ class PaymentHistory extends PayPalModel
      * Number of items returned in each range of results. Note that the last results range could have fewer items than the requested number of items. Maximum value: 20.
      *
      * @param int $count
-     * 
+     *
      * @return $this
      */
     public function setCount($count)
@@ -97,7 +99,7 @@ class PaymentHistory extends PayPalModel
      * Identifier of the next element to get the next range of results.
      *
      * @param string $next_id
-     * 
+     *
      * @return $this
      */
     public function setNextId($next_id)

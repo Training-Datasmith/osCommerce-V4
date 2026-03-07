@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,10 +24,8 @@ class m230120_203604_product_properties_filters_drop_old_config extends Migratio
      */
     public function safeUp()
     {
-        if(method_exists($this, 'isOldExtension'))
-        {
-            if(!$this->isOldExtension('ProductPropertiesFilters'))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension('ProductPropertiesFilters')) {
                 $this->removeConfigurationKeys(['DISPLAY_ONE_VALUE_FILTER', 'ALWAYS_SHOW_FILTERS_ON_BRAND_PAGE']);
             }
         }

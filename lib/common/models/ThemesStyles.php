@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "themes_styles".
@@ -34,7 +34,7 @@ class ThemesStyles extends \yii\db\ActiveRecord
         return [
             [['theme_name', 'selector', 'attribute', 'value'], 'string', 'max' => 256],
             [['visibility', 'accessibility'], 'string', 'max' => 64],
-            [['media'], 'string', 'max' => 128]
+            [['media'], 'string', 'max' => 128],
         ];
     }
 

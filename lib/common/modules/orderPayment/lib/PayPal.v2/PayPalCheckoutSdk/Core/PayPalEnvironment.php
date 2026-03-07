@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPalCheckoutSdk\Core;
 
 use PayPalHttp\Environment;
@@ -17,9 +19,9 @@ abstract class PayPalEnvironment implements Environment
 
     public function authorizationString()
     {
-        return base64_encode($this->clientId . ":" . $this->clientSecret);
+        return base64_encode($this->clientId . ':' . $this->clientSecret);
     }
-// TL cache add
+    // TL cache add
     public function getClientId()
     {
         return $this->clientId;
@@ -29,6 +31,5 @@ abstract class PayPalEnvironment implements Environment
     {
         return $this->clientSecret;
     }
-// TL cache add end
+    // TL cache add end
 }
-

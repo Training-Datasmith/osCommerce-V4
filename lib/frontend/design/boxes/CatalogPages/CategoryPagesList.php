@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,55 +15,53 @@
 namespace frontend\design\boxes\CatalogPages;
 
 use common\classes\Images;
+use frontend\design\IncludeTpl;
 use frontend\models\repositories\CatalogPagesReadRepository;
 use frontend\models\repositories\InformationReadRepository;
-use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class CategoryPagesList extends Widget
 {
+    public $file;
+    public $params;
+    public $content;
+    public $settings;
 
-	public $file;
-	public $params;
-	public $content;
-	public $settings;
+    private $catalogPagesId = 0;
+    private $catalogPagesRepository;
+    private $informationRepository;
 
-	private $catalogPagesId = 0;
-	private $catalogPagesRepository;
-	private $informationRepository;
+    public function __construct(CatalogPagesReadRepository $catalogPagesRepository, InformationReadRepository $informationRepository, $config = [])
+    {
+        parent::__construct($config);
+        $this->catalogPagesRepository = $catalogPagesRepository;
+        $this->informationRepository = $informationRepository;
+    }
 
-	public function __construct( CatalogPagesReadRepository $catalogPagesRepository, InformationReadRepository $informationRepository, $config = [])
-	{
-		parent::__construct($config);
-		$this->catalogPagesRepository = $catalogPagesRepository;
-		$this->informationRepository = $informationRepository;
-	}
+    public function init()
+    {
+        parent::init();
+        $this->catalogPagesId = (int)$this->settings[0]['selectCatalogPage'];
+    }
 
-	public function init()
-	{
-		parent::init();
-		$this->catalogPagesId = (int)$this->settings[0]['selectCatalogPage'];
-	}
+    public function run()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
 
-	public function run()
-	{
-		$languages_id = \Yii::$app->settings->get('languages_id');
+        if ($this->catalogPagesId < 1) {
+            return '';
+        }
 
-		if($this->catalogPagesId < 1){
-			return '';
-		}
-
-		$infoPages = $this->catalogPagesRepository->getFullInfoList($this->catalogPagesId,$languages_id);
-		if(empty($infoPages)){
-			return '';
-		}
-		$imagePageCatalogPath = Images::getWSCatalogImagesPath().$this->catalogPagesRepository->imagesLocation();
+        $infoPages = $this->catalogPagesRepository->getFullInfoList($this->catalogPagesId, $languages_id);
+        if (empty($infoPages)) {
+            return '';
+        }
+        $imagePageCatalogPath = Images::getWSCatalogImagesPath().$this->catalogPagesRepository->imagesLocation();
         $imageInformationPath = Images::getWSCatalogImagesPath().$this->informationRepository->imagesLocation();
-		return IncludeTpl::widget(['file' => 'boxes/category-pages/category-pages-list.tpl', 'params' => [
-			'infoPages' => $infoPages,
-			'imagePageCatalogPath' => $imagePageCatalogPath,
+        return IncludeTpl::widget(['file' => 'boxes/category-pages/category-pages-list.tpl', 'params' => [
+            'infoPages' => $infoPages,
+            'imagePageCatalogPath' => $imagePageCatalogPath,
             'imageInformationPath' => $imageInformationPath,
-		]]);
-	}
+        ]]);
+    }
 }

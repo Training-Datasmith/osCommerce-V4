@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,11 +24,13 @@ class m221202_102514_install extends Migration
      */
     public function safeUp()
     {
-        $this->update('translation',
+        $this->update(
+            'translation',
             ['translation_value' => 'force update exclude mark as ignore'],
             ['translation_key' => 'TEXT_FORCE_UPDATE', 'translation_entity' => 'admin/install']
         );
-        $this->update('translation',
+        $this->update(
+            'translation',
             ['translation_value' => 'In this case all local changes not marked as ignore will be lost'],
             ['translation_key' => 'TEXT_FORCE_UPDATE_INTRO', 'translation_entity' => 'admin/install']
         );

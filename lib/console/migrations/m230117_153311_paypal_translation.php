@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -28,7 +30,7 @@ class m230117_153311_paypal_translation extends Migration
           'PAYPAL_GET_DATA' => 'To get data from paypal',
           'TEXT_ENTER_API_DETAILS' => 'Enter api details',
           'PAYPAL_PARTNER_GET_DATA_PAYPAL' => 'to get data from PayPal',
-          
+
         ]);
 
         $this->db->createCommand("update translation set translation_value='Use PayPal sandbox account (you could switch to live account later)' where translation_key='PAYPAL_SANDBOX_MODE' and translation_value like 'Try PayPal test (sandbox) account (you could switch to live account later)'")->execute();
@@ -57,7 +59,7 @@ class m230117_153311_paypal_translation extends Migration
           'TEXT_PAYPAL_PARTNER_WEBHOOKS_REQUIRED'  => 'Required Webhooks',
           'TEXT_PAYPAL_PARTNER_WEBHOOKS_REQUIRED_NOTE'  => ' * for alternative payment methods (APM)',
           ]);
-        
+
     }
 
     /**
@@ -65,9 +67,9 @@ class m230117_153311_paypal_translation extends Migration
      */
     public function safeDown()
     {
-//        echo "m230117_153311_paypal_translation cannot be reverted.\n";
+        //        echo "m230117_153311_paypal_translation cannot be reverted.\n";
 
-//        return false;
+        //        return false;
     }
 
     /*

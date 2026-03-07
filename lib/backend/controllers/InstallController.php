@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -18,28 +20,29 @@ use Yii;
 /**
  * default controller to handle user requests.
  */
-class InstallController extends Sceleton {
-
+class InstallController extends Sceleton
+{
     public $acl = ['BOX_HEADING_INSTALL'];
-    
+
     private $deployLog = [];
-    
+
     private $doMigrations;
     private $doSystem;
     private $doSmarty;
     private $doTheme;
     private $doHooks;
     private $doMenu;
-    
+
     private $show_ignore_field = false;
     private $dst_file_ignore = [];
 
     private $extClass = null;
 
-    function __construct($id,$module=null) {
+    public function __construct($id, $module = null)
+    {
         \common\helpers\Translation::init('admin/install');
 
-        parent::__construct($id,$module);
+        parent::__construct($id, $module);
     }
 
     private function checkSystemRequires()
@@ -56,12 +59,12 @@ class InstallController extends Sceleton {
         return $filename === 'php_version_74';
     }
 
-    private function basename($param, $suffix=null,$charset = 'utf-8')
+    private function basename($param, $suffix = null, $charset = 'utf-8')
     {
-        if ( $suffix ) {
+        if ($suffix) {
             $tmpstr = ltrim(mb_substr($param, mb_strrpos($param, DIRECTORY_SEPARATOR, 0, $charset), null, $charset), DIRECTORY_SEPARATOR);
-            if ( (mb_strpos($param, $suffix, null, $charset)+mb_strlen($suffix, $charset) )  ==  mb_strlen($param, $charset) ) {
-                return str_ireplace( $suffix, '', $tmpstr);
+            if ((mb_strpos($param, $suffix, null, $charset) + mb_strlen($suffix, $charset))  ==  mb_strlen($param, $charset)) {
+                return str_ireplace($suffix, '', $tmpstr);
             } else {
                 return ltrim(mb_substr($param, mb_strrpos($param, DIRECTORY_SEPARATOR, 0, $charset), null, $charset), DIRECTORY_SEPARATOR);
             }
@@ -70,11 +73,10 @@ class InstallController extends Sceleton {
         }
     }
 
-
     private function delTree($dir)
     {
         if (is_dir($dir)) {
-            $files = array_diff(scandir($dir), array('.', '..'));
+            $files = array_diff(scandir($dir), ['.', '..']);
             foreach ($files as $file) {
                 (is_dir("$dir/$file")) ? $this->delTree("$dir/$file") : @unlink("$dir/$file");
             }
@@ -128,15 +130,19 @@ class InstallController extends Sceleton {
             //'@superadmin',
             //'@rest',
         ];
-        foreach ( $other_apps_aliases as $_apps_alias ) {
+        foreach ($other_apps_aliases as $_apps_alias) {
             $_app_runtime_dir = Yii::getAlias($_apps_alias . $runtime_dir_name, false);
-            if ( !$_app_runtime_dir || !is_dir($_app_runtime_dir) ) continue;
+            if (!$_app_runtime_dir || !is_dir($_app_runtime_dir)) {
+                continue;
+            }
 
             $all_runtime_directories[] = $_app_runtime_dir;
         }
 
         if ($this->doMigrations) {
-            if ($echo) echo TEXT_APPLY_MIGRATIONS . "<br>\n";
+            if ($echo) {
+                echo TEXT_APPLY_MIGRATIONS . "<br>\n";
+            }
             $oldApp = \Yii::$app;
             new \yii\console\Application([
                 'id' => 'Command runner',
@@ -145,7 +151,7 @@ class InstallController extends Sceleton {
                     'db' => $oldApp->db,
                     'cache' => [
                         'class' => 'yii\caching\FileCache',
-                        'cachePath' => '@frontend/runtime/cache'
+                        'cachePath' => '@frontend/runtime/cache',
                     ],
                     'log' => [
                         'targets' => [
@@ -164,19 +170,24 @@ class InstallController extends Sceleton {
             \Yii::$app = $oldApp;
         }
 
-
         if ($this->doSystem) {
-            if ($echo) echo TEXT_CLEAN_CACHE . "<br>\n";
+            if ($echo) {
+                echo TEXT_CLEAN_CACHE . "<br>\n";
+            }
             Yii::$app->getCache()->flush();
             if (function_exists('opcache_reset')) {
                 opcache_reset();
-                if ($echo) echo TEXT_CACHE_FLUSHED . "<br>\n";
+                if ($echo) {
+                    echo TEXT_CACHE_FLUSHED . "<br>\n";
+                }
             }
         }
 
         if ($this->doSmarty) {
-            if ($echo) echo TEXT_CLEAN_SMARTY . "<br>\n";
-            foreach ($all_runtime_directories as $runtime_directory){
+            if ($echo) {
+                echo TEXT_CLEAN_SMARTY . "<br>\n";
+            }
+            foreach ($all_runtime_directories as $runtime_directory) {
                 $smartyPath = $runtime_directory . DIRECTORY_SEPARATOR . 'Smarty' . DIRECTORY_SEPARATOR . 'compile' . DIRECTORY_SEPARATOR . '*.*';
                 array_map('unlink', glob($smartyPath));
             }
@@ -224,11 +235,11 @@ class InstallController extends Sceleton {
             curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
             curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'POST');
             curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($request, CURLOPT_HTTPHEADER, array(
+            curl_setopt($request, CURLOPT_HTTPHEADER, [
                 'Content-Type: application/json',
                 'Accept: application/json',
-                'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal
-            ));
+                'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
+            ]);
 
             $postFieldArray = [
                 'get_by' => $get_by,
@@ -258,14 +269,14 @@ class InstallController extends Sceleton {
                 $zip = new \ZipArchive();
                 if ($zip->open($path . $filename) === true) {
                     $json = $zip->getFromName('distribution.json');
-                    $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#','',$json);
+                    $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
                     $zip->close();
                     if (!empty($json)) {
                         $distribution = json_decode($json);
                         if (isset($distribution->require->modules) && is_array($distribution->require->modules)) {
                             foreach ($distribution->require->modules as $subfile) {
                                 $record = \common\models\Installer::find()->where(['filename' => $subfile])->one();
-                                if ( !($record instanceof \common\models\Installer) ) {
+                                if (!($record instanceof \common\models\Installer)) {
                                     $status = $status && $this->getFileWithDependencies('file', $subfile);
                                 }
                             }
@@ -313,7 +324,7 @@ class InstallController extends Sceleton {
         $zip = new \ZipArchive();
         if ($zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . $filename) === true) {
             $json = $zip->getFromName('distribution.json');
-            $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#','',$json);
+            $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
             $zip->close();
             if (!empty($json)) {
                 $distribution = json_decode($json);
@@ -352,9 +363,11 @@ class InstallController extends Sceleton {
                 }
                 if (isset($distribution->require->modules) && is_array($distribution->require->modules)) {
                     foreach ($distribution->require->modules as $subfile) {
-                        if (self::isKnownRequireModule($subfile)) continue;
+                        if (self::isKnownRequireModule($subfile)) {
+                            continue;
+                        }
                         $record = \common\models\Installer::find()->where(['filename' => $subfile])->one();
-                        if ( !($record instanceof \common\models\Installer) ) {
+                        if (!($record instanceof \common\models\Installer)) {
                             $status = $status && $this->installFileWithDependencies($subfile, $settings, $echo);
                         }
                     }
@@ -364,14 +377,14 @@ class InstallController extends Sceleton {
                         $recordQuery = \common\models\Installer::find()->where(['archive_class' => $classversion->name]);
                         $cv = '';
                         if (isset($classversion->min)) {
-                            list($major, $minor, $patch) = array_pad( explode('.', (string)$classversion->min), 3, 0);
-                            $archive_version = intval($major) + intval($minor)/100 + intval($patch)/10000;
+                            list($major, $minor, $patch) = array_pad(explode('.', (string)$classversion->min), 3, 0);
+                            $archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
                             $recordQuery->andWhere(['>=', 'archive_version', $archive_version]);
                             $cv .= ', v.' . $classversion->min . ' or greater';
                         }
                         if (isset($classversion->max)) {
-                            list($major, $minor, $patch) = array_pad( explode('.', (string)$classversion->max), 3, 0);
-                            $archive_version = intval($major) + intval($minor)/100 + intval($patch)/10000;
+                            list($major, $minor, $patch) = array_pad(explode('.', (string)$classversion->max), 3, 0);
+                            $archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
                             $recordQuery->andWhere(['<=', 'archive_version', $archive_version]);
                             $cv .= ', v.' . $classversion->max . ' or less';
                         }
@@ -399,8 +412,8 @@ class InstallController extends Sceleton {
                                         ->one();
                                 if (isset($check['version'])) {
                                     $major = floor($check['version']);
-                                    $minor = floor(($check['version'] - $major)*100);
-                                    $patch = ($check['version'] - $major - $minor/100)*10000;
+                                    $minor = floor(($check['version'] - $major) * 100);
+                                    $patch = ($check['version'] - $major - $minor / 100) * 10000;
                                     $jsonFile = 'v-' . $major . '-' . $minor . '-' . $patch . '.json';
                                     $zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . $filename);
                                     $jsonString = $zip->getFromName($jsonFile);
@@ -455,7 +468,7 @@ class InstallController extends Sceleton {
                             if ($theme->save()) {
                                 \backend\design\Theme::import($theme_name, $path . 'uploads' . DIRECTORY_SEPARATOR . $filename);
                                 $oldData = [
-                                    'id' => $theme->id
+                                    'id' => $theme->id,
                                 ];
                                 if ($theme->id > 0) {
                                     foreach ($toAssign as $toId) {
@@ -485,7 +498,7 @@ class InstallController extends Sceleton {
                             $override = $addnew = true;
                             $zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . $filename);
                             $localejson = $zip->getFromName('locale.json');
-                            $localejson = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#','',$localejson);
+                            $localejson = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $localejson);
                             $oldData = [];
                             if (!empty($json)) {
                                 $localejson = json_decode($localejson, JSON_OBJECT_AS_ARRAY);
@@ -517,15 +530,15 @@ class InstallController extends Sceleton {
                                     $insert_id = $lang->languages_id;
                                 } else {
                                     // install new language and settings
-                                    $max = tep_db_fetch_array(tep_db_query("select max(sort_order)+1 as sort_order from languages where 1"));
-                                    $sql_array = array(
+                                    $max = tep_db_fetch_array(tep_db_query('select max(sort_order)+1 as sort_order from languages where 1'));
+                                    $sql_array = [
                                         'name' => $localejson['name'],
                                         'code' => strtolower((string)$localejson['code']),
                                         'image_svg' => $localejson['icon'],
                                         'locale' => (string)$localejson['locale'],
                                         'sort_order' => $max['sort_order'],
                                         'languages_status' => 0,
-                                    );
+                                    ];
                                     $lang = new \common\models\Languages();
                                     $lang->loadDefaultValues();
                                     $lang->setAttributes($sql_array, false);
@@ -542,7 +555,7 @@ class InstallController extends Sceleton {
                                             }
                                             $oldData[] = [
                                                 'action' => 'deletelanguage',
-                                                'language_id' => $insert_id
+                                                'language_id' => $insert_id,
                                             ];
                                         }
                                     }
@@ -561,13 +574,13 @@ class InstallController extends Sceleton {
                                     $encoding = mb_detect_encoding($CsvString, 'auto', true);
                                 }
                                 if ($encoding) {
-                                    $CsvString = iconv($encoding, "UTF-8", $CsvString);
+                                    $CsvString = iconv($encoding, 'UTF-8', $CsvString);
                                 } else {
-                                    $CsvString = iconv('CP850', "UTF-8", $CsvString);
+                                    $CsvString = iconv('CP850', 'UTF-8', $CsvString);
                                 }
                                 $Data = str_getcsv($CsvString, "\n");
                                 $uploadedKeys = false;
-                                foreach($Data as &$data) {
+                                foreach ($Data as &$data) {
                                     $data = str_getcsv($data, "\t");
                                     if ($uploadedKeys === false) {
                                         $uploadedKeys = array_flip($data);
@@ -577,7 +590,7 @@ class InstallController extends Sceleton {
                                         foreach ($languages as $_lang) {
                                             if (isset($uploadedKeys[$_lang['code']])) {
 
-                                                $check_hash_query = tep_db_query("SELECT * FROM " . TABLE_TRANSLATION . " WHERE language_id='" . (int)$_lang['id'] . "' and hash = '" . tep_db_input($data[$uploadedKeys['HASH']]) . "'");
+                                                $check_hash_query = tep_db_query('SELECT * FROM ' . TABLE_TRANSLATION . " WHERE language_id='" . (int)$_lang['id'] . "' and hash = '" . tep_db_input($data[$uploadedKeys['HASH']]) . "'");
                                                 if (tep_db_num_rows($check_hash_query) > 0) {
                                                     if ($override) {
                                                         $check_hash = tep_db_fetch_array($check_hash_query);
@@ -588,10 +601,10 @@ class InstallController extends Sceleton {
                                                             'language_id' => $check_hash['language_id'],
                                                             'hash' => $check_hash['hash'],
                                                         ];
-                                                        tep_db_query("update " . TABLE_TRANSLATION . " set translation_value = '" . tep_db_input($data[$uploadedKeys[$_lang['code']]]) . "', translated = '" . tep_db_input($data[$uploadedKeys[$_lang['code'] . '_TSL']]) . "' where language_id = '" . (int)$_lang['id'] . "' and hash = '" . tep_db_input($data[$uploadedKeys['HASH']]) . "'");
+                                                        tep_db_query('update ' . TABLE_TRANSLATION . " set translation_value = '" . tep_db_input($data[$uploadedKeys[$_lang['code']]]) . "', translated = '" . tep_db_input($data[$uploadedKeys[$_lang['code'] . '_TSL']]) . "' where language_id = '" . (int)$_lang['id'] . "' and hash = '" . tep_db_input($data[$uploadedKeys['HASH']]) . "'");
                                                     }
-                                                } elseif (isset($data[$uploadedKeys['Entity']]) && isset($data[$uploadedKeys['Key']]) ) {
-                                                    $check_hash_query = tep_db_query("SELECT * FROM " . TABLE_TRANSLATION . " WHERE language_id='" . (int)$_lang['id'] . "' and translation_key = '" . tep_db_input($data[$uploadedKeys['Key']]) . "' and translation_entity = '" . tep_db_input($data[$uploadedKeys['Entity']]) . "'");
+                                                } elseif (isset($data[$uploadedKeys['Entity']]) && isset($data[$uploadedKeys['Key']])) {
+                                                    $check_hash_query = tep_db_query('SELECT * FROM ' . TABLE_TRANSLATION . " WHERE language_id='" . (int)$_lang['id'] . "' and translation_key = '" . tep_db_input($data[$uploadedKeys['Key']]) . "' and translation_entity = '" . tep_db_input($data[$uploadedKeys['Entity']]) . "'");
                                                     if (tep_db_num_rows($check_hash_query) > 0) {
                                                         if ($override) {
                                                             $check_hash = tep_db_fetch_array($check_hash_query);
@@ -602,7 +615,7 @@ class InstallController extends Sceleton {
                                                                 'language_id' => $check_hash['language_id'],
                                                                 'hash' => $check_hash['hash'],
                                                             ];
-                                                            tep_db_query("update " . TABLE_TRANSLATION . " set translation_value = '" . tep_db_input($data[$uploadedKeys[$_lang['code']]]) . "', translated = '" . tep_db_input($data[$uploadedKeys[$_lang['code'] . '_TSL']]) . "' where language_id = '" . (int)$_lang['id'] . "' and hash = '" . tep_db_input($data[$uploadedKeys['HASH']]) . "'");
+                                                            tep_db_query('update ' . TABLE_TRANSLATION . " set translation_value = '" . tep_db_input($data[$uploadedKeys[$_lang['code']]]) . "', translated = '" . tep_db_input($data[$uploadedKeys[$_lang['code'] . '_TSL']]) . "' where language_id = '" . (int)$_lang['id'] . "' and hash = '" . tep_db_input($data[$uploadedKeys['HASH']]) . "'");
                                                         }
                                                     } elseif ($addnew && !empty($data[$uploadedKeys['Key']]) && !empty($data[$uploadedKeys['Entity']])) {
                                                         $hash = md5($data[$uploadedKeys['Key']] . '-' . $data[$uploadedKeys['Entity']]);
@@ -637,14 +650,29 @@ class InstallController extends Sceleton {
                         case 'payment':// Payment
                             $moduleDir = 'orderPayment';
                             $setParam = 'payment';
+                            // no break
                         case 'shipping':// Shipping
-                            if (empty($moduleDir)) { $moduleDir = 'orderShipping';$setParam = 'shipping'; }
+                            if (empty($moduleDir)) {
+                                $moduleDir = 'orderShipping';
+                                $setParam = 'shipping';
+                            }
+                            // no break
                         case 'totals':// Order structure
-                            if (empty($moduleDir)) { $moduleDir = 'orderTotal';$setParam = 'ordertotal'; }
+                            if (empty($moduleDir)) {
+                                $moduleDir = 'orderTotal';
+                                $setParam = 'ordertotal';
+                            }
+                            // no break
                         case 'analytic':// Google analytic
-                            if (empty($moduleDir)) { $moduleDir = 'analytic'; }
+                            if (empty($moduleDir)) {
+                                $moduleDir = 'analytic';
+                            }
+                            // no break
                         case 'label':// Shipping label
-                            if (empty($moduleDir)) { $moduleDir = 'label';$setParam = 'label'; }
+                            if (empty($moduleDir)) {
+                                $moduleDir = 'label';
+                                $setParam = 'label';
+                            }
                             $pathP = $path . 'lib' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'modules' . DIRECTORY_SEPARATOR . $moduleDir;
                             $status = $this->checkFileDst($distribution->src, $filename, $pathP, $echo, $force);
                             if ($status) {
@@ -717,12 +745,12 @@ class InstallController extends Sceleton {
                                         foreach ($catalog_categories as $catalog_cat) {
                                             $cat = \common\models\CategoriesDescription::find()->where(['categories_seo_page_name' => $catalog_cat])->one();
                                             if ($cat instanceof \common\models\CategoriesDescription) {
-                                                tep_db_query("INSERT IGNORE INTO platforms_categories (platform_id, categories_id) VALUES ($toId, ".$cat->categories_id.");");
+                                                tep_db_query("INSERT IGNORE INTO platforms_categories (platform_id, categories_id) VALUES ($toId, ".$cat->categories_id.');');
                                             }
                                         }
 
                                         foreach (\common\models\Products::find()->where(['IN', 'products_model', $catalog_products])->all() as $product) {
-                                            tep_db_query("INSERT IGNORE INTO platforms_products (platform_id, products_id) VALUES ($toId, ".$product->products_id.");");
+                                            tep_db_query("INSERT IGNORE INTO platforms_products (platform_id, products_id) VALUES ($toId, ".$product->products_id.');');
                                             \common\helpers\Product::doCache($product->products_id);
                                         }
 
@@ -731,16 +759,15 @@ class InstallController extends Sceleton {
                                 }
                                 $oldData = [
                                     'catalog_categories' => $catalog_categories,
-                                    'catalog_products' => $catalog_products
+                                    'catalog_products' => $catalog_products,
                                 ];
                                 $this->doInstallRecord($filename, (string)$distribution->type, (string)($distribution->class ?? ''), (string)$distribution->version, $oldData);
                                 @unlink($path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR . $filename);
 
-
                             } catch (\Exception $ex) {
                                 //echo "err:".$ex->getMessage()."\n".$ex->getTraceAsString()."\n";die();
                                 $status = false;
-                                $this->sendEcho("<font color='red'>Exception: " . $ex->getMessage() . ".</font><br>\n" );
+                                $this->sendEcho("<font color='red'>Exception: " . $ex->getMessage() . ".</font><br>\n");
                             }
                             break;
                         case 'system':
@@ -756,7 +783,7 @@ class InstallController extends Sceleton {
                                 $this->doHooks = true;
                                 $this->doMenu = true;
                                 if ($distribution->type == 'update') {
-                                    \common\models\Configuration::updateAll(['configuration_value' => (string) $distribution->version], ['configuration_key'=> 'MIGRATIONS_DB_REVISION']);
+                                    \common\models\Configuration::updateAll(['configuration_value' => (string) $distribution->version], ['configuration_key' => 'MIGRATIONS_DB_REVISION']);
                                 }
                             }
                             break;
@@ -773,13 +800,13 @@ class InstallController extends Sceleton {
                                     $encoding = mb_detect_encoding($CsvString, 'auto', true);
                                 }
                                 if ($encoding) {
-                                    $CsvString = iconv($encoding, "UTF-8", $CsvString);
+                                    $CsvString = iconv($encoding, 'UTF-8', $CsvString);
                                 } else {
-                                    $CsvString = iconv('CP850', "UTF-8", $CsvString);
+                                    $CsvString = iconv('CP850', 'UTF-8', $CsvString);
                                 }
                                 $Data = str_getcsv($CsvString, "\n");
                                 $uploadedKeys = false;
-                                foreach($Data as &$data) {
+                                foreach ($Data as &$data) {
                                     $data = str_getcsv($data, "\t");
                                     if ($uploadedKeys === false) {
                                         $uploadedKeys = array_flip($data);
@@ -787,66 +814,66 @@ class InstallController extends Sceleton {
                                     }
                                     // Key Group Operation Value
                                     if (
-                                            isset($data[$uploadedKeys['Key']]) && !empty($data[$uploadedKeys['Key']]) &&
-                                            isset($data[$uploadedKeys['Operation']]) && !empty($data[$uploadedKeys['Operation']])
-                                        ) {
-                                        switch($data[$uploadedKeys['Operation']]) {
-                                                    case 'add':
-                                                        $conf = \common\models\Configuration::find()->where(['configuration_key' => (string) $data[$uploadedKeys['Key']]])->one();
-                                                        if ($conf instanceof \common\models\Configuration) {
-                                                            $oldData[] = [
-                                                                'action' => 'update',
-                                                                'configuration_key' => $conf->configuration_key,
-                                                                'configuration_value' => $conf->configuration_value,
-                                                                'configuration_group_id' => $conf->configuration_group_id,
-                                                            ];
-                                                        } else {
-                                                            $oldData[] = [
-                                                                'action' => 'delete',
-                                                                'configuration_key' => (string) $data[$uploadedKeys['Key']],
-                                                            ];
-                                                            $conf = new \common\models\Configuration();
-                                                            $conf->loadDefaultValues();
-                                                            $conf->configuration_key = (string) $data[$uploadedKeys['Key']];
-                                                        }
-                                                        $conf->configuration_value = (string) $data[$uploadedKeys['Value']];
-                                                        $conf->configuration_group_id = (string) $data[$uploadedKeys['Group']];
-                                                        $conf->save(false);
-                                                        break;
-                                                    case 'delete':
-                                                        $conf = \common\models\Configuration::find()->where(['configuration_key' => (string) $data[$uploadedKeys['Key']]])->one();
-                                                        if ($conf instanceof \common\models\Configuration) {
-                                                            $oldData[] = [
-                                                                'action' => 'add',
-                                                                'configuration_title' => $conf->configuration_title,
-                                                                'configuration_key' => $conf->configuration_key,
-                                                                'configuration_value' => $conf->configuration_value,
-                                                                'configuration_description' => $conf->configuration_description,
-                                                                'configuration_group_id' => $conf->configuration_group_id,
-                                                                'sort_order' => $conf->sort_order,
-                                                                'last_modified' => $conf->last_modified,
-                                                                'date_added' => $conf->date_added,
-                                                                'use_function' => $conf->use_function,
-                                                                'set_function' => $conf->set_function,
-                                                            ];
-                                                            $conf->delete();
-                                                        }
-                                                        break;
-                                                    case 'modify':
-                                                        $conf = \common\models\Configuration::find()->where(['configuration_key' => (string) $data[$uploadedKeys['Key']]])->one();
-                                                        if ($conf instanceof \common\models\Configuration) {
-                                                            $oldData[] = [
-                                                                'action' => 'update',
-                                                                'configuration_key' => $conf->configuration_key,
-                                                                'configuration_value' => $conf->configuration_value,
-                                                                'configuration_group_id' => $conf->configuration_group_id,
-                                                            ];
-                                                            $conf->configuration_value = (string) $data[$uploadedKeys['Value']];
-                                                            $conf->configuration_group_id = (string) $data[$uploadedKeys['Group']];
-                                                            $conf->save(false);
-                                                        }
-                                                        break;
+                                        isset($data[$uploadedKeys['Key']]) && !empty($data[$uploadedKeys['Key']]) &&
+                                        isset($data[$uploadedKeys['Operation']]) && !empty($data[$uploadedKeys['Operation']])
+                                    ) {
+                                        switch ($data[$uploadedKeys['Operation']]) {
+                                            case 'add':
+                                                $conf = \common\models\Configuration::find()->where(['configuration_key' => (string) $data[$uploadedKeys['Key']]])->one();
+                                                if ($conf instanceof \common\models\Configuration) {
+                                                    $oldData[] = [
+                                                        'action' => 'update',
+                                                        'configuration_key' => $conf->configuration_key,
+                                                        'configuration_value' => $conf->configuration_value,
+                                                        'configuration_group_id' => $conf->configuration_group_id,
+                                                    ];
+                                                } else {
+                                                    $oldData[] = [
+                                                        'action' => 'delete',
+                                                        'configuration_key' => (string) $data[$uploadedKeys['Key']],
+                                                    ];
+                                                    $conf = new \common\models\Configuration();
+                                                    $conf->loadDefaultValues();
+                                                    $conf->configuration_key = (string) $data[$uploadedKeys['Key']];
                                                 }
+                                                $conf->configuration_value = (string) $data[$uploadedKeys['Value']];
+                                                $conf->configuration_group_id = (string) $data[$uploadedKeys['Group']];
+                                                $conf->save(false);
+                                                break;
+                                            case 'delete':
+                                                $conf = \common\models\Configuration::find()->where(['configuration_key' => (string) $data[$uploadedKeys['Key']]])->one();
+                                                if ($conf instanceof \common\models\Configuration) {
+                                                    $oldData[] = [
+                                                        'action' => 'add',
+                                                        'configuration_title' => $conf->configuration_title,
+                                                        'configuration_key' => $conf->configuration_key,
+                                                        'configuration_value' => $conf->configuration_value,
+                                                        'configuration_description' => $conf->configuration_description,
+                                                        'configuration_group_id' => $conf->configuration_group_id,
+                                                        'sort_order' => $conf->sort_order,
+                                                        'last_modified' => $conf->last_modified,
+                                                        'date_added' => $conf->date_added,
+                                                        'use_function' => $conf->use_function,
+                                                        'set_function' => $conf->set_function,
+                                                    ];
+                                                    $conf->delete();
+                                                }
+                                                break;
+                                            case 'modify':
+                                                $conf = \common\models\Configuration::find()->where(['configuration_key' => (string) $data[$uploadedKeys['Key']]])->one();
+                                                if ($conf instanceof \common\models\Configuration) {
+                                                    $oldData[] = [
+                                                        'action' => 'update',
+                                                        'configuration_key' => $conf->configuration_key,
+                                                        'configuration_value' => $conf->configuration_value,
+                                                        'configuration_group_id' => $conf->configuration_group_id,
+                                                    ];
+                                                    $conf->configuration_value = (string) $data[$uploadedKeys['Value']];
+                                                    $conf->configuration_group_id = (string) $data[$uploadedKeys['Group']];
+                                                    $conf->save(false);
+                                                }
+                                                break;
+                                        }
                                     }
                                 }
                             }
@@ -889,8 +916,10 @@ class InstallController extends Sceleton {
                 case 'delete':
                     break;
                 default:
-//                    if ($echo) echo "<font color='red'>".TEXT_ACTION_ERROR.".</font><br>\n";
-                    if ($echo) $this->sendEchoForUpdate(TEXT_ACTION_ERROR, 'error');
+                    //                    if ($echo) echo "<font color='red'>".TEXT_ACTION_ERROR.".</font><br>\n";
+                    if ($echo) {
+                        $this->sendEchoForUpdate(TEXT_ACTION_ERROR, 'error');
+                    }
                     $this->deployLog[] = "<font color='red'>".TEXT_ACTION_ERROR.".</font><br>\n";
                     $checked = false;
                     break;
@@ -900,8 +929,10 @@ class InstallController extends Sceleton {
                 case 'file':
                     break;
                 default:
-//                    if ($echo) echo "<font color='red'>".TEXT_TYPE_ERROR.".</font><br>\n";
-                    if ($echo) $this->sendEchoForUpdate(TEXT_TYPE_ERROR, 'error');
+                    //                    if ($echo) echo "<font color='red'>".TEXT_TYPE_ERROR.".</font><br>\n";
+                    if ($echo) {
+                        $this->sendEchoForUpdate(TEXT_TYPE_ERROR, 'error');
+                    }
                     $this->deployLog[] = "<font color='red'>".TEXT_TYPE_ERROR.".</font><br>\n";
                     $checked = false;
                     break;
@@ -909,24 +940,30 @@ class InstallController extends Sceleton {
             if (isset($src->crc32)) {
                 $dst = str_replace('|', DIRECTORY_SEPARATOR, $src->path);
                 if (!is_file($pathP . DIRECTORY_SEPARATOR . $dst)) {
-//                    if ($echo) echo "<font color='red'>File $dst not found.</font><br>\n";
-                    if ($echo) $this->sendEchoForUpdate("File \"$dst\" not found.", 'error');
+                    //                    if ($echo) echo "<font color='red'>File $dst not found.</font><br>\n";
+                    if ($echo) {
+                        $this->sendEchoForUpdate("File \"$dst\" not found.", 'error');
+                    }
                     $this->deployLog[] = "<font color='red'>File $dst not found.</font><br>\n";
                     $checked = false;
-                 } else {
+                } else {
                     $oldItemCrc = crc32(file_get_contents($pathP . DIRECTORY_SEPARATOR . $dst));
                     if ($src->crc32 != $oldItemCrc) {
-//                        if ($echo) echo "<font color='red'>" . TEXT_FILE . " " . $dst . " " . TEXT_CHECKSUM_ERROR . ".</font>".($this->show_ignore_field ? '<label><input type="checkbox" name="dst_file_ignore[]" class="dst_file_ignore" value="'.$dst.'">Ignore</label>' : '')."<br>\n";
-                        if ($echo) $this->sendEchoForUpdate(TEXT_FILE . " " . $dst . " " . TEXT_CHECKSUM_ERROR . ($this->show_ignore_field ? '<label style="color: #000"><input type="checkbox" name="dst_file_ignore[]" class="dst_file_ignore" value="'.$dst.'">Ignore</label>' : ''), 'warning');
-                        $this->deployLog[] = "<font color='red'>" . TEXT_FILE . " " . $dst . " " . TEXT_CHECKSUM_ERROR . ".</font><br>\n";
+                        //                        if ($echo) echo "<font color='red'>" . TEXT_FILE . " " . $dst . " " . TEXT_CHECKSUM_ERROR . ".</font>".($this->show_ignore_field ? '<label><input type="checkbox" name="dst_file_ignore[]" class="dst_file_ignore" value="'.$dst.'">Ignore</label>' : '')."<br>\n";
+                        if ($echo) {
+                            $this->sendEchoForUpdate(TEXT_FILE . ' ' . $dst . ' ' . TEXT_CHECKSUM_ERROR . ($this->show_ignore_field ? '<label style="color: #000"><input type="checkbox" name="dst_file_ignore[]" class="dst_file_ignore" value="'.$dst.'">Ignore</label>' : ''), 'warning');
+                        }
+                        $this->deployLog[] = "<font color='red'>" . TEXT_FILE . ' ' . $dst . ' ' . TEXT_CHECKSUM_ERROR . ".</font><br>\n";
                         $checked = false;
                         if ($forceBackup) {
                             $zipForce->addFile($pathP . DIRECTORY_SEPARATOR . $dst, $dst);
                         }
                     } else {
-//                        if ($echo) echo "<font color='green'>" . TEXT_FILE . " " . $dst . " " . TEXT_CHECKSUM_PASSED . ".</font><br>\n";
-                        if ($echo) $this->sendEchoForUpdate(TEXT_FILE . " " . $dst . " " . TEXT_CHECKSUM_PASSED, 'success');
-                        $this->deployLog[] = "<font color='green'>" . TEXT_FILE . " " . $dst . " " . TEXT_CHECKSUM_PASSED . ".</font><br>\n";
+                        //                        if ($echo) echo "<font color='green'>" . TEXT_FILE . " " . $dst . " " . TEXT_CHECKSUM_PASSED . ".</font><br>\n";
+                        if ($echo) {
+                            $this->sendEchoForUpdate(TEXT_FILE . ' ' . $dst . ' ' . TEXT_CHECKSUM_PASSED, 'success');
+                        }
+                        $this->deployLog[] = "<font color='green'>" . TEXT_FILE . ' ' . $dst . ' ' . TEXT_CHECKSUM_PASSED . ".</font><br>\n";
                     }
                 }
             }
@@ -953,7 +990,7 @@ class InstallController extends Sceleton {
                                     $dstSub = str_replace('|', DIRECTORY_SEPARATOR, $pathSub);
                                     if (is_dir($pathP . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR . $dstSub)) {
                                         $zip->addEmptyDir($dst . DIRECTORY_SEPARATOR . $dstSub);
-                                    } else if (is_file($pathP . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR . $dstSub)) {
+                                    } elseif (is_file($pathP . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR . $dstSub)) {
                                         $zip->addFile($pathP . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR . $dstSub, $dst . DIRECTORY_SEPARATOR . $dstSub);
                                     }
                                 }
@@ -971,7 +1008,6 @@ class InstallController extends Sceleton {
                             break;
                     }
 
-
                 }
                 $zip->close();
             }
@@ -982,14 +1018,16 @@ class InstallController extends Sceleton {
 
     private function runFileDst($rules, $zipFile, $pathP, $echo = false)
     {
-//        $pathP = \yii\helpers\BaseFileHelper::normalizePath($pathP, '/');
+        //        $pathP = \yii\helpers\BaseFileHelper::normalizePath($pathP, '/');
         $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR;
         $zip = new \ZipArchive();
         if ($zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . $zipFile) === true) {
             foreach ($rules as $src) {
                 $dst = str_replace('|', '/', $src->path); // don't use DIRECTORY_SEPARATOR here
                 if (in_array($dst, $this->dst_file_ignore)) {
-                    if ($echo) echo "<font color='red'>$dst ignored.</font><br>\n";
+                    if ($echo) {
+                        echo "<font color='red'>$dst ignored.</font><br>\n";
+                    }
                     continue;
                 }
                 switch ($src->action) {
@@ -997,16 +1035,22 @@ class InstallController extends Sceleton {
                         if ($src->type == 'dir') {
                             if (!is_dir($pathP . DIRECTORY_SEPARATOR . $dst)) {
                                 @mkdir($pathP . DIRECTORY_SEPARATOR . $dst);
-                                if ($echo) echo "<font color='blue'>" . TEXT_DIRECTORY . " $dst " . TEXT_ADDED . ".</font><br>\n";
+                                if ($echo) {
+                                    echo "<font color='blue'>" . TEXT_DIRECTORY . " $dst " . TEXT_ADDED . ".</font><br>\n";
+                                }
                             }
                         }
                         if ($src->type == 'file') {
                             if (!$zip->extractTo($pathP, $dst)) {
-                                $errorMsg = sprintf('Error extracting %s: %s', $dst, $zip->getStatusString() );
+                                $errorMsg = sprintf('Error extracting %s: %s', $dst, $zip->getStatusString());
                                 \Yii::warning($errorMsg);
-                                if ($echo) echo "<font color='red'>$errorMsg</font><br>\n";
+                                if ($echo) {
+                                    echo "<font color='red'>$errorMsg</font><br>\n";
+                                }
                             } else {
-                                if ($echo) echo "<font color='blue'>" . TEXT_FILE . " $dst " . TEXT_ADDED . ".</font><br>\n";
+                                if ($echo) {
+                                    echo "<font color='blue'>" . TEXT_FILE . " $dst " . TEXT_ADDED . ".</font><br>\n";
+                                }
                             }
                         }
                         break;
@@ -1016,47 +1060,63 @@ class InstallController extends Sceleton {
                             @rename($fileName, $fileName . '_old'); // to avoid 'Failed to open stream: Permission denied' under Windows
                             @unlink($fileName . '_old');
                             if (!$zip->extractTo($pathP, $dst)) {
-                                $errorMsg = sprintf('Error extracting %s: %s', $dst, $zip->getStatusString() );
+                                $errorMsg = sprintf('Error extracting %s: %s', $dst, $zip->getStatusString());
                                 \Yii::warning($errorMsg);
-                                if ($echo) echo "<font color='red'>$errorMsg</font><br>\n";
+                                if ($echo) {
+                                    echo "<font color='red'>$errorMsg</font><br>\n";
+                                }
                             } else {
-                                if ($echo) echo "<font color='blue'>" . TEXT_FILE . " $dst " . TEXT_MODIFIED . ".</font><br>\n";
+                                if ($echo) {
+                                    echo "<font color='blue'>" . TEXT_FILE . " $dst " . TEXT_MODIFIED . ".</font><br>\n";
+                                }
                             }
                         }
                         break;
                     case 'copy':
                         if ($src->type == 'dir') {
-                            for($i = 0; $i < $zip->numFiles; $i++) {
+                            for ($i = 0; $i < $zip->numFiles; $i++) {
                                 $entry = $zip->getNameIndex($i);
                                 if (strpos($entry, $dst) === 0) {
                                     if (!$zip->extractTo($pathP, $entry)) {
-                                        $errorMsg = sprintf('Error extracting %s: %s', $entry, $zip->getStatusString() );
+                                        $errorMsg = sprintf('Error extracting %s: %s', $entry, $zip->getStatusString());
                                         \Yii::warning($errorMsg);
-                                        if ($echo) echo "<font color='red'>$errorMsg</font><br>\n";
+                                        if ($echo) {
+                                            echo "<font color='red'>$errorMsg</font><br>\n";
+                                        }
                                     }
                                 }
                             }
-                            if ($echo) echo "<font color='blue'>" . TEXT_DIRECTORY . " $dst " . TEXT_COPIED . ".</font><br>\n";
+                            if ($echo) {
+                                echo "<font color='blue'>" . TEXT_DIRECTORY . " $dst " . TEXT_COPIED . ".</font><br>\n";
+                            }
                         }
                         break;
                     case 'delete':
                         $fn = $pathP . DIRECTORY_SEPARATOR . $dst;
                         if ($src->type == 'dir' && is_dir($fn)) {
                             if (!@rmdir($fn)) {
-                                $errorMsg = "Can't remove dir $fn: " . error_get_last()['message']??'unknown';
-                                \Yii::warning($errorMsg . "Dir contains: " . implode("\n", glob($fn . '/*')) . "\n" . implode("\n", glob($fn . '/.*')));
-                                if ($echo) echo "<font color='red'>$errorMsg</font><br>\n";
+                                $errorMsg = "Can't remove dir $fn: " . error_get_last()['message'] ?? 'unknown';
+                                \Yii::warning($errorMsg . 'Dir contains: ' . implode("\n", glob($fn . '/*')) . "\n" . implode("\n", glob($fn . '/.*')));
+                                if ($echo) {
+                                    echo "<font color='red'>$errorMsg</font><br>\n";
+                                }
                             } else {
-                                if ($echo) echo "<font color='blue'>" . TEXT_DIRECTORY . " $dst " . TEXT_DELETED . ".</font><br>\n";
+                                if ($echo) {
+                                    echo "<font color='blue'>" . TEXT_DIRECTORY . " $dst " . TEXT_DELETED . ".</font><br>\n";
+                                }
                             }
                         }
                         if ($src->type == 'file' && is_file($fn)) {
                             if (!@unlink($fn)) {
-                                $errorMsg = "Can't remove file $fn: " . error_get_last()['message']??'unknown';
+                                $errorMsg = "Can't remove file $fn: " . error_get_last()['message'] ?? 'unknown';
                                 \Yii::warning($errorMsg);
-                                if ($echo) echo "<font color='red'>$errorMsg</font><br>\n";
+                                if ($echo) {
+                                    echo "<font color='red'>$errorMsg</font><br>\n";
+                                }
                             } else {
-                                if ($echo) echo "<font color='blue'>" . TEXT_FILE . " $dst " . TEXT_DELETED . ".</font><br>\n";
+                                if ($echo) {
+                                    echo "<font color='blue'>" . TEXT_FILE . " $dst " . TEXT_DELETED . ".</font><br>\n";
+                                }
                             }
                         }
                         break;
@@ -1065,7 +1125,7 @@ class InstallController extends Sceleton {
                 }
             }
             if (!@$zip->close()) {
-                $errorMsg = sprintf('Error closing zip: %s', $zip->getStatusString() );
+                $errorMsg = sprintf('Error closing zip: %s', $zip->getStatusString());
                 \Yii::warning($errorMsg);
             }
         }
@@ -1085,12 +1145,16 @@ class InstallController extends Sceleton {
                     if ($src->type == 'dir') {//delete
                         if (is_dir($pathP . DIRECTORY_SEPARATOR . $dst)) {
                             @rmdir($pathP . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR);
-                            if ($echo) echo TEXT_DIRECTORY . " $dst deleted.<br>\n";
+                            if ($echo) {
+                                echo TEXT_DIRECTORY . " $dst deleted.<br>\n";
+                            }
                         }
                     }
                     if ($src->type == 'file') {//delete
                         @unlink($pathP . DIRECTORY_SEPARATOR . $dst);
-                        if ($echo) echo TEXT_FILE . " $dst deleted.<br>\n";
+                        if ($echo) {
+                            echo TEXT_FILE . " $dst deleted.<br>\n";
+                        }
                     }
                     break;
                 case 'modify':
@@ -1098,34 +1162,44 @@ class InstallController extends Sceleton {
                         @unlink($pathP . DIRECTORY_SEPARATOR . $dst);
                         if ($canUseZipForRevert) {
                             $zip->extractTo($pathP, $dst);
-                            if ($echo) echo TEXT_FILE . " $dst restored.<br>\n";
+                            if ($echo) {
+                                echo TEXT_FILE . " $dst restored.<br>\n";
+                            }
                         }
                     }
                     break;
                 case 'copy':
                     if ($src->type == 'dir') {//delete
                         $this->delTree($pathP . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR);
-                        if ($echo) echo TEXT_DIRECTORY . " $dst deleted.<br>\n";
+                        if ($echo) {
+                            echo TEXT_DIRECTORY . " $dst deleted.<br>\n";
+                        }
                         if ($canUseZipForRevert) {
-                            for($i = 0; $i < $zip->numFiles; $i++) {
+                            for ($i = 0; $i < $zip->numFiles; $i++) {
                                 $entry = $zip->getNameIndex($i);
                                 if (strpos($entry, $dst) === 0) {
                                     $zip->extractTo($pathP, $entry);
                                 }
                             }
-                            if ($echo) echo TEXT_DIRECTORY . " $dst copied.<br>\n";
+                            if ($echo) {
+                                echo TEXT_DIRECTORY . " $dst copied.<br>\n";
+                            }
                         }
                     }
                     break;
                 case 'delete':
                     if ($src->type == 'dir' && !is_dir($pathP . DIRECTORY_SEPARATOR . $dst)) {//add
                         @mkdir($pathP . DIRECTORY_SEPARATOR . $dst);
-                        if ($echo) echo TEXT_DIRECTORY . " $dst added.<br>\n";
+                        if ($echo) {
+                            echo TEXT_DIRECTORY . " $dst added.<br>\n";
+                        }
                     }
                     if ($src->type == 'file' && !is_file($pathP . DIRECTORY_SEPARATOR . $dst)) {//restore from backup
                         if ($canUseZipForRevert) {
                             $zip->extractTo($pathP, $dst);
-                            if ($echo) echo TEXT_FILE . " $dst added.<br>\n";
+                            if ($echo) {
+                                echo TEXT_FILE . " $dst added.<br>\n";
+                            }
                         }
                     }
                     break;
@@ -1140,30 +1214,30 @@ class InstallController extends Sceleton {
         }
         unset($zip);
     }
-    
+
     public function actionInstallClass()
     {
         $class = Yii::$app->request->get('class');
         $platform_id = Yii::$app->request->get('platform_id');
         $acl = Yii::$app->request->get('acl');
-        
+
         $this->doInstallClassInternal($class, $platform_id, $acl);
     }
-    
+
     private function doInstallClass($class, $selected_platform_id = 0, $acl = 0)
     {
         $url = \Yii::$app->UrlManager->createAbsoluteUrl(['install/install-class', 'class' => $class, 'platform_id' => $selected_platform_id, 'acl' => $acl]);
-        $res = \common\helpers\Curl::runSafe($url, 'GET', null, null, ['verify' => false, CURLOPT_COOKIE => 'tlAdminID=' . \Yii::$app->session->id] );
+        $res = \common\helpers\Curl::runSafe($url, 'GET', null, null, ['verify' => false, CURLOPT_COOKIE => 'tlAdminID=' . \Yii::$app->session->id]);
         if (!($res['success'] ?? false)) {
             \Yii::warning(sprintf('Internal install class "%s" is failed (safe method will be used): %s', $class, $res['error'] ?? var_export($res, true)));
             $this->doInstallClassInternal($class, $selected_platform_id, $acl);
         }
     }
-    
+
     private function doInstallClassInternal($class, $selected_platform_id = 0, $acl = 0)
     {
         if (class_exists($class)) {
-            $module = new $class;
+            $module = new $class();
             $exportSettings = [];
             if (method_exists($module, 'remove')) {
                 if (method_exists($module, 'keys')) {
@@ -1173,7 +1247,7 @@ class InstallController extends Sceleton {
                         ->where(['platform_id' => $selected_platform_id])
                         ->andWhere(['IN', 'configuration_key', $keys])
                         ->all();
-                    foreach ($rows  as $row) {
+                    foreach ($rows as $row) {
                         $exportSettings['keys'][$row['configuration_key']] = $row['configuration_value'];
                     }
                     if (method_exists($module, 'get_extra_params')) {
@@ -1187,7 +1261,7 @@ class InstallController extends Sceleton {
             }
             if (method_exists($module, 'install')) {
                 if ($acl > 0) {
-                     if (isset($module->isExtension)) {
+                    if (isset($module->isExtension)) {
                         switch ($acl) {
                             case 'all':
                                 $access_levels = [];
@@ -1207,7 +1281,7 @@ class InstallController extends Sceleton {
                     }
                 }
                 $module->install($selected_platform_id);
-                if (method_exists($module, 'save_config') && is_array($exportSettings['keys']??null)) {
+                if (method_exists($module, 'save_config') && is_array($exportSettings['keys'] ?? null)) {
                     $module->save_config($selected_platform_id, $exportSettings['keys']);
                     if (method_exists($module, 'set_extra_params') && isset($exportSettings['extra_params'])) {
                         $module->set_extra_params($selected_platform_id, $exportSettings['extra_params']);
@@ -1224,7 +1298,7 @@ class InstallController extends Sceleton {
     private function doUninstallClass($class, $selected_platform_id = 0, $prevVer = null)
     {
         if (class_exists($class)) {
-            $module = new $class;
+            $module = new $class();
             if (is_null($prevVer)) {
                 if (method_exists($module, 'remove')) {
                     $module->remove($selected_platform_id);
@@ -1276,7 +1350,7 @@ class InstallController extends Sceleton {
                     $conf->configuration_value = $newSort;
                     $conf->save(false);
                 }
-             }
+            }
         }
     }
 
@@ -1288,8 +1362,8 @@ class InstallController extends Sceleton {
         $record->date_added = date('Y-m-d H:i:s');
         $record->archive_type = $type;
         $record->archive_class = $class;
-        list($major, $minor, $patch) = array_pad( explode('.', $version), 3, '0');
-        $record->archive_version = intval($major) + intval($minor)/100 + intval($patch)/10000;
+        list($major, $minor, $patch) = array_pad(explode('.', $version), 3, '0');
+        $record->archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
         return $record->save(false);
     }
 
@@ -1308,8 +1382,8 @@ class InstallController extends Sceleton {
 
         defined('TEXT_CLEANUP_INTRO') or define('TEXT_CLEANUP_INTRO', 'Are you sure you want to cleanup? All backups and unused archives will be deleted. Also deletion will make it impossible to revert to the previous version.');
 
-        $this->selectedMenu = array('settings', 'logging');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('install/'), 'title' => BOX_HEADING_INSTALL);
+        $this->selectedMenu = ['settings', 'logging'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('install/'), 'title' => BOX_HEADING_INSTALL];
         $this->topButtons[] = '<a href="' . Yii::$app->urlManager->createUrl(['install/add-storage-key']) . '" class="create_item create_item_popup">' . TEXT_STORE_KEY . '</a>';
         $this->topButtons[] = '<a href="'.Yii::$app->urlManager->createUrl('install/reset-storage-key').'" onclick="return confirm(\'' . TEXT_RESET_STORAGE_KEY . '\')" class="create_item"><i class="icon-refresh"></i>' . TEXT_RESET . '</a>';
 
@@ -1317,7 +1391,7 @@ class InstallController extends Sceleton {
 
         $messages = [];
 
-        if ( Yii::$app->request->isPost ) {
+        if (Yii::$app->request->isPost) {
             if (isset($_FILES['data_file']['name'])) {
                 $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
                 $uploadfile = $path . $this->basename($_FILES['data_file']['name']);
@@ -1325,9 +1399,9 @@ class InstallController extends Sceleton {
                 $ext = substr(basename($uploadfile), strrpos(basename($uploadfile), '.') + 1);
                 if ($ext != 'zip') {
                     $messages[] = 'Wrong file format';
-                } elseif ( !is_writeable(dirname($uploadfile)) ) {
+                } elseif (!is_writeable(dirname($uploadfile))) {
                     $messages[] = 'Directory "'.$path.'" not writeable';
-                } elseif(!is_uploaded_file($_FILES['data_file']['tmp_name']) || filesize($_FILES['data_file']['tmp_name'])==0){
+                } elseif (!is_uploaded_file($_FILES['data_file']['tmp_name']) || filesize($_FILES['data_file']['tmp_name']) == 0) {
                     $messages[] = 'File upload error';
                 } elseif (move_uploaded_file($_FILES['data_file']['tmp_name'], $uploadfile)) {
                     $messages[] = 'File successfully uploaded';
@@ -1342,7 +1416,8 @@ class InstallController extends Sceleton {
 
         $this->view->filters->search = Yii::$app->request->get('search', '');
 
-        $this->view->filters->type = Yii::$app->request->get('type', '');;
+        $this->view->filters->type = Yii::$app->request->get('type', '');
+        ;
 
         $selectedRootDirectoryId = Yii::$app->request->get('set', 'selection');
         $directories = [];
@@ -1350,17 +1425,17 @@ class InstallController extends Sceleton {
         $directories[] = [
             'id' => 'selection',
             'text' => TEXT_SELECTION,
-            'link' => Yii::$app->urlManager->createUrl(['install/','set'=> 'selection']),
+            'link' => Yii::$app->urlManager->createUrl(['install/','set' => 'selection']),
         ];
         $directories[] = [
             'id' => 'library',
             'text' => TEXT_MY_LIB,
-            'link' => Yii::$app->urlManager->createUrl(['install/','set'=> 'library']),
+            'link' => Yii::$app->urlManager->createUrl(['install/','set' => 'library']),
         ];
         $directories[] = [
             'id' => 'modules',
             'text' => TEXT_INSTALLED,
-            'link' => Yii::$app->urlManager->createUrl(['install/','set'=> 'modules']),
+            'link' => Yii::$app->urlManager->createUrl(['install/','set' => 'modules']),
         ];
         /*$directories[] = [
             'id' => 'settings',
@@ -1370,14 +1445,15 @@ class InstallController extends Sceleton {
         $directories[] = [
             'id' => 'updates',
             'text' => TEXT_SYSTEM_UPDATE,
-            'link' => Yii::$app->urlManager->createUrl(['install/','set'=> 'updates']),
+            'link' => Yii::$app->urlManager->createUrl(['install/','set' => 'updates']),
         ];
 
         $storageUrl = \Yii::$app->params['appStorage.url'];
         $storageKey = $this->getStorageKey();
         $secKeyGlobal = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
-        if (!isset(\Yii::$app->params['secKey.global']) OR (\Yii::$app->params['secKey.global'] != $secKeyGlobal)) {
-            $message = (defined('MESSAGE_KEY_DOMAIN_WANING')
+        if (!isset(\Yii::$app->params['secKey.global']) or (\Yii::$app->params['secKey.global'] != $secKeyGlobal)) {
+            $message = (
+                defined('MESSAGE_KEY_DOMAIN_WANING')
                 ? constant('MESSAGE_KEY_DOMAIN_WANING')
                 : 'Warning: Security keys were generated for a different domain! Update required. Please change \'security store key\' to the actual value: %s.'
             );
@@ -1401,21 +1477,22 @@ class InstallController extends Sceleton {
 
                 curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
                 curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($request, CURLOPT_HTTPHEADER, array(
+                curl_setopt($request, CURLOPT_HTTPHEADER, [
                     'Content-Type: application/json',
                     'Accept: application/json',
-                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal
-                ));
+                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
+                ]);
 
                 $return = curl_exec($request);
                 $response = curl_getinfo($request);
                 curl_close($request);
 
-                if ($response['http_code'] == 406 ) {
+                if ($response['http_code'] == 406) {
                     $result = json_decode($return, true);
                     if (isset($result['code']) && $result['code'] == 428) {
                         $ownerName = $result['message'];
-                        $message = (defined('MESSAGE_KEY_DOMAIN_INFO2')
+                        $message = (
+                            defined('MESSAGE_KEY_DOMAIN_INFO2')
                             ? constant('MESSAGE_KEY_DOMAIN_INFO2')
                             : 'This shop is already registered to %3$s and is not shared key to all administrators. You need to connect it using your own credentials.<br>
                                 If your already registered with us and %3$s, approved your storage key, please insert \'storage\' key value. If you do not remember your \'storage\' key - please login at <a target="_blank" href="%1$s">application shop</a> with your credentials and copy it from there.<br>
@@ -1430,7 +1507,8 @@ class InstallController extends Sceleton {
             }
 
             if ($showEmptyKeyIntro) {
-                $message = (defined('MESSAGE_KEY_DOMAIN_INFO')
+                $message = (
+                    defined('MESSAGE_KEY_DOMAIN_INFO')
                     ? constant('MESSAGE_KEY_DOMAIN_INFO')
                     : 'It is looks like your store is not connected to our <a target="_blank" href="%1$s">application shop</a>.<br>If your already registered with us, please insert \'storage\' key value. If you do not remember your \'storage\' key - please login at <a target="_blank" href="%1$s">application shop</a> with your credentials and copy it from there.<br>If you not registered with us, please visit <a target="_blank" href="%1$s">application shop</a>, register your account and put there your \'security store key\'.<br>You \'secutiry store key\' for this shop is [%2$s].<br>After registration insert the received \'storage\' key (<a href="javascript:void(0);" onclick="$(\'.create_item_popup\').click();">use button on this page</a>) value.'
                 );
@@ -1449,18 +1527,19 @@ class InstallController extends Sceleton {
 
                 curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
                 curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($request, CURLOPT_HTTPHEADER, array(
+                curl_setopt($request, CURLOPT_HTTPHEADER, [
                     'Content-Type: application/json',
                     'Accept: application/json',
-                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal
-                ));
+                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
+                ]);
 
                 curl_exec($request);
                 $response = curl_getinfo($request);
                 curl_close($request);
 
-                if ($response['http_code'] != 200 ) {
-                    $message = (defined('MESSAGE_KEY_DOMAIN_ERROR')
+                if ($response['http_code'] != 200) {
+                    $message = (
+                        defined('MESSAGE_KEY_DOMAIN_ERROR')
                         ? constant('MESSAGE_KEY_DOMAIN_ERROR')
                         : 'Error: Your \'storage\' key is wrong. Please login at <a target="_blank" href="%1$s">application shop</a> with your credentials and copy it from there. You \'secutiry store key\' for this shop is [%2$s].'
                     );
@@ -1473,7 +1552,8 @@ class InstallController extends Sceleton {
         $types = [];
         if (($selectedRootDirectoryId == 'library' || $selectedRootDirectoryId == 'selection') && count($messages) == 0) {
 
-            $message = (defined('MESSAGE_KEY_DOMAIN_OK')
+            $message = (
+                defined('MESSAGE_KEY_DOMAIN_OK')
                 ? constant('MESSAGE_KEY_DOMAIN_OK')
                 : 'Your store successfully connected to our <a target="_blank" href="%1$s">application shop</a>. You \'secutiry store key\' for this shop is [%2$s].'
             );
@@ -1494,7 +1574,8 @@ class InstallController extends Sceleton {
 
         $platforms = [0 => TEXT_NONE, -1 => TEXT_ALL_PLATFORMS] + \yii\helpers\ArrayHelper::map(
             \common\models\Platforms::find()->select(['platform_id', 'platform_name'])->where(['is_virtual' => 0, 'is_marketplace' => 0])->asArray()->all(),
-            'platform_id', 'platform_name'
+            'platform_id',
+            'platform_name'
         );
 
         return $this->render('index', [
@@ -1517,8 +1598,8 @@ class InstallController extends Sceleton {
         ]);
     }
 
-
-    public function actionResetStorageKey(){
+    public function actionResetStorageKey()
+    {
         global $login_id;
         $admin = \common\models\Admin::findOne($login_id);
         if ($admin instanceof \common\models\Admin) {
@@ -1547,7 +1628,7 @@ class InstallController extends Sceleton {
 
     public function actionStoreList()
     {
-        $start = (int)Yii::$app->request->post('start',0);
+        $start = (int)Yii::$app->request->post('start', 0);
         $length = (int)Yii::$app->request->post('length', 9);
 
         $type = \Yii::$app->request->post('type', '');
@@ -1564,12 +1645,12 @@ class InstallController extends Sceleton {
         $secKeyGlobal = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
         $storageUrl = \Yii::$app->params['appStorage.url'];
         $storageKey = $this->getStorageKey();
-        if (!isset(\Yii::$app->params['secKey.global']) OR (\Yii::$app->params['secKey.global'] != $secKeyGlobal)) {
+        if (!isset(\Yii::$app->params['secKey.global']) or (\Yii::$app->params['secKey.global'] != $secKeyGlobal)) {
             // wrong security store key
         } elseif (empty($storageKey) || empty($storageUrl)) {
             // wrong storage key or url
         } else {
-            \common\models\InstallListCache::deleteAll('date_added <= :date_added', [':date_added' => date("Y-m-d H:i:s", strtotime('- 1 hour'))]);
+            \common\models\InstallListCache::deleteAll('date_added <= :date_added', [':date_added' => date('Y-m-d H:i:s', strtotime('- 1 hour'))]);
             $result = false;
             $cache = \common\models\InstallListCache::find()
                     ->where(['admin_id' => $login_id])
@@ -1581,7 +1662,7 @@ class InstallController extends Sceleton {
                     ->one();
             if ($cache instanceof \common\models\InstallListCache) {
                 $result = json_decode(stripslashes($cache->return), true);
-            } else if ($request = curl_init()) {
+            } elseif ($request = curl_init()) {
                 curl_setopt($request, CURLOPT_URL, $storageUrl . 'app-api-server/products');
 
                 // for testing
@@ -1594,11 +1675,11 @@ class InstallController extends Sceleton {
                 curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
                 curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'POST');
                 curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($request, CURLOPT_HTTPHEADER, array(
+                curl_setopt($request, CURLOPT_HTTPHEADER, [
                     'Content-Type: application/json',
                     'Accept: application/json',
-                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal
-                ));
+                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
+                ]);
 
                 $postField = [
                     'offset' => $start,
@@ -1659,12 +1740,11 @@ class InstallController extends Sceleton {
                 }
             }
 
-
         }
 
         $pages = [];
         if ($recordsTotal > $recordsFiltered) {
-            for ($p=0;$p<ceil($recordsTotal/$length);$p++) {
+            for ($p = 0;$p < ceil($recordsTotal / $length);$p++) {
                 $pages[] = $p;
             }
         }
@@ -1700,11 +1780,11 @@ class InstallController extends Sceleton {
                 curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
                 curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'POST');
                 curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($request, CURLOPT_HTTPHEADER, array(
+                curl_setopt($request, CURLOPT_HTTPHEADER, [
                     'Content-Type: application/json',
                     'Accept: application/json',
-                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal
-                ));
+                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
+                ]);
 
                 $postFieldArray = [
                     'id' => $id,
@@ -1728,8 +1808,9 @@ class InstallController extends Sceleton {
                     \common\helpers\Translation::init('admin/modules');
 
                     $platforms = [0 => TEXT_NONE, -1 => TEXT_ALL_PLATFORMS] + \yii\helpers\ArrayHelper::map(
-                                    \common\models\Platforms::find()->select(['platform_id', 'platform_name'])->where(['is_virtual' => 0, 'is_marketplace' => 0])->asArray()->all(),
-                                    'platform_id', 'platform_name'
+                        \common\models\Platforms::find()->select(['platform_id', 'platform_name'])->where(['is_virtual' => 0, 'is_marketplace' => 0])->asArray()->all(),
+                        'platform_id',
+                        'platform_name'
                     );
 
                     return $this->render('upload-file-info', [
@@ -1751,12 +1832,12 @@ class InstallController extends Sceleton {
     {
         $this->layout = false;
         $status = 'fail';
-        $id = (int)Yii::$app->request->post('id',0);
+        $id = (int)Yii::$app->request->post('id', 0);
         $this->deployLog = [];
         if ($id > 0) {
             $this->resetReCacheFlags();
             if ($file = $this->getFileWithDependencies('id', $id)) {
-                $platform_id = (int)Yii::$app->request->post('platform',0);
+                $platform_id = (int)Yii::$app->request->post('platform', 0);
                 $acl = (string)Yii::$app->request->post('acl', '');
                 $readyForInstall = (int)Yii::$app->request->post('readyForInstall', 0);
                 if ($readyForInstall) {
@@ -1776,7 +1857,7 @@ class InstallController extends Sceleton {
                 $this->runSystemReCache();
             }
         }
-        $uploadInfo = implode("<br>", $this->deployLog);
+        $uploadInfo = implode('<br>', $this->deployLog);
         if ($status == 'success') {
             $packagesSynergyList = [];
             if ($request = curl_init()) {
@@ -1795,11 +1876,11 @@ class InstallController extends Sceleton {
                 curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
                 curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'POST');
                 curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($request, CURLOPT_HTTPHEADER, array(
+                curl_setopt($request, CURLOPT_HTTPHEADER, [
                     'Content-Type: application/json',
                     'Accept: application/json',
-                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal
-                ));
+                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
+                ]);
 
                 $postFieldArray = [
                     'id' => $id,
@@ -1816,8 +1897,6 @@ class InstallController extends Sceleton {
 
                     $packagesSynergyList = $result['packagesSynergyList'];
 
-
-
                 }
             }
 
@@ -1828,7 +1907,7 @@ class InstallController extends Sceleton {
                     'message' => APP_INSTALL_OK,
                     'uploadInfo' => $uploadInfo,
                     'packagesSynergyList' => $packagesSynergyList,
-                    'extClass' => $extClass??null
+                    'extClass' => $extClass ?? null,
                 ]);
 
         } else {
@@ -1850,12 +1929,12 @@ class InstallController extends Sceleton {
         $version = (defined('MIGRATIONS_DB_REVISION') ? MIGRATIONS_DB_REVISION : '');
         $recordsTotal = 0;
         $recordsFiltered = 0;
-        $start = (int)Yii::$app->request->get('start',0);
-        $length = (int)Yii::$app->request->get('length',25);
+        $start = (int)Yii::$app->request->get('start', 0);
+        $length = (int)Yii::$app->request->get('length', 25);
 
         $search_word = '';
         $search_array = Yii::$app->request->get('search');
-        if (is_array($search_array) && isset($search_array['value']) && !empty($search_array['value']) ) {
+        if (is_array($search_array) && isset($search_array['value']) && !empty($search_array['value'])) {
             $search_word = tep_db_prepare_input($search_array['value']);
         }
         $files = [];
@@ -1887,7 +1966,7 @@ class InstallController extends Sceleton {
                     $zip = new \ZipArchive();
                     if ($zip->open($path . $file) === true) {
                         $json = $zip->getFromName('distribution.json');
-                        $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#','',$json);
+                        $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
                         if (!empty($json)) {
                             $distribution = json_decode($json);
                             $dtype = (string)($distribution->type ?? '');
@@ -1954,14 +2033,14 @@ class InstallController extends Sceleton {
                                     $recordQuery = \common\models\Installer::find()->where(['archive_class' => $classversion->name]);
                                     $cv = '';
                                     if (isset($classversion->min)) {
-                                        list($major, $minor, $patch) = array_pad( explode('.', (string)$classversion->min), 3, 0);
-                                        $archive_version = intval($major) + intval($minor)/100 + intval($patch)/10000;
+                                        list($major, $minor, $patch) = array_pad(explode('.', (string)$classversion->min), 3, 0);
+                                        $archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
                                         $recordQuery->andWhere(['>=', 'archive_version', $archive_version]);
                                         $cv .= ', v.' . $classversion->min . ' or greater';
                                     }
                                     if (isset($classversion->max)) {
-                                        list($major, $minor, $patch) = array_pad( explode('.', (string)$classversion->max), 3, 0);
-                                        $archive_version = intval($major) + intval($minor)/100 + intval($patch)/10000;
+                                        list($major, $minor, $patch) = array_pad(explode('.', (string)$classversion->max), 3, 0);
+                                        $archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
                                         $recordQuery->andWhere(['<=', 'archive_version', $archive_version]);
                                         $cv .= ', v.' . $classversion->max . ' or less';
                                     }
@@ -1980,11 +2059,10 @@ class InstallController extends Sceleton {
                             }
                         }
 
-
                         if ($dtype == 'translate') {
                             $choosePlatform = 0;
                             $json = $zip->getFromName('locale.json');
-                            $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#','',$json);
+                            $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
                             if (!empty($json)) {
                                 $locale = json_decode($json);
                                 $lang = \common\models\Languages::find()->andWhere(['code' => (string)$locale->code])->one();
@@ -1996,7 +2074,6 @@ class InstallController extends Sceleton {
                             }
                         }
 
-
                         //$zip->extractTo($path);
                         $zip->close();
                     }
@@ -2007,8 +2084,6 @@ class InstallController extends Sceleton {
                     }
 
                     $fileNameCell = '<div style="white-space: nowrap"><a href="' . Yii::$app->urlManager->createUrl(['install/download-file', 'name' => $file]) . '" target="_blank"><i class="' . 'icon-upload' . '"></i></a> ' . $file . '</div>';
-
-
 
                     switch ($dtype) {
                         case 'extension':
@@ -2022,14 +2097,14 @@ class InstallController extends Sceleton {
                         case 'samples':
                         case 'configuration':
                         case 'system':
-//                            $canDeploy = true;
+                            //                            $canDeploy = true;
                             if ($deployed) {
                                 $canRevert = true;
                                 $canDelete = false;
                             }
                             break;
                         case 'update':
-//                            $canDeploy = true;
+                            //                            $canDeploy = true;
                             if ($deployed) {
                                 if ((string)$distribution->version == MIGRATIONS_DB_REVISION) {
                                     $canRevert = true;
@@ -2043,15 +2118,14 @@ class InstallController extends Sceleton {
                     }
 
                     if ($canDeploy) {
-                        list($major, $minor, $patch) = array_pad( explode('.', (string)$distribution->version), 3, 0);
-                        $archive_version = intval($major) + intval($minor)/100 + intval($patch)/10000;
+                        list($major, $minor, $patch) = array_pad(explode('.', (string)$distribution->version), 3, 0);
+                        $archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
                         $check = \common\models\Installer::find()
                                 ->select(['max(archive_version) as version'])
                                 ->where(['archive_type' => $dtype])
                                 ->andWhere(['archive_class' => $dclass])
                                 ->asArray()
                                 ->one();
-
 
                         if (isset($check['version']) && $check['version'] > $archive_version) {
                             $canDeploy = false;
@@ -2061,7 +2135,7 @@ class InstallController extends Sceleton {
                         }
                     }
 
-                    $file_row = array(
+                    $file_row = [
                         \common\helpers\Date::datetime_short(date('Y-m-d H:i:s', filemtime($path . $file))),
                         $fileNameCell,
                         //$formatter->asShortSize(filesize($path . $file), 3),
@@ -2075,8 +2149,8 @@ class InstallController extends Sceleton {
                         // deploy/revert
                         (!$deployed && $canDeploy ? '<a class="job-button" href="javascript:void(0);" onclick="return file_deploy(\'' . $file . '\', \'' . $choosePlatform . '\');"><i class="icon-plus-sign iconPlusSign"></i></a>' : '') .
                         ($canRevert ? '<a class="job-button" href="javascript:void(0);" onclick="return file_revert(\'' . $file . '\');"><i class="icon-remove-sign iconRemoveSign"></i></a>' : '') .
-                        '</div>'
-                    );
+                        '</div>',
+                    ];
 
                     $files[filemtime($path . $file).'_'.$recordsTotal] = $file_row;
 
@@ -2094,22 +2168,21 @@ class InstallController extends Sceleton {
         ];
     }
 
-
     public function actionDeployFile()
     {
         $this->deployLog = [];
         $this->layout = false;
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         $status = 'error';
-        $filename = Yii::$app->request->post('name','');
-        $platform_id = (int)Yii::$app->request->post('platform',0);
-        $locale = (int)Yii::$app->request->post('locale',0);
+        $filename = Yii::$app->request->post('name', '');
+        $platform_id = (int)Yii::$app->request->post('platform', 0);
+        $locale = (int)Yii::$app->request->post('locale', 0);
         $this->resetReCacheFlags();
         if ($this->installFileWithDependencies($filename, ['platform_id' => $platform_id, 'locale' => $locale])) {
             $status = 'ok';
             $this->runSystemReCache();
         }
-        $message = implode("<br>", $this->deployLog);
+        $message = implode('<br>', $this->deployLog);
         if (!empty($this->extClass)) {
             if ($menu = \common\helpers\MenuHelper::getExtensionHtmlMenu($this->extClass, false, 'extension-menu-item mt-1')) {
                 $message .= '<br><br><div class="extensions-menu-title"><b>'.TEXT_MENU_STRUCTURE.':</b></div>'.$menu;
@@ -2125,14 +2198,14 @@ class InstallController extends Sceleton {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
         $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR;
-        $filename = Yii::$app->request->post('name','');
+        $filename = Yii::$app->request->post('name', '');
 
         ob_start();
 
         $zip = new \ZipArchive();
         if ($zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . $filename) === true) {
             $json = $zip->getFromName('distribution.json');
-            $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#','',$json);
+            $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
             if (!empty($json)) {
                 $distribution = json_decode($json);
                 $this->resetReCacheFlags();
@@ -2146,7 +2219,7 @@ class InstallController extends Sceleton {
                             if (isset($distribution->class)) {
                                 $class = (string)$distribution->class;
                                 $twoRecs = \common\models\Installer::find()->where(['archive_class' => $record->archive_class])->orderBy(['archive_version' => SORT_DESC])->limit(2)->all();
-                                $prevVer = (count($twoRecs) == 2)? $twoRecs[1]->archive_version : null;
+                                $prevVer = (count($twoRecs) == 2) ? $twoRecs[1]->archive_version : null;
                                 if (!class_exists($class)) {
                                     if ($ext = \common\helpers\Acl::checkExtension($class, 'always')) {
                                         $class = $ext;
@@ -2167,7 +2240,7 @@ class InstallController extends Sceleton {
                         $record = \common\models\Installer::find()->where(['filename' => $filename])->one();
                         if ($record instanceof \common\models\Installer) {
                             $theme_name = \common\classes\design::pageName($distribution->name);
-                            \backend\design\Theme::themeRemove ($theme_name, true);
+                            \backend\design\Theme::themeRemove($theme_name, true);
                             $oldData = unserialize($record->data);
                             if (isset($oldData['id'])) {
                                 \common\models\PlatformsToThemes::deleteAll(['platform_id' => (int) $oldData['id']]);
@@ -2205,9 +2278,9 @@ class InstallController extends Sceleton {
                                             break;
                                         case 'update':
                                             \common\models\Translation::updateAll(
-                                                    ['translation_value' => $old['translation_value'], 'translated' => $old['translated']],
-                                                    ['hash' => $old['hash'], 'language_id' => $old['language_id']]
-                                                );
+                                                ['translation_value' => $old['translation_value'], 'translated' => $old['translated']],
+                                                ['hash' => $old['hash'], 'language_id' => $old['language_id']]
+                                            );
                                             break;
                                         case 'delete':
                                             \common\models\Translation::deleteAll(['hash' => $old['hash'], 'language_id' => $old['language_id']]);
@@ -2224,18 +2297,22 @@ class InstallController extends Sceleton {
                         break;
                     case 'payment':// Payment
                         $moduleDir = 'orderPayment';
+                        // no break
                     case 'shipping':// Shipping
                         if (empty($moduleDir)) {
                             $moduleDir = 'orderShipping';
                         }
+                        // no break
                     case 'analytic':// Payment
                         if (empty($moduleDir)) {
                             $moduleDir = 'analytic';
                         }
+                        // no break
                     case 'totals':// Order structure
                         if (empty($moduleDir)) {
                             $moduleDir = 'orderTotal';
                         }
+                        // no break
                     case 'label':// Shipping label
                         if (empty($moduleDir)) {
                             $moduleDir = 'label';
@@ -2271,13 +2348,13 @@ class InstallController extends Sceleton {
                                                 $sdn::deleteCategoryLinks($category['categories_id']);
                                             }
                                         }
-                                         break;
+                                        break;
                                     case 'catalog_products':
                                         $sdn = \common\helpers\Acl::checkExtensionAllowed('SeoRedirectsNamed', 'allowed');
                                         foreach (\common\models\Products::find()->select('products_id')->where(['IN', 'products_model', $old])->asArray()->all() as $product) {
                                             \common\helpers\Product::remove_product($product['products_id']);
-                                            if ($sdn){
-                                               $sdn::deleteProductLinks($product['products_id']);
+                                            if ($sdn) {
+                                                $sdn::deleteProductLinks($product['products_id']);
                                             }
                                         }
                                         break;
@@ -2308,7 +2385,7 @@ class InstallController extends Sceleton {
                             $this->doMenu = true;
                             $status = 'success';
                             if ($distribution->type == 'update') {
-                                \common\models\Configuration::updateAll(['configuration_value' => (string) $distribution->require->version], ['configuration_key'=> 'MIGRATIONS_DB_REVISION']);
+                                \common\models\Configuration::updateAll(['configuration_value' => (string) $distribution->require->version], ['configuration_key' => 'MIGRATIONS_DB_REVISION']);
                             }
                         }
                         break;
@@ -2371,9 +2448,9 @@ class InstallController extends Sceleton {
         }
         $output = ob_get_clean();
         if ($status == 'success') {
-            Yii::$app->response->data = ['status'=>'ok', 'text' => $output . "<br>File $filename reverted."];
+            Yii::$app->response->data = ['status' => 'ok', 'text' => $output . "<br>File $filename reverted."];
         } else {
-            Yii::$app->response->data = ['status'=>'error', 'text' => $output . "<br>Can't revert file $filename."];
+            Yii::$app->response->data = ['status' => 'error', 'text' => $output . "<br>Can't revert file $filename."];
         }
     }
 
@@ -2383,14 +2460,14 @@ class InstallController extends Sceleton {
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
         $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
-        $filename = Yii::$app->request->post('name','');
+        $filename = Yii::$app->request->post('name', '');
         $filename = \common\helpers\Output::mb_basename($filename);
 
-        if ( is_file($path . $filename) ){
+        if (is_file($path . $filename)) {
             @unlink($path . $filename);
-            Yii::$app->response->data = ['status'=>'ok', 'text' => "File $filename removed."];
+            Yii::$app->response->data = ['status' => 'ok', 'text' => "File $filename removed."];
         } else {
-            Yii::$app->response->data = ['status'=>'error', 'text' => "Can't remove file $filename."];
+            Yii::$app->response->data = ['status' => 'error', 'text' => "Can't remove file $filename."];
         }
     }
 
@@ -2399,7 +2476,7 @@ class InstallController extends Sceleton {
         $this->layout = false;
 
         $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
-        $filename = Yii::$app->request->get('name','');
+        $filename = Yii::$app->request->get('name', '');
         $filename = \common\helpers\Output::mb_basename($filename);
 
         $mime_type = \yii\helpers\FileHelper::getMimeTypeByExtension($path . $filename);
@@ -2422,10 +2499,10 @@ class InstallController extends Sceleton {
         if (isset($_FILES['file']['tmp_name'])) {
 
             $xmlfile = file_get_contents($_FILES['file']['tmp_name']);
-            $ob= simplexml_load_string($xmlfile);
+            $ob = simplexml_load_string($xmlfile);
             if (isset($ob->Menu)) {
                 $obPrepared = \common\helpers\MenuHelper::prepareAdminTree($ob->Menu, []);
-                tep_db_query("TRUNCATE TABLE admin_boxes;");
+                tep_db_query('TRUNCATE TABLE admin_boxes;');
                 \common\helpers\MenuHelper::importAdminTree($obPrepared);
             }
             if (isset($ob->Groups->item)) {
@@ -2444,7 +2521,7 @@ class InstallController extends Sceleton {
                             }
                         }
                         if (count($selectedIds) > 0) {
-                            $access_levels_persmissions = implode(",", $selectedIds);
+                            $access_levels_persmissions = implode(',', $selectedIds);
                         } else {
                             $access_levels_persmissions = '';
                         }
@@ -2488,7 +2565,7 @@ class InstallController extends Sceleton {
                     }
                     $admin_persmissions = '';
                     if (count($persmissions) > 0) {
-                        $admin_persmissions = implode(",", $persmissions);
+                        $admin_persmissions = implode(',', $persmissions);
                     }
                     $admin->admin_persmissions = $admin_persmissions;
                     $admin->save();
@@ -2503,7 +2580,7 @@ class InstallController extends Sceleton {
         $this->layout = false;
         $response = [];
 
-        $xml = new \yii\web\XmlResponseFormatter;
+        $xml = new \yii\web\XmlResponseFormatter();
         $xml->rootTag = 'Install';
         Yii::$app->response->format = 'custom_xml';
         Yii::$app->response->formatters['custom_xml'] = $xml;
@@ -2531,7 +2608,7 @@ class InstallController extends Sceleton {
             foreach (\common\models\AccessLevels::find()->all() as $acl) {
                 $selectedIds = [];
                 if (is_string($acl->access_levels_persmissions)) {
-                    $selectedIds = explode(",", $acl->access_levels_persmissions);
+                    $selectedIds = explode(',', $acl->access_levels_persmissions);
                 }
                 if (!is_array($selectedIds)) {
                     $selectedIds = [];
@@ -2557,16 +2634,16 @@ class InstallController extends Sceleton {
         }
 
         if ($members == 1) {
-             $membersList = \common\models\Admin::find()
-                        ->asArray()
-                        ->all();
+            $membersList = \common\models\Admin::find()
+                       ->asArray()
+                       ->all();
             $Members = [];
             foreach ($membersList as $item) {
                 $persmissions = [
                     'include' => [],
                     'exclude' => [],
                 ];
-                $adminPersmissions = explode(",", $item['admin_persmissions']);
+                $adminPersmissions = explode(',', $item['admin_persmissions']);
                 foreach ($adminPersmissions as $ap) {
                     if ($ap > 0) {
                         $aclItem = \common\models\AccessControlList::find()->select(['access_control_list_key'])->where(['access_control_list_id' => $ap])->asArray()->one();
@@ -2599,7 +2676,6 @@ class InstallController extends Sceleton {
         return $response;
     }
 
-
     public function actionUpdates()
     {
         \common\helpers\Translation::init('admin/install');
@@ -2613,7 +2689,7 @@ class InstallController extends Sceleton {
         $secKeyGlobal = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
         $storageUrl = \Yii::$app->params['appStorage.url'];
         $storageKey = $this->getStorageKey();
-        if (!isset(\Yii::$app->params['secKey.global']) OR (\Yii::$app->params['secKey.global'] != $secKeyGlobal)) {
+        if (!isset(\Yii::$app->params['secKey.global']) or (\Yii::$app->params['secKey.global'] != $secKeyGlobal)) {
             // wrong security store key
         } elseif (empty($storageKey) || empty($storageUrl)) {
             // wrong storage key or url
@@ -2630,11 +2706,11 @@ class InstallController extends Sceleton {
             curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
             curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'POST');
             curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($request, CURLOPT_HTTPHEADER, array(
+            curl_setopt($request, CURLOPT_HTTPHEADER, [
                 'Content-Type: application/json',
                 'Accept: application/json',
-                'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal
-            ));
+                'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
+            ]);
 
             $postFieldArray = [
                 'version' => $version,
@@ -2672,13 +2748,13 @@ class InstallController extends Sceleton {
         \common\helpers\Translation::init('admin/install');
         $this->layout = false;
         $responseLog = [];
-        foreach( \common\models\Installer::find()
+        foreach (\common\models\Installer::find()
                 ->select(['filename', 'date_added', 'archive_version', 'data'])
                 ->where(['archive_type' => 'update'])
                 ->orderBy('archive_version ASC')
                 ->asArray()
                 ->all() as $update) {
-            $responseLog[] = $update['date_added'] . " <font color='green'>" . TEXT_UPDATE_APPLIED . " " . $update['filename'] . "</font><br>\n";
+            $responseLog[] = $update['date_added'] . " <font color='green'>" . TEXT_UPDATE_APPLIED . ' ' . $update['filename'] . "</font><br>\n";
             $data = unserialize($update['data']);
             if (is_array($data)) {
                 foreach ($data as $item) {
@@ -2688,13 +2764,13 @@ class InstallController extends Sceleton {
 
         }
 
-
         return $this->render('update-log', [
             'responseLog' => $responseLog,
         ]);
     }
 
-    private function sendEcho($string) {
+    private function sendEcho($string)
+    {
         echo $string;
         ob_flush();
         flush();
@@ -2705,7 +2781,7 @@ class InstallController extends Sceleton {
         \common\models\InstallIgnoreList::deleteAll();
         $dst_file_ignore = Yii::$app->request->post('dst_file_ignore');
         if (is_array($dst_file_ignore)) {
-            foreach($dst_file_ignore as $index => $value) {
+            foreach ($dst_file_ignore as $index => $value) {
                 if (!empty($value)) {
                     $file = new \common\models\InstallIgnoreList();
                     $file->id = $index;
@@ -2738,9 +2814,8 @@ class InstallController extends Sceleton {
         try {
             \common\models\InstallIgnoreList::deleteAll();
         } catch (\Exception $exc) {
-            $this->sendEchoForUpdate("Exception: " . $exc->getMessage(), 'error');
+            $this->sendEchoForUpdate('Exception: ' . $exc->getMessage(), 'error');
         }
-
 
         $this->layout = false;
 
@@ -2758,7 +2833,7 @@ class InstallController extends Sceleton {
         $secKeyGlobal = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
         $storageUrl = \Yii::$app->params['appStorage.url'];
         $storageKey = $this->getStorageKey();
-        if (!isset(\Yii::$app->params['secKey.global']) OR (\Yii::$app->params['secKey.global'] != $secKeyGlobal)) {
+        if (!isset(\Yii::$app->params['secKey.global']) or (\Yii::$app->params['secKey.global'] != $secKeyGlobal)) {
             // wrong security store key
         } elseif (empty($storageKey) || empty($storageUrl)) {
             // wrong storage key or url
@@ -2780,11 +2855,11 @@ class InstallController extends Sceleton {
                     curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
                     curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'POST');
                     curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($request, CURLOPT_HTTPHEADER, array(
+                    curl_setopt($request, CURLOPT_HTTPHEADER, [
                         'Content-Type: application/json',
                         'Accept: application/json',
-                        'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal
-                    ));
+                        'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
+                    ]);
 
                     $postFieldArray = [
                         'version' => $version,
@@ -2805,18 +2880,18 @@ class InstallController extends Sceleton {
                             $size = $result['size'] ?? 0;
                             if (strlen($content) == $size) {
                                 file_put_contents($path . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $filename, $content);
-                                $this->sendEchoForUpdate(TEXT_FOUND_UPDATE . ". " . TEXT_FILE . " $filename " . TEXT_DOWNLOADED);
+                                $this->sendEchoForUpdate(TEXT_FOUND_UPDATE . '. ' . TEXT_FILE . " $filename " . TEXT_DOWNLOADED);
                             }
                             unset($content);
                         } else {
-                            $this->sendEchoForUpdate(TEXT_FOUND_UPDATE . ". " . TEXT_FILE . " $filename " . TEXT_ALREADY_DOWNLOADED);
+                            $this->sendEchoForUpdate(TEXT_FOUND_UPDATE . '. ' . TEXT_FILE . " $filename " . TEXT_ALREADY_DOWNLOADED);
                         }
                         unset($result);
                         try {
                             $status = $this->installFileWithDependencies($filename, ['force' => $force], true);
                         } catch (\Exception $exc) {
                             $status = false;
-                            $this->sendEchoForUpdate("Exception: " . $exc->getMessage(), 'error');
+                            $this->sendEchoForUpdate('Exception: ' . $exc->getMessage(), 'error');
                         }
                         $force = 0;
                         ob_flush();
@@ -2826,14 +2901,14 @@ class InstallController extends Sceleton {
                             $zip = new \ZipArchive();
                             if ($zip->open($path . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $filename) === true) {
                                 $json = $zip->getFromName('distribution.json');
-                                $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#','',$json);
+                                $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
                                 $distribution = json_decode($json);
                                 $version = (string) $distribution->version;
                                 $zip->close();
                             } else {
                                 $version = '';
                             }
-                            $updatedDate = \common\models\Configuration::find()->where(['configuration_key'=> 'UPDATED_DATE'])->one();
+                            $updatedDate = \common\models\Configuration::find()->where(['configuration_key' => 'UPDATED_DATE'])->one();
                             if ($updatedDate instanceof \common\models\Configuration) {
                                 $updatedDate->last_modified = date('Y-m-d H:i:s');
                             } else {
@@ -2849,7 +2924,7 @@ class InstallController extends Sceleton {
                             try {
                                 $this->runSystemReCache(true);
                             } catch (\Exception $exc) {
-                                $this->sendEchoForUpdate("Exception: " . $exc->getMessage(), 'error');
+                                $this->sendEchoForUpdate('Exception: ' . $exc->getMessage(), 'error');
                             }
                             ob_flush();
                             flush();
@@ -2861,7 +2936,7 @@ class InstallController extends Sceleton {
                         }
 
                     } else {
-                        if ($response['http_code'] != 400 ) {
+                        if ($response['http_code'] != 400) {
                             $this->sendEchoForUpdate('Status response: ' . $response['http_code'], 'error');
                         }
                         $this->sendEchoForUpdate(TEXT_NO_UPDATES);
@@ -2885,31 +2960,31 @@ class InstallController extends Sceleton {
         switch ($type) {
             case 'error':
                 $class = 'ic ic-error';
-//                $style = 'color: #dc3545';
+                //                $style = 'color: #dc3545';
                 $style = 'color: red';
-            break;
+                break;
             case 'success':
                 $class = 'ic ic-success';
-//                $style = 'color: #198754';
+                //                $style = 'color: #198754';
                 $style = 'color: green';
-            break;
+                break;
             case 'warning':
                 $class = 'ic ic-warning';
                 $style = 'color: #ffc107;';
-            break;
+                break;
             case 'info':
                 $class = 'ic ic-info';
                 $style = 'color:  #0dcaf0;';
-            break;
+                break;
             case 'default':
                 $class = 'ic ic-default';
                 $style = '';
-            break;
+                break;
         }
 
         $this->sendEcho(sprintf('<div class="%s" style="%s">%s</div>', $class, $style, $message));
     }
-    
+
     public function actionCleanupLocalStorage()
     {
         $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
@@ -2927,11 +3002,11 @@ class InstallController extends Sceleton {
                     $zip = new \ZipArchive();
                     if ($zip->open($path . $file) === true) {
                         $json = $zip->getFromName('distribution.json');
-                        $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#','',$json);
+                        $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
                         if (!empty($json)) {
                             $distribution = json_decode($json);
                             list($major, $minor, $patch) = explode('.', (string)$distribution->version);
-                            $archive_version = intval($major) + intval($minor)/100 + intval($patch)/10000;
+                            $archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
                             $check = \common\models\Installer::find()
                                     ->select(['max(archive_version) as version'])
                                     ->where(['archive_type' => (string)$distribution->type])
@@ -2970,5 +3045,5 @@ class InstallController extends Sceleton {
         }
         return $this->redirect(Yii::$app->urlManager->createUrl(['install/', 'set' => 'modules']));
     }
-    
+
 }

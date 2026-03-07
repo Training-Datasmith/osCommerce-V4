@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "admin_boxes".
@@ -35,7 +35,7 @@ class AdminBoxes extends \yii\db\ActiveRecord
         return [
             [['parent_id', 'sort_order', 'box_type', 'path', 'title'], 'required'],
             [['parent_id', 'sort_order', 'box_type'], 'integer'],
-            [['acl_check', 'config_check', 'path', 'title', 'filename'], 'string', 'max' => 255]
+            [['acl_check', 'config_check', 'path', 'title', 'filename'], 'string', 'max' => 255],
         ];
     }
 

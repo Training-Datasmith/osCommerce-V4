@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -98,19 +100,19 @@ class GlobalPaymentsTransactionsRepository
      * @param array $responseValues
      * @return GlobalPaymentsTransactions
      */
-    public function create (string $transactionId, string $gpOrderId, string $storeName, Customers $customer, array $responseValues): GlobalPaymentsTransactions
+    public function create(string $transactionId, string $gpOrderId, string $storeName, Customers $customer, array $responseValues): GlobalPaymentsTransactions
     {
         $transaction = GlobalPaymentsTransactions::findOne(['transaction_id' => $transactionId]);
         if (empty($transaction)) {
-          $transaction = new GlobalPaymentsTransactions();
+            $transaction = new GlobalPaymentsTransactions();
         }
-        $customer_name = (!empty($customer->customers_firstname)?$customer->customers_firstname . ' ':'');
-        $customer_name .= ($customer->customers_firstname??'');
-        
+        $customer_name = (!empty($customer->customers_firstname) ? $customer->customers_firstname . ' ' : '');
+        $customer_name .= ($customer->customers_firstname ?? '');
+
         $transaction->transaction_id = $transactionId;
         $transaction->gp_order_id = $responseValues['ORDER_ID'] ?? '';
         $transaction->order_id = $gpOrderId;
-        $transaction->customer_id = ($customer->customers_id??0);
+        $transaction->customer_id = ($customer->customers_id ?? 0);
         $transaction->raw = json_encode($responseValues);
         $transaction->customer_name = $customer_name;
         $transaction->store = $storeName;

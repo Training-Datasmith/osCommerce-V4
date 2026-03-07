@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,15 +18,18 @@ use yii\base\BaseObject;
 
 abstract class DatasourceBase extends BaseObject
 {
-
     public $code = '';
     public $className = 'DatasourceBase';
     public $settings = [];
 
     public function __construct(array $config = [])
     {
-        if ( isset($config['settings']) && is_string($config['settings']) ) $config['settings'] = json_decode($config['settings'],true);
-        if ( !is_array($config['settings'] ?? null) ) $config['settings'] = array();
+        if (isset($config['settings']) && is_string($config['settings'])) {
+            $config['settings'] = json_decode($config['settings'], true);
+        }
+        if (!is_array($config['settings'] ?? null)) {
+            $config['settings'] = [];
+        }
         $initConfig = [];
         foreach ($config as $key => $val) {
             if (isset($this->$key)) {
@@ -68,7 +73,7 @@ abstract class DatasourceBase extends BaseObject
      * @param $configArray
      * @return mixed
      */
-    static public function configureArray($configArray)
+    public static function configureArray($configArray)
     {
         return $configArray;
     }
@@ -78,20 +83,19 @@ abstract class DatasourceBase extends BaseObject
         return $configArray;
     }
 
-
     /**
      * @param $data
      * @return array
      * @throws \InvalidArgumentException
      */
-    static public function beforeSettingSave($data)
+    public static function beforeSettingSave($data)
     {
         $settings = is_array($data) ? $data : [];
 
         return $settings;
     }
-    
-    static public function afterSettingSave()
+
+    public static function afterSettingSave()
     {
 
     }
@@ -122,18 +126,18 @@ abstract class DatasourceBase extends BaseObject
     public function updateSettingKey($key, $value)
     {
         $changed = false;
-        if ( is_null($value) ) {
-            if ( array_key_exists($key,$this->settings) ) {
+        if (is_null($value)) {
+            if (array_key_exists($key, $this->settings)) {
                 unset($this->settings[$key]);
                 $changed = true;
             }
-        }else{
-            if (!isset($this->settings[$key]) || $this->settings[$key] != $value ) {
+        } else {
+            if (!isset($this->settings[$key]) || $this->settings[$key] != $value) {
                 $this->settings[$key] = $value;
                 $changed = true;
             }
         }
-        if ( $changed ) {
+        if ($changed) {
             tep_db_query("UPDATE ep_datasources SET settings='" . tep_db_input(json_encode($this->settings)) . "' WHERE code='" . tep_db_input($this->code) . "' ");
         }
     }

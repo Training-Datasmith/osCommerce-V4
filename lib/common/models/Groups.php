@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 /**
@@ -102,12 +103,12 @@ class Groups extends ActiveRecord
     {
         return $this->hasMany(GroupsDiscounts::class, ['groups_id' => 'groups_id'])->orderBy('groups_discounts_amount');
     }
-    
+
     public function getAdditionalDiscountsCS()
     {
         return $this->hasMany(GroupsDiscounts::class, ['groups_id' => 'groups_id'])->where('check_supersum = 1')->orderBy('groups_discounts_amount');
     }
-    
+
     public function getAdditionalDiscountsNCS()
     {
         return $this->hasMany(GroupsDiscounts::class, ['groups_id' => 'groups_id'])->where('check_supersum = 0')->orderBy('groups_discounts_amount');

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -50,13 +52,13 @@ class m230713_085019_message_styles extends Migration
                 'danger' => 'attention',
                 'info' => 'message',
                 'success' => 'success',
-                'warning' => 'warning'
+                'warning' => 'warning',
             ];
             foreach ($messages as $messageName => $colorName) {
                 $messageColor = ThemesStyles::findOne([
                     'theme_name' => $themeName,
                     'selector' => '.b-info .' . $messageName . '-message',
-                    'attribute' => 'color'
+                    'attribute' => 'color',
                 ]);
                 if (!$messageColor) {
                     $messageColor = new ThemesStyles();

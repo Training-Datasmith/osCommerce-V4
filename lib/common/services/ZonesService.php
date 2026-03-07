@@ -1,10 +1,12 @@
 <?php
 
-namespace common\services;
-use common\models\repositories\ZoneCountriesRepository;
-use common\models\PlatformsZoneCountries;
-use common\models\repositories\ZonesRepository;
+declare(strict_types=1);
 
+namespace common\services;
+
+use common\models\PlatformsZoneCountries;
+use common\models\repositories\ZoneCountriesRepository;
+use common\models\repositories\ZonesRepository;
 
 class ZonesService
 {
@@ -16,18 +18,17 @@ class ZonesService
     public function __construct(
         ZoneCountriesRepository $platformsZoneCountriesRepository,
         ZonesRepository $zonesRepository
-    )
-    {
+    ) {
         $this->platformsZoneCountriesRepository = $platformsZoneCountriesRepository;
         $this->zonesRepository = $zonesRepository;
     }
-    
+
     public function saveZoneCountries($array, int $platformId)
     {
         $platformsZoneCountries = PlatformsZoneCountries::create($array, $platformId);
         $this->platformsZoneCountriesRepository->save($platformsZoneCountries);
     }
-    
+
     public function deleteZoneCountries(int $platformId)
     {
         $this->platformsZoneCountriesRepository->deleteZoneCountry($platformId);

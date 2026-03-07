@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,94 +14,95 @@
 
 namespace backend\controllers;
 
+use backend\design\Backups;
 use backend\design\Data;
 use backend\design\FileManager;
+use backend\design\FrontendStructure;
 use backend\design\Groups;
+use backend\design\Steps;
+use backend\design\Style;
+use backend\design\Theme;
+use backend\design\Uploads;
 use backend\models\Admin;
+use common\classes\design;
+use common\helpers\Language;
 use common\helpers\Translation;
 use common\models\DesignBoxes;
-use common\models\DesignBoxesGroups;
+use common\models\DesignBoxesCache;
 use common\models\DesignBoxesSettingsTmp;
 use common\models\DesignBoxesTmp;
 use common\models\Platforms;
+use common\models\ThemesSettings;
+use common\models\ThemesStyles;
 use common\models\ThemesStylesGroups;
 use common\models\ThemesStylesMain;
 use frontend\design\Info;
 use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\FileHelper;
-use backend\design\Uploads;
-use backend\design\Steps;
-use backend\design\Style;
-use common\classes\design;
-use backend\design\Theme;
-use backend\design\Backups;
-use backend\design\FrontendStructure;
-use common\models\ThemesStyles;
-use common\models\ThemesSettings;
-use common\models\DesignBoxesCache;
-use common\helpers\Language;
-use yii\helpers\Html;
+
 /**
  *
  */
-class DesignController extends Sceleton {
-
+class DesignController extends Sceleton
+{
     public $acl = ['BOX_HEADING_DESIGN_CONTROLS', 'BOX_HEADING_THEMES'];
     public $designerMode = '';
     public $designerModeTitle = '';
 
-    function __construct($id,$module=null) {
+    public function __construct($id, $module = null)
+    {
         \common\helpers\Translation::init('admin/design');
 
         if (Yii::$app->request->get('theme_name') == \common\classes\design::pageName(BACKEND_THEME_NAME)) {
             \common\helpers\Acl::checkAccess(['BOX_HEADING_DESIGN_CONTROLS', 'BOX_HEADING_THEMES', 'BOX_BACKEND_THEME_EDIT']);
         }
 
-        $admin = new Admin;
+        $admin = new Admin();
         $this->designerMode = $admin->getAdditionalData('designer_mode');
         switch ($this->designerMode) {
-            case 'advanced': $this->designerModeTitle = EDIT_MODE . ': ' . ADVANCED_MODE; break;
-            case 'expert': $this->designerModeTitle = EDIT_MODE . ': ' . EXPERT_MODE; break;
+            case 'advanced': $this->designerModeTitle = EDIT_MODE . ': ' . ADVANCED_MODE;
+                break;
+            case 'expert': $this->designerModeTitle = EDIT_MODE . ': ' . EXPERT_MODE;
+                break;
             default: $this->designerModeTitle = EDIT_MODE . ': ' . BASIC_MODE;
         }
 
-        return parent::__construct($id,$module);
+        return parent::__construct($id, $module);
     }
-  /**
-   *
-   */
-  public function actionIndex()
-  {
-      return Yii::$app->getResponse()->redirect(['design/themes']);
-      $request = Yii::$app->request->get();
+    /**
+     *
+     */
+    public function actionIndex()
+    {
+        return Yii::$app->getResponse()->redirect(['design/themes']);
+        $request = Yii::$app->request->get();
 
-      if ($request['resource'] && $request['action']) {
-          $params = json_decode(file_get_contents('php://input'), true);
-          $resource = '\backend\design\data\\' . yii\helpers\Inflector::camelize($request['resource']);
-          $action = yii\helpers\Inflector::variablize($request['action']);
-          if (!class_exists($resource)) {
-              return json_encode(['error' => 'Resource "' . $request['resource'] . '"' . " doesn't exist"]);
-          }
-          if (!method_exists($resource, $action)) {
-              return json_encode(['error' => 'Action "' . $request['action'] . '"' . " doesn't exist"]);
-          }
-          $response = $resource::$action($params);
-          return json_encode($response);
-      }
+        if ($request['resource'] && $request['action']) {
+            $params = json_decode(file_get_contents('php://input'), true);
+            $resource = '\backend\design\data\\' . yii\helpers\Inflector::camelize($request['resource']);
+            $action = yii\helpers\Inflector::variablize($request['action']);
+            if (!class_exists($resource)) {
+                return json_encode(['error' => 'Resource "' . $request['resource'] . '"' . " doesn't exist"]);
+            }
+            if (!method_exists($resource, $action)) {
+                return json_encode(['error' => 'Action "' . $request['action'] . '"' . " doesn't exist"]);
+            }
+            $response = $resource::$action($params);
+            return json_encode($response);
+        }
 
-      $this->selectedMenu = array('design_controls', 'design/themes');
-      $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/themes'), 'title' => BOX_HEADING_THEMES);
-      $this->view->headingTitle = BOX_HEADING_THEMES;
+        $this->selectedMenu = ['design_controls', 'design/themes'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/themes'), 'title' => BOX_HEADING_THEMES];
+        $this->view->headingTitle = BOX_HEADING_THEMES;
 
+        Data::addJsData(['tr' => \common\helpers\Translation::translationsForJs([
+            'TEXT_ADD_THEME',
+        ], false)]);
 
-      Data::addJsData(['tr' => \common\helpers\Translation::translationsForJs([
-          'TEXT_ADD_THEME'
-      ], false)]);
-
-      $this->layout = false;
-      return $this->render('designer.tpl');
-  }
+        $this->layout = false;
+        return $this->render('designer.tpl');
+    }
 
     public function actionThemes()
     {
@@ -115,8 +118,8 @@ class DesignController extends Sceleton {
             $this->topButtons[] = '<a href="' . Yii::$app->urlManager->createUrl('design/add-group') . '" class="btn create-group">' . ADD_THEME_GROUP . '</a>';
         }
 
-        $this->selectedMenu = array('design_controls', 'design/themes');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/themes'), 'title' => BOX_HEADING_THEMES);
+        $this->selectedMenu = ['design_controls', 'design/themes'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/themes'), 'title' => BOX_HEADING_THEMES];
         $this->view->headingTitle = BOX_HEADING_THEMES;
 
         $themes = Theme::themesByGroup($groupId);
@@ -154,7 +157,7 @@ class DesignController extends Sceleton {
             $themes[] = $group;
         }
 
-        usort($themes, function($a, $b){
+        usort($themes, function ($a, $b) {
             return $a['sort_order'] <=> $b['sort_order'];
         });
 
@@ -168,15 +171,15 @@ class DesignController extends Sceleton {
     public function actionSaveAdminData()
     {
         $post = Yii::$app->request->post();
-        $admin = new Admin;
+        $admin = new Admin();
         $admin->saveAdditionalData($post);
     }
 
     public function actionThemeAdd()
     {
-        $themes = array();
-        $query = tep_db_query("select id, theme_name, title from " . TABLE_THEMES . " where install = '1' order by sort_order");
-        while ($theme = tep_db_fetch_array($query)){
+        $themes = [];
+        $query = tep_db_query('select id, theme_name, title from ' . TABLE_THEMES . " where install = '1' order by sort_order");
+        while ($theme = tep_db_fetch_array($query)) {
             $themes[] = $theme;
         }
         $group_id = Yii::$app->request->get('group_id');
@@ -218,32 +221,31 @@ class DesignController extends Sceleton {
             return json_encode(['code' => 1, 'text' => 'Enter only lowercase letters and numbers for theme name']);
         }
 
-        $theme = tep_db_query("select id from " . TABLE_THEMES . " where theme_name = '" . tep_db_input($params['theme_name']) . "'");
-        if (tep_db_num_rows($theme) > 0){
+        $theme = tep_db_query('select id from ' . TABLE_THEMES . " where theme_name = '" . tep_db_input($params['theme_name']) . "'");
+        if (tep_db_num_rows($theme) > 0) {
             return json_encode(['code' => 1, 'text' => 'Theme with this name already exist']);
         }
 
-        $query = tep_db_query("select id, sort_order from " . TABLE_THEMES . " where install = '1'");
-        while ($theme = tep_db_fetch_array($query)){
-            $sql_data_array = array(
+        $query = tep_db_query('select id, sort_order from ' . TABLE_THEMES . " where install = '1'");
+        while ($theme = tep_db_fetch_array($query)) {
+            $sql_data_array = [
                 'sort_order' => $theme['sort_order'] + 1,
-            );
+            ];
             tep_db_perform(TABLE_THEMES, $sql_data_array, 'update', " id = '" . $theme['id'] . "'");
         }
 
-        $sql_data_array = array(
+        $sql_data_array = [
             'theme_name' => $params['theme_name'],
             'title' => $params['title'],
             'install' => 1,
             'is_default' => 0,
             'sort_order' => 0,
             'themes_group_id' => $params['group_id'],
-            'parent_theme' => (isset($params['parent_theme']) && $params['parent_theme'] && $params['theme_source'] == 'theme' && $params['parent_theme_files'] == 'link' ? $params['parent_theme'] : 0)
-        );
+            'parent_theme' => (isset($params['parent_theme']) && $params['parent_theme'] && $params['theme_source'] == 'theme' && $params['parent_theme_files'] == 'link' ? $params['parent_theme'] : 0),
+        ];
         tep_db_perform(TABLE_THEMES, $sql_data_array);
 
-
-        if (isset($params['parent_theme']) && $params['parent_theme'] && $params['theme_source'] == 'theme'){
+        if (isset($params['parent_theme']) && $params['parent_theme'] && $params['theme_source'] == 'theme') {
 
             Theme::copyTheme($params['theme_name'], $params['parent_theme'], $params['parent_theme_files']);
             Theme::copyTheme($params['theme_name'] . '-mobile', $params['parent_theme'] . '-mobile', $params['parent_theme_files']);
@@ -262,7 +264,7 @@ class DesignController extends Sceleton {
                 $themeFile = \Yii::getAlias('@webroot');
                 $themeFile .= DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $params['theme_source_computer'];
             }
-            if ( !\backend\design\Theme::import($params['theme_name'], $themeFile) ) {
+            if (!\backend\design\Theme::import($params['theme_name'], $themeFile)) {
                 return json_encode(['code' => 1, 'text' => 'Wron theme file']);
             }
 
@@ -274,54 +276,54 @@ class DesignController extends Sceleton {
         return json_encode(['code' => 2, 'text' => 'Theme added']);
     }
 
-  public function actionThemeRemove(){
+    public function actionThemeRemove()
+    {
 
-    $params = Yii::$app->request->get();
+        $params = Yii::$app->request->get();
 
-    Theme::themeRemove($params['theme_name']);
-    Theme::themeRemove($params['theme_name'] . '-mobile');
+        Theme::themeRemove($params['theme_name']);
+        Theme::themeRemove($params['theme_name'] . '-mobile');
 
-    return Yii::$app->getResponse()->redirect(array('design/themes'));
-  }
+        return Yii::$app->getResponse()->redirect(['design/themes']);
+    }
 
+    public function actionThemeEdit()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
 
-  public function actionThemeEdit()
-  {
-    $languages_id = \Yii::$app->settings->get('languages_id');
+        $params = Yii::$app->request->get();
 
-    $params = Yii::$app->request->get();
+        $language_query = tep_db_fetch_array(tep_db_query('select code from ' . TABLE_LANGUAGES . " where languages_id = '" . $languages_id . "' order by sort_order"));
+        $language_code = $language_query['code'];
 
-    $language_query = tep_db_fetch_array(tep_db_query("select code from " . TABLE_LANGUAGES . " where languages_id = '" . $languages_id . "' order by sort_order"));
-    $language_code = $language_query['code'];
+        $this->topButtons[] = '<span class="redo-buttons"></span>';
 
-    $this->topButtons[] = '<span class="redo-buttons"></span>';
+        $this->topButtons[] = '<span class="mode-title">' . $this->designerModeTitle . '</span>';
 
-    $this->topButtons[] = '<span class="mode-title">' . $this->designerModeTitle . '</span>';
+        $this->selectedMenu = ['design_controls', 'design/themes'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/elements'), 'title' => BOX_HEADING_MAIN_STYLES . ' "' . Theme::getThemeTitle($params['theme_name']) . '"'];
+        $this->view->headingTitle = BOX_HEADING_MAIN_STYLES . ' "' . Theme::getThemeTitle($params['theme_name']) . '"';
 
-    $this->selectedMenu = array('design_controls', 'design/themes');
-    $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/elements'), 'title' => BOX_HEADING_MAIN_STYLES . ' "' . Theme::getThemeTitle($params['theme_name']) . '"');
-    $this->view->headingTitle = BOX_HEADING_MAIN_STYLES . ' "' . Theme::getThemeTitle($params['theme_name']) . '"';
+        $css = tep_db_fetch_array(tep_db_query('select setting_value from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'css' and setting_name = 'css'"));
+        $javascript = tep_db_fetch_array(tep_db_query('select setting_value from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'javascript' and setting_name = 'javascript'"));
 
-    $css = tep_db_fetch_array(tep_db_query("select setting_value from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'css' and setting_name = 'css'"));
-    $javascript = tep_db_fetch_array(tep_db_query("select setting_value from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'javascript' and setting_name = 'javascript'"));
-
-    return $this->render('theme-edit.tpl', [
-      'menu' => 'theme-edit',
-      'theme_name' => ($params['theme_name'] ? $params['theme_name'] : 'theme-1'),
-      'clear_url' => ($params['theme_name'] ? true : false),
-      'css' => $css['setting_value'] ?? null,
-      'javascript' => $javascript['setting_value'] ?? null,
-      'language_code' => $language_code,
-        'designer_mode' => $this->designerMode,
-    ]);
-  }
+        return $this->render('theme-edit.tpl', [
+          'menu' => 'theme-edit',
+          'theme_name' => ($params['theme_name'] ? $params['theme_name'] : 'theme-1'),
+          'clear_url' => ($params['theme_name'] ? true : false),
+          'css' => $css['setting_value'] ?? null,
+          'javascript' => $javascript['setting_value'] ?? null,
+          'language_code' => $language_code,
+            'designer_mode' => $this->designerMode,
+        ]);
+    }
 
     public function actionCss()
     {
         $params = Yii::$app->request->get();
 
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/css'), 'title' => 'CSS "' . Theme::getThemeTitle($params['theme_name']) . '"');
-        $this->selectedMenu = array('design_controls', 'design/themes');
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/css'), 'title' => 'CSS "' . Theme::getThemeTitle($params['theme_name']) . '"'];
+        $this->selectedMenu = ['design_controls', 'design/themes'];
 
         $this->topButtons[] = '<span class="btn btn-confirm btn-save-css btn-elements ">' . IMAGE_SAVE . '</span><span class="redo-buttons"></span>';
 
@@ -331,12 +333,12 @@ class DesignController extends Sceleton {
 
         $style = Style::getCss($params['theme_name']);
 
-        $css = tep_db_fetch_array(tep_db_query("select setting_value from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'css' and setting_name = 'css'"));
+        $css = tep_db_fetch_array(tep_db_query('select setting_value from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'css' and setting_name = 'css'"));
         if ($css['setting_value'] ?? null) {
             $style .= $css['setting_value'];
         }
 
-        $setting = tep_db_fetch_array(tep_db_query("select setting_value from " . TABLE_THEMES_SETTINGS . " where setting_name = 'development_mode' and setting_group = 'hide' and theme_name = '" . tep_db_input($params['theme_name']) . "'"));
+        $setting = tep_db_fetch_array(tep_db_query('select setting_value from ' . TABLE_THEMES_SETTINGS . " where setting_name = 'development_mode' and setting_group = 'hide' and theme_name = '" . tep_db_input($params['theme_name']) . "'"));
         $css_status = 0;
         if ($setting['setting_value'] ?? null) {
             $css_status = 1;
@@ -363,7 +365,7 @@ class DesignController extends Sceleton {
     {
         $get = Yii::$app->request->get();
 
-        if ($get['widget'] == 'all'){
+        if ($get['widget'] == 'all') {
             $widget = [];
         } elseif ($get['widget'] == 'main') {
             $widget = [''];
@@ -380,94 +382,94 @@ class DesignController extends Sceleton {
         return $css;
     }
 
-  public function actionJs()
-  {
-    $params = Yii::$app->request->get();
+    public function actionJs()
+    {
+        $params = Yii::$app->request->get();
 
-      $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/js'), 'title' => 'JS "' . Theme::getThemeTitle($params['theme_name']) . '"');
-      $this->selectedMenu = array('design_controls', 'design/themes');
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/js'), 'title' => 'JS "' . Theme::getThemeTitle($params['theme_name']) . '"'];
+        $this->selectedMenu = ['design_controls', 'design/themes'];
 
-    $this->topButtons[] = '<span class="btn btn-confirm btn-save-javascript btn-elements ">' . IMAGE_SAVE . '</span>';
+        $this->topButtons[] = '<span class="btn btn-confirm btn-save-javascript btn-elements ">' . IMAGE_SAVE . '</span>';
 
-      $this->topButtons[] = '<span class="mode-title">' . $this->designerModeTitle . '</span>';
+        $this->topButtons[] = '<span class="mode-title">' . $this->designerModeTitle . '</span>';
 
-    $javascript = tep_db_fetch_array(tep_db_query("select setting_value from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'javascript' and setting_name = 'javascript'"));
+        $javascript = tep_db_fetch_array(tep_db_query('select setting_value from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'javascript' and setting_name = 'javascript'"));
 
-    return $this->render('js.tpl', [
-      'menu' => 'js',
-      'theme_name' => ($params['theme_name'] ? $params['theme_name'] : 'theme-1'),
-      'javascript' => $javascript['setting_value'] ?? null,
-        'designer_mode' => $this->designerMode,
-    ]);
-  }
-
-  public function actionCssSave()
-  {
-      $params = Yii::$app->request->post();
-
-      $devPath = DIR_FS_CATALOG . 'themes/' . $params['theme_name'] . '/css/';
-
-      if ($params['widget'] == 'all') {
-          \yii\helpers\FileHelper::createDirectory($devPath);
-          file_put_contents($devPath . 'develop.css', $params['css']);
-      }
-      Theme::saveThemeVersion($params['theme_name']);
-      /*$develop = fopen($devPath . 'develop.css', "w");
-      fwrite($develop, $params['css']);
-      fclose($develop);*/
-      $cssSave = Style::cssSave($params);
-
-      $this->actionBackupAuto($params['theme_name'], $cssSave);
-  }
-
-  public function actionJavascriptSave()
-  {
-    $params = Yii::$app->request->post();
-
-    $total = tep_db_fetch_array(tep_db_query("select count(*) as total from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'javascript' and setting_group = 'javascript'"));
-
-    $query = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'javascript' and setting_group = 'javascript'");
-    $javascript_old = tep_db_fetch_array($query);
-    $javascript_old = $javascript_old['setting_value'] ?? null;
-
-    if (tep_db_num_rows($query) == 0) {
-      $sql_data_array = array(
-        'theme_name' => $params['theme_name'],
-        'setting_group' => 'javascript',
-        'setting_name' => 'javascript',
-        'setting_value' => $params['javascript']
-      );
-      tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
-    } else {
-      $sql_data_array = array(
-        'setting_value' => $params['javascript']
-      );
-      tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array, 'update', " theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'javascript' and setting_name = 'javascript'");
+        return $this->render('js.tpl', [
+          'menu' => 'js',
+          'theme_name' => ($params['theme_name'] ? $params['theme_name'] : 'theme-1'),
+          'javascript' => $javascript['setting_value'] ?? null,
+            'designer_mode' => $this->designerMode,
+        ]);
     }
-      Theme::saveThemeVersion($params['theme_name']);
 
-    $data = [
-      'theme_name' => $params['theme_name'],
-      'javascript_old' => $javascript_old,
-      'javascript' => $params['javascript'],
-    ];
-    Steps::javascriptSave($data);
+    public function actionCssSave()
+    {
+        $params = Yii::$app->request->post();
 
-    return '';
+        $devPath = DIR_FS_CATALOG . 'themes/' . $params['theme_name'] . '/css/';
 
-  }
+        if ($params['widget'] == 'all') {
+            \yii\helpers\FileHelper::createDirectory($devPath);
+            file_put_contents($devPath . 'develop.css', $params['css']);
+        }
+        Theme::saveThemeVersion($params['theme_name']);
+        /*$develop = fopen($devPath . 'develop.css', "w");
+        fwrite($develop, $params['css']);
+        fclose($develop);*/
+        $cssSave = Style::cssSave($params);
+
+        $this->actionBackupAuto($params['theme_name'], $cssSave);
+    }
+
+    public function actionJavascriptSave()
+    {
+        $params = Yii::$app->request->post();
+
+        $total = tep_db_fetch_array(tep_db_query('select count(*) as total from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'javascript' and setting_group = 'javascript'"));
+
+        $query = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'javascript' and setting_group = 'javascript'");
+        $javascript_old = tep_db_fetch_array($query);
+        $javascript_old = $javascript_old['setting_value'] ?? null;
+
+        if (tep_db_num_rows($query) == 0) {
+            $sql_data_array = [
+              'theme_name' => $params['theme_name'],
+              'setting_group' => 'javascript',
+              'setting_name' => 'javascript',
+              'setting_value' => $params['javascript'],
+            ];
+            tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
+        } else {
+            $sql_data_array = [
+              'setting_value' => $params['javascript'],
+            ];
+            tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array, 'update', " theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'javascript' and setting_name = 'javascript'");
+        }
+        Theme::saveThemeVersion($params['theme_name']);
+
+        $data = [
+          'theme_name' => $params['theme_name'],
+          'javascript_old' => $javascript_old,
+          'javascript' => $params['javascript'],
+        ];
+        Steps::javascriptSave($data);
+
+        return '';
+
+    }
 
     public function actionElements()
     {
         $languages_id = \Yii::$app->settings->get('languages_id');
-        $this->selectedMenu = array('design', 'elements');
+        $this->selectedMenu = ['design', 'elements'];
         $params = Yii::$app->request->get();
 
         if (!isset($params['theme_name'])) {
             return Yii::$app->getResponse()->redirect(['design/themes']);
         }
 
-        $language_query = tep_db_fetch_array(tep_db_query("select code from " . TABLE_LANGUAGES . " where languages_id = '" . $languages_id . "' order by sort_order"));
+        $language_query = tep_db_fetch_array(tep_db_query('select code from ' . TABLE_LANGUAGES . " where languages_id = '" . $languages_id . "' order by sort_order"));
         $language_code = $language_query['code'];
 
         \backend\design\Data::addJsData([
@@ -485,8 +487,8 @@ class DesignController extends Sceleton {
 
         $this->topButtons[] = '<span class="mode-title">' . $this->designerModeTitle . '</span>';
 
-        $this->selectedMenu = array('design_controls', 'design/themes');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/elements'), 'title' => BOX_HEADING_ELEMENTS . ' "' . Theme::getThemeTitle($params['theme_name']) . '"');
+        $this->selectedMenu = ['design_controls', 'design/themes'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/elements'), 'title' => BOX_HEADING_ELEMENTS . ' "' . Theme::getThemeTitle($params['theme_name']) . '"'];
         $this->view->headingTitle = BOX_HEADING_ELEMENTS . ' "' . Theme::getThemeTitle($params['theme_name']) . '"';
 
         \backend\design\Data::addJsData([
@@ -541,11 +543,11 @@ class DesignController extends Sceleton {
 
         Steps::elementsCancel($themeName);
 
-        tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id in (select id from " . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($themeName) . "')");
-        tep_db_query("delete from " . TABLE_DESIGN_BOXES_TMP . " where theme_name = '" . tep_db_input($themeName) . "'");
+        tep_db_query('delete from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . ' where box_id in (select id from ' . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($themeName) . "')");
+        tep_db_query('delete from ' . TABLE_DESIGN_BOXES_TMP . " where theme_name = '" . tep_db_input($themeName) . "'");
 
-        tep_db_query("INSERT INTO " . TABLE_DESIGN_BOXES_TMP . " SELECT * FROM " . TABLE_DESIGN_BOXES . " WHERE theme_name = '" . tep_db_input($themeName) . "'");
-        tep_db_query("INSERT INTO " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " SELECT dbs.* FROM " . TABLE_DESIGN_BOXES_SETTINGS . " dbs, " . TABLE_DESIGN_BOXES_TMP . " db WHERE db.theme_name = '" . tep_db_input($themeName) . "' and dbs.box_id = db.id");
+        tep_db_query('INSERT INTO ' . TABLE_DESIGN_BOXES_TMP . ' SELECT * FROM ' . TABLE_DESIGN_BOXES . " WHERE theme_name = '" . tep_db_input($themeName) . "'");
+        tep_db_query('INSERT INTO ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . ' SELECT dbs.* FROM ' . TABLE_DESIGN_BOXES_SETTINGS . ' dbs, ' . TABLE_DESIGN_BOXES_TMP . " db WHERE db.theme_name = '" . tep_db_input($themeName) . "' and dbs.box_id = db.id");
 
         return '<div class="popup-heading">' . TEXT_NOTIFIC . '</div><div class="popup-content pop-mess-cont">Canceled</div>';
     }
@@ -560,23 +562,23 @@ class DesignController extends Sceleton {
             return json_encode('');
         }
 
-
         $i = 1;
-        $positions = array();
-        $positions_old = array();
-        if (is_array($params['id']))
-            foreach ($params['id'] as $item){
+        $positions = [];
+        $positions_old = [];
+        if (is_array($params['id'])) {
+            foreach ($params['id'] as $item) {
                 $id = substr($item, 4);
                 $microtime = DesignBoxesTmp::findOne(['id' => $id])->microtime;
-                $sql_data_array = array(
+                $sql_data_array = [
                     'block_name' => tep_db_prepare_input($params['name']),
                     'sort_order' => $i,
-                );
+                ];
                 $i++;
                 $positions[] = array_merge(['id' => $id, 'microtime' => $microtime], $sql_data_array);
-                $positions_old[] = tep_db_fetch_array(tep_db_query("select id, block_name, sort_order, microtime from " . TABLE_DESIGN_BOXES_TMP . " where id='" . (int)$id . "'"));
+                $positions_old[] = tep_db_fetch_array(tep_db_query('select id, block_name, sort_order, microtime from ' . TABLE_DESIGN_BOXES_TMP . " where id='" . (int)$id . "'"));
                 tep_db_perform(TABLE_DESIGN_BOXES_TMP, $sql_data_array, 'update', "id = '" . (int)$id . "'");
             }
+        }
 
         $data = [
             'positions' => $positions,
@@ -588,43 +590,43 @@ class DesignController extends Sceleton {
         $this->actionBackupAuto($params['theme_name'], json_encode(''));
     }
 
-  public static function deleteBlock($id) {
-    $query = tep_db_query("select id from " . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "' or block_name = 'block-" . tep_db_input($id) . "-2' or block_name = 'block-" . tep_db_input($id) . "-3' or block_name = 'block-" . tep_db_input($id) . "-4' or block_name = 'block-" . tep_db_input($id) . "-5'");
-    while ($item = tep_db_fetch_array($query)){
-      tep_db_query("delete from " . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$item['id'] . "'");
-      tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . $item['id'] . "'");
-      self::deleteBlock($item['id']);
+    public static function deleteBlock($id)
+    {
+        $query = tep_db_query('select id from ' . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "' or block_name = 'block-" . tep_db_input($id) . "-2' or block_name = 'block-" . tep_db_input($id) . "-3' or block_name = 'block-" . tep_db_input($id) . "-4' or block_name = 'block-" . tep_db_input($id) . "-5'");
+        while ($item = tep_db_fetch_array($query)) {
+            tep_db_query('delete from ' . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$item['id'] . "'");
+            tep_db_query('delete from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . $item['id'] . "'");
+            self::deleteBlock($item['id']);
+        }
     }
-  }
 
-  public function actionBoxDelete()
-  {
-    $params = tep_db_prepare_input(Yii::$app->request->post());
+    public function actionBoxDelete()
+    {
+        $params = tep_db_prepare_input(Yii::$app->request->post());
 
-    $id = substr($params['id'], 4);
+        $id = substr($params['id'], 4);
 
-    Steps::boxDelete([
-      'theme_name' => $params['theme_name'],
-      'id' => $id
-    ]);
+        Steps::boxDelete([
+          'theme_name' => $params['theme_name'],
+          'id' => $id,
+        ]);
 
-    tep_db_query("delete from " . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$id . "'");
-    tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . (int)$id . "'");
+        tep_db_query('delete from ' . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$id . "'");
+        tep_db_query('delete from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . (int)$id . "'");
 
-    self::deleteBlock($id);
+        self::deleteBlock($id);
 
-      $this->actionBackupAuto($params['theme_name'], json_encode(['text' => 'removed']));
-  }
+        $this->actionBackupAuto($params['theme_name'], json_encode(['text' => 'removed']));
+    }
 
-  public function actionWidgetsList()
-  {
-    $type = Yii::$app->request->get('type');
+    public function actionWidgetsList()
+    {
+        $type = Yii::$app->request->get('type');
 
-    $widgets = \backend\design\WidgetsList::get($type);
+        $widgets = \backend\design\WidgetsList::get($type);
 
-    return json_encode($widgets);
-  }
-
+        return json_encode($widgets);
+    }
 
     public function actionBoxAdd()
     {
@@ -632,7 +634,7 @@ class DesignController extends Sceleton {
 
         $params['sort_order'] = DesignBoxesTmp::find()->where([
                 'block_name' => $params['block'],
-                'theme_name' => $params['theme_name']
+                'theme_name' => $params['theme_name'],
             ])->max('sort_order') + 1;
 
         if (substr($params['box'], 0, 6) == 'group-') {
@@ -671,7 +673,6 @@ class DesignController extends Sceleton {
 
         $this->actionBackupAuto($params['theme_name'], json_encode($params));
     }
-
 
     public function actionBoxAddSort()
     {
@@ -724,7 +725,7 @@ class DesignController extends Sceleton {
 
                 $designBoxesSibling = DesignBoxesTmp::findOne(['id' => $id, 'theme_name' => $params['theme_name']]);
 
-                if ($designBoxesSibling){
+                if ($designBoxesSibling) {
                     $sort_arr[$designBoxesSibling->microtime] = $i;
                     $sort_arr_old[$designBoxesSibling->microtime] = $designBoxesSibling->sort_order;
 
@@ -758,8 +759,8 @@ class DesignController extends Sceleton {
         foreach ($aldBoxes as $box) {
             $tree = \backend\design\Theme::blocksTree($box['id']);
             $contentOld[] = $tree;
-            tep_db_query("delete from " . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$box['id'] . "'");
-            tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . (int)$box['id'] . "'");
+            tep_db_query('delete from ' . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$box['id'] . "'");
+            tep_db_query('delete from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . (int)$box['id'] . "'");
             self::deleteBlock($box['id']);
         }
 
@@ -852,27 +853,27 @@ class DesignController extends Sceleton {
 
         if ($theme_name && $page_name) {
 
-            $count = tep_db_fetch_array(tep_db_query("select count(*) as total from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_group = 'added_page' and setting_value = '" . tep_db_input($page_title) . "'"));
+            $count = tep_db_fetch_array(tep_db_query('select count(*) as total from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_group = 'added_page' and setting_value = '" . tep_db_input($page_title) . "'"));
             if ($count['total'] == 1) {
 
                 Steps::removePageTemplate([
                     'theme_name' => $theme_name,
-                    'page_title' => $page_title
+                    'page_title' => $page_title,
                 ]);
 
-                tep_db_query("
+                tep_db_query('
                         delete 
-                        from " . TABLE_THEMES_SETTINGS . " 
+                        from ' . TABLE_THEMES_SETTINGS . " 
                         where 
                             theme_name = '" . tep_db_input($theme_name) . "' and 
                             ((setting_group = 'added_page' and setting_value = '" . tep_db_input($page_title) . "') or
                              (setting_group = 'added_page_settings' and setting_name = '" . tep_db_input($page_title) . "'))
                 ");
 
-                $query = tep_db_query("select id from " . TABLE_DESIGN_BOXES_TMP . " where block_name = '" . tep_db_input($page_name) . "'");
-                while ($item = tep_db_fetch_array($query)){
-                    tep_db_query("delete from " . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$item['id'] . "'");
-                    tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . $item['id'] . "'");
+                $query = tep_db_query('select id from ' . TABLE_DESIGN_BOXES_TMP . " where block_name = '" . tep_db_input($page_name) . "'");
+                while ($item = tep_db_fetch_array($query)) {
+                    tep_db_query('delete from ' . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$item['id'] . "'");
+                    tep_db_query('delete from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . $item['id'] . "'");
                     self::deleteBlock($item['id']);
                 }
 
@@ -885,11 +886,11 @@ class DesignController extends Sceleton {
     {
         $get = Yii::$app->request->get();
 
-        $query = tep_db_query("select setting_value from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($get['theme_name']) . "' and setting_group = 'added_page_settings' and setting_name = '" . tep_db_input($get['page_name']) . "'");
+        $query = tep_db_query('select setting_value from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($get['theme_name']) . "' and setting_group = 'added_page_settings' and setting_name = '" . tep_db_input($get['page_name']) . "'");
 
-        $added_page_settings = array();
-        while ($item = tep_db_fetch_array($query)){
-            if (strpos($item['setting_value'], ':')){
+        $added_page_settings = [];
+        while ($item = tep_db_fetch_array($query)) {
+            if (strpos($item['setting_value'], ':')) {
                 $setArr = explode(':', $item['setting_value']);
                 $added_page_settings[$setArr[0]] = $setArr[1];
             } else {
@@ -904,377 +905,375 @@ class DesignController extends Sceleton {
             'page_name' => $get['page_name'],
             'page_type' => $get['page_type'],
             'added_page_settings' => $added_page_settings,
-            'action' => Yii::$app->urlManager->createUrl('design/add-page-settings-action')
+            'action' => Yii::$app->urlManager->createUrl('design/add-page-settings-action'),
         ]);
     }
 
-  public function actionAddPageSettingsAction()
-  {
-    $post = Yii::$app->request->post();
+    public function actionAddPageSettingsAction()
+    {
+        $post = Yii::$app->request->post();
 
-    $theme_name = tep_db_prepare_input($post['theme_name']);
-    $page_name = tep_db_prepare_input($post['page_name']);
+        $theme_name = tep_db_prepare_input($post['theme_name']);
+        $page_name = tep_db_prepare_input($post['page_name']);
 
-    $settings_old = array();
-    $settings = array();
-    $query_settings = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_group = 'added_page_settings' and setting_name = '" . tep_db_input($page_name) . "'");
-    while ($item = tep_db_fetch_array($query_settings)){
-      $settings_old[] = $item;
-    }
-
-    \backend\design\Theme::savePageSettings($post);
-
-    $query_settings = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_group = 'added_page_settings' and setting_name = '" . tep_db_input($page_name) . "'");
-    while ($item = tep_db_fetch_array($query_settings)){
-      $settings[] = $item;
-    }
-
-    Steps::addPageSettings([
-      'theme_name' => $theme_name,
-      'page_name' => $page_name,
-      'settings_old' => $settings_old,
-      'settings' => $settings
-    ]);
-
-    return json_encode(['code' => 1, 'text' => '']);
-  }
-
-  public function actionBoxEdit()
-  {
-    $params = tep_db_prepare_input(Yii::$app->request->get());
-    $id = substr($params['id'], 4);
-
-    $settings = array();
-    $items_query = tep_db_query("select id, widget_name, widget_params, theme_name from " . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$id . "'");
-    $widget_params = [];
-    if ($item = tep_db_fetch_array($items_query)) {
-      $widget_params = $item['widget_params'];
-
-      $media_query = array();
-      $media_query_arr = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($item['theme_name']) . "' and setting_name = 'media_query'");
-      while ($item1 = tep_db_fetch_array($media_query_arr)){
-          $width = explode('w', $item1['setting_value']);
-          $item1['title'] = ($width[0] ? $width[0] : '0') . ' - ' . ($width[1] ? $width[1] : '<span style="font-size: 1.8em; line-height: 0">&#8734;</span>');
-        $media_query[] = $item1;
-      }
-        usort($media_query, function($a, $b){
-            return ((int)str_replace('w', '', $a['setting_value']) < (int)str_replace('w', '', $b['setting_value'])) ? -1 : 1;
-        });
-      $settings['media_query'] = $media_query;
-      $settings['theme_name'] = $item['theme_name'];
-    }
-
-
-
-    $visibility = array();
-    $settings_query = tep_db_query("select * from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . (int)$id . "'");
-    while ($set = tep_db_fetch_array($settings_query)) {
-      if (!$set['visibility']){
-        $settings[$set['language_id']][$set['setting_name']] = $set['setting_value'];
-      } else {
-          if (count(Style::vArr($set['visibility'])) == 1) {
-              $visibility[$set['language_id']][$set['visibility']][$set['setting_name']] = $set['setting_value'];
-          }
-      }
-    }
-
-    $font_added = array();
-    $font_added_arr = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($item['theme_name']) . "' and setting_name = 'font_added'");
-    while ($item1 = tep_db_fetch_array($font_added_arr)){
-      preg_match('/font-family:[ \'"]+([^\'^"^;^}]+)/', $item1['setting_value'], $val);
-      $font_added[] = $val[1];
-    }
-    $settings['font_added'] = $font_added;
-    $settings['theme_name'] = $item['theme_name'];
-
-      $settings['designer_mode'] = $this->designerMode;
-
-    if (is_file(Yii::getAlias('@app') . DIRECTORY_SEPARATOR . 'design' . DIRECTORY_SEPARATOR . 'boxes' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $params['name']) . '.php')){
-      $widget_name = 'backend\design\boxes\\' .str_replace('\\\\', '\\', $params['name']);
-      return $widget_name::widget(['id' => $id, 'params' => $widget_params, 'settings' => $settings, 'visibility' => $visibility]);
-	} elseif($ext = \common\helpers\Acl::checkExtension($params['name'], 'showTabSettings', true)){
-      $widget_name = 'backend\design\boxes\Def';
-      $settings['tabs'] = ['class'=> $ext, 'method' => 'showTabSettings'];
-      return $widget_name::widget(['id' => $id, 'params' => $widget_params, 'settings' => $settings, 'visibility' => $visibility, 'block_type' => $params['block_type']]);
-    } elseif($ext = \common\helpers\Acl::checkExtension($params['name'], 'showSettings', true)){
-        $widget_name = 'backend\design\boxes\Def';
-        $settings['class'] = $ext;
-        $settings['method'] = 'showSettings';
-        return $widget_name::widget(['id' => $id, 'params' => $widget_params, 'settings' => $settings, 'visibility' => $visibility, 'block_type' => $params['block_type']]);
-    }else {
-      $widget_name = 'backend\design\boxes\Def';
-      return $widget_name::widget(['id' => $id, 'params' => $widget_params, 'settings' => $settings, 'visibility' => $visibility, 'block_type' => $params['block_type']]);
-    }
-  }
-
-  public function saveBoxSettings($id, $language, $key, $val, $visibility = '', $settings = [])
-  {
-      if (($val == '' || $val == 'off') && !in_array($key, ['background_image', 'logo', 'poster', 'video', 'image'])) {
-          DesignBoxesSettingsTmp::deleteAll([
-              'box_id' => $id,
-              'setting_name' => $key,
-              'language_id' => $language,
-              'visibility' => $visibility
-          ]);
-          return null;
-      }
-
-      if (in_array($key, ['background_image_upload', 'logo_upload', 'poster_upload', 'video_upload', 'image_upload'])){
-          return null;
-      }
-
-      $themeRow = DesignBoxesTmp::find()->select('theme_name, microtime')->where(['id' => $id])->asArray()->one();
-      if (!$themeRow) {
-          return null;
-      }
-      $themeName = $themeRow['theme_name'];
-
-      $settingRow = DesignBoxesSettingsTmp::findOne([
-          'box_id' => $id,
-          'setting_name' => $key,
-          'language_id' => $language,
-          'visibility' => $visibility
-      ]);
-
-      if (!$settingRow) {
-          $settingRow = new DesignBoxesSettingsTmp();
-      }
-
-      if (in_array($key, ['background_image', 'logo', 'poster', 'video', 'image'])){
-          $val = \common\helpers\Image::prepareSavingImage(
-              ($settingRow->setting_value ?? ''),
-              $val,
-              $settings[$key . '_upload'],
-              'themes' . DIRECTORY_SEPARATOR . $themeName . DIRECTORY_SEPARATOR . 'img',
-              false, true
-          );
-          if (!$val) {
-              DesignBoxesSettingsTmp::deleteAll([
-                  'box_id' => $id,
-                  'setting_name' => $key,
-                  'language_id' => $language,
-                  'visibility' => $visibility
-              ]);
-              return null;
-          }
-      }
-
-      $settingRow->box_id = $id;
-      $settingRow->microtime = $themeRow['microtime'];
-      $settingRow->theme_name = $themeName;
-      $settingRow->setting_name = $key;
-      $settingRow->setting_value = (string)$val;
-      $settingRow->language_id = $language;
-      $settingRow->visibility = $visibility;
-      $settingRow->save(false);
-  }
-
-  public function actionBoxSave()
-  {
-    $values = Yii::$app->request->post('values');
-
-    $params = Style::paramsFromOneInput($values);
-    //$params = tep_db_prepare_input($params);
-
-    if (isset($params['product_types']) && is_array($params['product_types'])) {
-      $tmp = 0;
-      //2do jquery.edit-[box|theme].js pass checkbox value/remove from params if unchecked VL
-      foreach ($params['product_types'] as $v => $foo) {
-        if (!empty($foo)) {
-          $tmp |= $v;
+        $settings_old = [];
+        $settings = [];
+        $query_settings = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_group = 'added_page_settings' and setting_name = '" . tep_db_input($page_name) . "'");
+        while ($item = tep_db_fetch_array($query_settings)) {
+            $settings_old[] = $item;
         }
-      }
-      $params['setting'][0]['product_types'] = $tmp;
-    }
 
-    $p = tep_db_fetch_array(tep_db_query("select theme_name, microtime from " . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$params['id'] . "'"));
+        \backend\design\Theme::savePageSettings($post);
 
-    $box_settings_old = array();
-    $query = tep_db_query("select setting_name, setting_value, language_id, visibility from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . (int)$params['id'] . "'");
-    while ($item = tep_db_fetch_array($query)){
-      $box_settings_old[] = $item;
-    }
-
-    if (ArrayHelper::getValue($params, 'setting') || ArrayHelper::getValue($params, 'visibility')) {
-      for ($i=0; $i<17; $i++){
-        if ($params['setting'][0]['sort_hide_' . $i] ?? null) {
-          $params['setting'][0]['sort_hide_' . $i] = 0;
-        } elseif (isset($params['setting'][0]['sort_hide_' . $i])) {
-          $params['setting'][0]['sort_hide_' . $i] = 1;
+        $query_settings = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_group = 'added_page_settings' and setting_name = '" . tep_db_input($page_name) . "'");
+        while ($item = tep_db_fetch_array($query_settings)) {
+            $settings[] = $item;
         }
-      }
 
-      if (ArrayHelper::getValue($params, ['setting',0,'font_size_dimension']) && !ArrayHelper::getValue($params, ['setting',0,'font-size'])) {
-          $params['setting'][0]['font_size_dimension'] = '';
-      }
+        Steps::addPageSettings([
+          'theme_name' => $theme_name,
+          'page_name' => $page_name,
+          'settings_old' => $settings_old,
+          'settings' => $settings,
+        ]);
 
-        $convertSettings = [
-            // visibility widgets on various pages
-            'visibility_home', 'visibility_first_view', 'visibility_more_view', 'visibility_logged', 'visibility_not_logged', 'visibility_product', 'visibility_catalog', 'visibility_info', 'visibility_cart', 'visibility_checkout', 'visibility_success', 'visibility_account', 'visibility_login', 'visibility_other',
+        return json_encode(['code' => 1, 'text' => '']);
+    }
 
-            //items on listing product
-            'show_name', 'show_image', 'show_stock', 'show_description', 'show_model', 'show_properties', 'show_rating', 'show_rating_counts', 'show_price', 'show_buy_button', 'show_qty_input', 'show_view_button', 'show_wishlist_button', 'show_compare', 'show_bonus_points', 'show_attributes', 'show_paypal_button', 'show_amazon_button',
+    public function actionBoxEdit()
+    {
+        $params = tep_db_prepare_input(Yii::$app->request->get());
+        $id = substr($params['id'], 4);
 
-            'show_name_rows', 'show_image_rows', 'show_stock_rows', 'show_description_rows', 'show_model_rows', 'show_properties_rows', 'show_rating_rows', 'show_rating_counts_rows', 'show_price_rows', 'show_buy_button_rows', 'show_qty_input_rows', 'show_view_button_rows', 'show_wishlist_button_rows', 'show_compare_rows', 'show_bonus_points_rows', 'show_attributes_rows', 'show_paypal_button_rows', 'show_amazon_button_rows',
+        $settings = [];
+        $items_query = tep_db_query('select id, widget_name, widget_params, theme_name from ' . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$id . "'");
+        $widget_params = [];
+        if ($item = tep_db_fetch_array($items_query)) {
+            $widget_params = $item['widget_params'];
 
-            'show_name_b2b', 'show_image_b2b', 'show_stock_b2b', 'show_description_b2b', 'show_model_b2b', 'show_properties_b2b', 'show_rating_b2b', 'show_rating_counts_b2b', 'show_price_b2b', 'show_buy_button_b2b', 'show_qty_input_b2b', 'show_view_button_b2b', 'show_wishlist_button_b2b', 'show_compare_b2b', 'show_bonus_points_b2b', 'show_attributes_b2b', 'show_paypal_button_b2b', 'show_amazon_button_b2b',
-        ];
-
-        foreach ($convertSettings as $setting) {
-            if (isset($params['setting'][0][$setting]) && !$params['setting'][0][$setting]) {
-                $params['setting'][0][$setting] = 1;
-            } elseif (ArrayHelper::getValue($params, ['setting',0,$setting]) == 1) {
-                $params['setting'][0][$setting] = '';
+            $media_query = [];
+            $media_query_arr = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($item['theme_name']) . "' and setting_name = 'media_query'");
+            while ($item1 = tep_db_fetch_array($media_query_arr)) {
+                $width = explode('w', $item1['setting_value']);
+                $item1['title'] = ($width[0] ? $width[0] : '0') . ' - ' . ($width[1] ? $width[1] : '<span style="font-size: 1.8em; line-height: 0">&#8734;</span>');
+                $media_query[] = $item1;
             }
+            usort($media_query, function ($a, $b) {
+                return ((int)str_replace('w', '', $a['setting_value']) < (int)str_replace('w', '', $b['setting_value'])) ? -1 : 1;
+            });
+            $settings['media_query'] = $media_query;
+            $settings['theme_name'] = $item['theme_name'];
         }
-        if (is_array($params['setting'] ?? null)) {
-            foreach ($params['setting'] as $language => $set) {
-                foreach ($set as $key => $val) {
-                    if (is_array($val)){
-                        $val = implode(',', $val);
-                    }
-                    $this->saveBoxSettings($params['id'], $language, $key, $val, '', $set);
+
+        $visibility = [];
+        $settings_query = tep_db_query('select * from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . (int)$id . "'");
+        while ($set = tep_db_fetch_array($settings_query)) {
+            if (!$set['visibility']) {
+                $settings[$set['language_id']][$set['setting_name']] = $set['setting_value'];
+            } else {
+                if (count(Style::vArr($set['visibility'])) == 1) {
+                    $visibility[$set['language_id']][$set['visibility']][$set['setting_name']] = $set['setting_value'];
                 }
             }
         }
 
-      if (is_array($params['visibility'] ?? null)) {
-          foreach ($params['visibility'] as $language => $set) {
-              foreach ($set as $visibility => $set2) {
-                  foreach ($set2 as $key => $val) {
-                      if (is_array($val)){
-                          $val = implode(',', $val);
-                      }
-                      $this->saveBoxSettings($params['id'], $language, $key, $val, $visibility, $set2);
-                  }
-              }
-          }
-      }
+        $font_added = [];
+        $font_added_arr = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($item['theme_name']) . "' and setting_name = 'font_added'");
+        while ($item1 = tep_db_fetch_array($font_added_arr)) {
+            preg_match('/font-family:[ \'"]+([^\'^"^;^}]+)/', $item1['setting_value'], $val);
+            $font_added[] = $val[1];
+        }
+        $settings['font_added'] = $font_added;
+        $settings['theme_name'] = $item['theme_name'];
+
+        $settings['designer_mode'] = $this->designerMode;
+
+        if (is_file(Yii::getAlias('@app') . DIRECTORY_SEPARATOR . 'design' . DIRECTORY_SEPARATOR . 'boxes' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $params['name']) . '.php')) {
+            $widget_name = 'backend\design\boxes\\' .str_replace('\\\\', '\\', $params['name']);
+            return $widget_name::widget(['id' => $id, 'params' => $widget_params, 'settings' => $settings, 'visibility' => $visibility]);
+        } elseif ($ext = \common\helpers\Acl::checkExtension($params['name'], 'showTabSettings', true)) {
+            $widget_name = 'backend\design\boxes\Def';
+            $settings['tabs'] = ['class' => $ext, 'method' => 'showTabSettings'];
+            return $widget_name::widget(['id' => $id, 'params' => $widget_params, 'settings' => $settings, 'visibility' => $visibility, 'block_type' => $params['block_type']]);
+        } elseif ($ext = \common\helpers\Acl::checkExtension($params['name'], 'showSettings', true)) {
+            $widget_name = 'backend\design\boxes\Def';
+            $settings['class'] = $ext;
+            $settings['method'] = 'showSettings';
+            return $widget_name::widget(['id' => $id, 'params' => $widget_params, 'settings' => $settings, 'visibility' => $visibility, 'block_type' => $params['block_type']]);
+        } else {
+            $widget_name = 'backend\design\boxes\Def';
+            return $widget_name::widget(['id' => $id, 'params' => $widget_params, 'settings' => $settings, 'visibility' => $visibility, 'block_type' => $params['block_type']]);
+        }
     }
 
-    $oldParams = '';
-    $box = DesignBoxesTmp::findOne(['id' => $params['id']]);
-    if ($box) {
-        $oldParams = $box->widget_params;
+    public function saveBoxSettings($id, $language, $key, $val, $visibility = '', $settings = [])
+    {
+        if (($val == '' || $val == 'off') && !in_array($key, ['background_image', 'logo', 'poster', 'video', 'image'])) {
+            DesignBoxesSettingsTmp::deleteAll([
+                'box_id' => $id,
+                'setting_name' => $key,
+                'language_id' => $language,
+                'visibility' => $visibility,
+            ]);
+            return null;
+        }
+
+        if (in_array($key, ['background_image_upload', 'logo_upload', 'poster_upload', 'video_upload', 'image_upload'])) {
+            return null;
+        }
+
+        $themeRow = DesignBoxesTmp::find()->select('theme_name, microtime')->where(['id' => $id])->asArray()->one();
+        if (!$themeRow) {
+            return null;
+        }
+        $themeName = $themeRow['theme_name'];
+
+        $settingRow = DesignBoxesSettingsTmp::findOne([
+            'box_id' => $id,
+            'setting_name' => $key,
+            'language_id' => $language,
+            'visibility' => $visibility,
+        ]);
+
+        if (!$settingRow) {
+            $settingRow = new DesignBoxesSettingsTmp();
+        }
+
+        if (in_array($key, ['background_image', 'logo', 'poster', 'video', 'image'])) {
+            $val = \common\helpers\Image::prepareSavingImage(
+                ($settingRow->setting_value ?? ''),
+                $val,
+                $settings[$key . '_upload'],
+                'themes' . DIRECTORY_SEPARATOR . $themeName . DIRECTORY_SEPARATOR . 'img',
+                false,
+                true
+            );
+            if (!$val) {
+                DesignBoxesSettingsTmp::deleteAll([
+                    'box_id' => $id,
+                    'setting_name' => $key,
+                    'language_id' => $language,
+                    'visibility' => $visibility,
+                ]);
+                return null;
+            }
+        }
+
+        $settingRow->box_id = $id;
+        $settingRow->microtime = $themeRow['microtime'];
+        $settingRow->theme_name = $themeName;
+        $settingRow->setting_name = $key;
+        $settingRow->setting_value = (string)$val;
+        $settingRow->language_id = $language;
+        $settingRow->visibility = $visibility;
+        $settingRow->save(false);
     }
 
-      $widget_params = $params['params'] ?? '';
-      $sql_data_array = array(
-        'widget_params' => tep_db_prepare_input($params['params'] ?? null)
-      );
-      tep_db_perform(TABLE_DESIGN_BOXES_TMP, $sql_data_array, 'update', "id = '" . (int)$params['id'] . "'");
+    public function actionBoxSave()
+    {
+        $values = Yii::$app->request->post('values');
 
-    $box_settings = array();
-      $query = tep_db_query("select setting_name, setting_value, language_id, visibility, microtime, theme_name from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . (int)$params['id'] . "'");
-    while ($item = tep_db_fetch_array($query)){
-      $box_settings[] = $item;
+        $params = Style::paramsFromOneInput($values);
+        //$params = tep_db_prepare_input($params);
+
+        if (isset($params['product_types']) && is_array($params['product_types'])) {
+            $tmp = 0;
+            //2do jquery.edit-[box|theme].js pass checkbox value/remove from params if unchecked VL
+            foreach ($params['product_types'] as $v => $foo) {
+                if (!empty($foo)) {
+                    $tmp |= $v;
+                }
+            }
+            $params['setting'][0]['product_types'] = $tmp;
+        }
+
+        $p = tep_db_fetch_array(tep_db_query('select theme_name, microtime from ' . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$params['id'] . "'"));
+
+        $box_settings_old = [];
+        $query = tep_db_query('select setting_name, setting_value, language_id, visibility from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . (int)$params['id'] . "'");
+        while ($item = tep_db_fetch_array($query)) {
+            $box_settings_old[] = $item;
+        }
+
+        if (ArrayHelper::getValue($params, 'setting') || ArrayHelper::getValue($params, 'visibility')) {
+            for ($i = 0; $i < 17; $i++) {
+                if ($params['setting'][0]['sort_hide_' . $i] ?? null) {
+                    $params['setting'][0]['sort_hide_' . $i] = 0;
+                } elseif (isset($params['setting'][0]['sort_hide_' . $i])) {
+                    $params['setting'][0]['sort_hide_' . $i] = 1;
+                }
+            }
+
+            if (ArrayHelper::getValue($params, ['setting',0,'font_size_dimension']) && !ArrayHelper::getValue($params, ['setting',0,'font-size'])) {
+                $params['setting'][0]['font_size_dimension'] = '';
+            }
+
+            $convertSettings = [
+                // visibility widgets on various pages
+                'visibility_home', 'visibility_first_view', 'visibility_more_view', 'visibility_logged', 'visibility_not_logged', 'visibility_product', 'visibility_catalog', 'visibility_info', 'visibility_cart', 'visibility_checkout', 'visibility_success', 'visibility_account', 'visibility_login', 'visibility_other',
+
+                //items on listing product
+                'show_name', 'show_image', 'show_stock', 'show_description', 'show_model', 'show_properties', 'show_rating', 'show_rating_counts', 'show_price', 'show_buy_button', 'show_qty_input', 'show_view_button', 'show_wishlist_button', 'show_compare', 'show_bonus_points', 'show_attributes', 'show_paypal_button', 'show_amazon_button',
+
+                'show_name_rows', 'show_image_rows', 'show_stock_rows', 'show_description_rows', 'show_model_rows', 'show_properties_rows', 'show_rating_rows', 'show_rating_counts_rows', 'show_price_rows', 'show_buy_button_rows', 'show_qty_input_rows', 'show_view_button_rows', 'show_wishlist_button_rows', 'show_compare_rows', 'show_bonus_points_rows', 'show_attributes_rows', 'show_paypal_button_rows', 'show_amazon_button_rows',
+
+                'show_name_b2b', 'show_image_b2b', 'show_stock_b2b', 'show_description_b2b', 'show_model_b2b', 'show_properties_b2b', 'show_rating_b2b', 'show_rating_counts_b2b', 'show_price_b2b', 'show_buy_button_b2b', 'show_qty_input_b2b', 'show_view_button_b2b', 'show_wishlist_button_b2b', 'show_compare_b2b', 'show_bonus_points_b2b', 'show_attributes_b2b', 'show_paypal_button_b2b', 'show_amazon_button_b2b',
+            ];
+
+            foreach ($convertSettings as $setting) {
+                if (isset($params['setting'][0][$setting]) && !$params['setting'][0][$setting]) {
+                    $params['setting'][0][$setting] = 1;
+                } elseif (ArrayHelper::getValue($params, ['setting',0,$setting]) == 1) {
+                    $params['setting'][0][$setting] = '';
+                }
+            }
+            if (is_array($params['setting'] ?? null)) {
+                foreach ($params['setting'] as $language => $set) {
+                    foreach ($set as $key => $val) {
+                        if (is_array($val)) {
+                            $val = implode(',', $val);
+                        }
+                        $this->saveBoxSettings($params['id'], $language, $key, $val, '', $set);
+                    }
+                }
+            }
+
+            if (is_array($params['visibility'] ?? null)) {
+                foreach ($params['visibility'] as $language => $set) {
+                    foreach ($set as $visibility => $set2) {
+                        foreach ($set2 as $key => $val) {
+                            if (is_array($val)) {
+                                $val = implode(',', $val);
+                            }
+                            $this->saveBoxSettings($params['id'], $language, $key, $val, $visibility, $set2);
+                        }
+                    }
+                }
+            }
+        }
+
+        $oldParams = '';
+        $box = DesignBoxesTmp::findOne(['id' => $params['id']]);
+        if ($box) {
+            $oldParams = $box->widget_params;
+        }
+
+        $widget_params = $params['params'] ?? '';
+        $sql_data_array = [
+          'widget_params' => tep_db_prepare_input($params['params'] ?? null),
+        ];
+        tep_db_perform(TABLE_DESIGN_BOXES_TMP, $sql_data_array, 'update', "id = '" . (int)$params['id'] . "'");
+
+        $box_settings = [];
+        $query = tep_db_query('select setting_name, setting_value, language_id, visibility, microtime, theme_name from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . (int)$params['id'] . "'");
+        while ($item = tep_db_fetch_array($query)) {
+            $box_settings[] = $item;
+        }
+
+        Style::createCache($params['theme_name'] ?? null);
+
+        Steps::boxSave([
+            'box_id' => $params['id'],
+            'microtime' => $p['microtime'],
+            'theme_name' => $p['theme_name'],
+            'box_settings' => $box_settings,
+            'box_settings_old' => $box_settings_old,
+            'widget_params' => $widget_params,
+            'widget_params_old' => $oldParams,
+        ]);
+
+        $this->actionBackupAuto($p['theme_name'], json_encode(''));
     }
 
-      Style::createCache($params['theme_name'] ?? null);
+    public function actionStyleEdit()
+    {
+        $params = tep_db_prepare_input(Yii::$app->request->get());
 
-      Steps::boxSave([
-          'box_id' => $params['id'],
-          'microtime' => $p['microtime'],
-          'theme_name' => $p['theme_name'],
-          'box_settings' => $box_settings,
-          'box_settings_old' => $box_settings_old,
-          'widget_params' => $widget_params,
-          'widget_params_old' => $oldParams,
-      ]);
+        $settings = [];
+        $styles_query = tep_db_query('select * from ' . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and selector = '" . tep_db_input($params['data_class']) . "'");
+        $visibility = [];
+        while ($styles_arr = tep_db_fetch_array($styles_query)) {
+            if (!$styles_arr['visibility']) {
+                $settings[0][$styles_arr['attribute']] = $styles_arr['value'];
+            } else {
+                $visibility[0][$styles_arr['visibility']][$styles_arr['attribute']] = $styles_arr['value'];
+            }
+        }
+        $this->layout = 'popup.tpl';
 
+        $media_query = [];
+        $media_query_arr = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_name = 'media_query'");
+        while ($item1 = tep_db_fetch_array($media_query_arr)) {
+            $media_query[] = $item1;
+        }
+        $settings['media_query'] = $media_query;
 
-      $this->actionBackupAuto($p['theme_name'], json_encode( ''));
-  }
+        $font_added = [];
+        $font_added_arr = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_name = 'font_added'");
+        while ($item1 = tep_db_fetch_array($font_added_arr)) {
+            preg_match('/font-family:[ \'"]+([^\'^"^;^}]+)/', $item1['setting_value'], $val);
+            $font_added[] = $val[1];
+        }
+        $settings['font_added'] = $font_added;
+        $settings['data_class'] = $params['data_class'];
+        $settings['theme_name'] = $params['theme_name'];
+        $widget_name = 'backend\design\boxes\StyleEdit';
+        $this->actionBackupAuto($params['theme_name'], $widget_name::widget(['id' => 0, 'params' => '', 'settings' => $settings, 'visibility' => $visibility, 'block_type' => '']));
 
-
-  public function actionStyleEdit()
-  {
-    $params = tep_db_prepare_input(Yii::$app->request->get());
-
-    $settings = array();
-    $styles_query = tep_db_query("select * from " . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and selector = '" . tep_db_input($params['data_class']) . "'");
-    $visibility = array();
-    while ($styles_arr = tep_db_fetch_array($styles_query)){
-      if (!$styles_arr['visibility']){
-        $settings[0][$styles_arr['attribute']] = $styles_arr['value'];
-      } else {
-        $visibility[0][$styles_arr['visibility']][$styles_arr['attribute']] = $styles_arr['value'];
-      }
+        /*return $this->render('style-edit.tpl', [
+          'data_class' => $params['data_class'],
+          'theme_name' => $params['theme_name'],
+          'settings' => $styles
+        ]);*/
     }
-    $this->layout = 'popup.tpl';
-
-
-
-    $media_query = array();
-    $media_query_arr = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_name = 'media_query'");
-    while ($item1 = tep_db_fetch_array($media_query_arr)){
-      $media_query[] = $item1;
-    }
-    $settings['media_query'] = $media_query;
-
-
-    $font_added = array();
-    $font_added_arr = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_name = 'font_added'");
-    while ($item1 = tep_db_fetch_array($font_added_arr)){
-      preg_match('/font-family:[ \'"]+([^\'^"^;^}]+)/', $item1['setting_value'], $val);
-      $font_added[] = $val[1];
-    }
-    $settings['font_added'] = $font_added;
-    $settings['data_class'] = $params['data_class'];
-    $settings['theme_name'] = $params['theme_name'];
-    $widget_name = 'backend\design\boxes\StyleEdit';
-      $this->actionBackupAuto($params['theme_name'], $widget_name::widget(['id' => 0, 'params' => '', 'settings' => $settings, 'visibility' => $visibility, 'block_type' => '']));
-
-    /*return $this->render('style-edit.tpl', [
-      'data_class' => $params['data_class'],
-      'theme_name' => $params['theme_name'],
-      'settings' => $styles
-    ]);*/
-  }
 
     public function styleSave($styles, $params, $visibility = '')
     {
-        if (is_array($styles)) foreach ($styles as $key => $val) {
+        if (is_array($styles)) {
+            foreach ($styles as $key => $val) {
 
-            $accessibility = '';
-            if (preg_match('/^(\.w-[0-9a-zA-Z\-\_]+)/', $key, $matches)) {
-                $accessibility = $matches[1];
-            }
+                $accessibility = '';
+                if (preg_match('/^(\.w-[0-9a-zA-Z\-\_]+)/', $key, $matches)) {
+                    $accessibility = $matches[1];
+                }
 
-            $total = tep_db_fetch_array(tep_db_query("select count(*) as total from " . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and selector = '" . tep_db_input($params['data_class']) . "' and attribute = '" . tep_db_input($key) . "' and visibility='" . tep_db_input($visibility) . "' and media = ''"));
+                $total = tep_db_fetch_array(tep_db_query('select count(*) as total from ' . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and selector = '" . tep_db_input($params['data_class']) . "' and attribute = '" . tep_db_input($key) . "' and visibility='" . tep_db_input($visibility) . "' and media = ''"));
 
-            if ($val !== '') {
+                if ($val !== '') {
 
-                if ($key == 'background_image') {
-                    $setting_value = tep_db_fetch_array(tep_db_query("select ts.value from " . TABLE_THEMES_STYLES . " ts where ts.theme_name = '" . tep_db_input($params['theme_name']) . "' and ts.selector = '" . tep_db_input($params['data_class']) . "' and ts.attribute = '" . tep_db_input($key) . "' and visibility='" . tep_db_input($visibility) . "' and media = ''"));
+                    if ($key == 'background_image') {
+                        $setting_value = tep_db_fetch_array(tep_db_query('select ts.value from ' . TABLE_THEMES_STYLES . " ts where ts.theme_name = '" . tep_db_input($params['theme_name']) . "' and ts.selector = '" . tep_db_input($params['data_class']) . "' and ts.attribute = '" . tep_db_input($key) . "' and visibility='" . tep_db_input($visibility) . "' and media = ''"));
 
-                    if ($setting_value['value'] != $val) {
-                        $val_tmp = Uploads::move($val, 'themes/' . $params['theme_name'] . '/img');
-                        if ($val_tmp) $val = $val_tmp;
+                        if ($setting_value['value'] != $val) {
+                            $val_tmp = Uploads::move($val, 'themes/' . $params['theme_name'] . '/img');
+                            if ($val_tmp) {
+                                $val = $val_tmp;
+                            }
+                        }
                     }
-                }
 
-                if ($total['total'] == 0) {
-                    $sql_data_array = array(
-                        'theme_name' => $params['theme_name'],
-                        'selector' => $params['data_class'],
-                        'attribute' => $key,
-                        'value' => $val,
-                        'visibility' => $visibility,
-                        'media' => '',
-                        'accessibility' => $accessibility,
-                    );
-                    tep_db_perform(TABLE_THEMES_STYLES, $sql_data_array);
+                    if ($total['total'] == 0) {
+                        $sql_data_array = [
+                            'theme_name' => $params['theme_name'],
+                            'selector' => $params['data_class'],
+                            'attribute' => $key,
+                            'value' => $val,
+                            'visibility' => $visibility,
+                            'media' => '',
+                            'accessibility' => $accessibility,
+                        ];
+                        tep_db_perform(TABLE_THEMES_STYLES, $sql_data_array);
+                    } else {
+                        $sql_data_array = [
+                            'value' => $val,
+                        ];
+                        tep_db_perform(TABLE_THEMES_STYLES, $sql_data_array, 'update', "theme_name = '" . tep_db_input($params['theme_name']) . "' and selector = '" . tep_db_input($params['data_class']) . "' and attribute = '" . tep_db_input($key) . "' and visibility='" . tep_db_input($visibility) . "' and media = ''");
+                    }
+
                 } else {
-                    $sql_data_array = array(
-                        'value' => $val,
-                    );
-                    tep_db_perform(TABLE_THEMES_STYLES, $sql_data_array, 'update', "theme_name = '" . tep_db_input($params['theme_name']) . "' and selector = '" . tep_db_input($params['data_class']) . "' and attribute = '" . tep_db_input($key) . "' and visibility='" . tep_db_input($visibility) . "' and media = ''");
-                }
-
-            } else {
-                if ($total['total'] > 0) {
-                    tep_db_query("delete from " . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and selector = '" . tep_db_input($params['data_class']) . "' and attribute = '" . tep_db_input($key) . "' and visibility='" . tep_db_input($visibility) . "' and media = ''");
+                    if ($total['total'] > 0) {
+                        tep_db_query('delete from ' . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and selector = '" . tep_db_input($params['data_class']) . "' and attribute = '" . tep_db_input($key) . "' and visibility='" . tep_db_input($visibility) . "' and media = ''");
+                    }
                 }
             }
         }
@@ -1361,10 +1360,10 @@ class DesignController extends Sceleton {
         $params = tep_db_prepare_input($params);
         $params['data_class'] = $params['data_class'] ?? null;
         $params['theme_name'] = $params['theme_name'] ?? null;
-        
-        $query = tep_db_query("select * from " . TABLE_THEMES_STYLES . " where selector='" . tep_db_input($params['data_class']) . "' and theme_name='" . tep_db_input($params['theme_name']) . "'");
+
+        $query = tep_db_query('select * from ' . TABLE_THEMES_STYLES . " where selector='" . tep_db_input($params['data_class']) . "' and theme_name='" . tep_db_input($params['theme_name']) . "'");
         $styles_old = [];
-        while($item = tep_db_fetch_array($query)){
+        while ($item = tep_db_fetch_array($query)) {
             $styles_old[] = $item;
         }
 
@@ -1375,15 +1374,15 @@ class DesignController extends Sceleton {
         }
         $this->styleSave($params['setting'][0] ?? null, $post);
 
-        $query = tep_db_query("select * from " . TABLE_THEMES_STYLES . " where selector='" . tep_db_input($params['data_class']) . "' and theme_name='" . tep_db_input($params['theme_name']) . "'");
+        $query = tep_db_query('select * from ' . TABLE_THEMES_STYLES . " where selector='" . tep_db_input($params['data_class']) . "' and theme_name='" . tep_db_input($params['theme_name']) . "'");
         $styles = [];
-        while($item = tep_db_fetch_array($query)){
+        while ($item = tep_db_fetch_array($query)) {
             $styles[] = $item;
         }
 
-        $attributesChanged = array();
-        $attributesDelete = array();
-        $attributesNew = array();
+        $attributesChanged = [];
+        $attributesDelete = [];
+        $attributesNew = [];
 
         foreach ($styles_old as $item) {
 
@@ -1404,7 +1403,7 @@ class DesignController extends Sceleton {
                             'value' => $attr['value'],
                             'visibility' => $attr['visibility'],
                             'media' => $attr['media'],
-                            'accessibility' => $attr['accessibility']
+                            'accessibility' => $attr['accessibility'],
                         ];
                     }
                     unset($styles[$i]);
@@ -1418,7 +1417,7 @@ class DesignController extends Sceleton {
                     'value' => $item['value'],
                     'visibility' => $item['visibility'],
                     'media' => $item['media'],
-                    'accessibility' => $item['accessibility']
+                    'accessibility' => $item['accessibility'],
                 ];
             }
         }
@@ -1431,7 +1430,7 @@ class DesignController extends Sceleton {
                 'value' => $attr['value'],
                 'visibility' => $attr['visibility'],
                 'media' => $attr['media'],
-                'accessibility' => $attr['accessibility']
+                'accessibility' => $attr['accessibility'],
             ];
         }
 
@@ -1504,39 +1503,39 @@ class DesignController extends Sceleton {
         return json_encode(['text' => MESSAGE_ADDED]);
     }
 
-  public function actionBackups()
-  {
-    $params = tep_db_prepare_input(Yii::$app->request->get());
+    public function actionBackups()
+    {
+        $params = tep_db_prepare_input(Yii::$app->request->get());
 
-    $this->selectedMenu = array('design_controls', 'design/themes');
-    $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/themes'), 'title' => TEXT_BACKUPS . ' "' . Theme::getThemeTitle($params['theme_name']) . '"');
+        $this->selectedMenu = ['design_controls', 'design/themes'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/themes'), 'title' => TEXT_BACKUPS . ' "' . Theme::getThemeTitle($params['theme_name']) . '"'];
 
-    $this->topButtons[] = '<a href="' . Yii::$app->urlManager->createUrl(['design/backup-add', 'theme_name' => $params['theme_name']]) . '" class="create_item">' . NEW_NEW_BACKUP . '</a>';
+        $this->topButtons[] = '<a href="' . Yii::$app->urlManager->createUrl(['design/backup-add', 'theme_name' => $params['theme_name']]) . '" class="create_item">' . NEW_NEW_BACKUP . '</a>';
 
-      $this->topButtons[] = '<span class="mode-title">' . $this->designerModeTitle . '</span>';
+        $this->topButtons[] = '<span class="mode-title">' . $this->designerModeTitle . '</span>';
 
-    $this->view->headingTitle = TEXT_BACKUPS;
+        $this->view->headingTitle = TEXT_BACKUPS;
 
-      \backend\design\Data::addJsData([
-          'tr' => [
-              'IMAGE_SAVE' => IMAGE_SAVE,
-              'IMAGE_CANCEL' => IMAGE_CANCEL,
-              'TEXT_EXPORT' => TEXT_EXPORT,
-          ],
-          'platformSelect' => FrontendStructure::getThemePlatforms(),
-          'theme_name' => ($params['theme_name'] ? $params['theme_name'] : 'theme-1'),
-          'theme_title' => Theme::getThemeTitle($params['theme_name'] ?? null),
-      ]);
+        \backend\design\Data::addJsData([
+            'tr' => [
+                'IMAGE_SAVE' => IMAGE_SAVE,
+                'IMAGE_CANCEL' => IMAGE_CANCEL,
+                'TEXT_EXPORT' => TEXT_EXPORT,
+            ],
+            'platformSelect' => FrontendStructure::getThemePlatforms(),
+            'theme_name' => ($params['theme_name'] ? $params['theme_name'] : 'theme-1'),
+            'theme_title' => Theme::getThemeTitle($params['theme_name'] ?? null),
+        ]);
 
-    return $this->render('backups.tpl', [
-      'menu' => 'backups',
-      'theme_name' => $params['theme_name'],
-      'messages' => [],
-        'designer_mode' => $this->designerMode,
-    ]);
-  }
+        return $this->render('backups.tpl', [
+          'menu' => 'backups',
+          'theme_name' => $params['theme_name'],
+          'messages' => [],
+            'designer_mode' => $this->designerMode,
+        ]);
+    }
 
-    public function actionBackupsList ()
+    public function actionBackupsList()
     {
 
         $draw = Yii::$app->request->get('draw', 1);
@@ -1544,29 +1543,30 @@ class DesignController extends Sceleton {
         $length = Yii::$app->request->get('length', 10);
         $theme_name = tep_db_prepare_input(Yii::$app->request->get('theme_name', 10));
 
-        if ($length == -1)
+        if ($length == -1) {
             $length = 10000;
+        }
 
         $responseList = [];
 
         if (isset($_GET['order'][0]['column']) && $_GET['order'][0]['dir']) {
             switch ($_GET['order'][0]['column']) {
                 case 0:
-                    $orderBy = "date_added " . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
+                    $orderBy = 'date_added ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
                     break;
                 case 1:
-                    $orderBy = "comments " . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
+                    $orderBy = 'comments ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
                     break;
                 default:
-                    $orderBy = "date_added";
+                    $orderBy = 'date_added';
                     break;
             }
         } else {
-            $orderBy = "date_added";
+            $orderBy = 'date_added';
         }
 
-        $orders_status_query_raw = "select * from " . TABLE_DESIGN_BACKUPS . " where theme_name = '" . tep_db_input($theme_name) . "' order by " . $orderBy . " limit " . (int)$_GET['start'] . ", " . (int)$length;
-        $count = tep_db_num_rows(tep_db_query("select * from " . TABLE_DESIGN_BACKUPS . " where theme_name = '" . tep_db_input($theme_name) . "' order by " . $orderBy));
+        $orders_status_query_raw = 'select * from ' . TABLE_DESIGN_BACKUPS . " where theme_name = '" . tep_db_input($theme_name) . "' order by " . $orderBy . ' limit ' . (int)$_GET['start'] . ', ' . (int)$length;
+        $count = tep_db_num_rows(tep_db_query('select * from ' . TABLE_DESIGN_BACKUPS . " where theme_name = '" . tep_db_input($theme_name) . "' order by " . $orderBy));
         $orders_status_query = tep_db_query($orders_status_query_raw);
 
         $path = DIR_FS_CATALOG
@@ -1584,22 +1584,22 @@ class DesignController extends Sceleton {
             }
 
             $short_desc = $orders_status['comments'];
-            $short_desc = preg_replace("/<.*?>/", " ", $short_desc);
+            $short_desc = preg_replace('/<.*?>/', ' ', $short_desc);
             if (strlen($short_desc) > 128) {
                 $short_desc = substr($short_desc, 0, 122) . '...';
             }
 
-            $responseList[] = array(
-                \common\helpers\Date::date_long($orders_status['date_added'], "%d %b %Y / %H:%M:%S"),
+            $responseList[] = [
+                \common\helpers\Date::date_long($orders_status['date_added'], '%d %b %Y / %H:%M:%S'),
                 $short_desc . '<input type="hidden" class="backup_id" name="backup_id" value="' . $orders_status['backup_id'] . '">',
-            );
+            ];
         }
 
         $response = [
             'draw' => $draw,
             'recordsTotal' => $count,
             'recordsFiltered' => $count,
-            'data' => $responseList
+            'data' => $responseList,
         ];
         echo json_encode($response);
     }
@@ -1620,7 +1620,8 @@ class DesignController extends Sceleton {
 </div>';
     }
 
-    public function actionBackupAdd() {
+    public function actionBackupAdd()
+    {
         $params = Yii::$app->request->get();
 
         $this->layout = false;
@@ -1645,8 +1646,12 @@ class DesignController extends Sceleton {
         $backupHours = \frontend\design\Info::themeSetting('backup_hours', 'main', $theme_name);
         $backupCount = \frontend\design\Info::themeSetting('backup_count', 'main', $theme_name);
 
-        if (!$backupHours) $backupHours = 1;
-        if (!$backupCount) $backupCount = 10;
+        if (!$backupHours) {
+            $backupHours = 1;
+        }
+        if (!$backupCount) {
+            $backupCount = 10;
+        }
 
         $designBackups = \common\models\DesignBackups::find()
             ->where([
@@ -1654,11 +1659,11 @@ class DesignController extends Sceleton {
                 'comments' => 'Auto saved',
             ])
             ->orderBy(['backup_id' => SORT_DESC])
-            ->offset($backupCount-1)
+            ->offset($backupCount - 1)
             ->asArray()
             ->all();
         if ($designBackups) {
-            foreach ($designBackups as $designBackup){
+            foreach ($designBackups as $designBackup) {
                 Backups::delete($designBackup['backup_id']);
             }
         }
@@ -1667,7 +1672,7 @@ class DesignController extends Sceleton {
             return false;
         }
 
-        if ($backupDate){
+        if ($backupDate) {
             $themesSettings = \common\models\ThemesSettings::findOne([
                 'theme_name' => $theme_name,
                 'setting_group' => 'hide',
@@ -1676,7 +1681,6 @@ class DesignController extends Sceleton {
         } else {
             $themesSettings = new \common\models\ThemesSettings();
         }
-
 
         $themesSettings->setting_value = strval(time());
         $themesSettings->save();
@@ -1701,7 +1705,7 @@ class DesignController extends Sceleton {
         Steps::backupSubmit([
             'theme_name' => $themeName,
             'backup_id' => $backupId,
-            'comments' => $comments
+            'comments' => $comments,
         ]);
 
         Backups::create($themeName, $backupId);
@@ -1761,7 +1765,9 @@ class DesignController extends Sceleton {
             $menus = [];
 
             foreach ($_SESSION['exportItems']['menus'] as $menu => $checked) {
-                if (!$checked) continue;
+                if (!$checked) {
+                    continue;
+                }
 
                 $menus[$menu] = \common\helpers\MenuHelper::menuTree($menu);
 
@@ -1812,7 +1818,7 @@ class DesignController extends Sceleton {
     {
         $params = Yii::$app->request->get();
         if (isset($_FILES['file']) && isset($_FILES['file']['error']) && isset($_FILES['file']['tmp_name']) && $_FILES['file']['error'] == UPLOAD_ERR_OK  && is_uploaded_file($_FILES['file']['tmp_name'])) {
-            if ( \backend\design\Theme::import($params['theme_name'],$_FILES['file']['tmp_name']) ) {
+            if (\backend\design\Theme::import($params['theme_name'], $_FILES['file']['tmp_name'])) {
                 Theme::saveThemeVersion($params['theme_name']);
                 return 'OK';
             }
@@ -1820,7 +1826,8 @@ class DesignController extends Sceleton {
         return 'error';
     }
 
-    public function actionImportBlock() {
+    public function actionImportBlock()
+    {
         $params = Yii::$app->request->get();
         if ($_FILES['file']['error'] != UPLOAD_ERR_OK  || !is_uploaded_file($_FILES['file']['tmp_name'])) {
             return 'Error: no file';
@@ -1862,11 +1869,12 @@ class DesignController extends Sceleton {
 
         Steps::backupRestore([
             'theme_name' => $backup['theme_name'],
-            'backup_id' => $backupId
+            'backup_id' => $backupId,
         ]);
     }
 
-    public function actionBackupDelete() {
+    public function actionBackupDelete()
+    {
         Backups::delete((int)Yii::$app->request->post('backup_id'));
     }
 
@@ -1883,235 +1891,240 @@ class DesignController extends Sceleton {
         return json_encode(FileManager::createThumbnails($file));
     }
 
-  public function actionSettings() {
-    \common\helpers\Translation::init('admin/js');
-    $params = tep_db_prepare_input(Yii::$app->request->get());
-    $post = tep_db_prepare_input(Yii::$app->request->post(),false);
+    public function actionSettings()
+    {
+        \common\helpers\Translation::init('admin/js');
+        $params = tep_db_prepare_input(Yii::$app->request->get());
+        $post = tep_db_prepare_input(Yii::$app->request->post(), false);
 
-    $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/settings'), 'title' => THEME_SETTINGS . ' "' . Theme::getThemeTitle($params['theme_name']??null) . '"');
-    $this->selectedMenu = array('design_controls', 'design/themes');
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/settings'), 'title' => THEME_SETTINGS . ' "' . Theme::getThemeTitle($params['theme_name'] ?? null) . '"'];
+        $this->selectedMenu = ['design_controls', 'design/themes'];
 
-    $this->topButtons[] = '<span class="redo-buttons"></span>';
+        $this->topButtons[] = '<span class="redo-buttons"></span>';
 
-      $this->topButtons[] = '<span class="mode-title">' . $this->designerModeTitle . '</span>';
+        $this->topButtons[] = '<span class="mode-title">' . $this->designerModeTitle . '</span>';
 
-    if (count($post) > 0){
+        if (count($post) > 0) {
 
-      foreach ($post['setting'] as $key => $val) {
-          if ($key == 'background_image_upload') {
-              continue;
-          }
+            foreach ($post['setting'] as $key => $val) {
+                if ($key == 'background_image_upload') {
+                    continue;
+                }
 
-          $stylesRow = ThemesStyles::findOne([
-              'theme_name' => $params['theme_name'],
-              'selector' => 'body',
-              'attribute' => $key,
-              'visibility' => ''
-          ]);
-          if (!$stylesRow) {
-              $stylesRow = new ThemesStyles();
-          }
+                $stylesRow = ThemesStyles::findOne([
+                    'theme_name' => $params['theme_name'],
+                    'selector' => 'body',
+                    'attribute' => $key,
+                    'visibility' => '',
+                ]);
+                if (!$stylesRow) {
+                    $stylesRow = new ThemesStyles();
+                }
 
-          if (in_array($key, ['background_image'])){
-              $val = \common\helpers\Image::prepareSavingImage(
-                  ($stylesRow->value ?? ''),
-                  $val,
-                  $post['setting']['background_image_upload'],
-                  'themes' . DIRECTORY_SEPARATOR . $params['theme_name'] . DIRECTORY_SEPARATOR . 'img',
-                  false, true
-              );
-              if (!$val) {
-                  ThemesStyles::deleteAll([
-                      'theme_name' => $params['theme_name'],
-                      'selector' => 'body',
-                      'attribute' => $key,
-                      'visibility' => ''
-                  ]);
-                  continue;
-              }
-          }
+                if (in_array($key, ['background_image'])) {
+                    $val = \common\helpers\Image::prepareSavingImage(
+                        ($stylesRow->value ?? ''),
+                        $val,
+                        $post['setting']['background_image_upload'],
+                        'themes' . DIRECTORY_SEPARATOR . $params['theme_name'] . DIRECTORY_SEPARATOR . 'img',
+                        false,
+                        true
+                    );
+                    if (!$val) {
+                        ThemesStyles::deleteAll([
+                            'theme_name' => $params['theme_name'],
+                            'selector' => 'body',
+                            'attribute' => $key,
+                            'visibility' => '',
+                        ]);
+                        continue;
+                    }
+                }
 
-          $stylesRow->theme_name = $params['theme_name'];
-          $stylesRow->selector = 'body';
-          $stylesRow->attribute = $key;
-          $stylesRow->value = $val;
-          $stylesRow->save();
-      }
-
-
-      $them_settings_old = [];
-      $query_s = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and (setting_group = 'main' or setting_group = 'extend' or setting_group = 'hide')");
-      while ($item = tep_db_fetch_array($query_s)){
-        $them_settings_old[] = $item;
-      }
-      /*echo '<pre>';
-      var_dump($them_settings_old);
-      echo '</pre>';
-      echo json_encode($them_settings_old);die;*/
-
-      foreach ($post['settings'] as $setting_name => $setting_value){
-
-        $sql_data_array = array(
-          'theme_name' => $params['theme_name'],
-          'setting_group' => 'main',
-          'setting_name' => $setting_name,
-          'setting_value' => $setting_value,
-        );
-
-        $query = tep_db_fetch_array(tep_db_query("select count(*) as total from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'main' and setting_name = '" . tep_db_input($setting_name) . "'"));
-        if ($query['total'] > 0){
-          tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array, 'update', " theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'main' and setting_name = '" . tep_db_input($setting_name) . "'");
-        } else {
-          tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
-        }
-
-      }
-
-
-      if (is_array($post['extend']??null)) {
-        foreach ($post['extend'] as $setting_name => $val) {
-          foreach ($val as $id => $setting_value) {
-
-            $sql_data_array = array(
-                'setting_value' => $setting_value,
-            );
-            $query = tep_db_fetch_array(tep_db_query("select count(*) as total from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'extend' and setting_name = '" . tep_db_input($setting_name) . "' and id = '" . (int)$id . "'"));
-            if ($query['total'] > 0) {
-              tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array, 'update', " theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'extend' and setting_name = '" . tep_db_input($setting_name) . "' and id = '" . (int)$id . "'");
+                $stylesRow->theme_name = $params['theme_name'];
+                $stylesRow->selector = 'body';
+                $stylesRow->attribute = $key;
+                $stylesRow->value = $val;
+                $stylesRow->save();
             }
-          }
+
+            $them_settings_old = [];
+            $query_s = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and (setting_group = 'main' or setting_group = 'extend' or setting_group = 'hide')");
+            while ($item = tep_db_fetch_array($query_s)) {
+                $them_settings_old[] = $item;
+            }
+            /*echo '<pre>';
+            var_dump($them_settings_old);
+            echo '</pre>';
+            echo json_encode($them_settings_old);die;*/
+
+            foreach ($post['settings'] as $setting_name => $setting_value) {
+
+                $sql_data_array = [
+                  'theme_name' => $params['theme_name'],
+                  'setting_group' => 'main',
+                  'setting_name' => $setting_name,
+                  'setting_value' => $setting_value,
+                ];
+
+                $query = tep_db_fetch_array(tep_db_query('select count(*) as total from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'main' and setting_name = '" . tep_db_input($setting_name) . "'"));
+                if ($query['total'] > 0) {
+                    tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array, 'update', " theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'main' and setting_name = '" . tep_db_input($setting_name) . "'");
+                } else {
+                    tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
+                }
+
+            }
+
+            if (is_array($post['extend'] ?? null)) {
+                foreach ($post['extend'] as $setting_name => $val) {
+                    foreach ($val as $id => $setting_value) {
+
+                        $sql_data_array = [
+                            'setting_value' => $setting_value,
+                        ];
+                        $query = tep_db_fetch_array(tep_db_query('select count(*) as total from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'extend' and setting_name = '" . tep_db_input($setting_name) . "' and id = '" . (int)$id . "'"));
+                        if ($query['total'] > 0) {
+                            tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array, 'update', " theme_name = '" . tep_db_input($params['theme_name']) . "' and setting_group = 'extend' and setting_name = '" . tep_db_input($setting_name) . "' and id = '" . (int)$id . "'");
+                        }
+                    }
+                }
+            }
+
+            Theme::saveFavicon();
+            Theme::saveThemeImage('logo');
+            Theme::saveThemeImage('na_category');
+            Theme::saveThemeImage('na_product');
+
+            $them_settings = [];
+            $query_s = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and (setting_group = 'main' or setting_group = 'extend' or setting_group = 'hide')");
+            while ($item = tep_db_fetch_array($query_s)) {
+                $them_settings[] = $item;
+            }
+
+            $data = [
+              'theme_name' => $params['theme_name'],
+              'them_settings_old' => $them_settings_old,
+              'them_settings' => $them_settings,
+            ];
+            Steps::settings($data);
+
         }
-      }
 
-      Theme::saveFavicon();
-      Theme::saveThemeImage('logo');
-      Theme::saveThemeImage('na_category');
-      Theme::saveThemeImage('na_product');
+        $query = tep_db_query('select setting_name, setting_value from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "'");
 
-      $them_settings = [];
-      $query_s = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and (setting_group = 'main' or setting_group = 'extend' or setting_group = 'hide')");
-      while ($item = tep_db_fetch_array($query_s)){
-        $them_settings[] = $item;
-      }
+        $settings = [];
+        while ($item = tep_db_fetch_array($query)) {
+            $settings[$item['setting_name']] = $item['setting_value'];
+        }
 
-      $data = [
-        'theme_name' => $params['theme_name'],
-        'them_settings_old' => $them_settings_old,
-        'them_settings' => $them_settings,
-      ];
-      Steps::settings($data);
+        $styles = [];
+        $styles_query = tep_db_query('select * from ' . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and selector = 'body' and visibility=''");
+        while ($styles_arr = tep_db_fetch_array($styles_query)) {
+            $styles[$styles_arr['attribute']] = $styles_arr['value'];
+        }
 
+        $path = \Yii::getAlias('@webroot');
+        $path .= DIRECTORY_SEPARATOR;
+        $path .= '..';
+        $path .= DIRECTORY_SEPARATOR;
+        $path .= 'themes';
+        $path .= DIRECTORY_SEPARATOR;
+        $path .= $_GET['theme_name'];
+        $path .= DIRECTORY_SEPARATOR;
+        $path .= 'icons';
+        $path .= DIRECTORY_SEPARATOR;
+        if (is_file($path . 'favicon-16x16.png')) {
+            $favicon = '../themes/' . $_GET['theme_name'] . '/icons/favicon-16x16.png';
+        } else {
+            $favicon = '../themes/basic/icons/favicon-16x16.png';
+        }
+
+        $this->actionBackupAuto($params['theme_name'], $this->render('settings.tpl', [
+            'favicon' => $favicon,
+            'menu' => 'settings',
+            'settings' => $settings,
+            'setting' => $styles,
+            'theme_name' => $params['theme_name'],
+            'action' => Yii::$app->urlManager->createUrl(['design/settings', 'theme_name' => $params['theme_name']]),
+            'is_mobile' => strpos($_GET['theme_name'], '-mobile') ? true : false,
+            'designer_mode' => $this->designerMode,
+        ]));
     }
 
-    $query = tep_db_query("select setting_name, setting_value from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($params['theme_name']) . "'");
+    public function actionExtend()
+    {
+        $get = tep_db_prepare_input(Yii::$app->request->get());
 
-    $settings = array();
-    while ($item = tep_db_fetch_array($query)){
-      $settings[$item['setting_name']] = $item['setting_value'];
+        if ($get['remove'] ?? null) {
+            //Steps::extendRemove(['theme_name' => $get['theme_name'], 'id' => (int)$get['remove']]);
+
+            $data = [
+                'theme_name' => $get['theme_name'],
+                'them_settings_old' => ThemesSettings::find()->where(['id' => (int)$get['remove']])->asArray()->all(),
+                'them_settings' => [],
+            ];
+            Steps::settings($data);
+
+            tep_db_query('delete from ' . TABLE_THEMES_SETTINGS . " where id = '" . (int)$get['remove'] . "'");
+            tep_db_query('delete from ' . TABLE_DESIGN_BOXES_SETTINGS . " where visibility = '" . (int)$get['remove'] . "'");
+            tep_db_query('delete from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where visibility = '" . (int)$get['remove'] . "'");
+            tep_db_query('delete from ' . TABLE_THEMES_STYLES . " where visibility = '" . (int)$get['remove'] . "'");
+            //tep_db_query("delete from " . TABLE_THEMES_STYLES_TMP . " where visibility = '" . (int)$get['remove'] . "'");
+        }
+
+        if ($get['add'] ?? null) {
+            $sql_data_array = [
+              'theme_name' => $get['theme_name'],
+              'setting_group' => 'extend',
+              'setting_name' => $get['setting_name'],
+              'setting_value' => '',
+            ];
+            tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
+            $added_id = tep_db_insert_id();
+
+            $sql_data_array['id'] = $added_id;
+            //Steps::extendAdd(['theme_name' => $get['theme_name'], 'data' => $sql_data_array]);
+        }
+
+        $query = tep_db_query('select id, setting_name, setting_value from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($get['theme_name']) . "' and setting_group = 'extend' and setting_name = '" . tep_db_input($get['setting_name']) . "'");
+        $arr = [];
+        while ($item = tep_db_fetch_array($query)) {
+            $arr[] = $item;
+        }
+        return json_encode($arr);
     }
 
-    $styles = array();
-    $styles_query = tep_db_query("select * from " . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($params['theme_name']) . "' and selector = 'body' and visibility=''");
-    while ($styles_arr = tep_db_fetch_array($styles_query)){
-      $styles[$styles_arr['attribute']] = $styles_arr['value'];
+    public function actionDemoStyles()
+    {
+        $post = tep_db_prepare_input(Yii::$app->request->post());
+        $class = str_replace('\\', '', $post['data_class'] ?? null);
+        $style = $class . '{' . \frontend\design\Block::styles($post['setting'] ?? null).'}';
+
+        $key_arr = explode(',', $class);
+        for ($i = 1; $i < 5; $i++) {
+            $add = '';
+            switch ($i) {
+                case 1: $add = ':hover';
+                    break;
+                case 2: $add = '.active';
+                    break;
+                case 3: $add = ':before';
+                    break;
+                case 4: $add = ':after';
+                    break;
+            }
+            $selector_arr = [];
+            foreach ($key_arr as $item) {
+                $selector_arr[] = trim($item) . $add;
+            }
+            $selector = implode(', ', $selector_arr);
+            $params[0] = $post['visibility'][0][$i] ?? null;
+            $style .= $selector . '{' . \frontend\design\Block::styles($params) . '}';
+        }
+
+        return $style;
     }
-
-    $path = \Yii::getAlias('@webroot');
-    $path .= DIRECTORY_SEPARATOR;
-    $path .= '..';
-    $path .= DIRECTORY_SEPARATOR;
-    $path .= 'themes';
-    $path .= DIRECTORY_SEPARATOR;
-    $path .= $_GET['theme_name'];
-    $path .= DIRECTORY_SEPARATOR;
-    $path .= 'icons';
-    $path .= DIRECTORY_SEPARATOR;
-    if (is_file($path . 'favicon-16x16.png')){
-      $favicon = '../themes/' . $_GET['theme_name'] . '/icons/favicon-16x16.png';
-    } else {
-      $favicon = '../themes/basic/icons/favicon-16x16.png';
-    }
-
-      $this->actionBackupAuto($params['theme_name'], $this->render('settings.tpl', [
-          'favicon' => $favicon,
-          'menu' => 'settings',
-          'settings' => $settings,
-          'setting' => $styles,
-          'theme_name' => $params['theme_name'],
-          'action' => Yii::$app->urlManager->createUrl(['design/settings', 'theme_name' => $params['theme_name']]),
-          'is_mobile' => strpos($_GET['theme_name'], '-mobile') ? true : false,
-          'designer_mode' => $this->designerMode,
-      ]));
-  }
-
-  public function actionExtend() {
-    $get = tep_db_prepare_input(Yii::$app->request->get());
-
-    if ($get['remove'] ?? null){
-        //Steps::extendRemove(['theme_name' => $get['theme_name'], 'id' => (int)$get['remove']]);
-
-        $data = [
-            'theme_name' => $get['theme_name'],
-            'them_settings_old' => ThemesSettings::find()->where(['id' => (int)$get['remove']])->asArray()->all(),
-            'them_settings' => [],
-        ];
-        Steps::settings($data);
-
-      tep_db_query("delete from " . TABLE_THEMES_SETTINGS . " where id = '" . (int)$get['remove'] . "'");
-      tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS . " where visibility = '" . (int)$get['remove'] . "'");
-      tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where visibility = '" . (int)$get['remove'] . "'");
-      tep_db_query("delete from " . TABLE_THEMES_STYLES . " where visibility = '" . (int)$get['remove'] . "'");
-      //tep_db_query("delete from " . TABLE_THEMES_STYLES_TMP . " where visibility = '" . (int)$get['remove'] . "'");
-    }
-
-    if ($get['add'] ?? null){
-      $sql_data_array = array(
-        'theme_name' =>$get['theme_name'],
-        'setting_group' => 'extend',
-        'setting_name' => $get['setting_name'],
-        'setting_value' => '',
-      );
-      tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
-      $added_id = tep_db_insert_id();
-
-      $sql_data_array['id'] = $added_id;
-      //Steps::extendAdd(['theme_name' => $get['theme_name'], 'data' => $sql_data_array]);
-    }
-
-    $query = tep_db_query("select id, setting_name, setting_value from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($get['theme_name']) . "' and setting_group = 'extend' and setting_name = '" . tep_db_input($get['setting_name']) . "'");
-    $arr = array();
-    while ($item = tep_db_fetch_array($query)){
-      $arr[] = $item;
-    }
-    return json_encode($arr);
-  }
-
-
-  public function actionDemoStyles() {
-    $post = tep_db_prepare_input(Yii::$app->request->post());
-    $class = str_replace('\\', '', $post['data_class'] ?? null);
-    $style = $class . '{' . \frontend\design\Block::styles($post['setting'] ?? null).'}';
-
-    $key_arr = explode(',', $class);
-    for ($i = 1; $i < 5; $i++) {
-      $add = '';
-      switch ($i) {
-        case 1: $add = ':hover'; break;
-        case 2: $add = '.active'; break;
-        case 3: $add = ':before'; break;
-        case 4: $add = ':after'; break;
-      }
-      $selector_arr = array();
-      foreach ($key_arr as $item) {
-        $selector_arr[] = trim($item) . $add;
-      }
-      $selector = implode(', ', $selector_arr);
-      $params[0] = $post['visibility'][0][$i] ?? null;
-      $style .= $selector . '{' . \frontend\design\Block::styles($params) . '}';
-    }
-
-    return $style;
-  }
 
     public function actionLog()
     {
@@ -2122,19 +2135,19 @@ class DesignController extends Sceleton {
 
         $this->topButtons[] = '<span class="mode-title">' . $this->designerModeTitle . '</span>';
 
-        $this->selectedMenu = array('design_controls', 'design/themes');
+        $this->selectedMenu = ['design_controls', 'design/themes'];
         $this->view->headingTitle = LOG_TEXT . ' "' . Theme::getThemeTitle($get['theme_name']) . '"';
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/settings'), 'title' => 'Log "' . Theme::getThemeTitle($get['theme_name']) . '"');
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/settings'), 'title' => 'Log "' . Theme::getThemeTitle($get['theme_name']) . '"'];
 
-        $admins = array();
-        $query = tep_db_query("select admin_id, admin_firstname, admin_lastname, admin_email_address from " . TABLE_ADMIN . "");
-        while ($item = tep_db_fetch_array($query)){
+        $admins = [];
+        $query = tep_db_query('select admin_id, admin_firstname, admin_lastname, admin_email_address from ' . TABLE_ADMIN . '');
+        while ($item = tep_db_fetch_array($query)) {
             $admins[$item['admin_id']] = $item;
         }
 
         $date = [];
-        $date['from'] = empty($get['from']) ? null: $get['from'];
-        $date['to'] = empty($get['to']) ? null: $get['to'];
+        $date['from'] = empty($get['from']) ? null : $get['from'];
+        $date['to'] = empty($get['to']) ? null : $get['to'];
 
         if (Yii::$app->request->isAjax) {
             $this->layout = 'popup.tpl';
@@ -2168,40 +2181,43 @@ class DesignController extends Sceleton {
         ]);
     }
 
-  public function actionUndo() {
-    $get = tep_db_prepare_input(Yii::$app->request->get());
-    Steps::undo($get['theme_name']);
-  }
-
-  public function actionRedo() {
-    $get = tep_db_prepare_input(Yii::$app->request->get());
-    Steps::redo($get['theme_name'], $get['steps_id']);
-  }
-
-  public function actionRedoButtons() {
-    $get = tep_db_prepare_input(Yii::$app->request->get());
-
-    $redo_query = tep_db_query("select sr.steps_id, sr.event, sr.date_added, sr.admin_id from " . TABLE_THEMES_STEPS . " sr left join " . TABLE_THEMES_STEPS . " sa on sr.parent_id = sa.steps_id where sa.active='1' and sr.theme_name='" . tep_db_input($get['theme_name']) . "'");
-    $redo = '';
-    while ($item = tep_db_fetch_array($redo_query)){
-      $redo .= '<span class="btn btn-redo btn-elements" data-id="' . $item['steps_id'] . '" data-event="' . $item['event'] . '" title="' . Steps::logNames($item['event']) . ' (' . \common\helpers\Date::date_long($item['date_added'], "%d %b %Y / %H:%M:%S") . ')">' . LOG_REDO . '</span>';
+    public function actionUndo()
+    {
+        $get = tep_db_prepare_input(Yii::$app->request->get());
+        Steps::undo($get['theme_name']);
     }
 
-    $undo = tep_db_fetch_array(tep_db_query("select steps_id, event, date_added, admin_id from " . TABLE_THEMES_STEPS . " where active='1' and parent_id!='0' and theme_name='" . tep_db_input($get['theme_name']) . "'"));
-
-    if ($undo['steps_id'] ?? null) {
-      $redo .= '<span class="btn btn-undo btn-elements" data-event="' . $undo['event'] . '" title="' . Steps::logNames($undo['event']) . ' (' . \common\helpers\Date::date_long($undo['date_added'], "%d %b %Y / %H:%M:%S") . ')">' . LOG_UNDO . '</span>';
+    public function actionRedo()
+    {
+        $get = tep_db_prepare_input(Yii::$app->request->get());
+        Steps::redo($get['theme_name'], $get['steps_id']);
     }
 
-    echo $redo;
-  }
+    public function actionRedoButtons()
+    {
+        $get = tep_db_prepare_input(Yii::$app->request->get());
 
-  public  function actionStepRestore()
-  {
-    $get = tep_db_prepare_input(Yii::$app->request->get());
-    $text = Steps::restore($get['id']);
-    if ($text){
-      $text = '
+        $redo_query = tep_db_query('select sr.steps_id, sr.event, sr.date_added, sr.admin_id from ' . TABLE_THEMES_STEPS . ' sr left join ' . TABLE_THEMES_STEPS . " sa on sr.parent_id = sa.steps_id where sa.active='1' and sr.theme_name='" . tep_db_input($get['theme_name']) . "'");
+        $redo = '';
+        while ($item = tep_db_fetch_array($redo_query)) {
+            $redo .= '<span class="btn btn-redo btn-elements" data-id="' . $item['steps_id'] . '" data-event="' . $item['event'] . '" title="' . Steps::logNames($item['event']) . ' (' . \common\helpers\Date::date_long($item['date_added'], '%d %b %Y / %H:%M:%S') . ')">' . LOG_REDO . '</span>';
+        }
+
+        $undo = tep_db_fetch_array(tep_db_query('select steps_id, event, date_added, admin_id from ' . TABLE_THEMES_STEPS . " where active='1' and parent_id!='0' and theme_name='" . tep_db_input($get['theme_name']) . "'"));
+
+        if ($undo['steps_id'] ?? null) {
+            $redo .= '<span class="btn btn-undo btn-elements" data-event="' . $undo['event'] . '" title="' . Steps::logNames($undo['event']) . ' (' . \common\helpers\Date::date_long($undo['date_added'], '%d %b %Y / %H:%M:%S') . ')">' . LOG_UNDO . '</span>';
+        }
+
+        echo $redo;
+    }
+
+    public function actionStepRestore()
+    {
+        $get = tep_db_prepare_input(Yii::$app->request->get());
+        $text = Steps::restore($get['id']);
+        if ($text) {
+            $text = '
 <div class="popup-box-wrap pop-mess">
     <div class="around-pop-up"></div>
     <div class="popup-box">
@@ -2224,235 +2240,230 @@ class DesignController extends Sceleton {
 </script>
 </div>
 ';
+        }
+        return $text;
     }
-    return $text;
-  }
 
-  public  function actionFindSelector()
-  {
-    $get = tep_db_prepare_input(Yii::$app->request->get());
+    public function actionFindSelector()
+    {
+        $get = tep_db_prepare_input(Yii::$app->request->get());
 
-    $selectors_query = tep_db_query("
+        $selectors_query = tep_db_query('
       select DISTINCT selector
-      from " . TABLE_THEMES_STYLES . "
+      from ' . TABLE_THEMES_STYLES . "
       where theme_name = '" . tep_db_input($get['theme_name']) . "' and
         selector LIKE '%" . tep_db_input($get['selector']) . "%'
 ");
 
-    $html = '';
-    while ($item = tep_db_fetch_array($selectors_query)) {
-      $html .= '<div class="item">' . $item['selector'] . '</div>';
-    }
-
-    if ($html == '') {
-      $html = '<div class="no-selector">Not found selectors.</div>';
-    }
-
-    return $html;
-
-  }
-
-  public  function actionStyles()
-  {
-    $get = tep_db_prepare_input(Yii::$app->request->get());
-
-      /*$this->topButtons[] = '<span class="redo-buttons"></span>';*/
-
-    /*$this->topButtons[] = '<span data-href="' . Yii::$app->urlManager->createUrl(['design/theme-save', 'theme_name' => $get['theme_name']]) . '" class="btn btn-confirm btn-save-boxes btn-elements">'.IMAGE_SAVE.'</span> <span class="redo-buttons"></span>';*/
-
-
-    $this->selectedMenu = array('design_controls', 'design/themes');
-    $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/elements'), 'title' => BOX_HEADING_MAIN_STYLES . ' "' . Theme::getThemeTitle($get['theme_name']) . '"');
-    $this->view->headingTitle = BOX_HEADING_MAIN_STYLES . ' "' . Theme::getThemeTitle($get['theme_name']) . '"';
-      $this->topButtons[] = '<span class="btn btn-confirm btn-save-boxes">' . IMAGE_SAVE . '</span>';
-      $this->topButtons[] = '<span class="mode-title">' . $this->designerModeTitle . '</span>';
-
-    $path = \Yii::getAlias('@webroot');
-    $path .= DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR;
-    $path .= 'lib' . DIRECTORY_SEPARATOR . 'frontend' . DIRECTORY_SEPARATOR;
-    $path .= 'themes' . DIRECTORY_SEPARATOR . 'basic' . DIRECTORY_SEPARATOR;
-    $path .= 'index' . DIRECTORY_SEPARATOR . 'design';
-    $files = scandir($path);
-    $sf = array();
-    foreach ($files as $item) {
-      if ($item != '.' && $item != '..') {
-        $content = file_get_contents($path  . DIRECTORY_SEPARATOR . $item);
-        preg_match_all("/Info\:\:dataClass\([\'\"]([^}]+)[\'\"]/", $content, $arr);
-        $sf = array_merge($sf, $arr[1]);
-      }
-    }
-
-
-    $fontColors = array();
-    $query = tep_db_query("select value from " . TABLE_THEMES_STYLES . " where theme_name = '" .tep_db_input($get['theme_name']) . "' and attribute = 'color'");
-    while ($item = tep_db_fetch_array($query)) {
-      if ($fontColors[$item['value']] ?? null){
-        $fontColors[$item['value']]++;
-      } else {
-        $fontColors[$item['value']] = 1;
-      }
-    }
-    $query = tep_db_query("select bs.setting_value from " . TABLE_DESIGN_BOXES_TMP . " b left join " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs on b.id = bs.box_id where b.theme_name = '" .tep_db_input($get['theme_name']) . "' and bs.setting_name = 'color'");
-    while ($item = tep_db_fetch_array($query)) {
-      if ($fontColors[$item['setting_value']] ?? null){
-        $fontColors[$item['setting_value']]++;
-      } else {
-        $fontColors[$item['setting_value']] = 1;
-      }
-    }
-
-    $backgroundColors = array();
-    $query = tep_db_query("select value from " . TABLE_THEMES_STYLES . " where theme_name = '" .tep_db_input($get['theme_name']) . "' and attribute = 'background-color'");
-    while ($item = tep_db_fetch_array($query)) {
-      if ($backgroundColors[$item['value']] ?? null){
-        $backgroundColors[$item['value']]++;
-      } else {
-        $backgroundColors[$item['value']] = 1;
-      }
-    }
-    $query = tep_db_query("select bs.setting_value from " . TABLE_DESIGN_BOXES_TMP . " b left join " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs on b.id = bs.box_id where b.theme_name = '" .tep_db_input($get['theme_name']) . "' and bs.setting_name = 'background-color'");
-    while ($item = tep_db_fetch_array($query)) {
-      if ($backgroundColors[$item['setting_value']] ?? null){
-        $backgroundColors[$item['setting_value']]++;
-      } else {
-        $backgroundColors[$item['setting_value']] = 1;
-      }
-    }
-
-    $borderColors = array();
-    $query = tep_db_query("select value from " . TABLE_THEMES_STYLES . " where theme_name = '" .tep_db_input($get['theme_name']) . "' and attribute in ('border-top-color', 'border-left-color', 'border-right-color', 'border-bottom-color', 'border-color')");
-    while ($item = tep_db_fetch_array($query)) {
-      if ($borderColors[$item['value']] ?? null){
-        $borderColors[$item['value']]++;
-      } else {
-        $borderColors[$item['value']] = 1;
-      }
-    }
-    $query = tep_db_query("select bs.setting_value from " . TABLE_DESIGN_BOXES_TMP . " b left join " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs on b.id = bs.box_id where b.theme_name = '" .tep_db_input($get['theme_name']) . "' and bs.setting_name in ('border-top-color', 'border-left-color', 'border-right-color', 'border-bottom-color', 'border-color')");
-    while ($item = tep_db_fetch_array($query)) {
-      if ($borderColors[$item['setting_value']] ?? null){
-        $borderColors[$item['setting_value']]++;
-      } else {
-        $borderColors[$item['setting_value']] = 1;
-      }
-    }
-
-    $fontFamily = array();
-    $query = tep_db_query("select value from " . TABLE_THEMES_STYLES . " where theme_name = '" .tep_db_input($get['theme_name']) . "' and attribute = 'font-family'");
-    while ($item = tep_db_fetch_array($query)) {
-      if ($item['value'] != 'FontAwesome' && $item['value'] != 'trueloaded') {
-        if ($fontFamily[$item['value']] ?? null) {
-          $fontFamily[$item['value']]++;
-        } else {
-          $fontFamily[$item['value']] = 1;
+        $html = '';
+        while ($item = tep_db_fetch_array($selectors_query)) {
+            $html .= '<div class="item">' . $item['selector'] . '</div>';
         }
-      }
-    }
-    $query = tep_db_query("select bs.setting_value from " . TABLE_DESIGN_BOXES_TMP . " b left join " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs on b.id = bs.box_id where b.theme_name = '" .tep_db_input($get['theme_name']) . "' and bs.setting_name = 'font-family'");
-    while ($item = tep_db_fetch_array($query)) {
-      if ($item['setting_value'] != 'FontAwesome' && $item['setting_value'] != 'trueloaded') {
-        if ($fontFamily[$item['setting_value']] ?? null) {
-          $fontFamily[$item['setting_value']]++;
-        } else {
-          $fontFamily[$item['setting_value']] = 1;
+
+        if ($html == '') {
+            $html = '<div class="no-selector">Not found selectors.</div>';
         }
-      }
+
+        return $html;
+
     }
 
-    $fontAdded = array();
-    $fontAddedArr = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($get['theme_name']) . "' and setting_name = 'font_added'");
-    while ($item1 = tep_db_fetch_array($fontAddedArr)){
-      preg_match('/font-family:[ \'"]+([^\'^"^;^}]+)/', $item1['setting_value'], $val);
-      $fontAdded[] = $val[1];
+    public function actionStyles()
+    {
+        $get = tep_db_prepare_input(Yii::$app->request->get());
+
+        /*$this->topButtons[] = '<span class="redo-buttons"></span>';*/
+
+        /*$this->topButtons[] = '<span data-href="' . Yii::$app->urlManager->createUrl(['design/theme-save', 'theme_name' => $get['theme_name']]) . '" class="btn btn-confirm btn-save-boxes btn-elements">'.IMAGE_SAVE.'</span> <span class="redo-buttons"></span>';*/
+
+        $this->selectedMenu = ['design_controls', 'design/themes'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/elements'), 'title' => BOX_HEADING_MAIN_STYLES . ' "' . Theme::getThemeTitle($get['theme_name']) . '"'];
+        $this->view->headingTitle = BOX_HEADING_MAIN_STYLES . ' "' . Theme::getThemeTitle($get['theme_name']) . '"';
+        $this->topButtons[] = '<span class="btn btn-confirm btn-save-boxes">' . IMAGE_SAVE . '</span>';
+        $this->topButtons[] = '<span class="mode-title">' . $this->designerModeTitle . '</span>';
+
+        $path = \Yii::getAlias('@webroot');
+        $path .= DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR;
+        $path .= 'lib' . DIRECTORY_SEPARATOR . 'frontend' . DIRECTORY_SEPARATOR;
+        $path .= 'themes' . DIRECTORY_SEPARATOR . 'basic' . DIRECTORY_SEPARATOR;
+        $path .= 'index' . DIRECTORY_SEPARATOR . 'design';
+        $files = scandir($path);
+        $sf = [];
+        foreach ($files as $item) {
+            if ($item != '.' && $item != '..') {
+                $content = file_get_contents($path  . DIRECTORY_SEPARATOR . $item);
+                preg_match_all("/Info\:\:dataClass\([\'\"]([^}]+)[\'\"]/", $content, $arr);
+                $sf = array_merge($sf, $arr[1]);
+            }
+        }
+
+        $fontColors = [];
+        $query = tep_db_query('select value from ' . TABLE_THEMES_STYLES . " where theme_name = '" .tep_db_input($get['theme_name']) . "' and attribute = 'color'");
+        while ($item = tep_db_fetch_array($query)) {
+            if ($fontColors[$item['value']] ?? null) {
+                $fontColors[$item['value']]++;
+            } else {
+                $fontColors[$item['value']] = 1;
+            }
+        }
+        $query = tep_db_query('select bs.setting_value from ' . TABLE_DESIGN_BOXES_TMP . ' b left join ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs on b.id = bs.box_id where b.theme_name = '" .tep_db_input($get['theme_name']) . "' and bs.setting_name = 'color'");
+        while ($item = tep_db_fetch_array($query)) {
+            if ($fontColors[$item['setting_value']] ?? null) {
+                $fontColors[$item['setting_value']]++;
+            } else {
+                $fontColors[$item['setting_value']] = 1;
+            }
+        }
+
+        $backgroundColors = [];
+        $query = tep_db_query('select value from ' . TABLE_THEMES_STYLES . " where theme_name = '" .tep_db_input($get['theme_name']) . "' and attribute = 'background-color'");
+        while ($item = tep_db_fetch_array($query)) {
+            if ($backgroundColors[$item['value']] ?? null) {
+                $backgroundColors[$item['value']]++;
+            } else {
+                $backgroundColors[$item['value']] = 1;
+            }
+        }
+        $query = tep_db_query('select bs.setting_value from ' . TABLE_DESIGN_BOXES_TMP . ' b left join ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs on b.id = bs.box_id where b.theme_name = '" .tep_db_input($get['theme_name']) . "' and bs.setting_name = 'background-color'");
+        while ($item = tep_db_fetch_array($query)) {
+            if ($backgroundColors[$item['setting_value']] ?? null) {
+                $backgroundColors[$item['setting_value']]++;
+            } else {
+                $backgroundColors[$item['setting_value']] = 1;
+            }
+        }
+
+        $borderColors = [];
+        $query = tep_db_query('select value from ' . TABLE_THEMES_STYLES . " where theme_name = '" .tep_db_input($get['theme_name']) . "' and attribute in ('border-top-color', 'border-left-color', 'border-right-color', 'border-bottom-color', 'border-color')");
+        while ($item = tep_db_fetch_array($query)) {
+            if ($borderColors[$item['value']] ?? null) {
+                $borderColors[$item['value']]++;
+            } else {
+                $borderColors[$item['value']] = 1;
+            }
+        }
+        $query = tep_db_query('select bs.setting_value from ' . TABLE_DESIGN_BOXES_TMP . ' b left join ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs on b.id = bs.box_id where b.theme_name = '" .tep_db_input($get['theme_name']) . "' and bs.setting_name in ('border-top-color', 'border-left-color', 'border-right-color', 'border-bottom-color', 'border-color')");
+        while ($item = tep_db_fetch_array($query)) {
+            if ($borderColors[$item['setting_value']] ?? null) {
+                $borderColors[$item['setting_value']]++;
+            } else {
+                $borderColors[$item['setting_value']] = 1;
+            }
+        }
+
+        $fontFamily = [];
+        $query = tep_db_query('select value from ' . TABLE_THEMES_STYLES . " where theme_name = '" .tep_db_input($get['theme_name']) . "' and attribute = 'font-family'");
+        while ($item = tep_db_fetch_array($query)) {
+            if ($item['value'] != 'FontAwesome' && $item['value'] != 'trueloaded') {
+                if ($fontFamily[$item['value']] ?? null) {
+                    $fontFamily[$item['value']]++;
+                } else {
+                    $fontFamily[$item['value']] = 1;
+                }
+            }
+        }
+        $query = tep_db_query('select bs.setting_value from ' . TABLE_DESIGN_BOXES_TMP . ' b left join ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs on b.id = bs.box_id where b.theme_name = '" .tep_db_input($get['theme_name']) . "' and bs.setting_name = 'font-family'");
+        while ($item = tep_db_fetch_array($query)) {
+            if ($item['setting_value'] != 'FontAwesome' && $item['setting_value'] != 'trueloaded') {
+                if ($fontFamily[$item['setting_value']] ?? null) {
+                    $fontFamily[$item['setting_value']]++;
+                } else {
+                    $fontFamily[$item['setting_value']] = 1;
+                }
+            }
+        }
+
+        $fontAdded = [];
+        $fontAddedArr = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($get['theme_name']) . "' and setting_name = 'font_added'");
+        while ($item1 = tep_db_fetch_array($fontAddedArr)) {
+            preg_match('/font-family:[ \'"]+([^\'^"^;^}]+)/', $item1['setting_value'], $val);
+            $fontAdded[] = $val[1];
+        }
+
+        $tpl = 'styles-new.tpl';
+        if (Yii::$app->request->get('old')) {
+            $tpl = 'styles.tpl';
+        }
+
+        $mainStyles = ThemesStylesMain::find()->where(['theme_name' => $get['theme_name']])
+            ->orderBy('sort_order')->asArray()->all();
+
+        $stylesGroups = ThemesStylesGroups::find()->where(['theme_name' => $get['theme_name']])
+            ->orderBy('sort_order')->asArray()->all();
+
+        $stylesGroupTabs = ThemesStylesGroups::find()
+            ->select('tab')->distinct()
+            ->where(['theme_name' => $get['theme_name']])
+            ->orderBy('sort_order')->asArray()->all();
+
+        $counts1 = DesignBoxesSettingsTmp::find()
+            ->select(['value' => 'setting_value', 'COUNT(*) as count'])
+            ->groupBy(['setting_value'])
+            ->where(['theme_name' => $get['theme_name']])
+            ->andWhere(['LIKE', 'setting_value', '$%', false])
+            ->asArray()->all();
+        $counts2 = ThemesStyles::find()
+            ->select(['value', 'COUNT(*) as count'])
+            ->groupBy(['value'])
+            ->where(['theme_name' => $get['theme_name']])
+            ->andWhere(['LIKE', 'value', '$%', false])
+            ->asArray()->all();
+
+        $counts = [];
+        foreach (array_merge($counts1, $counts2) as $count) {
+            $counts[$count['value']] = ($counts[$count['value']] ?? 0) + $count['count'];
+        }
+
+        foreach ($mainStyles as $key => $style) {
+            $mainStyles[$key]['count'] = $counts['$' . $style['name']] ?? 0;
+            $mainStyles[$key]['oldName'] = $style['name'];
+        }
+
+        $stylesTree = [];
+        foreach ($stylesGroupTabs as $tab) {
+
+            $groups = [];
+            foreach ($stylesGroups as $group) {
+                if ($group['tab'] != $tab['tab']) {
+                    continue;
+                }
+                $styles = [];
+
+                foreach ($mainStyles as $key => $style) {
+                    if ($style['group_id'] == $group['group_id']) {
+                        $styles[] = $style;
+                    }
+                }
+
+                $groups[] = [
+                    'group_id' => $group['group_id'],
+                    'group_name' => $group['group_name'],
+                    'styles' => $styles,
+                ];
+            }
+            $stylesTree[] = [
+                'tab' => $tab['tab'],
+                'groups' => $groups,
+            ];
+        }
+
+        return $this->render($tpl, [
+            'theme_name' => $get['theme_name'],
+            'fontColors' => $fontColors,
+            'backgroundColors' => $backgroundColors,
+            'borderColors' => $borderColors,
+            'fontFamily' => $fontFamily,
+            'fontAdded' => $fontAdded,
+            'designer_mode' => $this->designerMode,
+            'mainStyles' => $mainStyles,
+            'stylesGroups' => $stylesGroups,
+            'stylesGroupTabs' => $stylesGroupTabs,
+            'stylesTree' => $stylesTree,
+            'menu' => 'styles',
+        ]);
     }
 
-    $tpl = 'styles-new.tpl';
-    if (Yii::$app->request->get('old')) {
-        $tpl = 'styles.tpl';
-    }
-
-      $mainStyles = ThemesStylesMain::find()->where(['theme_name' => $get['theme_name']])
-          ->orderBy('sort_order')->asArray()->all();
-
-      $stylesGroups = ThemesStylesGroups::find()->where(['theme_name' => $get['theme_name']])
-          ->orderBy('sort_order')->asArray()->all();
-
-      $stylesGroupTabs = ThemesStylesGroups::find()
-          ->select('tab')->distinct()
-          ->where(['theme_name' => $get['theme_name']])
-          ->orderBy('sort_order')->asArray()->all();
-
-      $counts1 = DesignBoxesSettingsTmp::find()
-          ->select(['value' => 'setting_value', 'COUNT(*) as count'])
-          ->groupBy(['setting_value'])
-          ->where(['theme_name' => $get['theme_name']])
-          ->andWhere(['LIKE', 'setting_value', '$%', false])
-          ->asArray()->all();
-      $counts2 = ThemesStyles::find()
-          ->select(['value', 'COUNT(*) as count'])
-          ->groupBy(['value'])
-          ->where(['theme_name' => $get['theme_name']])
-          ->andWhere(['LIKE', 'value', '$%', false])
-          ->asArray()->all();
-
-      $counts = [];
-      foreach (array_merge($counts1, $counts2) as $count) {
-          $counts[$count['value']] = ($counts[$count['value']] ?? 0) + $count['count'];
-      }
-
-      foreach ($mainStyles as $key => $style) {
-          $mainStyles[$key]['count'] = $counts['$' . $style['name']] ?? 0;
-          $mainStyles[$key]['oldName'] = $style['name'];
-      }
-
-
-      $stylesTree = [];
-      foreach ($stylesGroupTabs as $tab) {
-
-          $groups = [];
-          foreach ($stylesGroups as $group) {
-              if ($group['tab'] != $tab['tab']) {
-                  continue;
-              }
-              $styles = [];
-
-              foreach ($mainStyles as $key => $style) {
-                  if ($style['group_id'] == $group['group_id']) {
-                      $styles[] = $style;
-                  }
-              }
-
-              $groups[] = [
-                  'group_id' => $group['group_id'],
-                  'group_name' => $group['group_name'],
-                  'styles' => $styles
-              ];
-          }
-          $stylesTree[] = [
-              'tab' => $tab['tab'],
-              'groups' => $groups
-          ];
-      }
-
-
-
-    return $this->render($tpl, [
-        'theme_name' => $get['theme_name'],
-        'fontColors' => $fontColors,
-        'backgroundColors' => $backgroundColors,
-        'borderColors' => $borderColors,
-        'fontFamily' => $fontFamily,
-        'fontAdded' => $fontAdded,
-        'designer_mode' => $this->designerMode,
-        'mainStyles' => $mainStyles,
-        'stylesGroups' => $stylesGroups,
-        'stylesGroupTabs' => $stylesGroupTabs,
-        'stylesTree' => $stylesTree,
-        'menu' => 'styles',
-    ]);
-  }
-
-    public  function actionStylesChange()
+    public function actionStylesChange()
     {
         $get = tep_db_prepare_input(Yii::$app->request->get());
 
@@ -2460,9 +2471,8 @@ class DesignController extends Sceleton {
             'from' => $get['from'],
             'to' => $get['to'],
             'style' => $get['style'],
-            'theme_name' => $get['theme_name']
+            'theme_name' => $get['theme_name'],
         ]);
-
 
         if ($get['style'] == 'border-color') {
             $attribute = " and attribute in ('border-top-color', 'border-left-color', 'border-right-color', 'border-bottom-color', 'border-color')";
@@ -2471,7 +2481,7 @@ class DesignController extends Sceleton {
         }
         tep_db_perform(
             TABLE_THEMES_STYLES,
-            array('value' => $get['to']),
+            ['value' => $get['to']],
             'update',
             " theme_name = '" . tep_db_input($get['theme_name']) . "'" . $attribute . " and value = '" . tep_db_input($get['from']) . "'"
         );
@@ -2481,9 +2491,9 @@ class DesignController extends Sceleton {
         } else {
             $setting_name = " and bs.setting_name = '" . tep_db_input($get['style']) . "'";
         }
-        $query = tep_db_query("select bs.id from " . TABLE_DESIGN_BOXES_TMP . " b left join " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs on b.id = bs.box_id where b.theme_name = '" . tep_db_input($get['theme_name']) . "' " . $setting_name . " and bs.setting_value = '" . tep_db_input($get['from']) . "'");
+        $query = tep_db_query('select bs.id from ' . TABLE_DESIGN_BOXES_TMP . ' b left join ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " bs on b.id = bs.box_id where b.theme_name = '" . tep_db_input($get['theme_name']) . "' " . $setting_name . " and bs.setting_value = '" . tep_db_input($get['from']) . "'");
         while ($item = tep_db_fetch_array($query)) {
-            tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS_TMP, array('setting_value' => $get['to']), 'update', " id = '" . $item['id'] . "'");
+            tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS_TMP, ['setting_value' => $get['to']], 'update', " id = '" . $item['id'] . "'");
         }
 
         Style::createCache($get['theme_name']);
@@ -2491,15 +2501,17 @@ class DesignController extends Sceleton {
         return '<div style="padding: 30px;">Changed</div><script type="text/javascript">setTimeout(function(){location.reload()}, 500);</script>';
     }
 
-    public  function actionRemoveClass()
+    public function actionRemoveClass()
     {
         $themeName = Yii::$app->request->get('theme_name');
         $cssClass = Yii::$app->request->get('class');
-        if (!$themeName || !$cssClass) return 'Error';
+        if (!$themeName || !$cssClass) {
+            return 'Error';
+        }
 
         Steps::removeClass([
             'class' => $cssClass,
-            'theme_name' => $themeName
+            'theme_name' => $themeName,
         ]);
 
         $attributesDelete = ThemesStyles::find()->where([
@@ -2525,11 +2537,11 @@ class DesignController extends Sceleton {
         return 'Ok';
     }
 
-
-    public function actionRemoveHiddenBoxes() {
-        $theme_query = tep_db_query("select theme_name from " . TABLE_THEMES . " where 1");
+    public function actionRemoveHiddenBoxes()
+    {
+        $theme_query = tep_db_query('select theme_name from ' . TABLE_THEMES . ' where 1');
         while ($theme = tep_db_fetch_array($theme_query)) {
-            $query = tep_db_query("select bs.box_id from " . TABLE_DESIGN_BOXES_SETTINGS . " bs left join " . TABLE_DESIGN_BOXES . " b on b.id = bs.box_id where bs.setting_name = 'display_none' and bs.visibility = '' and b.theme_name = '" . tep_db_input($theme['theme_name']) . "'");
+            $query = tep_db_query('select bs.box_id from ' . TABLE_DESIGN_BOXES_SETTINGS . ' bs left join ' . TABLE_DESIGN_BOXES . " b on b.id = bs.box_id where bs.setting_name = 'display_none' and bs.visibility = '' and b.theme_name = '" . tep_db_input($theme['theme_name']) . "'");
             $removed = '';
             while ($item = tep_db_fetch_array($query)) {
                 $id = $item['box_id'];
@@ -2543,13 +2555,13 @@ class DesignController extends Sceleton {
                 //tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where box_id = '" . (int) $id . "'");
                 self::deleteBlock($id);
             }
-            tep_db_query("DELETE FROM " . TABLE_THEMES_STYLES . " WHERE visibility > 10 AND visibility NOT IN (SELECT id FROM " . TABLE_THEMES_SETTINGS . " WHERE `setting_name` LIKE 'media_query' )");
+            tep_db_query('DELETE FROM ' . TABLE_THEMES_STYLES . ' WHERE visibility > 10 AND visibility NOT IN (SELECT id FROM ' . TABLE_THEMES_SETTINGS . " WHERE `setting_name` LIKE 'media_query' )");
         }
         return 'Removed:<br>' . $removed;
     }
 
-
-    public function actionCreateUpdate() {
+    public function actionCreateUpdate()
+    {
         $post = tep_db_prepare_input(Yii::$app->request->post());
 
         if (!isset($post['theme_name'])) {
@@ -2563,7 +2575,7 @@ class DesignController extends Sceleton {
         $migration = Steps::createMigration($post['theme_name'], $post['steps']);
 
         header('Content-Type: application/json');
-        header("Content-Transfer-Encoding: utf-8");
+        header('Content-Transfer-Encoding: utf-8');
         header('Content-disposition: attachment; filename="migration-' . $post['theme_name'] . '.json"');
         return json_encode($migration);
 
@@ -2573,8 +2585,8 @@ class DesignController extends Sceleton {
         }
 
         $query = tep_db_query("
-            select * 
-            from " . TABLE_THEMES_STEPS . " 
+            select *
+            from " . TABLE_THEMES_STEPS . "
             where
                 theme_name = '" . tep_db_input($post['theme_name']) . "' and
                 event = 'cssSave' and
@@ -2617,7 +2629,7 @@ class DesignController extends Sceleton {
         $get = Yii::$app->request->get();
         if ($_FILES['file']['error'] == UPLOAD_ERR_OK  && is_uploaded_file($_FILES['file']['tmp_name'])) {
             $migration = json_decode(file_get_contents($_FILES['file']['tmp_name']), true);
-            if ( $result = Steps::applyMigration($get['theme_name'], $migration) ) {
+            if ($result = Steps::applyMigration($get['theme_name'], $migration)) {
                 Theme::elementsSave($get['theme_name']);
                 DesignBoxesCache::deleteAll(['theme_name' => $get['theme_name']]);
                 Theme::saveThemeVersion($get['theme_name']);
@@ -2669,12 +2681,12 @@ class DesignController extends Sceleton {
 
         Style::saveUpdate($post, $update, $get['theme_name']);
 
-        $sql_data_array = array(
+        $sql_data_array = [
             'theme_name' => $get['theme_name'],
             'setting_group' => 'hide',
             'setting_name' => 'theme_update',
-            'setting_value' => date("U"),
-        );
+            'setting_value' => date('U'),
+        ];
         tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
 
         return Yii::$app->getResponse()->redirect(['design/log', 'theme_name' => $get['theme_name']]);
@@ -2690,10 +2702,10 @@ class DesignController extends Sceleton {
             \yii\helpers\FileHelper::createDirectory($devPath);
         }
 
-        $development_mode = tep_db_fetch_array(tep_db_query("select setting_value from " . TABLE_THEMES_SETTINGS . " where setting_name = 'development_mode' and setting_group = 'hide' and theme_name = '" . tep_db_input($get['theme_name']) . "'"));
-        tep_db_query("delete from " . TABLE_THEMES_SETTINGS . " where setting_name = 'development_mode' and setting_group = 'hide' and theme_name = '" . tep_db_input($get['theme_name']) . "'");
+        $development_mode = tep_db_fetch_array(tep_db_query('select setting_value from ' . TABLE_THEMES_SETTINGS . " where setting_name = 'development_mode' and setting_group = 'hide' and theme_name = '" . tep_db_input($get['theme_name']) . "'"));
+        tep_db_query('delete from ' . TABLE_THEMES_SETTINGS . " where setting_name = 'development_mode' and setting_group = 'hide' and theme_name = '" . tep_db_input($get['theme_name']) . "'");
 
-        $query = tep_db_query("select * from " . TABLE_THEMES_STYLES_CACHE . " where theme_name = '" . tep_db_input($get['theme_name']) . "'");
+        $query = tep_db_query('select * from ' . TABLE_THEMES_STYLES_CACHE . " where theme_name = '" . tep_db_input($get['theme_name']) . "'");
         while ($item = tep_db_fetch_array($query)) {
             if (!$item['accessibility']) {
                 $item['accessibility'] = 'main';
@@ -2724,7 +2736,7 @@ class DesignController extends Sceleton {
                 'theme_name' => $get['theme_name'],
                 'setting_name' => 'development_mode',
                 'setting_group' => 'hide',
-                'setting_value' => date("U"),
+                'setting_value' => date('U'),
             ]);
         }
 
@@ -2737,18 +2749,18 @@ class DesignController extends Sceleton {
         $get = tep_db_prepare_input(Yii::$app->request->get());
 
         if ($get['box_id']) {
-            $query = tep_db_query("
+            $query = tep_db_query('
                 select setting_name, setting_value
-                from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " 
+                from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " 
                 where 
                     box_id = '" . (int)$get['box_id'] . "' and 
                     visibility = '" . tep_db_input($get['visibility'] ? $get['visibility'] : '') . "' and
                     language_id = '0'
             ");
         } elseif ($get['data_class']) {
-            $query = tep_db_query("
+            $query = tep_db_query('
                 select attribute as setting_name, value as setting_value
-                from " . TABLE_THEMES_STYLES . " 
+                from ' . TABLE_THEMES_STYLES . " 
                 where theme_name = '" .  tep_db_input($get['theme_name']) . "' and
                 selector = '" . tep_db_input($get['data_class']) . "' and 
                 visibility = '" . tep_db_input($get['visibility'] ? $get['visibility'] : '') . "'
@@ -2762,9 +2774,9 @@ class DesignController extends Sceleton {
 
         $this->layout = 'popup.tpl';
 
-        $font_added = array();
-        $font_added_arr = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($get['theme_name']) . "' and setting_name = 'font_added'");
-        while ($item1 = tep_db_fetch_array($font_added_arr)){
+        $font_added = [];
+        $font_added_arr = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($get['theme_name']) . "' and setting_name = 'font_added'");
+        while ($item1 = tep_db_fetch_array($font_added_arr)) {
             preg_match('/font-family:[ \'"]+([^\'^"^;^}]+)/', $item1['setting_value'], $val);
             $font_added[] = $val[1];
         }
@@ -2788,8 +2800,8 @@ class DesignController extends Sceleton {
     {
         $get = tep_db_prepare_input(Yii::$app->request->get());
 
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/choose-view'), 'title' => 'Choose View "' . Theme::getThemeTitle($get['theme_name']) . '"');
-        $this->selectedMenu = array('design_controls', 'design/themes');
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/choose-view'), 'title' => 'Choose View "' . Theme::getThemeTitle($get['theme_name']) . '"'];
+        $this->selectedMenu = ['design_controls', 'design/themes'];
 
         return $this->render('choose-view.tpl', [
             'theme_name' => $get['theme_name'],
@@ -2809,7 +2821,7 @@ class DesignController extends Sceleton {
 
         $desktop_theme_name = substr($theme_name, 0, -7);
 
-        $theme = tep_db_fetch_array(tep_db_query("select id from " . TABLE_THEMES . " where theme_name = '" . tep_db_input($desktop_theme_name) . "'"));
+        $theme = tep_db_fetch_array(tep_db_query('select id from ' . TABLE_THEMES . " where theme_name = '" . tep_db_input($desktop_theme_name) . "'"));
         if (!$theme['id']) {
             return WRONG_THEME_NAME;
         }
@@ -2843,7 +2855,7 @@ class DesignController extends Sceleton {
             'params' => [
                 'params' => $getRequest,
 
-            ]
+            ],
         ]);
 
         $css = file_get_contents(Info::themeFile('/css/base_3.css', 'fs'));
@@ -2854,7 +2866,7 @@ class DesignController extends Sceleton {
             $areaArr[] = tep_db_input($widget);
         }
         $area = "'" . implode("','", $areaArr) . "'";
-        $query = tep_db_query("select css from " . TABLE_THEMES_STYLES_CACHE . " where theme_name = '" . tep_db_input($theme_name) . "' and accessibility in(" . $area . ")");
+        $query = tep_db_query('select css from ' . TABLE_THEMES_STYLES_CACHE . " where theme_name = '" . tep_db_input($theme_name) . "' and accessibility in(" . $area . ')');
 
         while ($item = tep_db_fetch_array($query)) {
             $css .= $item['css'];
@@ -2868,10 +2880,10 @@ class DesignController extends Sceleton {
 
     }
 
-    public function actionWebp ()
+    public function actionWebp()
     {
-        $this->selectedMenu = array('design_controls', 'design/themes');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/themes'), 'title' => 'Create webp images');
+        $this->selectedMenu = ['design_controls', 'design/themes'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/themes'), 'title' => 'Create webp images'];
         $this->view->headingTitle = TITLE_CREATE_WEBP_IMAGES;
 
         $buttonSettings = \common\helpers\Acl::getExtensionCreateImagesSettings();
@@ -2883,7 +2895,7 @@ class DesignController extends Sceleton {
         ]);
     }
 
-    public function actionCreateWebp ()
+    public function actionCreateWebp()
     {
         $type = Yii::$app->request->get('type', false);
         $iteration = (int)\Yii::$app->request->get('iteration', 0);
@@ -2891,9 +2903,10 @@ class DesignController extends Sceleton {
         return \common\classes\Images::createAllWebpImages($type, $iteration);
     }
 
-    public function actionCreatePdfFont() {
+    public function actionCreatePdfFont()
+    {
         $fontPath = Yii::$app->request->post('font_path');
-        if (substr($fontPath, 0, 4) == 'http'){
+        if (substr($fontPath, 0, 4) == 'http') {
             return \TCPDF_FONTS::addTTFfont($fontPath);
         } else {
             if (is_file(DIR_FS_CATALOG . $fontPath)) {
@@ -2931,7 +2944,8 @@ class DesignController extends Sceleton {
                 $image,
                 $image_upload,
                 '',
-                false, true
+                false,
+                true
             );
             $responseImg = $theme->image;
         } else {
@@ -2951,13 +2965,14 @@ class DesignController extends Sceleton {
                     $image,
                     $image_upload,
                     'themes' . DIRECTORY_SEPARATOR . $theme_name . DIRECTORY_SEPARATOR . 'img',
-                    false, true
+                    false,
+                    true
                 );
                 if (!$themeImage) {
                     ThemesSettings::deleteAll([
                         'theme_name' => $theme_name,
                         'setting_group' => 'hide',
-                        'setting_name' => 'theme_image'
+                        'setting_name' => 'theme_image',
                     ]);
                 } elseif ($themeSetting) {
                     $themeSetting->setting_value = $themeImage;
@@ -3010,7 +3025,7 @@ class DesignController extends Sceleton {
             $this->layout = 'popup.tpl';
             return $this->render('theme-move.tpl', [
                 'groups' => $groups,
-                'theme_name' => Yii::$app->request->get('theme_name')
+                'theme_name' => Yii::$app->request->get('theme_name'),
             ]);
         }
 
@@ -3106,14 +3121,14 @@ class DesignController extends Sceleton {
         $widgetParams = ['main_content' => true];
         $content = '';
 
-        if (is_file(Yii::getAlias('@app') . DIRECTORY_SEPARATOR . 'design' . DIRECTORY_SEPARATOR . 'boxes' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $params['name']) . '.php')){
+        if (is_file(Yii::getAlias('@app') . DIRECTORY_SEPARATOR . 'design' . DIRECTORY_SEPARATOR . 'boxes' . DIRECTORY_SEPARATOR . str_replace('\\', DIRECTORY_SEPARATOR, $params['name']) . '.php')) {
             $widgetName = 'backend\design\boxes\\' .str_replace('\\\\', '\\', $params['name']);
             $content = $widgetName::widget(['id' => $id, 'params' => $widgetParams, 'settings' => $settings]);
-        } elseif($ext = \common\helpers\Acl::checkExtension($params['name'], 'showTabSettings', true)){
+        } elseif ($ext = \common\helpers\Acl::checkExtension($params['name'], 'showTabSettings', true)) {
             $widgetName = 'backend\design\boxes\Def';
-            $settings['tabs'] = ['class'=> $ext, 'method' => 'showTabSettings'];
+            $settings['tabs'] = ['class' => $ext, 'method' => 'showTabSettings'];
             $content = $widgetName::widget(['id' => $id, 'params' => $widgetParams, 'settings' => $settings]);
-        } elseif($ext = \common\helpers\Acl::checkExtension($params['name'], 'showSettings', true)){
+        } elseif ($ext = \common\helpers\Acl::checkExtension($params['name'], 'showSettings', true)) {
             $widgetName = 'backend\design\boxes\Def';
             $settings['class'] = $ext;
             $settings['method'] = 'showSettings';
@@ -3123,7 +3138,7 @@ class DesignController extends Sceleton {
 
         return $this->render('content-widget.tpl', [
             'content' => $content,
-            'widgetName' => $params['name']
+            'widgetName' => $params['name'],
         ]);
     }
 
@@ -3187,7 +3202,7 @@ class DesignController extends Sceleton {
         }
 
         $zip = new \ZipArchive();
-        if ($zip->open($fsCatalog . $themeArchive . '.zip', \ZipArchive::CREATE) !== TRUE) {
+        if ($zip->open($fsCatalog . $themeArchive . '.zip', \ZipArchive::CREATE) !== true) {
             return 'Error';
         }
 
@@ -3206,7 +3221,7 @@ class DesignController extends Sceleton {
                     $fontSetting = ThemesSettings::find()->where([
                         'theme_name' => $themeName,
                         'setting_group' => 'extend',
-                        'setting_name' => 'font_added'
+                        'setting_name' => 'font_added',
                     ])->andWhere(['like', 'setting_value', $style['value']])->asArray()->one();
                     $styles[$key]['font_settings'] = preg_replace('/themes[\/\\\]' . $themeName . '/', 'themes/<theme_name>', $fontSetting['setting_value']);
 
@@ -3257,7 +3272,7 @@ class DesignController extends Sceleton {
 
         return json_encode([
             'text' => $message,
-            'filename' => $themeArchive
+            'filename' => $themeArchive,
         ]);
     }
 

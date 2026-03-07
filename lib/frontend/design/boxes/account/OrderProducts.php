@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,13 @@
 
 namespace frontend\design\boxes\account;
 
+use common\classes\Images;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use common\classes\Images;
 
 class OrderProducts extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -39,10 +40,10 @@ class OrderProducts extends Widget
         $order = $manager->getOrderInstanceWithId('\common\classes\Order', $order_id);
         $tax_groups = sizeof($order->info['tax_groups']);
 
-        $order_product = array();
+        $order_product = [];
         for ($i = 0, $n = sizeof($order->products); $i < $n; $i++) {
             $order_info['orders_products_id'] = $order->products[$i]['orders_products_id'];
-            $order_img = tep_db_fetch_array(tep_db_query("select products_image from " . TABLE_PRODUCTS . " where products_id = '" . (int) $order->products[$i]['id'] . "'"));
+            $order_img = tep_db_fetch_array(tep_db_query('select products_image from ' . TABLE_PRODUCTS . " where products_id = '" . (int) $order->products[$i]['id'] . "'"));
             $order_info['products_image'] = Images::getImageUrl($order->products[$i]['id'], 'Small');
             $order_info['order_product_qty'] = \common\helpers\Product::getVirtualItemQuantity($order->products[$i]['id'], $order->products[$i]['qty']);
             $order_info['order_product_name'] = $order->products[$i]['name'];
@@ -51,11 +52,11 @@ class OrderProducts extends Widget
             if (\common\helpers\Product::check_product($order->products[$i]['id'])) {
                 $order_info['product_info_link'] = tep_href_link(FILENAME_PRODUCT_INFO, 'products_id=' . \common\helpers\Inventory::get_prid($order->products[$i]['id']));
             }
-            $order_info_attr = array();
+            $order_info_attr = [];
             if ((isset($order->products[$i]['attributes'])) && (sizeof($order->products[$i]['attributes']) > 0)) {
                 //$order_info_attr['size'] = sizeof($order->products[$i]['attributes']);
                 for ($j = 0, $n2 = sizeof($order->products[$i]['attributes']); $j < $n2; $j++) {
-                    $order_info_attr[$j]['order_pr_option'] = str_replace(array('&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;'), array('&nbsp;', '<b>', '</b>', '<br>'), htmlspecialchars($order->products[$i]['attributes'][$j]['option']));
+                    $order_info_attr[$j]['order_pr_option'] = str_replace(['&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;'], ['&nbsp;', '<b>', '</b>', '<br>'], htmlspecialchars($order->products[$i]['attributes'][$j]['option']));
                     $order_info_attr[$j]['order_pr_value'] = ($order->products[$i]['attributes'][$j]['value'] ? htmlspecialchars($order->products[$i]['attributes'][$j]['value']) : '');
                 }
             }
@@ -68,7 +69,7 @@ class OrderProducts extends Widget
             if (isset($order->products[$i]['model']) && $order->products[$i]['model'] == \common\helpers\Gifts::getVirtualGiftCardModel() && isset($order_info_attr[0]['order_pr_value'])) {
                 $giftCard = \common\models\VirtualGiftCardInfo::find()->where([
                     'virtual_gift_card_code' => $order_info_attr[0]['order_pr_value'],
-                    'customers_id' => $customer->customers_id
+                    'customers_id' => $customer->customers_id,
                 ])->asArray()->one();
                 if ($giftCard) {
                     $order_info['gift_card_pdf'] = Yii::$app->urlManager->createUrl(['account/gift-card-pdf', 'gift_card_id' => $giftCard['virtual_gift_card_info_id']]);
@@ -78,7 +79,6 @@ class OrderProducts extends Widget
             $order_product[] = $order_info;
 
         }
-
 
         return IncludeTpl::widget(['file' => 'boxes/account/order-products.tpl', 'params' => [
             'settings' => $this->settings,

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,7 +15,6 @@
 namespace common\models;
 
 use common\models\queries\OrdersQuery;
-use Yii;
 use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 use yii\db\ColumnSchema;
@@ -119,7 +120,7 @@ use yii\db\ColumnSchema;
  */
 class Orders extends ActiveRecord
 {
-	const ORDER_STATUS_PAYED = 100006;
+    public const ORDER_STATUS_PAYED = 100006;
     /**
      * set table name
      * @return string
@@ -185,7 +186,7 @@ class Orders extends ActiveRecord
     {
         return $this->hasMany(OrdersTotal::className(), ['orders_id' => 'orders_id'])->orderby('sort_order');
     }
-    
+
     /**
      * one-to-many
      * @return ActiveQuery
@@ -213,30 +214,33 @@ class Orders extends ActiveRecord
         return $this->hasOne(Customers::className(), ['customers_id' => 'customers_id']);
     }
 
-
-    public function changeStatus($status){
-    	$this->orders_status = $status;
-    	$this->save();
+    public function changeStatus($status)
+    {
+        $this->orders_status = $status;
+        $this->save();
     }
 
-    public function getOrdersStatus(){
+    public function getOrdersStatus()
+    {
         return $this->hasOne(OrdersStatus::className(), ['orders_status_id' => 'orders_status']);
     }
 
-    public function getOrdersStatusGroup(){
+    public function getOrdersStatusGroup()
+    {
         return $this->hasOne(OrdersStatusGroups::className(), ['orders_status_groups_id' => 'orders_status_groups_id'])->via('ordersStatus');
     }
 
-	/**
-	 * @inheritdoc
-	 * @return OrdersQuery the active query used by this AR class.
-	 *
-	 */
-	public static function find() {
-		return new OrdersQuery( get_called_class() );
-	}
+    /**
+     * @inheritdoc
+     * @return OrdersQuery the active query used by this AR class.
+     *
+     */
+    public static function find()
+    {
+        return new OrdersQuery(get_called_class());
+    }
 
-	public function getNovaPoshtaShippingDeliveryAddress()
+    public function getNovaPoshtaShippingDeliveryAddress()
     {
         return $this->hasMany(ShippingNpOrderParams::class, ['orders_id' => 'orders_id']);
     }
@@ -245,16 +249,19 @@ class Orders extends ActiveRecord
     {
         return $this->hasMany(TrackingNumbers::className(), ['orders_id' => 'orders_id']);
     }
-        
-    public function getAdmin(){
+
+    public function getAdmin()
+    {
         return $this->hasOne(Admin::className(), ['admin_id' => 'admin_id']);
     }
-    
-    public function getRedeemTrack(){
+
+    public function getRedeemTrack()
+    {
         return $this->hasMany(CouponRedeemTrack::className(), ['order_id' => 'orders_id']);
     }
-    
-    public function getSplinters(){
+
+    public function getSplinters()
+    {
         return $this->hasMany(OrdersSplinters::className(), ['orders_id' => 'orders_id']);
     }
 
@@ -263,31 +270,31 @@ class Orders extends ActiveRecord
         if (!parent::beforeSave($insert)) {
             return false;
         }
-        if ( $insert ) {
-        /** @var common\extensions\InvoiceNumberFormat\InvoiceNumberFormat $ext */
+        if ($insert) {
+            /** @var common\extensions\InvoiceNumberFormat\InvoiceNumberFormat $ext */
             if ($ext = \common\helpers\Acl::checkExtensionAllowed('InvoiceNumberFormat', 'allowed')) {
-              if ( empty($this->order_number)) {
-                $platform_id = $this->platform_id??(int)PLATFORM_ID;
-                $this->order_number = $ext::getOrderNumber($platform_id);
-              }
+                if (empty($this->order_number)) {
+                    $platform_id = $this->platform_id ?? (int)PLATFORM_ID;
+                    $this->order_number = $ext::getOrderNumber($platform_id);
+                }
             }
 
             foreach ($this->getTableSchema()->columns as $column) {
                 /**
                  * @var $column ColumnSchema
                  */
-                if (!$column->allowNull && ($this->getAttribute($column->name) === null || $column->dbTypecast($this->getAttribute($column->name))===null) ) {
+                if (!$column->allowNull && ($this->getAttribute($column->name) === null || $column->dbTypecast($this->getAttribute($column->name)) === null)) {
                     $defValue = $column->defaultValue;
-                    if ( $column->dbTypecast($defValue)===null ) {
+                    if ($column->dbTypecast($defValue) === null) {
                         $defTypeValue = [
                             'boolean' => 0,
                             'float' => 0.0,
                             'decimal' => 0.0,
                         ];
-                        if ( stripos($column->type,'int')!==false ) {
+                        if (stripos($column->type, 'int') !== false) {
                             $defValue = 0;
-                        }else{
-                            $defValue = isset($defTypeValue[$column->type])?$defTypeValue[$column->type]:'';
+                        } else {
+                            $defValue = isset($defTypeValue[$column->type]) ? $defTypeValue[$column->type] : '';
                         }
                     }
                     $this->setAttribute($column->name, $defValue);
@@ -297,6 +304,5 @@ class Orders extends ActiveRecord
 
         return true;
     }
-
 
 }

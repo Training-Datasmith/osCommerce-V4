@@ -1,18 +1,19 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\models;
 
-use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 
@@ -20,9 +21,9 @@ use yii\db\ActiveRecord;
  * This is the model class for table "admin_platforms".
  *
  * @property integer $id
- * @property string $service 
+ * @property string $service
  * @property integer $platform_id
- * @property string $key 
+ * @property string $key
  */
 class CloudServices extends ActiveRecord
 {
@@ -33,8 +34,9 @@ class CloudServices extends ActiveRecord
     {
         return 'cloud_services';
     }
-    
-    public function behaviors() {
+
+    public function behaviors()
+    {
         return [
             [
                 'class' => TimestampBehavior::className(),
@@ -54,22 +56,25 @@ class CloudServices extends ActiveRecord
         return [
             [['platform_id'], 'required'],
             [['platform_id'], 'integer'],
-            [['service', 'key'], 'string']
+            [['service', 'key'], 'string'],
         ];
     }
-    
-    public function getPrinters(){
+
+    public function getPrinters()
+    {
         return $this->hasMany(CloudPrinters::class, ['service_id' => 'id']);
     }
-    
-    public function beforeDelete() {
-        foreach(CloudPrinters::findAll(['service_id' => $this->id]) as $printer){
+
+    public function beforeDelete()
+    {
+        foreach (CloudPrinters::findAll(['service_id' => $this->id]) as $printer) {
             $printer->delete();
         }
         return parent::beforeDelete();
     }
-    
-    public function keyExists(){
+
+    public function keyExists()
+    {
         return !empty($this->key) && is_file(\common\helpers\Printers::getConfigPath() . $this->key);
     }
 

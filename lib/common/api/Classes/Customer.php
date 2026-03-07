@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,11 +18,11 @@ namespace common\api\Classes;
 class Customer extends AbstractClass
 {
     public $customerId = 0;
-    public $customerRecord = array();
-    public $addressRecordArray = array();
-    public $emailRecordArray = array();
-    public $phoneRecordArray = array();
-    public $extraGroupRecordArray = array();
+    public $customerRecord = [];
+    public $addressRecordArray = [];
+    public $emailRecordArray = [];
+    public $phoneRecordArray = [];
+    public $extraGroupRecordArray = [];
 
     public function getId()
     {
@@ -44,7 +46,7 @@ class Customer extends AbstractClass
         $customerRecord = \common\models\Customers::find()->alias('c')->select('*')
             ->leftJoin(\common\models\CustomersInfo::tableName() . ' ci', 'ci.customers_info_id = c.customers_id')
             ->where(['c.customers_id' => $customerId])->asArray(true)->one();
-        if (is_array($customerRecord) AND (count($customerRecord) > 0)) {
+        if (is_array($customerRecord) and (count($customerRecord) > 0)) {
             $this->customerId = $customerId;
             $this->customerRecord = $customerRecord;
             unset($customerRecord);
@@ -85,7 +87,7 @@ class Customer extends AbstractClass
     public function validate()
     {
         $this->customerId = (int)(((int)$this->customerId > 0) ? $this->customerId : 0);
-        if (!is_array($this->customerRecord) OR (count($this->customerRecord) < 5)) {
+        if (!is_array($this->customerRecord) or (count($this->customerRecord) < 5)) {
             return false;
         }
         if (!parent::validate()) {
@@ -93,10 +95,10 @@ class Customer extends AbstractClass
         }
         unset($this->customerRecord['customers_id']);
         unset($this->customerRecord['customers_info_id']);
-        $this->addressRecordArray = (is_array($this->addressRecordArray) ? $this->addressRecordArray : array());
-        $this->emailRecordArray = (is_array($this->emailRecordArray) ? $this->emailRecordArray : array());
-        $this->phoneRecordArray = (is_array($this->phoneRecordArray) ? $this->phoneRecordArray : array());
-        $this->extraGroupRecordArray = (is_array($this->extraGroupRecordArray) ? $this->extraGroupRecordArray : array());
+        $this->addressRecordArray = (is_array($this->addressRecordArray) ? $this->addressRecordArray : []);
+        $this->emailRecordArray = (is_array($this->emailRecordArray) ? $this->emailRecordArray : []);
+        $this->phoneRecordArray = (is_array($this->phoneRecordArray) ? $this->phoneRecordArray : []);
+        $this->extraGroupRecordArray = (is_array($this->extraGroupRecordArray) ? $this->extraGroupRecordArray : []);
         return true;
     }
 

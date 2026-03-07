@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "warehouses_open_hours".
@@ -32,7 +32,7 @@ class WarehousesOpenHours extends \yii\db\ActiveRecord
             [['warehouse_id', 'open_days', 'open_time_from', 'open_time_to'], 'required'],
             [['warehouse_id'], 'integer'],
             [['open_days'], 'string', 'max' => 32],
-            [['open_time_from', 'open_time_to'], 'string', 'max' => 10]
+            [['open_time_from', 'open_time_to'], 'string', 'max' => 10],
         ];
     }
 

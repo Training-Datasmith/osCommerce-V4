@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPalHttp\Serializer;
 
 use PayPalHttp\HttpRequest;
@@ -13,10 +15,9 @@ use PayPalHttp\Serializer;
  */
 class Text implements Serializer
 {
-
     public function contentType()
     {
-        return "/^text\\/.*/";
+        return '/^text\\/.*/';
     }
 
     public function encode(HttpRequest $request)
@@ -28,7 +29,7 @@ class Text implements Serializer
         if (is_array($body)) {
             return json_encode($body);
         }
-        return implode(" ", $body);
+        return implode(' ', $body);
     }
 
     public function decode($data)

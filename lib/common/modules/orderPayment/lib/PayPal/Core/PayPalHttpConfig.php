@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Core;
 
 use PayPal\Exception\PayPalConfigurationException;
@@ -18,25 +20,25 @@ class PayPalHttpConfig
      *
      * @var array
      */
-    public static $defaultCurlOptions = array(
+    public static $defaultCurlOptions = [
         CURLOPT_SSLVERSION => 6,
         CURLOPT_CONNECTTIMEOUT => 10,
         CURLOPT_RETURNTRANSFER => true,
         CURLOPT_TIMEOUT => 60,    // maximum number of seconds to allow cURL functions to execute
         CURLOPT_USERAGENT => 'PayPal-PHP-SDK',
-        CURLOPT_HTTPHEADER => array(),
+        CURLOPT_HTTPHEADER => [],
         CURLOPT_SSL_VERIFYHOST => 2,
         CURLOPT_SSL_VERIFYPEER => 1,
-        CURLOPT_SSL_CIPHER_LIST => 'TLSv1:TLSv1.2'
+        CURLOPT_SSL_CIPHER_LIST => 'TLSv1:TLSv1.2',
         //Allowing TLSv1 cipher list.
         //Adding it like this for backward compatibility with older versions of curl
-    );
+    ];
 
-    const HEADER_SEPARATOR = ';';
-    const HTTP_GET = 'GET';
-    const HTTP_POST = 'POST';
+    public const HEADER_SEPARATOR = ';';
+    public const HTTP_GET = 'GET';
+    public const HTTP_POST = 'POST';
 
-    private $headers = array();
+    private $headers = [];
 
     private $curlOptions;
 
@@ -56,7 +58,7 @@ class PayPalHttpConfig
      * @param string $method HTTP method (GET, POST etc) defaults to POST
      * @param array $configs All Configurations
      */
-    public function __construct($url = null, $method = self::HTTP_POST, $configs = array())
+    public function __construct($url = null, $method = self::HTTP_POST, $configs = [])
     {
         $this->url = $url;
         $this->method = $method;
@@ -64,7 +66,7 @@ class PayPalHttpConfig
         // Update the Cipher List based on OpenSSL or NSS settings
         $curl = curl_version();
         $sslVersion = isset($curl['ssl_version']) ? $curl['ssl_version'] : '';
-        if($sslVersion && substr_compare($sslVersion, "NSS/", 0, strlen("NSS/")) === 0) {
+        if ($sslVersion && substr_compare($sslVersion, 'NSS/', 0, strlen('NSS/')) === 0) {
             //Remove the Cipher List for NSS
             $this->removeCurlOption(CURLOPT_SSL_CIPHER_LIST);
         }
@@ -129,7 +131,7 @@ class PayPalHttpConfig
      *
      * @param array $headers
      */
-    public function setHeaders(array $headers = array())
+    public function setHeaders(array $headers = [])
     {
         $this->headers = $headers;
     }
@@ -210,7 +212,7 @@ class PayPalHttpConfig
     public function setSSLCert($certPath, $passPhrase = null)
     {
         $this->curlOptions[CURLOPT_SSLCERT] = realpath($certPath);
-        if (isset($passPhrase) && trim($passPhrase) != "") {
+        if (isset($passPhrase) && trim($passPhrase) != '') {
             $this->curlOptions[CURLOPT_SSLCERTPASSWD] = $passPhrase;
         }
     }
@@ -234,15 +236,15 @@ class PayPalHttpConfig
     public function setHttpProxy($proxy)
     {
         $urlParts = parse_url($proxy);
-        if ($urlParts == false || !array_key_exists("host", $urlParts)) {
-            throw new PayPalConfigurationException("Invalid proxy configuration " . $proxy);
+        if ($urlParts == false || !array_key_exists('host', $urlParts)) {
+            throw new PayPalConfigurationException('Invalid proxy configuration ' . $proxy);
         }
-        $this->curlOptions[CURLOPT_PROXY] = $urlParts["host"];
-        if (isset($urlParts["port"])) {
-            $this->curlOptions[CURLOPT_PROXY] .= ":" . $urlParts["port"];
+        $this->curlOptions[CURLOPT_PROXY] = $urlParts['host'];
+        if (isset($urlParts['port'])) {
+            $this->curlOptions[CURLOPT_PROXY] .= ':' . $urlParts['port'];
         }
-        if (isset($urlParts["user"])) {
-            $this->curlOptions[CURLOPT_PROXYUSERPWD] = $urlParts["user"] . ":" . $urlParts["pass"];
+        if (isset($urlParts['user'])) {
+            $this->curlOptions[CURLOPT_PROXYUSERPWD] = $urlParts['user'] . ':' . $urlParts['pass'];
         }
     }
 
@@ -283,9 +285,9 @@ class PayPalHttpConfig
      * @param       $prefix
      * @return array
      */
-    public function getHttpConstantsFromConfigs($configs = array(), $prefix)
+    public function getHttpConstantsFromConfigs($configs = [], $prefix)
     {
-        $arr = array();
+        $arr = [];
         if ($prefix != null && is_array($configs)) {
             foreach ($configs as $k => $v) {
                 // Check if it startsWith

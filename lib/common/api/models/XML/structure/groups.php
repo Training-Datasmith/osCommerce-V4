@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,9 +25,9 @@ return [
                     ],
                 ],
             ],
-            'properties' =>[
-                'image_active' => ['class'=>'IOAttachment', 'location'=> '@images/icons'],
-                'image_inactive' => ['class'=>'IOAttachment', 'location'=> '@images/icons'],
+            'properties' => [
+                'image_active' => ['class' => 'IOAttachment', 'location' => '@images/icons'],
+                'image_inactive' => ['class' => 'IOAttachment', 'location' => '@images/icons'],
             ],
         ],
     ],

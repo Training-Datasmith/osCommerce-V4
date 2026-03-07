@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -107,38 +109,37 @@ namespace Stripe;
  */
 class Invoice extends ApiResource
 {
-    const OBJECT_NAME = 'invoice';
-
     use ApiOperations\All;
     use ApiOperations\Create;
     use ApiOperations\Delete;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
 
-    const BILLING_CHARGE_AUTOMATICALLY = 'charge_automatically';
-    const BILLING_SEND_INVOICE = 'send_invoice';
-
-    const BILLING_REASON_MANUAL = 'manual';
-    const BILLING_REASON_SUBSCRIPTION = 'subscription';
-    const BILLING_REASON_SUBSCRIPTION_CREATE = 'subscription_create';
-    const BILLING_REASON_SUBSCRIPTION_CYCLE = 'subscription_cycle';
-    const BILLING_REASON_SUBSCRIPTION_THRESHOLD = 'subscription_threshold';
-    const BILLING_REASON_SUBSCRIPTION_UPDATE = 'subscription_update';
-    const BILLING_REASON_UPCOMING = 'upcoming';
-
-    const COLLECTION_METHOD_CHARGE_AUTOMATICALLY = 'charge_automatically';
-    const COLLECTION_METHOD_SEND_INVOICE = 'send_invoice';
-
-    const STATUS_DELETED = 'deleted';
-    const STATUS_DRAFT = 'draft';
-    const STATUS_OPEN = 'open';
-    const STATUS_PAID = 'paid';
-    const STATUS_UNCOLLECTIBLE = 'uncollectible';
-    const STATUS_VOID = 'void';
-
     use ApiOperations\NestedResource;
+    public const OBJECT_NAME = 'invoice';
 
-    const PATH_LINES = '/lines';
+    public const BILLING_CHARGE_AUTOMATICALLY = 'charge_automatically';
+    public const BILLING_SEND_INVOICE = 'send_invoice';
+
+    public const BILLING_REASON_MANUAL = 'manual';
+    public const BILLING_REASON_SUBSCRIPTION = 'subscription';
+    public const BILLING_REASON_SUBSCRIPTION_CREATE = 'subscription_create';
+    public const BILLING_REASON_SUBSCRIPTION_CYCLE = 'subscription_cycle';
+    public const BILLING_REASON_SUBSCRIPTION_THRESHOLD = 'subscription_threshold';
+    public const BILLING_REASON_SUBSCRIPTION_UPDATE = 'subscription_update';
+    public const BILLING_REASON_UPCOMING = 'upcoming';
+
+    public const COLLECTION_METHOD_CHARGE_AUTOMATICALLY = 'charge_automatically';
+    public const COLLECTION_METHOD_SEND_INVOICE = 'send_invoice';
+
+    public const STATUS_DELETED = 'deleted';
+    public const STATUS_DRAFT = 'draft';
+    public const STATUS_OPEN = 'open';
+    public const STATUS_PAID = 'paid';
+    public const STATUS_UNCOLLECTIBLE = 'uncollectible';
+    public const STATUS_VOID = 'void';
+
+    public const PATH_LINES = '/lines';
 
     /**
      * @param null|array $params

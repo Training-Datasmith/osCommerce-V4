@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -40,14 +42,13 @@ namespace Stripe;
  */
 class Product extends ApiResource
 {
-    const OBJECT_NAME = 'product';
-
     use ApiOperations\All;
     use ApiOperations\Create;
     use ApiOperations\Delete;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
+    public const OBJECT_NAME = 'product';
 
-    const TYPE_GOOD = 'good';
-    const TYPE_SERVICE = 'service';
+    public const TYPE_GOOD = 'good';
+    public const TYPE_SERVICE = 'service';
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -39,24 +41,23 @@ namespace Stripe;
  */
 class CreditNote extends ApiResource
 {
-    const OBJECT_NAME = 'credit_note';
-
     use ApiOperations\All;
     use ApiOperations\Create;
     use ApiOperations\NestedResource;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
+    public const OBJECT_NAME = 'credit_note';
 
-    const REASON_DUPLICATE = 'duplicate';
-    const REASON_FRAUDULENT = 'fraudulent';
-    const REASON_ORDER_CHANGE = 'order_change';
-    const REASON_PRODUCT_UNSATISFACTORY = 'product_unsatisfactory';
+    public const REASON_DUPLICATE = 'duplicate';
+    public const REASON_FRAUDULENT = 'fraudulent';
+    public const REASON_ORDER_CHANGE = 'order_change';
+    public const REASON_PRODUCT_UNSATISFACTORY = 'product_unsatisfactory';
 
-    const STATUS_ISSUED = 'issued';
-    const STATUS_VOID = 'void';
+    public const STATUS_ISSUED = 'issued';
+    public const STATUS_VOID = 'void';
 
-    const TYPE_POST_PAYMENT = 'post_payment';
-    const TYPE_PRE_PAYMENT = 'pre_payment';
+    public const TYPE_POST_PAYMENT = 'post_payment';
+    public const TYPE_PRE_PAYMENT = 'pre_payment';
 
     /**
      * @param null|array $params
@@ -93,7 +94,7 @@ class CreditNote extends ApiResource
         return $this;
     }
 
-    const PATH_LINES = '/lines';
+    public const PATH_LINES = '/lines';
 
     /**
      * @param string $id the ID of the credit note on which to retrieve the credit note line items

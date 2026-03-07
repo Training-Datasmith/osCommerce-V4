@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -24,7 +26,8 @@ class JsonFormatter extends BaseObject implements FormatterInterface
 
     public function __construct($config = [])
     {
-        $this->charset = trim((!isset($config['charset']) OR !is_scalar($config['charset']) OR (trim($config['charset']) == ''))
+        $this->charset = trim(
+            (!isset($config['charset']) or !is_scalar($config['charset']) or (trim($config['charset']) == ''))
             ? Yii::$app->charset : $config['charset']
         );
         parent::__construct($config);

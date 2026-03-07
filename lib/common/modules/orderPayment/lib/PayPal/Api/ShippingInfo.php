@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -23,7 +25,7 @@ class ShippingInfo extends PayPalModel
      * The invoice recipient first name. Maximum length is 30 characters.
      *
      * @param string $first_name
-     * 
+     *
      * @return $this
      */
     public function setFirstName($first_name)
@@ -46,7 +48,7 @@ class ShippingInfo extends PayPalModel
      * The invoice recipient last name. Maximum length is 30 characters.
      *
      * @param string $last_name
-     * 
+     *
      * @return $this
      */
     public function setLastName($last_name)
@@ -69,7 +71,7 @@ class ShippingInfo extends PayPalModel
      * The invoice recipient company business name. Maximum length is 100 characters.
      *
      * @param string $business_name
-     * 
+     *
      * @return $this
      */
     public function setBusinessName($business_name)
@@ -136,7 +138,7 @@ class ShippingInfo extends PayPalModel
      * Address of the invoice recipient.
      *
      * @param \PayPal\Api\InvoiceAddress $address
-     * 
+     *
      * @return $this
      */
     public function setAddress($address)

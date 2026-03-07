@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,7 +25,7 @@ class m221204_183128_change_translation_elv extends Migration
     public function safeUp()
     {
         $this->removeTranslation('extensions/error-log-viewer', [
-            'EXT_ELV_ERR_CREATE_ZIP'
+            'EXT_ELV_ERR_CREATE_ZIP',
         ]);
         $this->addTranslation('extensions/error-log-viewer', [
             'EXT_ELV_ERR_CREATE_ZIP' => 'Failure to create zip file. Check permission on dir %s',

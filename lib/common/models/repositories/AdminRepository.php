@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,9 +12,10 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-namespace common\models\repositories;
-use common\models\Admin;
 
+namespace common\models\repositories;
+
+use common\models\Admin;
 
 /**
  * Class AdminRepository
@@ -26,7 +29,7 @@ class AdminRepository
      */
     public function findById($id)
     {
-        $admin = Admin::find()->where(['admin_id'=> $id])->limit(1)->one();
+        $admin = Admin::find()->where(['admin_id' => $id])->limit(1)->one();
         return $admin;
     }
 
@@ -36,21 +39,22 @@ class AdminRepository
      */
     public function findByEmail($email)
     {
-        $admin = Admin::find()->where(['admin_email_address'=> $email])->limit(1)->one();
+        $admin = Admin::find()->where(['admin_email_address' => $email])->limit(1)->one();
         return $admin;
     }
 
-    public function getAdminData($admin_id) {
+    public function getAdminData($admin_id)
+    {
         $admin = Admin::find()
             ->select('admin.*,access_levels.access_levels_name')
             ->with(['posPlatform','posCurrency'])
-            ->joinWith('accesslevel',false)
+            ->joinWith('accesslevel', false)
             ->where(['admin_id' => $admin_id])
             ->limit(1)
             ->asArray()
             ->one();
 
-        if (empty($admin)){
+        if (empty($admin)) {
             throw new NotFoundException('Wrong data.');
         }
         return $admin;
@@ -96,20 +100,21 @@ class AdminRepository
      * @throws \Throwable
      * @throws \yii\db\StaleObjectException
      */
-    public function edit(Admin $admin,$params = [], $safeOnly = false)
+    public function edit(Admin $admin, $params = [], $safeOnly = false)
     {
-        foreach ($params as $attribute => $param){
-            if(!$admin->hasAttribute($attribute)){
+        foreach ($params as $attribute => $param) {
+            if (!$admin->hasAttribute($attribute)) {
                 unset($params[$attribute]);
             }
         }
         $admin->setAttributes($params, $safeOnly);
-        if(!$admin->update(false, array_keys($params))){
+        if (!$admin->update(false, array_keys($params))) {
             return $admin->getErrors();
         }
         return true;
     }
-    public function isAssignedCustomer($adminPosId,$customerId){
-        return Admin::find()->where(['AND',['customers_id'=>$customerId],['admin_id'=>$adminPosId]])->exists();
+    public function isAssignedCustomer($adminPosId, $customerId)
+    {
+        return Admin::find()->where(['AND',['customers_id' => $customerId],['admin_id' => $adminPosId]])->exists();
     }
 }

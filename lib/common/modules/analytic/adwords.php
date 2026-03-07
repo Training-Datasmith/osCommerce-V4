@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of True Loaded.
- * 
+ *
  * @link http://www.holbi.co.uk
  * @copyright Copyright (c) 2005 Holbi Group LTD
- * 
+ *
  * For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
  */
 
@@ -13,14 +15,14 @@ namespace common\modules\analytic;
 
 use common\components\google\modules\AbstractGoogle;
 use Yii;
-use common\classes\platform;
 
-final class adwords extends AbstractGoogle {
-
+final class adwords extends AbstractGoogle
+{
     public $config;
     public $code = 'adwords';
 
-    public function getParams() {
+    public function getParams()
+    {
 
         $this->config = [
             $this->code => [
@@ -29,22 +31,22 @@ final class adwords extends AbstractGoogle {
                     [
                         'name' => 'code',
                         'value' => '',
-                        'type' => 'text'
+                        'type' => 'text',
                     ],
                     [
                         'name' => 'language',
                         'value' => 'en',
-                        'type' => 'text'
+                        'type' => 'text',
                     ],
                     [
                         'name' => 'color',
                         'value' => 'ffffff',
-                        'type' => 'text'
+                        'type' => 'text',
                     ],
                     [
                         'name' => 'label',
                         'value' => '',
-                        'type' => 'text'
+                        'type' => 'text',
                     ],
                 ],
                 'pages' => [
@@ -62,7 +64,8 @@ final class adwords extends AbstractGoogle {
         return $this->config;
     }
 
-    private function oldVersion($elements) {
+    private function oldVersion($elements)
+    {
         $code = $elements['fields'][0]['value'];
         $language = $elements['fields'][1]['value'];
         $color = $elements['fields'][2]['value'];
@@ -116,7 +119,8 @@ var google_remarketing_only = false;
         return;
     }
 
-    private function getEvents($elements, $send_to) {
+    private function getEvents($elements, $send_to)
+    {
         $action = Yii::$app->controller->id . '_' . Yii::$app->controller->action->id;
         $currencies = Yii::$container->get('currencies');
         $currency = Yii::$app->settings->get('currency');
@@ -132,7 +136,7 @@ var google_remarketing_only = false;
                 if (is_array($products) && count($products)) {
                     $ids = array_keys(\yii\helpers\ArrayHelper::getColumn($products, 'products_id'));
                     $ids = array_map('intval', $ids);
-                    $ecomm_prodid = "[" . implode(",", $ids) . "]";
+                    $ecomm_prodid = '[' . implode(',', $ids) . ']';
                     if ($current_category_id) {
                         $category_name = addslashes(\common\helpers\Categories::get_categories_name($current_category_id));
                     } else {
@@ -155,7 +159,7 @@ EOD;
                 if (is_array($products) && count($products)) {
                     $ids = array_keys(\yii\helpers\ArrayHelper::getColumn($products, 'products_id'));
                     $ids = array_map('intval', $ids);
-                    $ecomm_prodid = "[" . implode(",", $ids) . "]";
+                    $ecomm_prodid = '[' . implode(',', $ids) . ']';
                     return <<<EOD
 gtag('event', 'page_view', {
     ecomm_pagetype: '{$page_type}',
@@ -187,7 +191,7 @@ EOD;
                 if (is_array($products) && count($products)) {
                     $ids = \yii\helpers\ArrayHelper::getColumn($products, 'id');
                     $ids = array_map('intval', $ids);
-                    $ecomm_prodid = "[" . implode(",", $ids) . "]";
+                    $ecomm_prodid = '[' . implode(',', $ids) . ']';
                     $rate = $currencies->currencies[$currency]['value'];
                     $decimal_places = $currencies->currencies[$currency]['decimal_places'];
                     $page_totalvalue = $cart->show_total();
@@ -201,8 +205,8 @@ gtag('event', 'page_view', {
 EOD;
                 }
                 break;
-            //case 'checkout_index':
-            //case 'checkout_confirmation':
+                //case 'checkout_index':
+                //case 'checkout_confirmation':
             case 'checkout_success':
                 $manager = \common\services\OrderManager::loadManager();
                 if ($manager->isInstance()) {
@@ -211,7 +215,7 @@ EOD;
                     if (is_object($order)) {
                         $ids = \yii\helpers\ArrayHelper::getColumn($order->products, 'id');
                         $ids = array_map('intval', $ids);
-                        $ecomm_prodid = "[" . implode(",", $ids) . "]";
+                        $ecomm_prodid = '[' . implode(',', $ids) . ']';
                         $page_totalvalue = $order->info['total_inc_tax'];
                         return <<<EOD
 gtag('event', 'page_view', {
@@ -229,7 +233,8 @@ EOD;
         return;
     }
 
-    private function newVersion($elements) {
+    private function newVersion($elements)
+    {
         $code = $elements['fields'][0]['value'];
         $events = $this->getEvents($elements, $code);
         return <<<EOD
@@ -245,7 +250,8 @@ EOD;
 EOD;
     }
 
-    public function renderWidget() {
+    public function renderWidget()
+    {
         $elements = $this->config[$this->code];
 
         if ($elements['type']['selected'] == 'new') {
@@ -255,12 +261,13 @@ EOD;
         }
     }
 
-    public function renderExample() {
-        if ($this->params['platform_id']){
+    public function renderExample()
+    {
+        if ($this->params['platform_id']) {
             $elements = $this->config[$this->code];
             $code = $elements['fields'][0]['value'];
             if ($elements['type']['selected'] == 'new') {
-                return "<pre>" .
+                return '<pre>' .
                         <<<EOD
 gtag('event', 'page_view', {
     ecomm_pagetype: 'product',
@@ -269,9 +276,9 @@ gtag('event', 'page_view', {
     ecomm_category: 'Home & Garden'
   });
 EOD
-                        . "</pre>";
+                        . '</pre>';
             } else {
-                return "<style> .disabled { background-color: #ccc!important; }</style><pre>" .
+                return '<style> .disabled { background-color: #ccc!important; }</style><pre>' .
                         <<<EOD
 var google_conversion_id = $code;
 var google_custom_params = window.google_tag_params;

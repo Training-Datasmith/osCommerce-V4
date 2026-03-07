@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,9 +15,8 @@
 
 namespace common\models;
 
-use Yii;
-use yii\db\ActiveRecord;
 use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
 use yii\db\Expression;
 
 /**
@@ -30,17 +31,19 @@ use yii\db\Expression;
  * @property int $admin_id
  * @property string $smscomments
  */
-class OrdersStatusHistory extends ActiveRecord {
-
+class OrdersStatusHistory extends ActiveRecord
+{
     /**
      * set table name
      * @return string
      */
-    public static function tableName() {
+    public static function tableName()
+    {
         return 'orders_status_history';
     }
 
-    public function behaviors() {
+    public function behaviors()
+    {
         return [
             'date_added' => [
                 'class' => TimestampBehavior::className(),
@@ -48,23 +51,27 @@ class OrdersStatusHistory extends ActiveRecord {
                     ActiveRecord::EVENT_BEFORE_INSERT => ['date_added'],
                 ],
                 'value' => new \yii\db\Expression('NOW()'),
-            ]
+            ],
         ];
     }
 
-    public function getOrder() {
+    public function getOrder()
+    {
         return $this->hasOne(Orders::className(), ['orders_id' => 'orders_id']);
     }
 
-    public function getStatus() {
+    public function getStatus()
+    {
         return $this->hasOne(OrdersStatus::className(), ['orders_status_id' => 'orders_status_id']);
     }
 
-    public function getGroup() {
+    public function getGroup()
+    {
         return $this->hasOne(OrdersStatusGroups::className(), ['orders_status_groups_id' => 'orders_status_groups_id'])->via('status');
     }
 
-    public static function create($orders_id, $orders_status_id, $customer_notified = 0, $comments = '', $admin_id = 0, $smscomments = '') {
+    public static function create($orders_id, $orders_status_id, $customer_notified = 0, $comments = '', $admin_id = 0, $smscomments = '')
+    {
         $raw = new static();
         $raw->orders_id = $orders_id;
         $raw->orders_status_id = $orders_status_id;
@@ -74,17 +81,17 @@ class OrdersStatusHistory extends ActiveRecord {
         $raw->smscomments = $smscomments;
         return $raw;
     }
-/**
- *
- * @global type $login_id
- * @param type $orderRecord
- * @param type $orderStatus
- * @param type $commentary
- * @param type $customerNotified
- * @param type $commentarySms
- * @param Expression $dateAdded
- * @return boolean
- */
+    /**
+     *
+     * @global type $login_id
+     * @param type $orderRecord
+     * @param type $orderStatus
+     * @param type $commentary
+     * @param type $customerNotified
+     * @param type $commentarySms
+     * @param Expression $dateAdded
+     * @return boolean
+     */
     public static function write($orderRecord = 0, $orderStatus = 0, $commentary = '', $customerNotified = false, $commentarySms = '', $dateAdded = null)
     {
         $return = false;
@@ -94,7 +101,7 @@ class OrdersStatusHistory extends ActiveRecord {
                 $orderStatus = $orderRecord->orders_status;
             }
             $orderStatus = (int)$orderStatus;
-            if ( empty($dateAdded) ) {
+            if (empty($dateAdded)) {
                 $dateAdded = new Expression('NOW()');
             }
             try {
@@ -111,7 +118,7 @@ class OrdersStatusHistory extends ActiveRecord {
                 $orderStatusHistory->save();
                 $return = true;
             } catch (\Exception $exc) {
-              \Yii::warning($exc->getMessage() . ' ' . $exc->getTraceAsString());
+                \Yii::warning($exc->getMessage() . ' ' . $exc->getTraceAsString());
             }
             unset($orderStatusHistory);
             unset($login_id);

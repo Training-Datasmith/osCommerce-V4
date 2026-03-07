@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,10 +14,9 @@
 
 namespace OscLink\XML;
 
-
+use common\helpers\Assert;
 use yii\base\InvalidParamException;
 use yii\helpers\FileHelper;
-use \common\helpers\Assert;
 
 class IOCore
 {
@@ -25,10 +26,10 @@ class IOCore
 
     private $attributeMapper;
 
-    private $typeClassMap = array();
+    private $typeClassMap = [];
 
-    private $locations = array();
-    private $attachmentModes = array();
+    private $locations = [];
+    private $attachmentModes = [];
 
     private $tablenamesWithMirrorIds = [];
 
@@ -38,7 +39,7 @@ class IOCore
         $project_id = 1;
         $this->setProjectId($project_id);
 
-        $this->typeClassMap = array(
+        $this->typeClassMap = [
             'IOMap' => '\\OscLink\\XML\\IOMap',
             'IOCurrencyMap' => '\\OscLink\\XML\\IOCurrencyMap',
             'IOLanguageMap' => '\\OscLink\\XML\\IOLanguageMap',
@@ -49,9 +50,9 @@ class IOCore
             'IOCountryMap' => '\\OscLink\\XML\\IOCountryMap',
             'IOCountryZoneMap' => '\\OscLink\\XML\\IOCountryZoneMap',
             'IOOrderStatus' => '\\OscLink\\XML\\IOOrderStatus',
-        );
-        if ( class_exists('\Yii') ) {
-            foreach ($this->typeClassMap as $shortName=>$fullName) {
+        ];
+        if (class_exists('\Yii')) {
+            foreach ($this->typeClassMap as $shortName => $fullName) {
                 \Yii::$container->set($shortName, $fullName);
             }
         }
@@ -77,43 +78,43 @@ class IOCore
 
     public function setProjectId($projectId)
     {
-//        $this->project_id = $projectId;
-//        $getProjectCode_r = tep_db_query("SELECT * FROM io_project WHERE project_id='".intval($this->project_id)."'");
-//        if ( tep_db_num_rows($getProjectCode_r)>0 ) {
-//            $this->project_data = tep_db_fetch_array($getProjectCode_r);
-//        }
-//        $this->attributeMapper->setProjectId($this->project_id);
+        //        $this->project_id = $projectId;
+        //        $getProjectCode_r = tep_db_query("SELECT * FROM io_project WHERE project_id='".intval($this->project_id)."'");
+        //        if ( tep_db_num_rows($getProjectCode_r)>0 ) {
+        //            $this->project_data = tep_db_fetch_array($getProjectCode_r);
+        //        }
+        //        $this->attributeMapper->setProjectId($this->project_id);
     }
 
-//    public function setProjectByCode($projectCode)
-//    {
-//        $getProjectId_r = tep_db_query("SELECT project_id FROM io_project WHERE project_code='".tep_db_input($projectCode)."'");
-//        if ( tep_db_num_rows($getProjectId_r)>0 ) {
-//            $projectIdArr = tep_db_fetch_array($getProjectId_r);
-//            $this->setProjectId((int)$projectIdArr['project_id']);
-//        }
-//    }
+    //    public function setProjectByCode($projectCode)
+    //    {
+    //        $getProjectId_r = tep_db_query("SELECT project_id FROM io_project WHERE project_code='".tep_db_input($projectCode)."'");
+    //        if ( tep_db_num_rows($getProjectId_r)>0 ) {
+    //            $projectIdArr = tep_db_fetch_array($getProjectId_r);
+    //            $this->setProjectId((int)$projectIdArr['project_id']);
+    //        }
+    //    }
 
     public function isLocalProject()
     {
-//        if (is_array($this->project_data) ){
-//            return !!$this->project_data['is_local'];
-//        }
+        //        if (is_array($this->project_data) ){
+        //            return !!$this->project_data['is_local'];
+        //        }
         return false;
     }
 
-//    public function getProjectCode()
-//    {
-//        if (is_array($this->project_data) ){
-//            return $this->project_data['project_code'];
-//        }
-//        return '';
-//    }
+    //    public function getProjectCode()
+    //    {
+    //        if (is_array($this->project_data) ){
+    //            return $this->project_data['project_code'];
+    //        }
+    //        return '';
+    //    }
 
-    static public function get()
+    public static function get()
     {
         static $instance;
-        if ( !is_object($instance) ) {
+        if (!is_object($instance)) {
             $instance = new self();
         }
         return $instance;
@@ -122,23 +123,23 @@ class IOCore
     public function getLookupTool()
     {
         static $objLookup = false;
-        if ( !is_object($objLookup) ) {
+        if (!is_object($objLookup)) {
             $objLookup = new IOLookup();
         }
         return $objLookup;
     }
 
-//    public function getProjectList()
-//    {
-//        $projectList = [];
-//        $getProjectId_r = tep_db_query("SELECT project_id, project_code FROM io_project WHERE 1 ORDER BY project_id");
-//        if ( tep_db_num_rows($getProjectId_r)>0 ) {
-//            while ($projectIdArr = tep_db_fetch_array($getProjectId_r)){
-//                $projectList[ $projectIdArr['project_id'] ] = $projectIdArr['project_code'];
-//            }
-//        }
-//        return $projectList;
-//    }
+    //    public function getProjectList()
+    //    {
+    //        $projectList = [];
+    //        $getProjectId_r = tep_db_query("SELECT project_id, project_code FROM io_project WHERE 1 ORDER BY project_id");
+    //        if ( tep_db_num_rows($getProjectId_r)>0 ) {
+    //            while ($projectIdArr = tep_db_fetch_array($getProjectId_r)){
+    //                $projectList[ $projectIdArr['project_id'] ] = $projectIdArr['project_code'];
+    //            }
+    //        }
+    //        return $projectList;
+    //    }
 
     /**
      * @return AttributeMapper
@@ -152,12 +153,12 @@ class IOCore
     {
         $obj = self::get();
 
-        if ( class_exists('\Yii') ) {
+        if (class_exists('\Yii')) {
             return \Yii::createObject($type, $params);
-        }else{
-            if ( isset($obj->typeClassMap[$type]) ) {
+        } else {
+            if (isset($obj->typeClassMap[$type])) {
                 $className = $obj->typeClassMap[$type];
-                $object = new $className;
+                $object = new $className();
                 foreach ($params as $name => $value) {
                     $object->$name = $value;
                 }
@@ -172,7 +173,7 @@ class IOCore
         if (\Yii::$container->has($objectArray[0])) {
             $Definitions = \Yii::$container->getDefinitions();
             $fullClassName = $Definitions[$objectArray[0]]['class'];
-            return call_user_func_array([$fullClassName,$objectArray[1]],$params);
+            return call_user_func_array([$fullClassName,$objectArray[1]], $params);
         }
         return $params;
     }
@@ -182,27 +183,27 @@ class IOCore
         $configFN = dirname(__FILE__).'/structure/'.$structure.'.php';
         \common\helpers\Assert::assert(file_exists($configFN), 'Config file is not found: ' . $configFN);
         $config = include $configFN;
-        $config['XSL'] = array(
+        $config['XSL'] = [
             'export' => false,
             'import' => false,
-        );
+        ];
         $transformXSL = dirname(__FILE__).'/transform/export/'.$structure.'.xsl';
-        if ( is_file($transformXSL) ) {
+        if (is_file($transformXSL)) {
             $config['XSL']['export'] = $transformXSL;
         }
         $transformXSL = dirname(__FILE__).'/transform/import/'.$structure.'.xsl';
-        if ( is_file($transformXSL) ) {
+        if (is_file($transformXSL)) {
             $config['XSL']['import'] = $transformXSL;
         }
         return $config;
     }
 
-    public function appendLocation($alias, $fileSystemPath, $urlPath='')
+    public function appendLocation($alias, $fileSystemPath, $urlPath = '')
     {
-        $this->locations[$alias] = array(
-            'local' => rtrim($fileSystemPath,'/'),
-            'public' => rtrim((empty($urlPath)?$fileSystemPath:$urlPath),'/'),
-        );
+        $this->locations[$alias] = [
+            'local' => rtrim($fileSystemPath, '/'),
+            'public' => rtrim((empty($urlPath) ? $fileSystemPath : $urlPath), '/'),
+        ];
     }
 
     public function getLocalLocation($path)
@@ -217,13 +218,13 @@ class IOCore
 
     protected function computeLocationValue($path, $target)
     {
-        if ( substr($path,0,1)=='@' ) {
+        if (substr($path, 0, 1) == '@') {
             $pos = strpos($path, '/');
             $root = $pos === false ? $path : substr($path, 0, $pos);
-            if ( isset($this->locations[$root][$target]) ) {
+            if (isset($this->locations[$root][$target])) {
                 return $this->computeLocationValue($pos === false ? $this->locations[$root][$target] : $this->locations[$root][$target] . substr($path, $pos), $target);
-            }elseif( class_exists('\Yii') ){
-                return \Yii::getAlias($path,false);
+            } elseif (class_exists('\Yii')) {
+                return \Yii::getAlias($path, false);
             }
         }
 
@@ -248,17 +249,19 @@ class IOCore
      */
     public function setAttachmentMode($attachmentModes)
     {
-        if ( !is_array($attachmentModes) ) $attachmentModes = array($attachmentModes);
+        if (!is_array($attachmentModes)) {
+            $attachmentModes = [$attachmentModes];
+        }
         $IOAttachment = static::createObject('IOAttachment');
         /**
          * @var $IOAttachment IOAttachment
          */
         $knownAttachmentModes = $IOAttachment->getAttachmentModeVariants();
-        $unknown = array_diff($attachmentModes,$knownAttachmentModes);
-        if ( count($unknown)>0 ) {
-            throw new InvalidParamException('Wrong mode "'.implode('", "',$unknown).'" Possible values for AttachmentModes is ['.implode(', ',$knownAttachmentModes).']');
+        $unknown = array_diff($attachmentModes, $knownAttachmentModes);
+        if (count($unknown) > 0) {
+            throw new InvalidParamException('Wrong mode "'.implode('", "', $unknown).'" Possible values for AttachmentModes is ['.implode(', ', $knownAttachmentModes).']');
         }
-        $this->attachmentModes = array();
+        $this->attachmentModes = [];
         foreach ($attachmentModes as $attachmentMode) {
             $this->attachmentModes[$attachmentMode] = $attachmentMode;
         }
@@ -271,10 +274,10 @@ class IOCore
 
     public function download($sourceFile, &$physicalFile, $prefix = '')
     {
-        $prefix = empty($prefix)? '': $prefix . ': ';
+        $prefix = empty($prefix) ? '' : $prefix . ': ';
         $dir = dirname($physicalFile);
         try {
-            if ( !is_dir($dir) ) {
+            if (!is_dir($dir)) {
                 FileHelper::createDirectory($dir, 0777);
             }
             Assert::assertNotEmpty($sourceFile, 'Source file is empty');
@@ -285,8 +288,8 @@ class IOCore
                 'ssl' => [
                     'verify_peer' => false,
                     'verify_peer_name' => false,
-                    'allow_self_signed' => true
-                ]
+                    'allow_self_signed' => true,
+                ],
             ]);
             Assert::assert(
                 @copy($sourceFile, $physicalFile, $context),
@@ -310,7 +313,7 @@ class IOCore
     public function setTablenamesWithMirrorIds($tablenames)
     {
         if (is_string($tablenames)) {
-            \common\helpers\Assert::assert( strpos($tablenames, ' ') === false, 'Spaces are not allowed');
+            \common\helpers\Assert::assert(strpos($tablenames, ' ') === false, 'Spaces are not allowed');
             $this->tablenamesWithMirrorIds = explode(',', $tablenames);
         } elseif (is_array($tablenames)) {
             $this->tablenamesWithMirrorIds = $tablenames;

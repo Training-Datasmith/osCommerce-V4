@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,37 +12,36 @@
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-
-return array(
+return [
     'Header' => 'site/quotes',
     'dependsOn' => ['site/languages', 'site/order_statuses', 'site/currencies', 'site/platforms', 'site/customers', 'site/products', 'site/countries'],
-    'Data' => array(
-        'common\\models\\QuoteOrders' => array(
+    'Data' => [
+        'common\\models\\QuoteOrders' => [
             'xmlCollection' => 'QuoteOrders>QuoteOrder',
             'properties' => [
-                'orders_status' => ['class'=>'IOOrderStatus'],
-                'language_id' => ['class'=>'IOLanguageMap'],
+                'orders_status' => ['class' => 'IOOrderStatus'],
+                'language_id' => ['class' => 'IOLanguageMap'],
             ],
-            'withRelated' => array(
-                'quoteOrdersProducts' => array(
+            'withRelated' => [
+                'quoteOrdersProducts' => [
                     'xmlCollection' => 'QuoteOrderProducts>QuoteOrderProduct',
-                    'withRelated' => array(
-                        'quoteOrderProductAttributes' => array(
+                    'withRelated' => [
+                        'quoteOrderProductAttributes' => [
                             'xmlCollection' => 'Attributes>Attribute',
-                        )
-                    ),
-                ),
-                'quoteOrdersTotals' => array(
+                        ],
+                    ],
+                ],
+                'quoteOrdersTotals' => [
                     'xmlCollection' => 'QuoteOrderTotals>QuoteOrderTotal',
-                ),
-                'quoteOrdersStatusHistory' => array(
+                ],
+                'quoteOrdersStatusHistory' => [
                     'xmlCollection' => 'QuoteOrderStatusHistory>QuoteOrderStatus',
                     'properties' => [
-                        'orders_status_id' => ['class'=>'IOOrderStatus'],
-                    ]
-                )
-            ),
-        ),
-    ),
-    'covered_tables' => array('quote_orders', 'quote_orders_products', 'quote_orders_products_attributes', 'quote_orders_total', 'quote_orders_status_history'),
-);
+                        'orders_status_id' => ['class' => 'IOOrderStatus'],
+                    ],
+                ],
+            ],
+        ],
+    ],
+    'covered_tables' => ['quote_orders', 'quote_orders_products', 'quote_orders_products_attributes', 'quote_orders_total', 'quote_orders_status_history'],
+];

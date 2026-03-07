@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "modules_migrations".
@@ -64,14 +64,14 @@ class ModulesMigrations extends \yii\db\ActiveRecord
 
     public function beforeSave($insert)
     {
-        if (!parent::beforeSave($insert)){
+        if (!parent::beforeSave($insert)) {
             return false;
         }
-        if ( $insert ){
+        if ($insert) {
             if (is_null($this->applied_admin_id)) {
-                $this->applied_admin_id = (int)($_SESSION['login_id']??0);
+                $this->applied_admin_id = (int)($_SESSION['login_id'] ?? 0);
             }
-            if ( empty($this->applied_time) ) {
+            if (empty($this->applied_time)) {
                 $this->applied_time = new \yii\db\Expression('NOW()');
             }
         }

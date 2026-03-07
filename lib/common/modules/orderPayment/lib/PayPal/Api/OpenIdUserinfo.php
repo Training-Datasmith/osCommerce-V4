@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalResourceModel;
@@ -33,7 +36,6 @@ use PayPal\Rest\ApiContext;
  */
 class OpenIdUserinfo extends PayPalResourceModel
 {
-
     /**
      * Subject - Identifier for the End-User at the Issuer.
      *
@@ -496,7 +498,6 @@ class OpenIdUserinfo extends PayPalResourceModel
         return $this->payer_id;
     }
 
-
     /**
      * returns user details
      *
@@ -510,24 +511,24 @@ class OpenIdUserinfo extends PayPalResourceModel
      */
     public static function getUserinfo($params, $apiContext = null, $restCall = null)
     {
-        static $allowedParams = array('schema' => 1);
+        static $allowedParams = ['schema' => 1];
 
-        $params = is_array($params)  ? $params : array();
+        $params = is_array($params) ? $params : [];
 
         if (!array_key_exists('schema', $params)) {
             $params['schema'] = 'openid';
         }
-        $requestUrl = "/v1/identity/openidconnect/userinfo?"
+        $requestUrl = '/v1/identity/openidconnect/userinfo?'
             . http_build_query(array_intersect_key($params, $allowedParams));
 
         $json = self::executeCall(
             $requestUrl,
-            "GET",
-            "",
-            array(
-                'Authorization' => "Bearer " . $params['access_token'],
-                'Content-Type' => 'x-www-form-urlencoded'
-            ),
+            'GET',
+            '',
+            [
+                'Authorization' => 'Bearer ' . $params['access_token'],
+                'Content-Type' => 'x-www-form-urlencoded',
+            ],
             $apiContext,
             $restCall
         );

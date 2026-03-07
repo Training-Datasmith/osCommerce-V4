@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,7 @@
 
 namespace frontend\controllers;
 
-use backend\models\EP\Job;
-use backend\models\EP\JobFile;
-use backend\models\EP\Messages;
 use Yii;
-use yii\helpers\FileHelper;
-use yii\web\BadRequestHttpException;
-use yii\web\ForbiddenHttpException;
 
 /**
  * Site controller

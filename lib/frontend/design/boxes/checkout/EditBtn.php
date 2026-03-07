@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,12 @@
 
 namespace frontend\design\boxes\checkout;
 
-use frontend\design\Info;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class EditBtn extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -31,7 +31,7 @@ class EditBtn extends Widget
 
     public function run()
     {
-        
+
         switch ($this->settings[0]['link']) {
             case 'contact_information':
                 $url = Yii::$app->urlManager->createUrl([Yii::$app->controller->id, '#' => 'contact_information']);
@@ -52,18 +52,18 @@ class EditBtn extends Widget
                 $url = Yii::$app->urlManager->createUrl([Yii::$app->controller->id, '#' => 'comments-anchor']);
                 break;
             case 'products':
-                switch(Yii::$app->controller->id){
+                switch (Yii::$app->controller->id) {
                     case 'quote-checkout':
                         $controller = 'quote-cart';
-                    break;
+                        break;
                     case 'sample-checkout':
                         $controller = 'sample-cart';
-                    break;
+                        break;
                     case 'checkout':
                     default:
                         $controller = 'shopping-cart';
-                    break;
-                    
+                        break;
+
                 }
                 $url = Yii::$app->urlManager->createUrl([$controller]);
                 break;

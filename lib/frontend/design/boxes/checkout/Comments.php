@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\checkout;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class Comments extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -30,11 +30,11 @@ class Comments extends Widget
 
     public function run()
     {
-        if (isset($this->params['manager'])){
-            $comments = $this->params['manager']->has('comments')?$this->params['manager']->get('comments'):'';
+        if (isset($this->params['manager'])) {
+            $comments = $this->params['manager']->has('comments') ? $this->params['manager']->get('comments') : '';
             $this->params['comments'] = $comments;
         }
-        
+
         return IncludeTpl::widget(['file' => 'boxes/checkout/comments.tpl', 'params' => $this->params]);
     }
 }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -30,9 +32,9 @@ class m221130_153146_drop_customer_code_config extends Migration
      */
     public function safeDown()
     {
-        $this->batchInsertSafe('configuration', ['configuration_title', 'configuration_key', 'configuration_value', 'configuration_description', 'configuration_group_id', 'sort_order', 'last_modified', 'date_added', 'use_function', 'set_function'],[
-            ['ERP Customer Id', 'ACCOUNT_ERP_CUSTOMER_ID', 'visible', 'Display ERP Customer Id in the customers account', 5, 100, NULL, new \yii\db\Expression('NOW()'), NULL, 'tep_cfg_select_option(array(\'disabled\', \'visible\', \'visible_register\', \'required\', \'required_register\'),'],
-            ['ERP Customer Code', 'ACCOUNT_ERP_CUSTOMER_CODE', 'visible', 'Display ERP Customer Code in the customers account', 5, 100, NULL, new \yii\db\Expression('NOW()'), NULL, 'tep_cfg_select_option(array(\'disabled\', \'visible\', \'visible_register\', \'required\', \'required_register\'),'],
+        $this->batchInsertSafe('configuration', ['configuration_title', 'configuration_key', 'configuration_value', 'configuration_description', 'configuration_group_id', 'sort_order', 'last_modified', 'date_added', 'use_function', 'set_function'], [
+            ['ERP Customer Id', 'ACCOUNT_ERP_CUSTOMER_ID', 'visible', 'Display ERP Customer Id in the customers account', 5, 100, null, new \yii\db\Expression('NOW()'), null, 'tep_cfg_select_option(array(\'disabled\', \'visible\', \'visible_register\', \'required\', \'required_register\'),'],
+            ['ERP Customer Code', 'ACCOUNT_ERP_CUSTOMER_CODE', 'visible', 'Display ERP Customer Code in the customers account', 5, 100, null, new \yii\db\Expression('NOW()'), null, 'tep_cfg_select_option(array(\'disabled\', \'visible\', \'visible_register\', \'required\', \'required_register\'),'],
         ]);
 
     }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -30,7 +32,7 @@ class m230921_103117_css_version extends Migration
                 'configuration_description' => 'It is used to update the CSS cache in the user\'s browser.',
                 'configuration_group_id' => 'BOX_CONFIGURATION_MYSTORE',
                 'sort_order' => 100,
-                'date_added' => date('Y-m-d H:i:s')
+                'date_added' => date('Y-m-d H:i:s'),
             ]);
         }
     }

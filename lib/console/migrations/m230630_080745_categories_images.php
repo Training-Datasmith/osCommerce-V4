@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -40,7 +42,7 @@ class m230630_080745_categories_images extends Migration
         }
 
         $this->addTranslation('admin/categories', [
-            'CATEGORY_HERO_IMAGE_RESPONSIVE' => 'Hero image for responsive design'
+            'CATEGORY_HERO_IMAGE_RESPONSIVE' => 'Hero image for responsive design',
         ]);
     }
 

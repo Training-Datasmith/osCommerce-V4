@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 class ProductsAssets extends ActiveRecord
@@ -25,12 +26,14 @@ class ProductsAssets extends ActiveRecord
     {
         return 'products_assets';
     }
-    
-    public function getAssetValues(){
+
+    public function getAssetValues()
+    {
         return $this->hasMany(ProductsAssetsValues::className(), ['products_assets_id' => 'products_assets_id']);
     }
-    
-    public function beforeDelete() {
+
+    public function beforeDelete()
+    {
         ProductsAssetsValues::deleteAll(['products_assets_id' => $this->products_assets_id]);
         return parent::beforeDelete();
     }

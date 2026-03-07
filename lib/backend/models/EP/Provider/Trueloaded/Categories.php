@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -26,11 +28,11 @@ class Categories extends XmlBase
 
     public function clearLocalData()
     {
-        $query = tep_db_query("select * from " . TABLE_CATEGORIES);
-        while ($data = tep_db_fetch_array($query)){
+        $query = tep_db_query('select * from ' . TABLE_CATEGORIES);
+        while ($data = tep_db_fetch_array($query)) {
             @unlink(DIR_FS_CATALOG_IMAGES . $data['categories_image']);
         }
-        tep_db_query("DELETE FROM " . TABLE_FILTERS . " WHERE filters_of = 'category'");
+        tep_db_query('DELETE FROM ' . TABLE_FILTERS . " WHERE filters_of = 'category'");
         parent::clearLocalData();
     }
 

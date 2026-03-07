@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -105,18 +107,18 @@ class Category extends AbstractClass
             return false;
         }
         unset($this->categoryRecord['categories_id']);
-        $this->descriptionRecordArray = (is_array($this->descriptionRecordArray) ? $this->descriptionRecordArray : array());
-        $this->affiliateRecordArray = (is_array($this->affiliateRecordArray) ? $this->affiliateRecordArray : array());
-        $this->platformRecordArray = (is_array($this->platformRecordArray) ? $this->platformRecordArray : array());
-        $this->platformSettingRecordArray = (is_array($this->platformSettingRecordArray) ? $this->platformSettingRecordArray : array());
-        $this->templateRecordArray = (is_array($this->templateRecordArray) ? $this->templateRecordArray : array());
-        $this->groupRecordArray = (is_array($this->groupRecordArray) ? $this->groupRecordArray : array());
-        $this->supplierDiscountRecordArray = (is_array($this->supplierDiscountRecordArray) ? $this->supplierDiscountRecordArray : array());
-        $this->supplierPriceRuleRecordArray = (is_array($this->supplierPriceRuleRecordArray) ? $this->supplierPriceRuleRecordArray : array());
-        $this->filterRecordArray = (is_array($this->filterRecordArray) ? $this->filterRecordArray : array());
-        $this->productRecordArray = (is_array($this->productRecordArray) ? $this->productRecordArray : array());
-        $this->categoryImageNewArray = (is_array($this->categoryImageNewArray) ? $this->categoryImageNewArray : array());
-        $this->oldSeoRedirectArray = (is_array($this->oldSeoRedirectArray) ? $this->oldSeoRedirectArray : array());
+        $this->descriptionRecordArray = (is_array($this->descriptionRecordArray) ? $this->descriptionRecordArray : []);
+        $this->affiliateRecordArray = (is_array($this->affiliateRecordArray) ? $this->affiliateRecordArray : []);
+        $this->platformRecordArray = (is_array($this->platformRecordArray) ? $this->platformRecordArray : []);
+        $this->platformSettingRecordArray = (is_array($this->platformSettingRecordArray) ? $this->platformSettingRecordArray : []);
+        $this->templateRecordArray = (is_array($this->templateRecordArray) ? $this->templateRecordArray : []);
+        $this->groupRecordArray = (is_array($this->groupRecordArray) ? $this->groupRecordArray : []);
+        $this->supplierDiscountRecordArray = (is_array($this->supplierDiscountRecordArray) ? $this->supplierDiscountRecordArray : []);
+        $this->supplierPriceRuleRecordArray = (is_array($this->supplierPriceRuleRecordArray) ? $this->supplierPriceRuleRecordArray : []);
+        $this->filterRecordArray = (is_array($this->filterRecordArray) ? $this->filterRecordArray : []);
+        $this->productRecordArray = (is_array($this->productRecordArray) ? $this->productRecordArray : []);
+        $this->categoryImageNewArray = (is_array($this->categoryImageNewArray) ? $this->categoryImageNewArray : []);
+        $this->oldSeoRedirectArray = (is_array($this->oldSeoRedirectArray) ? $this->oldSeoRedirectArray : []);
         return true;
     }
 
@@ -158,7 +160,7 @@ class Category extends AbstractClass
                 unset($descriptionRecord['categories_id']);
                 unset($descriptionRecord['affiliate_id']);
                 unset($descriptionRecord['language_id']);
-                if (($languageId > 0) AND ($affiliateId >= 0)) {
+                if (($languageId > 0) and ($affiliateId >= 0)) {
                     try {
                         $descriptionClass = \common\models\CategoriesDescription::find()->where(['categories_id' => $this->categoryId, 'language_id' => $languageId, 'affiliate_id' => $affiliateId])->one();
                         if (!($descriptionClass instanceof \common\models\CategoriesDescription)) {
@@ -192,40 +194,40 @@ class Category extends AbstractClass
             // EOF DESCRIPTION
             // AFFILIATE
             if (\common\helpers\Acl::checkExtensionAllowed('Affiliate')) {
-            foreach ($this->affiliateRecordArray as $key => &$affiliateRecord) {
-                $isSave = false;
-                $affiliateId = (int)(isset($affiliateRecord['affiliate_id']) ? $affiliateRecord['affiliate_id'] : -1);
-                unset($affiliateRecord['categories_id']);
-                unset($affiliateRecord['affiliate_id']);
-                if ($affiliateId >= 0) {
-                    try {
-                        $affiliateClass = \common\extensions\Affiliate\models\CategoriesToAffiliates::find()->where(['categories_id' => $this->categoryId, 'affiliate_id' => $affiliateId])->one();
-                        if (!($affiliateClass instanceof \common\models\CategoriesToAffiliates)) {
-                            $affiliateClass = new \common\extensions\Affiliate\models\CategoriesToAffiliates();
-                            $affiliateClass->loadDefaultValues();
-                            $affiliateClass->categories_id = $this->categoryId;
-                            $affiliateClass->affiliate_id = $affiliateId;
+                foreach ($this->affiliateRecordArray as $key => &$affiliateRecord) {
+                    $isSave = false;
+                    $affiliateId = (int)(isset($affiliateRecord['affiliate_id']) ? $affiliateRecord['affiliate_id'] : -1);
+                    unset($affiliateRecord['categories_id']);
+                    unset($affiliateRecord['affiliate_id']);
+                    if ($affiliateId >= 0) {
+                        try {
+                            $affiliateClass = \common\extensions\Affiliate\models\CategoriesToAffiliates::find()->where(['categories_id' => $this->categoryId, 'affiliate_id' => $affiliateId])->one();
+                            if (!($affiliateClass instanceof \common\models\CategoriesToAffiliates)) {
+                                $affiliateClass = new \common\extensions\Affiliate\models\CategoriesToAffiliates();
+                                $affiliateClass->loadDefaultValues();
+                                $affiliateClass->categories_id = $this->categoryId;
+                                $affiliateClass->affiliate_id = $affiliateId;
+                            }
+                            $affiliateClass->setAttributes($affiliateRecord, false);
+                            if ($affiliateClass->save(false)) {
+                                $isSave = true;
+                                $affiliateRecord = $affiliateClass->toArray();
+                            } else {
+                                $this->messageAdd($affiliateClass->getErrorSummary(true));
+                            }
+                        } catch (\Exception $exc) {
+                            $this->messageAdd($exc->getMessage());
                         }
-                        $affiliateClass->setAttributes($affiliateRecord, false);
-                        if ($affiliateClass->save(false)) {
-                            $isSave = true;
-                            $affiliateRecord = $affiliateClass->toArray();
-                        } else {
-                            $this->messageAdd($affiliateClass->getErrorSummary(true));
-                        }
-                    } catch (\Exception $exc) {
-                        $this->messageAdd($exc->getMessage());
+                        unset($affiliateClass);
                     }
-                    unset($affiliateClass);
+                    unset($affiliateId);
+                    if ($isSave != true) {
+                        unset($this->affiliateRecordArray[$key]);
+                    }
+                    unset($isSave);
                 }
-                unset($affiliateId);
-                if ($isSave != true) {
-                    unset($this->affiliateRecordArray[$key]);
-                }
-                unset($isSave);
-            }
-            unset($affiliateRecord);
-            unset($key);
+                unset($affiliateRecord);
+                unset($key);
             }
             // EOF AFFILIATE
             // PLATFORM
@@ -353,7 +355,7 @@ class Category extends AbstractClass
                         try {
                             $groupClass = $groupCategories::find()->where(['categories_id' => $this->categoryId, 'groups_id' => $groupId])->one();
                             if (empty($groupClass)) {
-                                $groupClass = new $groupCategories;
+                                $groupClass = new $groupCategories();
                                 $groupClass->loadDefaultValues();
                                 $groupClass->categories_id = $this->categoryId;
                                 $groupClass->groups_id = $groupId;
@@ -390,7 +392,7 @@ class Category extends AbstractClass
                 unset($supplierDiscountRecord['manufacturer_id']);
                 unset($supplierDiscountRecord['suppliers_id']);
                 unset($supplierDiscountRecord['category_id']);
-                if (($supplierId > 0) AND ($manufacturerId > 0)) {
+                if (($supplierId > 0) and ($manufacturerId > 0)) {
                     try {
                         $supplierDiscountClass = \common\models\SuppliersCatalogDiscount::find()->where(['category_id' => $this->categoryId, 'suppliers_id' => $supplierId, 'manufacturer_id' => $manufacturerId])->one();
                         if (!($supplierDiscountClass instanceof \common\models\SuppliersCatalogDiscount)) {
@@ -433,7 +435,7 @@ class Category extends AbstractClass
                 unset($supplierPriceRuleRecord['suppliers_id']);
                 unset($supplierPriceRuleRecord['category_id']);
                 unset($supplierPriceRuleRecord['rule_id']);
-                if (($supplierId > 0) AND ($manufacturerId > 0) AND ($currencyId >= 0)) {
+                if (($supplierId > 0) and ($manufacturerId > 0) and ($currencyId >= 0)) {
                     try {
                         $supplierPriceRuleClass = \common\models\SuppliersCatalogPriceRules::find()->where(['category_id' => $this->categoryId, 'suppliers_id' => $supplierId, 'manufacturer_id' => $manufacturerId, 'currencies_id' => $currencyId])->one();
                         if (!($supplierPriceRuleClass instanceof \common\models\SuppliersCatalogPriceRules)) {
@@ -591,7 +593,7 @@ class Category extends AbstractClass
                                 'language_id' => $languageId,
                                 'redirects_type' => 'category',
                                 'owner_id' => $this->categoryId,
-                                'old_seo_page_name' => $seoRedirectArray['old_seo_page_name']
+                                'old_seo_page_name' => $seoRedirectArray['old_seo_page_name'],
                             ];
                             $seoRedirectRecord = $seoModel::findOne($searchArray);
                             if (!($seoRedirectRecord instanceof $seoModel)) {
@@ -617,7 +619,7 @@ class Category extends AbstractClass
             if (count($this->categoryImageNewArray) > 0) {
                 $categoryDirectory = ('categories' . DIRECTORY_SEPARATOR . $this->categoryId . DIRECTORY_SEPARATOR);
                 foreach (['gallery' => '', 'hero' => '_2', 'homepage' => '_3'] as $imageType => $imageField) {
-                    if (isset($this->categoryImageNewArray[$imageType]) AND (trim($this->categoryImageNewArray[$imageType]) != '')) {
+                    if (isset($this->categoryImageNewArray[$imageType]) and (trim($this->categoryImageNewArray[$imageType]) != '')) {
                         try {
                             $imageSrc = trim($this->categoryImageNewArray[$imageType]);
                             $imageBody = file_get_contents($imageSrc);

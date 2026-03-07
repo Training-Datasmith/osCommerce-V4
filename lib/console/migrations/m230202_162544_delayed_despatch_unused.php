@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,10 +24,8 @@ class m230202_162544_delayed_despatch_unused extends Migration
      */
     public function safeUp()
     {
-        if(method_exists($this, 'isOldExtension'))
-        {
-            if(!$this->isOldExtension('DelayedDespatch'))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension('DelayedDespatch')) {
                 $this->removeTranslation('admin/orders', [
                     'TEXT_DESPATCH_HOVER',
                     'ENTRY_DELIVERY_DATE_ERROR',
@@ -65,7 +65,9 @@ class m230202_162544_delayed_despatch_unused extends Migration
      */
     public function safeDown()
     {
-        if(!defined(TABLE_CONFIGURATION)) define(TABLE_CONFIGURATION, 'configuration');
+        if (!defined(TABLE_CONFIGURATION)) {
+            define(TABLE_CONFIGURATION, 'configuration');
+        }
 
         $this->addTranslation('admin/orders', [
             'TEXT_DESPATCH_HOVER' => 'Selecting a date will mean we delay the despatch of your order until your preferred despatch date. Your order will then be shipped as per our delivery schedule. So, for example, if you want your Express Delivery order delivered on Saturday you should select Friday as your preferred despatch date.',

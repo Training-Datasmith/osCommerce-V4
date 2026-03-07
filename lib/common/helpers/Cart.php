@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of True Loaded.
  *
@@ -10,11 +12,8 @@
 
 namespace common\helpers;
 
-use Yii;
-
 class Cart
 {
- 
     public static function decodeId($cartId)
     {
         if (preg_match("/(.*)\|([\d]*)\-([\d]*)/", $cartId, $mas)) {

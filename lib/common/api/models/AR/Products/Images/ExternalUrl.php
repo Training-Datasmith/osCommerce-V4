@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace common\api\models\AR\Products\Images;
 
-
 use common\api\models\AR\EPMap;
 use common\classes\Images;
 
 class ExternalUrl extends EPMap
 {
-
     protected $hideFields = [
         'products_images_id',
         'language_id',
@@ -47,7 +47,7 @@ class ExternalUrl extends EPMap
     public function exportArray(array $fields = [])
     {
         static $typeIdToName = false;
-        if ( !is_array($typeIdToName) ) {
+        if (!is_array($typeIdToName)) {
             $typeIdToName = [];
             foreach (Images::getImageTypes() as $imageType) {
                 $typeIdToName[$imageType['image_types_id']] = $imageType['image_types_name'];
@@ -61,11 +61,13 @@ class ExternalUrl extends EPMap
     public function importArray($data)
     {
 
-        if ( isset($data['image_types_name']) ) {
+        if (isset($data['image_types_name'])) {
             $typeArray = Images::getImageTypes($data['image_types_name']);
-            if ( !is_array($typeArray) ) return false;
+            if (!is_array($typeArray)) {
+                return false;
+            }
             $data['image_types_id'] = $typeArray['image_types_id'];
-        }else{
+        } else {
             return false;
         }
 
@@ -75,7 +77,7 @@ class ExternalUrl extends EPMap
 
     public function matchIndexedValue(EPMap $importedObject)
     {
-        if ( !is_null($importedObject->image_types_id) && !is_null($this->image_types_id) && $importedObject->image_types_id==$this->image_types_id ){
+        if (!is_null($importedObject->image_types_id) && !is_null($this->image_types_id) && $importedObject->image_types_id == $this->image_types_id) {
             $this->pendingRemoval = false;
             return true;
         }

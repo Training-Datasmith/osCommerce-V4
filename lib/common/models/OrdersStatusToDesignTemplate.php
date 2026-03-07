@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "orders_status_to_design_template".
@@ -30,7 +30,7 @@ class OrdersStatusToDesignTemplate extends \yii\db\ActiveRecord
         return [
             [['orders_status_id', 'platform_id', 'email_design_template'], 'required'],
             [['orders_status_id', 'platform_id'], 'integer'],
-            [['email_design_template'], 'string', 'max' => 256]
+            [['email_design_template'], 'string', 'max' => 256],
         ];
     }
 

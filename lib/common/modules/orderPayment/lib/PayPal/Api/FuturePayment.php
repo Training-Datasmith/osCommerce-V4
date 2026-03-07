@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Rest\ApiContext;
@@ -12,7 +14,6 @@ use PayPal\Transport\PayPalRestCall;
  */
 class FuturePayment extends Payment
 {
-
     /**
      * Extends the Payment object to create future payments
      *
@@ -23,16 +24,16 @@ class FuturePayment extends Payment
      */
     public function create($apiContext = null, $clientMetadataId = null, $restCall = null)
     {
-        $headers = array();
+        $headers = [];
         if ($clientMetadataId != null) {
-            $headers = array(
-                'PAYPAL-CLIENT-METADATA-ID' => $clientMetadataId
-            );
+            $headers = [
+                'PAYPAL-CLIENT-METADATA-ID' => $clientMetadataId,
+            ];
         }
         $payLoad = $this->toJSON();
         $json = self::executeCall(
-            "/v1/payments/payment",
-            "POST",
+            '/v1/payments/payment',
+            'POST',
             $payLoad,
             $headers,
             $apiContext,

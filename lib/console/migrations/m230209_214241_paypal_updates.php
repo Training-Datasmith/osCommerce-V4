@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -35,9 +37,9 @@ class m230209_214241_paypal_updates extends Migration
      */
     public function safeDown()
     {
-//        echo "m230209_214241_paypal_updates cannot be reverted.\n";
+        //        echo "m230209_214241_paypal_updates cannot be reverted.\n";
 
-  //      return false;
+        //      return false;
     }
 
     /*

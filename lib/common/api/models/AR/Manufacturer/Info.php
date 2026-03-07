@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -46,7 +48,7 @@ class Info extends EPMap
     public static function getAllKeyCodes()
     {
         $keyCodes = [];
-        foreach (\common\classes\language::get_all() as $lang){
+        foreach (\common\classes\language::get_all() as $lang) {
             $keyCode = $lang['code'];
             $keyCodes[$keyCode] = [
                 'manufacturers_id' => null,
@@ -58,7 +60,7 @@ class Info extends EPMap
 
     public function beforeSave($insert)
     {
-        if ( empty($this->manufacturers_seo_name) && is_object($this->parentObject) ) {
+        if (empty($this->manufacturers_seo_name) && is_object($this->parentObject)) {
             $this->manufacturers_seo_name = Seo::makeSlug($this->parentObject->manufacturers_name);
         }
         return parent::beforeSave($insert);

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace PayPal\Transport;
 
 use PayPal\Core\PayPalHttpConfig;
@@ -13,8 +16,6 @@ use PayPal\Rest\ApiContext;
  */
 class PayPalRestCall
 {
-
-
     /**
      * Paypal Logger
      *
@@ -28,7 +29,6 @@ class PayPalRestCall
      * @var ApiContext
      */
     private $apiContext;
-
 
     /**
      * Default Constructor
@@ -50,15 +50,16 @@ class PayPalRestCall
      * @return mixed
      * @throws \PayPal\Exception\PayPalConnectionException
      */
-    public function execute($handlers = array(), $path, $method, $data = '', $headers = array())
+    public function execute($handlers = [], $path, $method, $data = '', $headers = [])
     {
         $config = $this->apiContext->getConfig();
         $httpConfig = new PayPalHttpConfig(null, $method, $config);
-        $headers = $headers ? $headers : array();
-        $httpConfig->setHeaders($headers +
-            array(
-                'Content-Type' => 'application/json'
-            )
+        $headers = $headers ? $headers : [];
+        $httpConfig->setHeaders(
+            $headers +
+            [
+                'Content-Type' => 'application/json',
+            ]
         );
 
         // if proxy set via config, add it
@@ -69,10 +70,10 @@ class PayPalRestCall
         /** @var \Paypal\Handler\IPayPalHandler $handler */
         foreach ($handlers as $handler) {
             if (!is_object($handler)) {
-                $fullHandler = "\\" . (string)$handler;
+                $fullHandler = '\\' . (string)$handler;
                 $handler = new $fullHandler($this->apiContext);
             }
-            $handler->handle($httpConfig, $data, array('path' => $path, 'apiContext' => $this->apiContext));
+            $handler->handle($httpConfig, $data, ['path' => $path, 'apiContext' => $this->apiContext]);
         }
         $connection = new PayPalHttpConnection($httpConfig, $config);
         $response = $connection->execute($data);

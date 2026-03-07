@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\api\models\AR;
 
 use backend\models\EP\Tools;
@@ -16,17 +18,16 @@ use common\api\models\AR\Products\Images;
 use common\api\models\AR\Products\Inventory;
 use common\api\models\AR\Products\Prices;
 use common\api\models\AR\Products\Properties;
-use common\api\models\AR\Products\Special;
-use common\api\models\AR\Products\SuppliersData;
-use common\api\models\AR\Products\Xsell;
-use common\api\models\AR\Products\SupplierProduct;
 use common\api\models\AR\Products\SetProducts;
+use common\api\models\AR\Products\Special;
+use common\api\models\AR\Products\SupplierProduct;
+use common\api\models\AR\Products\SuppliersData;
 use common\api\models\AR\Products\WarehousesProducts;
+use common\api\models\AR\Products\Xsell;
 use yii\db\Expression;
 
 class Products extends EPMap
 {
-
     protected $hideFields = [
         'products_image',
         'products_image_med',
@@ -113,23 +114,25 @@ class Products extends EPMap
             unset($this->childCollections['inventory']);
             unset($this->indexedCollections['inventory']);
         }
-        if ( defined('TABLE_DEPARTMENTS_PRODUCTS') ) {
+        if (defined('TABLE_DEPARTMENTS_PRODUCTS')) {
             $this->childCollections['assigned_departments'] = false;
             $this->indexedCollections['assigned_departments'] = 'common\api\models\AR\Products\AssignedDepartments';
         }
-        $marketPresent = defined('USE_MARKET_PRICES') && USE_MARKET_PRICES=='True';
+        $marketPresent = defined('USE_MARKET_PRICES') && USE_MARKET_PRICES == 'True';
         $groupsPresent = \common\helpers\Extensions::isCustomerGroupsAllowed();
-        if ( !$marketPresent && !$groupsPresent ) {
+        if (!$marketPresent && !$groupsPresent) {
             unset($this->childCollections['prices']);
         }
         $this->afterSaveHooks['Product::doCache'] = 'reCalculateStock';
         $this->afterSaveHooks['Product::SpecialClean'] = 'removeInvalidSpecials';
 
         if (!($ext = \common\helpers\Acl::checkExtensionAllowed('UserGroupsRestrictions', 'allowed'))) {
-            if (array_key_exists('assigned_customer_groups', $this->childCollections))
+            if (array_key_exists('assigned_customer_groups', $this->childCollections)) {
                 unset($this->childCollections['assigned_customer_groups']);
-            if (array_key_exists('assigned_customer_groups', $this->indexedCollections))
+            }
+            if (array_key_exists('assigned_customer_groups', $this->indexedCollections)) {
                 unset($this->indexedCollections['assigned_customer_groups']);
+            }
         }
         parent::__construct($config);
     }
@@ -149,9 +152,10 @@ class Products extends EPMap
         $this->auto_status = $value;
     }
 
-    public function rules() {
+    public function rules()
+    {
         return array_merge(parent::rules(), [
-            ['products_quantity', 'default', 'value' => 0]
+            ['products_quantity', 'default', 'value' => 0],
         ]);
     }
 
@@ -162,23 +166,25 @@ class Products extends EPMap
     }
     public function getSuppliers_id()
     {
-        return isset($this->virtual_fields['suppliers_id'])?$this->virtual_fields['suppliers_id']:false;
+        return isset($this->virtual_fields['suppliers_id']) ? $this->virtual_fields['suppliers_id'] : false;
     }
     // }} XTrader
 
     public function initCollectionByLookupKey_Descriptions($lookupKeys)
     {
-        $loadAll = in_array('*',$lookupKeys);
+        $loadAll = in_array('*', $lookupKeys);
 
-        if ( !is_null($this->products_id) ) {
+        if (!is_null($this->products_id)) {
             $dbMapCollect = [];
-            foreach(Description::findAll(['products_id' => $this->products_id]) as $obj){
-                $code = \common\classes\language::get_code($obj->language_id,true);
-                if ( $code==false ) continue;
+            foreach (Description::findAll(['products_id' => $this->products_id]) as $obj) {
+                $code = \common\classes\language::get_code($obj->language_id, true);
+                if ($code == false) {
+                    continue;
+                }
                 $dbMapCollect[$code.'_'.$obj->platform_id] = $obj;
             }
-            foreach(Description::getAllKeyCodes() as $keyCode=>$lookupPK){
-                if( $loadAll || in_array($keyCode,$lookupKeys) ) {
+            foreach (Description::getAllKeyCodes() as $keyCode => $lookupPK) {
+                if ($loadAll || in_array($keyCode, $lookupKeys)) {
                     if (isset($dbMapCollect[$keyCode])) {
                         $this->childCollections['descriptions'][$keyCode] = $dbMapCollect[$keyCode];
                     } else {
@@ -187,27 +193,27 @@ class Products extends EPMap
                     }
                 }
             }
-        }else{
-            foreach(Description::getAllKeyCodes() as $keyCode=>$lookupPK){
+        } else {
+            foreach (Description::getAllKeyCodes() as $keyCode => $lookupPK) {
                 $this->childCollections['descriptions'][$keyCode] = new Description($lookupPK);
             }
         }
-/*
-        foreach(Description::getAllKeyCodes() as $keyCode=>$lookupPK){
-            $this->childCollections['descriptions'][$keyCode] = null;
-            if ( is_null($this->products_id) ) {
-                $this->childCollections['descriptions'][$keyCode] = new Description($lookupPK);
-            }elseif( $loadAll || in_array($keyCode,$lookupKeys) ) {
-                if (!isset($this->childCollections['descriptions'][$keyCode])) {
-                    $lookupPK['products_id'] = $this->products_id;
-                    $this->childCollections['descriptions'][$keyCode] = Description::findOne($lookupPK);
-                    if (!is_object($this->childCollections['descriptions'][$keyCode])) {
+        /*
+                foreach(Description::getAllKeyCodes() as $keyCode=>$lookupPK){
+                    $this->childCollections['descriptions'][$keyCode] = null;
+                    if ( is_null($this->products_id) ) {
                         $this->childCollections['descriptions'][$keyCode] = new Description($lookupPK);
+                    }elseif( $loadAll || in_array($keyCode,$lookupKeys) ) {
+                        if (!isset($this->childCollections['descriptions'][$keyCode])) {
+                            $lookupPK['products_id'] = $this->products_id;
+                            $this->childCollections['descriptions'][$keyCode] = Description::findOne($lookupPK);
+                            if (!is_object($this->childCollections['descriptions'][$keyCode])) {
+                                $this->childCollections['descriptions'][$keyCode] = new Description($lookupPK);
+                            }
+                        }
                     }
                 }
-            }
-        }
-*/
+        */
         return $this->childCollections['descriptions'];
     }
 
@@ -215,14 +221,14 @@ class Products extends EPMap
     {
         $loadAll = in_array('*', $lookupKeys);
         if (true) {
-            if ( !is_null($this->products_id) ) {
+            if (!is_null($this->products_id)) {
                 $dbMapCollect = [];
-                foreach(Prices::findAll(['products_id' => $this->products_id]) as $obj){
+                foreach (Prices::findAll(['products_id' => $this->products_id]) as $obj) {
                     $keyCode = $obj->currencies_id.'_'.$obj->groups_id;
                     $dbMapCollect[$keyCode] = $obj;
                 }
-                foreach(Prices::getAllKeyCodes() as $keyCode=>$lookupPK){
-                    if( $loadAll || in_array($keyCode,$lookupKeys) ) {
+                foreach (Prices::getAllKeyCodes() as $keyCode => $lookupPK) {
+                    if ($loadAll || in_array($keyCode, $lookupKeys)) {
                         $dbKeyCode = $lookupPK['currencies_id'].'_'.$lookupPK['groups_id'];
                         if (isset($dbMapCollect[$dbKeyCode])) {
                             $this->childCollections['prices'][$keyCode] = $dbMapCollect[$dbKeyCode];
@@ -233,12 +239,12 @@ class Products extends EPMap
                     }
                 }
                 unset($dbMapCollect);
-            }else{
-                foreach(Prices::getAllKeyCodes() as $keyCode=>$lookupPK){
+            } else {
+                foreach (Prices::getAllKeyCodes() as $keyCode => $lookupPK) {
                     $this->childCollections['prices'][$keyCode] = new Prices($lookupPK);
                 }
             }
-        }else{
+        } else {
             foreach (Prices::getAllKeyCodes() as $keyCode => $lookupPK) {
                 $this->childCollections['prices'][$keyCode] = null;
                 if (is_null($this->products_id)) {
@@ -259,9 +265,9 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_GiftWrap($lookupKeys)
     {
-        if ( !is_array($this->childCollections['gift_wrap']) ) {
+        if (!is_array($this->childCollections['gift_wrap'])) {
             $this->childCollections['gift_wrap'] = [];
-            if ( $this->products_id ){
+            if ($this->products_id) {
                 $this->childCollections['gift_wrap'] =
                     GiftWrap::find()
                         ->where(['products_id' => $this->products_id])
@@ -273,9 +279,9 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_Featured($lookupKeys)
     {
-        if ( !is_array($this->childCollections['featured']) ) {
+        if (!is_array($this->childCollections['featured'])) {
             $this->childCollections['featured'] = [];
-            if ( $this->products_id ){
+            if ($this->products_id) {
                 $this->childCollections['featured'] =
                     Featured::find()
                         ->where(['products_id' => $this->products_id])
@@ -287,14 +293,14 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_Special($lookupKeys)
     {
-        if ( !is_array($this->childCollections['special']) ) {
+        if (!is_array($this->childCollections['special'])) {
             $this->childCollections['special'] = [];
-            if ( $this->products_id ){
+            if ($this->products_id) {
                 $this->childCollections['special'] =
                     Special::find()
                         ->where(['products_id' => $this->products_id])
-                        ->andWhere(['OR',['status'=>1], ['>=', 'start_date', new Expression('NOW()')]])
-                        ->orderBy(['status'=>SORT_DESC, 'start_date'=>SORT_ASC])
+                        ->andWhere(['OR',['status' => 1], ['>=', 'start_date', new Expression('NOW()')]])
+                        ->orderBy(['status' => SORT_DESC, 'start_date' => SORT_ASC])
                         ->all();
             }
         }
@@ -303,7 +309,7 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_AssignedCategories($lookupKeys)
     {
-        if ( !is_array($this->childCollections['assigned_categories']) ) {
+        if (!is_array($this->childCollections['assigned_categories'])) {
             $this->childCollections['assigned_categories'] = [];
             if ($this->products_id) {
                 $this->childCollections['assigned_categories'] =
@@ -318,7 +324,7 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_SetProducts($lookupKeys)
     {
-        if ( !is_array($this->childCollections['set_products']) ) {
+        if (!is_array($this->childCollections['set_products'])) {
             $this->childCollections['set_products'] = [];
             if ($this->products_id) {
                 $this->childCollections['set_products'] =
@@ -336,7 +342,7 @@ class Products extends EPMap
         if (!$this->hasAssignedProductAttributes()) {
             $loadAll = in_array('*', $lookupKeys);
 
-            if ( false ) {
+            if (false) {
                 if (!is_null($this->products_id)) {
                     $dbMapCollect = [];
                     foreach (WarehousesProducts::findAll([new Expression('CONCAT(\'\',:products_id)', ['products_id' => (int)$this->products_id])]) as $obj) {
@@ -358,12 +364,14 @@ class Products extends EPMap
                         $this->childCollections['warehouses_products'][$keyCode] = new WarehousesProducts($lookupPK);
                     }
                 }
-            }else {
+            } else {
                 if (!is_null($this->products_id)) {
                     $dbMapCollect = [];
                     foreach (WarehousesProducts::findAll([new Expression('CONCAT(\'\',:products_id)', ['products_id' => (int)$this->products_id])]) as $obj) {
                         $keyCode = $obj->warehouse_id . '_' . $obj->suppliers_id;
-                        if ( !empty($obj->location_id) ) $keyCode .= '_'.$obj->location_id;
+                        if (!empty($obj->location_id)) {
+                            $keyCode .= '_'.$obj->location_id;
+                        }
                         $dbMapCollect[$keyCode] = $obj;
                     }
                     foreach (WarehousesProducts::getAllKeyCodes() as $keyCode => $lookupPK) {
@@ -381,7 +389,7 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_AssignedDepartments($lookupKeys)
     {
-        if ( !is_array($this->childCollections['assigned_departments']) ) {
+        if (!is_array($this->childCollections['assigned_departments'])) {
             $this->childCollections['assigned_departments'] = [];
             if ($this->products_id) {
                 $this->childCollections['assigned_departments'] =
@@ -396,7 +404,7 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_AssignedPlatforms($lookupKeys)
     {
-        if ( !is_array($this->childCollections['assigned_platforms']) ) {
+        if (!is_array($this->childCollections['assigned_platforms'])) {
             $this->childCollections['assigned_platforms'] = [];
             if ($this->products_id) {
                 $this->childCollections['assigned_platforms'] =
@@ -411,7 +419,7 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_AssignedCustomerGroups($lookupKeys)
     {
-        if ( !is_array($this->childCollections['assigned_customer_groups']) ) {
+        if (!is_array($this->childCollections['assigned_customer_groups'])) {
             $this->childCollections['assigned_customer_groups'] = [];
             if ($this->products_id) {
                 $this->childCollections['assigned_customer_groups'] =
@@ -426,7 +434,7 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_Attributes($lookupKeys)
     {
-        if ( !is_array($this->childCollections['attributes']) ) {
+        if (!is_array($this->childCollections['attributes'])) {
             $this->childCollections['attributes'] = [];
             if ($this->products_id) {
                 $this->childCollections['attributes'] =
@@ -441,22 +449,28 @@ class Products extends EPMap
 
     public function getCollectionProductName()
     {
-        if ( isset($this->childCollections['descriptions'][ DEFAULT_LANGUAGE ]) && is_object($this->childCollections['descriptions'][ DEFAULT_LANGUAGE ]) ){
+        if (isset($this->childCollections['descriptions'][ DEFAULT_LANGUAGE ]) && is_object($this->childCollections['descriptions'][ DEFAULT_LANGUAGE ])) {
             return $this->childCollections['descriptions'][ DEFAULT_LANGUAGE ]->products_name;
         }
         return null;
     }
 
-    public function getAssignedAttributeIds($excludeVirtual=false)
+    public function getAssignedAttributeIds($excludeVirtual = false)
     {
-        if ( !is_array($this->childCollections['attributes']) ) {
+        if (!is_array($this->childCollections['attributes'])) {
             $this->initCollectionByLookupKey_Attributes([]);
         }
         $ids = [];
-        foreach ( $this->childCollections['attributes'] as $attrAR ){
-            if ( $attrAR->pendingRemoval ) continue;
-            if ( $excludeVirtual && Tools::getInstance()->is_option_virtual($attrAR->options_id) ) continue;
-            if ( !is_array($ids[$attrAR->options_id]) ) $ids[$attrAR->options_id] = [];
+        foreach ($this->childCollections['attributes'] as $attrAR) {
+            if ($attrAR->pendingRemoval) {
+                continue;
+            }
+            if ($excludeVirtual && Tools::getInstance()->is_option_virtual($attrAR->options_id)) {
+                continue;
+            }
+            if (!is_array($ids[$attrAR->options_id])) {
+                $ids[$attrAR->options_id] = [];
+            }
             $ids[$attrAR->options_id][] = $attrAR->options_values_id;
         }
         return $ids;
@@ -464,22 +478,22 @@ class Products extends EPMap
 
     public function hasAssignedProductAttributes()
     {
-        if ( is_array($this->childCollections['attributes']) ) {
+        if (is_array($this->childCollections['attributes'])) {
             $_check = $this->getAssignedAttributeIds();
-            return count($_check)>0;
+            return count($_check) > 0;
         }
-        if ( $this->products_id ) {
+        if ($this->products_id) {
             $inDatabaseCount = \common\api\models\AR\Products\Attributes::find()
                 ->where(['products_id' => $this->products_id])
                 ->count();
-            return $inDatabaseCount>0;
+            return $inDatabaseCount > 0;
         }
         return false;
     }
 
     public function initCollectionByLookupKey_Inventory($lookupKeys)
     {
-        if ( !is_array($this->childCollections['inventory']) ) {
+        if (!is_array($this->childCollections['inventory'])) {
             $this->childCollections['inventory'] = [];
             if ($this->products_id) {
                 $this->childCollections['inventory'] =
@@ -494,7 +508,7 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_Images($lookupKeys)
     {
-        if ( !is_array($this->childCollections['images']) ) {
+        if (!is_array($this->childCollections['images'])) {
             $this->childCollections['images'] = [];
             if ($this->products_id) {
                 $this->childCollections['images'] =
@@ -509,7 +523,7 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_Properties($lookupKeys)
     {
-        if ( !is_array($this->childCollections['properties']) ) {
+        if (!is_array($this->childCollections['properties'])) {
             $this->childCollections['properties'] = [];
             if ($this->products_id) {
                 $this->childCollections['properties'] =
@@ -524,7 +538,7 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_Xsell($lookupKeys)
     {
-        if ( !is_array($this->childCollections['xsell']) ) {
+        if (!is_array($this->childCollections['xsell'])) {
             $this->childCollections['xsell'] = [];
             if ($this->products_id) {
                 $this->childCollections['xsell'] =
@@ -539,7 +553,7 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_Documents($lookupKeys)
     {
-        if ( !is_array($this->childCollections['documents']) ) {
+        if (!is_array($this->childCollections['documents'])) {
             $this->childCollections['documents'] = [];
             if ($this->products_id) {
                 $this->childCollections['documents'] =
@@ -554,7 +568,7 @@ class Products extends EPMap
 
     public function initCollectionByLookupKey_SuppliersData($lookupKeys)
     {
-        if ( !is_array($this->childCollections['suppliers_data']) ) {
+        if (!is_array($this->childCollections['suppliers_data'])) {
             $this->childCollections['suppliers_data'] = [];
             if ($this->products_id) {
                 $this->childCollections['suppliers_data'] =
@@ -569,7 +583,7 @@ class Products extends EPMap
     // {{ XTrader
     public function initCollectionByLookupKey_SuppliersProduct($lookupKeys)
     {
-        if ( !is_array($this->childCollections['suppliers_product']) ) {
+        if (!is_array($this->childCollections['suppliers_product'])) {
             $this->childCollections['suppliers_product'] = [];
             if ($this->products_id && $this->suppliers_id) {
                 $this->childCollections['suppliers_product'] =
@@ -588,7 +602,7 @@ class Products extends EPMap
      */
     public function getDescriptions()
     {
-        return $this->hasMany(Description::className(), ['products_id'=>'products_id']);
+        return $this->hasMany(Description::className(), ['products_id' => 'products_id']);
     }
 
     /**
@@ -596,13 +610,12 @@ class Products extends EPMap
      */
     public function getInventory()
     {
-        return $this->hasMany(Inventory::className(), ['prid'=>'products_id']);
+        return $this->hasMany(Inventory::className(), ['prid' => 'products_id']);
     }
-
 
     public function getFeatured()
     {
-        return $this->hasOne(Featured::className(),['products_id'=>'products_id'])->where(['affiliate_id'=>0]);
+        return $this->hasOne(Featured::className(), ['products_id' => 'products_id'])->where(['affiliate_id' => 0]);
     }
     /*public function extraFields()
     {
@@ -613,13 +626,13 @@ class Products extends EPMap
     {
         $tools = \backend\models\EP\Tools::getInstance();
         $export = parent::exportArray($fields);
-        if ( array_key_exists('stock_delivery_terms_id', $export) || in_array('stock_delivery_terms_text',$fields) ){
+        if (array_key_exists('stock_delivery_terms_id', $export) || in_array('stock_delivery_terms_text', $fields)) {
             $export['stock_delivery_terms_text'] = $tools->getStockDeliveryTerms($this->stock_delivery_terms_id);
         }
-        if ( array_key_exists('stock_indication_id', $export) || in_array('stock_indication_text',$fields) ){
+        if (array_key_exists('stock_indication_id', $export) || in_array('stock_indication_text', $fields)) {
             $export['stock_indication_text'] = $tools->getStockIndication($this->stock_indication_id);
         }
-        if ( array_key_exists('manufacturers_id', $export) || in_array('manufacturers_name',$fields) ) {
+        if (array_key_exists('manufacturers_id', $export) || in_array('manufacturers_name', $fields)) {
             $export['manufacturers_name'] = \common\helpers\Manufacturers::get_manufacturer_info('manufacturers_name', $this->manufacturers_id);
         }
         return $export;
@@ -628,28 +641,30 @@ class Products extends EPMap
     public function importArray($data)
     {
         $tools = \backend\models\EP\Tools::getInstance();
-        if ( array_key_exists('stock_delivery_terms_text', $data) ){
+        if (array_key_exists('stock_delivery_terms_text', $data)) {
             $data['stock_delivery_terms_id'] = $tools->lookupStockDeliveryTermId($data['stock_delivery_terms_text']);
         }
-        if ( array_key_exists('stock_indication_text', $data) ){
+        if (array_key_exists('stock_indication_text', $data)) {
             $data['stock_indication_id'] = $tools->lookupStockIndicationId($data['stock_indication_text']);
         }
-        if ( array_key_exists('manufacturers_name', $data) ) {
+        if (array_key_exists('manufacturers_name', $data)) {
             $data['manufacturers_id'] = $tools->get_brand_by_name($data['manufacturers_name']);
-            if ( $data['manufacturers_id']==='null' ) $data['manufacturers_id'] = null;
+            if ($data['manufacturers_id'] === 'null') {
+                $data['manufacturers_id'] = null;
+            }
         }
 
-        if ( isset($data['warehouses_products']) && is_array($data['warehouses_products']) ) {
+        if (isset($data['warehouses_products']) && is_array($data['warehouses_products'])) {
             unset($data['products_quantity']);
         }
 
         $importResult = parent::importArray($data);
 
-        if ( array_key_exists('attributes', $data) ) {
+        if (array_key_exists('attributes', $data)) {
             $this->checkInventory();
         }
 
-        if ( isset($data['AutoStatus']) ){
+        if (isset($data['AutoStatus'])) {
             $this->AutoStatus = $data['AutoStatus'];
         }
 
@@ -663,15 +678,17 @@ class Products extends EPMap
 
     public function removeInvalidSpecials()
     {
-        foreach (Special::find()->where(['products_id'=>$this->products_id,'status'=>0, 'start_date'=>null, 'expires_date'=>null, ])
-                     ->all() as $removeInactive){
+        foreach (Special::find()->where(['products_id' => $this->products_id,'status' => 0, 'start_date' => null, 'expires_date' => null, ])
+                     ->all() as $removeInactive) {
             $removeInactive->delete();
         }
     }
 
     public function checkInventory()
     {
-        if ( !$this->inventoryPresent ) return;
+        if (!$this->inventoryPresent) {
+            return;
+        }
         $attr = $this->getAssignedAttributeIds(true);
         $options = $attr;
         ksort($options);
@@ -686,24 +703,24 @@ class Products extends EPMap
             asort($options[$key]);
         }
 
-        $inventory_options = array();
-        if ( count($options)>0 ) {
+        $inventory_options = [];
+        if (count($options) > 0) {
             $inventory_options = \common\helpers\Inventory::get_inventory_uprid($options, $idx);
         }
 
-        if ( !is_array($this->childCollections['inventory']) ) {
+        if (!is_array($this->childCollections['inventory'])) {
             $this->initCollectionByLookupKey_Inventory([]);
         }
 
-        foreach ( $this->childCollections['inventory'] as $idx=>$inventoryObj ) {
-            $partialUprid = preg_replace('/^\d+/','',$inventoryObj->products_id);
+        foreach ($this->childCollections['inventory'] as $idx => $inventoryObj) {
+            $partialUprid = preg_replace('/^\d+/', '', $inventoryObj->products_id);
 
-            $haveValidIdx = array_search($partialUprid,$inventory_options);
-            if ( $haveValidIdx!==false ) {
+            $haveValidIdx = array_search($partialUprid, $inventory_options);
+            if ($haveValidIdx !== false) {
                 // valid inventory uprid
                 unset($inventory_options[$haveValidIdx]);
                 $inventoryObj->pendingRemoval = false;
-            }else{
+            } else {
                 $inventoryObj->pendingRemoval = true;
             }
         }
@@ -721,20 +738,20 @@ class Products extends EPMap
 
     public function beforeSave($insert)
     {
-        if ( $ext = \common\helpers\Acl::checkExtensionAllowed('AutomaticallyStatus', 'allowed') && isset($this->auto_status) ) {
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('AutomaticallyStatus', 'allowed') && isset($this->auto_status)) {
             unset($this->products_status);
         }
 
-        if ($this->inventoryPresent && $this->hasAssignedProductAttributes()){
+        if ($this->inventoryPresent && $this->hasAssignedProductAttributes()) {
             $this->childCollections['warehouses_products'] = [];
-        }else{
+        } else {
             if ($this->getDirtyAttributes(['products_quantity'])) {
                 $default_warehouse_id = intval(\common\helpers\Warehouses::get_default_warehouse());
                 $defaultWH = $default_warehouse_id . '_' . \common\helpers\Suppliers::getDefaultSupplierId();
-                if ( count($this->childCollections['warehouses_products'])==0 ) {
+                if (count($this->childCollections['warehouses_products']) == 0) {
                     $this->initCollectionByLookupKey_WarehousesProducts(['*']);
                 }
-                if ( !isset($this->childCollections['warehouses_products'][$defaultWH]) ) {
+                if (!isset($this->childCollections['warehouses_products'][$defaultWH])) {
                     $this->childCollections['warehouses_products'][$defaultWH] = new WarehousesProducts([]);
                     $this->childCollections['warehouses_products'][$defaultWH]->warehouse_id = $default_warehouse_id;
                     $this->childCollections['warehouses_products'][$defaultWH]->suppliers_id = \common\helpers\Suppliers::getDefaultSupplierId();
@@ -745,20 +762,20 @@ class Products extends EPMap
                 unset($this->products_quantity);
             }
         }
-        if ( $insert ) {
-            if ( empty($this->products_date_added) ) {
-                $this->products_date_added = new Expression("NOW()");
+        if ($insert) {
+            if (empty($this->products_date_added)) {
+                $this->products_date_added = new Expression('NOW()');
             }
-            if (defined('NEW_MARK_UNTIL_DAYS') && intval(constant('NEW_MARK_UNTIL_DAYS'))>0 && empty($this->products_new_until)) {
-                $this->products_new_until = date(\common\helpers\Date::DATABASE_DATE_FORMAT, strtotime('+' . intval(constant('NEW_MARK_UNTIL_DAYS')) . ' day') );
+            if (defined('NEW_MARK_UNTIL_DAYS') && intval(constant('NEW_MARK_UNTIL_DAYS')) > 0 && empty($this->products_new_until)) {
+                $this->products_new_until = date(\common\helpers\Date::DATABASE_DATE_FORMAT, strtotime('+' . intval(constant('NEW_MARK_UNTIL_DAYS')) . ' day'));
             }
-        }else{
-            if ( $this->isModified() ) {
-                $this->products_last_modified = new Expression("NOW()");
+        } else {
+            if ($this->isModified()) {
+                $this->products_last_modified = new Expression('NOW()');
             }
         }
-        if ( $insert ){
-            if ($this->parent_products_id){
+        if ($insert) {
+            if ($this->parent_products_id) {
                 $this->products_id_stock = $this->parent_products_id;
                 $this->products_id_price = $this->parent_products_id;
             }
@@ -771,8 +788,8 @@ class Products extends EPMap
     {
         parent::afterSave($insert, $changedAttributes);
 
-        if ( $insert ) {
-            if ( !$this->parent_products_id ) {
+        if ($insert) {
+            if (!$this->parent_products_id) {
                 // parented product handled in before save
                 static::updateAll(
                     [
@@ -781,64 +798,64 @@ class Products extends EPMap
                     ],
                     ['products_id' => intval($this->products_id)]
                 );
-            }else{
+            } else {
                 $childCount = static::find()
                     ->where(['parent_products_id' => intval($this->parent_products_id)])
                     ->count();
                 static::updateAll(
-                    ['sub_product_children_count'=>(int)$childCount],
-                    ['products_id'=>intval($this->parent_products_id)]
+                    ['sub_product_children_count' => (int)$childCount],
+                    ['products_id' => intval($this->parent_products_id)]
                 );
             }
         }
-        static::updateAll(['products_price_full'=>$this->products_price_full],['parent_products_id'=>$this->products_id, 'products_id_price'=>$this->products_id]);
+        static::updateAll(['products_price_full' => $this->products_price_full], ['parent_products_id' => $this->products_id, 'products_id_price' => $this->products_id]);
 
-        if ( $insert && !is_array(($this->childCollections['assigned_customer_groups']??null)) ) {
-            if ( $ext = \common\helpers\Acl::checkExtensionAllowed('UserGroupsRestrictions', 'allowed')) {
-                if ( $ext::select() ){
+        if ($insert && !is_array(($this->childCollections['assigned_customer_groups'] ?? null))) {
+            if ($ext = \common\helpers\Acl::checkExtensionAllowed('UserGroupsRestrictions', 'allowed')) {
+                if ($ext::select()) {
                     /** @var \backend\services\GroupsService $groupService */
                     try {
                         $groupService = \Yii::createObject(\backend\services\GroupsService::class);
                         $groupService->addProductToAllGroups($this->products_id);
                         unset($groupService);
-                    }catch (\Exception $ex){
+                    } catch (\Exception $ex) {
                         \common\helpers\Php::logError($ex);
                     }
                 }
             }
         }
 
-        if ( isset($this->auto_status) && ($ext = \common\helpers\Acl::checkExtensionAllowed('AutomaticallyStatus')) ) {
+        if (isset($this->auto_status) && ($ext = \common\helpers\Acl::checkExtensionAllowed('AutomaticallyStatus'))) {
             $ext::setAutoStatusProduct($this->products_id, $this->auto_status, true);
             unset($this->auto_status);
         }
 
         $used_suppliers_products_ids = [];
         $get_used_ids_r = tep_db_query(
-            "SELECT DISTINCT suppliers_id ".
-            "FROM ".TABLE_SUPPLIERS_PRODUCTS." ".
+            'SELECT DISTINCT suppliers_id '.
+            'FROM '.TABLE_SUPPLIERS_PRODUCTS.' '.
             "WHERE products_id='".$this->products_id."'"
         );
-        if ( tep_db_num_rows($get_used_ids_r)>0 ) {
-            while($get_used_id = tep_db_fetch_array($get_used_ids_r)){
+        if (tep_db_num_rows($get_used_ids_r) > 0) {
+            while ($get_used_id = tep_db_fetch_array($get_used_ids_r)) {
                 $used_suppliers_products_ids[(int)$get_used_id['suppliers_id']] = (int)$get_used_id['suppliers_id'];
             }
         }
-        if ( count($used_suppliers_products_ids)==0 ) {
+        if (count($used_suppliers_products_ids) == 0) {
             $used_suppliers_products_ids[intval(\common\helpers\Suppliers::getDefaultSupplierId())] = intval(\common\helpers\Suppliers::getDefaultSupplierId());
         }
 
         $getWhDel = WarehousesProducts::find()
-            ->where(['prid'=>$this->products_id]);
-        if ( count($used_suppliers_products_ids)>0 ) {
+            ->where(['prid' => $this->products_id]);
+        if (count($used_suppliers_products_ids) > 0) {
             $getWhDel->andWhere(['NOT IN', 'suppliers_id', array_values($used_suppliers_products_ids)]);
         }
 
-        if ($getWhDel->count()>0) {
+        if ($getWhDel->count() > 0) {
             foreach ($getWhDel->all() as $deleteWarehouseProduct) {
                 $deleteWarehouseProduct->delete();
             }
-            \common\helpers\Warehouses::update_products_quantity($this->products_id,\common\helpers\Warehouses::get_default_warehouse(),0,'+');
+            \common\helpers\Warehouses::update_products_quantity($this->products_id, \common\helpers\Warehouses::get_default_warehouse(), 0, '+');
         }
 
         /* @var $ext \common\extensions\PlainProductsDescription\PlainProductsDescription */
@@ -847,7 +864,7 @@ class Products extends EPMap
             $ext::reindex((int)$this->products_id);
         }
 
-        if ( array_key_exists('products_groups_id', $changedAttributes) ) {
+        if (array_key_exists('products_groups_id', $changedAttributes)) {
             \common\helpers\ProductsGroupSortCache::update($this->products_id);
         }
 
@@ -856,24 +873,23 @@ class Products extends EPMap
     public function afterDelete()
     {
         parent::afterDelete();
-        if ( $this->parent_products_id ) {
+        if ($this->parent_products_id) {
             $childCount = static::find()
                 ->where(['parent_products_id' => intval($this->parent_products_id)])
                 ->count();
             static::updateAll(
-                ['sub_product_children_count'=>(int)$childCount],
-                ['products_id'=>intval($this->parent_products_id)]
+                ['sub_product_children_count' => (int)$childCount],
+                ['products_id' => intval($this->parent_products_id)]
             );
-        }else{
+        } else {
             foreach (static::find()
-                         ->where(['parent_products_id'=>$this->products_id])
+                         ->where(['parent_products_id' => $this->products_id])
                          ->select(['products_id'])
                          ->asArray()
-                         ->all() as $childProduct){
+                         ->all() as $childProduct) {
                 \common\helpers\Product::remove_product($childProduct['products_id']);
             }
         }
     }
-
 
 }

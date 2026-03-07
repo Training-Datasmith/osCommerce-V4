@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,7 +18,6 @@ use common\api\models\AR\EPMap;
 
 class PropertyDescription extends EPMap
 {
-
     public static function tableName()
     {
         return TABLE_PROPERTIES_DESCRIPTION;
@@ -36,7 +37,7 @@ class PropertyDescription extends EPMap
     public static function getAllKeyCodes()
     {
         $keyCodes = [];
-        foreach (\common\classes\language::get_all() as $lang){
+        foreach (\common\classes\language::get_all() as $lang) {
             $keyCode = $lang['code'].'';
             $keyCodes[$keyCode] = [
                 'properties_id' => null,

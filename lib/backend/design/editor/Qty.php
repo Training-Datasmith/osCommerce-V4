@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace backend\design\editor;
 
-
-use Yii;
 use yii\base\Widget;
 
-class Qty extends Widget {
-
+class Qty extends Widget
+{
     public $manager;
     public $product;
     public $isPack = false;
@@ -25,11 +25,13 @@ class Qty extends Widget {
     public $min = "data-min='1'";
     public $step = "data-step='1'";
 
-    public function init(){
+    public function init()
+    {
         parent::init();
     }
 
-    public function run(){
+    public function run()
+    {
 
         $this->max = $this->product['stock_info']['max_qty'] + $this->product['reserved_qty'];
 
@@ -37,22 +39,22 @@ class Qty extends Widget {
             $this->product['stock_limits'] = \common\helpers\Product::get_product_order_quantity($this->product['id']);
         }
 
-        if (\common\helpers\Acl::checkExtensionAllowed('MinimumOrderQty', 'allowed')){
+        if (\common\helpers\Acl::checkExtensionAllowed('MinimumOrderQty', 'allowed')) {
             $this->min = \common\extensions\MinimumOrderQty\MinimumOrderQty::setLimit($this->product['stock_limits']);
         }
 
         if ($oqs = \common\helpers\Extensions::isAllowed('OrderQuantityStep')) {
             $this->step = $oqs::setLimit($this->product['stock_limits']);
         }
-        if ($this->isPack){
-            $insulator = new \backend\services\ProductInsulatorService( $this->product['id'], $this->manager);
+        if ($this->isPack) {
+            $insulator = new \backend\services\ProductInsulatorService($this->product['id'], $this->manager);
             $_product = $insulator->getProduct();
-            if ($_product){
+            if ($_product) {
                 $this->product['data'] = $_product->getAttributes();
                 $m = [
                     $this->max,
-                    floor($this->product['data']['pack_unit'] ? $this->max/$this->product['data']['pack_unit']  :0 ),
-                    floor($this->product['data']['packaging'] ? $this->max/$this->product['data']['packaging']  :0 ),
+                    floor($this->product['data']['pack_unit'] ? $this->max / $this->product['data']['pack_unit'] : 0),
+                    floor($this->product['data']['packaging'] ? $this->max / $this->product['data']['packaging'] : 0),
                 ];
                 $this->max = $m;
             }
@@ -69,4 +71,3 @@ class Qty extends Widget {
     }
 
 }
-

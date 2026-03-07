@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,16 +16,18 @@
 namespace common\modules\orderPayment;
 
 use common\classes\modules\ModulePayment;
-use common\classes\modules\ModuleStatus;
 use common\classes\modules\ModuleSortOrder;
-use common\classes\modules\TransactionalInterface;
+use common\classes\modules\ModuleStatus;
 use common\classes\modules\PaymentTokensInterface;
+use common\classes\modules\TransactionalInterface;
 use common\helpers\OrderPayment as OrderPaymentHelper;
-use common\helpers\Html;
 
-class sage_pay_server extends ModulePayment implements TransactionalInterface, PaymentTokensInterface, \common\classes\modules\TransactionSearchInterface {
-
-    var $code, $title, $description, $enabled;
+class sage_pay_server extends ModulePayment implements TransactionalInterface, PaymentTokensInterface, \common\classes\modules\TransactionSearchInterface
+{
+    public $code;
+    public $title;
+    public $description;
+    public $enabled;
     private $debug = false;
     private $referrer = '0014H00004B1ikG'; //osc,  'E57C3C9C-DB7F-4EA1-9AE7-252EEBE28626' PC by holbi;
     protected $defaultTranslationArray = [
@@ -32,7 +36,7 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
         //https://support.sagepay.com/apply/default.aspx?PartnerID=E57C3C9C-DB7F-4EA1-9AE7-252EEBE28626
       'MODULE_PAYMENT_SAGE_PAY_SERVER_TEXT_DESCRIPTION' => '<img src="images/icon_popup.gif" border="0">&nbsp;<a href="https://referrals.elavon.co.uk/?partner_id=0014H00004B1ikG" target="_blank" style="text-decoration: underline; font-weight: bold;">Visit Opayo Website</a>',
       'MODULE_PAYMENT_SAGE_PAY_SERVER_ERROR_TITLE' => 'There has been an error processing your credit card',
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_ERROR_GENERAL' => 'Please try again and if problems persist, please try another payment method.'
+      'MODULE_PAYMENT_SAGE_PAY_SERVER_ERROR_GENERAL' => 'Please try again and if problems persist, please try another payment method.',
     ];
     protected $encrypted_keys = ['MODULE_PAYMENT_SAGE_PAY_SERVER_ACCOUNT', 'MODULE_PAYMENT_SAGE_PAY_SERVER_ACCOUNT_PASSWORD'];
 
@@ -44,22 +48,23 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
         ];
     }
 
-// class constructor
-    function __construct() {
+    // class constructor
+    public function __construct()
+    {
         parent::__construct();
 
         $this->signature = 'sage_pay|sage_pay_server|2.0|2.3';
         $this->api_version = '3.00';
-    if (defined('MODULE_PAYMENT_SAGE_PAY_SERVER_API_VERSION')) {
-        $this->api_version = MODULE_PAYMENT_SAGE_PAY_SERVER_API_VERSION;
-    }
+        if (defined('MODULE_PAYMENT_SAGE_PAY_SERVER_API_VERSION')) {
+            $this->api_version = MODULE_PAYMENT_SAGE_PAY_SERVER_API_VERSION;
+        }
 
         $this->code = 'sage_pay_server';
         $this->title = MODULE_PAYMENT_SAGE_PAY_SERVER_TEXT_TITLE;
         $this->public_title = MODULE_PAYMENT_SAGE_PAY_SERVER_TEXT_PUBLIC_TITLE;
         $this->description = MODULE_PAYMENT_SAGE_PAY_SERVER_TEXT_DESCRIPTION;
 
-//$this->description  .= $this->getAPIUser() . ' !!' . $this->getAPIPassword();
+        //$this->description  .= $this->getAPIUser() . ' !!' . $this->getAPIPassword();
 
         if (!defined('MODULE_PAYMENT_SAGE_PAY_SERVER_STATUS')) {
             $this->enabled = false;
@@ -69,9 +74,9 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
         $this->enabled = ((MODULE_PAYMENT_SAGE_PAY_SERVER_STATUS == 'True') ? true : false);
         $this->online = true;
 
-// {{
-//      if (IS_TRADE_SITE == 'True') $this->enabled = false;
-// }}
+        // {{
+        //      if (IS_TRADE_SITE == 'True') $this->enabled = false;
+        // }}
 
         if ((int) MODULE_PAYMENT_SAGE_PAY_SERVER_ORDER_STATUS_ID > 0) {
             if (!defined('MODULE_PAYMENT_SAGE_PAY_SERVER_T3M_VERIFICATION') || MODULE_PAYMENT_SAGE_PAY_SERVER_T3M_VERIFICATION != 'Required') {
@@ -82,12 +87,13 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
         $this->update_status();
     }
 
-// class methods
-    function update_status() {
+    // class methods
+    public function update_status()
+    {
 
         if (($this->enabled == true) && ((int) MODULE_PAYMENT_SAGE_PAY_SERVER_ZONE > 0)) {
             $check_flag = false;
-            $check_query = tep_db_query("select zone_id from " . TABLE_ZONES_TO_GEO_ZONES . " where geo_zone_id = '" . MODULE_PAYMENT_SAGE_PAY_SERVER_ZONE . "' and zone_country_id = '" . $this->billing['country']['id'] . "' order by zone_id");
+            $check_query = tep_db_query('select zone_id from ' . TABLE_ZONES_TO_GEO_ZONES . " where geo_zone_id = '" . MODULE_PAYMENT_SAGE_PAY_SERVER_ZONE . "' and zone_country_id = '" . $this->billing['country']['id'] . "' order by zone_id");
             while ($check = tep_db_fetch_array($check_query)) {
                 if ($check['zone_id'] < 1) {
                     $check_flag = true;
@@ -104,7 +110,8 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
         }
     }
 
-    public function updateTitle($platformId = 0) {
+    public function updateTitle($platformId = 0)
+    {
         $mode = $this->get_config_key((int) $platformId, 'MODULE_PAYMENT_SAGE_PAY_SERVER_TRANSACTION_SERVER');
         if ($mode !== false) {
             $mode = strtolower($mode);
@@ -131,15 +138,17 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
         return false;
     }
 
-    function javascript_validation() {
+    public function javascript_validation()
+    {
         return false;
     }
 
-    function selection() {
+    public function selection()
+    {
         $this->manager->remove('ptoken');
         $this->manager->remove('use_token');
-        $selection = array('id' => $this->code,
-          'module' => $this->public_title);
+        $selection = ['id' => $this->code,
+          'module' => $this->public_title];
 
         $fields = $this->renderTokenSelection((int) $this->manager->getCustomerAssigned());
         if (!empty($fields)) {
@@ -155,13 +164,15 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
         return $selection;
     }
 
-    protected function tlPopupJS(): string {
-    $this->registerCallback("popUpIframe{$this->code}");
+    protected function tlPopupJS(): string
+    {
+        $this->registerCallback("popUpIframe{$this->code}");
         \Yii::$app->getView()->registerJs(parent::tlPopupJS());
         return '';
     }
 
-    function pre_confirmation_check() {
+    public function pre_confirmation_check()
+    {
         $order = $this->manager->getOrderInstance();
         //\Yii::$app->request->post()
         if (!empty($_POST[$this->code . 'ptoken']) && $this->checkToken((int) $this->manager->getCustomerAssigned(), $_POST[$this->code . 'ptoken'])) {
@@ -175,17 +186,20 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
         }
         if (!empty($_POST['set_default_token'])) {
             $this->manager->set('update_default_token', $_POST['set_default_token']);
-            $this->saveToken((int) $this->manager->getCustomerAssigned(),
+            $this->saveToken(
+                (int) $this->manager->getCustomerAssigned(),
                 [
                   'old_payment_token' => $this->manager->get('ptoken'),
-                  'token' => $this->manager->get('ptoken')
-            ]);
+                  'token' => $this->manager->get('ptoken'),
+            ]
+            );
         }
 
         return true;
     }
 
-    function confirmation() {
+    public function confirmation()
+    {
         return false;
         if ($this->isWithoutConfirmation()) {
             return false;
@@ -193,70 +207,72 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
         //no popup, never !!!! return ['title' => $this->tlPopupJS()];
     }
 
-    function process_button() {
+    public function process_button()
+    {
         return false;
     }
 
-  /**
-   * Validate vpsSignature in POST against saved in session
-   */
-  public function validateResponse() {
-    $ret = false;
-    $sig_string = '';
-    $post = \Yii::$app->request->post();
-    if ($this->api_version == '3.00') {
-        $keys = [
-              'VPSTxId',
-              'VendorTxCode',
-              'Status',
-              'TxAuthNo',
-              'VendorName',
-              'AVSCV2',
-              'SecurityKey',
-              'AddressResult',
-              'PostCodeResult',
-              'CV2Result',
-              'GiftAid',
-              '3DSecureStatus',
-              'CAVV',
-              'AddressStatus',
-              'PayerStatus',
-              'CardType',
-              'Last4Digits',
-              'DeclineCode',
-              'ExpiryDate',
-              'FraudResponse',
-              'BankAuthCode',
-            ];
-    } else {
-        $keys = [
-              'VPSTxId',
-              'VendorTxCode',
-              'Status',
-              'TxAuthNo',
-              'VendorName',
-              'AVSCV2',
-              'SecurityKey',
-              'AddressResult',
-              'PostCodeResult',
-              'CV2Result',
-              'GiftAid',
-              '3DSecureStatus',
-              'CAVV',
-              'AddressStatus',
-              'PayerStatus',
-              'CardType',
-              'Last4Digits',
-              'DeclineCode',
-              'ExpiryDate',
-              'FraudResponse',
-              'BankAuthCode',
-              'ACSTransID',
-              'DSTransID',
-              'SchemeTraceID',
-            ];
-    }
-    foreach ($keys as $key) {
+    /**
+     * Validate vpsSignature in POST against saved in session
+     */
+    public function validateResponse()
+    {
+        $ret = false;
+        $sig_string = '';
+        $post = \Yii::$app->request->post();
+        if ($this->api_version == '3.00') {
+            $keys = [
+                  'VPSTxId',
+                  'VendorTxCode',
+                  'Status',
+                  'TxAuthNo',
+                  'VendorName',
+                  'AVSCV2',
+                  'SecurityKey',
+                  'AddressResult',
+                  'PostCodeResult',
+                  'CV2Result',
+                  'GiftAid',
+                  '3DSecureStatus',
+                  'CAVV',
+                  'AddressStatus',
+                  'PayerStatus',
+                  'CardType',
+                  'Last4Digits',
+                  'DeclineCode',
+                  'ExpiryDate',
+                  'FraudResponse',
+                  'BankAuthCode',
+                ];
+        } else {
+            $keys = [
+                  'VPSTxId',
+                  'VendorTxCode',
+                  'Status',
+                  'TxAuthNo',
+                  'VendorName',
+                  'AVSCV2',
+                  'SecurityKey',
+                  'AddressResult',
+                  'PostCodeResult',
+                  'CV2Result',
+                  'GiftAid',
+                  '3DSecureStatus',
+                  'CAVV',
+                  'AddressStatus',
+                  'PayerStatus',
+                  'CardType',
+                  'Last4Digits',
+                  'DeclineCode',
+                  'ExpiryDate',
+                  'FraudResponse',
+                  'BankAuthCode',
+                  'ACSTransID',
+                  'DSTransID',
+                  'SchemeTraceID',
+                ];
+        }
+        foreach ($keys as $key) {
             if ($key == 'VendorName') {
                 // Please ensure the VendorName is lower case prior to hashing.
                 $sig_string .= strtolower(substr(MODULE_PAYMENT_SAGE_PAY_SERVER_VENDOR_LOGIN_NAME, 0, 15));
@@ -275,7 +291,8 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
         return $ret;
     }
 
-    public function safeServer() {
+    public function safeServer()
+    {
 
         $post = \Yii::$app->request->post();
         if ($this->validateResponse()) {
@@ -312,20 +329,22 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
                         $expYear = '20' . substr($expDate, 2);
                         $expMonth = substr($expDate, 0, 2);
                     }
-                    $this->saveToken((int) $this->manager->getCustomerAssigned(),
+                    $this->saveToken(
+                        (int) $this->manager->getCustomerAssigned(),
                         [
                           'token' => $token,
                           'cardType' => \Yii::$app->request->post('CardType', ''),
                           'lastDigits' => \Yii::$app->request->post('Last4Digits', ''),
-                          'expDate' => (!empty($expMonth) ? date('Y-m-t', mktime(23, 59, 59, intval($expMonth), 1, $expYear)) : '')
-                    ]);
+                          'expDate' => (!empty($expMonth) ? date('Y-m-t', mktime(23, 59, 59, intval($expMonth), 1, $expYear)) : ''),
+                    ]
+                    );
                 }
 
                 $this->manager->set('sage_pay_server_additional_info', $sage_pay_server_additional_info);
                 $params = [
                   'check' => 'PROCESS',
                   'key' => md5($this->manager->get('sage_pay_server_securitykey')),
-                  tep_session_name() => tep_session_id()
+                  tep_session_name() => tep_session_id(),
                 ];
                 if ($this->manager->has('pay_order_id') && is_numeric($this->manager->get('pay_order_id'))) {
                     $params['order_id'] = $this->manager->get('pay_order_id');
@@ -338,7 +357,7 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
             $this->manager->remove('sage_pay_server_securitykey');
             $this->manager->remove('sage_pay_server_nexturl');
             $this->manager->remove('sage_pay_server_tmp_order');
-            //cancel ?? 
+            //cancel ??
             $this->manager->remove('sage_pay_server_order_before');
 
             $error = $post['StatusDetail'];
@@ -356,7 +375,8 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
         exit;
     }
 
-    public function isPartlyPaid() {
+    public function isPartlyPaid()
+    {
         $ret = parent::isPartlyPaid() || \Yii::$app->request->get('partlypaid');
         if ($ret && $this->manager->has('pay_order_id') && is_numeric($this->manager->get('pay_order_id'))) {
             if ($this->manager->isInstance()) {
@@ -369,10 +389,11 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
         return $ret;
     }
 
-    function before_process() {
+    public function before_process()
+    {
 
         if ($this->debug) {
-//            \Yii::warning(print_r(\Yii::$app->request->post(), 1), 'SAGEPAY_RESPONSE POST');
+            //            \Yii::warning(print_r(\Yii::$app->request->post(), 1), 'SAGEPAY_RESPONSE POST');
         }
 
         $error = null;
@@ -392,12 +413,12 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
                 $this->manager->remove('sage_pay_server_securitykey');
                 $this->manager->remove('sage_pay_server_nexturl');
                 $orderClass = $this->saveOrderBefore();
-                if ( ($orderClass=='TmpOrder' && $this->manager->has('sage_pay_server_tmp_order') && !empty($this->manager->get('sage_pay_server_tmp_order')))
-                     || ($orderClass=='Order'&& $this->manager->has('sage_pay_server_order_before') && !empty($this->manager->get('sage_pay_server_order_before')))
-                    ) {
+                if (($orderClass == 'TmpOrder' && $this->manager->has('sage_pay_server_tmp_order') && !empty($this->manager->get('sage_pay_server_tmp_order')))
+                     || ($orderClass == 'Order' && $this->manager->has('sage_pay_server_order_before') && !empty($this->manager->get('sage_pay_server_order_before')))
+                ) {
 
                     //order either saved  or should be saved from TMP
-                    if ($orderClass=='TmpOrder') {
+                    if ($orderClass == 'TmpOrder') {
                         //create from temp
                         $tmpOid = substr($this->manager->get('sage_pay_server_tmp_order'), 3);
                         /** @var \common\classes\TmpOrder $order */
@@ -416,8 +437,7 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
                             \Yii::warning("tmporder is incorrect $tmpOid", 'TLDEBUG_' . $this->code);
                             return true; //create new order from cart
                         }
-                    }
-                    else {
+                    } else {
                         //update status
                         $oId = $this->manager->get('sage_pay_server_order_before');
                         //$oId = substr($this->manager->get('sage_pay_server_order_before'), 1);
@@ -428,14 +448,14 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
                                 \common\helpers\Order::setStatus($oId, $this->order_status);
                                 $order->info['order_status'] = $this->order_status;
                             }
-//                            $order->info['comments'] = $pp_result;
+                            //                            $order->info['comments'] = $pp_result;
 
                             $order->update_piad_information(true);
 
                             $order->save_details();
                             $order->info['comments'] = '';
 
-                            $order->notify_customer($order->getProductsHtmlForEmail(),[]);
+                            $order->notify_customer($order->getProductsHtmlForEmail(), []);
                             $this->trackCredits();
                         } else {
                             \Yii::warning("order is incorrect $oId", 'TLDEBUG_' . $this->code);
@@ -475,77 +495,77 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
                     $transId = $tmp;
                 }
             }
-      $params = array('VPSProtocol' => $this->api_version,
-        'ReferrerID' => $this->referrer,
-        'Vendor' => substr(MODULE_PAYMENT_SAGE_PAY_SERVER_VENDOR_LOGIN_NAME, 0, 15),
-        'VendorTxCode' => substr(date('YmdHis') . '-' . ($transId ? $transId : $customer_id) . '-' . $cartID, 0, 40),
-        'Amount' => $_amount,
-        'Currency' => $_cur,
-        'Description' => substr(STORE_NAME, 0, 100),
-        'NotificationURL' => tep_href_link('callback/sage-server', 'check=SERVER&' . tep_session_name() . '=' . tep_session_id() . $partlyPaid, 'SSL', false),
-        'BillingSurname' => substr($order->billing['lastname'], 0, 20),
-        'BillingFirstnames' => substr($order->billing['firstname'], 0, 20),
-        'BillingAddress1' => substr($order->billing['street_address'], 0, ($this->api_version == '3.00'?100:50)),
-        'BillingAddress2' => substr(trim(substr($order->billing['street_address'], ($this->api_version == '3.00'?100:50)) . ' ' . $order->billing['suburb']??''), 0, ($this->api_version == '3.00'?100:50)),
-        'BillingAddress3' => substr(trim(substr( trim(substr($order->billing['street_address'], ($this->api_version == '3.00'?100:50)) . ' ' . $order->billing['suburb']??''), ($this->api_version == '3.00'?100:50))), 0, ($this->api_version == '3.00'?100:50)),
+            $params = ['VPSProtocol' => $this->api_version,
+              'ReferrerID' => $this->referrer,
+              'Vendor' => substr(MODULE_PAYMENT_SAGE_PAY_SERVER_VENDOR_LOGIN_NAME, 0, 15),
+              'VendorTxCode' => substr(date('YmdHis') . '-' . ($transId ? $transId : $customer_id) . '-' . $cartID, 0, 40),
+              'Amount' => $_amount,
+              'Currency' => $_cur,
+              'Description' => substr(STORE_NAME, 0, 100),
+              'NotificationURL' => tep_href_link('callback/sage-server', 'check=SERVER&' . tep_session_name() . '=' . tep_session_id() . $partlyPaid, 'SSL', false),
+              'BillingSurname' => substr($order->billing['lastname'], 0, 20),
+              'BillingFirstnames' => substr($order->billing['firstname'], 0, 20),
+              'BillingAddress1' => substr($order->billing['street_address'], 0, ($this->api_version == '3.00' ? 100 : 50)),
+              'BillingAddress2' => substr(trim(substr($order->billing['street_address'], ($this->api_version == '3.00' ? 100 : 50)) . ' ' . $order->billing['suburb'] ?? ''), 0, ($this->api_version == '3.00' ? 100 : 50)),
+              'BillingAddress3' => substr(trim(substr(trim(substr($order->billing['street_address'], ($this->api_version == '3.00' ? 100 : 50)) . ' ' . $order->billing['suburb'] ?? ''), ($this->api_version == '3.00' ? 100 : 50))), 0, ($this->api_version == '3.00' ? 100 : 50)),
 
-        'BillingCity' => substr($order->billing['city'], 0, 40),
-        'BillingPostCode' => substr($order->billing['postcode'], 0, 10),
-        'BillingCountry' => $order->billing['country']['iso_code_2'],
-        'BillingPhone' => substr($order->customer['telephone'], 0, 20),
-        'DeliverySurname' => substr($order->delivery['lastname'], 0, 20),
-        'DeliveryFirstnames' => substr($order->delivery['firstname'], 0, 20),
-        'DeliveryAddress1' => substr($order->delivery['street_address'], 0, ($this->api_version == '3.00'?100:50)),
-        'DeliveryAddress2' => substr(trim(substr($order->delivery['street_address'], ($this->api_version == '3.00'?100:50)) . ' ' . $order->delivery['suburb']??''), 0, ($this->api_version == '3.00'?100:50)),
-        'DeliveryAddress3' => substr(trim(substr( trim(substr($order->delivery['street_address'], ($this->api_version == '3.00'?100:50)) . ' ' . $order->delivery['suburb']??''), ($this->api_version == '3.00'?100:50))), 0, ($this->api_version == '3.00'?100:50)),
-        'DeliveryCity' => substr($order->delivery['city'], 0, 40),
-        'DeliveryPostCode' => substr($order->delivery['postcode'], 0, 10),
-        'DeliveryCountry' => @$order->delivery['country']['iso_code_2'],
-        'DeliveryPhone' => substr($order->customer['telephone'], 0, 20),
-        'CustomerEMail' => substr($order->customer['email_address'], 0, ($this->api_version == '3.00'?80:255)),
-        //'ApplyAVSCV2' => '2',
-        'Apply3DSecure' => '0');
-        if (!empty($VendorData)) {
-            $params['VendorData'] = $VendorData;
-        }
-      $ip_address = \common\helpers\System::get_ip_address();
-      if ($this->manager->has('ptoken') && !empty($this->manager->get('ptoken'))) {
-        $params['Token'] = $this->manager->get('ptoken');
-        $params['StoreToken'] = 1;
-        if ($this->api_version != '3.00') {
-            $params['COFUsage'] = 'SUBSEQUENT';
-            $params['InitiatedType'] = 'CIT';
-        }
+              'BillingCity' => substr($order->billing['city'], 0, 40),
+              'BillingPostCode' => substr($order->billing['postcode'], 0, 10),
+              'BillingCountry' => $order->billing['country']['iso_code_2'],
+              'BillingPhone' => substr($order->customer['telephone'], 0, 20),
+              'DeliverySurname' => substr($order->delivery['lastname'], 0, 20),
+              'DeliveryFirstnames' => substr($order->delivery['firstname'], 0, 20),
+              'DeliveryAddress1' => substr($order->delivery['street_address'], 0, ($this->api_version == '3.00' ? 100 : 50)),
+              'DeliveryAddress2' => substr(trim(substr($order->delivery['street_address'], ($this->api_version == '3.00' ? 100 : 50)) . ' ' . $order->delivery['suburb'] ?? ''), 0, ($this->api_version == '3.00' ? 100 : 50)),
+              'DeliveryAddress3' => substr(trim(substr(trim(substr($order->delivery['street_address'], ($this->api_version == '3.00' ? 100 : 50)) . ' ' . $order->delivery['suburb'] ?? ''), ($this->api_version == '3.00' ? 100 : 50))), 0, ($this->api_version == '3.00' ? 100 : 50)),
+              'DeliveryCity' => substr($order->delivery['city'], 0, 40),
+              'DeliveryPostCode' => substr($order->delivery['postcode'], 0, 10),
+              'DeliveryCountry' => @$order->delivery['country']['iso_code_2'],
+              'DeliveryPhone' => substr($order->customer['telephone'], 0, 20),
+              'CustomerEMail' => substr($order->customer['email_address'], 0, ($this->api_version == '3.00' ? 80 : 255)),
+              //'ApplyAVSCV2' => '2',
+              'Apply3DSecure' => '0'];
+            if (!empty($VendorData)) {
+                $params['VendorData'] = $VendorData;
+            }
+            $ip_address = \common\helpers\System::get_ip_address();
+            if ($this->manager->has('ptoken') && !empty($this->manager->get('ptoken'))) {
+                $params['Token'] = $this->manager->get('ptoken');
+                $params['StoreToken'] = 1;
+                if ($this->api_version != '3.00') {
+                    $params['COFUsage'] = 'SUBSEQUENT';
+                    $params['InitiatedType'] = 'CIT';
+                }
 
-        if (defined('MODULE_PAYMENT_SAGE_PAY_3DS_SKIP') && (float) MODULE_PAYMENT_SAGE_PAY_3DS_SKIP >= $params['Amount']) {
-          $params['Apply3DSecure'] = '2';
-          if ($this->api_version != '3.00') {
-            $params['ThreeDSExemptionIndicator'] = '01';
-            /*
-                01 = Low Value Transaction (LVT)
-                02 = TRA exemption
-                03 = Trusted beneficiaries exemption
-                04 = Secure corporate payment
-                05 = Delegated authentication
-                06 – 99 Reserved for future use
-             */
-          }
-        }
-      }
+                if (defined('MODULE_PAYMENT_SAGE_PAY_3DS_SKIP') && (float) MODULE_PAYMENT_SAGE_PAY_3DS_SKIP >= $params['Amount']) {
+                    $params['Apply3DSecure'] = '2';
+                    if ($this->api_version != '3.00') {
+                        $params['ThreeDSExemptionIndicator'] = '01';
+                        /*
+                            01 = Low Value Transaction (LVT)
+                            02 = TRA exemption
+                            03 = Trusted beneficiaries exemption
+                            04 = Secure corporate payment
+                            05 = Delegated authentication
+                            06 – 99 Reserved for future use
+                         */
+                    }
+                }
+            }
 
             if ($this->onBehalf()) {
                 $params['Apply3DSecure'] = '2';
                 $params['AccountType'] = 'M'; // by default 'E' so not set.
             }
 
-      if ($this->manager->has('use_token') && !empty($this->manager->get('use_token'))) {
-        $params['CreateToken'] = 1;
-        if ($this->api_version != '3.00'
-             && (!$this->manager->has('ptoken') || empty($this->manager->get('ptoken')))  ) {
-            $params['COFUsage'] = 'FIRST';
-            $params['InitiatedType'] = 'CIT';
-        }
-      }
+            if ($this->manager->has('use_token') && !empty($this->manager->get('use_token'))) {
+                $params['CreateToken'] = 1;
+                if ($this->api_version != '3.00'
+                     && (!$this->manager->has('ptoken') || empty($this->manager->get('ptoken')))) {
+                    $params['COFUsage'] = 'FIRST';
+                    $params['InitiatedType'] = 'CIT';
+                }
+            }
 
             if ((ip2long($ip_address) != -1) && (ip2long($ip_address) != false)) {
                 $params['ClientIPAddress'] = $ip_address;
@@ -571,9 +591,8 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
             if (MODULE_PAYMENT_SAGE_PAY_SERVER_PROFILE_PAGE != 'Normal') {
                 $params['Profile'] = 'LOW';
             }
-            /*         */
 
-            $contents = array();
+            $contents = [];
 
             foreach ($order->products as $product) {
                 $product_name = $product['name'];
@@ -636,11 +655,13 @@ class sage_pay_server extends ModulePayment implements TransactionalInterface, P
 EOD;
             echo $result;
             exit;
-        } else
+        } else {
             tep_redirect($error_url);
+        }
     }
 
-    function after_process() {
+    public function after_process()
+    {
 
         $response = $this->manager->get('sage_pay_server_additional_info');
         /*
@@ -698,25 +719,27 @@ EOD;
               [t3maction] => OK
              */
             foreach (
-                        array_intersect_key(
-                            array_merge(array_change_key_case($response, CASE_LOWER), $trans),
-                            array_flip([
-                                'transactiontype', 'status', 'amount', 'currency',
-                                'cv2result', 'addressresult', 'postcoderesult', 'threedresult',
-                                't3mscore', 't3maction',
-                                'paymentsystem'
-                        ])) as $k => $v) {
+                array_intersect_key(
+                    array_merge(array_change_key_case($response, CASE_LOWER), $trans),
+                    array_flip([
+                        'transactiontype', 'status', 'amount', 'currency',
+                        'cv2result', 'addressresult', 'postcoderesult', 'threedresult',
+                        't3mscore', 't3maction',
+                        'paymentsystem',
+                        ])
+                ) as $k => $v) {
                 $oComment .= "$k: $v; \n";
             }
             $comment = $oComment;
             foreach (
-                    array_intersect_key(
-                            array_merge(array_change_key_case($response, CASE_LOWER), $trans),
-                            array_flip([
-                                'expirydate', 'last4digits',
-                                'started', 'completed',
-                                'refunded', 'repeated'
-                    ])) as $k => $v) {
+                array_intersect_key(
+                    array_merge(array_change_key_case($response, CASE_LOWER), $trans),
+                    array_flip([
+                            'expirydate', 'last4digits',
+                            'started', 'completed',
+                            'refunded', 'repeated',
+                    ])
+                ) as $k => $v) {
                 $comment .= "$k: $v; \n";
             }
             $response = array_merge($response, $trans);
@@ -724,13 +747,14 @@ EOD;
             $statusCode = $this->getStatusCode($response);
             $response['amount'] = $order->info['total']; // suppose pay in full at once
             foreach (
-                        array_intersect_key(
-                            $response,
-                            array_flip([
-                                'TxType', 'Status', 'StatusDetail',
-                                'AVSCV2', 'AddressResult', 'PostCodeResult', 'CV2Result', '3DSecureStatus',
-                                'CardType'
-                        ])) as $k => $v) {
+                array_intersect_key(
+                    $response,
+                    array_flip([
+                        'TxType', 'Status', 'StatusDetail',
+                        'AVSCV2', 'AddressResult', 'PostCodeResult', 'CV2Result', '3DSecureStatus',
+                        'CardType',
+                        ])
+                ) as $k => $v) {
                 $oComment .= "$k: $v; \n";
             }
             $comment = $oComment;
@@ -756,10 +780,10 @@ EOD;
         }
         $deferred = 0;
         if (
-            ( !empty($response['TxType']) && in_array($response['TxType'], ['DEFERRED', 'AUTHENTICATE'])) ||
-            ( !empty($response['transactiontype']) && in_array($response['transactiontype'], ['Deferred', 'Authenticate'])) ||
-            ( !empty($response['txstateid']) && in_array($response['txstateid'], [14, 15])) //28
-           ){
+            (!empty($response['TxType']) && in_array($response['TxType'], ['DEFERRED', 'AUTHENTICATE'])) ||
+            (!empty($response['transactiontype']) && in_array($response['transactiontype'], ['Deferred', 'Authenticate'])) ||
+            (!empty($response['txstateid']) && in_array($response['txstateid'], [14, 15])) //28
+        ) {
             $deferred = 1;
         }
 
@@ -778,7 +802,8 @@ EOD;
                 \Yii::warning(print_r($ex->getMessage(), true), 'TLDEBUG_' . $this->code);
             }
         }
-        $ret = $tManager->updatePaymentTransaction(trim($response['orderId'], '{}'),
+        $ret = $tManager->updatePaymentTransaction(
+            trim($response['orderId'], '{}'),
             [
               'fulljson' => json_encode($response),
               'status_code' => $statusCode,
@@ -791,7 +816,8 @@ EOD;
               'orders_id' => $order->order_id,
               'deferred' => $deferred,
             // parent_transaction_id orders_id
-        ]);
+        ]
+        );
         if ($this->debug) {
             \Yii::warning(var_export($ret, true));
         }
@@ -810,7 +836,8 @@ EOD;
         tep_redirect(tep_href_link('callback/redirect-by-js', '', 'SSL')); // JS redirect
     }
 
-    protected function filterNonXmlItemName($name) {
+    protected function filterNonXmlItemName($name)
+    {
         $standardChars = '0-9a-zA-Z';
         $allowedSpecialChars = " +'/\\,.-{};_@()^\"~$=!#?|[]";
         $pattern = '`[^' . $standardChars . preg_quote($allowedSpecialChars, '/') . ']`';
@@ -819,7 +846,8 @@ EOD;
         return $name;
     }
 
-    function get_error() {
+    public function get_error()
+    {
 
         $error = \Yii::$app->request->get('error', '');
         $message = \Yii::$app->request->get('message', '');
@@ -830,140 +858,144 @@ EOD;
             $error = stripslashes(urldecode($error));
         }
 
-        $error = array('title' => MODULE_PAYMENT_SAGE_PAY_SERVER_ERROR_TITLE,
-          'error' => MODULE_PAYMENT_SAGE_PAY_SERVER_ERROR_GENERAL . ' ' . strip_tags($error));
+        $error = ['title' => MODULE_PAYMENT_SAGE_PAY_SERVER_ERROR_TITLE,
+          'error' => MODULE_PAYMENT_SAGE_PAY_SERVER_ERROR_GENERAL . ' ' . strip_tags($error)];
 
         return $error;
     }
 
-    public function describe_status_key() {
+    public function describe_status_key()
+    {
         return new ModuleStatus('MODULE_PAYMENT_SAGE_PAY_SERVER_STATUS', 'True', 'False');
     }
 
-    public function describe_sort_key() {
+    public function describe_sort_key()
+    {
         return new ModuleSortOrder('MODULE_PAYMENT_SAGE_PAY_SERVER_SORT_ORDER');
     }
 
-    public function configure_keys() {
+    public function configure_keys()
+    {
         $status_id = defined('MODULE_PAYMENT_SAGE_PAY_SERVER_ORDER_STATUS_ID') ? MODULE_PAYMENT_SAGE_PAY_SERVER_ORDER_STATUS_ID : $this->getDefaultOrderStatusId();
 
-    return array(
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_STATUS' => array(
-        'title' => 'Enable Sage Pay Server Module',
-        'value' => 'False',
-        'description' => 'Do you want to accept Sage Pay Server payments?',
-        'sort_order' => '0',
-        'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), ',
-      ),
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_VENDOR_LOGIN_NAME' => array(
-        'title' => 'Vendor Login Name',
-        'value' => '',
-        'description' => 'The vendor login name to connect to the gateway with.',
-        'sort_order' => '0',
-      ),
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_ACCOUNT' => array(
-        'title' => 'Account login',
-        'value' => '',
-        'description' => 'Account login to get transaction details',
-        'sort_order' => '0',
-        'use_function' => '\\common\\modules\\orderPayment\\sage_pay_server::useConf',
-        'set_function' => 'setConf(',
-      ),
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_ACCOUNT_PASSWORD' => array(
-        'title' => 'Account Password',
-        'value' => '',
-        'description' => 'Account password to get transaction details',
-        'sort_order' => '0',
-        'use_function' => '\\common\\modules\\orderPayment\\sage_pay_server::useConf',
-        'set_function' => 'setConf(',
-      ),
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_API_VERSION' => array(
-        'title' => 'API Version',
-        'value' => '3.00',
-        'description' => '3DS version 2 (SCA) requires API 4.00',
-        'sort_order' => '0',
-        'set_function' => 'tep_cfg_select_option(array(\'4.00\', \'3.00\'), ',
-      ),
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_PROFILE_PAGE' => array(
-        'title' => 'Profile Payment Page',
-        'value' => 'Normal',
-        'description' => 'Profile page to use for the payment page.',
-        'sort_order' => '0',
-        'set_function' => 'tep_cfg_select_option(array(\'Normal\', \'Low\'), ',
-      ),
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_TRANSACTION_METHOD' => array(
-        'title' => 'Transaction Method',
-        'value' => 'Authenticate',
-        'description' => 'The processing method to use for each transaction.',
-        'sort_order' => '0',
-        'set_function' => 'tep_cfg_select_option(array(\'Authenticate\', \'Deferred\', \'Payment\'), ',
-      ),
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_TRANSACTION_SERVER' => array(
-        'title' => 'Transaction Server',
-        'value' => 'Simulator',
-        'description' => 'Perform transactions on the production server or on the testing server.',
-        'sort_order' => '0',
-        'set_function' => 'tep_cfg_select_option(array(\'Live\', \'Test\', \'Simulator\'), ',
-      ),
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_T3M_VERIFICATION' => array(
-        'title' => 'T3M verification',
-        'value' => 'Info',
-        'description' => 'Info - ignore if not available instantly, Optional - check for updates for up to 3 days, required - do not accept transaction if none t3m info available',
-        'sort_order' => '0',
-        'set_function' => 'tep_cfg_select_option(array(\'Info\', \'Optional\', \'Required\'), ',
-      ),
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_USE_TOKENS' => array(
-        'title' => 'Allow tokens',
-        'value' => 'False',
-        'description' => 'Allow to save tokens.',
-        'sort_order' => '0',
-        'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), ',
-      ),
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_ZONE' => array(
-        'title' => 'Payment Zone',
-        'value' => '0',
-        'description' => 'If a zone is selected, only enable this payment method for that zone.',
-        'sort_order' => '2',
-        'use_function' => '\\common\\helpers\\Zones::get_zone_class_title',
-        'set_function' => 'tep_cfg_pull_down_zone_classes(',
-      ),
-      'MODULE_PAYMENT_SAGE_PAY_SERVER_ORDER_STATUS_ID' => array(
-        'title' => 'Set Order Status',
-        'value' => $status_id,
-        'description' => 'Set the status of orders made with this payment module to this value',
-        'sort_order' => '0',
-        'set_function' => 'tep_cfg_pull_down_order_statuses(',
-        'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-      ),
-          'MODULE_PAYMENT_SAGE_PAY_SERVER_ORDER_BEFORE_PAYMENT' => array(
-            'title' => 'Save order before payment',
+        return [
+          'MODULE_PAYMENT_SAGE_PAY_SERVER_STATUS' => [
+            'title' => 'Enable Sage Pay Server Module',
             'value' => 'False',
-            'description' => 'Save order before redirect to payment gateway',
+            'description' => 'Do you want to accept Sage Pay Server payments?',
             'sort_order' => '0',
-            'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\', \'Temp\'), ',
-          ),
-          'MODULE_PAYMENT_SAGE_PAY_3DS_SKIP' => array(
-            'title' => 'Skip 3D secure amount',
+            'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), ',
+          ],
+          'MODULE_PAYMENT_SAGE_PAY_SERVER_VENDOR_LOGIN_NAME' => [
+            'title' => 'Vendor Login Name',
             'value' => '',
-            'description' => 'Skip 3D secure verification when paid by token on orders below',
-            'sort_order' => '100',
-          ),
-          /* 'MODULE_PAYMENT_SAGE_PAY_SERVER_CURL' => array(
-            'title' => 'cURL Program Location',
-            'value' => '/usr/bin/curl',
-            'description' => 'The location to the cURL program application.',
+            'description' => 'The vendor login name to connect to the gateway with.',
             'sort_order' => '0',
-            ), */
-          'MODULE_PAYMENT_SAGE_PAY_SERVER_SORT_ORDER' => array(
-            'title' => 'Sort order of display.',
+          ],
+          'MODULE_PAYMENT_SAGE_PAY_SERVER_ACCOUNT' => [
+            'title' => 'Account login',
+            'value' => '',
+            'description' => 'Account login to get transaction details',
+            'sort_order' => '0',
+            'use_function' => '\\common\\modules\\orderPayment\\sage_pay_server::useConf',
+            'set_function' => 'setConf(',
+          ],
+          'MODULE_PAYMENT_SAGE_PAY_SERVER_ACCOUNT_PASSWORD' => [
+            'title' => 'Account Password',
+            'value' => '',
+            'description' => 'Account password to get transaction details',
+            'sort_order' => '0',
+            'use_function' => '\\common\\modules\\orderPayment\\sage_pay_server::useConf',
+            'set_function' => 'setConf(',
+          ],
+          'MODULE_PAYMENT_SAGE_PAY_SERVER_API_VERSION' => [
+            'title' => 'API Version',
+            'value' => '3.00',
+            'description' => '3DS version 2 (SCA) requires API 4.00',
+            'sort_order' => '0',
+            'set_function' => 'tep_cfg_select_option(array(\'4.00\', \'3.00\'), ',
+          ],
+          'MODULE_PAYMENT_SAGE_PAY_SERVER_PROFILE_PAGE' => [
+            'title' => 'Profile Payment Page',
+            'value' => 'Normal',
+            'description' => 'Profile page to use for the payment page.',
+            'sort_order' => '0',
+            'set_function' => 'tep_cfg_select_option(array(\'Normal\', \'Low\'), ',
+          ],
+          'MODULE_PAYMENT_SAGE_PAY_SERVER_TRANSACTION_METHOD' => [
+            'title' => 'Transaction Method',
+            'value' => 'Authenticate',
+            'description' => 'The processing method to use for each transaction.',
+            'sort_order' => '0',
+            'set_function' => 'tep_cfg_select_option(array(\'Authenticate\', \'Deferred\', \'Payment\'), ',
+          ],
+          'MODULE_PAYMENT_SAGE_PAY_SERVER_TRANSACTION_SERVER' => [
+            'title' => 'Transaction Server',
+            'value' => 'Simulator',
+            'description' => 'Perform transactions on the production server or on the testing server.',
+            'sort_order' => '0',
+            'set_function' => 'tep_cfg_select_option(array(\'Live\', \'Test\', \'Simulator\'), ',
+          ],
+          'MODULE_PAYMENT_SAGE_PAY_SERVER_T3M_VERIFICATION' => [
+            'title' => 'T3M verification',
+            'value' => 'Info',
+            'description' => 'Info - ignore if not available instantly, Optional - check for updates for up to 3 days, required - do not accept transaction if none t3m info available',
+            'sort_order' => '0',
+            'set_function' => 'tep_cfg_select_option(array(\'Info\', \'Optional\', \'Required\'), ',
+          ],
+          'MODULE_PAYMENT_SAGE_PAY_SERVER_USE_TOKENS' => [
+            'title' => 'Allow tokens',
+            'value' => 'False',
+            'description' => 'Allow to save tokens.',
+            'sort_order' => '0',
+            'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), ',
+          ],
+          'MODULE_PAYMENT_SAGE_PAY_SERVER_ZONE' => [
+            'title' => 'Payment Zone',
             'value' => '0',
-            'description' => 'Sort order of display. Lowest is displayed first.',
+            'description' => 'If a zone is selected, only enable this payment method for that zone.',
+            'sort_order' => '2',
+            'use_function' => '\\common\\helpers\\Zones::get_zone_class_title',
+            'set_function' => 'tep_cfg_pull_down_zone_classes(',
+          ],
+          'MODULE_PAYMENT_SAGE_PAY_SERVER_ORDER_STATUS_ID' => [
+            'title' => 'Set Order Status',
+            'value' => $status_id,
+            'description' => 'Set the status of orders made with this payment module to this value',
             'sort_order' => '0',
-          ),
-        );
+            'set_function' => 'tep_cfg_pull_down_order_statuses(',
+            'use_function' => '\\common\\helpers\\Order::get_order_status_name',
+          ],
+              'MODULE_PAYMENT_SAGE_PAY_SERVER_ORDER_BEFORE_PAYMENT' => [
+                'title' => 'Save order before payment',
+                'value' => 'False',
+                'description' => 'Save order before redirect to payment gateway',
+                'sort_order' => '0',
+                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\', \'Temp\'), ',
+              ],
+              'MODULE_PAYMENT_SAGE_PAY_3DS_SKIP' => [
+                'title' => 'Skip 3D secure amount',
+                'value' => '',
+                'description' => 'Skip 3D secure verification when paid by token on orders below',
+                'sort_order' => '100',
+              ],
+              /* 'MODULE_PAYMENT_SAGE_PAY_SERVER_CURL' => array(
+                'title' => 'cURL Program Location',
+                'value' => '/usr/bin/curl',
+                'description' => 'The location to the cURL program application.',
+                'sort_order' => '0',
+                ), */
+              'MODULE_PAYMENT_SAGE_PAY_SERVER_SORT_ORDER' => [
+                'title' => 'Sort order of display.',
+                'value' => '0',
+                'description' => 'Sort order of display. Lowest is displayed first.',
+                'sort_order' => '0',
+              ],
+            ];
     }
 
-    function isOnline() {
+    public function isOnline()
+    {
         return true;
     }
 
@@ -971,7 +1003,8 @@ EOD;
      * checks whether the module supports token system and tokens allowed on the site.
      * @return bool
      */
-    public function hasToken(): bool {
+    public function hasToken(): bool
+    {
         return true && parent::tokenAllowed();
     }
 
@@ -979,7 +1012,8 @@ EOD;
      * checks whether the module hasToken and its enabled on the module.
      * @return bool
      */
-    public function useToken(): bool {
+    public function useToken(): bool
+    {
         return ($this->hasToken() && defined('MODULE_PAYMENT_SAGE_PAY_SERVER_USE_TOKENS') && MODULE_PAYMENT_SAGE_PAY_SERVER_USE_TOKENS == 'True');
     }
 
@@ -988,7 +1022,8 @@ EOD;
      * @param array $res
      * @return array associative array  [k1=>v1, k2=>v2]
      */
-    private function parseResponce($res) {
+    private function parseResponce($res)
+    {
         $ret = [];
         if (!is_array($res)) {
             $res = [$res];
@@ -1000,7 +1035,7 @@ EOD;
                 if ($key == 'StatusDetail') {
                     $val = [
                       'code' => trim(substr($parts[1], 0, strpos($parts[1], ':'))),
-                      'description' => trim($parts[1])
+                      'description' => trim($parts[1]),
                     ];
                 } else {
                     $val = trim($parts[1]);
@@ -1017,7 +1052,8 @@ EOD;
      * @param string $mode Live | Test else Simulator
      * @return string gateway URL
      */
-    private function getApiUrl($action, $mode) {
+    private function getApiUrl($action, $mode)
+    {
         $gateway_url = '';
         switch ($mode) {
             case 'Live':
@@ -1032,7 +1068,7 @@ EOD;
                 break;
 
             default:
-//                $gateway_url = 'https://test.sagepay.com/Simulator/VSPServerGateway.asp?Service=VendorRegisterTx';
+                //                $gateway_url = 'https://test.sagepay.com/Simulator/VSPServerGateway.asp?Service=VendorRegisterTx';
                 $gateway_url = 'https://sandbox.opayo.eu.elavon.com';  //shared/server
                 $action = '';
                 break;
@@ -1094,17 +1130,18 @@ EOD;
      * @param string  $token
      * @return int number of token deleted in DB
      */
-    public function deleteToken($customersId, $token) {
+    public function deleteToken($customersId, $token)
+    {
         if ($ret = parent::deleteToken($customersId, $token)) {
             $params = ['VPSProtocol' => $this->api_version,
               'Token' => $token,
               'TxType' => 'REMOVETOKEN',
-              'Vendor' => substr(MODULE_PAYMENT_SAGE_PAY_SERVER_VENDOR_LOGIN_NAME, 0, 15)
+              'Vendor' => substr(MODULE_PAYMENT_SAGE_PAY_SERVER_VENDOR_LOGIN_NAME, 0, 15),
             ];
 
             $return = $this->prepareSendRequest('remove-token', $params);
             if (!empty($return['Status']) && $return['Status'] == 'OK') {
-                
+
             } else {
                 \Yii::warning('token wasn\'t removed ' . print_r($return, 1), 'SAGEPAY_SERVER_TOKEN');
             }
@@ -1113,7 +1150,8 @@ EOD;
         return $ret;
     }
 
-    public function canRefund($transaction_id) {
+    public function canRefund($transaction_id)
+    {
 
         $ret = false;
         $orderPayment = $this->searchRecord($transaction_id);
@@ -1124,7 +1162,8 @@ EOD;
         return $ret;
     }
 
-    public function refund($transaction_id, $amount = 0) {
+    public function refund($transaction_id, $amount = 0)
+    {
         $ret = false;
 
         $transaction = $this->getTransactionDetails($transaction_id);
@@ -1142,7 +1181,7 @@ EOD;
           [completed] => 09/08/2019 15:59:29.140
           [securitykey] => TLQKBDDAMW
          */
-        $params = array('VPSProtocol' => $this->api_version,
+        $params = ['VPSProtocol' => $this->api_version,
           'Vendor' => substr(MODULE_PAYMENT_SAGE_PAY_SERVER_VENDOR_LOGIN_NAME, 0, 15),
           'VendorTxCode' => substr(date('YmdHis') . '-' . $transaction['vpstxid'], 0, 40),
           'Amount' => $amount,
@@ -1152,7 +1191,7 @@ EOD;
           'RelatedVendorTxCode' => $transaction['vendortxcode'],
           'RelatedSecurityKey' => $transaction['securitykey'],
           'RelatedTxAuthNo' => (is_array($transaction['vpsauthcode']) ? $transaction['vpsauthcode'][0] : $transaction['vpsauthcode']),
-          'TxType' => 'REFUND');
+          'TxType' => 'REFUND'];
 
         try {
             $response = $this->prepareSendRequest('refund', $params);
@@ -1175,19 +1214,21 @@ EOD;
          */
         if (!empty($response['Status']) && $response['Status'] == 'OK') {
             $tm = $this->manager->getTransactionManager($this);
-            $res = $tm->updatePaymentTransaction(trim($response['VPSTxId'], '{}'),
+            $res = $tm->updatePaymentTransaction(
+                trim($response['VPSTxId'], '{}'),
                 [
                   'fulljson' => json_encode($response),
                   'status_code' => \common\helpers\OrderPayment::OPYS_REFUNDED,
                   'status' => $response['Status'],
                   'amount' => (float) $amount,
-                  'comments' => "Refund State: " . $response['Status'] . "\n" . "Refund Amount: " . $amount . ' ' . $response['description'],
+                  'comments' => 'Refund State: ' . $response['Status'] . "\n" . 'Refund Amount: ' . $amount . ' ' . $response['description'],
                   'date' => date('Y-m-d H:i:s' /* , strtotime($res->update_time) */),
                   'payment_class' => $this->code,
                   'payment_method' => $this->title,
                   'parent_transaction_id' => $transaction_id,
-                  'orders_id' => 0
-            ]);
+                  'orders_id' => 0,
+            ]
+            );
             if ($res) {
                 $ret = true;
             }
@@ -1212,7 +1253,8 @@ EOD;
      * @param type $response
      * @param type $transaction_id
      */
-    private function _savePaymentTransactionRefund($response, $transaction_id) {
+    private function _savePaymentTransactionRefund($response, $transaction_id)
+    {
         $orderPaymentParentRecord = $this->searchRecord($transaction_id);
         if ($orderPaymentParentRecord) {
             $orderPaymentRecord = $this->searchRecord($response['transaction_id']);
@@ -1237,7 +1279,8 @@ EOD;
     /**
      * @inheritdoc
      */
-    public function getTransactionDetails($transaction_id, \common\services\PaymentTransactionManager $tManager = null) {
+    public function getTransactionDetails($transaction_id, \common\services\PaymentTransactionManager $tManager = null)
+    {
         if (empty($this->_transactionDetails) || $transaction_id != $this->_transactionDetails['vpstxid']) {
             $ret = false;
             $orderPayment = $this->searchRecord($transaction_id);
@@ -1254,7 +1297,7 @@ EOD;
                       'baseUrl' => $url,
                       'parsers' => [
                         'xml' => '\yii\httpclient\XmlParser',
-                      ]
+                      ],
                     ]);
                     $response = $client->post('', 'XML=' . $xml)->send();
                     if ($this->debug) {
@@ -1266,7 +1309,7 @@ EOD;
                     }
                 }
             } catch (\Exception $e) {
-                \Yii::warning(" #### " .print_r($e->getMessage(), true), 'TLDEBUG_' . $this->code);
+                \Yii::warning(' #### ' .print_r($e->getMessage(), true), 'TLDEBUG_' . $this->code);
             }
             $this->_transactionDetails = $ret;
         }
@@ -1346,7 +1389,8 @@ EOD;
          */
     }
 
-    private function md5hash($xml) {
+    private function md5hash($xml)
+    {
         $password = $this->getAPIPassword();
         $signature = false;
         if ($password) {
@@ -1365,7 +1409,8 @@ EOD;
       }
      */
 
-    public function call_webhooks() {
+    public function call_webhooks()
+    {
         $error_url = \Yii::$app->request->get('redirect', '');
         $result = false;
         if (!empty($error_url)) {
@@ -1383,16 +1428,17 @@ EOD;
     /**
      * @inheritdoc
      */
-    public function search($queryParams) {
+    public function search($queryParams)
+    {
         $found = [];
         $vendor = strtolower(substr(MODULE_PAYMENT_SAGE_PAY_SERVER_VENDOR_LOGIN_NAME, 0, 15));
         $user = $this->getAPIUser();
         $xml = '<command>getTransactionList</command><vendor>' . $vendor . '</vendor><user>' . $user . '</user><sorttype>ByDate</sorttype><sortorder>DESC</sortorder>';
         if ($queryParams['START_DATE']) {
-            $xml .= '<startdate>' . gmdate("d/m/Y H:i:s", strtotime($queryParams['START_DATE'])) . '</startdate>';
+            $xml .= '<startdate>' . gmdate('d/m/Y H:i:s', strtotime($queryParams['START_DATE'])) . '</startdate>';
         }
         if ($queryParams['END_DATE']) {
-            $xml .= '<enddate>' . gmdate("d/m/Y H:i:s", strtotime($queryParams['END_DATE'])) . '</enddate>';
+            $xml .= '<enddate>' . gmdate('d/m/Y H:i:s', strtotime($queryParams['END_DATE'])) . '</enddate>';
         }
         if ($queryParams['TRANSACTION_ID']) {
             $xml .= '<relatedtransactionid>' . $queryParams['TRANSACTION_ID'] . '</relatedtransactionid>';
@@ -1400,7 +1446,6 @@ EOD;
         if ($queryParams['SEARCH_PHRASE']) {
             $xml .= '<searchphrase>' . $queryParams['SEARCH_PHRASE'] . '</searchphrase>';
         }
-
 
         $signature = $this->md5hash($xml);
         $xml = '<vspaccess>' . $xml . '<signature>' . $signature . '</signature></vspaccess>';
@@ -1410,15 +1455,15 @@ EOD;
               'baseUrl' => $url,
               'parsers' => [
                 'xml' => '\yii\httpclient\XmlParser',
-              ]
+              ],
             ]);
             $response = $client->post('', 'XML=' . $xml)->send();
             if ($this->debug) {
-                \Yii::warning(" #### " . print_r($response, 1), 'sagepay-TLDEBUG-search');
+                \Yii::warning(' #### ' . print_r($response, 1), 'sagepay-TLDEBUG-search');
             }
             $response = $response->getData();
             if ($this->debug) {
-                \Yii::warning(" #### " . print_r($response, 1), 'sagepay-TLDEBUG-search-data');
+                \Yii::warning(' #### ' . print_r($response, 1), 'sagepay-TLDEBUG-search-data');
             }
         }
         if ($response['errorcode'] == '0000') {
@@ -1459,7 +1504,8 @@ EOD;
      * parse getTransactionDetails into $this->transactionInfo
      * @param array $transactionDetails
      */
-    public function parseTransactionDetails($transactionDetails) {
+    public function parseTransactionDetails($transactionDetails)
+    {
         $this->transactionInfo = [];
         if (is_array($transactionDetails)) {
             $this->transactionInfo['status'] = $transactionDetails['status'];
@@ -1478,9 +1524,10 @@ EOD;
                   'paymentsystem', 'expirydate', 'last4digits',
                   'refunded', 'repeated',
                   'cv2result', 'addressresult', 'postcoderesult', 'threedresult',
-                  't3mscore', 't3maction'
-                ])) as $k => $v) {
-                    $comment .= "$k: $v; \n";
+                  't3mscore', 't3maction',
+                ])
+                ) as $k => $v) {
+                $comment .= "$k: $v; \n";
             }
             $this->transactionInfo['comments'] = $comment;
         }
@@ -1493,7 +1540,8 @@ EOD;
      * @param array $transactionDetails
      * @return int one of OrderPaymentHelper constants
      */
-    public function getStatusCode($transactionDetails) {
+    public function getStatusCode($transactionDetails)
+    {
 
         $statusCode = OrderPaymentHelper::OPYS_PENDING;
 
@@ -1501,7 +1549,7 @@ EOD;
             $statusCode = OrderPaymentHelper::OPYS_PENDING;
         } else {
             if (!empty($transactionDetails['transactiontype']) && !empty($transactionDetails['txstateid'])) {
-// report API response
+                // report API response
                 /*
                  * 1 Transaction failed registration. Either an INVALID or MALFORMED response was returned.
                   2 User on Card Selection page.
@@ -1556,7 +1604,7 @@ EOD;
                 }
             } else {
 
-// server payment notification
+                // server payment notification
                 if (in_array($transactionDetails['TxType'], ['PAYMENT']) && $transactionDetails['Status'] == 'OK') {
                     $statusCode = OrderPaymentHelper::OPYS_SUCCESSFUL;
                 } else {
@@ -1574,7 +1622,8 @@ EOD;
     /**
      * @inheritdoc
      */
-    public function getFields() {
+    public function getFields()
+    {
         return [
           [['START_DATE'], 'datetime', 'format' => 'yyyy-MM-dd HH:mm:ss'],
           [['END_DATE'], 'datetime', 'format' => 'yyyy-MM-dd HH:mm:ss'],
@@ -1582,15 +1631,15 @@ EOD;
           ['SEARCH_PHRASE', 'string'],
         ];
     }
-    
-    
-    public function canVoid($transaction_id) {
+
+    public function canVoid($transaction_id)
+    {
         $ret = false;
         $response = $this->getTransactionDetails($transaction_id);
         if ($response
              && !empty($response['transactiontype']) && !empty($response['txstateid'])
             && in_array($response['txstateid'], [14, 15])
-            ) {
+        ) {
             /*
             14 Successful DEFERRED transaction, awaiting RELEASE.
             28 Transaction waiting for authorisation.
@@ -1604,18 +1653,19 @@ EOD;
         return $ret;
     }
 
-/**
- * void (not in terms of sage pay) - abort DEFERRED /cancel AUTHENTICATE. SagePay's void is not implemented (allowed within 1 day only, before payment settlement)
- * @param string $transaction_id
- * @return boolean
- */
-    public function void($transaction_id) {
+    /**
+     * void (not in terms of sage pay) - abort DEFERRED /cancel AUTHENTICATE. SagePay's void is not implemented (allowed within 1 day only, before payment settlement)
+     * @param string $transaction_id
+     * @return boolean
+     */
+    public function void($transaction_id)
+    {
         $response = $this->getTransactionDetails($transaction_id);
         $amt = $response['amount'];
 
         if (!in_array($response['txstateid'], [14, 15])) {
-            $ret = (defined('TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION_STATE')?TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION_STATE:'Incorrect transaction state');
-        } elseif ($amt>0) {
+            $ret = (defined('TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION_STATE') ? TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION_STATE : 'Incorrect transaction state');
+        } elseif ($amt > 0) {
             $amount = $this->formatRaw($amt);
             /*
             14 Successful DEFERRED transaction, awaiting RELEASE.
@@ -1638,19 +1688,20 @@ EOD;
         }
         return $ret;
     }
-    
-/**
- *
- * @param type $transaction_id
- * @return int|false
- */
-    public function canCapture($transaction_id) {
+
+    /**
+     *
+     * @param type $transaction_id
+     * @return int|false
+     */
+    public function canCapture($transaction_id)
+    {
         $ret = false;
         $response = $this->getTransactionDetails($transaction_id);
         if ($response
              && !empty($response['transactiontype']) && !empty($response['txstateid'])
              && in_array($response['txstateid'], [14, 15])
-            ) {
+        ) {
             /*
             28 Transaction waiting for authorisation.
             14 Successful DEFERRED transaction, awaiting RELEASE.
@@ -1664,14 +1715,15 @@ EOD;
         return $ret;
     }
 
-    public function release($transaction_id, $status = 0) {
+    public function release($transaction_id, $status = 0)
+    {
         $response = $this->getTransactionDetails($transaction_id); // array or false
         if (!empty($response['amount'])) {
             $amt = $response['amount'];
         }
-        if (!in_array(($response['txstateid']??-1), [14, 15])) {
-            $ret = (defined('TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION_STATE')?TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION_STATE:'Incorrect transaction state');
-        } elseif ($amt>0) {
+        if (!in_array(($response['txstateid'] ?? -1), [14, 15])) {
+            $ret = (defined('TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION_STATE') ? TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION_STATE : 'Incorrect transaction state');
+        } elseif ($amt > 0) {
             $amount = $this->formatRaw($amt);
             /*
             14 Successful DEFERRED transaction, awaiting RELEASE.
@@ -1688,7 +1740,7 @@ EOD;
                     $orderPaymentRecord = $this->searchRecord($transaction_id);
                     if (!empty($response['comments']) && $orderPaymentRecord && !empty($orderPaymentRecord->orders_payment_order_id)) {
                         global $login_id;
-                        tep_db_query("insert into " . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, admin_id, ip_address, file, line) values ('" . (int)$orderPaymentRecord->orders_payment_order_id . "', '" . $status . "', now(), '" . '0' . "', '" . tep_db_input($response['comments'])  . "', '".$login_id."', '".get_ip_address()."', '".__FILE__."', '".__LINE__."')");
+                        tep_db_query('insert into ' . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, admin_id, ip_address, file, line) values ('" . (int)$orderPaymentRecord->orders_payment_order_id . "', '" . $status . "', now(), '" . '0' . "', '" . tep_db_input($response['comments'])  . "', '".$login_id."', '".get_ip_address()."', '".__FILE__."', '".__LINE__."')");
                     }
                 }
             } else {
@@ -1696,20 +1748,22 @@ EOD;
                 if ($response['status'] != 'REGISTERED' && !empty($ret['Status']) && $ret['Status'] == 'OK') {
                     $tm = $this->manager->getTransactionManager($this);
 
-                    $res = $tm->updatePaymentTransaction(trim($ret['VPSTxId'], '{}'),
+                    $res = $tm->updatePaymentTransaction(
+                        trim($ret['VPSTxId'], '{}'),
                         [
                           'fulljson' => json_encode($ret),
                           'status_code' => \common\helpers\OrderPayment::OPYS_SUCCESSFUL,
                           'status' => $ret['Status'],
                           'amount' => (float) $amount,
-                          'comments' => "Auth State: " . ($ret['StatusDetail']??'') . "\n" . "Auth Amount: " . $amount,
+                          'comments' => 'Auth State: ' . ($ret['StatusDetail'] ?? '') . "\n" . 'Auth Amount: ' . $amount,
                           'date' => date('Y-m-d H:i:s' /* , strtotime($res->update_time) */),
                           'payment_class' => $this->code,
                           'payment_method' => $this->title,
                           'parent_transaction_id' => $transaction_id,
                           'deferred' => 2,
-                          'orders_id' => 0
-                    ]);
+                          'orders_id' => 0,
+                    ]
+                    );
                     $transaction_id = trim($ret['VPSTxId'], '{}');
                 }
             }
@@ -1723,7 +1777,7 @@ EOD;
                 if (SEND_EXTRA_ORDER_EMAILS_TO == '') {
                     \common\helpers\Mail::send(STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, 'Release Failed ' . ($orderPaymentRecord->orders_payment_order_id ?? '') . ' ' . $amt, ' Release of ' . $amt . ' failed transaction: ' . $transaction_id . ' ' . $info, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS);
                 } else {
-                    \common\helpers\Mail::send(STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, 'Release Failed ' . ($orderPaymentRecord->orders_payment_order_id ?? '') . ' ' . $amt, ' Release of ' . $amt . ' failed transaction: ' . $transaction_id . ' ' . $info, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, array(), 'CC: ' . SEND_EXTRA_ORDER_EMAILS_TO);
+                    \common\helpers\Mail::send(STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, 'Release Failed ' . ($orderPaymentRecord->orders_payment_order_id ?? '') . ' ' . $amt, ' Release of ' . $amt . ' failed transaction: ' . $transaction_id . ' ' . $info, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, [], 'CC: ' . SEND_EXTRA_ORDER_EMAILS_TO);
                 }
 
                 $this->_transactionDetails = false; //for batch - reset details
@@ -1735,7 +1789,8 @@ EOD;
 
     }
 
-    public function capture($transaction_id, $amt = 0) {
+    public function capture($transaction_id, $amt = 0)
+    {
         $response = $this->getTransactionDetails($transaction_id);
         if (empty($amt)) {
             if (!empty($response['amount'])) {
@@ -1743,16 +1798,16 @@ EOD;
             }
         } elseif (!empty($response['amount'])
                 && (
-                (ceil($response['amount']*1.15)<$amt && $response['txstateid']==14)//auth coud be 15% more than origianl
-                || ($response['amount']<$amt && $response['txstateid']==15) //release could be same or less
+                    (ceil($response['amount'] * 1.15) < $amt && $response['txstateid'] == 14)//auth coud be 15% more than origianl
+                || ($response['amount'] < $amt && $response['txstateid'] == 15) //release could be same or less
                 )
-            ) {
+        ) {
             $amt = -1 * $amt; //don't  send to gateway too big amount
         }
 
-        if (!in_array(($response['txstateid']??null), [14, 15])) {
-            $ret = (defined('TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION_STATE')?TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION_STATE:'Incorrect transaction state');
-        } elseif ($amt>0) {
+        if (!in_array(($response['txstateid'] ?? null), [14, 15])) {
+            $ret = (defined('TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION_STATE') ? TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION_STATE : 'Incorrect transaction state');
+        } elseif ($amt > 0) {
             $amount = $this->formatRaw($amt);
             /*
             14 Successful DEFERRED transaction, awaiting RELEASE.
@@ -1764,19 +1819,21 @@ EOD;
                 $ret = $this->authoriseOrder($response, $amount);
                 if ($response['status'] != 'REGISTERED' && !empty($ret['Status']) && $ret['Status'] == 'OK') {
                     $tm = $this->manager->getTransactionManager($this);
-                    $res = $tm->updatePaymentTransaction(trim($ret['VPSTxId'], '{}'),
+                    $res = $tm->updatePaymentTransaction(
+                        trim($ret['VPSTxId'], '{}'),
                         [
                           'fulljson' => json_encode($ret),
                           'status_code' => \common\helpers\OrderPayment::OPYS_SUCCESSFUL,
                           'status' => $ret['Status'],
                           'amount' => (float) $amount,
-                          'comments' => "Auth State: " . ($ret['StatusDetail']??'') . "\n" . "Auth Amount: " . $amount,
+                          'comments' => 'Auth State: ' . ($ret['StatusDetail'] ?? '') . "\n" . 'Auth Amount: ' . $amount,
                           'date' => date('Y-m-d H:i:s' /* , strtotime($res->update_time) */),
                           'payment_class' => $this->code,
                           'payment_method' => $this->title,
                           'parent_transaction_id' => $transaction_id,
-                          'orders_id' => 0
-                    ]);
+                          'orders_id' => 0,
+                    ]
+                    );
                     $transaction_id = trim($ret['VPSTxId'], '{}');
                 }
             }
@@ -1790,7 +1847,7 @@ EOD;
                 if (SEND_EXTRA_ORDER_EMAILS_TO == '') {
                     \common\helpers\Mail::send(STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, 'Capture Failed ' . ($orderPaymentRecord->orders_payment_order_id ?? '') . ' ' . $amt, ' Capture of ' . $amt . ' failed transaction: ' . $transaction_id . ' ' . $info, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS);
                 } else {
-                    \common\helpers\Mail::send(STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, 'Capture Failed ' . ($orderPaymentRecord->orders_payment_order_id ?? '') . ' ' . $amt, ' Capture of ' . $amt . ' failed transaction: ' . $transaction_id . ' ' . $info, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, array(), 'CC: ' . SEND_EXTRA_ORDER_EMAILS_TO);
+                    \common\helpers\Mail::send(STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, 'Capture Failed ' . ($orderPaymentRecord->orders_payment_order_id ?? '') . ' ' . $amt, ' Capture of ' . $amt . ' failed transaction: ' . $transaction_id . ' ' . $info, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, [], 'CC: ' . SEND_EXTRA_ORDER_EMAILS_TO);
                 }
 
                 $this->_transactionDetails = false; //for batch - reset details
@@ -1799,11 +1856,10 @@ EOD;
                 $ret = true;
             }
         } else {
-            $ret = (defined('TEXT_MESSAGE_ERROR_INCORRECT_AMOUNT')?TEXT_MESSAGE_ERROR_INCORRECT_AMOUNT:'Incorrect amount') . ' ' . abs($amt) . ' ' . ($response['amount']?'(' . $response['amount'] . ')':'');
+            $ret = (defined('TEXT_MESSAGE_ERROR_INCORRECT_AMOUNT') ? TEXT_MESSAGE_ERROR_INCORRECT_AMOUNT : 'Incorrect amount') . ' ' . abs($amt) . ' ' . ($response['amount'] ? '(' . $response['amount'] . ')' : '');
         }
         return $ret;
     }
-
 
     /**
      * 2do (can't test)- should be saved as new transaction - several authorisation and each of them could be voided.
@@ -1811,7 +1867,8 @@ EOD;
      * @param type $amount
      * @return boolean
      */
-    private function authoriseOrder($transaction, $amount) {
+    private function authoriseOrder($transaction, $amount)
+    {
         $ret = false;
         $params = ['VPSProtocol' => $this->api_version,
                 'TxType' => 'AUTHORISE',
@@ -1822,10 +1879,9 @@ EOD;
                 'RelatedVPSTxId' => $transaction['vpstxid'],
                 'RelatedVendorTxCode' => $transaction['vendortxcode'],
                 'RelatedSecurityKey' => $transaction['securitykey'],
-                'RelatedTxAuthNo' => (is_array($transaction['vpsauthcode']) ? $transaction['vpsauthcode'][0] : $transaction['vpsauthcode'])
+                'RelatedTxAuthNo' => (is_array($transaction['vpsauthcode']) ? $transaction['vpsauthcode'][0] : $transaction['vpsauthcode']),
             //ApplyAVSCV2
             ];
-
 
         $return = $this->prepareSendRequest('authorise', $params);
         if (!empty($return['Status']) && $return['Status'] == 'OK') {
@@ -1836,17 +1892,18 @@ EOD;
         return $ret;
     }
 
-    private function releaseOrder($transaction, $amount) {
+    private function releaseOrder($transaction, $amount)
+    {
         $ret = false;
         $params = ['VPSProtocol' => $this->api_version,
               'TxType' => 'RELEASE',
               'Vendor' => substr(MODULE_PAYMENT_SAGE_PAY_SERVER_VENDOR_LOGIN_NAME, 0, 15),
-              'VendorTxCode' => $transaction['vendortxcode']??($transaction['VendorTxCode']??''),
+              'VendorTxCode' => $transaction['vendortxcode'] ?? ($transaction['VendorTxCode'] ?? ''),
               'VPSTxId' => $transaction['vpstxid'],
               'SecurityKey' => $transaction['securitykey'],
               'TxAuthNo' => (is_array($transaction['vpsauthcode']) ? $transaction['vpsauthcode'][0] : $transaction['vpsauthcode']),
               //'TxAuthNo' => (is_array($transaction['txauthno']) ? $transaction['txauthno'][0] : (isset($transaction['txauthno'])?$transaction['txauthno']:($transaction['TxAuthNo']??''))),
-              'ReleaseAmount' => $amount
+              'ReleaseAmount' => $amount,
             ];
         $return = $this->prepareSendRequest('release', $params);
         if (!empty($return['Status']) && $return['Status'] == 'OK') {
@@ -1856,15 +1913,16 @@ EOD;
         }
         return $ret;
     }
-    
-    private function cancelOrder($transaction, $amount) {
+
+    private function cancelOrder($transaction, $amount)
+    {
         $ret = false;
         $params = ['VPSProtocol' => $this->api_version,
               'TxType' => 'CANCEL',
               'Vendor' => substr(MODULE_PAYMENT_SAGE_PAY_SERVER_VENDOR_LOGIN_NAME, 0, 15),
-              'VendorTxCode' => $transaction['vendortxcode']??($transaction['VendorTxCode']??''),
+              'VendorTxCode' => $transaction['vendortxcode'] ?? ($transaction['VendorTxCode'] ?? ''),
               'VPSTxId' => $transaction['vpstxid'],
-              'SecurityKey' => $transaction['securitykey']
+              'SecurityKey' => $transaction['securitykey'],
             ];
 
         $return = $this->prepareSendRequest('cancel', $params);
@@ -1875,16 +1933,17 @@ EOD;
         }
         return $ret;
     }
-    
-    private function abortOrder($transaction, $amount) {
+
+    private function abortOrder($transaction, $amount)
+    {
         $ret = false;
         $params = ['VPSProtocol' => $this->api_version,
               'TxType' => 'ABORT',
               'Vendor' => substr(MODULE_PAYMENT_SAGE_PAY_SERVER_VENDOR_LOGIN_NAME, 0, 15),
-              'VendorTxCode' => $transaction['vendortxcode']??($transaction['VendorTxCode']??''),
+              'VendorTxCode' => $transaction['vendortxcode'] ?? ($transaction['VendorTxCode'] ?? ''),
               'VPSTxId' => $transaction['vpstxid'],
               'SecurityKey' => $transaction['securitykey'],
-              'TxAuthNo' => (is_array($transaction['vpsauthcode']) ? $transaction['vpsauthcode'][0] : $transaction['vpsauthcode'])
+              'TxAuthNo' => (is_array($transaction['vpsauthcode']) ? $transaction['vpsauthcode'][0] : $transaction['vpsauthcode']),
               //'TxAuthNo' => (is_array($transaction['txauthno']) ? $transaction['txauthno'][0] : (isset($transaction['txauthno'])?$transaction['txauthno']:($transaction['TxAuthNo']??'')))
             ];
 
@@ -1897,7 +1956,8 @@ EOD;
         return $ret;
     }
 
-    private function prepareSendRequest($type, $params) {
+    private function prepareSendRequest($type, $params)
+    {
         $url = $this->getApiUrl($type, MODULE_PAYMENT_SAGE_PAY_SERVER_TRANSACTION_SERVER);
         $post_string = '';
         foreach ($params as $key => $value) {
@@ -1921,35 +1981,41 @@ EOD;
 
     }
 
-    public function canReauthorize($transaction_id) {
+    public function canReauthorize($transaction_id)
+    {
         return false;
     }
 
-    public function reauthorize($transaction_id, $amount = 0) {
+    public function reauthorize($transaction_id, $amount = 0)
+    {
         return false;
     }
 
-    protected function getAPIUser() {
+    protected function getAPIUser()
+    {
         return $this->decryptConst('MODULE_PAYMENT_SAGE_PAY_SERVER_ACCOUNT');
     }
 
-    protected function getAPIPassword() {
+    protected function getAPIPassword()
+    {
         $ret = $this->decryptConst('MODULE_PAYMENT_SAGE_PAY_SERVER_ACCOUNT_PASSWORD');
         return $ret;
     }
 
-    protected function getEncryptionKey() {
+    protected function getEncryptionKey()
+    {
         $key = parent::getEncryptionKey();
         if (!$key) {
             $key = 'p=UOd%RWRTp::k=@D)_M#4Mi^a+SF?h5ai6RGsdC]`j';
         }
         return $key;
     }
-/**
- *
- * @return string|false
- */
-    public function saveOrderBefore() {
+    /**
+     *
+     * @return string|false
+     */
+    public function saveOrderBefore()
+    {
         $orderClass = false;
         if (defined('MODULE_PAYMENT_SAGE_PAY_SERVER_ORDER_BEFORE_PAYMENT') && MODULE_PAYMENT_SAGE_PAY_SERVER_ORDER_BEFORE_PAYMENT != 'False') {
             if (MODULE_PAYMENT_SAGE_PAY_SERVER_ORDER_BEFORE_PAYMENT == 'True') {
@@ -1961,7 +2027,8 @@ EOD;
         return $orderClass;
     }
 
-    public function saveOrderBySettings() {
+    public function saveOrderBySettings()
+    {
         $ret = false;
         $orderClass = $this->saveOrderBefore();
         if ($orderClass) {

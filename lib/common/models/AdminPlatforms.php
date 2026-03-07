@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "admin_platforms".
@@ -27,7 +27,7 @@ class AdminPlatforms extends \yii\db\ActiveRecord
     {
         return [
             [['admin_id', 'platform_id'], 'required'],
-            [['admin_id', 'platform_id'], 'integer']
+            [['admin_id', 'platform_id'], 'integer'],
         ];
     }
 

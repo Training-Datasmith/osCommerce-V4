@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,10 +24,8 @@ class m230131_195925_merge_customers_ext extends Migration
      */
     public function safeUp()
     {
-        if(method_exists($this, 'isOldExtension'))
-        {
-            if (!$this->isOldExtension('MergeCustomers'))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension('MergeCustomers')) {
                 $this->removeTranslation('admin/customers', [
                     'TEXT_THE_PHONE',
                     'TEXT_AND_EMAIL',

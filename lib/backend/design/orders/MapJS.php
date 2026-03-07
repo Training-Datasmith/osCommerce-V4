@@ -1,36 +1,38 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace backend\design\orders;
 
-
-use Yii;
 use yii\base\Widget;
 
-class MapJS extends Widget {
-    
+class MapJS extends Widget
+{
     public $addresses = [];
     public $order;
-            
-    public function init(){
+
+    public function init()
+    {
         parent::init();
     }
-    
-    public function run(){
-        
+
+    public function run()
+    {
+
         $adds = [];
-        if (is_array($this->addresses)){
+        if (is_array($this->addresses)) {
             $zoom = 8;
-            
+
             $aWarehouse = null;
 
             [$class, $method] = explode('_', $this->order->info['shipping_class']);
@@ -43,9 +45,9 @@ class MapJS extends Widget {
                     $aWarehouse = $collect;
                 }
             }
-            foreach($this->addresses as $_address){
+            foreach ($this->addresses as $_address) {
                 $address = $_address['address'];
-                if(isset($address['country']['zoom'])){
+                if (isset($address['country']['zoom'])) {
                     $zoom = max((int) $address['country']['zoom'], 8);
                 }
                 $adds[] = [
@@ -57,9 +59,9 @@ class MapJS extends Widget {
                             $aWarehouse->getCountryName()
                         ))
                         : $address['street_address'] . ' ' . $address['city'] . ' ' . ($address['country']['title'] ?? '')),
-                    'add2' => $aWarehouse !== null ? $aWarehouse->getPostcode() :$address['postcode'],
+                    'add2' => $aWarehouse !== null ? $aWarehouse->getPostcode() : $address['postcode'],
                     'marker' => $_address['marker'],
-                    'zoom' => $zoom
+                    'zoom' => $zoom,
                 ];
             }
             return $this->render('map-js', [

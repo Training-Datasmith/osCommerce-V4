@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "orders_products_status_manual_matrix".
@@ -27,7 +27,7 @@ class OrdersProductsStatusManualMatrix extends \yii\db\ActiveRecord
     {
         return [
             [['orders_products_status_manual_id', 'orders_products_status_id'], 'required'],
-            [['orders_products_status_manual_id', 'orders_products_status_id'], 'integer']
+            [['orders_products_status_manual_id', 'orders_products_status_id'], 'integer'],
         ];
     }
 

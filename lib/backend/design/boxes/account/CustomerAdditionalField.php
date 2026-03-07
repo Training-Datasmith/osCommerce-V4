@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace backend\design\boxes\account;
 
-use Yii;
 use yii\base\Widget;
 
 class CustomerAdditionalField extends Widget
 {
-
     public $id;
     public $params;
     public $settings;
@@ -30,7 +30,9 @@ class CustomerAdditionalField extends Widget
 
     public function run()
     {
-        if (!\common\helpers\Acl::checkExtensionAllowed('CustomerAdditionalFields')) return '';
+        if (!\common\helpers\Acl::checkExtensionAllowed('CustomerAdditionalFields')) {
+            return '';
+        }
 
         global $languages_id;
 

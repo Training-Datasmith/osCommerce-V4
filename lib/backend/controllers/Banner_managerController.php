@@ -1,38 +1,38 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace backend\controllers;
 
+use common\classes\Images;
+use common\classes\platform as Platform;
+use common\helpers\Affiliate;
+use common\helpers\Image;
+use common\helpers\Language;
 use common\models\Banners;
+use common\models\BannersGroups;
 use common\models\BannersGroupsImages;
 use common\models\BannersGroupsSizes;
+use common\models\BannersLanguages;
 use common\models\BannersToPlatform;
 use Yii;
 use yii\db\Expression;
 use yii\helpers\ArrayHelper;
 use yii\helpers\FileHelper;
 use yii\helpers\Html;
-use yii\helpers\Url;
-use common\models\BannersLanguages;
-use common\models\BannersGroups;
-use common\classes\Images;
-use common\helpers\Affiliate;
-use common\classes\platform as Platform;
-use common\helpers\Image;
-use common\helpers\Language;
 
 class Banner_managerController extends Sceleton
 {
-
     public $acl = ['BOX_HEADING_MARKETING_TOOLS', 'BOX_TOOLS_BANNER_MANAGER'];
     public $banner_extension;
     public $dir_ok = false;
@@ -83,12 +83,12 @@ class Banner_managerController extends Sceleton
 
     public function actionIndex()
     {
-        $this->selectedMenu = array('marketing', 'banner_manager');
+        $this->selectedMenu = ['marketing', 'banner_manager'];
 
         $this->topButtons[] = '<a href="' . Yii::$app->urlManager->createUrl('banner_manager/banneredit') . '" class="btn btn-primary btn-new-banner"><i class="icon-file-text"></i>' . IMAGE_NEW_BANNER . '</a>';
         $this->topButtons[] = '<a href="' . Yii::$app->urlManager->createUrl('banner_manager/banner-groups-edit') . '" class="btn btn-primary btn-new-group"><i class="icon-file-text"></i>' . NEW_BANNER_GROUP . '</a>';
 
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('marketing/index'), 'title' => HEADING_TITLE);
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('marketing/index'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
 
         $platform = Yii::$app->request->get('platform');
@@ -106,50 +106,52 @@ class Banner_managerController extends Sceleton
             $platform_id = Platform::defaultId();
         }
 
-        $tmp = array();
+        $tmp = [];
 
-        $tmp[] = array(
+        $tmp[] = [
             'title' => TAB_IMAGES,
             'not_important' => 0,
-            'class' => 'image-heading-cell'
-        );
-        $tmp[] = array(
+            'class' => 'image-heading-cell',
+        ];
+        $tmp[] = [
             'title' => TEXT_TITLE,
             'not_important' => 0,
-            'class' => 'title-heading-cell'
-        );
-        $tmp[] = array(
+            'class' => 'title-heading-cell',
+        ];
+        $tmp[] = [
             'title' => TABLE_HEADING_GROUPS,
             'not_important' => 0,
-            'class' => 'group-heading-cell'
-        );
+            'class' => 'group-heading-cell',
+        ];
         if (Platform::isMulti()) {
-            $tmp[] = array(
+            $tmp[] = [
                 'title' => TABLE_HEAD_PLATFORM_NAME,
                 'not_important' => 0,
-                'class' => 'status-heading-cell'
-            );
+                'class' => 'status-heading-cell',
+            ];
         }
         if (Platform::isMulti()) {
-            $tmp[] = array(
+            $tmp[] = [
                 'title' => TABLE_HEAD_PLATFORM_BANNER_ASSIGN,
                 'not_important' => 0,
-                'class' => 'status-heading-cell'
-            );
+                'class' => 'status-heading-cell',
+            ];
         } else {
-            $tmp[] = array(
+            $tmp[] = [
                 'title' => TABLE_HEADING_STATUS,
                 'not_important' => 0,
-                'class' => 'status-heading-cell'
-            );
+                'class' => 'status-heading-cell',
+            ];
         }
 
         $this->view->filters = new \stdClass();
-        $this->view->filters->platform = array();
+        $this->view->filters->platform = [];
         if (isset($platform) && is_array($platform)) {
-            foreach ($platform as $_platform_id)
-                if ((int) $_platform_id > 0)
+            foreach ($platform as $_platform_id) {
+                if ((int) $_platform_id > 0) {
                     $this->view->filters->platform[] = (int) $_platform_id;
+                }
+            }
         }
 
         $bannersGroupsArr = BannersGroups::find(['id' => $group_id])->asArray()->one();
@@ -165,7 +167,7 @@ class Banner_managerController extends Sceleton
         }
 
         $this->view->bannerTable = $tmp;
-        return $this->render('index', array(
+        return $this->render('index', [
             'isMultiPlatforms' => Platform::isMulti(),
             'platforms' => $platforms,
             'platform_id' => $platform_id,
@@ -178,7 +180,7 @@ class Banner_managerController extends Sceleton
             'search_text' => $search_text,
             'search_status' => $search_status,
             'search_group' => $search_group,
-        ));
+        ]);
     }
 
     public function actionGetimage($banner_id)
@@ -187,7 +189,7 @@ class Banner_managerController extends Sceleton
 
         $banner = BannersLanguages::find()->select(['banners_image', 'banners_title'])->where([
             'banners_id' => (int)$banner_id,
-            'language_id' => (int)$languages_id
+            'language_id' => (int)$languages_id,
         ])->asArray()->one();
 
         $image = $this->getImage($banner);
@@ -196,7 +198,7 @@ class Banner_managerController extends Sceleton
         }
 
         $banners = BannersLanguages::find()->select(['banners_title', 'banners_title'])->where([
-            'banners_id' => (int)$banner_id
+            'banners_id' => (int)$banner_id,
         ])->asArray()->all();
 
         if (is_array($banners)) {
@@ -211,7 +213,8 @@ class Banner_managerController extends Sceleton
         return '';
     }
 
-    public function getImage($banner){
+    public function getImage($banner)
+    {
         if (!isset($banner) || !isset($banner['banners_image'])) {
             return false;
         }
@@ -265,19 +268,23 @@ class Banner_managerController extends Sceleton
         $search_group = $output['search_group'] ?? null;
 
         if ($group_id || $search_title || $search_file || $search_text || $search) {
-            if ($group_id == '-1' || $group_id == -1) $group_id = 0;
+            if ($group_id == '-1' || $group_id == -1) {
+                $group_id = 0;
+            }
 
             $bannersQuery = Banners::find()->alias('b')
                 ->select(['b.banners_id', 'b.status', 'b.sort_order', 'bl.banners_title',
                     'bl.banners_image', 'bg.banners_group', 'bl.banners_html_text', 'bl.banners_image'])
                 ->leftJoin(BannersGroups::tableName(). ' bg', 'b.group_id = bg.id');
 
-            if ($platform_id != '-1' && $platform_id != -1){
+            if ($platform_id != '-1' && $platform_id != -1) {
                 $bannersQuery->leftJoin(BannersToPlatform::tableName(). ' b2p', 'b.banners_id = b2p.banners_id');
             }
 
-            $bannersQuery->leftJoin(BannersLanguages::tableName(). ' bl',
-                'b.banners_id = bl.banners_id and bl.language_id = ' . (int) $languages_id);
+            $bannersQuery->leftJoin(
+                BannersLanguages::tableName(). ' bl',
+                'b.banners_id = bl.banners_id and bl.language_id = ' . (int) $languages_id
+            );
 
             if ($group_id || $group_id === 0) {
                 $bannersQuery->where(['b.group_id' => $group_id]);
@@ -304,7 +311,7 @@ class Banner_managerController extends Sceleton
                 $bannersQuery->andWhere(['b.status' => ($search_status == 'on' ? 1 : 0)]);
             }
 
-            if ($platform_id == '-1' || $platform_id == -1){
+            if ($platform_id == '-1' || $platform_id == -1) {
                 $bannersQuery->andWhere('NOT EXISTS(SELECT 1 FROM ' . BannersToPlatform::tableName() . ' b2p WHERE b2p.banners_id=b.banners_id)');
             } elseif ($platform_id) {
                 $bannersQuery->andWhere(['b2p.platform_id' => $platform_id]);
@@ -434,8 +441,10 @@ class Banner_managerController extends Sceleton
                         ->andWhere('NOT EXISTS(SELECT 1 FROM ' . BannersToPlatform::tableName() . ' b2p WHERE b2p.banners_id=b.banners_id)')->count();
                 } else {
                     $tmp['count'] = Banners::find()->alias('b')
-                        ->innerJoin(BannersToPlatform::tableName() . ' b2p',
-                            'b.banners_id = b2p.banners_id and b2p.platform_id = ' . $platform_id)
+                        ->innerJoin(
+                            BannersToPlatform::tableName() . ' b2p',
+                            'b.banners_id = b2p.banners_id and b2p.platform_id = ' . $platform_id
+                        )
                         ->where(['b.group_id' => $bannersGroup['id']])->count();
 
                 }
@@ -446,7 +455,7 @@ class Banner_managerController extends Sceleton
 
                 $responseListTmp[] = $tmp;
             }
-            usort($responseListTmp, function($a, $b){
+            usort($responseListTmp, function ($a, $b) {
                 return ($a['count'] > $b['count']) ? -1 : 1;
             });
             foreach ($responseListTmp as $item) {
@@ -462,8 +471,10 @@ class Banner_managerController extends Sceleton
                     ->andWhere('NOT EXISTS(SELECT 1 FROM ' . BannersToPlatform::tableName() . ' b2p WHERE b2p.banners_id=b.banners_id)')->count();
             } else {
                 $tmp['count'] = Banners::find()->alias('b')
-                    ->innerJoin(BannersToPlatform::tableName() . ' b2p',
-                        'b.banners_id = b2p.banners_id and b2p.platform_id = ' . $platform_id)
+                    ->innerJoin(
+                        BannersToPlatform::tableName() . ' b2p',
+                        'b.banners_id = b2p.banners_id and b2p.platform_id = ' . $platform_id
+                    )
                     ->where(['group_id' => 0])->count();
             }
 
@@ -474,16 +485,17 @@ class Banner_managerController extends Sceleton
         if (!isset($allBannersCount)) {
             $allBannersCount = count($responseList);
         }
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $allBannersCount,
             'recordsFiltered' => $allBannersCount,
             'data' => $responseList,
-        );
+        ];
         echo json_encode($response);
     }
 
-    function bannerRow($data) {
+    public function bannerRow($data)
+    {
         $row = [];
         $row[] = '<div class="batch-cell"><input type="checkbox" name="' . $data['name'] . '" value="' . $data['id'] . '"/></div>';
         $row[] = '<div class="sort-cell" data-id="' . $data['id'] . '" data-name="' . $data['name'] . '"></div>';
@@ -499,7 +511,7 @@ class Banner_managerController extends Sceleton
         return $row;
     }
 
-    function getBanner($bID)
+    public function getBanner($bID)
     {
         $languages_id = \Yii::$app->settings->get('languages_id');
 
@@ -508,8 +520,10 @@ class Banner_managerController extends Sceleton
                 'b.date_scheduled', 'b.expires_date', 'b.expires_impressions', 'b.date_status_change',
                 'bl.banners_image', 'bg.banners_group', 'bl.banners_html_text', 'bl.banners_image'])
             ->leftJoin(BannersGroups::tableName(). ' bg', 'b.group_id = bg.id')
-            ->leftJoin(BannersLanguages::tableName(). ' bl',
-                'b.banners_id = bl.banners_id and language_id = ' . (int) $languages_id)
+            ->leftJoin(
+                BannersLanguages::tableName(). ' bl',
+                'b.banners_id = bl.banners_id and language_id = ' . (int) $languages_id
+            )
             ->where(['b.banners_id' => $bID])
             ->asArray()->one();
     }
@@ -531,7 +545,7 @@ class Banner_managerController extends Sceleton
                 $bInfo = $this->getBanner($id);
 
                 $b_platform = '';
-                $banners_platform = tep_db_query("select platform_name from " . TABLE_PLATFORMS . " p left join " . TABLE_BANNERS_TO_PLATFORM . " bt on p.platform_id = bt.platform_id where bt.banners_id ='" . $id . "' ");
+                $banners_platform = tep_db_query('select platform_name from ' . TABLE_PLATFORMS . ' p left join ' . TABLE_BANNERS_TO_PLATFORM . " bt on p.platform_id = bt.platform_id where bt.banners_id ='" . $id . "' ");
                 if (tep_db_num_rows($banners_platform) > 0) {
                     while ($banners_platform_result = tep_db_fetch_array($banners_platform)) {
                         $b_platform .= '<div class="platform_res">' . $banners_platform_result['platform_name'] . '</div>';
@@ -540,7 +554,7 @@ class Banner_managerController extends Sceleton
                 return $this->render('bar-banner', [
                     'b_platform' => $b_platform,
                     'bInfo' => $bInfo,
-                    'image' => $this->actionGetimage($id)
+                    'image' => $this->actionGetimage($id),
                 ]);
             case 'group_id':
 
@@ -556,13 +570,15 @@ class Banner_managerController extends Sceleton
                         ->andWhere('NOT EXISTS(SELECT 1 FROM ' . BannersToPlatform::tableName() . ' b2p WHERE b2p.banners_id=b.banners_id)')->count();
                 } else {
                     $count = Banners::find()->alias('b')
-                        ->innerJoin(BannersToPlatform::tableName() . ' b2p',
-                            'b.banners_id = b2p.banners_id and b2p.platform_id = ' . $platform_id)
+                        ->innerJoin(
+                            BannersToPlatform::tableName() . ' b2p',
+                            'b.banners_id = b2p.banners_id and b2p.platform_id = ' . $platform_id
+                        )
                         ->where(['group_id' => $id])->count();
                 }
 
                 return $this->render('bar-group', [
-                    'name' => ($id == '-1' ? BANNERS_WITHOUT_GROUP : $title ),
+                    'name' => ($id == '-1' ? BANNERS_WITHOUT_GROUP : $title),
                     'count' => $count,
                     'platform_id' => $platform_id,
                     'group_id' => $id,
@@ -578,8 +594,8 @@ class Banner_managerController extends Sceleton
                 }
 
                 return $this->render('bar-platform', [
-                    'name' => ($id == '-1' ? BANNERS_WITHOUT_PLATFORM : Platform::name($id) ),
-                    'count' => $count
+                    'name' => ($id == '-1' ? BANNERS_WITHOUT_PLATFORM : Platform::name($id)),
+                    'count' => $count,
                 ]);
         }
     }
@@ -605,13 +621,13 @@ class Banner_managerController extends Sceleton
 
             $newBanner->status = 0;
             $newBanner->group_id = $fromBanner->group_id;
-            $newBanner->date_added = new Expression("NOW()");
+            $newBanner->date_added = new Expression('NOW()');
 
             $newBanner->save(false);
             $banners_id = $newBanner->banners_id;
 
         } catch (\Exception $ex) {
-            \Yii::warning($ex->getMessage() . " #### " .print_r($newBanner, 1), 'TLDEBU_banner_save_error');
+            \Yii::warning($ex->getMessage() . ' #### ' .print_r($newBanner, 1), 'TLDEBU_banner_save_error');
             return json_encode(['error' => BANNER_NOT_COPIED]);
         }
 
@@ -628,13 +644,13 @@ class Banner_managerController extends Sceleton
                     $toBL->blang_id = null;
                     $toBL->isNewRecord = true;
                     $toBL->banners_image = Images::moveImage($fromBL->banners_image, 'banners' . DIRECTORY_SEPARATOR . $banners_id);
-                    $toBL->banners_id =$banners_id;
+                    $toBL->banners_id = $banners_id;
                     $toBL->save(false);
 
-                    Images::createWebp($toBL->banners_image );
+                    Images::createWebp($toBL->banners_image);
 
                 } catch (\Exception $ex) {
-                    \Yii::warning($ex->getMessage() . " #### " .print_r($toBL, 1), 'TLDEBU_banner_lang_save_error');
+                    \Yii::warning($ex->getMessage() . ' #### ' .print_r($toBL, 1), 'TLDEBU_banner_lang_save_error');
 
                 }
 
@@ -651,13 +667,13 @@ class Banner_managerController extends Sceleton
                     $toBL->isNewRecord = true;
 
                     $toBL->image = Images::moveImage($fromBL->image, 'banners' . DIRECTORY_SEPARATOR . $banners_id);
-                    $toBL->banners_id =$banners_id;
+                    $toBL->banners_id = $banners_id;
                     $toBL->save(false);
 
-                    Images::createWebp($toBL->image );
+                    Images::createWebp($toBL->image);
 
                 } catch (\Exception $ex) {
-                    \Yii::warning($ex->getMessage() . " #### " .print_r($toBL, 1), 'TLDEBU_banner_lang_save_error');
+                    \Yii::warning($ex->getMessage() . ' #### ' .print_r($toBL, 1), 'TLDEBU_banner_lang_save_error');
 
                 }
 
@@ -674,7 +690,7 @@ class Banner_managerController extends Sceleton
                     $toBL->save(false);
 
                 } catch (\Exception $ex) {
-                    \Yii::warning($ex->getMessage() . " #### " .print_r($toBL, 1), 'TLDEBU_banner_platform_save_error');
+                    \Yii::warning($ex->getMessage() . ' #### ' .print_r($toBL, 1), 'TLDEBU_banner_platform_save_error');
                 }
             }
         }
@@ -693,7 +709,7 @@ class Banner_managerController extends Sceleton
 
         $platforms = Platform::getList(false, true);
 
-        $sql_data_array = array();
+        $sql_data_array = [];
 
         $expires_date = 'null';
         if (!empty(\Yii::$app->request->post('expires_date'))) {
@@ -733,7 +749,7 @@ class Banner_managerController extends Sceleton
 
             $sql_data_array['banners_id'] = $banners_id;
             $check = tep_db_fetch_array(tep_db_query(
-                            "SELECT COUNT(*) AS c FROM " . Banners::tableName() . " WHERE banners_id='" . (int) $banners_id . "'"
+                'SELECT COUNT(*) AS c FROM ' . Banners::tableName() . " WHERE banners_id='" . (int) $banners_id . "'"
             ));
             if ($check['c'] == 0) {
                 tep_db_perform(Banners::tableName(), array_merge($sql_data_array, ['date_added' => 'now()']));
@@ -746,9 +762,9 @@ class Banner_managerController extends Sceleton
 
         foreach ($platforms as $_platform_info) {
             if (isset($request['platform_status'][$_platform_info['id']])) {
-                tep_db_query("REPLACE INTO " . TABLE_BANNERS_TO_PLATFORM . " (banners_id, platform_id) VALUES('" . (int) $banners_id . "', '" . (int) $_platform_info['id'] . "')");
+                tep_db_query('REPLACE INTO ' . TABLE_BANNERS_TO_PLATFORM . " (banners_id, platform_id) VALUES('" . (int) $banners_id . "', '" . (int) $_platform_info['id'] . "')");
             } else {
-                tep_db_query("DELETE FROM  " . TABLE_BANNERS_TO_PLATFORM . " WHERE banners_id='" . (int) $banners_id . "' AND platform_id='" . (int) $_platform_info['id'] . "'");
+                tep_db_query('DELETE FROM  ' . TABLE_BANNERS_TO_PLATFORM . " WHERE banners_id='" . (int) $banners_id . "' AND platform_id='" . (int) $_platform_info['id'] . "'");
             }
         }
 
@@ -800,7 +816,6 @@ class Banner_managerController extends Sceleton
             }
         }
 
-
         $wrong = BannersToPlatform::find()->alias('b2p')->where('NOT EXISTS(SELECT 1 FROM ' . Banners::tableName() . ' b WHERE b2p.banners_id=b.banners_id)')->asArray()->all();
         foreach ($wrong as $row) {
             BannersToPlatform::deleteAll(['banners_id' => $row['banners_id']]);
@@ -825,10 +840,10 @@ class Banner_managerController extends Sceleton
             $bInfo[] = $this->getBanner($id);
         }
 
-        return $this->render('bar-banner-delete', array(
+        return $this->render('bar-banner-delete', [
             'bInfo' => $bInfo,
             'ids' => $ids,
-        ));
+        ]);
     }
 
     public function actionDelete()
@@ -842,18 +857,18 @@ class Banner_managerController extends Sceleton
         return json_encode(['success' => SUCCESS_BANNER_REMOVED]);
     }
 
-    public function deleteBanners ($bannersIds, $deleteImages)
+    public function deleteBanners($bannersIds, $deleteImages)
     {
         foreach ($bannersIds as $banners_id) {
             if ($deleteImages) {
                 try {
                     FileHelper::removeDirectory(DIR_FS_CATALOG_IMAGES . 'banners/' . $banners_id);
                 } catch (\Exception $ex) {
-                    \Yii::warning($ex->getMessage() . " #### banner image delete error. id = " . $banners_id);
+                    \Yii::warning($ex->getMessage() . ' #### banner image delete error. id = ' . $banners_id);
                 }
             }
 
-            tep_db_query("delete from " . TABLE_BANNERS_HISTORY . " where banners_id = '" . (int)$banners_id . "'");
+            tep_db_query('delete from ' . TABLE_BANNERS_HISTORY . " where banners_id = '" . (int)$banners_id . "'");
 
             Banners::deleteAll(['banners_id' => (int)$banners_id]);
             BannersLanguages::deleteAll(['banners_id' => (int)$banners_id]);
@@ -897,7 +912,7 @@ class Banner_managerController extends Sceleton
         foreach ($ids as $id) {
             $banner = Banners::findOne(['banners_id' => (int) $id]);
             $banner->status = ($status == 'true' ? 1 : 0);
-            $banner->date_status_change = new Expression("NOW()");
+            $banner->date_status_change = new Expression('NOW()');
             $banner->save(false);
         }
     }
@@ -910,15 +925,15 @@ class Banner_managerController extends Sceleton
             if (strpos($id, '-') !== false) {
                 list($bid, $pid) = explode('-', $id, 2);
                 if ($status == 'true') {
-                    tep_db_query("REPLACE INTO " . TABLE_BANNERS_TO_PLATFORM . " (banners_id, platform_id) VALUES('" . (int)$bid . "', '" . (int)$pid . "')");
+                    tep_db_query('REPLACE INTO ' . TABLE_BANNERS_TO_PLATFORM . " (banners_id, platform_id) VALUES('" . (int)$bid . "', '" . (int)$pid . "')");
                 } else {
-                    tep_db_query("DELETE FROM  " . TABLE_BANNERS_TO_PLATFORM . " WHERE banners_id='" . (int)$bid . "' AND platform_id='" . (int)$pid . "'");
+                    tep_db_query('DELETE FROM  ' . TABLE_BANNERS_TO_PLATFORM . " WHERE banners_id='" . (int)$bid . "' AND platform_id='" . (int)$pid . "'");
                 }
             } else {
                 if ($status == 'true') {
-                    tep_db_query("REPLACE INTO " . TABLE_BANNERS_TO_PLATFORM . " (banners_id, platform_id) VALUES('" . (int)$id . "', '" . (int)Platform::firstId() . "')");
+                    tep_db_query('REPLACE INTO ' . TABLE_BANNERS_TO_PLATFORM . " (banners_id, platform_id) VALUES('" . (int)$id . "', '" . (int)Platform::firstId() . "')");
                 } else {
-                    tep_db_query("DELETE FROM  " . TABLE_BANNERS_TO_PLATFORM . " WHERE banners_id='" . (int)$id . "' AND platform_id='" . (int)Platform::firstId() . "'");
+                    tep_db_query('DELETE FROM  ' . TABLE_BANNERS_TO_PLATFORM . " WHERE banners_id='" . (int)$id . "' AND platform_id='" . (int)Platform::firstId() . "'");
                 }
             }
         }
@@ -944,7 +959,7 @@ class Banner_managerController extends Sceleton
         $this->topButtons[] = '<span class="btn btn-confirm">' . IMAGE_SAVE . '</span>';
 
         if (!$banners_id) {
-            $banner_query = tep_db_fetch_array(tep_db_query("select MAX(banners_id) as max_id from " . Banners::tableName() ));
+            $banner_query = tep_db_fetch_array(tep_db_query('select MAX(banners_id) as max_id from ' . Banners::tableName()));
             $banners_id = $banner_query['max_id'] + 1;
 
             if (!$popup) {
@@ -953,7 +968,7 @@ class Banner_managerController extends Sceleton
         }
 
         if ($banners_id > 0) {
-            $banner_query = tep_db_query("select * from " . Banners::tableName() . " where banners_id = " . $banners_id);
+            $banner_query = tep_db_query('select * from ' . Banners::tableName() . ' where banners_id = ' . $banners_id);
             $banner = tep_db_fetch_array($banner_query);
         }
         $cInfo = new \objectInfo($banner);
@@ -964,14 +979,14 @@ class Banner_managerController extends Sceleton
             $groups_array[] = ['id' => $group['id'], 'text' => $group['banners_group']];
         }
 
-        $banner_statuses = array();
-        $platform_statuses = array();
-        $get_statuses_r = tep_db_query("SELECT banners_id, platform_id FROM " . TABLE_BANNERS_TO_PLATFORM . " WHERE banners_id='" . (int) $banners_id . "'");
+        $banner_statuses = [];
+        $platform_statuses = [];
+        $get_statuses_r = tep_db_query('SELECT banners_id, platform_id FROM ' . TABLE_BANNERS_TO_PLATFORM . " WHERE banners_id='" . (int) $banners_id . "'");
         while ($get_status = tep_db_fetch_array($get_statuses_r)) {
             $sub_row_key = $get_status['platform_id'];
             $banner_statuses[$sub_row_key] = 1;
         }
-        $banners_data = array();
+        $banners_data = [];
 
         $cDescription = [];
         $mainDesc = [];
@@ -981,10 +996,10 @@ class Banner_managerController extends Sceleton
             $cDescription[$i]['code'] = $languages[$i]['code'];
 
             $banner_description_query = tep_db_query(
-                    "select * from " . Banners::tableName() . " b " .
-                    " left join " . TABLE_BANNERS_LANGUAGES . " bl on b.banners_id = bl.banners_id and bl.language_id = '" . (int) $languages[$i]['id'] . "' " .
+                'select * from ' . Banners::tableName() . ' b ' .
+                    ' left join ' . TABLE_BANNERS_LANGUAGES . " bl on b.banners_id = bl.banners_id and bl.language_id = '" . (int) $languages[$i]['id'] . "' " .
                     "where   b.banners_id = '" . $banners_id . "'  " .
-                    " and b.affiliate_id=0 "
+                    ' and b.affiliate_id=0 '
             );
             if (tep_db_num_rows($banner_description_query) > 0) {
                 $banner_data = tep_db_fetch_array($banner_description_query);
@@ -996,7 +1011,7 @@ class Banner_managerController extends Sceleton
             $cDescription[$i]['bannerUrl'] = 'banners_url[' . $languages[$i]['id'] . ']';
 
             $cDescription[$i]['target'] = tep_draw_checkbox_field('target[' . $languages[$i]['id'] . ']', 0, $banner_data['target'] == 1, '', 'class="form-control"');
-            
+
             $cDescription[$i]['banner_display'] = $banner_data['banner_display'];
             $cDescription[$i]['banner_display_name'] = 'banner_display[' . $languages[$i]['id'] . ']';
 
@@ -1004,14 +1019,14 @@ class Banner_managerController extends Sceleton
             $cDescription[$i]['svg_url'] = Yii::$app->urlManager->createUrl([
                 'banner_manager/banner-editor',
                 'language_id' => $languages[$i]['id'],
-                'banners_id' => $banners_id
+                'banners_id' => $banners_id,
             ]);
 
             $cDescription[$i]['banners_html_text'] = tep_draw_textarea_field('banners_html_text[' . $languages[$i]['id'] . ']', 'soft', '40', '15', $banner_data['banners_html_text'], 'class="form-control ck-editor"');
             $cDescription[$i]['banners_image'] = '<div class="banner_image">' .
                     '<div class="upload" data-name="banners_image[' . $languages[$i]['id'] . ']" data-value="' . \common\helpers\Output::output_string($banner_data['banners_image']) . '"></div>' .
                     '</div>';
-            
+
             $cDescription[$i]['name'] = 'banners_image[' . $languages[$i]['id'] . ']';
             //$cDescription[$i]['value'] = $banner_data['banners_image'];
             $cDescription[$i]['upload'] = 'banners_image_upload[' . $languages[$i]['id'] . ']';
@@ -1037,11 +1052,11 @@ class Banner_managerController extends Sceleton
                 $type = explode('/', mime_content_type(DIR_FS_CATALOG . $cDescription[$i]['value']));
                 $cDescription[$i]['type'] = $type[0];
             }
-            
+
             $cDescription[$i]['text_position'] = $banner_data['text_position'];
             $cDescription[$i]['text_position_name'] = 'text_position[' . $languages[$i]['id'] . ']';
 
-            $mainDesc['banners_group'] = tep_draw_pull_down_menu('group_id', $groups_array, $group_id ? : $banner_data['group_id'], 'class="form-control"');
+            $mainDesc['banners_group'] = tep_draw_pull_down_menu('group_id', $groups_array, $group_id ?: $banner_data['group_id'], 'class="form-control"');
             $mainDesc['date_scheduled'] = '<input type="text" name="date_scheduled" value="' . \common\helpers\Date::formatDateTimeJS($banner_data && $banner_data['date_scheduled'] > 0 ? $banner_data['date_scheduled'] : '') . '" class="form-control datepicker">';
             $mainDesc['expires_date'] = '<input type="text" name="expires_date" value="' . \common\helpers\Date::formatDateTimeJS($banner_data && $banner_data['expires_date'] > 0 ? $banner_data['expires_date'] : '') . '" class="form-control datepicker">';
 
@@ -1067,13 +1082,13 @@ class Banner_managerController extends Sceleton
         }
         $banners_data['platform_statuses'] = $platform_statuses;
 
-        $this->selectedMenu = array('marketing', 'banner_manager');
+        $this->selectedMenu = ['marketing', 'banner_manager'];
 
         if (Yii::$app->request->isAjax) {
             $this->layout = false;
         }
         $text_new_or_edit = ($banners_id == 0) ? TEXT_BANNER_INSERT : TEXT_BANNER_EDIT;
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('banner_manager/index'), 'title' => $text_new_or_edit);
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('banner_manager/index'), 'title' => $text_new_or_edit];
 
         foreach (\common\helpers\Hooks::getList('banner_manager/banneredit') as $filename) {
             include($filename);
@@ -1093,12 +1108,12 @@ class Banner_managerController extends Sceleton
                 'CHANGED_DATA_ON_PAGE', 'GO_TO_BANNER_EDITOR']),
             'setLanguage' => (int) Yii::$app->request->get('language_id', false),
             'backUrl' => Yii::$app->urlManager->createUrl(['banner_manager',
-                'platform_id' => $platform_id, 'group_id' => $group_id, 'row_id' => $row_id
+                'platform_id' => $platform_id, 'group_id' => $group_id, 'row_id' => $row_id,
             ]),
             'platform_id' => $platform_id,
             'group_id' => $group_id,
             'row_id' => $row_id,
-            'popup' => $popup
+            'popup' => $popup,
         ];
         return $this->render('banneredit.tpl', $render_data);
     }
@@ -1109,9 +1124,9 @@ class Banner_managerController extends Sceleton
 
         $files = scandir(DIR_FS_CATALOG . 'images/banners/thumbnails');
 
-        foreach ($files as $item){
+        foreach ($files as $item) {
             $s = strtolower(substr($item, -3));
-            if ($s == 'gif' || $s == 'png' || $s == 'jpg' || $s == 'peg'){
+            if ($s == 'gif' || $s == 'png' || $s == 'jpg' || $s == 'peg') {
                 $htm .= '<div class="item item-general" data-src="' . DIR_WS_CATALOG . 'images/banners/' . $item . '"><div class="image"><img src="' . DIR_WS_CATALOG . 'images/banners/thumbnails/' . $item . '" title="' . $item . '" alt="' . $item . '"></div><div class="name" data-path="images/">' . $item . '</div></div>';
             }
         }
@@ -1164,20 +1179,19 @@ class Banner_managerController extends Sceleton
 
                     $response[] = ['status' => 'error', 'text' => FILE_ALREADY_EXIST, 'file' => $_FILES['file']['name'][$i]];
 
-                } elseif ( move_uploaded_file($_FILES['file']['tmp_name'][$i], $uploadfile)) {
+                } elseif (move_uploaded_file($_FILES['file']['tmp_name'][$i], $uploadfile)) {
 
                     Images::tep_image_resize($uploadfile, $thumbnail, 200, 200);
                     $response[] = [
                         'status' => 'ok',
                         'text' => TEXT_MESSEAGE_SUCCESS_ADDED,
                         'file' => $temp_name,
-                        'src' => DIR_WS_CATALOG . 'images/banners/' . $temp_name
+                        'src' => DIR_WS_CATALOG . 'images/banners/' . $temp_name,
                     ];
 
                 } else {
-                    $response[] = ['status' => 'error', 'text'=> 'error', 'file' => $_FILES['file']['name'][$i]];
+                    $response[] = ['status' => 'error', 'text' => 'error', 'file' => $_FILES['file']['name'][$i]];
                 }
-
 
                 $i++;
             }
@@ -1194,14 +1208,13 @@ class Banner_managerController extends Sceleton
         return json_encode($images);
     }
 
-
     public function actionBannerGroups()
     {
-        $this->selectedMenu = array('marketing', 'banner_manager');
+        $this->selectedMenu = ['marketing', 'banner_manager'];
         $this->topButtons[] = '<a href="' . Yii::$app->urlManager->createUrl('banner_manager/banner-groups-edit') . '" class="btn btn-confirm new-group">' . NEW_GROUP . '</a>';
         $this->navigation[] = [
             'link' => Yii::$app->urlManager->createUrl('banner_manager/banner-groups'),
-            'title' => BOX_BANNER_GROUPS
+            'title' => BOX_BANNER_GROUPS,
         ];
 
         $this->view->headingTitle = BOX_BANNER_GROUPS;
@@ -1246,13 +1259,13 @@ class Banner_managerController extends Sceleton
             ->distinct()
             ->count();
 
-        $response = array(
+        $response = [
             'draw'            => $draw,
             'recordsTotal'    => $countGroups,
             'recordsFiltered' => $countGroups,
-            'data'            => $responseList
-        );
-        echo json_encode( $response );
+            'data'            => $responseList,
+        ];
+        echo json_encode($response);
     }
 
     public function actionBannerGroupsEdit()
@@ -1275,11 +1288,11 @@ class Banner_managerController extends Sceleton
             $groupName = '';
         }
 
-        $this->selectedMenu = array('marketing', 'banner_manager');
+        $this->selectedMenu = ['marketing', 'banner_manager'];
         $this->topButtons[] = '<span class="btn btn-confirm save-group">' . IMAGE_SAVE . '</span>';
         $this->navigation[] = [
             'link' => Yii::$app->urlManager->createUrl('banner_manager/banner-groups'),
-            'title' => BOX_BANNER_GROUPS . ': ' . $groupName
+            'title' => BOX_BANNER_GROUPS . ': ' . $groupName,
         ];
         $this->view->headingTitle = 'Banner group: ' . $groupName;
 
@@ -1300,7 +1313,7 @@ class Banner_managerController extends Sceleton
             'groupSizes' => $groupSizes,
             'group_id' => $groupId,
             'row_id' => $row_id,
-            'platform_id' => $platform_id
+            'platform_id' => $platform_id,
         ]);
     }
 
@@ -1349,7 +1362,7 @@ class Banner_managerController extends Sceleton
                 $saveData = [
                     'group_id' => $post['group_id'],
                     'width_from' => (int)$post['width_from'][$count] ? $post['width_from'][$count] : 0,
-                    'width_to' => (int)$post['width_to'][$count]  ? $post['width_to'][$count] : 0,
+                    'width_to' => (int)$post['width_to'][$count] ? $post['width_to'][$count] : 0,
                     'image_width' => (int)$post['image_width'][$count] ? $post['image_width'][$count] : 0,
                     'image_height' => (int)$post['image_height'][$count] ? $post['image_height'][$count] : 0,
                 ];
@@ -1401,7 +1414,7 @@ class Banner_managerController extends Sceleton
         return $this->render('bar-group-delete', [
             'group_id' => $group_id,
             'banners' => $banners,
-            'banners_group' => $banners_group
+            'banners_group' => $banners_group,
         ]);
     }
 
@@ -1423,7 +1436,7 @@ class Banner_managerController extends Sceleton
 
         $response = [
             'status' => 'ok',
-            'success'=> TEXT_REMOVED,
+            'success' => TEXT_REMOVED,
         ];
 
         return json_encode($response);
@@ -1485,7 +1498,7 @@ class Banner_managerController extends Sceleton
                         'language_id' => $language['id'],
                         'banners_id' => $banners_id,
                         'banner_group' => $size['image_width'],
-                    ])
+                    ]),
                 ];
             }
 
@@ -1499,14 +1512,14 @@ class Banner_managerController extends Sceleton
                     'group_id' => $group_id,
                     'sizeImages' => $sizeImages,
                     'language_id' => $language['id'],
-                ])
+                ]),
             ];
         }
 
         return json_encode($response);
     }
 
-    public static function saveGroupImages ($bannersId, $oldImage = '', $deleteOldImage = [])
+    public static function saveGroupImages($bannersId, $oldImage = '', $deleteOldImage = [])
     {
         $groupImage = Yii::$app->request->post('group_image', []);
         $groupImageUpload = Yii::$app->request->post('group_image_upload', []);
@@ -1529,7 +1542,7 @@ class Banner_managerController extends Sceleton
                 }
                 $image = str_replace(DIR_WS_IMAGES, '', ($groupImage[$language['id']][$groupSize['image_width']] ?? ''));
                 $imageUpload = $groupImageUpload[$language['id']][$groupSize['image_width']] ?? '';
-                $imageDelete = (boolean)$groupImageDelete[$language['id']][$groupSize['image_width']] ?? false;
+                $imageDelete = (bool)$groupImageDelete[$language['id']][$groupSize['image_width']] ?? false;
                 $position = $positions[$language['id']][$groupSize['image_width']] ?? '';
                 $fit = $fits[$language['id']][$groupSize['image_width']] ?? '';
 
@@ -1551,7 +1564,7 @@ class Banner_managerController extends Sceleton
                         'height' => $groupSize['image_height'],
                         'fit' => $fit,
                         'parentImage' => $mainImage['banners_image'] ?? '',
-                        'parentOldImage' => $oldImage[$language['id']]
+                        'parentOldImage' => $oldImage[$language['id']],
                     ]
                 );
 
@@ -1571,7 +1584,7 @@ class Banner_managerController extends Sceleton
         }
     }
 
-    public static function deleteBannerGroupImages ($banners_id)
+    public static function deleteBannerGroupImages($banners_id)
     {
         $removeImages = BannersGroupsImages::find()
             ->where(['banners_id' => $banners_id])
@@ -1594,7 +1607,7 @@ class Banner_managerController extends Sceleton
 
     }
 
-    public function actionGroupBanners ()
+    public function actionGroupBanners()
     {
         $languageId = \Yii::$app->settings->get('languages_id');
         $bannersGroup = \Yii::$app->request->get('banners_group');
@@ -1621,14 +1634,14 @@ class Banner_managerController extends Sceleton
                 'image' => $this->actionGetimage($banner['banners_id']),
                 'banners_title' => $banner['banners_title'],
                 'status' => $banner['status'],
-                'platforms' => $platforms
+                'platforms' => $platforms,
             ];
         }
 
         echo json_encode($responseList);
     }
 
-    public function actionSort ()
+    public function actionSort()
     {
         $ids = \Yii::$app->request->post('ids', []);
 

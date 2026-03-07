@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230418_123905_export_widgets extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/design',[
+        $this->addTranslation('admin/design', [
             'BLOCK_CONTAINS_EXTENSION_WIDGETS' => 'This block contains the extension widgets',
             'EXTENSIONS_YOU_DONT_HAVE' => 'This widget group contains widgets from extensions you don\'t have',
             'WIDGETS_NOT_INSTALLED_EXTENSIONS' => 'This widget group contains widgets from not installed extensions',

@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace backend\models\Report;
 
 use Yii;
 
-class YearlyReport extends BasicReport implements ReportInterface {
-
-    CONST DELIMETER = "/";
-    CONST SHOW_ROWS = 10;
+class YearlyReport extends BasicReport implements ReportInterface
+{
+    public const DELIMETER = '/';
+    public const SHOW_ROWS = 10;
 
     protected $start_year;
     protected $end_year;
@@ -22,7 +24,8 @@ class YearlyReport extends BasicReport implements ReportInterface {
     ];
     protected $current_range;
 
-    public function __construct($data) {
+    public function __construct($data)
+    {
 
         if (isset($data['start_custom']) && !empty($data['start_custom'])) {
             $this->start_year = $data['start_custom'];
@@ -42,19 +45,22 @@ class YearlyReport extends BasicReport implements ReportInterface {
 
         $years = $this->getYearsList();
         $years = array_values($years);
-        if (empty($this->start_year))
+        if (empty($this->start_year)) {
             $this->start_year = $years[0];
-        if (empty($this->end_year))
+        }
+        if (empty($this->end_year)) {
             $this->end_year = $years[sizeof($years) - 1];
+        }
 
-        //need ordering check 
+        //need ordering check
         //echo '<pre>';print_r($this);die;
         parent::__construct($data);
     }
 
-    public function getOptions($range) {
+    public function getOptions($range)
+    {
         switch ($range) {
-            case 'all' :
+            case 'all':
                 return '';
                 break;
             case 'custom':
@@ -63,10 +69,13 @@ class YearlyReport extends BasicReport implements ReportInterface {
         }
     }
 
-    public function loadPurchases($for_map = false) {
+    public function loadPurchases($for_map = false)
+    {
         $where = " (year(o.date_purchased) between '" . $this->start_year . "' and '" . $this->end_year . "') ";
         $data = $this->getRawData($where, $for_map);
-        if ($for_map) return $data;
+        if ($for_map) {
+            return $data;
+        }
         if (is_array($data)) {
             $filled = false;
             $new_data = [];
@@ -78,12 +87,12 @@ class YearlyReport extends BasicReport implements ReportInterface {
                             $template[$key] = '';
                         }
                     }
-                    $new_data = $this->prepareYearsRange($template, "Y");
+                    $new_data = $this->prepareYearsRange($template, 'Y');
                     $filled = true;
                 }
                 if (!empty($v['period'])) {
-                    $data[$k]['period'] = date("Y", strtotime($v['period']));
-                    $new_data[date("Y", strtotime($v['period']))] = $data[$k];
+                    $data[$k]['period'] = date('Y', strtotime($v['period']));
+                    $new_data[date('Y', strtotime($v['period']))] = $data[$k];
                 }
             }
 
@@ -96,22 +105,26 @@ class YearlyReport extends BasicReport implements ReportInterface {
         return $data;
     }
 
-    public function getRange() {
-        return date("Y", mktime(0, 0, 0, 1, 1, $this->start_year)) . ' - ' . date("Y", mktime(0, 0, 0, 12, 1, $this->end_year));
+    public function getRange()
+    {
+        return date('Y', mktime(0, 0, 0, 1, 1, $this->start_year)) . ' - ' . date('Y', mktime(0, 0, 0, 12, 1, $this->end_year));
     }
 
-    public function getTableTitle() {
+    public function getTableTitle()
+    {
         return TEXT_SALES_YEARLY_STATISTICS;
     }
 
-    public function convertColumnTitle($value) {
+    public function convertColumnTitle($value)
+    {
         if ($value == 'period') {
             return parent::convertColumnTitle(TITLE_YEAR);
         }
         return parent::convertColumnTitle($value);
     }
 
-    public function getRowsCount() {
+    public function getRowsCount()
+    {
         return self::SHOW_ROWS;
     }
 

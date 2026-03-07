@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\api\models\XML;
 
-
 class IOLanguageMap extends IOMap
 {
     protected $named = '@language';
@@ -20,11 +21,11 @@ class IOLanguageMap extends IOMap
 
     public function serializeTo(\SimpleXMLElement $parent)
     {
-        if ( !empty($this->value) ) {
+        if (!empty($this->value)) {
             $parent->addAttribute('language', \common\classes\language::get_code($this->value));
             $parent->addAttribute('internalId', $this->value);
             $externalId = IOCore::get()->getAttributeMapper()->externalId($this);
-            if ( is_numeric($externalId) ) {
+            if (is_numeric($externalId)) {
                 $parent->addAttribute('externalId', $externalId);
             }
         }
@@ -37,7 +38,7 @@ class IOLanguageMap extends IOMap
             if (!empty($this->language)) {
                 $arr = \common\helpers\Language::get_language_id($this->language);
                 $newId = $arr['languages_id'] ?? null;
-                if ( $newId ) {
+                if ($newId) {
                     $this->value = $newId;
                     IOCore::get()->getAttributeMapper()->mapIds($this, $newId, $this->internalId);
                 } else {
@@ -49,9 +50,9 @@ class IOLanguageMap extends IOMap
 
         $parentResult = parent::toImportModel();
 
-        if ( !$parentResult && !empty($this->language) && !IOCore::get()->isLocalProject() ) {
+        if (!$parentResult && !empty($this->language) && !IOCore::get()->isLocalProject()) {
             $newId = \common\classes\language::get_id($this->language);
-            if ( $newId ) {
+            if ($newId) {
                 $this->internalId = $newId;
                 $this->value = $newId;
                 $parentResult = $newId;

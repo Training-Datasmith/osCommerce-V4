@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,11 @@
 
 namespace frontend\design\boxes\login;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
-use frontend\forms\registration\CustomerRegistration;
+use yii\base\Widget;
 
 class Register extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -31,7 +30,7 @@ class Register extends Widget
 
     public function run()
     {
-        if ( !isset($this->params['enterModels']['registration']) || !is_object($this->params['enterModels']['registration']) ){
+        if (!isset($this->params['enterModels']['registration']) || !is_object($this->params['enterModels']['registration'])) {
             return '';
         }
         $verifyEmail = (defined('FLAG_EMAIL_VERIFICATION') && FLAG_EMAIL_VERIFICATION == 'True');
@@ -39,7 +38,7 @@ class Register extends Widget
             'settings' => $this->settings,
             'id' => $this->id,
             'verifyEmail' => $verifyEmail,
-            'registerModel' => $this->params['enterModels']['registration']
+            'registerModel' => $this->params['enterModels']['registration'],
         ])]);
     }
 }

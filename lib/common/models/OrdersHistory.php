@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 class OrdersHistory extends ActiveRecord
@@ -25,8 +26,9 @@ class OrdersHistory extends ActiveRecord
     {
         return 'orders_history';
     }
-    
-    public function getAdmin(){
+
+    public function getAdmin()
+    {
         return $this->hasOne(Admin::className(), ['admin_id' => 'admin_id']);
     }
 

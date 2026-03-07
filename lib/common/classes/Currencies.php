@@ -1,42 +1,45 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\classes;
 
-use \frontend\design\Info;
+use frontend\design\Info;
 
-class Currencies {
+class Currencies
+{
+    public $currencies;
+    public $platform_currencies = [];
+    public $dp_currency;
+    public $currency_codes = []; //cache: codes by IDs
+    public $margin_platform_id;
+    public $margin_array;
 
-    var $currencies;
-    var $platform_currencies = [];
-    var $dp_currency;
-    var $currency_codes = []; //cache: codes by IDs
-    var $margin_platform_id;
-    var $margin_array;
-
-    function __construct($platform_id = null) {
-        $this->currencies = array();
+    public function __construct($platform_id = null)
+    {
+        $this->currencies = [];
 
         if (!Info::isTotallyAdmin()) {
             $this->platform_currencies = Info::platformCurrencies();
             $this->dp_currency = \frontend\design\Info::platformDefCurrency();
             if (!is_array($this->platform_currencies) || count($this->platform_currencies) == 0) {
-                $this->platform_currencies = array(DEFAULT_CURRENCY);
+                $this->platform_currencies = [DEFAULT_CURRENCY];
                 $this->dp_currency = DEFAULT_CURRENCY;
             }
         } else {
             $this->dp_currency = DEFAULT_CURRENCY;
-            $this->platform_currencies = array(DEFAULT_CURRENCY);
+            $this->platform_currencies = [DEFAULT_CURRENCY];
         }
 
         $currenciesResponse = \common\models\Currencies::find()
@@ -45,17 +48,17 @@ class Currencies {
                 ->asArray()
                 ->all();
         foreach ($currenciesResponse as $currencies) {
-            $this->currencies[$currencies['code']] = array('title' => $currencies['title'],
+            $this->currencies[$currencies['code']] = ['title' => $currencies['title'],
                 'id' => $currencies['currencies_id'],
                 'code' => $currencies['code'],
-                'code_number' => $currencies['code_number']??'',
+                'code_number' => $currencies['code_number'] ?? '',
                 'symbol_left' => $currencies['symbol_left'],
                 'symbol_right' => $currencies['symbol_right'],
                 'decimal_point' => $currencies['decimal_point'],
                 'thousands_point' => $currencies['thousands_point'],
                 'decimal_places' => (int) $currencies['decimal_places'],
                 '_value' => $currencies['value'],
-                'value' => $currencies['value']);
+                'value' => $currencies['value']];
             $this->currency_codes[$currencies['currencies_id']] = $currencies['code'];
         }
 
@@ -78,7 +81,8 @@ class Currencies {
         }
     }
 
-    public function applyPlatformMargin($platformId) {
+    public function applyPlatformMargin($platformId)
+    {
         $this->margin_platform_id = $platformId;
         $this->margin_array = [];
         foreach ($this->currencies as $currency) {
@@ -95,8 +99,9 @@ class Currencies {
         $count = count($get_platform_margin_r);
         if ($count > 0) {
             foreach ($get_platform_margin_r as $array => $get_platform_margin) {
-                if (!isset($this->margin_array[$get_platform_margin['currencies_id']]))
+                if (!isset($this->margin_array[$get_platform_margin['currencies_id']])) {
                     continue;
+                }
                 $this->margin_array[$get_platform_margin['currencies_id']] = [
                     'use_custom_currency_value' => !!$get_platform_margin['use_custom_currency_value'],
                     'custom_currency_value' => $get_platform_margin['currency_value'],
@@ -125,24 +130,25 @@ class Currencies {
         }
     }
 
-/**
- *
- * @param decimal $number
- * @param bool  $calculate_currency_value default true
- * @param string $currency_type def ''
- * @param decimal $currency_value def ''
- * @param bool $microdata def false
- * @param bool $metaTags def false
- * @return string
- */
-    function format($number, $calculate_currency_value = true, $currency_type = '', $currency_value = '', $microdata = false, $metaTags = false) {
+    /**
+     *
+     * @param decimal $number
+     * @param bool  $calculate_currency_value default true
+     * @param string $currency_type def ''
+     * @param decimal $currency_value def ''
+     * @param bool $microdata def false
+     * @param bool $metaTags def false
+     * @return string
+     */
+    public function format($number, $calculate_currency_value = true, $currency_type = '', $currency_value = '', $microdata = false, $metaTags = false)
+    {
         $currency = \Yii::$app->settings->get('currency');
 
         if (\frontend\design\Info::isTotallyAdmin() && empty($currency)) {
             $currency = DEFAULT_CURRENCY;
             \Yii::$app->settings->set('currency', $currency);
         }
-        
+
         if (empty($currency_type)) {
             $currency_type = $currency;
         }
@@ -169,15 +175,15 @@ class Currencies {
             $format_string .= ($microdata ? '<span itemprop="price" content="' . $seoPrice . '">' : '') .
                     number_format(round($number * $rate, $this->currencies[$currency_type]['decimal_places']), $this->currencies[$currency_type]['decimal_places'], $this->currencies[$currency_type]['decimal_point'], $this->currencies[$currency_type]['thousands_point']) .
                     ($microdata ? '</span>' : '');
-// if the selected currency is in the european euro-conversion and the default currency is euro,
-// the currency will displayed in the national currency and euro currency
+            // if the selected currency is in the european euro-conversion and the default currency is euro,
+            // the currency will displayed in the national currency and euro currency
             if ((DEFAULT_CURRENCY == 'EUR') && ($currency_type == 'DEM' || $currency_type == 'BEF' || $currency_type == 'LUF' || $currency_type == 'ESP' || $currency_type == 'FRF' || $currency_type == 'IEP' || $currency_type == 'ITL' || $currency_type == 'NLG' || $currency_type == 'ATS' || $currency_type == 'PTE' || $currency_type == 'FIM' || $currency_type == 'GRD')) {
                 $format_string .= ' <small>[' . $this->format($number, true, 'EUR') . ']</small>';
             }
 
         } else {
             $seoPrice = number_format(round($number, $this->currencies[$currency_type]['decimal_places']), 2, '.', '');
-            $format_string .= 
+            $format_string .=
                 ($microdata ? '<span itemprop="price" content="' . $seoPrice . '">' : '') .
                 number_format(round($number, $this->currencies[$currency_type]['decimal_places']), $this->currencies[$currency_type]['decimal_places'], $this->currencies[$currency_type]['decimal_point'], $this->currencies[$currency_type]['thousands_point'])
                 . ($microdata ? '</span>' : '');
@@ -185,14 +191,14 @@ class Currencies {
         if ($metaTags && !(\Yii::$app->user->isGuest && \common\helpers\PlatformConfig::getFieldValue('platform_please_login'))) {
             \Yii::$app->getView()->registerMetaTag([
                 'property' => 'product:price:amount',
-                'content' => $seoPrice
+                'content' => $seoPrice,
                     ], 'product:price:amount');
             \Yii::$app->getView()->registerMetaTag([
                 'property' => 'product:price:currency',
-                'content' => $currency_type
+                'content' => $currency_type,
                     ], 'product:price:currency');
         }
-        
+
         if ($this->currencies[$currency_type]['symbol_right']) {
             if ($microdata) {
                 $format_string .= '<span itemprop="priceCurrency" content="' . $currency_type . '">' . $this->currencies[$currency_type]['symbol_right'] . '</span>';
@@ -200,12 +206,12 @@ class Currencies {
                 $format_string .= $this->currencies[$currency_type]['symbol_right'];
             }
         }
-        
-        if ($number < 0){
-            $format_string = "-" . preg_replace("/\-/", "", $format_string);
+
+        if ($number < 0) {
+            $format_string = '-' . preg_replace("/\-/", '', $format_string);
         }
 
-        if ($ext =\common\helpers\Extensions::isAllowed('Maintenance')) {
+        if ($ext = \common\helpers\Extensions::isAllowed('Maintenance')) {
             if ($ext::optionPricesOff()) {
                 $format_string = '';
             }
@@ -214,18 +220,19 @@ class Currencies {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('BusinessToBusiness', 'allowed')) {
             $customer_groups_id = (int) \Yii::$app->storage->get('customer_groups_id');
             if ($ext::checkPriceIsHidden($customer_groups_id)) {
-              $checkout = (in_array(\Yii::$app->controller->id, ['checkout', 'sample-checkout', 'quote-checkout'])  && \Yii::$app->controller->action->id == 'process') ||
-                  (\Yii::$app->controller->id=='callback');
-              if (!$checkout) {
-                $format_string = '&nbsp;';
-              }
+                $checkout = (in_array(\Yii::$app->controller->id, ['checkout', 'sample-checkout', 'quote-checkout'])  && \Yii::$app->controller->action->id == 'process') ||
+                    (\Yii::$app->controller->id == 'callback');
+                if (!$checkout) {
+                    $format_string = '&nbsp;';
+                }
             }
         }
 
         return $format_string;
     }
 
-    function format_clear($number, $calculate_currency_value = true, $currency_type = '', $currency_value = '', $unclear = false) {
+    public function format_clear($number, $calculate_currency_value = true, $currency_type = '', $currency_value = '', $unclear = false)
+    {
         $currency = \Yii::$app->settings->get('currency');
 
         if (\frontend\design\Info::isTotallyAdmin() && empty($currency)) {
@@ -244,7 +251,7 @@ class Currencies {
             $format_string = number_format(round($number, $this->currencies[$currency_type]['decimal_places']), $this->currencies[$currency_type]['decimal_places'], '.', '');
         }
 
-        if ($ext =\common\helpers\Extensions::isAllowed('Maintenance')) {
+        if ($ext = \common\helpers\Extensions::isAllowed('Maintenance')) {
             if ($ext::optionPricesOff()) {
                 $format_string = 0;
             }
@@ -260,7 +267,8 @@ class Currencies {
         return $format_string;
     }
 
-    function formatById($number, $calculate_currency_value = true, $currency_id = '', $currency_value = '', $microdata = false) {
+    public function formatById($number, $calculate_currency_value = true, $currency_id = '', $currency_value = '', $microdata = false)
+    {
         $currency = \Yii::$app->settings->get('currency');
 
         if (\frontend\design\Info::isTotallyAdmin() && empty($currency)) {
@@ -308,7 +316,7 @@ class Currencies {
             }
         }
 
-        if ($ext =\common\helpers\Extensions::isAllowed('Maintenance')) {
+        if ($ext = \common\helpers\Extensions::isAllowed('Maintenance')) {
             if ($ext::optionPricesOff()) {
                 $format_string = '';
             }
@@ -317,14 +325,15 @@ class Currencies {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('BusinessToBusiness', 'allowed')) {
             $customer_groups_id = (int) \Yii::$app->storage->get('customer_groups_id');
             if ($ext::checkPriceIsHidden($customer_groups_id)) {
-              $format_string = '';
+                $format_string = '';
             }
         }
 
         return $format_string;
     }
 
-    function is_set($code) {
+    public function is_set($code)
+    {
         if (isset($this->currencies[$code]) && tep_not_null($this->currencies[$code])) {
             return true;
         } else {
@@ -332,15 +341,18 @@ class Currencies {
         }
     }
 
-    function get_value($code) {
+    public function get_value($code)
+    {
         return $this->currencies[$code]['value'];
     }
 
-    function get_decimal_places($code) {
+    public function get_decimal_places($code)
+    {
         return $this->currencies[$code]['decimal_places'];
     }
 
-    function get_decimal_places_by_id($id) {
+    public function get_decimal_places_by_id($id)
+    {
         if (isset($this->currency_codes[$id])) {
             $code = $this->currency_codes[$id];
         } else {
@@ -349,13 +361,16 @@ class Currencies {
         return $this->currencies[$code]['decimal_places'];
     }
 
-    function calculate_price_in_order($order_info, $products_price, $products_tax = 0, $quantity = 1) {
+    public function calculate_price_in_order($order_info, $products_price, $products_tax = 0, $quantity = 1)
+    {
         if (\common\helpers\Currencies::currency_exists($order_info['currency'])) {
             if (defined('PRICE_WITH_BACK_TAX') && PRICE_WITH_BACK_TAX == 'True') {
                 $products_tax = 0;
             }
 
-            if ( !is_numeric($quantity) ) $quantity = 1;
+            if (!is_numeric($quantity)) {
+                $quantity = 1;
+            }
 
             if ($order_info['products_price_qty_round'] ?? null) {
                 return round(\common\helpers\Tax::add_tax_always($products_price, $products_tax), $this->currencies[$order_info['currency']]['decimal_places']) * $quantity;
@@ -367,16 +382,17 @@ class Currencies {
         }
     }
 
-/**
- *
- * @param float $products_price ex 9.99
- * @param float $products_tax 19.5 (usually <100)
- * @param int $quantity default 1
- * @param string $currency
- * @param bool $add_tax_always default false
- * @return number
- */
-    function calculate_price($products_price, $products_tax, $quantity = 1, $currency = '', $add_tax_always = false) {
+    /**
+     *
+     * @param float $products_price ex 9.99
+     * @param float $products_tax 19.5 (usually <100)
+     * @param int $quantity default 1
+     * @param string $currency
+     * @param bool $add_tax_always default false
+     * @return number
+     */
+    public function calculate_price($products_price, $products_tax, $quantity = 1, $currency = '', $add_tax_always = false)
+    {
         if (empty($currency)) {
             $currency = \Yii::$app->settings->get('currency');
         }
@@ -387,21 +403,21 @@ class Currencies {
         }
 
         if (defined('PRICE_WITH_BACK_TAX') && PRICE_WITH_BACK_TAX == 'True') {
-            if ($products_tax<0) {
+            if ($products_tax < 0) {
                 $method = 'reduce_tax_always';
                 $products_tax = abs($products_tax);
             } else {
                 $method = 'add_tax';
             }
-        } else
-        if ($add_tax_always || ($products_tax > 0 && \common\helpers\Tax::displayTaxable())) {
+        } elseif ($add_tax_always || ($products_tax > 0 && \common\helpers\Tax::displayTaxable())) {
             $method = 'add_tax_always';
         } else {
             $method = 'add_tax';
         }
-          
 
-        if ( !is_numeric($quantity) ) $quantity = 1;
+        if (!is_numeric($quantity)) {
+            $quantity = 1;
+        }
 
         if (defined('PRODUCTS_PRICE_QTY_ROUND') && PRODUCTS_PRICE_QTY_ROUND == 'true') {
             return round(\common\helpers\Tax::$method($products_price, $products_tax), $this->currencies[$currency]['decimal_places']) * $quantity;
@@ -414,16 +430,17 @@ class Currencies {
         }
     }
 
-/**
- * Display nothing or price with/without tax (format(calculate_price) )
- * @param decimal|bool $products_price ex 9.99
- * @param float  $products_tax 19.5 (usually <100)
- * @param int $quantity default 1
- * @param bool $microdata add microdata <span itemprop="priceCurrency|price">  default true
- * @param bool $metaTags register meta microdata  default false
- * @return string formatted price
- */
-    function display_price($products_price, $products_tax, $quantity = 1, $microdata = true, $metaTags = false) {
+    /**
+     * Display nothing or price with/without tax (format(calculate_price) )
+     * @param decimal|bool $products_price ex 9.99
+     * @param float  $products_tax 19.5 (usually <100)
+     * @param int $quantity default 1
+     * @param bool $microdata add microdata <span itemprop="priceCurrency|price">  default true
+     * @param bool $metaTags register meta microdata  default false
+     * @return string formatted price
+     */
+    public function display_price($products_price, $products_tax, $quantity = 1, $microdata = true, $metaTags = false)
+    {
         $ret = $this->getPriceTaxable($products_price, $products_tax, $quantity);
         if ($ret != '') {
             $ret = $this->format($ret, true, '', '', $microdata, $metaTags);
@@ -440,15 +457,16 @@ class Currencies {
             return $this->format($this->calculate_price($products_price, $products_tax, $quantity), true, '', '', $microdata, $metaTags);
         }*/
     }
-    
-/**
- *
- * @param type $products_price
- * @param type $products_tax
- * @param type $quantity
- * @return string
- */
-    function display_price_clear($products_price, $products_tax, $quantity = 1) {
+
+    /**
+     *
+     * @param type $products_price
+     * @param type $products_tax
+     * @param type $quantity
+     * @return string
+     */
+    public function display_price_clear($products_price, $products_tax, $quantity = 1)
+    {
         $ret = $this->getPriceTaxable($products_price, $products_tax, $quantity);
         if ($ret != '') {
             $ret = $this->format_clear($ret);
@@ -457,19 +475,21 @@ class Currencies {
 
     }
 
-    function getPriceTaxable($products_price, $products_tax, $quantity = 1) {
+    public function getPriceTaxable($products_price, $products_tax, $quantity = 1)
+    {
         $ret = '';
         if ($products_price === false) {
             return '';
         } else {
-            if ($products_tax > 0  && !\common\helpers\Tax::displayTaxable() ){
-              $products_tax = 0;
+            if ($products_tax > 0  && !\common\helpers\Tax::displayTaxable()) {
+                $products_tax = 0;
             }
             return $this->calculate_price($products_price, $products_tax, $quantity);
         }
     }
 
-    function display_gift_card_price($products_price, $products_tax, $gift_card_currency = '') {
+    public function display_gift_card_price($products_price, $products_tax, $gift_card_currency = '')
+    {
         $currency = \Yii::$app->settings->get('currency');
         if (tep_not_null($gift_card_currency) && \common\helpers\Currencies::currency_exists($gift_card_currency)) {
             $currency = $gift_card_currency;
@@ -481,10 +501,12 @@ class Currencies {
         return $return;
     }
 
-    function get_market_price_rate($from_currency, $to_currency) {
+    public function get_market_price_rate($from_currency, $to_currency)
+    {
         $div = $this->get_value($from_currency);
-        if (!$div)
+        if (!$div) {
             $div = 1;
+        }
         return $this->get_value($to_currency) / $div;
     }
 
@@ -509,7 +531,8 @@ class Currencies {
         return $format_string;
     }
 
-    public function rate($currency_type = '', $currency_value = '') {
+    public function rate($currency_type = '', $currency_value = '')
+    {
         $currency = \Yii::$app->settings->get('currency');
 
         if (\frontend\design\Info::isTotallyAdmin() && empty($currency)) {
@@ -523,12 +546,13 @@ class Currencies {
         return (tep_not_null($currency_value)) ? $currency_value : $this->currencies[$currency_type]['value'];
     }
 
-/**
- * returns ISO 4217 currency codes (numeric)
- * @param string $currency_type
- * @return numeric
- */
-    public function getCodeNumber($currency_type = '') {
+    /**
+     * returns ISO 4217 currency codes (numeric)
+     * @param string $currency_type
+     * @return numeric
+     */
+    public function getCodeNumber($currency_type = '')
+    {
         $currency = \Yii::$app->settings->get('currency');
 
         if (\frontend\design\Info::isTotallyAdmin() && empty($currency)) {

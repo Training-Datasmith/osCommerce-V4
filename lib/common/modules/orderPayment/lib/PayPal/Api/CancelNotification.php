@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -23,7 +25,7 @@ class CancelNotification extends PayPalModel
      * Subject of the notification.
      *
      * @param string $subject
-     * 
+     *
      * @return $this
      */
     public function setSubject($subject)
@@ -46,7 +48,7 @@ class CancelNotification extends PayPalModel
      * Note to the payer.
      *
      * @param string $note
-     * 
+     *
      * @return $this
      */
     public function setNote($note)
@@ -69,7 +71,7 @@ class CancelNotification extends PayPalModel
      * Indicates whether to send a copy of the notification to the merchant.
      *
      * @param bool $send_to_merchant
-     * 
+     *
      * @return $this
      */
     public function setSendToMerchant($send_to_merchant)
@@ -92,7 +94,7 @@ class CancelNotification extends PayPalModel
      * Indicates whether to send a copy of the notification to the payer.
      *
      * @param bool $send_to_payer
-     * 
+     *
      * @return $this
      */
     public function setSendToPayer($send_to_payer)
@@ -115,7 +117,7 @@ class CancelNotification extends PayPalModel
      * Applicable for invoices created with Cc emails. If this field is not in the body, all the cc email addresses added as part of the invoice shall be notified else this field can be used to limit the list of email addresses. Note: additional email addresses are not supported.
      *
      * @param string[] $cc_emails
-     * 
+     *
      * @return $this
      */
     public function setCcEmails($cc_emails)
@@ -143,10 +145,10 @@ class CancelNotification extends PayPalModel
     public function addCcEmail($string)
     {
         if (!$this->getCcEmails()) {
-            return $this->setCcEmails(array($string));
+            return $this->setCcEmails([$string]);
         } else {
             return $this->setCcEmails(
-                array_merge($this->getCcEmails(), array($string))
+                array_merge($this->getCcEmails(), [$string])
             );
         }
     }
@@ -160,7 +162,7 @@ class CancelNotification extends PayPalModel
     public function removeCcEmail($string)
     {
         return $this->setCcEmails(
-            array_diff($this->getCcEmails(), array($string))
+            array_diff($this->getCcEmails(), [$string])
         );
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,18 +15,18 @@
 
 namespace common\classes;
 
-class payment extends modules\ModuleCollection {
-
+class payment extends modules\ModuleCollection
+{
     public $modules;
     public $selected_module;
     public $include_modules = [];
     private $manager;
 
-// class constructor
-    function __construct($module, \common\services\OrderManager $manager)
+    // class constructor
+    public function __construct($module, \common\services\OrderManager $manager)
     {
         global $cart;
-// EOF: WebMakers.com Added: Downloads Controller
+        // EOF: WebMakers.com Added: Downloads Controller
         $module_key = 'MODULE_PAYMENT_INSTALLED';
         $this->manager = $manager;
         if (defined($module_key) && tep_not_null(constant($module_key))) {
@@ -33,20 +35,20 @@ class payment extends modules\ModuleCollection {
                 $class = basename(str_replace('\\', '/', $class));
             }
             unset($class);*/
-            $include_modules = array();
+            $include_modules = [];
             if ((tep_not_null($module)) && (in_array($module . '.php', $this->modules))) {
                 $this->selected_module = $module;
-                $include_modules[] = array('class' => $module, 'file' => $module . '.php');
+                $include_modules[] = ['class' => $module, 'file' => $module . '.php'];
             } elseif ((tep_not_null($module)) && (in_array(substr($module, 0, strpos($module, '_')) . '.php'/* . substr($PHP_SELF, (strrpos($PHP_SELF, '.') + 1))*/, $this->modules))) {
                 $this->selected_module = substr($module, 0, strpos($module, '_'));
-                $include_modules[] = array('class' => substr($module, 0, strpos($module, '_')), 'file' => substr($module, 0, strpos($module, '_')) . '.php'/* . substr($PHP_SELF, (strrpos($PHP_SELF, '.') + 1))*/);
+                $include_modules[] = ['class' => substr($module, 0, strpos($module, '_')), 'file' => substr($module, 0, strpos($module, '_')) . '.php'/* . substr($PHP_SELF, (strrpos($PHP_SELF, '.') + 1))*/];
             } elseif ((tep_not_null($module)) && (in_array(substr($module, 0, strrpos($module, '_')) . '.php'/* . substr($PHP_SELF, (strrpos($PHP_SELF, '.') + 1))*/, $this->modules))) {
                 $this->selected_module = substr($module, 0, strrpos($module, '_'));
-                $include_modules[] = array('class' => substr($module, 0, strrpos($module, '_')), 'file' => substr($module, 0, strrpos($module, '_')) . '.php'/* . substr($PHP_SELF, (strrpos($PHP_SELF, '.') + 1))*/);
+                $include_modules[] = ['class' => substr($module, 0, strrpos($module, '_')), 'file' => substr($module, 0, strrpos($module, '_')) . '.php'/* . substr($PHP_SELF, (strrpos($PHP_SELF, '.') + 1))*/];
             } else {
                 if (defined('MODULE_PAYMENT_FREECHARGER_STATUS') && MODULE_PAYMENT_FREECHARGER_STATUS == 1 && ($cart->show_total() == 0 and $cart->show_weight == 0)) {
                     $this->selected_module = $module;
-                    $include_modules[] = array('class' => 'freecharger', 'file' => 'freecharger.php');
+                    $include_modules[] = ['class' => 'freecharger', 'file' => 'freecharger.php'];
                 } else {
                     // All Other Payment Modules
                     if (is_array($this->modules)) {
@@ -54,11 +56,11 @@ class payment extends modules\ModuleCollection {
                             $class = substr($value, 0, strrpos($value, '.'));
                             // Don't show Free Payment Module
                             if ($class != 'freecharger') {
-                                $include_modules[] = array('class' => $class, 'file' => $value);
+                                $include_modules[] = ['class' => $class, 'file' => $value];
                             }
                         }
                     }
-// EOF: WebMakers.com Added: Downloads Controller
+                    // EOF: WebMakers.com Added: Downloads Controller
                 }
             }
             \common\helpers\Translation::init('payment');
@@ -77,7 +79,7 @@ class payment extends modules\ModuleCollection {
         }
     }
 
-// class methods
+    // class methods
     /* The following method is needed in the checkout_confirmation.php page
       due to a chicken and egg problem with the payment class and order class.
       The payment modules needs the order destination data for the dynamic status
@@ -86,9 +88,10 @@ class payment extends modules\ModuleCollection {
       payment modules available which would break the modules in the contributions
       section. This should be looked into again post 2.2.
      */
-    public function update_status() {
+    public function update_status()
+    {
         if (is_array($this->include_modules)) {
-            if (is_object($this->include_modules[$this->selected_module]??null)) {
+            if (is_object($this->include_modules[$this->selected_module] ?? null)) {
                 if (function_exists('method_exists')) {
                     if (method_exists($this->include_modules[$this->selected_module], 'update_status')) {
                         $this->include_modules[$this->selected_module]->update_status();
@@ -98,39 +101,44 @@ class payment extends modules\ModuleCollection {
         }
     }
 
-    public function isPaymentSelected() {
-      //2do add allow per customer modules now online IPN will fail \common\extensions\CustomerModules\CustomerModules
+    public function isPaymentSelected()
+    {
+        //2do add allow per customer modules now online IPN will fail \common\extensions\CustomerModules\CustomerModules
         return isset($this->include_modules[$this->selected_module]) && is_object($this->include_modules[$this->selected_module]) && $this->include_modules[$this->selected_module]->enabled;
     }
 
-    public function getSelectedPayment() {
-        if ($this->isPaymentSelected()){
+    public function getSelectedPayment()
+    {
+        if ($this->isPaymentSelected()) {
             return $this->include_modules[$this->selected_module];
         }
         return false;
     }
 
-    public function isPaymentEnabled($payment_class){
+    public function isPaymentEnabled($payment_class)
+    {
         return isset($this->getEnabledModules()[$payment_class]) && $this->getEnabledModules()[$payment_class]->enabled;
     }
 
-    public function getPaymentUrl(){
-        if ($_selected = $this->getSelectedPayment()){
-            if (property_exists($_selected, 'form_action_url')){
+    public function getPaymentUrl()
+    {
+        if ($_selected = $this->getSelectedPayment()) {
+            if (property_exists($_selected, 'form_action_url')) {
                 return $_selected->form_action_url;
             }
         }
         return null;
     }
 
-    public function javascript_validation() {
+    public function javascript_validation()
+    {
         $js = '';
         if (is_array($this->include_modules)) {
             $modules = $this->getEnabledModules();
             foreach ($modules as $_payment) {
                 $js .= $_payment->javascript_validation();
             }
-            if (count($modules)){
+            if (count($modules)) {
                 $js .= "\n" . '  if (payment_value == null && submitter != 1) {' . "\n" . // ICW CREDIT CLASS Gift Voucher System
                     '    error_message = error_message + ' . json_encode(JS_ERROR_NO_PAYMENT_MODULE_SELECTED, JSON_PARTIAL_OUTPUT_ON_ERROR) . ';' . "\n" .
                     '    error = 1;' . "\n" .
@@ -182,20 +190,21 @@ EOD;
         return $js;
     }
 
-    public function getEnabledModules($incDisabledByZone = false) {
+    public function getEnabledModules($incDisabledByZone = false)
+    {
         static $cached = [];
-        if (!isset($cached[(int)$incDisabledByZone])){
+        if (!isset($cached[(int)$incDisabledByZone])) {
             /** @var \common\extensions\CustomerModules\CustomerModules $CustomerModules */
             //$CustomerModules = \common\helpers\Acl::checkExtensionAllowed('CustomerModules', 'allowed');
             $enabled = [];
-            foreach ($this->include_modules as $class => $module){
+            foreach ($this->include_modules as $class => $module) {
                 /*$forceCustomer = false;
                 if ($CustomerModules && !\Yii::$app->user->isGuest) {
                   if ($CustomerModules::checkForceAllowed(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $class)) {
                     $forceCustomer = true;
                   }
                 }*/
-                if (is_object($module) && (/*$forceCustomer || */ (($module->enabled || ($incDisabledByZone && $module->getStatusBeforeUpdate())) && $module->getVisibily($this->manager->getPlatformId(), $this->manager->getModulesVisibility())))){
+                if (is_object($module) && (/*$forceCustomer || */ (($module->enabled || ($incDisabledByZone && $module->getStatusBeforeUpdate())) && $module->getVisibily($this->manager->getPlatformId(), $this->manager->getModulesVisibility())))) {
                     $enabled[$class] = $module;
                 }
             }
@@ -208,7 +217,8 @@ EOD;
     /**
      * @param string $customerDetails - 'exist'/'optional'/'absent'
     */
-    public function selection($opc = false, $onlyOnline = false, $visibility = ['shop_order', 'shop_quote', 'shop_sample', 'admin', 'pos'], $groups_id = 0, $customerDetails = 'exist') {
+    public function selection($opc = false, $onlyOnline = false, $visibility = ['shop_order', 'shop_quote', 'shop_sample', 'admin', 'pos'], $groups_id = 0, $customerDetails = 'exist')
+    {
         $visibility = \common\helpers\Extensions::getVisibilityVariants($visibility);
         $selection_array = [];
         if (!is_array($visibility)) {
@@ -222,9 +232,9 @@ EOD;
             foreach ($this->include_modules as $class => $_payment) {
                 $forceCustomer = false;
                 if ($CustomerModules && !\Yii::$app->user->isGuest) {
-                  if ($CustomerModules::checkForceAllowed(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $class)) {
-                    $forceCustomer = true;
-                  }
+                    if ($CustomerModules::checkForceAllowed(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $class)) {
+                        $forceCustomer = true;
+                    }
                 }
                 if (is_object($_payment) && ($forceCustomer || ($_payment->enabled && $_payment->getVisibily(\common\classes\platform::currentId(), $visibility)))) {//only enabled
                     if (!$forceCustomer && !$_payment->getGroupVisibily(\common\classes\platform::currentId(), $groups_id)) {
@@ -232,17 +242,19 @@ EOD;
                     }
 
                     if ($CustomerModules && !\Yii::$app->user->isGuest) {
-                      if (!$CustomerModules::checkAvailable(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $class)) {
-                        continue;
-                      }
+                        if (!$CustomerModules::checkAvailable(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $class)) {
+                            continue;
+                        }
                     }
 
                     if (
                         $this->manager->get('credit_covers')
                         && is_object($this->include_modules['covered_by_coupon'])
                         && $this->include_modules['covered_by_coupon']->update_status()
-                    ){
-                        if ( $class!='covered_by_coupon' ) continue;
+                    ) {
+                        if ($class != 'covered_by_coupon') {
+                            continue;
+                        }
                     }
 
                     if ($haveSubscription) {
@@ -258,10 +270,12 @@ EOD;
                             if ($_payment->customerDetailsRequired()) {
                                 continue 2;
                             }
+                            // no break
                         case 'optional':
                             if (!$_payment->customerDetailsOptional()) {
                                 continue 2;
                             }
+                            // no break
                         case 'exist': ;
                     }
                     if ($opc) {
@@ -272,7 +286,7 @@ EOD;
                         }
                     } else {
                         $selection = $_payment->selection();
-                        if (is_array($selection)){
+                        if (is_array($selection)) {
                             $selection_array[] = $selection;
                         }
                     }
@@ -289,66 +303,76 @@ EOD;
     /**
      * Register JSCallback of payments
      */
-    public function registerCallbacks(){
-        if ($this->hasCallbacks()){
+    public function registerCallbacks()
+    {
+        if ($this->hasCallbacks()) {
             \Yii::$app->getView()->registerJsFile(\frontend\design\Info::themeFile('/js/payment.js'));
             \Yii::$app->getView()->registerJs($this->addCallbacksToCheckout());
         }
     }
 
-    public function hasCallback($code){
+    public function hasCallback($code)
+    {
         return in_array($code, array_keys($this->callbacks));
     }
     /*
      * Register JSCallback function name of particular payment
      */
-    public function registerCallback($code, $callback){
+    public function registerCallback($code, $callback)
+    {
         $this->callbacks[$code] = $callback;
     }
 
-    public function getCallbacks(){
+    public function getCallbacks()
+    {
         return $this->callbacks;
     }
 
-    public function hasCallbacks(){
+    public function hasCallbacks()
+    {
         return count($this->callbacks);
     }
 
-    protected function makeReplacement($callback, &$jsData){
-        if (empty($callback)) return;
-        if (is_array($jsData)){
-            foreach($jsData as $_key => &$data){
+    protected function makeReplacement($callback, &$jsData)
+    {
+        if (empty($callback)) {
+            return;
+        }
+        if (is_array($jsData)) {
+            foreach ($jsData as $_key => &$data) {
                 $this->makeReplacement($callback, $data);
             }
         } elseif (is_string($jsData)) {
-            $hasParams = strpos($callback ,"(");
+            $hasParams = strpos($callback, '(');
             $params = '';
-            if ($hasParams !== false){
+            if ($hasParams !== false) {
                 $params = substr($callback, $hasParams);
                 $callback = substr($callback, 0, $hasParams);
-                $params = preg_replace("/\(.*\)/", "", $params);
+                $params = preg_replace("/\(.*\)/", '', $params);
             }
             $jsData = preg_replace("/function[\s]{1,3}{$callback}/", "window.$callback = function" . $params, $jsData);
         }
     }
 
-    protected function globaliseCallback(string $callback){
+    protected function globaliseCallback(string $callback)
+    {
         $view = \Yii::$app->getView();
-        if (property_exists($view, 'js') && is_array($view->js)){
-            foreach($view->js as &$jsData){
+        if (property_exists($view, 'js') && is_array($view->js)) {
+            foreach ($view->js as &$jsData) {
                 $this->makeReplacement($callback, $jsData);
             }
         }
     }
 
-    protected function addCallbacksToCheckout() :string {
-        $js = "";
-        if ($this->hasCallbacks()){
+    protected function addCallbacksToCheckout(): string
+    {
+        $js = '';
+        if ($this->hasCallbacks()) {
             $callbacks = $this->getCallbacks();
-            foreach($callbacks as $pCode => $cValue){
+            foreach ($callbacks as $pCode => $cValue) {
                 if (is_array($cValue)) {
                     //to do
-                } else if (is_string($cValue)){
+                } elseif (is_string($cValue)) {
                     $this->globaliseCallback($cValue);
                 }
             }
@@ -358,7 +382,7 @@ EOD;
 paymentCollection.init(document.getElementById('{$formName}'));
 paymentCollection.setCallbacks({$callbacks});
 EOD;
-            if (!$this->selectionMode){
+            if (!$this->selectionMode) {
                 $js .= <<<EOD
 paymentCollection.setNeedConfirmation(false);
 EOD;
@@ -374,15 +398,17 @@ EOD;
 
     //ICW CREDIT CLASS Gift Voucher System
     // check credit covers was setup to test whether credit covers is set in other parts of the code
-    public function check_credit_covers() {
+    public function check_credit_covers()
+    {
         return $this->manager->get('credit_covers');
     }
 
-    public function pre_confirmation_check() {
-        if ($this->isPaymentSelected()){
+    public function pre_confirmation_check()
+    {
+        if ($this->isPaymentSelected()) {
             if ($this->manager->get('credit_covers')) { //  ICW CREDIT CLASS Gift Voucher System
                 $this->include_modules[$this->selected_module]->enabled = false; //ICW CREDIT CLASS Gift Voucher System
-                $this->include_modules[$this->selected_module] = NULL; //ICW CREDIT CLASS Gift Voucher System
+                $this->include_modules[$this->selected_module] = null; //ICW CREDIT CLASS Gift Voucher System
                 $payment_modules = ''; //ICW CREDIT CLASS Gift Voucher System
             } else { //ICW CREDIT CLASS Gift Voucher System
                 $this->include_modules[$this->selected_module]->pre_confirmation_check();
@@ -390,75 +416,84 @@ EOD;
         }
     }
 
-//ICW CREDIT CLASS Gift Voucher System
+    //ICW CREDIT CLASS Gift Voucher System
 
-    public function confirmation() {
-        if ($this->isPaymentSelected()){
+    public function confirmation()
+    {
+        if ($this->isPaymentSelected()) {
             $confirmation = $this->include_modules[$this->selected_module]->confirmation();
             $this->registerCallbacks();
             return $confirmation;
         }
     }
 
-    public function isOnline() {
+    public function isOnline()
+    {
         if ($this->isPaymentSelected()) {
             return $this->include_modules[$this->selected_module]->isOnline();
         }
     }
 
-    public function process_button() {
+    public function process_button()
+    {
         if ($this->isPaymentSelected()) {
             return $this->include_modules[$this->selected_module]->process_button();
         }
     }
 
-    public function before_process() {
+    public function before_process()
+    {
         if ($this->isPaymentSelected()) {
             return $this->include_modules[$this->selected_module]->before_process();
         }
     }
 
-    public function before_subscription($id) {
+    public function before_subscription($id)
+    {
         if ($this->isPaymentSelected()) {
             return $this->include_modules[$this->selected_module]->before_subscription($id);
         }
     }
 
-    public function get_subscription_info($id) {
+    public function get_subscription_info($id)
+    {
         if ($this->isPaymentSelected()) {
             return $this->include_modules[$this->selected_module]->get_subscription_info($id);
         }
     }
 
-    public function after_process() {
+    public function after_process()
+    {
         if ($this->isPaymentSelected()) {
             return $this->include_modules[$this->selected_module]->after_process();
         }
     }
-    
-    public function trackCredits() {
+
+    public function trackCredits()
+    {
         if ($this->isPaymentSelected()) {
             return $this->include_modules[$this->selected_module]->trackCredits();
         }
     }
 
-    public function checkout_initialization_method($visibility = ['shop_order', 'shop_quote', 'shop_sample', 'admin', 'pos'], $groups_id = 0) {
+    public function checkout_initialization_method($visibility = ['shop_order', 'shop_quote', 'shop_sample', 'admin', 'pos'], $groups_id = 0)
+    {
         $visibility = \common\helpers\Extensions::getVisibilityVariants($visibility);
-        $initialize_array = array();
+        $initialize_array = [];
 
         if (!is_array($visibility)) {
             $visibility = [$visibility];
         }
 
-        if ($groups_id==0 && !\Yii::$app->user->isGuest) {
+        if ($groups_id == 0 && !\Yii::$app->user->isGuest) {
             $groups_id = \Yii::$app->user->getIdentity()->groups_id;
-        }elseif( empty($groups_id) && \Yii::$app->user->isGuest && defined('DEFAULT_USER_GROUP') ){
+        } elseif (empty($groups_id) && \Yii::$app->user->isGuest && defined('DEFAULT_USER_GROUP')) {
             $groups_id = (int)DEFAULT_USER_GROUP;
         }
 
         /** @var \common\extensions\CustomerModules\CustomerModules $CustomerModules */
         $CustomerModules = \common\helpers\Acl::checkExtensionAllowed('CustomerModules', 'allowed');
-        foreach($this->getEnabledModules(true) as $tmpname => $_payment){
+        foreach ($this->getEnabledModules(true) as $tmpname => $_payment) {
             if (method_exists($_payment, 'checkout_initialization_method')) {
                 $forceCustomer = false;
                 if ($CustomerModules && !\Yii::$app->user->isGuest) {
@@ -497,10 +532,11 @@ EOD;
         return $initialize_array;
     }
 
-    public function showPaynowButton($type = 0) {
-        $initialize_array = array();
+    public function showPaynowButton($type = 0)
+    {
+        $initialize_array = [];
 
-        foreach($this->getEnabledModules() as $_payment){
+        foreach ($this->getEnabledModules() as $_payment) {
             if (method_exists($_payment, 'checkButtonOnProduct') && $_payment->checkButtonOnProduct() && method_exists($_payment, 'checkout_initialization_method')) {
                 $sort_order = (int) $_payment->sort_order;
                 if (isset($initialize_array[$sort_order])) {
@@ -523,10 +559,11 @@ EOD;
      * get payment modules which support express checkout button at product form.
      * @return array of payment module codes
      */
-    public function getExpressPayments() {
-        $initialize_array = array();
+    public function getExpressPayments()
+    {
+        $initialize_array = [];
 
-        foreach($this->getEnabledModules() as $class => $_payment){
+        foreach ($this->getEnabledModules() as $class => $_payment) {
             if (method_exists($_payment, 'checkButtonOnProduct') && $_payment->checkButtonOnProduct() && method_exists($_payment, 'checkout_initialization_method')) {
                 $initialize_array[] = $class;
             }
@@ -535,48 +572,54 @@ EOD;
         return $initialize_array;
     }
 
-    public function get($class, $all = false){
-        return ($all ? $this->include_modules[$class] ?? false :$this->getEnabledModules()[$class] ?? false) ;
+    public function get($class, $all = false)
+    {
+        return ($all ? $this->include_modules[$class] ?? false : $this->getEnabledModules()[$class] ?? false) ;
     }
 
-    public function get_error() {
-        if ($this->isPaymentSelected()){
+    public function get_error()
+    {
+        if ($this->isPaymentSelected()) {
             $messageStack = \Yii::$container->get('message_stack');
             $_error = $this->include_modules[$this->selected_module]->get_error();
             if (is_object($messageStack) && method_exists($messageStack, 'save_to_base')) {
-                if (isset($_error['title']) && isset($_error['error']))
+                if (isset($_error['title']) && isset($_error['error'])) {
                     $messageStack->save_to_base('payment', $_error['error'], 'error', $_error['title']);
+                }
             }
             return $_error;
         }
     }
 
-    public static function module($module, $front = false) {
+    public static function module($module, $front = false)
+    {
         $file = $front ? DIR_WS_MODULES . 'shipping/' . $module . '.php' : DIR_FS_DOCUMENT_ROOT . '/includes/modules/shipping/' . $module . '.php';
         if (!is_null($module) && file_exists($file)) {
-            include_once( $file);
+            include_once($file);
             if (class_exists($module)) {
-                return new $module;
+                return new $module();
             }
         }
         return null;
     }
 
-    public function getConfirmationTitle(){
-        if ($module = $this->getSelectedPayment()){
-            if (method_exists($module, 'getTitle')){
+    public function getConfirmationTitle()
+    {
+        if ($module = $this->getSelectedPayment()) {
+            if (method_exists($module, 'getTitle')) {
                 return $module->getTitle($this->manager->getPayment());
             }
         }
         return '';
     }
 
-    public function getTransactionalModules() {
+    public function getTransactionalModules()
+    {
         static $transactional = null;
-        if (is_null($transactional)){
+        if (is_null($transactional)) {
             $transactional = [];
-            foreach ($this->include_modules as $class => $module){
-                if (is_object($module) && $module instanceof \common\classes\modules\TransactionalInterface){
+            foreach ($this->include_modules as $class => $module) {
+                if (is_object($module) && $module instanceof \common\classes\modules\TransactionalInterface) {
                     $transactional[$class] = $module;
                 }
             }
@@ -584,12 +627,13 @@ EOD;
         return $transactional;
     }
 
-    public function getTransactionSearchModules() {
+    public function getTransactionSearchModules()
+    {
         static $transactionSearch = null;
-        if (is_null($transactionSearch)){
+        if (is_null($transactionSearch)) {
             $transactionSearch = [];
-            foreach ($this->include_modules as $class => $module){
-                if (is_object($module) && $module instanceof \common\classes\modules\TransactionSearchInterface){
+            foreach ($this->include_modules as $class => $module) {
+                if (is_object($module) && $module instanceof \common\classes\modules\TransactionSearchInterface) {
                     $transactionSearch[$class] = $module;
                 }
             }
@@ -597,31 +641,36 @@ EOD;
         return $transactionSearch;
     }
 
-    public function confirmationCurlAllowed() {
+    public function confirmationCurlAllowed()
+    {
         if ($this->isPaymentSelected()) {
             return $this->include_modules[$this->selected_module]->confirmationCurlAllowed();
         }
     }
 
-    public function confirmationAutosubmit() {
+    public function confirmationAutosubmit()
+    {
         if ($this->isPaymentSelected() && method_exists($this->include_modules[$this->selected_module], 'confirmationAutosubmit')) {
             return $this->include_modules[$this->selected_module]->confirmationAutosubmit();
         }
     }
 
-    public function popUpMode() {
+    public function popUpMode()
+    {
         if ($this->isPaymentSelected()) {
             return $this->include_modules[$this->selected_module]->popUpMode();
         }
     }
 
-    public function directPayment() {
+    public function directPayment()
+    {
         if ($this->isPaymentSelected()) {
             return $this->include_modules[$this->selected_module]->directPayment();
         }
     }
 
-    public function processButton() {
+    public function processButton()
+    {
 
         if ($this->isPaymentSelected() && method_exists($this->include_modules[$this->selected_module], 'processButton')) {
             return $this->include_modules[$this->selected_module]->processButton();

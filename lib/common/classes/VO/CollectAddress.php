@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,9 +12,7 @@
  */
 declare(strict_types=1);
 
-
 namespace common\classes\VO;
-
 
 final class CollectAddress
 {
@@ -47,8 +46,7 @@ final class CollectAddress
         string $countryISO2,
         string $countryISO3,
         string $warehouse = ''
-    ): self
-    {
+    ): self {
         $address = new self();
         $address->street_address = $street_address;
         $address->city = $city;

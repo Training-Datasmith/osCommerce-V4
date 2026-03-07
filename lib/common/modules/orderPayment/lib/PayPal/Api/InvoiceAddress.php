@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 /**
@@ -17,7 +19,7 @@ class InvoiceAddress extends BaseAddress
      * Phone number in E.123 format.
      *
      * @param \PayPal\Api\Phone $phone
-     * 
+     *
      * @return $this
      */
     public function setPhone($phone)

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,12 @@
 
 namespace frontend\design\boxes\account;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use common\classes\Images;
 
 class OrderSubTotals extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -33,10 +33,10 @@ class OrderSubTotals extends Widget
     {
         $order_id = (int)Yii::$app->request->get('order_id');
         $manager = \common\services\OrderManager::loadManager();
-        $order = $manager->getOrderInstanceWithId('\common\classes\Order', $order_id);        
+        $order = $manager->getOrderInstanceWithId('\common\classes\Order', $order_id);
 
         $order_info_ar = $manager->getTotalOutput(true, 'TEXT_ACCOUNT');
-        
+
         /*foreach($order->totals as $ot) {
 
             if (file_exists( DIR_WS_MODULES . 'order_total/' . $ot['class'] . '.php')) {

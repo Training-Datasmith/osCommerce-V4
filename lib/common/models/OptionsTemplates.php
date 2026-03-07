@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace common\models;
 
-
 use yii\db\ActiveRecord;
 
 class OptionsTemplates extends ActiveRecord
 {
-
     public static function tableName()
     {
         return 'options_templates';
@@ -30,7 +30,7 @@ class OptionsTemplates extends ActiveRecord
     {
         return $this->hasMany(Products2OptionsTemplates::class, ['options_templates_id' => 'options_templates_id']);
     }
-    
+
     /**
      * @return \yii\db\ActiveQuery
      */
@@ -46,7 +46,5 @@ class OptionsTemplates extends ActiveRecord
     {
         return $this->hasMany(ProductsOptions::className(), ['products_id' => 'products_id'])->via('products2OptionsTemplates');
     }
-
-
 
 }

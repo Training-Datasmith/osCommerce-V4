@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,12 @@
 
 namespace frontend\design\boxes\catalog;
 
-use frontend\design\Info;
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use frontend\design\Info;
+use yii\base\Widget;
 
 class Paging extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -32,40 +32,38 @@ class Paging extends Widget
 
     public function run()
     {
-        if (Info::widgetSettings('Listing', 'fbl', ($this->params['page_name'] ?? false))){
+        if (Info::widgetSettings('Listing', 'fbl', ($this->params['page_name'] ?? false))) {
             return '';
         }
 
         if (
             !isset($this->params['listing_split'])
             || !is_object($this->params['listing_split'])
-            || !is_a($this->params['listing_split'], 'frontend\design\splitPageResults' )
+            || !is_a($this->params['listing_split'], 'frontend\design\splitPageResults')
         ) {
             return '';
         }
 
         $listing_split = $this->params['listing_split'];
-        if (!$listing_split->number_of_rows){
+        if (!$listing_split->number_of_rows) {
             return '';
         }
 
         $links = $listing_split->display_links(
             MAX_DISPLAY_PAGE_LINKS,
-            \common\helpers\Output::get_all_get_params(array('page', 'info', 'x', 'y', 'ajax', 't', 'filter', 'split')),
+            \common\helpers\Output::get_all_get_params(['page', 'info', 'x', 'y', 'ajax', 't', 'filter', 'split']),
             $this->params['this_filename']
         );
-        
+
         return IncludeTpl::widget([
             'file' => 'boxes/catalog/paging.tpl',
             'params' => [
                 'box_id' => $this->id,
                 'links' => $links,
                 'settings' => $this->settings,
-                'hidden_fields' => \common\helpers\Output::get_all_get_params(array('sort'), true),
-            ]
+                'hidden_fields' => \common\helpers\Output::get_all_get_params(['sort'], true),
+            ],
         ]);
-
-
 
     }
 }

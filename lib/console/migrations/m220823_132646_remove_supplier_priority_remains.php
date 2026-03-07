@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -27,7 +29,7 @@ class m220823_132646_remove_supplier_priority_remains extends Migration
             $this->removeTranslation('admin/suppliers-priority');
             $this->removeTranslation('admin/main', 'BOX_SUPPLIER_PRIORITY');
         }
-        $this->getDb()->createCommand("update `products_stock_indication` set is_default=0;")->execute();
+        $this->getDb()->createCommand('update `products_stock_indication` set is_default=0;')->execute();
         $this->getDb()->createCommand("update `products_stock_indication` set is_default=1 order by stock_code='out-stock' desc, stock_indication_id limit 1;")->execute();
     }
 

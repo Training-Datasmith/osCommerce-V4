@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -124,7 +126,7 @@ if (ONE_PAGE_CHECKOUT == 'True') {
     define('CONTENT_CHECKOUT_SHIPPING', 'checkout');
     define('CONTENT_CHECKOUT_PAYMENT_ADDRESS', 'checkout');
     define('CONTENT_CHECKOUT_SHIPPING_ADDRESS', 'checkout');
-    
+
     define('FILENAME_CHECKOUT_SHIPPING', 'checkout/');
     define('FILENAME_CHECKOUT_PAYMENT_ADDRESS', 'checkout/');
     define('FILENAME_CHECKOUT_SHIPPING_ADDRESS', 'checkout/');
@@ -139,15 +141,19 @@ if (ONE_PAGE_CHECKOUT == 'True') {
     define('FILENAME_CHECKOUT_SHIPPING_ADDRESS', CONTENT_CHECKOUT_SHIPPING_ADDRESS . '.php');
 }
 /* }} */
-if (isset($_SERVER['REQUEST_URI'])) $script_pos = $_SERVER['REQUEST_URI'];
-if (!isset($script_pos)) $script_pos = preg_replace ("/.php/i", "", $_SERVER['PHP_SELF']);
+if (isset($_SERVER['REQUEST_URI'])) {
+    $script_pos = $_SERVER['REQUEST_URI'];
+}
+if (!isset($script_pos)) {
+    $script_pos = preg_replace('/.php/i', '', $_SERVER['PHP_SELF']);
+}
 //if (basename($script_pos) == 'order-process') {
-if (isset($_SERVER['REQUEST_URI']) && (strpos($_SERVER['REQUEST_URI'], 'order-process') !== false) || ( (isset($_POST['M_paid']) && $_POST['M_paid'] == 'partlypaid') || (isset($_POST['M_paid']) && $_POST['M_paid'] == 'partlypaid') )){
-define('FILENAME_CHECKOUT_PROCESS', 'payer/order-process');
-define('FILENAME_CHECKOUT_PAYMENT', 'payer/order-pay');
+if (isset($_SERVER['REQUEST_URI']) && (strpos($_SERVER['REQUEST_URI'], 'order-process') !== false) || ((isset($_POST['M_paid']) && $_POST['M_paid'] == 'partlypaid') || (isset($_POST['M_paid']) && $_POST['M_paid'] == 'partlypaid'))) {
+    define('FILENAME_CHECKOUT_PROCESS', 'payer/order-process');
+    define('FILENAME_CHECKOUT_PAYMENT', 'payer/order-pay');
 } else {
-define('FILENAME_CHECKOUT_PROCESS', 'checkout/process');
-define('FILENAME_CHECKOUT_PAYMENT', 'checkout/');
+    define('FILENAME_CHECKOUT_PROCESS', 'checkout/process');
+    define('FILENAME_CHECKOUT_PAYMENT', 'checkout/');
 }
 define('FILENAME_CHECKOUT_SUCCESS', 'checkout/success');
 define('FILENAME_CONTACT_US', 'contact');
@@ -273,7 +279,7 @@ define('CONTENT_VIRTUAL_GIFT_CARD', 'virtual-gift-card');
 define('FILENAME_VIRTUAL_GIFT_CARD', CONTENT_VIRTUAL_GIFT_CARD . '.php');
 define('CONTENT_VIRT_TEMPLATE', 'virtual-gift-card-template');
 define('FILENAME_VIRT_TEMPLATE', CONTENT_VIRT_TEMPLATE . '.php');
-//
+
 define('FILENAME_FILTERS', 'filters.php');
 
 define('FILENAME_DELIVERY_LOCATION', 'delivery-location/');

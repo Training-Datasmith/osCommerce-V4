@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "design_boxes".
@@ -33,7 +33,7 @@ class DesignBoxesTmp extends \yii\db\ActiveRecord
         return [
             [['theme_name', 'microtime'], 'required'],
             [['block_name', 'widget_name', 'widget_params'], 'string'],
-            [['theme_name'], 'string', 'max' => 256]
+            [['theme_name'], 'string', 'max' => 256],
         ];
     }
 

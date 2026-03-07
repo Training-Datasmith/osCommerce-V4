@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace backend\design\boxes;
 
-use Yii;
 use yii\base\Widget;
 
 class FiltersSimple extends Widget
 {
-
     public $id;
     public $params;
     public $settings;
@@ -30,7 +30,6 @@ class FiltersSimple extends Widget
 
     public function run()
     {
-
 
         return $this->render('filters-simple.tpl', [
             'id' => $this->id,

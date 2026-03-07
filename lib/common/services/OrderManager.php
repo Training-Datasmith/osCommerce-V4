@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,105 +15,120 @@
 
 namespace common\services;
 
-use common\classes\MessageStack;
-use Yii;
-use yii\base\Model;
-use yii\web\Session;
-use common\services\storages\StorageInterface;
 use common\forms\AddressForm;
 use common\forms\ShippingChoice;
+use common\services\storages\StorageInterface;
 use frontend\forms\registration\CustomerRegistration;
+use Yii;
 
 #[\AllowDynamicProperties]
-class OrderManager {
-
+class OrderManager
+{
     protected $storage;
     public $combineShippings = false; //used to perform ceparetly pickup and delivery methods or not
     public $skipShipping = false;
     private $softShippingValidation = false;
 
-    public function __construct(StorageInterface $storage) {
+    public function __construct(StorageInterface $storage)
+    {
         $this->storage = $storage;
         $this->combineShippings = self::getCombineShippingsDefault();
         self::$instance = $this;
     }
 
-    public function set($name, $value) {
+    public function set($name, $value)
+    {
         $this->storage->set($name, $value);
     }
 
-    public function get($name) {
+    public function get($name)
+    {
         return $this->storage->get($name);
     }
 
-    public function has($name) {
+    public function has($name)
+    {
         return $this->storage->has($name);
     }
 
-    public function remove($name) {
+    public function remove($name)
+    {
         return $this->storage->remove($name);
     }
 
-    public function getAll() {
+    public function getAll()
+    {
         return $this->storage->getAll();
     }
 
-    public function getPayment() {
+    public function getPayment()
+    {
         return $this->get('payment');
     }
 
-    public function getShipping() {
+    public function getShipping()
+    {
         return $this->get('shipping');
     }
 
-    public function setPayment($payment_data) {
+    public function setPayment($payment_data)
+    {
         return $this->set('payment', $payment_data);
     }
 
-    public function setShipping(array $shipping_data) {
+    public function setShipping(array $shipping_data)
+    {
         return $this->set('shipping', $shipping_data);
     }
 
-    public function assignCustomer($customer_id) {
-        if (\common\models\Customers::findOne($customer_id)){
+    public function assignCustomer($customer_id)
+    {
+        if (\common\models\Customers::findOne($customer_id)) {
             $this->set('customer_id', $customer_id);
         }
     }
 
-    public function isCustomerAssigned() {
+    public function isCustomerAssigned()
+    {
         return $this->get('customer_id') ?? false;
     }
 
-    public function getCustomerAssigned() {
+    public function getCustomerAssigned()
+    {
         return (int) $this->get('customer_id');
     }
 
     public $contentType;
 
-    public function setContentType($type) {
+    public function setContentType($type)
+    {
         $this->contentType = $type;
     }
 
-    public function isShippingNeeded() {
+    public function isShippingNeeded()
+    {
         $needed = ($this->contentType != 'virtual') && ($this->contentType != 'virtual_weight');
         /** @var \common\extensions\Quotations\Quotations $ext */
-        if ($this->getInstanceType() == 'quote' && ( ($ext = \common\helpers\Extensions::isAllowed('Quotations')) && !$ext::optionIsSkipShipping() )) {
-          $needed = false;
+        if ($this->getInstanceType() == 'quote' && (($ext = \common\helpers\Extensions::isAllowed('Quotations')) && !$ext::optionIsSkipShipping())) {
+            $needed = false;
         } else {
-          // in some cases we don't have order instance here,
-          // then getInstanceType() returns false and
-          // skipShipping should be set according QUOTE_SKIP_SHIPPING in
-          // <quote>CheckoutController etc.
-          $needed = $needed && !$this->skipShipping;
+            // in some cases we don't have order instance here,
+            // then getInstanceType() returns false and
+            // skipShipping should be set according QUOTE_SKIP_SHIPPING in
+            // <quote>CheckoutController etc.
+            $needed = $needed && !$this->skipShipping;
         }
 
-        if (!$needed) $this->remove('shipping');
+        if (!$needed) {
+            $this->remove('shipping');
+        }
         return $needed;
     }
 
     private $shipping;
 
-    public function getShippingCollection($only_shipping = '') {
+    public function getShippingCollection($only_shipping = '')
+    {
         if (!is_object($this->shipping)) {
             $this->shipping = new \common\classes\shipping($only_shipping, $this);
         }
@@ -120,7 +137,8 @@ class OrderManager {
 
     public $quotes = [];
 
-    public function getAllShippingQuotes($requote=false) {
+    public function getAllShippingQuotes($requote = false)
+    {
         if (!$this->quotes || $requote) {
             $this->_pickupQuotes = null;
             $this->_dispatchQuotes = null;
@@ -132,17 +150,20 @@ class OrderManager {
 
     protected $modulesVisiblility = ['shop_order'];
 
-    public function setModulesVisibility($visibility = ['shop_order', 'shop_quote', 'shop_sample', 'admin', 'pos']) {
+    public function setModulesVisibility($visibility = ['shop_order', 'shop_quote', 'shop_sample', 'admin', 'pos'])
+    {
         $this->modulesVisiblility = \common\helpers\Extensions::getVisibilityVariants($visibility);
     }
 
-    public function getModulesVisibility() {
+    public function getModulesVisibility()
+    {
         return $this->modulesVisiblility;
     }
 
     protected $_pickupQuotes = null;
 
-    public function getPickupShippingQuotes() {
+    public function getPickupShippingQuotes()
+    {
         if (is_null($this->_pickupQuotes)) {
             $this->getAllShippingQuotes();
             $this->_pickupQuotes = $this->getShippingCollection()->getPickupQuotes();
@@ -153,7 +174,8 @@ class OrderManager {
 
     protected $_dispatchQuotes = null;
 
-    public function getDispatchShippingQuotes() {
+    public function getDispatchShippingQuotes()
+    {
         if (is_null($this->_dispatchQuotes)) {
             $this->getAllShippingQuotes();
             $this->_dispatchQuotes = $this->getShippingCollection()->getDeliveryQuotes();
@@ -165,7 +187,8 @@ class OrderManager {
     //public $useDevorcedShippings = true; //true - pickup and delivery are cepareated
     public $shippingChoice = null;
 
-    public function getPickupOrDeliveryChoice() {
+    public function getPickupOrDeliveryChoice()
+    {
 
         if (/* $this->useDevorcedShippings && */$this->isShippingNeeded() && ($this->getDispatchShippingQuotes() || $this->getPickupShippingQuotes()) && !$this->combineShippings) {
             $this->shippingChoice = new ShippingChoice($this);
@@ -176,7 +199,8 @@ class OrderManager {
         return $this->shippingChoice;
     }
 
-    public function setCustomerShippingChoice($choice) {
+    public function setCustomerShippingChoice($choice)
+    {
         $this->set('shipping_choice', $choice);
         $this->set('select_shipping', false);
         $this->set('shipping', false);
@@ -188,22 +212,24 @@ class OrderManager {
         $this->getShippingQuotesByChoice();
     }
 
-    public function setDefaultTaxCountry() {
+    public function setDefaultTaxCountry()
+    {
         if ($this->isCustomerAssigned()) {
             $this->getCustomersIdentity()->set('customer_country_id', STORE_COUNTRY, true);
         }
     }
 
-    public function getTaxAddress() {
+    public function getTaxAddress()
+    {
         if ($this->isCustomerAssigned()) {
             ///STOP2do
-            echo "#### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($this->getCustomersIdentity()->getAll(), true) . "</PRE>";
+            echo '#### <PRE>' . __FILE__ . ':' . __LINE__ . ' ' . print_r($this->getCustomersIdentity()->getAll(), true) . '</PRE>';
             die;
 
             $ret = $this->getCustomersIdentity()->get('customer_country_id');
         } else {
             $option = \common\helpers\Tax::getTaxAddressOption();
-            if ($option>0) { //shipping or any
+            if ($option > 0) { //shipping or any
                 $ret = \common\helpers\Country::getDefaultShippingCountryId($this->getPlatformId());
             } else {//billing
                 $ret = \common\helpers\Country::getDefaultBillingCountryId($this->getPlatformId());
@@ -212,12 +238,13 @@ class OrderManager {
         return $ret;
     }
 
-    public function getTaxCountry() {
+    public function getTaxCountry()
+    {
         if ($this->isCustomerAssigned()) {
             $ret = $this->getCustomersIdentity()->get('customer_country_id');
         } else {
             $option = \common\helpers\Tax::getTaxAddressOption();
-            if ($option>0) { //shipping or any
+            if ($option > 0) { //shipping or any
                 $ret = \common\helpers\Country::getDefaultShippingCountryId($this->getPlatformId());
             } else {//billing
                 $ret = \common\helpers\Country::getDefaultBillingCountryId($this->getPlatformId());
@@ -226,13 +253,15 @@ class OrderManager {
         return $ret;
     }
 
-    public function setDefaultTaxZone() {
+    public function setDefaultTaxZone()
+    {
         if ($this->isCustomerAssigned()) {
             $this->getCustomersIdentity()->set('customer_zone_id', STORE_ZONE, true);
         }
     }
 
-    public function getTaxZone() {
+    public function getTaxZone()
+    {
         if ($this->isCustomerAssigned()) {
             return $this->getCustomersIdentity()->get('customer_zone_id');
         }
@@ -241,9 +270,12 @@ class OrderManager {
 
     /* 0-pickup, 1-delivery or all quotes, return wrapped quotes */
 
-    public function getShippingQuotesByChoice($renew = false) {
+    public function getShippingQuotesByChoice($renew = false)
+    {
         static $_quotes = null;
-        if ( $renew ) $_quotes = null;
+        if ($renew) {
+            $_quotes = null;
+        }
         if (is_null($_quotes) && $this->isShippingNeeded()) {
             if ($this->checkFreeShipping()) {
                 $_quotes = $this->getShippingCollection()->quote('free', 'free', $this->getModulesVisibility());
@@ -272,11 +304,13 @@ class OrderManager {
 
     /* 0-pickup, 1-delivery */
 
-    public function getShippingChoice() {
-        return ($this->shippingChoice ? $this->shippingChoice->getChoice() : ($this->has('shipping_choice')? $this->get('shipping_choice'):1));
+    public function getShippingChoice()
+    {
+        return ($this->shippingChoice ? $this->shippingChoice->getChoice() : ($this->has('shipping_choice') ? $this->get('shipping_choice') : 1));
     }
 
-    protected function _detectCountry() {
+    protected function _detectCountry()
+    {
         if (is_object($this->_order)) {
             return $this->_order->delivery['country_id'];
         } else {
@@ -287,21 +321,25 @@ class OrderManager {
 
     private $chargeOrder = true;
 
-    public function setChargeOrder(bool $value) {
+    public function setChargeOrder(bool $value)
+    {
         $this->chargeOrder = $value;
         if (!$this->chargeOrder) {
             $this->setSelectedShipping('free_free');
         }
     }
 
-    public function isChargedOrder() {
+    public function isChargedOrder()
+    {
         return $this->chargeOrder;
     }
 
-    public function checkFreeShipping() {
+    public function checkFreeShipping()
+    {
 
-        if (!$this->chargeOrder)
+        if (!$this->chargeOrder) {
             return true;
+        }
 
         if (defined('MODULE_ORDER_TOTAL_SHIPPING_FREE_SHIPPING') && (MODULE_ORDER_TOTAL_SHIPPING_FREE_SHIPPING == 'true')) {
             $pass = false;
@@ -339,13 +377,14 @@ class OrderManager {
         return $free_shipping;
     }
 
-    public function checkExistedShippinInQuotes($quotes) {
+    public function checkExistedShippinInQuotes($quotes)
+    {
         $select_shipping = $this->getSelectedShipping();
         $exist = false;
         if (is_array($quotes) && $select_shipping) {
             for ($i = 0, $n = sizeof($quotes); $i < $n; $i++) {
                 if (!isset($quotes[$i]['error'])) {
-                    for ($j = 0, $n2 = sizeof($quotes[$i]['methods']??[]); $j < $n2; $j++) {
+                    for ($j = 0, $n2 = sizeof($quotes[$i]['methods'] ?? []); $j < $n2; $j++) {
                         if (($select_shipping == $quotes[$i]['id'] . '_' . $quotes[$i]['methods'][$j]['id'])) {
                             $exist = true;
                             $shipping = $this->_getShipingAsArray($quotes[$i], $quotes[$i]['id'], $quotes[$i]['methods'][$j]['id'], $j, false);
@@ -360,20 +399,21 @@ class OrderManager {
         }
     }
 
-    public function wrapQuotes($quotes) {
+    public function wrapQuotes($quotes)
+    {
         if (is_array($quotes)) {
             $currencies = Yii::$container->get('currencies');
             $select_shipping = $this->getSelectedShipping();
             for ($i = 0, $n = count($quotes); $i < $n; $i++) {
                 if (!isset($quotes[$i]['error'])) {
-                    for ($j = 0, $n2 = count($quotes[$i]['methods']??[]); $j < $n2; $j++) {
+                    for ($j = 0, $n2 = count($quotes[$i]['methods'] ?? []); $j < $n2; $j++) {
                         $quotes[$i]['methods'][$j]['cost_f'] = $quotes[$i]['methods'][$j]['cost_f'] ?? $currencies->format(\common\helpers\Tax::add_tax($quotes[$i]['methods'][$j]['cost'], (isset($quotes[$i]['tax']) ? $quotes[$i]['tax'] : 0)));
                         $quotes[$i]['methods'][$j]['no_cost'] = $quotes[$i]['methods'][$j]['no_cost'] ?? null;
                         $quotes[$i]['methods'][$j]['code'] = $quotes[$i]['id'] . '_' . $quotes[$i]['methods'][$j]['id'];
                         $quotes[$i]['methods'][$j]['selected'] = $select_shipping === $quotes[$i]['methods'][$j]['code'];
                         $quotes[$i]['selected'] = $select_shipping === $quotes[$i]['methods'][$j]['code'];
                         if ($ext = \common\helpers\Acl::checkExtensionAllowed('ModulesZeroPrice', 'allowed')) {
-                            if ( method_exists($ext, 'shippingQuoteMethod') ) {
+                            if (method_exists($ext, 'shippingQuoteMethod')) {
                                 $quotes[$i]['methods'][$j] = $ext::shippingQuoteMethod($this->getPlatformId(), $quotes[$i]['methods'][$j]);
                             }
                         }
@@ -384,9 +424,11 @@ class OrderManager {
         return $quotes;
     }
 
-    public function resetShipping() {
-        if (array_intersect(['admin', 'pos'], $this->getModulesVisibility()) && defined('SHIPPING_UNSELECTED') && SHIPPING_UNSELECTED == 'unselected')
+    public function resetShipping()
+    {
+        if (array_intersect(['admin', 'pos'], $this->getModulesVisibility()) && defined('SHIPPING_UNSELECTED') && SHIPPING_UNSELECTED == 'unselected') {
             return;
+        }
         if ($this->checkFreeShipping()) {
             $cheapest = $this->getShippingCollection()->quote('free', 'free', $this->getModulesVisibility());
             $cheapest = $this->_getShipingAsArray($cheapest[0], 'free', 'free', 0);
@@ -400,7 +442,8 @@ class OrderManager {
         }
     }
 
-    public function updateShippingCost() {
+    public function updateShippingCost()
+    {
         // recalc shipping on changing product count and weight
         $needUpdate = $this->updateSummaryFields();
         if ($this->getCart()->getTotalKey('ot_shipping') === false || $needUpdate) {
@@ -411,7 +454,8 @@ class OrderManager {
         }
     }
 
-    public function getSelectedShipping() {
+    public function getSelectedShipping()
+    {
         $_selected = false;
         $_shipping = $this->getShipping();
         $_selected = is_array($_shipping) ? $_shipping['id'] : false;
@@ -423,12 +467,15 @@ class OrderManager {
 
     /* used to detect selecting delivery method by customer */
 
-    public function isDeliveryUsed() {
+    public function isDeliveryUsed()
+    {
         if ($this->isShippingNeeded()) {
             $_shipping = $this->getShipping();
             if (is_array($_shipping)) {
                 $class = $_shipping['module'];
-                if ($class == 'free') return true;
+                if ($class == 'free') {
+                    return true;
+                }
                 $_shipping = $this->getShippingCollection()->get($class);
                 return ($_shipping ? $_shipping->useDelivery() : false);
             }
@@ -443,7 +490,7 @@ class OrderManager {
      */
     public function validateShipping($data = null, string $key = 'one_page_checkout'): bool
     {
-        if ($this->checkFreeShipping()){
+        if ($this->checkFreeShipping()) {
             return true;
         }
         $shipping = $this->getShipping();
@@ -462,12 +509,14 @@ class OrderManager {
                 foreach ($response as $error) {
                     $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), $key);
                 }
-            } catch (\Exception $ex) {}
+            } catch (\Exception $ex) {
+            }
         }
         return false;
     }
 
-    private function _getShipingAsArray($quote, $module, $method, $method_index, $free_shipping = false){
+    private function _getShipingAsArray($quote, $module, $method, $method_index, $free_shipping = false)
+    {
         $cost_inc = $cost_exc = $cost = (float) $quote['methods'][$method_index]['cost'];
         if (!empty($quote['tax'])) {
             if (defined('PRICE_WITH_BACK_TAX') && PRICE_WITH_BACK_TAX == 'True') {
@@ -479,7 +528,7 @@ class OrderManager {
         return [
             'module' => $module,
             'id' => $module . '_' . $quote['methods'][$method_index]['id'],
-            'title' => (($free_shipping == true) ? $quote['methods'][$method_index]['title'] : $quote['module'] . (empty(trim($quote['methods'][$method_index]['title']))?'':' (' . $quote['methods'][$method_index]['title'] . ')')),
+            'title' => (($free_shipping == true) ? $quote['methods'][$method_index]['title'] : $quote['module'] . (empty(trim($quote['methods'][$method_index]['title'])) ? '' : ' (' . $quote['methods'][$method_index]['title'] . ')')),
             'cost' => $cost,
             'no_cost' => $quote['methods'][$method_index]['no_cost'] ?? null,
             'cost_inc_tax' => $cost_inc,
@@ -492,7 +541,8 @@ class OrderManager {
      * if shipping is required and $shippping has correct format then set or reset "shipping" in the manager itself
      * @param string $shipping value shippingCode_shippingMethod
      */
-    public function setSelectedShipping($shipping) {
+    public function setSelectedShipping($shipping)
+    {
         if ($this->isShippingNeeded() && (strpos($shipping, '_') !== false)) {
             list($module, $method) = explode('_', $shipping);
             $free_shipping = $this->checkFreeShipping();
@@ -506,7 +556,7 @@ class OrderManager {
             if (!isset($quote[0]['error'])) {
                 if (isset($quote[0]['methods'][$method]['title']) && isset($quote[0]['methods'][$method]['cost'])) {
                     $shipping = $this->_getShipingAsArray($quote[0], $module, $method, $method, $free_shipping);
-                } else if ((isset($quote[0]['methods'][0]['title'])) && (isset($quote[0]['methods'][0]['cost']))) {
+                } elseif ((isset($quote[0]['methods'][0]['title'])) && (isset($quote[0]['methods'][0]['cost']))) {
                     $shipping = $this->_getShipingAsArray($quote[0], $module, $method, 0, $free_shipping);
                 }
                 if (is_array($shipping)) {
@@ -520,8 +570,9 @@ class OrderManager {
         }
     }
 
-    public function reverseChoiceByShipping(array $shipping) {
-        if ($this->combineShippings||true) {
+    public function reverseChoiceByShipping(array $shipping)
+    {
+        if ($this->combineShippings || true) {
             $_delivery = $this->getShippingCollection()->getDeliveryQuotes();
             $set = false;
             if ($_delivery) {
@@ -550,14 +601,16 @@ class OrderManager {
 
     private $payment_modules;
 
-    public function getPaymentCollection($only_payment = '') {
+    public function getPaymentCollection($only_payment = '')
+    {
         if (!is_object($this->payment_modules)) {
             $this->payment_modules = new \common\classes\payment($only_payment, $this);
         }
         return $this->payment_modules;
     }
 
-    public function setSelectedPaymentModule($only_payment) {
+    public function setSelectedPaymentModule($only_payment)
+    {
         $this->payment_modules = null;
         return $this->getPaymentCollection($only_payment, $this);
     }
@@ -565,7 +618,8 @@ class OrderManager {
     /**
      * @param string $customerDetails - 'exist'/'optional'/'absent'/'auto'. Currently - exist for compatibility
      */
-    public function getPaymentSelection($opc = false, $onlyOnline = false, $customerDetails = 'exist') {
+    public function getPaymentSelection($opc = false, $onlyOnline = false, $customerDetails = 'exist')
+    {
         if ($customerDetails == 'auto') {
             $customerDetails = $this->isCustomerAssigned() ? 'exist' : 'absent';
         }
@@ -573,7 +627,8 @@ class OrderManager {
         return $this->wrapSelections($selections);
     }
 
-    public function getCreditPayment() {
+    public function getCreditPayment()
+    {
         $payments = $this->getPaymentCollection();
         foreach ($payments->include_modules as $payment) {
             if ($payment->manageCredit ?? false) {
@@ -582,7 +637,8 @@ class OrderManager {
         }
     }
 
-    public function wrapSelections($selections) {
+    public function wrapSelections($selections)
+    {
         if (is_array($selections)) {
             $select_payment = $this->getSelectedPayment($selections);
             for ($i = 0, $n = sizeof($selections); $i < $n; $i++) {
@@ -606,7 +662,8 @@ class OrderManager {
         return $selections;
     }
 
-    public function getSelectedPayment($selections = []) {
+    public function getSelectedPayment($selections = [])
+    {
         $_selected = $this->getPayment() ?? false;
         if (array_intersect(['admin'], $this->getModulesVisibility()) && defined('PAYMENT_UNSELECTED') && PAYMENT_UNSELECTED == 'unselected') {
             return $_selected;
@@ -644,50 +701,59 @@ class OrderManager {
         return $_selected;
     }
 
-    public function setSelectedPayment($payment) {
+    public function setSelectedPayment($payment)
+    {
         if ($payment) {
             $this->setPayment($payment);
         }
     }
 
-    public function paymentPreConfirmationCheck() {
+    public function paymentPreConfirmationCheck()
+    {
         $this->getPaymentCollection()->pre_confirmation_check();
     }
 
-    public function getPaymentUrl() {
+    public function getPaymentUrl()
+    {
         return $this->getPaymentCollection()->getPaymentUrl();
     }
 
-    public function getPaymentConfirmation() {
+    public function getPaymentConfirmation()
+    {
         $confirmation = $this->getPaymentCollection()->confirmation();
-        if (!is_array($confirmation))
+        if (!is_array($confirmation)) {
             $confirmation = [];
+        }
         return $confirmation;
     }
 
-    public function getPaymentButton() {
+    public function getPaymentButton()
+    {
         return $this->getPaymentCollection()->process_button();
     }
 
-    public function getPaymentButtonPost() {
-      try {
-        $tst = $this->getPaymentCollection()->processButton();
-        if (is_array($tst)) {
-          return $tst;
+    public function getPaymentButtonPost()
+    {
+        try {
+            $tst = $this->getPaymentCollection()->processButton();
+            if (is_array($tst)) {
+                return $tst;
+            }
+        } catch (\Exception $e) {
+            \Yii::warning($e->getMessage() . ' '. $e->getTraceAsString());
         }
-      } catch (\Exception $e) {
-        \Yii::warning($e->getMessage() . ' '. $e->getTraceAsString());
-      }
-      return false;
+        return false;
     }
 
-    public function getPaymentJSValidation() {
+    public function getPaymentJSValidation()
+    {
         return $this->getPaymentCollection()->javascript_validation();
     }
 
     private static $instance = null;
 
-    public static function loadManager($cart = null) {
+    public static function loadManager($cart = null)
+    {
         if (is_null(self::$instance)) {
             self::$instance = new self(Yii::$app->get('storage'));
             if (is_object($cart)) {
@@ -700,25 +766,30 @@ class OrderManager {
     /** @var \common\classes\shopping_cart $_cart */
     protected $_cart;
 
-    public function loadCart(\common\classes\shopping_cart $cart) {
+    public function loadCart(\common\classes\shopping_cart $cart)
+    {
         $this->_cart = $cart;
         $this->contentType = $cart->get_content_type();
         $this->updateSummaryFields();
     }
 
-    public function getCart() {
+    public function getCart()
+    {
         return $this->_cart;
     }
 
-    public function hasCart() {
+    public function hasCart()
+    {
         return is_object($this->_cart);
     }
 
-    public function is($class) {
+    public function is($class)
+    {
         return $this->_cart instanceof $class;
     }
 
-    public function getSendto() {
+    public function getSendto()
+    {
         $sendto = $this->get('sendto') ?? false;
         if (!$sendto && $this->getShippingChoice()) {
             if ($customer = $this->getCustomersIdentity()) {
@@ -732,7 +803,8 @@ class OrderManager {
         return $sendto;
     }
 
-    public function getBillto() {
+    public function getBillto()
+    {
         $billto = $this->get('billto') ?? false;
         if (!$billto) {
             if ($customer = $this->getCustomersIdentity()) {
@@ -746,26 +818,28 @@ class OrderManager {
         return $billto;
     }
 
-    public function isBillAsShip() {
+    public function isBillAsShip()
+    {
         if ($this->isCustomerAssigned()) {
             return $this->getBillto() == $this->getSendto();
         } else {
             return $this->getBillto() == $this->getSendto() ||
                 (
-                empty($this->getBillto()
-                && 0 && 
+                    empty($this->getBillto()
+                && 0 &&
                  (!\common\helpers\Country::checkPlatformCountry(null, null, 'bill') ||
-                  !\common\helpers\Country::checkPlatformCountry(null, null, 'ship') )
-                 
-                
-                ));
+                  !\common\helpers\Country::checkPlatformCountry(null, null, 'ship'))
+
+                    )
+                );
         }
         //return false;
     }
 
     private $_customer = null;
 
-    public function getCustomersIdentity() {
+    public function getCustomersIdentity()
+    {
         if ($this->isCustomerAssigned()) {
             if (Yii::$app->user->getId() == $this->getCustomerAssigned()) { //current frontend user
                 $this->_customer = Yii::$app->user->getIdentity();
@@ -788,13 +862,13 @@ class OrderManager {
             }
         } else {
             if (is_null($this->_customer)) {
-                if ($this->has('customer')){ //do not use on frontend, only for stored before deleted customer account
-                    if ($this->get('customer') instanceof \common\components\Customer){
+                if ($this->has('customer')) { //do not use on frontend, only for stored before deleted customer account
+                    if ($this->get('customer') instanceof \common\components\Customer) {
                         $this->_customer = $this->get('customer');
                         $this->_customer->set('fromOrder', true);
                     }
                 }
-                if (is_null($this->_customer)){
+                if (is_null($this->_customer)) {
                     $this->_customer = new \common\components\Customer();
                     if ($this->has('guest_email_address')) {
                         $this->_customer->customers_email_address = $this->get('guest_email_address');
@@ -808,7 +882,8 @@ class OrderManager {
         return $this->_customer;
     }
 
-    public function getCustomersAddresses($toArray = false, $stripEntry = false, $type = '') {
+    public function getCustomersAddresses($toArray = false, $stripEntry = false, $type = '')
+    {
         $addresses = [];
         if ($customer = $this->getCustomersIdentity()) {
             $addresses = $customer->getAddressBooks($toArray, false, $type);
@@ -819,7 +894,8 @@ class OrderManager {
         return $addresses;
     }
 
-    public function getCustomersAddress($abId, $toArray = false, $stripEntry = false) {
+    public function getCustomersAddress($abId, $toArray = false, $stripEntry = false)
+    {
         $address = null;
         if ($customer = $this->getCustomersIdentity()) {
             $address = $customer->getAddressBook($abId, $toArray);
@@ -831,22 +907,23 @@ class OrderManager {
         return $address;
     }
 
-    protected function loadDefaultAddressValues($postfix) {
+    protected function loadDefaultAddressValues($postfix)
+    {
         if ($this->has('estimate' . $postfix)) {
             $estimate = $this->get('estimate' . $postfix);
             $_country_info = \common\helpers\Country::get_countries($estimate['country_id'], true, '', substr($postfix, 1));
             $address = [
-                'street_address' => $estimate['street_address']??'',
-                'suburb' => $estimate['suburb']??'',
-                'city' => $estimate['city']??'',
-                'postcode' => $estimate['postcode']??'',
+                'street_address' => $estimate['street_address'] ?? '',
+                'suburb' => $estimate['suburb'] ?? '',
+                'city' => $estimate['city'] ?? '',
+                'postcode' => $estimate['postcode'] ?? '',
                 'zone_id' => (isset($estimate['zone']) && !empty($estimate['zone']) ? (is_int($estimate['zone']) ? $estimate['zone'] : \common\helpers\Zones::get_zone_id($estimate['country_id'], $estimate['zone'])) : 0),
                 'country_id' => $estimate['country_id'],
             ];
             foreach (['company_vat', 'company_vat_date', 'company_vat_status', 'customs_number', 'customs_number_date', 'customs_number_status', 'city'] as $k) {
-              if (!empty($estimate[$k])) {
-                $address[$k] = $estimate[$k];
-              }
+                if (!empty($estimate[$k])) {
+                    $address[$k] = $estimate[$k];
+                }
             }
         } else {
             $_country_info = \common\helpers\Country::get_countries($this->getTaxCountry(), true);
@@ -869,8 +946,8 @@ class OrderManager {
 
     public static function getRecalculateShippingFields()
     {
-        $trigger_fields = preg_split('/,\s?/',TRIGGER_RECALCULATE_FIELDS, -1, PREG_SPLIT_NO_EMPTY);
-        if ( count($trigger_fields)==0 ) {
+        $trigger_fields = preg_split('/,\s?/', TRIGGER_RECALCULATE_FIELDS, -1, PREG_SPLIT_NO_EMPTY);
+        if (count($trigger_fields) == 0) {
             $trigger_fields[] = 'country';
         }
         return $trigger_fields;
@@ -878,7 +955,8 @@ class OrderManager {
 
     private $deliveryAddressChanged = false;
 
-    public function resetDeliveryAddress(){
+    public function resetDeliveryAddress()
+    {
         $this->deliveryAddressChanged = true;
         foreach (\common\helpers\Hooks::getList('order-manager/reset-delivery-address') as $filename) {
             include($filename);
@@ -887,18 +965,20 @@ class OrderManager {
 
     private $billingAddressChanged = false;
 
-    public function resetBillingAddress(){
+    public function resetBillingAddress()
+    {
         $this->billingAddressChanged = true;
     }
     /* delivery address for all modules (payment, shippng, ot_) */
 
-    public function getDeliveryAddress() {
+    public function getDeliveryAddress()
+    {
         static $address = null;
-/** /
-        $ee = new \Exception();
-        echo "getDeliveryAddress \$address#### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($address, true) . "</PRE>";
-        echo "#### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($ee->getTraceAsString(), true) . "</PRE>";
-/**/
+        /** /
+                $ee = new \Exception();
+                echo "getDeliveryAddress \$address#### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($address, true) . "</PRE>";
+                echo "#### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($ee->getTraceAsString(), true) . "</PRE>";
+        /**/
         if (is_null($address) || $this->deliveryAddressChanged) {
             $address = [];
             if ($this->has('estimate_ship') || !$this->isCustomerAssigned()) {
@@ -913,7 +993,7 @@ class OrderManager {
                                 $address['country'] = \common\helpers\Address::addCountriesKey($address['country']);
                             }
                         }
-                    } else if (is_array($sendto)) {
+                    } elseif (is_array($sendto)) {
                         $address = $sendto;
                     }
                 }
@@ -931,7 +1011,8 @@ class OrderManager {
      * @staticvar array|null $address
      * @return array
      */
-    public function getBillingAddress() {
+    public function getBillingAddress()
+    {
         static $address = null;
         if (is_null($address) || $this->billingAddressChanged) {
             $address = [];
@@ -942,10 +1023,10 @@ class OrderManager {
                 if ($billto) {
                     if (is_scalar($billto)) {
                         $address = $this->getCustomersAddress($billto, true, true);
-                    } else if (is_array($billto)) {
+                    } elseif (is_array($billto)) {
                         $address = $billto;
                     }
-                    if (is_array($address['country']??null)) {
+                    if (is_array($address['country'] ?? null)) {
                         $address['country'] = \common\helpers\Address::addCountriesKey($address['country']);
                     }
                 }
@@ -959,11 +1040,13 @@ class OrderManager {
 
     protected $shippingForm;
 
-    public function buildShippingAddressForm() {
+    public function buildShippingAddressForm()
+    {
         $this->shippingForm = new AddressForm(['scenario' => AddressForm::SHIPPING_ADDRESS]);
     }
 
-    public function getShippingForm($ab_id = null, $preload = true) {
+    public function getShippingForm($ab_id = null, $preload = true)
+    {
         if (!is_object($this->shippingForm)) {
             $this->buildShippingAddressForm();
         }
@@ -996,15 +1079,16 @@ class OrderManager {
         return $this->shippingForm;
     }
 
-    public function changeCustomerAddressSelection($type, $address) {
+    public function changeCustomerAddressSelection($type, $address)
+    {
         if ($this->isCustomerAssigned() && $address) {
-          if ($type == 'shipping') {
-            $this->set('sendto', $address);
-            $this->changeCustomerTaxAddress(1);
-          } else {
-            $this->set('billto', $address);
-            $this->changeCustomerTaxAddress(0);
-          }
+            if ($type == 'shipping') {
+                $this->set('sendto', $address);
+                $this->changeCustomerTaxAddress(1);
+            } else {
+                $this->set('billto', $address);
+                $this->changeCustomerTaxAddress(0);
+            }
         } else {
             if (is_array($address)) {
                 if ($type == 'shipping') {
@@ -1022,96 +1106,99 @@ class OrderManager {
         }
     }
 
-    public function changeCustomerTaxAddress($which = 2) {
-      if ($this->isCustomerAssigned()) {
-        $option = \common\helpers\Tax::getTaxAddressOption();
-        if ($option != 2 && $option != $which) {
-            return; // apprpriate address wasn't changed
-        } else {
-            $option = $which;
-        }
-
-        switch ($option) {
-          case 0:
-            $ab = $this->getCustomersIdentity()->getAddressBook($this->get('billto'));
-            if ($ab && $ab->entry_country_id ) {
-                $this->getCustomersIdentity()->set('customer_country_id', $ab->entry_country_id, true);
-                $this->getCustomersIdentity()->set('customer_zone_id', $ab->entry_zone_id, true);
-                /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
-                if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
-                    $VatOnOrder::resetCustomerData($ab);
-                }
-            }
-            break;
-          case 1:
-            $ab = $this->getCustomersIdentity()->getAddressBook($this->get('sendto'));
-            if ($ab && $ab->entry_country_id) {
-                $this->getCustomersIdentity()->set('customer_country_id', $ab->entry_country_id, true);
-                $this->getCustomersIdentity()->set('customer_zone_id', $ab->entry_zone_id, true);
-                /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
-                if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
-                    $VatOnOrder::resetCustomerData($ab);
-                }
-            }
-            break;
-          case 2:
-            $country_id = /*\Yii::$app->storage->has('customer_country_id')? \Yii::$app->storage->get('customer_country_id') : */ \common\helpers\PlatformConfig::getValue('STORE_COUNTRY');
-            $zone_id = /*\Yii::$app->storage->has('customer_zone_id')? \Yii::$app->storage->get('customer_zone_id') :*/ \common\helpers\PlatformConfig::getValue('STORE_ZONE');
-
-            $ab = $this->getCustomersIdentity()->getAddressBook($this->get('sendto'));
-
-            if ($ab && $ab->entry_country_id && $ab->entry_country_id==$country_id && $ab->entry_zone_id==$zone_id) {
-              $this->getCustomersIdentity()->set('customer_country_id', $ab->entry_country_id, true);
-              $this->getCustomersIdentity()->set('customer_zone_id', $ab->entry_zone_id, true);
-                /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
-                if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
-                    $VatOnOrder::resetCustomerData($ab);
-                }
-
+    public function changeCustomerTaxAddress($which = 2)
+    {
+        if ($this->isCustomerAssigned()) {
+            $option = \common\helpers\Tax::getTaxAddressOption();
+            if ($option != 2 && $option != $which) {
+                return; // apprpriate address wasn't changed
             } else {
-              $bab = $this->getCustomersIdentity()->getAddressBook($this->get('billto'));
-
-              if ($bab && $bab->entry_country_id && $bab->entry_country_id==$country_id && $bab->entry_zone_id==$zone_id) {
-                $this->getCustomersIdentity()->set('customer_country_id', $bab->entry_country_id, true);
-                $this->getCustomersIdentity()->set('customer_zone_id', $bab->entry_zone_id, true);
-                /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
-                if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
-                    $VatOnOrder::resetCustomerData($bab);
-                }
-              } else {
-              //match w/o zone
-                if ($ab && $ab->entry_country_id && $ab->entry_country_id==$country_id) {
-                  $this->getCustomersIdentity()->set('customer_country_id', $ab->entry_country_id, true);
-                  $this->getCustomersIdentity()->set('customer_zone_id', $ab->entry_zone_id, true);
-                    /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
-                    if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
-                        $VatOnOrder::resetCustomerData($ab);
-                    }
-                } elseif ($bab && $bab->entry_country_id && $bab->entry_country_id==$country_id) {
-                  $this->getCustomersIdentity()->set('customer_country_id', $bab->entry_country_id, true);
-                  $this->getCustomersIdentity()->set('customer_zone_id', $bab->entry_zone_id, true);
-                    /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
-                    if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
-                        $VatOnOrder::resetCustomerData($bab);
-                    }
-                }
-              }
+                $option = $which;
             }
-            break;
 
+            switch ($option) {
+                case 0:
+                    $ab = $this->getCustomersIdentity()->getAddressBook($this->get('billto'));
+                    if ($ab && $ab->entry_country_id) {
+                        $this->getCustomersIdentity()->set('customer_country_id', $ab->entry_country_id, true);
+                        $this->getCustomersIdentity()->set('customer_zone_id', $ab->entry_zone_id, true);
+                        /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
+                        if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
+                            $VatOnOrder::resetCustomerData($ab);
+                        }
+                    }
+                    break;
+                case 1:
+                    $ab = $this->getCustomersIdentity()->getAddressBook($this->get('sendto'));
+                    if ($ab && $ab->entry_country_id) {
+                        $this->getCustomersIdentity()->set('customer_country_id', $ab->entry_country_id, true);
+                        $this->getCustomersIdentity()->set('customer_zone_id', $ab->entry_zone_id, true);
+                        /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
+                        if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
+                            $VatOnOrder::resetCustomerData($ab);
+                        }
+                    }
+                    break;
+                case 2:
+                    $country_id = /*\Yii::$app->storage->has('customer_country_id')? \Yii::$app->storage->get('customer_country_id') : */ \common\helpers\PlatformConfig::getValue('STORE_COUNTRY');
+                    $zone_id = /*\Yii::$app->storage->has('customer_zone_id')? \Yii::$app->storage->get('customer_zone_id') :*/ \common\helpers\PlatformConfig::getValue('STORE_ZONE');
+
+                    $ab = $this->getCustomersIdentity()->getAddressBook($this->get('sendto'));
+
+                    if ($ab && $ab->entry_country_id && $ab->entry_country_id == $country_id && $ab->entry_zone_id == $zone_id) {
+                        $this->getCustomersIdentity()->set('customer_country_id', $ab->entry_country_id, true);
+                        $this->getCustomersIdentity()->set('customer_zone_id', $ab->entry_zone_id, true);
+                        /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
+                        if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
+                            $VatOnOrder::resetCustomerData($ab);
+                        }
+
+                    } else {
+                        $bab = $this->getCustomersIdentity()->getAddressBook($this->get('billto'));
+
+                        if ($bab && $bab->entry_country_id && $bab->entry_country_id == $country_id && $bab->entry_zone_id == $zone_id) {
+                            $this->getCustomersIdentity()->set('customer_country_id', $bab->entry_country_id, true);
+                            $this->getCustomersIdentity()->set('customer_zone_id', $bab->entry_zone_id, true);
+                            /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
+                            if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
+                                $VatOnOrder::resetCustomerData($bab);
+                            }
+                        } else {
+                            //match w/o zone
+                            if ($ab && $ab->entry_country_id && $ab->entry_country_id == $country_id) {
+                                $this->getCustomersIdentity()->set('customer_country_id', $ab->entry_country_id, true);
+                                $this->getCustomersIdentity()->set('customer_zone_id', $ab->entry_zone_id, true);
+                                /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
+                                if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
+                                    $VatOnOrder::resetCustomerData($ab);
+                                }
+                            } elseif ($bab && $bab->entry_country_id && $bab->entry_country_id == $country_id) {
+                                $this->getCustomersIdentity()->set('customer_country_id', $bab->entry_country_id, true);
+                                $this->getCustomersIdentity()->set('customer_zone_id', $bab->entry_zone_id, true);
+                                /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
+                                if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
+                                    $VatOnOrder::resetCustomerData($bab);
+                                }
+                            }
+                        }
+                    }
+                    break;
+
+            }
         }
-      }
 
     }
 
-/** @prop common\forms\AddressForm $billingForm */
+    /** @prop common\forms\AddressForm $billingForm */
     protected $billingForm;
 
-    public function buildBillingAddressForm() {
+    public function buildBillingAddressForm()
+    {
         $this->billingForm = new AddressForm(['scenario' => AddressForm::BILLING_ADDRESS]);
     }
 
-    public function getBillingForm($ab_id = null, $preload = true) {
+    public function getBillingForm($ab_id = null, $preload = true)
+    {
         if (!is_object($this->billingForm)) {
             $this->buildBillingAddressForm();
         }
@@ -1143,17 +1230,19 @@ class OrderManager {
         return $this->billingForm;
     }
 
-    private function _overrideAddressSelection($addressForm, $addressBook) {
+    private function _overrideAddressSelection($addressForm, $addressBook)
+    {
         if ($addressBook) {
             if ($addressForm->scenario == AddressForm::SHIPPING_ADDRESS) {
                 $this->set('sendto', $addressBook->address_book_id);
-            } else if ($addressForm->scenario == AddressForm::BILLING_ADDRESS) {
+            } elseif ($addressForm->scenario == AddressForm::BILLING_ADDRESS) {
                 $this->set('billto', $addressBook->address_book_id);
             }
         }
     }
 
-    private function _setPrefferedAddress($addressForm, $addressBook) {
+    private function _setPrefferedAddress($addressForm, $addressBook)
+    {
         if ($addressForm->as_preferred && $addressBook) {
             $prevSendto = (int) $this->get('sendto');
             $prevBillto = (int) $this->get('billto');
@@ -1164,30 +1253,33 @@ class OrderManager {
         }
     }
 
-    public function skipStrongAddressCheck(AddressForm $addressForm){
+    public function skipStrongAddressCheck(AddressForm $addressForm)
+    {
         $addressForm->setLightCheck(true);
     }
 
-    public function useStrongAddressCheck(AddressForm $addressForm){
+    public function useStrongAddressCheck(AddressForm $addressForm)
+    {
         $addressForm->setLightCheck(false);
     }
 
     public $errorForm = [];
 
-/**
- *
- * @param array $post
- * @param string $type default '' [shipping|billing|else => both] which address to validate
- * @param boolean $shipAsBill default true
- * @param boolean $skipValidation default false
- * @return boolean
- */
-    public function validateAddressForms($post, $type = '', $shipAsBill = true, $skipValidation = false) {
+    /**
+     *
+     * @param array $post
+     * @param string $type default '' [shipping|billing|else => both] which address to validate
+     * @param boolean $shipAsBill default true
+     * @param boolean $skipValidation default false
+     * @return boolean
+     */
+    public function validateAddressForms($post, $type = '', $shipAsBill = true, $skipValidation = false)
+    {
         //if ($this->isCustomerAssigned()) {
         $_forms = [];
         if ($type == 'shipping') {
             $_forms[] = $this->getShippingForm(0);
-        } else if ($type == 'billing') {
+        } elseif ($type == 'billing') {
             $_forms[] = $this->getBillingForm(0);
         } else {
             $_forms[] = $this->getBillingForm(0);
@@ -1211,14 +1303,14 @@ class OrderManager {
             foreach ($_forms as $addressForm) {
                 if (/* $addressForm->notEmpty() && */$addressForm->validate() && $this->validateExtensions($addressForm)) {
                     if ($this->isCustomerAssigned()) {
-                      /** @var \common\components\Customer $customer*/
+                        /** @var \common\components\Customer $customer*/
                         $customer = $this->getCustomersIdentity();
                         $book = $customer->getAddressFromModel($addressForm);
 
                         if ($this->checkDifferenceFormAddresses(false)) {
                             if ($addressForm->scenario == AddressForm::BILLING_ADDRESS) {
                                 if ($this->checkDifferenceFormAddressesId(false)) {
-                                  $dbBook = $addressForm->address_book_id ? $customer->updateAddress($addressForm->address_book_id, $book) : $customer->addAddress($book);
+                                    $dbBook = $addressForm->address_book_id ? $customer->updateAddress($addressForm->address_book_id, $book) : $customer->addAddress($book);
                                 } else {
                                     if ($shipAsBill) {
                                         $dbBook = $customer->updateAddress($addressForm->address_book_id, $book);
@@ -1263,12 +1355,12 @@ class OrderManager {
                         if ($addressForm->scenario == AddressForm::SHIPPING_ADDRESS) {
                             $this->set('sendto', $book);
                             if ($shipAsBill) {
-                              $this->set('billto', $book);
+                                $this->set('billto', $book);
                             }
                         } else {
                             $this->set('billto', $book);
                             if ($shipAsBill) {
-                              $this->set('sendto', $book);
+                                $this->set('sendto', $book);
                             }
                         }
                     }
@@ -1277,7 +1369,7 @@ class OrderManager {
                     $has_errors = true;
                     $this->errorForm[] = $addressForm->addressType;
                     foreach ($addressForm->getErrors() as $error) {
-                        $messageStack->add((is_array($error) ? implode("<br>", $error) : $error), 'one_page_checkout');
+                        $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), 'one_page_checkout');
                     }
                 }
             }
@@ -1291,7 +1383,8 @@ class OrderManager {
 
     /* $address in db format fields */
 
-    public function checkSameAddress($customer, array $address) {
+    public function checkSameAddress($customer, array $address)
+    {
         if ($customer) {
             foreach ($customer->getAddressBooks() as $book) {
                 $same = true;
@@ -1308,7 +1401,8 @@ class OrderManager {
         return false;
     }
 
-    public function validateExtensions($form) {
+    public function validateExtensions($form)
+    {
         $valid = true;
 
         /**
@@ -1323,11 +1417,13 @@ class OrderManager {
         return $valid;
     }
 
-    public function getPlatformId() {
+    public function getPlatformId()
+    {
         return ($this->has('platform_id') ? $this->get('platform_id') : \common\classes\platform::currentId());
     }
 
-    public function registerCustomerAccount($opc_temp_account = 0, $contactPreload=false) {
+    public function registerCustomerAccount($opc_temp_account = 0, $contactPreload = false)
+    {
         if (!$this->isCustomerAssigned()) {
             $customer = $this->getCustomersIdentity();
             $shippingAddress = $this->getShippingForm();
@@ -1339,13 +1435,13 @@ class OrderManager {
                     if (property_exists($contactForm, 'opc_temp_account')) {
                         $contactForm->opc_temp_account = !$contactForm->opc_temp_account;
                     }
-                    $customer->registerGuestCustomer($contactForm, $billingAddress->notEmpty()? $billingAddress : $shippingAddress);
-                    if ( $contactPreload && $customer->customers_id ){
+                    $customer->registerGuestCustomer($contactForm, $billingAddress->notEmpty() ? $billingAddress : $shippingAddress);
+                    if ($contactPreload && $customer->customers_id) {
                         $this->assignCustomer($customer->customers_id);
                     }
                 } else {
                     $contactForm->opc_temp_account = 0;
-                    $customer->registerCustomer($contactForm, true, $billingAddress->notEmpty()? $billingAddress : $shippingAddress);
+                    $customer->registerCustomer($contactForm, true, $billingAddress->notEmpty() ? $billingAddress : $shippingAddress);
                 }
 
                 $defBook = $customer->getDefaultAddress()->one();
@@ -1381,7 +1477,7 @@ class OrderManager {
                 /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
                 if ($VatOnOrder = \common\helpers\Acl::checkExtension('VatOnOrder', 'resetCustomerData')) {
                     $option = \common\helpers\Tax::getTaxAddressOption();
-                    $tmp = ($option>0 && $shippingAddress->notEmpty())?$shippingAddress : $billingAddress;
+                    $tmp = ($option > 0 && $shippingAddress->notEmpty()) ? $shippingAddress : $billingAddress;
                     $ab = $tmp->attributes;
                     $VatOnOrder::resetCustomerData($ab);
                 }
@@ -1396,7 +1492,8 @@ class OrderManager {
      * @param boolean $preload
      * @return boolean
      */
-    private function checkDifferenceFormAddresses($preload = true) {
+    private function checkDifferenceFormAddresses($preload = true)
+    {
         $shippingAddress = $this->getShippingForm(null, $preload);
         $billingAddress = $this->getBillingForm(null, $preload);
         $different = false;
@@ -1413,12 +1510,13 @@ class OrderManager {
         return $different;
     }
 
-/**
- * compare shipping and billing addresses by id (both addresses are loaded and have different id)
- * @param boolean $preload
- * @return boolean
- */
-    private function checkDifferenceFormAddressesId($preload = true) {
+    /**
+     * compare shipping and billing addresses by id (both addresses are loaded and have different id)
+     * @param boolean $preload
+     * @return boolean
+     */
+    private function checkDifferenceFormAddressesId($preload = true)
+    {
         $shippingAddress = $this->getShippingForm(null, $preload);
         $billingAddress = $this->getBillingForm(null, $preload);
         $different = false;
@@ -1426,8 +1524,9 @@ class OrderManager {
             return false;
         }
         if (is_object($shippingAddress) && is_object($billingAddress)) {
-            if ($shippingAddress->address_book_id && $billingAddress->address_book_id && $shippingAddress->address_book_id != $billingAddress->address_book_id)
+            if ($shippingAddress->address_book_id && $billingAddress->address_book_id && $shippingAddress->address_book_id != $billingAddress->address_book_id) {
                 return true;
+            }
         }
         return $different;
     }
@@ -1445,7 +1544,8 @@ class OrderManager {
         return $isValid;
     }
 
-    public function validateContactForm($post, $admin_edit=false) {
+    public function validateContactForm($post, $admin_edit = false)
+    {
         $form = $this->getCustomerContactForm(false);
         $messageStack = \Yii::$container->get('message_stack');
         if ($form->load($post) && ($admin_edit || $form->validate())) {
@@ -1466,8 +1566,9 @@ class OrderManager {
                         if ($name == 'email_address' && $customer->customers_email_address != $multiEmail) {
                             continue;
                         }
-                        if (in_array($name, ['password', 'opc_temp_account']))
+                        if (in_array($name, ['password', 'opc_temp_account'])) {
                             continue;
+                        }
                         if ($customer->hasAttribute('customers_' . $name)) {
                             $customer->{'customers_' . $name} = $value;
                         }
@@ -1481,7 +1582,7 @@ class OrderManager {
                 }
             } else { //guest
                 $checkFraud = false;
-                if ( $admin_edit ) {
+                if ($admin_edit) {
                     $customer = $this->getCustomersIdentity();
                     foreach ($form->getAttributesByScenario() as $name => $value) {
                         if ($customer->hasAttribute('customers_' . $name)) {
@@ -1504,7 +1605,7 @@ class OrderManager {
         }
         if ($form->hasErrors()) {
             foreach ($form->getErrors() as $error) {
-                $messageStack->add((is_array($error) ? implode("<br>", $error) : $error), 'one_page_checkout');
+                $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), 'one_page_checkout');
             }
             return false;
         }
@@ -1513,36 +1614,40 @@ class OrderManager {
 
     private $totals;
 
-    public function getTotalCollection($reconfig = false) {
+    public function getTotalCollection($reconfig = false)
+    {
         if (!is_object($this->totals)) {
             $this->totals = new \common\classes\order_total($reconfig, $this);
         }
         return $this->totals;
     }
 
-    public function totalCollectPosts($post_data = []) {
+    public function totalCollectPosts($post_data = [])
+    {
         $this->triggerEvents(__FUNCTION__);
         return $this->getTotalCollection()->collect_posts('', $post_data);
     }
 
-    public function totalPreConfirmationCheck() {
+    public function totalPreConfirmationCheck()
+    {
         $this->triggerEvents(__FUNCTION__);
         $this->getTotalCollection()->pre_confirmation_check($this->orderInstance);
     }
 
-    public function totalProcess() {
+    public function totalProcess()
+    {
         $this->triggerEvents(__FUNCTION__);
-//echo "manager #### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($this->getAll(), true) . "</PRE>";
-//echo "before #### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($this->getOrderInstance(), true) . "</PRE>";
+        //echo "manager #### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($this->getAll(), true) . "</PRE>";
+        //echo "before #### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($this->getOrderInstance(), true) . "</PRE>";
 
         foreach (\common\helpers\Hooks::getList('order-manager/total-process') as $filename) {
             include($filename);
         }
 
         $ret =  $this->getTotalCollection()->process();
-//echo "after #### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($this->getOrderInstance(), true) . "</PRE>";
+        //echo "after #### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($this->getOrderInstance(), true) . "</PRE>";
 
-        if (defined('ALLOW_SEVERAL_TAX_COUNTRIES') && ALLOW_SEVERAL_TAX_COUNTRIES=='True' && is_array($ret)) {
+        if (defined('ALLOW_SEVERAL_TAX_COUNTRIES') && ALLOW_SEVERAL_TAX_COUNTRIES == 'True' && is_array($ret)) {
 
             $order = $this->getOrderInstance();
             $total = $order->info['total_inc_tax'];
@@ -1552,26 +1657,26 @@ class OrderManager {
             }
             $currencies = \Yii::$container->get('currencies');
             $rate = $currencies->rate($currency);
-            if ($rate!=1 && $rate>0) {
+            if ($rate != 1 && $rate > 0) {
                 $total *= $rate;
             }
 
             $skipTaxRates = $orderHash = [];
-//echo "\$total $total #### <PRE>"  . __FILE__ .':' . __LINE__ . ' ' . print_r($ret, true) ."</PRE>"; die;
+            //echo "\$total $total #### <PRE>"  . __FILE__ .':' . __LINE__ . ' ' . print_r($ret, true) ."</PRE>"; die;
 
             foreach ($ret as $ot) {
                 if (!empty($ot['code']) && !in_array($ot['code'], ['ot_tax'])) {
                     $orderHash[]  = [$ot['code'] => $ot['value_exc_vat']];
                 }
-                if (!empty($ot['code']) && $ot['code']=='ot_tax') { // could be several
+                if (!empty($ot['code']) && $ot['code'] == 'ot_tax') { // could be several
                     $ri = \common\helpers\Tax::get_rate_info_from_desc(trim($ot['title'], ':'));
-//echo "#### <PRE>"  . __FILE__ .':' . __LINE__ . ' ' . print_r($ri, true) ."</PRE>";
+                    //echo "#### <PRE>"  . __FILE__ .':' . __LINE__ . ' ' . print_r($ri, true) ."</PRE>";
 
                     if (is_array($ri)) {
-                        if (isset($ri['max_total']) && is_numeric($ri['max_total']) && $total>=$ri['max_total']) {
+                        if (isset($ri['max_total']) && is_numeric($ri['max_total']) && $total >= $ri['max_total']) {
                             $skipTaxRates[] = $ri['tax_rates_id'];
                         }
-                        if (isset($ri['min_total']) && is_numeric($ri['min_total']) && $total<=$ri['min_total']) {
+                        if (isset($ri['min_total']) && is_numeric($ri['min_total']) && $total <= $ri['min_total']) {
                             $skipTaxRates[] = $ri['tax_rates_id'];
                         }
                     }
@@ -1594,7 +1699,8 @@ class OrderManager {
 
     /* use $context as null when wrap is false */
 
-    public function getTotalOutput($wrap = true, $context = null, $all = false) {
+    public function getTotalOutput($wrap = true, $context = null, $all = false)
+    {
         $order = $this->getOrderInstance();
         if ($order->order_id && count($order->totals)) { //probably used for restored order from db
             $order_total_output = $order->totals;
@@ -1610,7 +1716,8 @@ class OrderManager {
         return ($wrap ? $this->wrapTotals($order_total_output, $context, $all) : $order_total_output);
     }
 
-    public function wrapTotals(array $order_total_output, $context, $all = false) {
+    public function wrapTotals(array $order_total_output, $context, $all = false)
+    {
         $result = [];
         foreach ($order_total_output as $total) {
             $module = $this->getTotalCollection()->get($total['code'], $all);
@@ -1627,16 +1734,17 @@ class OrderManager {
         return $result;
     }
 
-    public function getCreditModules() {
+    public function getCreditModules()
+    {
         $currencies = \Yii::$container->get('currencies');
         $credit_classes = $this->getTotalCollection()->getCreditClasses();
-        $credit_modules = array(
-            'applied_coupon_code' => ($this->has('cc_id') && $this->get('cc_id') > 0 ? ($this->has('cc_code') && !empty($this->get('cc_code'))?$this->get('cc_code'):\common\helpers\Coupon::get_coupon_name($this->get('cc_id'))) : ''),
+        $credit_modules = [
+            'applied_coupon_code' => ($this->has('cc_id') && $this->get('cc_id') > 0 ? ($this->has('cc_code') && !empty($this->get('cc_code')) ? $this->get('cc_code') : \common\helpers\Coupon::get_coupon_name($this->get('cc_id'))) : ''),
             'credit_amount_formatted' => $currencies->format(0),
             'credit_amount' => 0,
             'cot_gv_active' => $this->has('cot_gv'),
             'custom_gv_amount' => ($this->has('cot_gv') && is_numeric($this->get('cot_gv')) ? round($this->get('cot_gv') * $currencies->get_market_price_rate(DEFAULT_CURRENCY, \Yii::$app->settings->get('currency')), 2) : ''),
-        );
+        ];
         if (is_array($credit_classes)) {
             foreach ($credit_classes as $code => $module) {
                 $credit_modules[$code] = true;
@@ -1647,15 +1755,17 @@ class OrderManager {
             if ($this->isCustomerAssigned()) {
                 $customer = $this->getCustomersIdentity();
                 $credit_modules['credit_amount'] = $currencies->format_clear($customer->credit_amount);
-                if (!$credit_modules['credit_amount'])
+                if (!$credit_modules['credit_amount']) {
                     $credit_modules['credit_amount'] = 0;
+                }
                 $credit_modules['credit_amount_formatted'] = $currencies->format($customer->credit_amount);
             }
         }
         return $credit_modules;
     }
 
-    private function triggerEvents($method) {
+    private function triggerEvents($method)
+    {
         if ($this->has('events')) {
             $events = $this->get('events');
             if (is_array($events)) {
@@ -1664,12 +1774,12 @@ class OrderManager {
                     if (isset($event['before']) && $method == $event['before']) {
                         $ot_module = $this->getTotalCollection()->get($event['module']);
                         if ($ot_module && method_exists($ot_module, $event['method'])) {
-                            $ot_module->config(array(
+                            $ot_module->config([
                                 'ONE_PAGE_CHECKOUT' => 'True',
                                 'ONE_PAGE_SHOW_TOTALS' => 'true',
                                 'COUPON_SUCCESS_APPLY' => 'true',
-                                'GV_SOLO_APPLY' => 'true'
-                            ));
+                                'GV_SOLO_APPLY' => 'true',
+                            ]);
                             $response = $ot_module->{$event['method']}($event['data']);
                             if ($response) {
                                 if (is_array($response)) {
@@ -1684,7 +1794,8 @@ class OrderManager {
         }
     }
 
-    private function removeEvent($event) {
+    private function removeEvent($event)
+    {
         $events = $this->get('events');
         if (is_array($events)) {
             foreach ($events as $key => $_event) {
@@ -1700,7 +1811,8 @@ class OrderManager {
     private $contactForm;
     public $createAccount = false;
 
-    public function buildContactForm() {
+    public function buildContactForm()
+    {
         if ($this->createAccount) {
             $this->contactForm = new CustomerRegistration(['scenario' => CustomerRegistration::SCENARIO_CREATE, 'shortName' => CustomerRegistration::SCENARIO_CREATE]);
         } else {
@@ -1711,7 +1823,8 @@ class OrderManager {
         }
     }
 
-    public function getCustomerContactForm($preload = true) {
+    public function getCustomerContactForm($preload = true)
+    {
         if (!is_object($this->contactForm)) {
             $this->buildContactForm();
         }
@@ -1731,7 +1844,8 @@ class OrderManager {
     private $orderInstance;
 
     //create empty instance of order
-    public function createOrderInstance($class) {
+    public function createOrderInstance($class)
+    {
         $class = new \ReflectionClass($class);
         $instance = $class->newInstanceWithoutConstructor();
         $this->orderInstance = $instance;
@@ -1741,9 +1855,11 @@ class OrderManager {
 
     /* be carefull, it may return as order from cart as well from db */
 
-    public function getOrderInstance() {
-        if (!is_object($this->orderInstance))
+    public function getOrderInstance()
+    {
+        if (!is_object($this->orderInstance)) {
             throw new \Exception('Order instance is not defined');
+        }
         return $this->orderInstance;
     }
 
@@ -1752,25 +1868,28 @@ class OrderManager {
      * Substitution for current orderInstance
      * @params OrderAbstract $newInstance
      */
-    public function replaceOrderInstance(\common\classes\extended\OrderAbstract $newInstance){
+    public function replaceOrderInstance(\common\classes\extended\OrderAbstract $newInstance)
+    {
         //if ($this->isInstance()){
-            $this->orderInstance = $newInstance;
-            $this->orderInstance->manager = $this;
+        $this->orderInstance = $newInstance;
+        $this->orderInstance->manager = $this;
         //}
     }
 
-    public function isInstance() {
+    public function isInstance()
+    {
         return is_object($this->orderInstance);
     }
 
-    public function getInstanceType(){
-        if ($this->isInstance()){
-            switch ($this->orderInstance->table_prefix){
-                case "quote_":
+    public function getInstanceType()
+    {
+        if ($this->isInstance()) {
+            switch ($this->orderInstance->table_prefix) {
+                case 'quote_':
                     return 'quote';
-                case "sample_":
+                case 'sample_':
                     return 'sample';
-                case "purchase_":
+                case 'purchase_':
                     return 'purchase';
                 default:
                     return 'order';
@@ -1779,18 +1898,21 @@ class OrderManager {
         return false;
     }
 
-    public function clearOrderInstance() {
+    public function clearOrderInstance()
+    {
         $this->orderInstance = null;
     }
 
-    public function getOrderInstanceWithId($class, $id) {
+    public function getOrderInstanceWithId($class, $id)
+    {
         if (!$this->orderInstance || !$this->orderInstance->order_id || $this->orderInstance->order_id != $id) {
             $this->createOrderInstance($class)->__construct($id);
         }
         return $this->orderInstance;
     }
 
-    public function defineOrderTaxAddress() {
+    public function defineOrderTaxAddress()
+    {
         $bAddress = $this->getBillingAddress();
         $sAddress = $this->getDeliveryAddress();
         $scheck = \common\helpers\Tax::getTaxZones($sAddress['country_id'] ?? null, $sAddress['zone_id'] ?? null);
@@ -1798,7 +1920,7 @@ class OrderManager {
         $address = null;
         if (($bcheck && $scheck) || $bcheck) {
             $address = $bAddress;
-        } else if ($scheck) {
+        } elseif ($scheck) {
             $address = $sAddress;
         } else {
             $address = $bAddress;
@@ -1813,56 +1935,64 @@ class OrderManager {
                 'company_vat_status' => (isset($address['company_vat_status']) ? $address['company_vat_status'] : ''),
                 'customs_number' => (isset($address['customs_number']) ? $address['customs_number'] : ''),
                 'customs_number_date' => (isset($address['customs_number_date']) ? $address['customs_number_date'] : ''),
-                'customs_number_status' => (isset($address['customs_number_status']) ? $address['customs_number_status'] : '')
+                'customs_number_status' => (isset($address['customs_number_status']) ? $address['customs_number_status'] : ''),
             ];
         }
     }
 
-    public function prepareOrderInfo() {
+    public function prepareOrderInfo()
+    {
         $this->getOrderInstance()->prepareOrderInfo();
     }
 
-    public function prepareOrderProducts() {
+    public function prepareOrderProducts()
+    {
         $this->getOrderInstance()->prepareProducts();
     }
 
-    public function prepareOrderTotals() {
+    public function prepareOrderTotals()
+    {
         $this->getOrderInstance()->prepareOrderInfoTotals();
     }
 
-    public function prepareOrderAddresses() {
+    public function prepareOrderAddresses()
+    {
         $this->getOrderInstance()->prepareOrderAddresses();
     }
 
-    public function checkoutOrder() {
+    public function checkoutOrder()
+    {
         $this->prepareOrderInfo();
         $this->prepareOrderProducts();
         $this->prepareOrderTotals();
     }
 
-    public function checkoutOrderWithAddresses() {
+    public function checkoutOrderWithAddresses()
+    {
         /* calls
           $this->prepareOrderInfo();
           $this->prepareOrderAddresses();
           $this->prepareOrderProducts();
           $this->prepareOrderTotals();
          */
-  //      echo "#### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($this->getOrderInstance(), true) . "</PRE>";
+        //      echo "#### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($this->getOrderInstance(), true) . "</PRE>";
 
         $this->getOrderInstance()->cart();
-//        echo "#### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($this->getOrderInstance(), true) . "</PRE>";
-//        die;
-        }
+        //        echo "#### <PRE>" . __FILE__ . ':' . __LINE__ . ' ' . print_r($this->getOrderInstance(), true) . "</PRE>";
+        //        die;
+    }
 
-    private $_renderPath = "\\frontend\\design\\boxes\\checkout\\";
+    private $_renderPath = '\\frontend\\design\\boxes\\checkout\\';
 
-    public function setRenderPath($path) {
+    public function setRenderPath($path)
+    {
         $this->_renderPath = $path;
     }
 
-    public function render($widget, $params = [], $format = 'html', $path = null) {
+    public function render($widget, $params = [], $format = 'html', $path = null)
+    {
         if (is_array($this->modulesVisiblility)) {
-            $widget = ($path ? $path : $this->_renderPath ) . $widget;
+            $widget = ($path ? $path : $this->_renderPath) . $widget;
             $_params = [];
             foreach ($params as $key => $param) {
                 if (property_exists($widget, $key)) {
@@ -1877,8 +2007,8 @@ class OrderManager {
                 if (class_exists($widget)) {
                     if ($format == 'html') {
                         return $widget::widget($params);
-                    } else if ($format == 'json') {
-                        $object = new $widget;
+                    } elseif ($format == 'json') {
+                        $object = new $widget();
                         Yii::configure($object, $params);
                         return $object->run();
                     }
@@ -1888,8 +2018,8 @@ class OrderManager {
                 if (class_exists($widget)) {
                     if ($format == 'html') {
                         return $widget::widget($params);
-                    } else if ($format == 'json') {
-                        $object = new $widget;
+                    } elseif ($format == 'json') {
+                        $object = new $widget();
                         Yii::configure($object, $params);
                         return $object->run();
                     }
@@ -1944,11 +2074,13 @@ class OrderManager {
         }
     }
 
-    public function clearStorage() {
+    public function clearStorage()
+    {
         $this->storage->removeAll();
     }
 
-    public function prepareEstimateData() {
+    public function prepareEstimateData()
+    {
 
         static $estimate_data = null;
 
@@ -1970,28 +2102,30 @@ class OrderManager {
                             $this->set('sendto', $addresses_selected_value);
                         }
                     }
-                    
+
                     $addressesBilling = $this->getCustomersAddresses(true, true, 'billing');
                     $billing_selected_value = $this->getBillto();
-                    
+
                     if (!$billing_selected_value) {
                         $billing_selected_value = $this->getCustomersIdentity()->customers_default_address_id;
-                        if ($billing_selected_value)
+                        if ($billing_selected_value) {
                             $this->set('billto', $billing_selected_value);
+                        }
                     }
-                    
+
                 } else {
                     $addresses = $this->getCustomersAddresses(true, true);
                     $addresses_selected_value = $this->getSendto();
                     if (!$addresses_selected_value) {
                         $addresses_selected_value = $this->getCustomersIdentity()->customers_default_address_id;
-                        if ($addresses_selected_value)
+                        if ($addresses_selected_value) {
                             $this->set('sendto', $addresses_selected_value);
+                        }
                     }
                 }
             }
-            if (defined('PREFERRED_CHEAPEST_TYPE')){
-                if (PREFERRED_CHEAPEST_TYPE == 'delivery'){
+            if (defined('PREFERRED_CHEAPEST_TYPE')) {
+                if (PREFERRED_CHEAPEST_TYPE == 'delivery') {
                     $this->getShippingCollection()->useDeliveryCheapest();
                 } else {
                     $this->getShippingCollection()->usePickupCheapest();
@@ -2003,7 +2137,6 @@ class OrderManager {
             /*if ($_predefined = $this->getSelectedShipping()) {
                 $this->setSelectedShipping($_predefined);
             }*/
-
 
             $selected_shipping = $this->getShipping();
             if ($selected_shipping) {
@@ -2017,7 +2150,7 @@ class OrderManager {
                 $estimate = $this->get('estimate_ship');
             }
 
-            $estimate_data = array(
+            $estimate_data = [
                 'is_logged_customer' => $this->isCustomerAssigned(),
                 'estimate' => $estimate,
                 'countries' => \common\helpers\Country::get_countries('', false, '', 'ship'),
@@ -2025,7 +2158,7 @@ class OrderManager {
                 'addresses_selected_value' => $addresses_selected_value,
                 'cart_weight' => rtrim(rtrim(number_format($this->_cart->show_weight(), 2, '.', ''), '0'), '.'),
                 'manager' => $this,
-            );
+            ];
         }
 
         return $estimate_data;
@@ -2040,7 +2173,8 @@ class OrderManager {
      * ]
      */
 
-    public function addEvent() {
+    public function addEvent()
+    {
         $events = $this->has('events') ? $this->get('events') : [];
         $args = func_get_args();
         if (is_array($args[0])) {
@@ -2049,11 +2183,12 @@ class OrderManager {
         }
     }
 
-    public function getCouponName() {
+    public function getCouponName()
+    {
         if ($this->has('cc_id')) {
-          if ($this->has('cc_code') && !empty($this->get('cc_code') )) {
-            return $this->get('cc_code');
-          }
+            if ($this->has('cc_code') && !empty($this->get('cc_code'))) {
+                return $this->get('cc_code');
+            }
             return \common\helpers\Coupon::get_coupon_name($this->get('cc_id'));
         }
         return '';
@@ -2061,17 +2196,20 @@ class OrderManager {
 
     private $_template;
 
-    public function setTemplate($template) {
+    public function setTemplate($template)
+    {
         $this->_template = $template;
     }
 
-    public function getTemplate() {
+    public function getTemplate()
+    {
         return $this->_template;
     }
 
     /* used in admin section */
 
-    public function predefineOrderDetails() {
+    public function predefineOrderDetails()
+    {
         if (is_object($this->_cart) && $this->_cart->order_id) {
             if ($this->has('order_instance')) {
                 try {
@@ -2083,21 +2221,21 @@ class OrderManager {
                             $this->predefineCustomerDetails($_order->customer['customer_id']);
                         }
 
-                        if (!$this->isCustomerAssigned()){ //restored customer from order may be absent
+                        if (!$this->isCustomerAssigned()) { //restored customer from order may be absent
                             $customer = $this->getCustomersIdentity();
-                            foreach($_order->customer as $field => $value){
-                                if (is_scalar($value)){
-                                    if ($customer->hasAttribute('customers_'.$field)){
+                            foreach ($_order->customer as $field => $value) {
+                                if (is_scalar($value)) {
+                                    if ($customer->hasAttribute('customers_'.$field)) {
                                         $customer->setAttribute('customers_'.$field, $value);
                                     } else {
                                         $customer->set($field, $value);
                                     }
-                                } else if (is_array($value)){
+                                } elseif (is_array($value)) {
                                     $customer->set($field, $value);
                                 }
                                 //!!!potential danger, stored customer has customers_id, do not recreate account
                             }
-                            if ($_order->customer['customer_id']){
+                            if ($_order->customer['customer_id']) {
                                 $this->set('customer', $customer);
                             }
                         }
@@ -2116,10 +2254,10 @@ class OrderManager {
                                 $aBook = $customer->getAddressBook($_order->delivery['address_book_id'], true);
                                 if ($aBook) {
                                     $_delivery = [];
-                                    foreach($_order->delivery as $key => $v){
-                                        $_delivery["entry_" . $key] = $v;
+                                    foreach ($_order->delivery as $key => $v) {
+                                        $_delivery['entry_' . $key] = $v;
                                     }
-                                    if (\common\helpers\Address::cmpAddresses($aBook, $_delivery)){
+                                    if (\common\helpers\Address::cmpAddresses($aBook, $_delivery)) {
                                         $this->changeCustomerAddressSelection('shipping', $aBook['address_book_id']);
                                     } else {
                                         $this->set('sendto', $_order->delivery);
@@ -2134,10 +2272,10 @@ class OrderManager {
                                 $aBook = $customer->getAddressBook($_order->billing['address_book_id'], true);
                                 if ($aBook) {
                                     $_billing = [];
-                                    foreach($_order->billing as $key => $v){
-                                        $_billing["entry_" . $key] = $v;
+                                    foreach ($_order->billing as $key => $v) {
+                                        $_billing['entry_' . $key] = $v;
                                     }
-                                    if (\common\helpers\Address::cmpAddresses($aBook, $_billing)){
+                                    if (\common\helpers\Address::cmpAddresses($aBook, $_billing)) {
                                         $this->changeCustomerAddressSelection('billing', $aBook->address_book_id);
                                     } else {
                                         $this->set('billto', $_order->billing);
@@ -2155,8 +2293,10 @@ class OrderManager {
                             }
                             if ($_order->billing) {
                                 $this->set('billto', $_order->billing);
-                                $this->set('estimate_bill', ['country_id' => $_order->billing['country_id'], 'postcode' => $_order->billing['postcode'], 'zone' => $_order->billing['state'], 'company_vat' => $_order->billing['company_vat'], 'company_vat_date' => $_order->billing['company_vat_date'] ?? null, 'company_vat_status' => $_order->billing['company_vat_status'], 'customs_number' => $_order->billing['customs_number'], 'customs_number_date' => $_order->billing['customs_number_date'] ?? null, 'customs_number_status' => $_order->billing['customs_number_status']]
-                                    );
+                                $this->set(
+                                    'estimate_bill',
+                                    ['country_id' => $_order->billing['country_id'], 'postcode' => $_order->billing['postcode'], 'zone' => $_order->billing['state'], 'company_vat' => $_order->billing['company_vat'], 'company_vat_date' => $_order->billing['company_vat_date'] ?? null, 'company_vat_status' => $_order->billing['company_vat_status'], 'customs_number' => $_order->billing['customs_number'], 'customs_number_date' => $_order->billing['customs_number_date'] ?? null, 'customs_number_status' => $_order->billing['customs_number_status']]
+                                );
                             }
                         }
                         $this->resetDeliveryAddress();
@@ -2181,11 +2321,12 @@ class OrderManager {
         }
     }
 
-    public function predefineCustomerDetails($customers_id, $withAddress = false) {
+    public function predefineCustomerDetails($customers_id, $withAddress = false)
+    {
         $this->assignCustomer($customers_id); //reassign customer
         $customer = $this->getCustomersIdentity();
         if ($customer) {
-            if ($this->isCustomerAssigned()){
+            if ($this->isCustomerAssigned()) {
                 $customer->loadCustomer($customer->customers_id);
                 $customer->convertToSession();
                 if ($withAddress) {
@@ -2203,7 +2344,8 @@ class OrderManager {
     }
 
     private $instanceParent = null;
-    private function createInstanceParent($class){
+    private function createInstanceParent($class)
+    {
         $class = new \ReflectionClass($class);
         $instance = $class->newInstanceWithoutConstructor();
         $this->instanceParent = $instance;
@@ -2211,11 +2353,13 @@ class OrderManager {
         return $this->instanceParent;
     }
 
-    public function getParentToInstance($class){
+    public function getParentToInstance($class)
+    {
 
-        if (is_null($this->instanceParent)){
-            if (!is_object($this->orderInstance))
-            throw new \Exception('Order instance is not defined');
+        if (is_null($this->instanceParent)) {
+            if (!is_object($this->orderInstance)) {
+                throw new \Exception('Order instance is not defined');
+            }
 
             $this->createInstanceParent($class);
 
@@ -2232,20 +2376,24 @@ class OrderManager {
         return $this->instanceParent;
     }
 
-    public function getParentToInstanceWithId($class, $id){
+    public function getParentToInstanceWithId($class, $id)
+    {
         if (!$this->instanceParent || !$this->instanceParent->order_id || $this->instanceParent->order_id != $id) {
             $this->createInstanceParent($class)->__construct($id);
         }
         return $this->instanceParent;
     }
 
-    public function checkShippingIsValid() {
+    public function checkShippingIsValid()
+    {
         $shipping = $this->getShipping();
-        if ($shipping['id']=='free_free' && $this->checkFreeShipping()) {
-          return true;
+        if ($shipping['id'] == 'free_free' && $this->checkFreeShipping()) {
+            return true;
         }
         foreach ($this->getAllShippingQuotes() as $quote) {
-            if (($quote['error'] ?? false)) continue;
+            if (($quote['error'] ?? false)) {
+                continue;
+            }
             if ($quote['id'] == $shipping['module'] && is_array($quote['methods'])) {
                 foreach ($quote['methods'] as $method) {
                     if ($shipping['id'] == $quote['id'] . '_' . $method['id']) {
@@ -2265,12 +2413,13 @@ class OrderManager {
     * @params object $payment to work with api
     * return TransactionManager instance
     */
-    public function getTransactionManager(\common\classes\modules\ModulePayment $payment = null){
-        if (is_null($payment)){
+    public function getTransactionManager(\common\classes\modules\ModulePayment $payment = null)
+    {
+        if (is_null($payment)) {
             $payment = $this->getPaymentCollection()->getSelectedPayment();
         }
 
-        if (!$this->_tm){
+        if (!$this->_tm) {
             $this->_tm = new PaymentTransactionManager($this, $payment);
         }
         return $this->_tm;
@@ -2282,8 +2431,9 @@ class OrderManager {
     * SubManager to make splinter from current order
     * return SplitterManager instance
     */
-    public function getOrderSplitter(){
-        if (!$this->_splitter){
+    public function getOrderSplitter()
+    {
+        if (!$this->_splitter) {
             $this->_splitter = new SplitterManager($this);
         }
         return $this->_splitter;
@@ -2338,10 +2488,10 @@ class OrderManager {
 
     public function isPaymentAllowedEx($includeRefund = false, &$reason = null)
     {
-//        if (!$this->isCustomerAssigned()) {
-//            $reason = 'Customer is not assigned';
-//            return false;
-//        }
+        //        if (!$this->isCustomerAssigned()) {
+        //            $reason = 'Customer is not assigned';
+        //            return false;
+        //        }
         $cart = $this->getCart();
         if (!is_object($cart) || $cart->isEmptyProducts()) {
             $reason = 'Cart is empty';
@@ -2407,13 +2557,16 @@ class OrderManager {
         return \common\helpers\Tax::getOrderTaxRates($classId, $this->getTaxCountry(), $this->getTaxZone(), '', true, $this->getCustomersIdentity()->groups_id ?? 0);
     }
 
-
     private function getCaptchaType()
     {
-        if (isset($this->captcha_type)) return $this->captcha_type;
+        if (isset($this->captcha_type)) {
+            return $this->captcha_type;
+        }
 
         $this->captcha_type = $this->captcha_widget = null;
-        if (!defined('CAPTCHA_ON_CREATE_ACCOUNT') || CAPTCHA_ON_CREATE_ACCOUNT != 'True') return null;
+        if (!defined('CAPTCHA_ON_CREATE_ACCOUNT') || CAPTCHA_ON_CREATE_ACCOUNT != 'True') {
+            return null;
+        }
 
         if (defined('PREFERRED_USE_RECAPTCHA') && PREFERRED_USE_RECAPTCHA == 'True') {
             $captcha = new \common\classes\ReCaptcha();
@@ -2434,7 +2587,6 @@ class OrderManager {
         return $this->captcha_type;
     }
 
-
     /**
      * The second capcha widget on checkout form
      * @return string|void|null
@@ -2448,8 +2600,12 @@ class OrderManager {
 
     public function validateCaptcha($params)
     {
-        if (!\Yii::$app->user->isGuest) return true;
-        if (!($params['checkout']['opc_temp_account']??false)) return true;
+        if (!\Yii::$app->user->isGuest) {
+            return true;
+        }
+        if (!($params['checkout']['opc_temp_account'] ?? false)) {
+            return true;
+        }
         $errorMsg = null;
         $res = true;
         switch ($this->getCaptchaType()) {
@@ -2472,21 +2628,20 @@ class OrderManager {
     {
         $this->collectData(\Yii::$app->request->post());
     }
-    
+
     public function collectData($data)
     {
-        if (tep_not_null($data['comments']??null)) {
+        if (tep_not_null($data['comments'] ?? null)) {
             $this->set('comments', tep_db_prepare_input($data['comments']));
         }
 
         if (tep_not_null($data['pointto'] ?? null)) {
             $this->set('pointto', tep_db_prepare_input($data['pointto']));
         }
-        
+
         foreach (\common\helpers\Hooks::getList('order-manager/collect-data') as $filename) {
             include($filename);
         }
     }
-    
-    
+
 }

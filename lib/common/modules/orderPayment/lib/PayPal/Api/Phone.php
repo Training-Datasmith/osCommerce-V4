@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -21,7 +23,7 @@ class Phone extends PayPalModel
      * Country code (from in E.164 format)
      *
      * @param string $country_code
-     * 
+     *
      * @return $this
      */
     public function setCountryCode($country_code)
@@ -44,7 +46,7 @@ class Phone extends PayPalModel
      * In-country phone number (from in E.164 format)
      *
      * @param string $national_number
-     * 
+     *
      * @return $this
      */
     public function setNationalNumber($national_number)
@@ -67,7 +69,7 @@ class Phone extends PayPalModel
      * Phone extension
      *
      * @param string $extension
-     * 
+     *
      * @return $this
      */
     public function setExtension($extension)

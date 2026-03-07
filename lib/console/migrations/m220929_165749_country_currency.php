@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,7 +25,7 @@ class m220929_165749_country_currency extends Migration
     public function safeUp()
     {
         $this->addTranslation('admin/countries', [
-          'TEXT_COUNTRY_CURRENCY_TIP' => '3 characters currency code Ex. GBP, EUR, USD'
+          'TEXT_COUNTRY_CURRENCY_TIP' => '3 characters currency code Ex. GBP, EUR, USD',
         ]);
         $this->addColumnIfMissing('countries', 'currency_code', $this->string(3)->notNull()->defaultValue(''));
 
@@ -34,9 +36,9 @@ class m220929_165749_country_currency extends Migration
      */
     public function safeDown()
     {
-//        echo "m220929_165749_country_currency cannot be reverted.\n";
+        //        echo "m220929_165749_country_currency cannot be reverted.\n";
 
-//        return false;
+        //        return false;
     }
 
     /*

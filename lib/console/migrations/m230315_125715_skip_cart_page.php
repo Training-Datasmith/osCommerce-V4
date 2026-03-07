@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,13 +24,13 @@ class m230315_125715_skip_cart_page extends Migration
      */
     public function safeUp()
     {
-        $this->insert('configuration',[
+        $this->insert('configuration', [
             'configuration_title' => 'Skip shopping cart page',
             'configuration_key' => 'SKIP_CART_PAGE',
             'configuration_value' => 'False',
             'configuration_group_id' => 'BOX_CONFIGURATION_MYSTORE',
             'date_added' => new \yii\db\Expression('NOW()'),
-            'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),'
+            'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),',
         ]);
     }
 

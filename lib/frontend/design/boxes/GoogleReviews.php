@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,26 +15,27 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
-use yii\base\Widget;
 use common\components\GoogleTools;
+use yii\base\Widget;
 
-class GoogleReviews extends Widget {
-
+class GoogleReviews extends Widget
+{
     public $file;
     public $params;
     public $settings;
     private $module;
 
-    public function init() {
+    public function init()
+    {
         parent::init();
     }
 
-    public function run() {
+    public function run()
+    {
         $provider = GoogleTools::instance()->getModulesProvider();
         $reviews = $provider->getActiveByCode('reviews', \common\classes\platform::currentId());
         if ($reviews && $reviews->params['status']) {
-            $postition = $this->settings[0]['position'] ?? "BOTTOM_RIGHT";
+            $postition = $this->settings[0]['position'] ?? 'BOTTOM_RIGHT';
             return $reviews->getBadgeCode(false, $postition);
         }
     }

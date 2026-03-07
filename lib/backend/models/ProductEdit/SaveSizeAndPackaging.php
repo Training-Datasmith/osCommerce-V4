@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,8 +14,8 @@
 
 namespace backend\models\ProductEdit;
 
-use yii;
 use common\models\Products;
+use yii;
 
 class SaveSizeAndPackaging
 {
@@ -30,7 +32,7 @@ class SaveSizeAndPackaging
         $is_virtual = (int) Yii::$app->request->post('is_virtual');
         $bundle_volume_calc = (int) Yii::$app->request->post('bundle_volume_calc');
         if (!in_array($bundle_volume_calc, [0, 1, 2])) {
-          $bundle_volume_calc = 0;
+            $bundle_volume_calc = 0;
         }
         $sql_data_array['is_virtual'] = $is_virtual;
         $sql_data_array['bundle_volume_calc'] = $bundle_volume_calc;

@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "admin".
@@ -114,7 +114,8 @@ class Admin extends \yii\db\ActiveRecord
         ];
     }
 
-    public function updateToken() {
+    public function updateToken()
+    {
         $token = ('AT-' . strtoupper(md5(microtime(true))));
         $this->token = \common\helpers\Password::encrypt_password($token, 'backend');
         $this->token_date = date('Y-m-d H:i:s');
@@ -122,12 +123,14 @@ class Admin extends \yii\db\ActiveRecord
         return $token;
     }
 
-    public function clearToken() {
+    public function clearToken()
+    {
         $this->token = '';
         $this->update(false);
     }
 
-    public function getToken() {
+    public function getToken()
+    {
         return $this->token;
     }
 
@@ -143,12 +146,13 @@ class Admin extends \yii\db\ActiveRecord
     {
         return $this->hasOne(Platforms::className(), ['platform_id' => 'pos_platform_id']);
     }
-    public static function isWalkinPosOrder($customerId,$admin)
+    public static function isWalkinPosOrder($customerId, $admin)
     {
-        return static::find()->where(['AND',['customers_id' => $customerId],['admin_id'=> $admin]]) ->exists();
+        return static::find()->where(['AND',['customers_id' => $customerId],['admin_id' => $admin]]) ->exists();
     }
 
-    public function getOrders(){
+    public function getOrders()
+    {
         return $this->hasMany(Orders::className(), ['admin_id' => 'admin_id']);
     }
 

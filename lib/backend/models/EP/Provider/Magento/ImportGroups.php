@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,18 +15,13 @@
 
 namespace backend\models\EP\Provider\Magento;
 
-use Yii;
-use backend\models\EP\Exception;
 use backend\models\EP\Messages;
 use backend\models\EP\Provider\DatasourceInterface;
-use backend\models\EP\Tools;
-use common\api\models\AR\Group;
-use common\classes\language;
 use backend\models\EP\Provider\Magento\helpers\SoapClient;
-use backend\models\EP\Directory;
+use common\api\models\AR\Group;
 
-class ImportGroups implements DatasourceInterface {
-
+class ImportGroups implements DatasourceInterface
+{
     protected $total_count = 0;
     protected $row_count = 0;
     protected $groups_list = [];
@@ -33,18 +30,21 @@ class ImportGroups implements DatasourceInterface {
     protected $afterProcessFile = false;
     protected $client;
 
-    function __construct($config) {
-        if (substr($config['client']['location'], -1) == '/'){
+    public function __construct($config)
+    {
+        if (substr($config['client']['location'], -1) == '/') {
             $config['client']['location'] = substr($config['client']['location'], 0, -1);
-        }            
+        }
         $this->config = $config;
     }
-    
-    public function allowRunInPopup(){
+
+    public function allowRunInPopup()
+    {
         return true;
     }
-  
-    public function getProgress() {
+
+    public function getProgress()
+    {
         if ($this->total_count > 0) {
             $percentDone = min(100, ($this->row_count / $this->total_count) * 100);
         } else {
@@ -53,7 +53,8 @@ class ImportGroups implements DatasourceInterface {
         return number_format($percentDone, 1, '.', '');
     }
 
-    public function prepareProcess(Messages $message) {
+    public function prepareProcess(Messages $message)
+    {
         //$key = "jkajsdhfajfg&^jsaji0123";
         $mg = new SoapClient($this->config['client']);
         $this->client = $mg->getClient();
@@ -69,10 +70,11 @@ class ImportGroups implements DatasourceInterface {
         $this->afterProcessFile = fopen($this->afterProcessFilename, 'w+');
     }
 
-    public function getGroupList() {
+    public function getGroupList()
+    {
         try {
             $result = $this->client->call($this->session, 'customer_group.list');
-            if (is_array($result) && count($result)){
+            if (is_array($result) && count($result)) {
                 (new Group())->deleteAll();
             }
             $this->groups_list = $result;
@@ -80,13 +82,15 @@ class ImportGroups implements DatasourceInterface {
             throw new \Exception('Download remote stores info error');
         }
         return $result;
-    }  
+    }
 
-    public function processRow(Messages $message) {
+    public function processRow(Messages $message)
+    {
         $remoteGroup = current($this->groups_list);
 
-        if (!$remoteGroup)
+        if (!$remoteGroup) {
             return false;
+        }
 
         $this->processRemoteGroup($remoteGroup);
 
@@ -95,34 +99,36 @@ class ImportGroups implements DatasourceInterface {
         return true;
     }
 
-
-    public function postProcess(Messages $message) {
+    public function postProcess(Messages $message)
+    {
         return;
     }
 
-    protected function processRemoteGroup($remoteGroup) {
+    protected function processRemoteGroup($remoteGroup)
+    {
 
         static $timing = [
             'soap' => 0,
             'local' => 0,
         ];
         $t1 = microtime(true);
-        
+
         $group = new Group();
-        
-        if ($group){
+
+        if ($group) {
             $t2 = microtime(true);
             $group->importArray($this->map($remoteGroup));
-            if ($group->validate()){
+            if ($group->validate()) {
                 $group->save();
             }
         }
-        
+
         $t3 = microtime(true);
-        $timing['local'] += $t3 - $t2;        
+        $timing['local'] += $t3 - $t2;
     }
-    
-    public function map($data){
+
+    public function map($data)
+    {
         return [
             'groups_id' => $data['customer_group_id'],
             'groups_name' => $data['customer_group_code'],

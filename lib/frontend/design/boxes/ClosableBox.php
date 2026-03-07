@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,11 +14,8 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
-use frontend\design\Block;
-use frontend\design\Info;
+use yii\base\Widget;
 
 class ClosableBox extends Widget
 {
@@ -44,7 +43,7 @@ class ClosableBox extends Widget
                 'params' => $this->params,
                 'settings' => $this->settings,
                 'title' => \frontend\design\Info::translateKeys($this->settings[0]['title']),
-            ]
+            ],
         ]);
     }
 }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace backend\models\ProductEdit;
 
-use yii;
-use common\models\Products;
 use backend\design\Uploads;
+use common\models\Products;
+use yii;
 
 class SaveProductVideos
 {
-
     protected $product;
     protected $uploadsDirectory = '';
 
@@ -52,7 +53,9 @@ class SaveProductVideos
                     . DIRECTORY_SEPARATOR . $productsId
                     . DIRECTORY_SEPARATOR . 'videos'
                     . DIRECTORY_SEPARATOR;
-                if ( $productsVideo->video && is_file($imagesPath . $productsVideo->video) ) @unlink($imagesPath . $productsVideo->video);
+                if ($productsVideo->video && is_file($imagesPath . $productsVideo->video)) {
+                    @unlink($imagesPath . $productsVideo->video);
+                }
             }
         }
 

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +13,6 @@
  */
 
 namespace common\api\models\AR\Products\Attributes;
-
 
 use common\api\models\AR\EPMap;
 
@@ -37,14 +38,14 @@ class Prices extends EPMap
     {
         $keyCodes = [];
         if (defined('USE_MARKET_PRICES') && USE_MARKET_PRICES == 'True') {
-            foreach (\common\helpers\Currencies::get_currencies() as $currency){
+            foreach (\common\helpers\Currencies::get_currencies() as $currency) {
                 $keyCode = $currency['code'] . '_0';
                 $keyCodes[$keyCode] = [
                     'products_attributes_id' => null,
                     'groups_id' => 0,
                     'currencies_id' => $currency['currencies_id'],
                 ];
-                if ( \common\helpers\Extensions::isCustomerGroupsAllowed() ) {
+                if (\common\helpers\Extensions::isCustomerGroupsAllowed()) {
                     foreach (\common\helpers\Group::get_customer_groups() as $groupInfo) {
                         $keyCode = $currency['code'] . '_' . $groupInfo['groups_id'];
                         $keyCodes[$keyCode] = [
@@ -55,9 +56,9 @@ class Prices extends EPMap
                     }
                 }
             }
-        }else{
-            if ( \common\helpers\Extensions::isCustomerGroupsAllowed() ) {
-                foreach (\common\helpers\Group::get_customer_groups() as $groupInfo ) {
+        } else {
+            if (\common\helpers\Extensions::isCustomerGroupsAllowed()) {
+                foreach (\common\helpers\Group::get_customer_groups() as $groupInfo) {
                     $keyCode = \common\helpers\Currencies::systemCurrencyCode() . '_' . $groupInfo['groups_id'];
                     $keyCodes[$keyCode] = [
                         'products_attributes_id' => null,
@@ -75,6 +76,5 @@ class Prices extends EPMap
         $this->products_attributes_id = $parentObject->products_attributes_id;
         parent::parentEPMap($parentObject);
     }
-
 
 }

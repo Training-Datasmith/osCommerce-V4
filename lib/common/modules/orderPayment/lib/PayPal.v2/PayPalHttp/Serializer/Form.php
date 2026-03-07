@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPalHttp\Serializer;
 
 use PayPalHttp\HttpRequest;
@@ -21,9 +23,8 @@ class Form implements Serializer
      */
     public function encode(HttpRequest $request)
     {
-        if (!is_array($request->body) || !$this->isAssociative($request->body))
-        {
-            throw new \Exception("HttpRequest body must be an associative array when Content-Type is: " . $request->headers["Content-Type"]);
+        if (!is_array($request->body) || !$this->isAssociative($request->body)) {
+            throw new \Exception('HttpRequest body must be an associative array when Content-Type is: ' . $request->headers['Content-Type']);
         }
 
         return http_build_query($request->body);
@@ -36,7 +37,7 @@ class Form implements Serializer
      */
     public function decode($body)
     {
-        throw new \Exception("CurlSupported does not support deserialization");
+        throw new \Exception('CurlSupported does not support deserialization');
     }
 
     private function isAssociative(array $array)

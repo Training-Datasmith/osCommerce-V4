@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,17 +19,15 @@ use backend\models\EP\DatasourceBase;
 
 class Magento extends DatasourceBase
 {
-
     public function getName()
     {
         return 'Magento SOAP';
     }
 
     public function prepareConfigForView($configArray)
-    {   
+    {
         return parent::prepareConfigForView($configArray);
     }
-
 
     public function getViewTemplate()
     {

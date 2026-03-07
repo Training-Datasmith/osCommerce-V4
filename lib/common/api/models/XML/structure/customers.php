@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -20,10 +22,10 @@ return [
         'common\\models\\Customers' => [
             'xmlCollection' => 'Customers>Customer',
             'properties' => [
-                'customers_default_address_id' => ['class'=>'IOMap', 'table'=>'address_book','attribute'=>'address_book_id'],
-                'groups_id' => ['class'=>'IOMap', 'table'=>'groups','attribute'=>'groups_id'],
+                'customers_default_address_id' => ['class' => 'IOMap', 'table' => 'address_book','attribute' => 'address_book_id'],
+                'groups_id' => ['class' => 'IOMap', 'table' => 'groups','attribute' => 'groups_id'],
                 'customers_currency_id' => ['class' => 'IOCurrencyMap'],
-                'platform_id' => ['class' => 'IOPlatformMap']
+                'platform_id' => ['class' => 'IOPlatformMap'],
             ],
             'withRelated' => [
                 'addressBooks' => [
@@ -43,16 +45,16 @@ return [
                     'xmlCollection' => 'CustomersInfo>Data',
                 ],
             ],
-            'afterImport' => function($model, $data){
-/*
-                if ( isset($data->data['customers_default_address_id']) && is_object($data->data['customers_default_address_id']) ) {
-                    $defAbId = $data->data['customers_default_address_id']->toImportModel();
-                    if ( $defAbId ) {
-                        $model->customers_default_address_id = $defAbId;
-                        $model->save(false);
-                    }
-                }
-*/
+            'afterImport' => function ($model, $data) {
+                /*
+                                if ( isset($data->data['customers_default_address_id']) && is_object($data->data['customers_default_address_id']) ) {
+                                    $defAbId = $data->data['customers_default_address_id']->toImportModel();
+                                    if ( $defAbId ) {
+                                        $model->customers_default_address_id = $defAbId;
+                                        $model->save(false);
+                                    }
+                                }
+                */
             },
         ],
     ],

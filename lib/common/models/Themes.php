@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 /**
@@ -43,7 +44,7 @@ class Themes extends ActiveRecord
             [['install', 'is_default', 'sort_order'], 'integer'],
             [['theme_name'], 'string', 'max' => 64],
             [['title'], 'string', 'max' => 128],
-            [['parent_theme'], 'string', 'max' => 256]
+            [['parent_theme'], 'string', 'max' => 256],
         ];
     }
 
@@ -73,18 +74,17 @@ class Themes extends ActiveRecord
         \backend\design\Theme::themeRemove($this->theme_name);
         \backend\design\Theme::themeRemove($this->theme_name . '-mobile');
 
-        PlatformThemes::deleteAll(['theme_id'=>$this->id]);
+        PlatformThemes::deleteAll(['theme_id' => $this->id]);
 
         return true;
     }
 
     public function afterSave($insert, $changedAttributes)
     {
-        if ( isset($changedAttributes['is_default']) && $this->getAttribute('is_default') ) {
-            static::updateAll(['is_default'=>'0'],'theme_name!=:this_theme',['this_theme'=>$this->theme_name]);
+        if (isset($changedAttributes['is_default']) && $this->getAttribute('is_default')) {
+            static::updateAll(['is_default' => '0'], 'theme_name!=:this_theme', ['this_theme' => $this->theme_name]);
         }
         parent::afterSave($insert, $changedAttributes);
     }
-
 
 }

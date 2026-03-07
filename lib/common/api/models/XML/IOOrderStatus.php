@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\api\models\XML;
 
-
 class IOOrderStatus extends IOMap
 {
     protected $named = '@order_status';
@@ -23,10 +24,10 @@ class IOOrderStatus extends IOMap
         parent::serializeTo($parent);
 
         static $statuses = [];
-        if ( $this->value && !isset($statuses[$this->value]) ) {
+        if ($this->value && !isset($statuses[$this->value])) {
             $statuses[$this->value] = \common\helpers\Order::get_order_status_name($this->value, \common\helpers\Language::get_default_language_id());
         }
-        if ( isset($statuses[$this->value]) ) {
+        if (isset($statuses[$this->value])) {
             $parent->addAttribute('name', $statuses[$this->value]);
         }
     }
@@ -35,10 +36,10 @@ class IOOrderStatus extends IOMap
     {
         $parentResult = parent::toImportModel();
 
-        if ( !$parentResult && !empty($this->name) && !IOCore::get()->isLocalProject() ) {
+        if (!$parentResult && !empty($this->name) && !IOCore::get()->isLocalProject()) {
             // unknown import status id
             $newStatusId = IOCore::get()->getLookupTool()->lookupOrderStatus($this->name, true);
-            if ( $newStatusId ) {
+            if ($newStatusId) {
                 $this->internalId = $newStatusId;
                 $this->value = $newStatusId;
                 $parentResult = $newStatusId;
@@ -48,6 +49,5 @@ class IOOrderStatus extends IOMap
 
         return $parentResult;
     }
-
 
 }

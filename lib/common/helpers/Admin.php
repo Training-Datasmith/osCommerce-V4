@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,21 +14,20 @@
 
 namespace common\helpers;
 
-
 class Admin
 {
-
-    public static function getAdminsWithWalkinOrders(){
+    public static function getAdminsWithWalkinOrders()
+    {
         $orderAdminIds = \common\models\Orders::find()
             ->distinct()
             ->select(['admin_id'])
             ->asArray()
             ->all();
-        $orderAdminIds = \yii\helpers\ArrayHelper::map($orderAdminIds, 'admin_id','admin_id');
+        $orderAdminIds = \yii\helpers\ArrayHelper::map($orderAdminIds, 'admin_id', 'admin_id');
         unset($orderAdminIds[0]);
 
         $admins = [];
-        if (count($orderAdminIds)>0) {
+        if (count($orderAdminIds) > 0) {
             foreach (\common\models\Admin::find()->where(['IN','admin_id',$orderAdminIds])->all() as $admin) {
                 $admins[] = $admin;
             }
@@ -34,27 +35,29 @@ class Admin
         return $admins;
     }
 
-/**
- * returns list of all [active] admins <login_failture<5>
- * @param bool $allDetails include all admin details
- * @return array [admin_id => '', 'listTitle' => concat(admin_lastname, admin_firstname, admin_email_address) [, *] ]
- */
-    public static function getList($allDetails = false) {
+    /**
+     * returns list of all [active] admins <login_failture<5>
+     * @param bool $allDetails include all admin details
+     * @return array [admin_id => '', 'listTitle' => concat(admin_lastname, admin_firstname, admin_email_address) [, *] ]
+     */
+    public static function getList($allDetails = false)
+    {
 
-      $q = \common\models\Admin::find()
-          ->andWhere(' login_failture < 5 ') // add status field??
-          ->addSelect(['listTitle' => new \yii\db\Expression('concat(admin_lastname, " ", admin_firstname, " ", admin_email_address)')])
-          ->addSelect('admin_id')
-          ->orderBy('admin_lastname, admin_firstname, admin_email_address')
-          ;
-      if ($allDetails) {
-        $q->addSelect("*");
-      }
-      return $q->asArray()->all();
+        $q = \common\models\Admin::find()
+            ->andWhere(' login_failture < 5 ') // add status field??
+            ->addSelect(['listTitle' => new \yii\db\Expression('concat(admin_lastname, " ", admin_firstname, " ", admin_email_address)')])
+            ->addSelect('admin_id')
+            ->orderBy('admin_lastname, admin_firstname, admin_email_address')
+        ;
+        if ($allDetails) {
+            $q->addSelect('*');
+        }
+        return $q->asArray()->all();
 
     }
-    
-    public static function appShopConnectedMessage() {
+
+    public static function appShopConnectedMessage()
+    {
         if (defined('PROJECT_RELEASE_TYPE') && PROJECT_RELEASE_TYPE == 'VERSIONING') {
             return;
         }
@@ -62,7 +65,8 @@ class Admin
         $admin = \common\models\Admin::findOne($login_id);
         $storageKey = $admin->storage_key ?? '';
         if (empty($storageKey)) {
-            $message = (defined('MESSAGE_KEY_EMPTY')
+            $message = (
+                defined('MESSAGE_KEY_EMPTY')
                 ? constant('MESSAGE_KEY_EMPTY')
                 : 'Your shop is not connected with <a href="%1$s">App Shop</a>. Why and how do I need to connect to App Shop? Please see the article <a target="_blank" href="%2$s">Connecting to App shop</a> for more details.'
             );
@@ -78,7 +82,8 @@ class Admin
                 if (isset($json->version)) {
                     $version = (string)$json->version;
                     if ($current != $version) {
-                        $message = (defined('MESSAGE_SYSTEM_UPDATES')
+                        $message = (
+                            defined('MESSAGE_SYSTEM_UPDATES')
                             ? constant('MESSAGE_SYSTEM_UPDATES')
                             : 'The updates are available in <a href="%1$s">App Shop</a>. Please check it for more details.'
                         );
@@ -106,22 +111,22 @@ class Admin
         }
         return $limited_platforms;
     }
-    
+
     public static function isBackendStrictAccessAllowed($clientIp = null)
     {
-        if ( !\common\helpers\System::isBackend() || !defined('STRICT_ACCESS_STATUS') || STRICT_ACCESS_STATUS != 'True' ) {
+        if (!\common\helpers\System::isBackend() || !defined('STRICT_ACCESS_STATUS') || STRICT_ACCESS_STATUS != 'True') {
             return true;
         }
-        
+
         $allowed = false;
         if (is_null($clientIp)) {
             $clientIp = \common\helpers\System::get_ip_address();
         }
         $ipWhiteList = preg_split('/[,;\s]/', (defined('STRICT_ACCESS_ALLOWED_IP') ? STRICT_ACCESS_ALLOWED_IP : ''), -1, PREG_SPLIT_NO_EMPTY);
         $ipWhiteList = array_map('trim', $ipWhiteList);
-        foreach ($ipWhiteList as $white_ip){
-            if ( strpos($white_ip,'/')!==false ){
-                if (\yii\helpers\IpHelper::inRange($clientIp, $white_ip)){
+        foreach ($ipWhiteList as $white_ip) {
+            if (strpos($white_ip, '/') !== false) {
+                if (\yii\helpers\IpHelper::inRange($clientIp, $white_ip)) {
                     $allowed = true;
                 }
             } else {
@@ -132,7 +137,7 @@ class Admin
         }
         return $allowed;
     }
-    
+
     public static function checkBackendStrictAccessAllowed($clientIp = null)
     {
         if (is_null($clientIp)) {
@@ -144,5 +149,5 @@ class Admin
             die();
         }
     }
-    
+
 }

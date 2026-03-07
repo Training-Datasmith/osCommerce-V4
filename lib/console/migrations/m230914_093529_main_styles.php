@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -29,7 +31,7 @@ class m230914_093529_main_styles extends Migration
         }
 
         $this->addTranslation('admin/design', [
-            'CHANGE_MAIN_COLORS' => 'Change main colors'
+            'CHANGE_MAIN_COLORS' => 'Change main colors',
         ]);
     }
 

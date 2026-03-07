@@ -1,7 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models\queries;
-use common\models\BirthdayDirectCoupons;
+
 use common\models\Customers;
 
 /**

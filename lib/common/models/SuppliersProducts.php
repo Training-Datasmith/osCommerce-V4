@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,9 +15,9 @@
 namespace common\models;
 
 use Yii;
+use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 use yii\helpers\ArrayHelper;
-use yii\behaviors\TimestampBehavior;
 
 class SuppliersProducts extends ActiveRecord
 {
@@ -28,7 +30,8 @@ class SuppliersProducts extends ActiveRecord
         return 'suppliers_products';
     }
 
-    public function rules() {
+    public function rules()
+    {
         return [
 [['suppliers_product_name', 'suppliers_upc', 'suppliers_asin', 'suppliers_isbn','source'], 'default', 'value' => '', 'on' => ['insert', 'update']], // not null fields
             [['sort_order'], 'integer'],
@@ -38,29 +41,32 @@ class SuppliersProducts extends ActiveRecord
             [['suppliers_price', 'suppliers_quantity'], 'default', 'value' => 0],
             [['supplier_discount', 'suppliers_surcharge_amount', 'suppliers_margin_percentage', 'landed_price'], 'default', 'value' => null],
             [['emergency_stock', 'stock_reorder_level_on', 'stock_reorder_level', 'stock_reorder_quantity_on', 'stock_reorder_quantity'], 'default', 'value' => 0],
-            [['suppliers_product_name', 'source', 'suppliers_price_discount'], 'default', 'value' => '']
+            [['suppliers_product_name', 'source', 'suppliers_price_discount'], 'default', 'value' => ''],
         ];
     }
 
-    public function load($data, $formName = null) {
-        if ((is_null($formName) || $formName=='') && !isset($data['status'])){
+    public function load($data, $formName = null)
+    {
+        if ((is_null($formName) || $formName == '') && !isset($data['status'])) {
             $this->status = 0;
-        } elseif (!is_null($formName) && $formName!='' && !isset($data[$formName]['status'])) {
+        } elseif (!is_null($formName) && $formName != '' && !isset($data[$formName]['status'])) {
             $this->status = 0;
         }
         return parent::load($data, $formName);
     }
 
-
-    public static function primaryKey() {
+    public static function primaryKey()
+    {
         return ['products_id', 'uprid', 'suppliers_id'];
     }
 
-    public static function getDefaultFields(){
+    public static function getDefaultFields()
+    {
         return [/*'suppliers_surcharge_amount', 'suppliers_margin_percentage',*/ 'suppliers_id', 'currencies_id'];
     }
 
-    public function behaviors() {
+    public function behaviors()
+    {
         return [
             [
                 'class' => TimestampBehavior::className(),
@@ -82,15 +88,18 @@ class SuppliersProducts extends ActiveRecord
         return $this->hasOne(Inventory::className(), ['products_id' => 'uprid']);
     }
 
-    public function getSupplier(){
+    public function getSupplier()
+    {
         return $this->hasOne(Suppliers::className(), ['suppliers_id' => 'suppliers_id']);
     }
 
-    public function getProduct(){
+    public function getProduct()
+    {
         return $this->hasOne(Products::className(), ['products_id' => 'products_id']);
     }
 
-    public static function getSupplierProductsQuery($suppliers_id = null){
+    public static function getSupplierProductsQuery($suppliers_id = null)
+    {
         $query = self::find()->joinWith('supplier s')->orderBy('suppliers_id');
         /*if ($suppliers_id){
             $query->andWhere(['suppliers_id' => (int)$suppliers_id, 'status' => 1]);
@@ -98,113 +107,122 @@ class SuppliersProducts extends ActiveRecord
         return $query;
     }
 
-    public static function getSupplierProducts($products_id, $suppliers_id = null){
-        $_query = self::getSupplierProductsQuery($suppliers_id)->where(['products_id' => (int)$products_id])->andWhere("length(uprid) = length(products_id)");
-        if ($suppliers_id){
+    public static function getSupplierProducts($products_id, $suppliers_id = null)
+    {
+        $_query = self::getSupplierProductsQuery($suppliers_id)->where(['products_id' => (int)$products_id])->andWhere('length(uprid) = length(products_id)');
+        if ($suppliers_id) {
             $_query->andWhere([self::tableName().'.suppliers_id' => $suppliers_id]);
         }
         return $_query->orderBy('s.is_default DESC, s.sort_order, suppliers_name');
     }
 
-    public static function getSupplierUpridProducts($uprid, $suppliers_id = null){
+    public static function getSupplierUpridProducts($uprid, $suppliers_id = null)
+    {
         $_query = self::getSupplierProductsQuery($suppliers_id)->where(['uprid' => $uprid]);
-        if ($suppliers_id){
+        if ($suppliers_id) {
             $_query->andWhere([self::tableName().'.suppliers_id' => $suppliers_id]);
         }
         return $_query->orderBy('s.is_default DESC, s.sort_order, suppliers_name');
     }
 
-    public function loadSupplierValues($suppliers_id){
+    public function loadSupplierValues($suppliers_id)
+    {
         $supplier = Suppliers::findOne(['suppliers_id' => $suppliers_id]);
-        if ($supplier){
-            foreach(self::getDefaultFields() as $field){
-                if ($supplier->hasAttribute($field) && $this->hasAttribute($field)){
+        if ($supplier) {
+            foreach (self::getDefaultFields() as $field) {
+                if ($supplier->hasAttribute($field) && $this->hasAttribute($field)) {
                     $this->{$field} = $supplier->getAttribute($field);
                 }
             }
-            if (!$this->supplier){
+            if (!$this->supplier) {
                 $this->getSupplier();
             }
         }
     }
 
-    public function saveDefaultSupplierProduct($params){
-        if ( $this->isNewRecord ) $this->loadDefaultValues();
+    public function saveDefaultSupplierProduct($params)
+    {
+        if ($this->isNewRecord) {
+            $this->loadDefaultValues();
+        }
         $dSupplier = Suppliers::findOne(['is_default' => 1]);
         if ($dSupplier) {
             $params['suppliers_id'] = $dSupplier->suppliers_id;
-            if (!isset($params['status'])) $params['status'] = 1;
+            if (!isset($params['status'])) {
+                $params['status'] = 1;
+            }
             $this->loadSupplierValues($dSupplier->suppliers_id);
-            if ($this->saveSupplierProduct($params)){
+            if ($this->saveSupplierProduct($params)) {
                 return $this;
             }
         }
         return false;
     }
 
-/***
- * delete current record if any other active supplier product exists (do not delete last active supplier product)
- * @return integer|bool false if nothing is deleted or quantity of deleted records.
- */
-    public function deleteSupplierProduct() {
+    /***
+     * delete current record if any other active supplier product exists (do not delete last active supplier product)
+     * @return integer|bool false if nothing is deleted or quantity of deleted records.
+     */
+    public function deleteSupplierProduct()
+    {
 
-      $ret = false;
+        $ret = false;
 
-      if ($this->products_id && $this->uprid && $this->suppliers_id) {
+        if ($this->products_id && $this->uprid && $this->suppliers_id) {
 
-        if ($this->uprid != (string)$this->products_id ){
-          //suppose inventory
-          $product = \common\helpers\Inventory::getRecord($this->uprid);
-        } else {
-          // suppose product
-          $product = \common\models\Products::findOne(['products_id' => (int)$this->products_id]);
+            if ($this->uprid != (string)$this->products_id) {
+                //suppose inventory
+                $product = \common\helpers\Inventory::getRecord($this->uprid);
+            } else {
+                // suppose product
+                $product = \common\models\Products::findOne(['products_id' => (int)$this->products_id]);
+            }
+            if ($product) {
+                if ($product->getActiveSuppliersProducts($this->suppliers_id)->count()) {
+                    $ret = $this->delete();
+                }
+            }
+
         }
-        if ($product) {
-          if ($product->getActiveSuppliersProducts($this->suppliers_id)->count()) {
-            $ret = $this->delete();
-          }
-        }
-
-      }
-      return $ret;
+        return $ret;
     }
 
-
     /*products_id, uprid, suppliers_id main keys*/
-    public function saveSupplierProduct($params, $isEP = false){
+    public function saveSupplierProduct($params, $isEP = false)
+    {
 
-        if ($this->isNewRecord){
+        if ($this->isNewRecord) {
             $this->loadDefaultValues();
             $this->products_id = (int)$params['products_id'];
             $this->suppliers_id = (int)$params['suppliers_id'];
-            if (empty($params['uprid']) || !isset($params['uprid'])){
+            if (empty($params['uprid']) || !isset($params['uprid'])) {
                 $this->uprid = (int)$this->products_id;
             } else {
                 $this->uprid = $params['uprid'];
             }
         }
 
-        if ($this->products_id && $this->uprid && $this->suppliers_id){
+        if ($this->products_id && $this->uprid && $this->suppliers_id) {
 
             $this->load($params, '') && $this->validate();
             $this->is_default = 0; //what to todo
 
             // check for any active
-            if ($this->status == 0 ) {
-              if ($this->uprid != (string)$this->products_id ){
-                //suppose inventory
-                $product = \common\helpers\Inventory::getRecord($this->uprid);
-              } else {
-                // suppose product
-                $product = \common\models\Products::findOne(['products_id' => (int)$this->products_id]);
-              }
-              if ($product) {
-                if ($product->getActiveSuppliersProducts($this->suppliers_id)->count() == 0) {
-                  $this->status = 1;
+            if ($this->status == 0) {
+                if ($this->uprid != (string)$this->products_id) {
+                    //suppose inventory
+                    $product = \common\helpers\Inventory::getRecord($this->uprid);
+                } else {
+                    // suppose product
+                    $product = \common\models\Products::findOne(['products_id' => (int)$this->products_id]);
                 }
-              } else {
-                $this->status = 1;
-              }
+                if ($product) {
+                    if ($product->getActiveSuppliersProducts($this->suppliers_id)->count() == 0) {
+                        $this->status = 1;
+                    }
+                } else {
+                    $this->status = 1;
+                }
             }
 
             if ((int)$isEP <= 0) {
@@ -235,18 +253,18 @@ class SuppliersProducts extends ActiveRecord
             if (isset($params['price_with_tax'])) {
                 $this->price_with_tax = intval(trim($params['price_with_tax'])); // !!!OMFG!!! $this->price_with_tax = isset($params['price_with_tax'])?1:0;
                 $supplierObj = \common\models\Suppliers::findOne($this->suppliers_id);
-                if ( $supplierObj ) {
-                    if ($supplierObj->supplier_prices_with_tax == $this->price_with_tax){
+                if ($supplierObj) {
+                    if ($supplierObj->supplier_prices_with_tax == $this->price_with_tax) {
                         $this->price_with_tax = null;
                     }
                 }
             }
 
-            if(isset($params['currencies_id'])) {
+            if (isset($params['currencies_id'])) {
                 $this->currencies_id = intval($params['currencies_id']);
             }
 
-            if ($this->save(false)){
+            if ($this->save(false)) {
                 return $this;
             }
         }
@@ -254,7 +272,8 @@ class SuppliersProducts extends ActiveRecord
         return false;
     }
 
-    public static function getSuppliersPrice($uprid, $suppliers_id) {
+    public static function getSuppliersPrice($uprid, $suppliers_id)
+    {
         $sProduct = self::getSupplierUpridProducts($uprid, $suppliers_id)->asArray()->one();
         if (ArrayHelper::getValue($sProduct, 'currencies_id') > 0) {
             $currencies = Yii::$container->get('currencies');
@@ -267,7 +286,7 @@ class SuppliersProducts extends ActiveRecord
         return $sProduct['suppliers_price'] ?? null;
     }
 
-    public function getPriceWithTax():bool
+    public function getPriceWithTax(): bool
     {
         return is_null($this->price_with_tax) || $this->price_with_tax > 0;
     }

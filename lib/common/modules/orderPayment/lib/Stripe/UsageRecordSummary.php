@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -15,5 +17,5 @@ namespace Stripe;
  */
 class UsageRecordSummary extends ApiResource
 {
-    const OBJECT_NAME = 'usage_record_summary';
+    public const OBJECT_NAME = 'usage_record_summary';
 }

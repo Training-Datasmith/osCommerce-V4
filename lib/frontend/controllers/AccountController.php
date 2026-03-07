@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,13 @@
 
 namespace frontend\controllers;
 
-use common\models\AddressBook;
+use common\classes\Images;
+use common\classes\opc;
+use common\components\Customer;
+use common\components\Socials;
+use common\forms\AddressForm;
+use common\helpers\Date as DateHelper;
+use common\helpers\Password;
 use common\models\Admin;
 use common\models\Cities;
 use common\models\Customers;
@@ -25,30 +33,19 @@ use common\models\OrdersStatus;
 use common\models\Products;
 use common\models\RegularOffers;
 use common\models\Reviews;
+use common\models\ThemesSettings;
 use common\models\TrackingNumbersToOrdersProducts;
 use common\models\Zones;
-use common\models\ThemesSettings;
 use frontend\design\Info;
-use Yii;
-use yii\web\NotFoundHttpException;
-use yii\web\Session;
-use common\helpers\Password;
-use common\classes\opc;
 use frontend\design\SplitPageResults;
-use common\classes\Images;
-use common\components\Customer;
-use common\components\Socials;
-use common\helpers\Date as DateHelper;
 use frontend\forms\registration\CustomerRegistration;
-use common\forms\AddressForm;
-use function GuzzleHttp\Psr7\str;
+use Yii;
 
 /**
  * Site controller
  */
 class AccountController extends Sceleton
 {
-
     private $use_social = false;
     private $forever = false;
     private $couponsRepository;
@@ -61,7 +58,7 @@ class AccountController extends Sceleton
         $platform_config = new \common\classes\platform_config(\common\classes\platform::currentId());
 
         $this->use_social = $platform_config->checkNeedSocials();
-        if ($this->use_social){
+        if ($this->use_social) {
             \common\components\Socials::loadComponents(PLATFORM_ID);
         }
         \common\helpers\Translation::init('checkout');
@@ -98,12 +95,11 @@ class AccountController extends Sceleton
             $account_links['message'] = '<div class="main">' . $messageStack->output('account') . '</div>';
         }
 
-
         $customer = Yii::$app->user->getIdentity();
         $customer_id = $customer->customers_id;
         $customer_default_address_id = $customer->get('customer_default_address_id');
 
-        $topAcc = array();
+        $topAcc = [];
         $topAcc['credit_amount'] = $currencies->format($customer->credit_amount);
         $topAcc['count_credit_amount'] = $customer->credit_amount;
 
@@ -116,11 +112,11 @@ class AccountController extends Sceleton
             $cIds = [$customer_id];
         }
 
-        $cOrders = \common\models\Orders::find()->alias('o')->joinWith(['ordersTotals ot' => function (\yii\db\ActiveQuery $query){
+        $cOrders = \common\models\Orders::find()->alias('o')->joinWith(['ordersTotals ot' => function (\yii\db\ActiveQuery $query) {
             $query->andWhere(['ot.class' => 'ot_total']);
         }])->where(['IN', 'customers_id', $cIds]);
 
-        if (USE_MARKET_PRICES == 'True'){
+        if (USE_MARKET_PRICES == 'True') {
             $cOrders->andWhere(['o.currency' => Yii::$app->request->get('currency') ?? DEFAULT_CURRENCY ]);
         }
         $topAcc['total_sum'] = $currencies->format($cOrders->sum('ot.value_inc_tax'));
@@ -179,8 +175,8 @@ class AccountController extends Sceleton
                 'params' => [
                     'mainData' => $topAcc,
                     'customer' => $customer,
-                    'regular_offers' => $regular_offers_value
-                ]
+                    'regular_offers' => $regular_offers_value,
+                ],
             ]);
         }
 
@@ -188,12 +184,14 @@ class AccountController extends Sceleton
         if ($orders) {
             $account_links['account_history_array'] .= '<h2>' . OVERVIEW_TITLE . '&nbsp;&nbsp;<a href="' . tep_href_link('account/history', '', 'SSL') . '">' . OVERVIEW_SHOW_ALL_ORDERS . '</a></h2>';
             $account_links['account_history_array'] .= '';
-            $account_orders = array();
+            $account_orders = [];
             $account_links['account_history_array'] .= '<div class="contentBoxContents"><strong class="box-title">' . OVERVIEW_PREVIOUS_ORDERS . '</strong><table class="orders-table">';
 
-            foreach($orders as $limit => $order){
+            foreach ($orders as $limit => $order) {
                 $cOrder = $order->getAttributes();
-                if ($limit > 2) break;
+                if ($limit > 2) {
+                    break;
+                }
                 if (tep_not_null($order->delivery_name)) {
                     $order_name = $order->delivery_name;
                     $cOrder['country'] = $order->delivery_country;
@@ -201,8 +199,8 @@ class AccountController extends Sceleton
                     $order_name = $order->billing_name;
                     $cOrder['country'] = $order->billing_country;
                 }
-                $cOrder['order_total'] = (isset($order->ordersTotals[0])? $order->ordersTotals[0]->text : '');
-                $cOrder['date'] = DateHelper::date_long($order->date_purchased, "%e %b %G");
+                $cOrder['order_total'] = (isset($order->ordersTotals[0]) ? $order->ordersTotals[0]->text : '');
+                $cOrder['date'] = DateHelper::date_long($order->date_purchased, '%e %b %G');
                 $_status = $order->getOrdersStatus()->one();
                 $cOrder['orders_status_name'] = $_status ? $_status->orders_status_name : '';
                 $cOrder['name'] = \common\helpers\Output::output_string_protected($order_name);
@@ -221,16 +219,16 @@ class AccountController extends Sceleton
             $account_links['account_history_array'] .= '</table></div>';
         }
 
-        $account_reviews = array();
-      $account_reviews_more_link = false;
+        $account_reviews = [];
+        $account_reviews_more_link = false;
 
-      $customer_reviewActive = \common\models\Reviews::find()
-          ->alias('r')
-          ->innerJoinWith(['product p'])
-          ->where(['customers_id' => (int) $customer_id])
-          ->orderBy(['reviews_id' => SORT_DESC])
-          ->limit(4)
-          ->all();
+        $customer_reviewActive = \common\models\Reviews::find()
+            ->alias('r')
+            ->innerJoinWith(['product p'])
+            ->where(['customers_id' => (int) $customer_id])
+            ->orderBy(['reviews_id' => SORT_DESC])
+            ->limit(4)
+            ->all();
 
         foreach ($customer_reviewActive as $customerReview) {
             if (count($account_reviews) == 3) {
@@ -252,36 +250,36 @@ class AccountController extends Sceleton
             $customer_review['view'] = tep_href_link('reviews/info', 'reviews_id=' . $customerReview->reviews_id . '&back=' . FILENAME_ACCOUNT);
             $account_reviews[] = $customer_review;
         }
-      /*wishlist*/
+        /*wishlist*/
 
-//      for ($i=0, $n=sizeof($products_wishlist); $i<$n; $i++) {
-//        $products_wishlist[$i]['image'] = Images::getImageUrl($products_wishlist[$i]['id'], 'Small');
-//        $products_wishlist[$i]['link'] = tep_href_link(FILENAME_PRODUCT_INFO, 'products_id=' . $products_wishlist[$i]['id']);
-//        $products_wishlist[$i]['final_price_formatted'] = $currencies->display_price($products_wishlist[$i]['final_price'], \common\helpers\Tax::get_tax_rate($products_wishlist[$i]['tax_class_id']));
-//        $products_wishlist[$i]['remove_link'] = tep_href_link(FILENAME_WISHLIST,'products_id=' . $products_wishlist[$i]['id'].'&action=remove_wishlist','SSL');
-//        $products_wishlist[$i]['move_in_cart'] = tep_href_link(FILENAME_WISHLIST,'products_id=' . $products_wishlist[$i]['id'].'&action=wishlist_move_to_cart','SSL');
-//      }
-      /*wishlist*/
-      /*subscription*/
+        //      for ($i=0, $n=sizeof($products_wishlist); $i<$n; $i++) {
+        //        $products_wishlist[$i]['image'] = Images::getImageUrl($products_wishlist[$i]['id'], 'Small');
+        //        $products_wishlist[$i]['link'] = tep_href_link(FILENAME_PRODUCT_INFO, 'products_id=' . $products_wishlist[$i]['id']);
+        //        $products_wishlist[$i]['final_price_formatted'] = $currencies->display_price($products_wishlist[$i]['final_price'], \common\helpers\Tax::get_tax_rate($products_wishlist[$i]['tax_class_id']));
+        //        $products_wishlist[$i]['remove_link'] = tep_href_link(FILENAME_WISHLIST,'products_id=' . $products_wishlist[$i]['id'].'&action=remove_wishlist','SSL');
+        //        $products_wishlist[$i]['move_in_cart'] = tep_href_link(FILENAME_WISHLIST,'products_id=' . $products_wishlist[$i]['id'].'&action=wishlist_move_to_cart','SSL');
+        //      }
+        /*wishlist*/
+        /*subscription*/
         $subscriptions = [];
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('Subscriptions', 'allowed')) {
             $subscriptions = $ext::getSubscriptions(3);
         }
-      /*subscription*/
+        /*subscription*/
 
-      /*quotations*/
+        /*quotations*/
         $quotations = [];
-        if($ext = \common\helpers\Acl::checkExtensionAllowed('Quotations', 'allowed')){
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('Quotations', 'allowed')) {
             $quotations = $ext::getQuotationList($customer_id, $languages_id);
         }
-      /*quotations*/
+        /*quotations*/
 
         /*samples*/
         $samples = [];
-        if($ext = \common\helpers\Acl::checkExtensionAllowed('Samples', 'allowed')){
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('Samples', 'allowed')) {
             $samples = $ext::getSamplesList($customer_id, $languages_id);
         }
-      /*samples*/
+        /*samples*/
 
         /*bonus points*/
         $showBonusPart = \common\helpers\Acl::checkExtensionAllowed('BonusActions');
@@ -297,7 +295,6 @@ class AccountController extends Sceleton
         $account_links['account_history'] = tep_href_link('account/history', '', 'SSL');
         $account_links['account_newsletters'] = tep_href_link(FILENAME_ACCOUNT_NEWSLETTERS, '', 'SSL');
         $account_links['account_notifications'] = tep_href_link(FILENAME_ACCOUNT_NOTIFICATIONS, '', 'SSL');
-
 
         return $this->render('index.tpl', [
             'description' => '',
@@ -317,7 +314,7 @@ class AccountController extends Sceleton
         ]);
     }
 
-  /* ???? */
+    /* ???? */
     public function actionSuccess()
     {
         $this->accountRedirect('Created success');
@@ -325,12 +322,11 @@ class AccountController extends Sceleton
         return $this->render('success.tpl', ['description' => '']);
     }
 
-
     public function actionLogin()
     {
         global $cart, $navigation;
 
-        if (!Yii::$app->user->isGuest){
+        if (!Yii::$app->user->isGuest) {
             tep_redirect(tep_href_link('account/index', '', 'SSL'));
         }
 
@@ -341,11 +337,11 @@ class AccountController extends Sceleton
         global $breadcrumb;
 
         $breadcrumb->add(TEXT_MY_ACCOUNT, tep_href_link(FILENAME_ACCOUNT, '', 'SSL'));
-        $breadcrumb->add(NAVBAR_TITLE,tep_href_link('account/login','','SSL'));
+        $breadcrumb->add(NAVBAR_TITLE, tep_href_link('account/login', '', 'SSL'));
 
-        if (Yii::$app->request->isPost){
+        if (Yii::$app->request->isPost) {
             $form = Yii::$app->request->post('scenario');
-            if ( $form == 'registration' ) {
+            if ($form == 'registration') {
                 return $this->actionCreate();
             }
         }
@@ -361,13 +357,13 @@ class AccountController extends Sceleton
         $params['enterModels'] = $authContainer->getForms('account/create');
         $params['showAddress'] = $authContainer->isShowAddress();
 
-        if (Yii::$app->request->isPost){
+        if (Yii::$app->request->isPost) {
 
             $scenario = Yii::$app->request->post('scenario');
 
             $authContainer->loadScenario($scenario);
 
-            if (!$authContainer->hasErrors()){
+            if (!$authContainer->hasErrors()) {
 
                 if ($ext = \common\helpers\Extensions::isAllowed('UserTwoStepAuth')) {
                     $ext::checkLogin();
@@ -386,7 +382,7 @@ class AccountController extends Sceleton
                         }
                     }
                     unset($AddressBooks);
-                    
+
                     if (defined('MULTI_SESSION_ENABLED') && MULTI_SESSION_ENABLED != 'true') {
                         $wo_session_id = tep_session_id();
                         \common\helpers\Session::deleteCustomerSessions($customer_id, $wo_session_id);
@@ -399,16 +395,16 @@ class AccountController extends Sceleton
                 }
 
                 if (sizeof($navigation->snapshot) > 0 && !Yii::$app->request->post('reviews')) {
-                    if (is_array($navigation->snapshot['get'])){
-                        $origin_href = tep_href_link($navigation->snapshot['page'], \common\helpers\Output::array_to_string($navigation->snapshot['get'], array(tep_session_name())), $navigation->snapshot['mode']);
+                    if (is_array($navigation->snapshot['get'])) {
+                        $origin_href = tep_href_link($navigation->snapshot['page'], \common\helpers\Output::array_to_string($navigation->snapshot['get'], [tep_session_name()]), $navigation->snapshot['mode']);
                     } else {
                         $origin_href = tep_href_link($navigation->snapshot['page'], $navigation->snapshot['get'], $navigation->snapshot['mode']);
                     }
                     $navigation->clear_snapshot();
                     return $this->redirect($origin_href);
                 } else {
-                    if (Yii::$app->request->isAjax){
-                        if (strpos($_SERVER['HTTP_REFERER'], 'logoff') !== false){
+                    if (Yii::$app->request->isAjax) {
+                        if (strpos($_SERVER['HTTP_REFERER'], 'logoff') !== false) {
                             return 'gt';
                         } else {
                             return 'ok';
@@ -418,25 +414,25 @@ class AccountController extends Sceleton
                     }
                 }
             } else {
-                foreach ($authContainer->getErrors($scenario) as $error){
+                foreach ($authContainer->getErrors($scenario) as $error) {
                     if (Yii::$app->request->isAjax) {
-                        $messageStack->add_session((is_array($error)? implode("<br>", $error): $error), $scenario);
+                        $messageStack->add_session((is_array($error) ? implode('<br>', $error) : $error), $scenario);
                     } else {
-                        $messageStack->add((is_array($error)? implode("<br>", $error): $error), $scenario);
+                        $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), $scenario);
                     }
                 }
                 if (Yii::$app->request->isAjax) {
                     $messageStack->add_session('<a href="' . tep_href_link('account/password-forgotten', '', 'SSL') . '">' . TEXT_PASSWORD_FORGOTTEN_S . '</a>', 'login');
-                } else{
+                } else {
                     $messageStack->add('<a href="' . tep_href_link('account/password-forgotten', '', 'SSL') . '">' . TEXT_PASSWORD_FORGOTTEN_S . '</a>', 'login');
                 }
                 $messages = '';
-                if ($messageStack->size($scenario)>0){
+                if ($messageStack->size($scenario) > 0) {
                     $messages = $messageStack->output($scenario);
                 }
                 $params['messages_'.$scenario] = $messages;
 
-                if (Yii::$app->request->isAjax){
+                if (Yii::$app->request->isAjax) {
                     return \frontend\design\boxes\login\Returning::widget(['params' => [
                         'enterModels' => $authContainer->getForms('account/login-box'),
                         'action' => tep_href_link('account/login', 'action=process', 'SSL'),
@@ -445,7 +441,7 @@ class AccountController extends Sceleton
                 }
             }
         }
-        if ($messageStack->size('login')>0){
+        if ($messageStack->size('login') > 0) {
             $params['messages_login'] = $messageStack->output('login');
         }
 
@@ -459,7 +455,7 @@ class AccountController extends Sceleton
             ->andWhere(['block_name' => 'login_account', 'theme_name' => THEME_NAME])
             ->one();
 
-        if ($check['id']??null || Info::isAdmin()) {
+        if ($check['id'] ?? null || Info::isAdmin()) {
             return $this->render('login-widgets.tpl', [
                 'params' => $params,
             ]);
@@ -469,10 +465,11 @@ class AccountController extends Sceleton
 
     }
 
-    public function actionCreate() {
+    public function actionCreate()
+    {
         global $cart, $navigation;
 
-        if (!Yii::$app->user->isGuest){
+        if (!Yii::$app->user->isGuest) {
             tep_redirect(tep_href_link('account/index', '', 'SSL'));
         }
 
@@ -486,7 +483,7 @@ class AccountController extends Sceleton
             'show_socials' => $this->use_social,
         ];
 
-        if ($wExt = \common\helpers\Acl::checkExtensionAllowed('WeddingRegistry', 'allowed')){
+        if ($wExt = \common\helpers\Acl::checkExtensionAllowed('WeddingRegistry', 'allowed')) {
             $wExt::registerPartner($params);
         }
 
@@ -494,19 +491,19 @@ class AccountController extends Sceleton
         $params['enterModels'] = $authContainer->getForms('account/create');
         $params['showAddress'] = $authContainer->isShowAddress();
 
-        if (Yii::$app->request->isPost){
+        if (Yii::$app->request->isPost) {
             $scenario = Yii::$app->request->post('scenario');
 
             $authContainer->loadScenario($scenario);
 
-            if (!$authContainer->hasErrors()){
-                if ($customer_id = Yii::$app->user->getId() ){
+            if (!$authContainer->hasErrors()) {
+                if ($customer_id = Yii::$app->user->getId()) {
 
                     foreach (\common\helpers\Hooks::getList('frontend/account/create-success') as $filename) {
                         include($filename);
                     }
 
-                    if ($wExt = \common\helpers\Acl::checkExtensionAllowed('WeddingRegistry', 'allowed')){
+                    if ($wExt = \common\helpers\Acl::checkExtensionAllowed('WeddingRegistry', 'allowed')) {
                         //if register via wedding registry partner invite
                         $wExt::processWeddingRegistryInviting();
 
@@ -519,7 +516,7 @@ class AccountController extends Sceleton
                 }
 
                 if (sizeof($navigation->snapshot) > 0) {
-                    $origin_href = tep_href_link($navigation->snapshot['page'], \common\helpers\Output::array_to_string($navigation->snapshot['get'], array(tep_session_name())), $navigation->snapshot['mode']);
+                    $origin_href = tep_href_link($navigation->snapshot['page'], \common\helpers\Output::array_to_string($navigation->snapshot['get'], [tep_session_name()]), $navigation->snapshot['mode']);
                     $navigation->clear_snapshot();
                     tep_redirect($origin_href);
                 } else {
@@ -532,15 +529,15 @@ class AccountController extends Sceleton
                 }
             } else {
                 $messageStack = \Yii::$container->get('message_stack');
-                foreach ($authContainer->getErrors($scenario) as $error){
+                foreach ($authContainer->getErrors($scenario) as $error) {
                     if (Yii::$app->request->isAjax) {
-                        $messageStack->add_session((is_array($error)? implode("<br>", $error): $error), $scenario);
+                        $messageStack->add_session((is_array($error) ? implode('<br>', $error) : $error), $scenario);
                     } else {
-                        $messageStack->add((is_array($error)? implode("<br>", $error): $error), $scenario);
+                        $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), $scenario);
                     }
                 }
                 $messages = '';
-                if ($messageStack->size($scenario) > 0){
+                if ($messageStack->size($scenario) > 0) {
                     $messages = $messageStack->output($scenario);
                 }
                 $params['messages_'.$scenario] = $messages;
@@ -566,62 +563,63 @@ class AccountController extends Sceleton
         return $this->render($loginView . '.tpl', ['params' => $params, 'settings' => ['tabsManually' => true]]);
     }
 
-    public function actionCreateSuccess(){
+    public function actionCreateSuccess()
+    {
         $this->accountRedirect('Created success');
-      global $cart;
+        global $cart;
 
-      global $breadcrumb;
-      $breadcrumb->add(TEXT_MY_ACCOUNT);
-      $breadcrumb->add(NAVBAR_TITLE_2);
+        global $breadcrumb;
+        $breadcrumb->add(TEXT_MY_ACCOUNT);
+        $breadcrumb->add(NAVBAR_TITLE_2);
 
-      //$after_create_go = tep_href_link(FILENAME_ACCOUNT, '', 'SSL');
-      $after_create_go = tep_href_link(FILENAME_DEFAULT, '', 'SSL');
-      if ($cart->count_contents() >= 1) {
-        $after_create_go = tep_href_link(FILENAME_CHECKOUT_SHIPPING, '', 'SSL');
-      }
+        //$after_create_go = tep_href_link(FILENAME_ACCOUNT, '', 'SSL');
+        $after_create_go = tep_href_link(FILENAME_DEFAULT, '', 'SSL');
+        if ($cart->count_contents() >= 1) {
+            $after_create_go = tep_href_link(FILENAME_CHECKOUT_SHIPPING, '', 'SSL');
+        }
 
-      return $this->render('success.tpl', [
-        'title' => HEADING_TITLE,
-        'description' => sprintf(TEXT_ACCOUNT_CREATED, tep_href_link(FILENAME_CONTACT_US), tep_href_link(FILENAME_CONTACT_US)),
-        'next_page' => $after_create_go,
-      ]);
+        return $this->render('success.tpl', [
+          'title' => HEADING_TITLE,
+          'description' => sprintf(TEXT_ACCOUNT_CREATED, tep_href_link(FILENAME_CONTACT_US), tep_href_link(FILENAME_CONTACT_US)),
+          'next_page' => $after_create_go,
+        ]);
     }
 
     public function actionLogoff()
     {
         $this->accountRedirect('Logoff');
-      global $breadcrumb, $cart;
+        global $breadcrumb, $cart;
 
-      if (!Yii::$app->user->isGuest){
-        \Yii::$app->settings->clear();
+        if (!Yii::$app->user->isGuest) {
+            \Yii::$app->settings->clear();
 
-        $customer_id = Yii::$app->user->getId();
-        if ($customer_id > 0) {
-            $AddressBooks = \common\models\AddressBook::find()
-                    ->where(['customers_id' => $customer_id])
-                    ->andWhere('drop_ship > 0')
-                    ->all();
-            if (is_array($AddressBooks)) {
-                foreach ($AddressBooks as $AB) {
-                    tep_db_query('UPDATE orders SET drop_ship=1, delivery_address_book_id=0 WHERE delivery_address_book_id='.$AB->address_book_id);
-                    $AB->delete();
+            $customer_id = Yii::$app->user->getId();
+            if ($customer_id > 0) {
+                $AddressBooks = \common\models\AddressBook::find()
+                        ->where(['customers_id' => $customer_id])
+                        ->andWhere('drop_ship > 0')
+                        ->all();
+                if (is_array($AddressBooks)) {
+                    foreach ($AddressBooks as $AB) {
+                        tep_db_query('UPDATE orders SET drop_ship=1, delivery_address_book_id=0 WHERE delivery_address_book_id='.$AB->address_book_id);
+                        $AB->delete();
+                    }
                 }
+                unset($AddressBooks);
             }
-            unset($AddressBooks);
+            unset($customer_id);
+
+            Yii::$app->user->getIdentity()->logoffCustomer();
+
+            //$customer_groups_id = DEFAULT_USER_GROUP;
+            $cart->reset();
+
+            if ($this->forever) {
+                return $this->redirect(Yii::$app->urlManager->createAbsoluteUrl(['account/logoff', 'forever' => 1]));
+            } else {
+                return $this->redirect('logoff');
+            }
         }
-        unset($customer_id);
-
-        Yii::$app->user->getIdentity()->logoffCustomer();
-
-        //$customer_groups_id = DEFAULT_USER_GROUP;
-        $cart->reset();
-
-        if ($this->forever){
-            return $this->redirect(Yii::$app->urlManager->createAbsoluteUrl(['account/logoff', 'forever' => 1]));
-        } else {
-            return $this->redirect('logoff');
-        }
-      }
 
         $title = HEADING_TITLE;
         $breadcrumb->add(NAVBAR_TITLE);
@@ -642,37 +640,37 @@ class AccountController extends Sceleton
             $widgets = true;
         }
         return $this->render('logoff.tpl', [
-            'link_continue_href' => tep_href_link(FILENAME_DEFAULT,'','NONSSL'),
+            'link_continue_href' => tep_href_link(FILENAME_DEFAULT, '', 'NONSSL'),
             'forever' => $this->forever,
             'title' => $title,
-            'widgets' => $widgets
+            'widgets' => $widgets,
         ]);
     }
 
     public function actionLoginMe()
     {
         global $navigation;
-        if ( is_object($navigation) && method_exists($navigation,'remove_current_page') ) {
+        if (is_object($navigation) && method_exists($navigation, 'remove_current_page')) {
             $navigation->remove_current_page();
         }
         /*if (!\frontend\design\Info::isAdmin()){
             return $this->redirect(Yii::$app->urlManager->createAbsoluteUrl(['account/login','error'=>'access']));
         }*/
-        \Yii::$app->urlManager->setOverrideSettings(['seo_url_parts_currency'=>false, 'seo_url_parts_language'=>false]);
+        \Yii::$app->urlManager->setOverrideSettings(['seo_url_parts_currency' => false, 'seo_url_parts_language' => false]);
 
-        $aup = base64_decode(str_replace(' ','+',Yii::$app->request->get('aup','')));
+        $aup = base64_decode(str_replace(' ', '+', Yii::$app->request->get('aup', '')));
         $aup = \common\helpers\Password::decryptAuthUserParam($aup);
-        if ( $aup ) {
+        if ($aup) {
             $cId = $aup['customers_id'];
             $customerEmail = $aup['customers_email'];
             $auth_type = $aup['auth_type'];
             $auth_key = $aup['auth_key'];
 
             Yii::$app->settings->clear();
-            if (!Yii::$app->user->isGuest){
+            if (!Yii::$app->user->isGuest) {
                 Yii::$app->user->logout();
             }
-            if ( Yii::$app->getSession()->getIsActive() ) {
+            if (Yii::$app->getSession()->getIsActive()) {
                 Yii::$app->getSession()->destroy();
             }
             Yii::$app->getSession()->regenerateID();
@@ -695,7 +693,7 @@ class AccountController extends Sceleton
             unset($quote);
             unset($sample);
             $cart = new \common\classes\shopping_cart();
-            Yii::$app->getSession()->set('cart',$cart);
+            Yii::$app->getSession()->set('cart', $cart);
 
             $cInfo = Customers::find()
                     ->where(['customers_id' => $cId])
@@ -722,9 +720,9 @@ class AccountController extends Sceleton
             }
 
             $passLogin = false;
-            if ( $auth_type=='payment' && !empty($customerEmail) && $model->loginCustomer($customerEmail, $cId) ) {
+            if ($auth_type == 'payment' && !empty($customerEmail) && $model->loginCustomer($customerEmail, $cId)) {
                 $passLogin = true;
-            } elseif ( $auth_type=='payment' && $model->loginCustomerById($cId) ) {
+            } elseif ($auth_type == 'payment' && $model->loginCustomerById($cId)) {
                 $passLogin = true;
             }
             if ($passLogin) {
@@ -734,13 +732,12 @@ class AccountController extends Sceleton
                 } else {
                     return $this->redirect(Yii::$app->urlManager->createAbsoluteUrl(['account/index']));
                 }
-            } elseif ( $auth_type=='login' && $model->loginCustomer($customerEmail, $cId) ) {
+            } elseif ($auth_type == 'login' && $model->loginCustomer($customerEmail, $cId)) {
                 return $this->redirect(Yii::$app->urlManager->createAbsoluteUrl(['account/index']));
             }
         }
         return $this->redirect(Yii::$app->urlManager->createAbsoluteUrl(['account/login']));
     }
-
 
     public function actionGeneratePassword()
     {
@@ -754,81 +751,80 @@ class AccountController extends Sceleton
     public function actionPassword()
     {
         $this->accountRedirect('My password');
-      global $navigation;
-      global $breadcrumb;
+        global $navigation;
+        global $breadcrumb;
 
-      $this->checkIsGuest();
+        $this->checkIsGuest();
 
-      $customer_id = Yii::$app->user->getId();
+        $customer_id = Yii::$app->user->getId();
 
-      $messageStack = \Yii::$container->get('message_stack');
-      $error = false;
-      if ( Yii::$app->request->isPost /*isset($_POST['action']) && ($_POST['action'] == 'process')*/) {
-        $password_current = tep_db_prepare_input($_POST['password_current']);
-        $password_new = tep_db_prepare_input($_POST['password_new']);
-        $password_confirmation = tep_db_prepare_input($_POST['password_confirmation']);
+        $messageStack = \Yii::$container->get('message_stack');
+        $error = false;
+        if (Yii::$app->request->isPost /*isset($_POST['action']) && ($_POST['action'] == 'process')*/) {
+            $password_current = tep_db_prepare_input($_POST['password_current']);
+            $password_new = tep_db_prepare_input($_POST['password_new']);
+            $password_confirmation = tep_db_prepare_input($_POST['password_confirmation']);
 
-        if (strlen($password_current) < ENTRY_PASSWORD_MIN_LENGTH) {
-          $error = true;
+            if (strlen($password_current) < ENTRY_PASSWORD_MIN_LENGTH) {
+                $error = true;
 
-          $messageStack->add(ENTRY_PASSWORD_CURRENT_ERROR, 'account_password');
-        } elseif (strlen($password_new) < ENTRY_PASSWORD_MIN_LENGTH) {
-          $error = true;
+                $messageStack->add(ENTRY_PASSWORD_CURRENT_ERROR, 'account_password');
+            } elseif (strlen($password_new) < ENTRY_PASSWORD_MIN_LENGTH) {
+                $error = true;
 
-          $messageStack->add(ENTRY_PASSWORD_NEW_ERROR, 'account_password');
-        } elseif ($password_new != $password_confirmation) {
-          $error = true;
+                $messageStack->add(ENTRY_PASSWORD_NEW_ERROR, 'account_password');
+            } elseif ($password_new != $password_confirmation) {
+                $error = true;
 
-          $messageStack->add(ENTRY_PASSWORD_NEW_ERROR_NOT_MATCHING, 'account_password');
+                $messageStack->add(ENTRY_PASSWORD_NEW_ERROR_NOT_MATCHING, 'account_password');
+            }
+
+            if ($error == false) {
+                $check_customer = Customers::find()
+                  ->select(['customers_password'])
+                  ->where(['customers_id' => (int)$customer_id])
+                  ->limit(1)
+                  ->asArray()
+                  ->one();
+                if (\common\helpers\Password::validate_password($password_current, $check_customer['customers_password'], 'frontend')) {
+                    // Update Customer
+                    $customer = Customers::findOne($customer_id);
+                    $customer->editCustomersPassword(Password::encrypt_password($password_new, 'frontend'));
+                    Yii::$app->getSession()->set(Yii::$app->user->authKeyParam, $customer->auth_key);
+                    // Update CUSTOMERS_INFO
+                    $customerInfo = CustomersInfo::findOne($customer_id);
+                    $customerInfo->editCustomersInfoDateAccountLastModified();
+
+                    if (!Yii::$app->request->isAjax) {
+                        $messageStack->add_session(SUCCESS_PASSWORD_UPDATED, 'account_password', 'success');
+                        tep_redirect(tep_href_link(FILENAME_ACCOUNT, '', 'SSL'));
+                    } else {
+                        $messageStack->add(SUCCESS_PASSWORD_UPDATED, 'account_password', 'success');
+                    }
+                } else {
+                    $error = true;
+
+                    $messageStack->add(ERROR_CURRENT_PASSWORD_NOT_MATCHING, 'account_password');
+                }
+            }
+            if (Yii::$app->request->isAjax) {
+                return json_encode($messageStack->asArray('account_password'));
+            }
         }
 
-        if ($error == false) {
-            $check_customer = Customers::find()
-              ->select(['customers_password'])
-              ->where(['customers_id' => (int)$customer_id])
-              ->limit(1)
-              ->asArray()
-              ->one();
-          if (\common\helpers\Password::validate_password($password_current, $check_customer['customers_password'], 'frontend')) {
-              // Update Customer
-              $customer = Customers::findOne($customer_id);
-              $customer->editCustomersPassword(Password::encrypt_password($password_new, 'frontend'));
-              Yii::$app->getSession()->set(Yii::$app->user->authKeyParam, $customer->auth_key);
-              // Update CUSTOMERS_INFO
-              $customerInfo = CustomersInfo::findOne($customer_id);
-              $customerInfo->editCustomersInfoDateAccountLastModified();
-
-              if (!Yii::$app->request->isAjax) {
-                  $messageStack->add_session(SUCCESS_PASSWORD_UPDATED, 'account_password', 'success');
-                  tep_redirect(tep_href_link(FILENAME_ACCOUNT, '', 'SSL'));
-              } else {
-                  $messageStack->add(SUCCESS_PASSWORD_UPDATED, 'account_password', 'success');
-              }
-          } else {
-            $error = true;
-
-            $messageStack->add(ERROR_CURRENT_PASSWORD_NOT_MATCHING, 'account_password');
-          }
+        $message_account_password = '';
+        if ($messageStack->size('account_password') > 0) {
+            $message_account_password = $messageStack->output('account_password');
         }
-          if (Yii::$app->request->isAjax) {
-              return json_encode($messageStack->asArray('account_password'));
-          }
-      }
 
+        $breadcrumb->add(TEXT_MY_ACCOUNT, tep_href_link(FILENAME_ACCOUNT, '', 'SSL'));
+        $breadcrumb->add(NAVBAR_TITLE_2, tep_href_link(FILENAME_ACCOUNT_PASSWORD, '', 'SSL'));
 
-      $message_account_password = '';
-      if ($messageStack->size('account_password')>0) {
-        $message_account_password = $messageStack->output('account_password');
-      }
-
-      $breadcrumb->add(TEXT_MY_ACCOUNT, tep_href_link(FILENAME_ACCOUNT, '', 'SSL'));
-      $breadcrumb->add(NAVBAR_TITLE_2, tep_href_link(FILENAME_ACCOUNT_PASSWORD, '', 'SSL'));
-
-      return $this->render('password.tpl',[
-        'account_password_action' => ['account/password', 'action'=>'process'],
-        'link_back_href' => tep_href_link(FILENAME_ACCOUNT, '', 'SSL'),
-        'message_account_password' => $message_account_password,
-      ]);
+        return $this->render('password.tpl', [
+          'account_password_action' => ['account/password', 'action' => 'process'],
+          'link_back_href' => tep_href_link(FILENAME_ACCOUNT, '', 'SSL'),
+          'message_account_password' => $message_account_password,
+        ]);
 
     }
 
@@ -846,13 +842,13 @@ class AccountController extends Sceleton
             $errorMessage = '';
             if ($loginModel->captha_enabled) {
                 if (\Yii::$app->request->isPost && \Yii::$app->request->post('action', '') !== 'authorize') {
-                    if ($loginModel->load(Yii::$app->request->post()) && $loginModel->validate()){
+                    if ($loginModel->load(Yii::$app->request->post()) && $loginModel->validate()) {
                         if ($loginModel->hasErrors()) {
                             $errorMessage = '';
-                            foreach($loginModel->getErrors() as $error){
+                            foreach ($loginModel->getErrors() as $error) {
                                 if (is_array($error)) {
-                                    $errorMessage .= implode(", ", $error);
-                                } else if (is_string($error)) {
+                                    $errorMessage .= implode(', ', $error);
+                                } elseif (is_string($error)) {
                                     $errorMessage .= $error;
                                 }
                             }
@@ -861,14 +857,13 @@ class AccountController extends Sceleton
                     } else {
                         if ($loginModel->hasErrors()) {
                             $errorMessage = '';
-                            foreach($loginModel->getErrors() as $error){
+                            foreach ($loginModel->getErrors() as $error) {
                                 if (is_array($error)) {
-                                    $errorMessage .= implode(", ", $error);
-                                } else if (is_string($error)) {
+                                    $errorMessage .= implode(', ', $error);
+                                } elseif (is_string($error)) {
                                     $errorMessage .= $error;
                                 }
                             }
-
 
                         }
                         $cError = true;
@@ -879,7 +874,7 @@ class AccountController extends Sceleton
             $email_address = (string)tep_db_prepare_input($_POST['email_address']);
             if ($cError) {
                 $check_customer = false;
-            } else if ( empty($email_address) ) {
+            } elseif (empty($email_address)) {
                 $check_customer = false;
             } else {
                 $check_customer = Customers::find()
@@ -891,59 +886,59 @@ class AccountController extends Sceleton
                   ->one();
             }
             if (is_array($check_customer)) {
-              if ( opc::is_temp_customer($check_customer['customers_id']) ){
-                $messageStack->add(TEXT_NO_EMAIL_ADDRESS_FOUND, 'password_forgotten');
-              }else{
-                // {{
-                $email_params = array();
-                $email_params['STORE_NAME'] = STORE_NAME;
-                $email_params['IP_ADDRESS'] = \common\helpers\System::get_ip_address();
-                if (defined('PASSWORD_FORGOTTEN_MODE') && PASSWORD_FORGOTTEN_MODE == 'invite'){
-                    $cInfo = \common\models\CustomersInfo::findOne($check_customer['customers_id']);
-                    if ($cInfo){
-                        $cInfo->updateToken();
-                        $email_params['NEW_PASSWORD'] = \yii\helpers\Html::a(TEXT_PASSWORD_INVITATION_LINK, tep_href_link('account/new-password', 'token='.$cInfo->getToken(), 'SSL'));
+                if (opc::is_temp_customer($check_customer['customers_id'])) {
+                    $messageStack->add(TEXT_NO_EMAIL_ADDRESS_FOUND, 'password_forgotten');
+                } else {
+                    // {{
+                    $email_params = [];
+                    $email_params['STORE_NAME'] = STORE_NAME;
+                    $email_params['IP_ADDRESS'] = \common\helpers\System::get_ip_address();
+                    if (defined('PASSWORD_FORGOTTEN_MODE') && PASSWORD_FORGOTTEN_MODE == 'invite') {
+                        $cInfo = \common\models\CustomersInfo::findOne($check_customer['customers_id']);
+                        if ($cInfo) {
+                            $cInfo->updateToken();
+                            $email_params['NEW_PASSWORD'] = \yii\helpers\Html::a(TEXT_PASSWORD_INVITATION_LINK, tep_href_link('account/new-password', 'token='.$cInfo->getToken(), 'SSL'));
+                        } else {
+                            $email_params['NEW_PASSWORD'] = '';
+                        }
                     } else {
-                        $email_params['NEW_PASSWORD'] = '';
+                        $new_password = \common\helpers\Password::randomize(true);
+                        $crypted_password = \common\helpers\Password::encrypt_password($new_password, 'frontend');
+                        $customer = Customers::findOne((int)$check_customer['customers_id']);
+                        $customer->editCustomersPassword(tep_db_input($crypted_password));
+                        $email_params['NEW_PASSWORD'] = $new_password;
                     }
-                } else {
-                    $new_password = \common\helpers\Password::randomize(true);
-                    $crypted_password = \common\helpers\Password::encrypt_password($new_password, 'frontend');
-                    $customer = Customers::findOne((int)$check_customer['customers_id']);
-                    $customer->editCustomersPassword(tep_db_input($crypted_password));
-                    $email_params['NEW_PASSWORD'] = $new_password;
-                }
-                $email_params['CUSTOMER_FIRSTNAME'] = $check_customer['customers_firstname'];
-                $e = explode("://", HTTP_SERVER);
-                $email_params['HTTP_HOST'] = '<a href="' . HTTP_SERVER . DIR_WS_HTTP_CATALOG . '">' . $e[1] . '</a>';
-                $email_params['CUSTOMER_EMAIL'] = $email_address;
-                list($email_subject, $email_text) = \common\helpers\Mail::get_parsed_email_template('Password Forgotten', $email_params);
-                // }}
-                \common\helpers\Mail::send($check_customer['customers_firstname'] . ' ' . $check_customer['customers_lastname'], $email_address, $email_subject, $email_text, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, $email_params);
+                    $email_params['CUSTOMER_FIRSTNAME'] = $check_customer['customers_firstname'];
+                    $e = explode('://', HTTP_SERVER);
+                    $email_params['HTTP_HOST'] = '<a href="' . HTTP_SERVER . DIR_WS_HTTP_CATALOG . '">' . $e[1] . '</a>';
+                    $email_params['CUSTOMER_EMAIL'] = $email_address;
+                    list($email_subject, $email_text) = \common\helpers\Mail::get_parsed_email_template('Password Forgotten', $email_params);
+                    // }}
+                    \common\helpers\Mail::send($check_customer['customers_firstname'] . ' ' . $check_customer['customers_lastname'], $email_address, $email_subject, $email_text, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, $email_params);
 
-                if (defined('PASSWORD_FORGOTTEN_MODE') && PASSWORD_FORGOTTEN_MODE == 'invite'){
-                    $messageStack->add_session(SUCCESS_PASSWORD_INVITATION_SENT, 'login', 'success');
-                } else {
-                    $messageStack->add_session(SUCCESS_PASSWORD_SENT, 'login', 'success');
-                }
+                    if (defined('PASSWORD_FORGOTTEN_MODE') && PASSWORD_FORGOTTEN_MODE == 'invite') {
+                        $messageStack->add_session(SUCCESS_PASSWORD_INVITATION_SENT, 'login', 'success');
+                    } else {
+                        $messageStack->add_session(SUCCESS_PASSWORD_SENT, 'login', 'success');
+                    }
 
-                foreach (\common\helpers\Hooks::getList('frontend/account/password-forgotten') as $filename) {
-                    include($filename);
-                }
+                    foreach (\common\helpers\Hooks::getList('frontend/account/password-forgotten') as $filename) {
+                        include($filename);
+                    }
 
-                if (!Yii::$app->request->isAjax) {
-                    tep_redirect(tep_href_link('account/login', '', 'SSL'));
+                    if (!Yii::$app->request->isAjax) {
+                        tep_redirect(tep_href_link('account/login', '', 'SSL'));
+                    }
                 }
-              }
-            } else if ($cError) {
+            } elseif ($cError) {
                 $messageStack->add($errorMessage, 'password_forgotten');
             } else {
-              $messageStack->add(TEXT_NO_EMAIL_ADDRESS_FOUND, 'password_forgotten');
+                $messageStack->add(TEXT_NO_EMAIL_ADDRESS_FOUND, 'password_forgotten');
             }
         }
 
-      $breadcrumb->add(NAVBAR_TITLE_1, tep_href_link('account/login', '', 'SSL'));
-      $breadcrumb->add(NAVBAR_TITLE_2, tep_href_link('account/password-forgotten', '', 'SSL'));
+        $breadcrumb->add(NAVBAR_TITLE_1, tep_href_link('account/login', '', 'SSL'));
+        $breadcrumb->add(NAVBAR_TITLE_2, tep_href_link('account/password-forgotten', '', 'SSL'));
 
         $widgets = false;
         $check = DesignBoxes::find()
@@ -963,10 +958,10 @@ class AccountController extends Sceleton
             return json_encode('ok');
         } else {
             $messages_password_forgotten = '';
-            if ( $messageStack->size('password_forgotten')>0 ) {
-              $messages_password_forgotten = $messageStack->output('password_forgotten');
+            if ($messageStack->size('password_forgotten') > 0) {
+                $messages_password_forgotten = $messageStack->output('password_forgotten');
             }
-            return $this->render('password_forgotten.tpl',[
+            return $this->render('password_forgotten.tpl', [
                 'messages_password_forgotten' => $messages_password_forgotten,
                 'email_address' => $email_address,
                 'link_back_href' => tep_href_link(FILENAME_ACCOUNT, '', 'SSL'),
@@ -976,112 +971,114 @@ class AccountController extends Sceleton
         }
     }
 
-  public function actionNewPassword()
-  {
-      //$this->accountRedirect('My password');
-     $messageStack = \Yii::$container->get('message_stack');
-     if (!Yii::$app->user->isGuest) {
-      tep_redirect(tep_href_link('account', '', 'SSL'));
-     }
-     \common\helpers\Translation::init('account/password');
-     $customer = new Customer();
-     $message_account_password = '';
-     if ( $messageStack->size('password_forgotten')>0 ) {
-        $message_account_password = $messageStack->output('password_forgotten');
-     }
-     if(\Yii::$app->request->isPost){
-        $password_new = \Yii::$app->request->post('password_new', null);
-        $password_cnf = \Yii::$app->request->post('password_confirmation', null);
-        $token = \Yii::$app->request->get('token', null);
-
-        if (!$token){
-            $messageStack->add_session('Invalid Token', 'password_forgotten');
-            tep_redirect(tep_href_link('account/new-password', '', 'SSL'));
+    public function actionNewPassword()
+    {
+        //$this->accountRedirect('My password');
+        $messageStack = \Yii::$container->get('message_stack');
+        if (!Yii::$app->user->isGuest) {
+            tep_redirect(tep_href_link('account', '', 'SSL'));
         }
-
-        if (!$password_new || !$password_cnf || strcmp($password_new, $password_cnf) !== 0) {
-            $messageStack->add_session('Invalid Password Compare', 'password_forgotten');
-            tep_redirect(tep_href_link('account/new-password', 'token='.$token, 'SSL'));
-        } else {
-            $customer = $customer->getUserByToken($token);
-            if ($customer){
-                $customer->customers_password = \common\helpers\Password::encrypt_password($password_new, 'frontend');
-                $customer->update(false);
-                $customer->updateUserToken($customer->customers_id);
-                \common\helpers\Session::deleteCustomerSessions($customer->customers_id);
-                $messageStack->add_session('Password has been changed, Please Login', 'login', 'success');
-                tep_redirect(tep_href_link('account/login', '', 'SSL'));
-            }
-        }
-     } else {
-        $token = \Yii::$app->request->get('token', null);
-        if ($token){
-            $customer = $customer->getUserByToken($token);
-            if (!$customer){
-                $token = null;
-                $messageStack->add('Invalid Token', 'password_forgotten');
-                $message_account_password = $messageStack->output('password_forgotten');
-            }
-        } else {
-            $messageStack->add('Token required', 'password_forgotten');
+        \common\helpers\Translation::init('account/password');
+        $customer = new Customer();
+        $message_account_password = '';
+        if ($messageStack->size('password_forgotten') > 0) {
             $message_account_password = $messageStack->output('password_forgotten');
         }
-     }
-     return $this->render('new-password', [
-           'account_password_action' => ['account/new-password', 'action'=>'process', 'token' => $token],
-           'token' => $token,
-           'message_account_password' => $message_account_password,
-        ]);
-  }
+        if (\Yii::$app->request->isPost) {
+            $password_new = \Yii::$app->request->post('password_new', null);
+            $password_cnf = \Yii::$app->request->post('password_confirmation', null);
+            $token = \Yii::$app->request->get('token', null);
 
-  public function actionNewsletters()
-  {
-    global $navigation, $breadcrumb;
+            if (!$token) {
+                $messageStack->add_session('Invalid Token', 'password_forgotten');
+                tep_redirect(tep_href_link('account/new-password', '', 'SSL'));
+            }
 
-    $this->checkIsGuest();
-
-    $messageStack = \Yii::$container->get('message_stack');
-    $customer_id = Yii::$app->user->getId();
-    $newsletter = Customers::find()
-        ->select(['customers_id', 'customers_newsletter'])
-        ->where(['customers_id' => (int)$customer_id])
-        ->asArray()
-        ->limit(1)
-        ->one();
-
-    if (isset($_POST['action']) && ($_POST['action'] == 'process')) {
-      if (isset($_POST['newsletter_general']) && is_numeric($_POST['newsletter_general'])) {
-        $newsletter_general = tep_db_prepare_input($_POST['newsletter_general']);
-      } else {
-        $newsletter_general = '0';
-      }
-
-      if ($newsletter_general != $newsletter['customers_newsletter']) {
-        $newsletter_general = (($newsletter['customers_newsletter'] == '1') ? '0' : '1');
-
-        if ($newsletter_general == '1' && is_object($this->promoActionsObs)) { $this->promoActionsObs->triggerAction('signing_newsletter'); }
-        $customer = Customers::findOne($customer_id);
-        $customer->editCustomersNewsletter((int)$newsletter_general);
-      }
-
-      $messageStack->add_session(SUCCESS_NEWSLETTER_UPDATED, 'account', 'success');
-
-      tep_redirect(tep_href_link(FILENAME_ACCOUNT, '', 'SSL'));
+            if (!$password_new || !$password_cnf || strcmp($password_new, $password_cnf) !== 0) {
+                $messageStack->add_session('Invalid Password Compare', 'password_forgotten');
+                tep_redirect(tep_href_link('account/new-password', 'token='.$token, 'SSL'));
+            } else {
+                $customer = $customer->getUserByToken($token);
+                if ($customer) {
+                    $customer->customers_password = \common\helpers\Password::encrypt_password($password_new, 'frontend');
+                    $customer->update(false);
+                    $customer->updateUserToken($customer->customers_id);
+                    \common\helpers\Session::deleteCustomerSessions($customer->customers_id);
+                    $messageStack->add_session('Password has been changed, Please Login', 'login', 'success');
+                    tep_redirect(tep_href_link('account/login', '', 'SSL'));
+                }
+            }
+        } else {
+            $token = \Yii::$app->request->get('token', null);
+            if ($token) {
+                $customer = $customer->getUserByToken($token);
+                if (!$customer) {
+                    $token = null;
+                    $messageStack->add('Invalid Token', 'password_forgotten');
+                    $message_account_password = $messageStack->output('password_forgotten');
+                }
+            } else {
+                $messageStack->add('Token required', 'password_forgotten');
+                $message_account_password = $messageStack->output('password_forgotten');
+            }
+        }
+        return $this->render('new-password', [
+              'account_password_action' => ['account/new-password', 'action' => 'process', 'token' => $token],
+              'token' => $token,
+              'message_account_password' => $message_account_password,
+           ]);
     }
 
-    $breadcrumb->add(TEXT_MY_ACCOUNT, tep_href_link(FILENAME_ACCOUNT, '', 'SSL'));
-    $breadcrumb->add(NAVBAR_TITLE_2, tep_href_link(FILENAME_ACCOUNT_NEWSLETTERS, '', 'SSL'));
+    public function actionNewsletters()
+    {
+        global $navigation, $breadcrumb;
 
-    return $this->render('newsletters.tpl',[
-      'account_newsletter_action' => tep_href_link(FILENAME_ACCOUNT_NEWSLETTERS, 'action=process', 'SSL'),
-      'newsletter_general' => $newsletter['customers_newsletter']!=0,
-      'link_back_href' => tep_href_link(FILENAME_ACCOUNT, '', 'SSL'),
-    ]);
-  }
+        $this->checkIsGuest();
 
-  public function actionEdit()
-  {
-      $this->accountRedirect('Account edit');
+        $messageStack = \Yii::$container->get('message_stack');
+        $customer_id = Yii::$app->user->getId();
+        $newsletter = Customers::find()
+            ->select(['customers_id', 'customers_newsletter'])
+            ->where(['customers_id' => (int)$customer_id])
+            ->asArray()
+            ->limit(1)
+            ->one();
+
+        if (isset($_POST['action']) && ($_POST['action'] == 'process')) {
+            if (isset($_POST['newsletter_general']) && is_numeric($_POST['newsletter_general'])) {
+                $newsletter_general = tep_db_prepare_input($_POST['newsletter_general']);
+            } else {
+                $newsletter_general = '0';
+            }
+
+            if ($newsletter_general != $newsletter['customers_newsletter']) {
+                $newsletter_general = (($newsletter['customers_newsletter'] == '1') ? '0' : '1');
+
+                if ($newsletter_general == '1' && is_object($this->promoActionsObs)) {
+                    $this->promoActionsObs->triggerAction('signing_newsletter');
+                }
+                $customer = Customers::findOne($customer_id);
+                $customer->editCustomersNewsletter((int)$newsletter_general);
+            }
+
+            $messageStack->add_session(SUCCESS_NEWSLETTER_UPDATED, 'account', 'success');
+
+            tep_redirect(tep_href_link(FILENAME_ACCOUNT, '', 'SSL'));
+        }
+
+        $breadcrumb->add(TEXT_MY_ACCOUNT, tep_href_link(FILENAME_ACCOUNT, '', 'SSL'));
+        $breadcrumb->add(NAVBAR_TITLE_2, tep_href_link(FILENAME_ACCOUNT_NEWSLETTERS, '', 'SSL'));
+
+        return $this->render('newsletters.tpl', [
+          'account_newsletter_action' => tep_href_link(FILENAME_ACCOUNT_NEWSLETTERS, 'action=process', 'SSL'),
+          'newsletter_general' => $newsletter['customers_newsletter'] != 0,
+          'link_back_href' => tep_href_link(FILENAME_ACCOUNT, '', 'SSL'),
+        ]);
+    }
+
+    public function actionEdit()
+    {
+        $this->accountRedirect('Account edit');
         global $navigation, $breadcrumb;
 
         \common\helpers\Translation::init('js');
@@ -1095,8 +1092,8 @@ class AccountController extends Sceleton
         $editModel = new CustomerRegistration(['scenario' => CustomerRegistration::SCENARIO_EDIT, 'shortName' => CustomerRegistration::SCENARIO_EDIT]);
         $editModel->preloadCustomersData($customer);
 
-        if (\Yii::$app->request->isPost){
-            if ($editModel->load(\Yii::$app->request->post()) && $editModel->validate()){
+        if (\Yii::$app->request->isPost) {
+            if ($editModel->load(\Yii::$app->request->post()) && $editModel->validate()) {
 
                 $editModel->processCustomerAuth($customer);
 
@@ -1107,10 +1104,10 @@ class AccountController extends Sceleton
 
                 /** @var \common\extensions\CustomersMultiEmails\CustomersMultiEmails $CustomersMultiEmails */
                 if ($CustomersMultiEmails = \common\helpers\Acl::checkExtensionAllowed('CustomersMultiEmails', 'allowed')) {
-                  $ret = $CustomersMultiEmails::saveCustomer((int) $customer->customers_id, $hasErrors);
-                  if (!$ret && !$hasErrors) {
-                    $hasErrors = true;
-                  }
+                    $ret = $CustomersMultiEmails::saveCustomer((int) $customer->customers_id, $hasErrors);
+                    if (!$ret && !$hasErrors) {
+                        $hasErrors = true;
+                    }
                 }
 
                 if (!$hasErrors && is_object($this->promoActionsObs)) {
@@ -1128,9 +1125,9 @@ class AccountController extends Sceleton
             }
         }
 
-        if ($editModel->hasErrors()){
-            foreach($editModel->getErrors() as $error){
-                $messageStack->add(is_array($error)? implode("<br>", $error): $error, 'account_edit');
+        if ($editModel->hasErrors()) {
+            foreach ($editModel->getErrors() as $error) {
+                $messageStack->add(is_array($error) ? implode('<br>', $error) : $error, 'account_edit');
             }
         }
 
@@ -1153,7 +1150,8 @@ class AccountController extends Sceleton
         ]);
     }
 
-    public function actionHistoryInfo() {
+    public function actionHistoryInfo()
+    {
         $this->accountRedirect('Order History Info');
         global $cart;
         global $languages_id, $navigation, $breadcrumb;
@@ -1183,7 +1181,7 @@ class AccountController extends Sceleton
         $trackingsArr = [];
         $customers_id = $customer_info['customers_id'];
         if ($customer_info && tep_not_null($customer_info['tracking_number'])) {
-            $trackings = explode(";", $customer_info['tracking_number']);
+            $trackings = explode(';', $customer_info['tracking_number']);
             foreach ($trackings as $i => $track) {
                 $tracking_data = \common\helpers\Order::parse_tracking_number($track);
                 $trackingsArr[] = [
@@ -1194,7 +1192,7 @@ class AccountController extends Sceleton
                         'oID' => $historyOrderId,
                         'cID' => $customers_id,
                         'tracking' => '1',
-                        'tracking_number' => $track
+                        'tracking_number' => $track,
                     ]),
                 ];
             }
@@ -1205,7 +1203,7 @@ class AccountController extends Sceleton
         $breadcrumb->add(sprintf(NAVBAR_TITLE_3, $_GET['order_id']), tep_href_link(FILENAME_ACCOUNT_HISTORY_INFO, 'order_id=' . $historyOrderId, 'SSL'));
 
         $order = new \common\classes\Order($historyOrderId);
-// {{
+        // {{
         $get_trackings = Orders::find()
             ->alias('o')
             ->select(['trn.tracking_numbers_id', 'trn.tracking_carriers_id', 'trn.tracking_number' , 'o.orders_id', 'trn.orders_id'])
@@ -1228,7 +1226,7 @@ class AccountController extends Sceleton
                     for ($i = 0, $n = sizeof($order->products); $i < $n; $i++) {
                         if ($order->products[$i]['orders_products_id'] == $products['orders_products_id']) {
                             $productsArr[] = $order->products[$i];
-                            $productsArr[count($productsArr)-1]['qty'] = $products['products_quantity'];
+                            $productsArr[count($productsArr) - 1]['qty'] = $products['products_quantity'];
                         }
                     }
                 }
@@ -1241,14 +1239,14 @@ class AccountController extends Sceleton
                         'oID' => $historyOrderId,
                         'cID' => $customers_id,
                         'tracking' => '1',
-                        'tracking_number' => $tracking['tracking_number']
+                        'tracking_number' => $tracking['tracking_number'],
                     ]),
                     'products' => $productsArr,
                 ];
             }
         }
-// }}
-        $order_info = array();
+        // }}
+        $order_info = [];
         $order_title = $historyOrderId;
         $order_date = DateHelper::date_long($order->info['date_purchased']);
         $order_info_status = $order->info['orders_status_name'];
@@ -1263,7 +1261,7 @@ class AccountController extends Sceleton
         }
         $order_info['tax_groups'] = '';
         $tax_groups = sizeof($order->info['tax_groups']);
-        $order_product = array();
+        $order_product = [];
         //echo '<pre>';print_r($order->products);
         for ($i = 0, $n = sizeof($order->products); $i < $n; $i++) {
             $order_img = Products::find()
@@ -1280,11 +1278,11 @@ class AccountController extends Sceleton
             if (\common\helpers\Product::check_product($order->products[$i]['id'])) {
                 $order_info['product_info_link'] = tep_href_link(FILENAME_PRODUCT_INFO, 'products_id=' . \common\helpers\Inventory::get_prid($order->products[$i]['id']));
             }
-            $order_info_attr = array();
+            $order_info_attr = [];
             if ((isset($order->products[$i]['attributes'])) && (sizeof($order->products[$i]['attributes']) > 0)) {
                 //$order_info_attr['size'] = sizeof($order->products[$i]['attributes']);
                 for ($j = 0, $n2 = sizeof($order->products[$i]['attributes']); $j < $n2; $j++) {
-                    $order_info_attr[$j]['order_pr_option'] = str_replace(array('&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;'), array('&nbsp;', '<b>', '</b>', '<br>'), htmlspecialchars($order->products[$i]['attributes'][$j]['option']));
+                    $order_info_attr[$j]['order_pr_option'] = str_replace(['&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;'], ['&nbsp;', '<b>', '</b>', '<br>'], htmlspecialchars($order->products[$i]['attributes'][$j]['option']));
                     $order_info_attr[$j]['order_pr_value'] = ($order->products[$i]['attributes'][$j]['value'] ? htmlspecialchars($order->products[$i]['attributes'][$j]['value']) : '');
                 }
             }
@@ -1297,8 +1295,8 @@ class AccountController extends Sceleton
         }
         $order_billing = \common\helpers\Address::address_format($order->billing['format_id'], $order->billing, 1, ' ', '<br>');
         $payment_method = $order->info['payment_method'];
-        $order_info_array = array();
-        $order_info_ar = array();
+        $order_info_array = [];
+        $order_info_ar = [];
         $pay_link = false;
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('UpdateAndPay', 'allowed')) {
             $pay_link = $ext::payLink($historyOrderId);
@@ -1313,19 +1311,19 @@ class AccountController extends Sceleton
         $orderModel = \common\models\Orders::find()->where(['orders_id' => $historyOrderId])->joinWith(['ordersStatusGroup sg'])
                 ->where(['in', 'sg.orders_status_groups_id', [1,5]])->andWhere(['orders_id' => $historyOrderId])->one();
 
-        if ($orderModel){
+        if ($orderModel) {
             $cancel_and_restart = tep_href_link('checkout/restart', 'order_id=' . (int)$historyOrderId, 'SSL');
         }
 
         for ($i = 0, $n = sizeof($order->totals); $i < $n; $i++) {
 
-            if (file_exists( DIR_WS_MODULES . 'order_total/' . $order->totals[$i]['class'] . '.php')) {
-                include_once( DIR_WS_MODULES . 'order_total/' . $order->totals[$i]['class'] . '.php');
+            if (file_exists(DIR_WS_MODULES . 'order_total/' . $order->totals[$i]['class'] . '.php')) {
+                include_once(DIR_WS_MODULES . 'order_total/' . $order->totals[$i]['class'] . '.php');
             }
 
             if (class_exists($order->totals[$i]['class'])) {
                 $orderClass = $order->totals[$i]['class'];
-                $object = new $orderClass;
+                $object = new $orderClass();
                 if (method_exists($object, 'visibility')) {
                     if (true == $object->visibility(\common\classes\platform::defaultId(), 'TEXT_ACCOUNT')) {
                         if (method_exists($object, 'visibility')) {
@@ -1365,8 +1363,8 @@ class AccountController extends Sceleton
             $order_statusses[] = $statusHistoryLine;
         }
 
-        $print_order_link = tep_href_link(FILENAME_ORDERS_PRINTABLE, \common\helpers\Output::get_all_get_params(array('orders_id')) . 'orders_id=' . $historyOrderId);
-        $back_link = tep_href_link('account/history', \common\helpers\Output::get_all_get_params(array('order_id')), 'SSL');
+        $print_order_link = tep_href_link(FILENAME_ORDERS_PRINTABLE, \common\helpers\Output::get_all_get_params(['orders_id']) . 'orders_id=' . $historyOrderId);
+        $back_link = tep_href_link('account/history', \common\helpers\Output::get_all_get_params(['order_id']), 'SSL');
         return $this->render('historyinfo.tpl', [
                     'description' => '',
                     'order' => $order,
@@ -1388,14 +1386,15 @@ class AccountController extends Sceleton
                     'reorder_confirm' => ($cart->count_contents() > 0 ? REORDER_CART_MERGE_WARN : ''),
                     'pay_link' => $pay_link,
                     'cancel_and_restart' => $cancel_and_restart,
-                    'downloads' => \frontend\design\boxes\success\Download::widget(['params' =>['orders_id' => $historyOrderId]]),
+                    'downloads' => \frontend\design\boxes\success\Download::widget(['params' => ['orders_id' => $historyOrderId]]),
             'trackings' => $trackingsArr,
             'order_id'  => $historyOrderId,
             'customers_id' => $customers_id,
         ]);
     }
 
-    public function actionHistory() {
+    public function actionHistory()
+    {
         $this->accountRedirect('Order History');
         global $cart, $languages_id, $language, $navigation, $breadcrumb;
 
@@ -1403,11 +1402,11 @@ class AccountController extends Sceleton
 
         $customer_id = Yii::$app->user->getId();
         $orders_total = \common\helpers\Customer::count_customer_orders();
-        $history_query_raw = "select o.orders_id, o.date_purchased, o.delivery_name, o.billing_name, ot.text as order_total, s.orders_status_name from " . TABLE_ORDERS . " o, " . TABLE_ORDERS_TOTAL . " ot, " . TABLE_ORDERS_STATUS . " s where o.customers_id = '" . (int) $customer_id . "' and o.orders_id = ot.orders_id and ot.class = 'ot_total' and o.orders_status = s.orders_status_id and s.language_id = '" . (int) $languages_id . "' order by orders_id DESC";
+        $history_query_raw = 'select o.orders_id, o.date_purchased, o.delivery_name, o.billing_name, ot.text as order_total, s.orders_status_name from ' . TABLE_ORDERS . ' o, ' . TABLE_ORDERS_TOTAL . ' ot, ' . TABLE_ORDERS_STATUS . " s where o.customers_id = '" . (int) $customer_id . "' and o.orders_id = ot.orders_id and ot.class = 'ot_total' and o.orders_status = s.orders_status_id and s.language_id = '" . (int) $languages_id . "' order by orders_id DESC";
         $history_split = new splitPageResults($history_query_raw, MAX_DISPLAY_ORDER_HISTORY);
         $history_query = tep_db_query($history_split->sql_query);
-        $history_links = $history_split->display_links(MAX_DISPLAY_PAGE_LINKS, \common\helpers\Output::get_all_get_params(array('page', 'info', 'x', 'y')), 'account/history');
-        $history_array = array();
+        $history_links = $history_split->display_links(MAX_DISPLAY_PAGE_LINKS, \common\helpers\Output::get_all_get_params(['page', 'info', 'x', 'y']), 'account/history');
+        $history_array = [];
         while ($history = tep_db_fetch_array($history_query)) {
             $products = OrdersProducts::find()
                 ->select(['COUNT(*) AS count'])
@@ -1443,7 +1442,8 @@ class AccountController extends Sceleton
         return $this->render('history.tpl', ['description' => '', 'orders_total' => $orders_total, 'history_array' => $history_array, 'number_of_rows' => $history_split->number_of_rows, 'links' => $history_links, 'history_count' => $history_split->display_count(LISTING_PAGINATION), 'account_back' => '<a class="btn" href="' . tep_href_link(FILENAME_ACCOUNT, '', 'SSL') . '">' . IMAGE_BUTTON_BACK . '</a>']);
     }
 
-    public function actionAddressBook() {
+    public function actionAddressBook()
+    {
         $this->accountRedirect('Address Book');
         global $languages_id, $language, $navigation, $breadcrumb;
 
@@ -1455,10 +1455,10 @@ class AccountController extends Sceleton
         }
         $customer = Yii::$app->user->getIdentity();
 
-        $address_array = array();
+        $address_array = [];
         $aBooks = $customer->getAddressBooks(true);
         $aBooks = \common\helpers\Address::skipEntryKey($aBooks);
-        foreach($aBooks as $addresses){
+        foreach ($aBooks as $addresses) {
             $format_id = \common\helpers\Address::get_address_format_id($addresses['country_id']);
             $addresses['text'] = $addresses['city'] . ' ' . $addresses['postcode'] . ' ' . \common\helpers\Country::get_country_name($addresses['country_id']);
             $addresses['format'] = \common\helpers\Address::address_format($format_id, $addresses, true, '', ' ');
@@ -1489,11 +1489,12 @@ class AccountController extends Sceleton
     public function actionAddressBookEdit()
     {
         return \frontend\design\boxes\account\EditAddress::widget([
-            'id' => rand()
+            'id' => rand(),
         ]);
     }
 
-    public function actionAddressBookProcess(){
+    public function actionAddressBookProcess()
+    {
         $this->accountRedirect('Address Book Process');
         global $languages_id, $language, $breadcrumb, $navigation;
 
@@ -1504,7 +1505,7 @@ class AccountController extends Sceleton
         $delete = (int)Yii::$app->request->get('delete', 0);
 
         $messageStack = \Yii::$container->get('message_stack');
-        if ($action == 'deleteconfirm' && $delete > 0 ) {
+        if ($action == 'deleteconfirm' && $delete > 0) {
             if ($aBook = $customer->getAddressBook($delete)) {
                 if ($aBook->address_book_id == $customer->customers_default_address_id) {
                     if (Yii::$app->request->isAjax) {
@@ -1560,15 +1561,15 @@ class AccountController extends Sceleton
                 }
             }
 
-            if ($bookModel->load(\Yii::$app->request->post()) && $bookModel->validate() ){
+            if ($bookModel->load(\Yii::$app->request->post()) && $bookModel->validate()) {
                 $book = $customer->getAddressFromModel($bookModel);
-                if ($bookModel->address_book_id){
+                if ($bookModel->address_book_id) {
                     $dbBook = $customer->updateAddress($bookModel->address_book_id, $book);
                 } else {
                     $dbBook = $customer->addAddress($book);
                 }
 
-                if ($bookModel->as_preferred && $dbBook){
+                if ($bookModel->as_preferred && $dbBook) {
                     if ($type == 'shipping') {
                         if (\common\helpers\Acl::checkExtensionAllowed('SplitCustomerAddresses', 'allowed')) {
                             $customer->customers_shipping_address_id = $dbBook->address_book_id;
@@ -1585,9 +1586,9 @@ class AccountController extends Sceleton
                         $customer->save(false);
                     }
                 }
-                if ($dbBook && $customer->customers_default_address_id == $dbBook->address_book_id){
+                if ($dbBook && $customer->customers_default_address_id == $dbBook->address_book_id) {
 
-                  //update entity if default address was edited
+                    //update entity if default address was edited
                     $customer->set('customer_first_name', $bookModel->firstname, true);
                     $customer->set('customer_country_id', $bookModel->country, true);
                     $customer->set('customer_zone_id', ($bookModel->zone_id > 0 ? (int) $bookModel->zone_id : 0), true);
@@ -1603,12 +1604,11 @@ class AccountController extends Sceleton
                 }
             }
 
-            if ($bookModel->hasErrors()){
-                foreach($bookModel->getErrors() as $error){
-                    $messageStack->add( (is_array($error)? implode("<br>", $error):$error), 'addressbook' );
+            if ($bookModel->hasErrors()) {
+                foreach ($bookModel->getErrors() as $error) {
+                    $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), 'addressbook');
                 }
             }
-
 
             if ($messageStack->size('addressbook') > 0) {
                 $message = $messageStack->output('addressbook');
@@ -1621,7 +1621,8 @@ class AccountController extends Sceleton
         return $this->render('address_book_process.tpl', ['message' => $message]);
     }
 
-    public function actionInvoice() {
+    public function actionInvoice()
+    {
 
         global $languages_id, $navigation;
 
@@ -1640,9 +1641,9 @@ class AccountController extends Sceleton
         }
 
         $invoices = $splitter->getInstancesFromSplinters($orders_id, $splitter::STATUS_PAYED);
-        if ($invoices){
+        if ($invoices) {
             $pages = [];
-            foreach($invoices as $invoice){
+            foreach ($invoices as $invoice) {
                 $pages[] = ['name' => 'invoice',
                             'params' => [
                                 'orders_id' => $orders_id,
@@ -1650,8 +1651,8 @@ class AccountController extends Sceleton
                                 'language_id' => $languages_id,
                                 'order' => $invoice,
                                 'currencies' => $currencies,
-                                'oID' => $orders_id
-                            ]
+                                'oID' => $orders_id,
+                            ],
                         ];
             }
         } else {
@@ -1662,7 +1663,7 @@ class AccountController extends Sceleton
                 'language_id' => $languages_id,
                 'order' => $order,
                 'currencies' => $currencies,
-                'oID' => $orders_id
+                'oID' => $orders_id,
             ]]];
         }
 
@@ -1673,25 +1674,26 @@ class AccountController extends Sceleton
                 'document_name' => str_replace(' ', '_', TEXT_INVOICE) . $order->getOrderId() . '.pdf',
                 'title' => TEXT_INVOICE . ' ' . $order->getOrderId(),
                 'subject' => TEXT_INVOICE . ' ' . $order->getOrderId(),
-            ]
+            ],
         ]);
         die;
     }
 
-    public function actionGv_send(){
-      //TODO
-      /*/ {{
-      $email_params = array();
-      $email_params['STORE_NAME'] = STORE_NAME;
-      $email_params['MESSAGE_TEXT'] = tep_db_prepare_input($_POST['message']);
-      $email_params['GV_AMOUNT'] = $currencies->format($_POST['amount']);
-      $email_params['CUSTOMERS_NAME'] = tep_db_prepare_input($_POST['send_name']);
-      $email_params['FRIEND_NAME'] = tep_db_prepare_input($_POST['to_name']);
-      $email_params['GV_CODE'] = $id1;
-      $email_params['GV_REDEEM_URL'] = tep_href_link('gv_redeem', 'gv_no=' . $id1, 'NONSSL', false);
+    public function actionGv_send()
+    {
+        //TODO
+        /*/ {{
+        $email_params = array();
+        $email_params['STORE_NAME'] = STORE_NAME;
+        $email_params['MESSAGE_TEXT'] = tep_db_prepare_input($_POST['message']);
+        $email_params['GV_AMOUNT'] = $currencies->format($_POST['amount']);
+        $email_params['CUSTOMERS_NAME'] = tep_db_prepare_input($_POST['send_name']);
+        $email_params['FRIEND_NAME'] = tep_db_prepare_input($_POST['to_name']);
+        $email_params['GV_CODE'] = $id1;
+        $email_params['GV_REDEEM_URL'] = tep_href_link('gv_redeem', 'gv_no=' . $id1, 'NONSSL', false);
 
-      list($email_subject, $email_text) = \common\helpers\Mail::get_parsed_email_template('GV Send to Friend', $email_params);
-      // }} */
+        list($email_subject, $email_text) = \common\helpers\Mail::get_parsed_email_template('GV Send to Friend', $email_params);
+        // }} */
     }
 
     public function actionOrderBarcode()
@@ -1703,17 +1705,17 @@ class AccountController extends Sceleton
             \Yii::warning('Quotations and Samples are migrating to AppStore. Not ready yet');
         }
         if (in_array($type, ['Orders'/*, 'QuoteOrders' , 'SampleOrders'*/]) && class_exists('\\common\\models\\' . $type)) {
-          $type = '\\common\\models\\' . $type;
-          $check = $type::find()
-              ->select('customers_id')
-              ->where(['orders_id' => (int)$oID])
-              ->limit(1)
-              ->asArray()
-              ->one();
-          if ($check['customers_id'] == (int)$cID) {
-// walk in orders could don't have customer_id - can't print invoice //$cID > 0 &&
-              tep_draw_barcode('', str_pad($oID, 8, '0', STR_PAD_LEFT));
-          }
+            $type = '\\common\\models\\' . $type;
+            $check = $type::find()
+                ->select('customers_id')
+                ->where(['orders_id' => (int)$oID])
+                ->limit(1)
+                ->asArray()
+                ->one();
+            if ($check['customers_id'] == (int)$cID) {
+                // walk in orders could don't have customer_id - can't print invoice //$cID > 0 &&
+                tep_draw_barcode('', str_pad($oID, 8, '0', STR_PAD_LEFT));
+            }
         }
     }
 
@@ -1776,7 +1778,7 @@ class AccountController extends Sceleton
             }
         }
 
-        if ( $updateCustomer && $aBook ) {
+        if ($updateCustomer && $aBook) {
             $customer->set('customer_default_address_id', (int)$id, true);
             $customer->set('customer_country_id', (int)$aBook->entry_country_id, true);
             $customer->set('customer_zone_id', (int)$aBook->entry_zone_id, true);
@@ -1784,7 +1786,7 @@ class AccountController extends Sceleton
             $customer->save();
         }
 
-        if ( Yii::$app->request->isAjax ) {
+        if (Yii::$app->request->isAjax) {
             $this->layout = false;
             Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
             Yii::$app->response->data = [
@@ -1800,87 +1802,87 @@ class AccountController extends Sceleton
 
     public function actionSwitchNewsletter()
     {
-      global $navigation;
-      $this->checkIsGuest();
+        global $navigation;
+        $this->checkIsGuest();
 
-      $customer_id = Yii::$app->user->getId();
-      $customer = RegularOffers::findOne($customer_id);
-      if ($customer) {
-          $customer->delete();
-      }
-      $newsletter_general = tep_db_prepare_input(Yii::$app->request->post('newsletter_general'));
-      $regular_offers = (int) Yii::$app->request->post('regular_offers');
-      if ($newsletter_general == 'true' && $regular_offers > 0) {
-        $sql_data_array = array(
-            'customers_id' => $customer_id,
-            'period' => $regular_offers,
-            'date_end' => date('Y-m-d', strtotime('+'.$regular_offers.' months')),
-        );
-        tep_db_perform('regular_offers', $sql_data_array);
-      }
-      //$id = Yii::$app->request->post('id');
-      $customersFind = Customers::findOne((int)$customer_id);
-      if ($newsletter_general == 'true') {
-          $customersFind->editCustomersNewsletter(1);
-      } else {
-          $customersFind->editCustomersNewsletter(0);
-      }
-      tep_redirect(tep_href_link('account', '', 'SSL'));
-      //return $this->render('index.tpl', ['message' => $message]);
+        $customer_id = Yii::$app->user->getId();
+        $customer = RegularOffers::findOne($customer_id);
+        if ($customer) {
+            $customer->delete();
+        }
+        $newsletter_general = tep_db_prepare_input(Yii::$app->request->post('newsletter_general'));
+        $regular_offers = (int) Yii::$app->request->post('regular_offers');
+        if ($newsletter_general == 'true' && $regular_offers > 0) {
+            $sql_data_array = [
+                'customers_id' => $customer_id,
+                'period' => $regular_offers,
+                'date_end' => date('Y-m-d', strtotime('+'.$regular_offers.' months')),
+            ];
+            tep_db_perform('regular_offers', $sql_data_array);
+        }
+        //$id = Yii::$app->request->post('id');
+        $customersFind = Customers::findOne((int)$customer_id);
+        if ($newsletter_general == 'true') {
+            $customersFind->editCustomersNewsletter(1);
+        } else {
+            $customersFind->editCustomersNewsletter(0);
+        }
+        tep_redirect(tep_href_link('account', '', 'SSL'));
+        //return $this->render('index.tpl', ['message' => $message]);
     }
 
     public function actionProductsReviews()
     {
         $this->accountRedirect('Review');
-      global $language, $breadcrumb, $navigation;
+        global $language, $breadcrumb, $navigation;
 
-      $this->checkIsGuest();
+        $this->checkIsGuest();
 
-      $customer_id = Yii::$app->user->getId();
-      $historyReviews = Reviews::find()
-          ->alias('r')
-          ->innerJoinWith('product p')
-          ->where(['r.customers_id' => (int)$customer_id])
-          ->orderBy(['r.reviews_id' => SORT_DESC])
-          ->asArray()
-          ->all();
-      $history_query_raw =
-        "select r.* ".
-        "from " . TABLE_REVIEWS . " r " .
-        " inner join ".TABLE_PRODUCTS." p on p.products_id=r.products_id ".
-        "where r.customers_id = '" . (int)$customer_id . "' ".
-        "order by r.reviews_id DESC";
-      $history_split = new splitPageResults($history_query_raw, MAX_DISPLAY_NEW_REVIEWS);
-      $customer_reviews = [];
-      foreach ($historyReviews as $customer_review) {
-          $customer_review['products_link'] = '';
-          if ( \common\helpers\Product::check_product($customer_review['products_id']) ) {
-              $customer_review['products_link'] = tep_href_link(FILENAME_PRODUCT_INFO,'products_id='.$customer_review['products_id'],'');
-          }
-          $customer_review['products_name'] = \common\helpers\Product::get_products_name($customer_review['products_id']);
-          $customer_review['reviews_rating'];
-          $customer_review['date_added_str'] = DateHelper::date_short($customer_review['date_added']);
-          if ($customer_review['status']){
-              $customer_review['status_name'] = TEXT_REVIEW_STATUS_APPROVED;
-          }else{
-              $customer_review['status_name'] = TEXT_REVIEW_STATUS_NOT_APPROVED;
-          }
-          $customer_review['view'] = tep_href_link('reviews/info','reviews_id='.$customer_review['reviews_id'].'&back=account-products-reviews'.(isset($_GET['page']) && (int)$_GET['page']>1?'-'.(int)$_GET['page']:''));
-          //$back = array('account/products-reviews', isset($_GET['page'])?'page='.$_GET['page']:'','SSL');
-          $customer_reviews[] = $customer_review;
-      }
+        $customer_id = Yii::$app->user->getId();
+        $historyReviews = Reviews::find()
+            ->alias('r')
+            ->innerJoinWith('product p')
+            ->where(['r.customers_id' => (int)$customer_id])
+            ->orderBy(['r.reviews_id' => SORT_DESC])
+            ->asArray()
+            ->all();
+        $history_query_raw =
+          'select r.* '.
+          'from ' . TABLE_REVIEWS . ' r ' .
+          ' inner join '.TABLE_PRODUCTS.' p on p.products_id=r.products_id '.
+          "where r.customers_id = '" . (int)$customer_id . "' ".
+          'order by r.reviews_id DESC';
+        $history_split = new splitPageResults($history_query_raw, MAX_DISPLAY_NEW_REVIEWS);
+        $customer_reviews = [];
+        foreach ($historyReviews as $customer_review) {
+            $customer_review['products_link'] = '';
+            if (\common\helpers\Product::check_product($customer_review['products_id'])) {
+                $customer_review['products_link'] = tep_href_link(FILENAME_PRODUCT_INFO, 'products_id='.$customer_review['products_id'], '');
+            }
+            $customer_review['products_name'] = \common\helpers\Product::get_products_name($customer_review['products_id']);
+            $customer_review['reviews_rating'];
+            $customer_review['date_added_str'] = DateHelper::date_short($customer_review['date_added']);
+            if ($customer_review['status']) {
+                $customer_review['status_name'] = TEXT_REVIEW_STATUS_APPROVED;
+            } else {
+                $customer_review['status_name'] = TEXT_REVIEW_STATUS_NOT_APPROVED;
+            }
+            $customer_review['view'] = tep_href_link('reviews/info', 'reviews_id='.$customer_review['reviews_id'].'&back=account-products-reviews'.(isset($_GET['page']) && (int)$_GET['page'] > 1 ? '-'.(int)$_GET['page'] : ''));
+            //$back = array('account/products-reviews', isset($_GET['page'])?'page='.$_GET['page']:'','SSL');
+            $customer_reviews[] = $customer_review;
+        }
 
-      $breadcrumb->add(TEXT_MY_ACCOUNT, tep_href_link(FILENAME_ACCOUNT, '', 'SSL'));
-      $breadcrumb->add(NAVBAR_TITLE, tep_href_link('account/products-reviews', '', 'SSL'));
+        $breadcrumb->add(TEXT_MY_ACCOUNT, tep_href_link(FILENAME_ACCOUNT, '', 'SSL'));
+        $breadcrumb->add(NAVBAR_TITLE, tep_href_link('account/products-reviews', '', 'SSL'));
 
-      $params = array(
-        'listing_split' => $history_split,
-        'this_filename' => 'account/products-reviews',
-        'listing_display_count_format' => TEXT_DISPLAY_NUMBER_OF_REVIEWS,
-      );
+        $params = [
+          'listing_split' => $history_split,
+          'this_filename' => 'account/products-reviews',
+          'listing_display_count_format' => TEXT_DISPLAY_NUMBER_OF_REVIEWS,
+        ];
 
-      return $this->render('products-reviews.tpl', ['reviews'=> $customer_reviews, 'params' => ['params'=>$params],'account_back_link'=>tep_href_link(FILENAME_ACCOUNT,'','SSL')]);
-		}
+        return $this->render('products-reviews.tpl', ['reviews' => $customer_reviews, 'params' => ['params' => $params],'account_back_link' => tep_href_link(FILENAME_ACCOUNT, '', 'SSL')]);
+    }
 
     public function actionCreditAmount()
     {
@@ -1893,7 +1895,7 @@ class AccountController extends Sceleton
         \common\helpers\Translation::init('account/history');
 
         $currencies = Yii::$container->get('currencies');
-        $type = (Yii::$app->request->get('type', 'credit') == 'credit' ? 0 : 1 );
+        $type = (Yii::$app->request->get('type', 'credit') == 'credit' ? 0 : 1);
 
         $history = [];
         $customer_history_queryActive = CustomersCreditHistory::find()
@@ -1914,7 +1916,7 @@ class AccountController extends Sceleton
                 }
             }
             $history[] = [
-                'date' => ($type?DateHelper::datepicker_date($customer_history['date_added']):DateHelper::datetime_short($customer_history['date_added'])),
+                'date' => ($type ? DateHelper::datepicker_date($customer_history['date_added']) : DateHelper::datetime_short($customer_history['date_added'])),
                 'credit' => $customer_history['credit_prefix'] . ($customer_history['credit_type'] ? $customer_history['credit_amount'] : $currencies->format($customer_history['credit_amount'], true, $customer_history['currency'], $customer_history['currency_value'])),
                 'notified' => $customer_history['customer_notified'],
                 'comments' => $customer_history['comments'],
@@ -1922,13 +1924,13 @@ class AccountController extends Sceleton
             ];
         }
 
-        if ($type){
-            if(\common\helpers\Acl::checkExtensionAllowed('BonusActions')){
+        if ($type) {
+            if (\common\helpers\Acl::checkExtensionAllowed('BonusActions')) {
                 $_history = promotions\PromotionsBonusHistory::find()->where('customer_id = :id', [':id' => (int)$customer_id])->asArray()->all();
-                if ($_history){
+                if ($_history) {
                     $titles = [];
-                    foreach($_history as $h){
-                        if (!isset($titles[$h['bonus_points_id']])){
+                    foreach ($_history as $h) {
+                        if (!isset($titles[$h['bonus_points_id']])) {
                             $titles[$h['bonus_points_id']] = \common\extensions\BonusActions\models\PromotionsBonusPoints::find()->where('bonus_points_id = ' . (int)$h['bonus_points_id'])->with('description')->one();
                         }
                         $history[] = [
@@ -1946,56 +1948,59 @@ class AccountController extends Sceleton
         return $this->render('credit-history.tpl', ['history' => $history, 'type' => $type]);
     }
 
-    public function actionAddressState() {
-      $term = tep_db_prepare_input(Yii::$app->request->get('term'));
-      $country = tep_db_prepare_input(Yii::$app->request->get('country'));
+    public function actionAddressState()
+    {
+        $term = tep_db_prepare_input(Yii::$app->request->get('term'));
+        $country = tep_db_prepare_input(Yii::$app->request->get('country'));
 
-      $zones = [];
-      $zones_queryActive = Zones::find()
-          ->where(['zone_country_id' => $country])
-          ->andfilterWhere(['like', 'zone_name', $term])
-          ->orderBy('zone_name')
-          ->asArray()
-          ->all();
+        $zones = [];
+        $zones_queryActive = Zones::find()
+            ->where(['zone_country_id' => $country])
+            ->andfilterWhere(['like', 'zone_name', $term])
+            ->orderBy('zone_name')
+            ->asArray()
+            ->all();
 
-      foreach ($zones_queryActive as $response) {
-          $zones[] = $response['zone_name'];
-      }
-      echo json_encode($zones);
+        foreach ($zones_queryActive as $response) {
+            $zones[] = $response['zone_name'];
+        }
+        echo json_encode($zones);
     }
 
-    public function actionAddressCity() {
-      $term = tep_db_prepare_input(Yii::$app->request->get('term'));
-      $state = tep_db_prepare_input(Yii::$app->request->get('state',''));
-      $country = tep_db_prepare_input(Yii::$app->request->get('country'));
+    public function actionAddressCity()
+    {
+        $term = tep_db_prepare_input(Yii::$app->request->get('term'));
+        $state = tep_db_prepare_input(Yii::$app->request->get('state', ''));
+        $country = tep_db_prepare_input(Yii::$app->request->get('country'));
 
-      $cities = [];
-      $cities_queryActive = Cities::find()
-          ->alias('c')
-          ->where(['c.city_country_id' => $country])
-          ->join('left join', \common\models\Zones::tableName().' z', 'z.zone_id=c.city_zone_id')
-          ->andFilterWhere(['like', 'c.city_name', $term])
-          ->orderBy('c.city_name')
-          ->select(['c.city_name','z.zone_name']);
-      if ( $state ){
-          $zones_queryActive = clone $cities_queryActive;
-          $zones_queryActive->andFilterWhere(['z.zone_name'=>$state]);
-          if ( $zones_queryActive->count()>0 ){
-              $cities_queryActive = $zones_queryActive;
-          }
-      }
+        $cities = [];
+        $cities_queryActive = Cities::find()
+            ->alias('c')
+            ->where(['c.city_country_id' => $country])
+            ->join('left join', \common\models\Zones::tableName().' z', 'z.zone_id=c.city_zone_id')
+            ->andFilterWhere(['like', 'c.city_name', $term])
+            ->orderBy('c.city_name')
+            ->select(['c.city_name','z.zone_name']);
+        if ($state) {
+            $zones_queryActive = clone $cities_queryActive;
+            $zones_queryActive->andFilterWhere(['z.zone_name' => $state]);
+            if ($zones_queryActive->count() > 0) {
+                $cities_queryActive = $zones_queryActive;
+            }
+        }
 
-      foreach ($cities_queryActive->asArray()->all() as $response) {
-          $cities[] = [
-              'id' => $response['city_name'],
-              'value' => $response['city_name'],
-              'state' => (string)$response['zone_name'],
-          ];
-      }
-      echo json_encode($cities);
+        foreach ($cities_queryActive->asArray()->all() as $response) {
+            $cities[] = [
+                'id' => $response['city_name'],
+                'value' => $response['city_name'],
+                'state' => (string)$response['zone_name'],
+            ];
+        }
+        echo json_encode($cities);
     }
 
-    public function actionAddressPostcode() {
+    public function actionAddressPostcode()
+    {
         $term = tep_db_prepare_input(Yii::$app->request->get('term'));
         $country = tep_db_prepare_input(Yii::$app->request->get('country'));
 
@@ -2007,10 +2012,10 @@ class AccountController extends Sceleton
             ->andFilterWhere(['country_id' => $country])
             ->join('left join', \common\models\Cities::tableName().' c', 'c.city_id=p.city_id')
             ->join('left join', \common\models\Zones::tableName().' z', 'z.zone_id=p.zone_id')
-            ->orderBy(['p.postcode'=>SORT_ASC])
+            ->orderBy(['p.postcode' => SORT_ASC])
             ->select(['p.postcode', 'p.suburb', 'c.city_name', 'z.zone_name']);
 
-        foreach ($searchAddress->asArray()->all() as $addr){
+        foreach ($searchAddress->asArray()->all() as $addr) {
             $addresses[] = [
                 'id' => $addr['postcode'],
                 'value' => $addr['postcode'],
@@ -2053,17 +2058,17 @@ class AccountController extends Sceleton
             tep_redirect(tep_href_link(FILENAME_DEFAULT));
         }
 
-        header("Expires: Mon, 26 Nov 1962 00:00:00 GMT");
-        header("Last-Modified: " . gmdate("D,d M Y H:i:s") . " GMT");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Pragma: no-cache");
+        header('Expires: Mon, 26 Nov 1962 00:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D,d M Y H:i:s') . ' GMT');
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Pragma: no-cache');
         $mimeType = mime_content_type($path . $file);
         if (in_array($mimeType, ['image/gif', 'image/jpeg', 'image/pjpeg', 'image/png', 'image/tiff', 'image/webp', 'application/pdf'])) {
-            header("Content-Type: " . $mimeType);
-            header("Content-disposition: inline; filename=" . $file);
+            header('Content-Type: ' . $mimeType);
+            header('Content-disposition: inline; filename=' . $file);
         } else {
-            header("Content-Type: Application/octet-stream");
-            header("Content-disposition: attachment; filename=" . $file);
+            header('Content-Type: Application/octet-stream');
+            header('Content-disposition: attachment; filename=' . $file);
         }
 
         if (DOWNLOAD_BY_REDIRECT == 'true') {
@@ -2078,61 +2083,71 @@ class AccountController extends Sceleton
         }
     }
 
-    public function actionQuotationHistory() {
+    public function actionQuotationHistory()
+    {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('Quotations', 'allowed')) {
             return $ext::actionQuotationHistory();
         }
     }
 
-    public function actionQuotationHistoryInfo() {
+    public function actionQuotationHistoryInfo()
+    {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('Quotations', 'allowed')) {
             return $ext::actionQuotationHistoryInfo();
         }
     }
 
-    public function actionQuotationCancel($quotation_id) {
+    public function actionQuotationCancel($quotation_id)
+    {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('Quotations', 'allowed')) {
             return $ext::actionQuotationCancel($quotation_id);
         }
     }
 
-    public function actionQuotationConfirm($quotation_id) {
+    public function actionQuotationConfirm($quotation_id)
+    {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('Quotations', 'allowed')) {
             return $ext::actionQuotationConfirm($quotation_id);
         }
     }
 
-    public function actionSamplesHistory() {
+    public function actionSamplesHistory()
+    {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('Samples', 'allowed')) {
             return $ext::actionSamplesHistory();
         }
     }
 
-    public function actionSamplesHistoryInfo() {
+    public function actionSamplesHistoryInfo()
+    {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('Samples', 'allowed')) {
             return $ext::actionSamplesHistoryInfo();
         }
     }
 
-    public function actionSubscriptionHistory() {
+    public function actionSubscriptionHistory()
+    {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('Subscriptions', 'allowed')) {
             return $ext::actionSubscriptionHistory();
         }
     }
 
-    public function actionSubscriptionHistoryInfo() {
+    public function actionSubscriptionHistoryInfo()
+    {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('Subscriptions', 'allowed')) {
             return $ext::actionSubscriptionHistoryInfo();
         }
     }
 
-    public function actionSubscriptionInvoice($subscription_id) {
+    public function actionSubscriptionInvoice($subscription_id)
+    {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('Subscriptions', 'allowed')) {
             return $ext::actionSubscriptionInvoice($subscription_id);
         }
     }
 
-    public function actionSubscriptionCancel($subscription_id) {
+    public function actionSubscriptionCancel($subscription_id)
+    {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('Subscriptions', 'allowed')) {
             return $ext::actionSubscriptionCancel($subscription_id);
         }
@@ -2141,7 +2156,9 @@ class AccountController extends Sceleton
     public function actions()
     {
         $actions = parent::actions();
-        if ( !is_array($actions) ) $actions = [];
+        if (!is_array($actions)) {
+            $actions = [];
+        }
         $actions['auth'] = [
             'class' => 'yii\authclient\AuthAction',
             'successCallback' => [$this, 'onAuthSuccess'],
@@ -2149,7 +2166,8 @@ class AccountController extends Sceleton
         return $actions;
     }
 
-    public function actionAuth(){
+    public function actionAuth()
+    {
 
     }
 
@@ -2160,7 +2178,8 @@ class AccountController extends Sceleton
         (new Socials($client))->handle();
     }
 
-    public function actionDownload() {
+    public function actionDownload()
+    {
 
         if (Yii::$app->user->isGuest) {
             die;
@@ -2174,7 +2193,7 @@ class AccountController extends Sceleton
             die;
         }
         $messageStack = \Yii::$container->get('message_stack');
-        $downloads_query = tep_db_query("select date_format(IFNULL(o.last_modified,o.date_purchased), '%Y-%m-%d') as date_purchased_day, opd.download_maxdays, opd.download_count, opd.download_count_1, opd.download_maxdays, opd.orders_products_filename from " . TABLE_ORDERS . " o, " . TABLE_ORDERS_PRODUCTS . " op, " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " opd where o.customers_id = '" . $customer_id . "' and o.orders_id = '" . $orders_id . "' and o.orders_id = op.orders_id and op.orders_products_id = opd.orders_products_id and opd.orders_products_download_id = '" . $download_id . "' and opd.orders_products_filename != ''");
+        $downloads_query = tep_db_query("select date_format(IFNULL(o.last_modified,o.date_purchased), '%Y-%m-%d') as date_purchased_day, opd.download_maxdays, opd.download_count, opd.download_count_1, opd.download_maxdays, opd.orders_products_filename from " . TABLE_ORDERS . ' o, ' . TABLE_ORDERS_PRODUCTS . ' op, ' . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " opd where o.customers_id = '" . $customer_id . "' and o.orders_id = '" . $orders_id . "' and o.orders_id = op.orders_id and op.orders_products_id = opd.orders_products_id and opd.orders_products_download_id = '" . $download_id . "' and opd.orders_products_filename != ''");
         if (!tep_db_num_rows($downloads_query)) {
             $messageStack->add_session(TEXT_DOWNLOAD_PRODUCT_NOT_FOUND, 'download');
             tep_redirect(tep_href_link(FILENAME_DEFAULT));
@@ -2204,15 +2223,15 @@ class AccountController extends Sceleton
         }
 
         // Now decrement counter
-        tep_db_query("update " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " set download_count = download_count-1, download_count_1 = download_count_1+1 where orders_products_download_id = '" . $download_id . "'");
+        tep_db_query('update ' . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " set download_count = download_count-1, download_count_1 = download_count_1+1 where orders_products_download_id = '" . $download_id . "'");
 
         // Now send the file with header() magic
-        header("Expires: Mon, 26 Nov 1962 00:00:00 GMT");
-        header("Last-Modified: " . gmdate("D,d M Y H:i:s") . " GMT");
-        header("Cache-Control: no-cache, must-revalidate");
-        header("Pragma: no-cache");
-        header("Content-Type: Application/octet-stream");
-        header("Content-disposition: attachment; filename=" . $downloads['orders_products_filename']);
+        header('Expires: Mon, 26 Nov 1962 00:00:00 GMT');
+        header('Last-Modified: ' . gmdate('D,d M Y H:i:s') . ' GMT');
+        header('Cache-Control: no-cache, must-revalidate');
+        header('Pragma: no-cache');
+        header('Content-Type: Application/octet-stream');
+        header('Content-disposition: attachment; filename=' . $downloads['orders_products_filename']);
 
         if (DOWNLOAD_BY_REDIRECT == 'true') {
             // This will work only on Unix/Linux hosts
@@ -2229,16 +2248,17 @@ class AccountController extends Sceleton
         }
     }
 
-    public function actionApplyCertificate(){
+    public function actionApplyCertificate()
+    {
 
-        $form = new \frontend\forms\account\ApplyCerificate;
+        $form = new \frontend\forms\account\ApplyCerificate();
 
-        if (Yii::$app->request->isPost){
+        if (Yii::$app->request->isPost) {
             \common\helpers\Translation::init('ordertotal');
 
-            $result = array('error' => true, 'message' => ERROR_NO_INVALID_REDEEM_GV);
+            $result = ['error' => true, 'message' => ERROR_NO_INVALID_REDEEM_GV];
 
-            if ($form->load(Yii::$app->request->post()) && $form->validate()){
+            if ($form->load(Yii::$app->request->post()) && $form->validate()) {
                 $result = $form->checkGvCertificate();
             }
 
@@ -2251,14 +2271,16 @@ class AccountController extends Sceleton
         ]);
     }
 
-    public function actionDelete() {
+    public function actionDelete()
+    {
         $this->checkIsGuest();
         \common\helpers\Customer::deleteCustomer(Yii::$app->user->getId());
         $this->forever = true;
         return $this->actionLogoff();
     }
 
-    public function actionDownloadMyOrders() {
+    public function actionDownloadMyOrders()
+    {
 
         $this->checkIsGuest();
         global $languages_id;
@@ -2272,7 +2294,7 @@ class AccountController extends Sceleton
             ->asArray()
             ->all();
 
-        if ($orders_queryActive){
+        if ($orders_queryActive) {
             $pages = [];
             foreach ($orders_queryActive as $orders) {
                 //$order = new \common\classes\Order($orders['orders_id']);
@@ -2285,8 +2307,8 @@ class AccountController extends Sceleton
                         'language_id' => $languages_id,
                         'order' => $order,
                         'currencies' => $currencies,
-                        'oID' => $orders['orders_id']
-                    ]
+                        'oID' => $orders['orders_id'],
+                    ],
                 ];
             }
             \backend\design\PDFBlock::widget([
@@ -2294,14 +2316,15 @@ class AccountController extends Sceleton
                 'params' => [
                     'theme_name' => THEME_NAME,
                     'document_name' => str_replace(' ', '_', TEXT_INVOICE) . '.pdf',
-                ]
+                ],
             ]);
             die;
         }
         tep_redirect(tep_href_link('account', '', 'SSL'));
     }
 
-    public function actionUpdate() {
+    public function actionUpdate()
+    {
         \common\helpers\Translation::init('js');
         $token = Yii::$app->request->get('token');
         $customers_dob = '';
@@ -2310,32 +2333,32 @@ class AccountController extends Sceleton
 
         $gdpr = new \common\components\Gdpr();
 
-        if ($gdpr->validToken($token)){
-            if ($gdpr->isBanned()){
+        if ($gdpr->validToken($token)) {
+            if ($gdpr->isBanned()) {
                 $messages = ENTRY_DATE_OF_BIRTH_RESTRICTION;
                 $error = true;
             } else {
-                if ( Yii::$app->request->isPost) {
+                if (Yii::$app->request->isPost) {
                     $dob = tep_db_prepare_input(Yii::$app->request->post('dob'));
                     $dob = DateHelper::date_raw($dob);
 
-                    if ($gdpr->setDobDate($dob)){
+                    if ($gdpr->setDobDate($dob)) {
                         $gdpr->validateGdpr();
                     }
 
                     $messages = $gdpr->getMessage();
-                    if (($error = $gdpr->getError() ) === false && !$gdpr->hasMistake()) {
+                    if (($error = $gdpr->getError()) === false && !$gdpr->hasMistake()) {
                         $gModel = $gdpr->getTokenEntity();
-                        tep_db_query("DELETE FROM regular_offers WHERE customers_id=" . (int)$gModel->customers_id);
+                        tep_db_query('DELETE FROM regular_offers WHERE customers_id=' . (int)$gModel->customers_id);
                         $newsletter = (int)Yii::$app->request->post('newsletter');
                         if ($newsletter > 0) {
                             $regular_offers = (int) Yii::$app->request->post('regular_offers');
                             if ($regular_offers > 0) {
-                                $sql_data_array = array(
+                                $sql_data_array = [
                                     'customers_id' => $gModel->customers_id,
                                     'period' => $regular_offers,
                                     'date_end' => date('Y-m-d', strtotime('+'.$regular_offers.' months')),
-                                );
+                                ];
                                 tep_db_perform('regular_offers', $sql_data_array);
                             }
                         }
@@ -2358,7 +2381,7 @@ class AccountController extends Sceleton
                 'customers_dobTmp' => $customers_dob,
                 'messages' => $messages,
                 'error' => $error,
-                'mistake' => $gdpr->hasMistake()
+                'mistake' => $gdpr->hasMistake(),
             ]);
 
         } else {
@@ -2366,7 +2389,8 @@ class AccountController extends Sceleton
         }
     }
 
-    public function actionRecreate() {
+    public function actionRecreate()
+    {
         global $cart;
 
         \common\helpers\Translation::init('js');
@@ -2383,7 +2407,7 @@ class AccountController extends Sceleton
 
         $customer = (new Customer())->loadCustomer((int)$guest_check['customers_id']);
 
-        if (!$customer->customers_id){
+        if (!$customer->customers_id) {
             tep_redirect(tep_href_link('account', '', 'SSL'));
         }
         global $navigation;
@@ -2394,7 +2418,7 @@ class AccountController extends Sceleton
             'show_socials' => $this->use_social,
         ];
 
-        if ($wExt = \common\helpers\Acl::checkExtensionAllowed('WeddingRegistry', 'allowed')){
+        if ($wExt = \common\helpers\Acl::checkExtensionAllowed('WeddingRegistry', 'allowed')) {
             $wExt::registerPartner($params);
         }
 
@@ -2402,19 +2426,19 @@ class AccountController extends Sceleton
         $params['enterModels'] = $authContainer->getForms('account/create');
         $params['showAddress'] = $authContainer->isShowAddress();
 
-        if (is_object($params['enterModels']['registration'])){
+        if (is_object($params['enterModels']['registration'])) {
             $params['enterModels']['registration']->preloadCustomersData($customer);
         }
 
-        if (Yii::$app->request->isPost){
+        if (Yii::$app->request->isPost) {
             $scenario = Yii::$app->request->post('scenario');
 
             $rCustomer = $authContainer->loadScenario($scenario);
 
-            if (!$authContainer->hasErrors()){
+            if (!$authContainer->hasErrors()) {
                 $guests = \common\models\Customers::find()->where(['customers_email_address' => $guest_check['email'], 'opc_temp_account' => 1])->all();
-                if ($guests && $rCustomer){
-                    foreach($guests as $guest){
+                if ($guests && $rCustomer) {
+                    foreach ($guests as $guest) {
                         opc::remove_temp_customer($guest->customers_id, $rCustomer->customers_id);
                         \common\models\GdprCheck::deleteAll(['customers_id' => $guest->customers_id]);
                         \common\models\GuestCheck::deleteAll(['customers_id' => $guest->customers_id]);
@@ -2423,15 +2447,15 @@ class AccountController extends Sceleton
                 tep_redirect(tep_href_link(FILENAME_CREATE_ACCOUNT_SUCCESS, '', 'SSL'));
             } else {
                 $messageStack = \Yii::$container->get('message_stack');
-                foreach ($authContainer->getErrors($scenario) as $error){
+                foreach ($authContainer->getErrors($scenario) as $error) {
                     if (Yii::$app->request->isAjax) {
-                        $messageStack->add_session((is_array($error)? implode("<br>", $error): $error), $scenario);
+                        $messageStack->add_session((is_array($error) ? implode('<br>', $error) : $error), $scenario);
                     } else {
-                        $messageStack->add((is_array($error)? implode("<br>", $error): $error), $scenario);
+                        $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), $scenario);
                     }
                 }
                 $messages = '';
-                if ($messageStack->size($scenario) > 0){
+                if ($messageStack->size($scenario) > 0) {
                     $messages = $messageStack->output($scenario);
                 }
                 $params['messages_'.$scenario] = $messages;
@@ -2440,7 +2464,8 @@ class AccountController extends Sceleton
         return $this->render('recreate-rdpr.tpl', ['params' => $params, 'settings' => ['tabsManually' => true]]);
     }
 
-    public function actionSubscriptionRenewal() {
+    public function actionSubscriptionRenewal()
+    {
         \common\helpers\Translation::init('js');
         $token = Yii::$app->request->get('token');
         $messages = '';
@@ -2449,25 +2474,25 @@ class AccountController extends Sceleton
         if (tep_db_num_rows($regular_offers_check_query) == 0) {
             tep_redirect(tep_href_link('account', '', 'SSL'));
         }
-        if ( Yii::$app->request->isPost) {
+        if (Yii::$app->request->isPost) {
             $regular_offers_check = tep_db_fetch_array($regular_offers_check_query);
 
             $newsletter = (int) Yii::$app->request->post('newsletter');
 
-            tep_db_query("DELETE FROM regular_offers WHERE customers_id=" . (int)$regular_offers_check['customers_id']);
+            tep_db_query('DELETE FROM regular_offers WHERE customers_id=' . (int)$regular_offers_check['customers_id']);
             if ($newsletter > 0) {
                 $regular_offers = (int) Yii::$app->request->post('regular_offers');
                 if ($regular_offers > 0) {
-                    $sql_data_array = array(
+                    $sql_data_array = [
                         'customers_id' => (int)$regular_offers_check['customers_id'],
                         'period' => $regular_offers,
                         'date_end' => date('Y-m-d', strtotime('+'.$regular_offers.' months')),
-                    );
+                    ];
                     tep_db_perform('regular_offers', $sql_data_array);
                 }
 
             }
-            tep_db_query("update " . TABLE_CUSTOMERS . " set customers_newsletter = '" . ($newsletter > 0 ? 1 : 0) . "' where customers_id = '" . (int)$regular_offers_check['customers_id'] . "'");
+            tep_db_query('update ' . TABLE_CUSTOMERS . " set customers_newsletter = '" . ($newsletter > 0 ? 1 : 0) . "' where customers_id = '" . (int)$regular_offers_check['customers_id'] . "'");
 
             $messages = TEXT_REGULAR_OFFERS_CONFIRM_SUCC;
 
@@ -2479,12 +2504,13 @@ class AccountController extends Sceleton
         ]);
     }
 
-    public function checkIsGuest($snapshotPage = null){
+    public function checkIsGuest($snapshotPage = null)
+    {
         global $navigation;
         if (Yii::$app->user->isGuest && !Info::isAdmin()) {
-            if (is_object($navigation) && method_exists($navigation, 'set_snapshot')){
-                if (!empty($snapshotPage)){
-                    $navigation->set_snapshot(array('mode' => 'SSL', 'page' => $snapshotPage));
+            if (is_object($navigation) && method_exists($navigation, 'set_snapshot')) {
+                if (!empty($snapshotPage)) {
+                    $navigation->set_snapshot(['mode' => 'SSL', 'page' => $snapshotPage]);
                 } else {
                     $navigation->set_snapshot();
                 }
@@ -2507,118 +2533,118 @@ class AccountController extends Sceleton
         ])->count();
 
         if ($isPage) {
-           $this->redirect(Yii::$app->urlManager->createAbsoluteUrl(array_merge([
-                'account',
-                'page_name' => \common\classes\design::pageName($pageName)
-            ], Yii::$app->request->get())));
+            $this->redirect(Yii::$app->urlManager->createAbsoluteUrl(array_merge([
+                 'account',
+                 'page_name' => \common\classes\design::pageName($pageName),
+             ], Yii::$app->request->get())));
         }
     }
 
     public function actionPaymentTokenRename()
     {
-      \common\helpers\Translation::init('account');
-      $messages = [];
-      $messages[] = [
-        'type' => 'danger',
-        'text' => PAYMENT_TOKEN_WASNT_UPDATED
-      ];
-      $ret = [];
-      $tmp = Yii::$app->request->post('token_name', []);
-      $is_default = Yii::$app->request->post('is_default', []);
-      if (is_array($tmp)) {
-        $tId = key($tmp);
-        $name = trim(substr(strip_tags($tmp[$tId]), 0, 50));
-        $isDefault = !empty($is_default[$tId]);
-      }
-      //if (Yii::$app->user->isGuest || empty($name) || !$tId) {      } else {
-      if (!Yii::$app->user->isGuest && $tId) {
-        try {
-          $m = \common\models\PaymentTokens::findOne([
-            'payment_tokens_id' => (int)$tId,
-            'customers_id' => Yii::$app->user->getId(),
-          ]);
-          if ($m) {
-            $m->card_name = $name;
-            $m->is_default = $isDefault;
-            $m->save();
-            $ret = [
-                  'id' => $tId,
-                  'name' => $name,
-                  'is_default' => $m->is_default,
-                  'payment_class' => $m->payment_class,
-                  ];
-            $messages = [];
-            $messages[] = [
-              'type' => 'success',
-              'text' => PAYMENT_TOKEN_UPDATED
-              ];
-
-          }
-        } catch (\Exception $ex) {
-          Yii::warning($ex->getMessage() . $ex->getTraceAsString());
+        \common\helpers\Translation::init('account');
+        $messages = [];
+        $messages[] = [
+          'type' => 'danger',
+          'text' => PAYMENT_TOKEN_WASNT_UPDATED,
+        ];
+        $ret = [];
+        $tmp = Yii::$app->request->post('token_name', []);
+        $is_default = Yii::$app->request->post('is_default', []);
+        if (is_array($tmp)) {
+            $tId = key($tmp);
+            $name = trim(substr(strip_tags($tmp[$tId]), 0, 50));
+            $isDefault = !empty($is_default[$tId]);
         }
-      }
-      $ret['messages'] = $messages;
+        //if (Yii::$app->user->isGuest || empty($name) || !$tId) {      } else {
+        if (!Yii::$app->user->isGuest && $tId) {
+            try {
+                $m = \common\models\PaymentTokens::findOne([
+                  'payment_tokens_id' => (int)$tId,
+                  'customers_id' => Yii::$app->user->getId(),
+                ]);
+                if ($m) {
+                    $m->card_name = $name;
+                    $m->is_default = $isDefault;
+                    $m->save();
+                    $ret = [
+                          'id' => $tId,
+                          'name' => $name,
+                          'is_default' => $m->is_default,
+                          'payment_class' => $m->payment_class,
+                          ];
+                    $messages = [];
+                    $messages[] = [
+                      'type' => 'success',
+                      'text' => PAYMENT_TOKEN_UPDATED,
+                      ];
 
-      return json_encode($ret);
+                }
+            } catch (\Exception $ex) {
+                Yii::warning($ex->getMessage() . $ex->getTraceAsString());
+            }
+        }
+        $ret['messages'] = $messages;
+
+        return json_encode($ret);
 
     }
 
     public function actionPaymentTokenDelete()
     {
-      \common\helpers\Translation::init('account');
-      $messages = [];
-      $messages[] = [
-        'type' => 'danger',
-        'text' => PAYMENT_TOKEN_WASNT_DELETED
-      ];
-      $ret = [];
-      $tId = Yii::$app->request->get('id', false);
-      $token = Yii::$app->request->get('token', '');
-      $payment = Yii::$app->request->get('class', '');
-      if (Yii::$app->user->isGuest || !$token || empty($payment)) {
-        return '';
-      }
-      try {
-
-        $manager = \common\services\OrderManager::loadManager();
-        $paymentModules = $manager->getPaymentCollection();
-        if ($paymentModules->isPaymentEnabled($payment)){
-          $pm = $paymentModules->get($payment);
-          $deleted = $pm->deleteToken(Yii::$app->user->getId(), $token);
-          if (!$deleted) {
-            throw new \Exception('incorrect token/customer Ids ' . (int)$tId . ' ' . Yii::$app->user->getId());
-          }
-        } else {
-
-          $m = \common\models\PaymentTokens::findOne([
-            'payment_tokens_id' => (int)$tId,
-            'customers_id' => Yii::$app->user->getId(),
-          ]);
-          if ($m) {
-            $m->delete();
-          } else {
-            throw new \Exception('incorrect token/customer Ids ' . (int)$tId . ' ' . Yii::$app->user->getId());
-          }
-
-        }
-
+        \common\helpers\Translation::init('account');
         $messages = [];
         $messages[] = [
-          'type' => 'success',
-          'text' => PAYMENT_TOKEN_DELETED
-          ];
+          'type' => 'danger',
+          'text' => PAYMENT_TOKEN_WASNT_DELETED,
+        ];
+        $ret = [];
+        $tId = Yii::$app->request->get('id', false);
+        $token = Yii::$app->request->get('token', '');
+        $payment = Yii::$app->request->get('class', '');
+        if (Yii::$app->user->isGuest || !$token || empty($payment)) {
+            return '';
+        }
+        try {
 
+            $manager = \common\services\OrderManager::loadManager();
+            $paymentModules = $manager->getPaymentCollection();
+            if ($paymentModules->isPaymentEnabled($payment)) {
+                $pm = $paymentModules->get($payment);
+                $deleted = $pm->deleteToken(Yii::$app->user->getId(), $token);
+                if (!$deleted) {
+                    throw new \Exception('incorrect token/customer Ids ' . (int)$tId . ' ' . Yii::$app->user->getId());
+                }
+            } else {
 
-      } catch (\Exception $ex) {
-        Yii::warning($ex->getMessage() . $ex->getTraceAsString());
-      }
-      $ret['messages'] = $messages;
+                $m = \common\models\PaymentTokens::findOne([
+                  'payment_tokens_id' => (int)$tId,
+                  'customers_id' => Yii::$app->user->getId(),
+                ]);
+                if ($m) {
+                    $m->delete();
+                } else {
+                    throw new \Exception('incorrect token/customer Ids ' . (int)$tId . ' ' . Yii::$app->user->getId());
+                }
 
-      return json_encode($ret);
+            }
+
+            $messages = [];
+            $messages[] = [
+              'type' => 'success',
+              'text' => PAYMENT_TOKEN_DELETED,
+              ];
+
+        } catch (\Exception $ex) {
+            Yii::warning($ex->getMessage() . $ex->getTraceAsString());
+        }
+        $ret['messages'] = $messages;
+
+        return json_encode($ret);
     }
 
-  	public function actionRma() {
+    public function actionRma()
+    {
 
         global $languages_id, $navigation;
 
@@ -2629,7 +2655,7 @@ class AccountController extends Sceleton
         }
     }
 
-///newsletterLists moved to subscribers/account extension
+    ///newsletterLists moved to subscribers/account extension
 
     public function actionGiftCardPdf()
     {
@@ -2642,7 +2668,7 @@ class AccountController extends Sceleton
         }
         $giftCard = \common\models\VirtualGiftCardInfo::find()->where([
             'virtual_gift_card_info_id' => $gift_card_id,
-            'customers_id' => $customer->customers_id
+            'customers_id' => $customer->customers_id,
         ])->asArray()->one();
 
         if (!$giftCard) {
@@ -2657,7 +2683,7 @@ class AccountController extends Sceleton
             'params' => [
                 'theme_name' => THEME_NAME,
                 'document_name' => 'gift_card.pdf',
-            ]
+            ],
         ]);
     }
 
@@ -2669,13 +2695,13 @@ class AccountController extends Sceleton
                 $cevEmail = md5($email);
                 $cevCode = \common\helpers\Password::create_random_value(8, 'digits');
                 $emailValidation = \common\models\CustomersEmailValidation::find()->where(['cev_email' => $cevEmail])->one();
-                if ( !($emailValidation instanceof \common\models\CustomersEmailValidation) ) {
+                if (!($emailValidation instanceof \common\models\CustomersEmailValidation)) {
                     $emailValidation = new \common\models\CustomersEmailValidation();
                     $emailValidation->loadDefaultValues();
                     $emailValidation->cev_email = $cevEmail;
                 }
                 $emailValidation->cev_code = md5($cevCode);
-                if ($emailValidation->save(false)){
+                if ($emailValidation->save(false)) {
                     $email_subject = TEXT_VERIFICATION_CODE;
                     $email_text = $cevCode;
                     \common\helpers\Mail::send('', $email, $email_subject, $email_text, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS);

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,7 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
-
 
 /**
  * This is the model class for table "translation".
@@ -39,12 +39,12 @@ class Translation extends ActiveRecord
      */
     public static function create($language_id, $translation_key, $translation_entity, $translation_value)
     {
-    	$model = new static();
-    	$model->language_id = $language_id;
-    	$model->translation_key = $translation_key;
-    	$model->translation_entity = $translation_entity;
-    	$model->translation_value = $translation_value;
-    	$model->translated = 1;
-    	return $model;
+        $model = new static();
+        $model->language_id = $language_id;
+        $model->translation_key = $translation_key;
+        $model->translation_entity = $translation_entity;
+        $model->translation_value = $translation_value;
+        $model->translated = 1;
+        return $model;
     }
 }

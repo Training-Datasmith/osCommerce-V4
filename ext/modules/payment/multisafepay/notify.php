@@ -1,34 +1,40 @@
 <?php
 
+declare(strict_types=1);
+
 /*
-  MultiSafepay Payment Module for osCommerce 
+  MultiSafepay Payment Module for osCommerce
   http://www.multisafepay.com
 
   Copyright (C) 2008 MultiSafepay.com
  */
 
-chdir("../../../../");
-require("includes/application_top.php");
+chdir('../../../../');
+require('includes/application_top.php');
 
 \common\helpers\Translation::init('checkout/process');
 
 $initial_request = ($_GET['type'] == 'initial');
 
 if (empty($_GET['transactionid'])) {
-    $message = "No transaction ID supplied";
+    $message = 'No transaction ID supplied';
     $url = tep_href_link(
-            FILENAME_CHECKOUT_PAYMENT, 'payment_error=' . $payment_module->code . '&error=' . urlencode($message), 'NONSSL', true, false
+        FILENAME_CHECKOUT_PAYMENT,
+        'payment_error=' . $payment_module->code . '&error=' . urlencode($message),
+        'NONSSL',
+        true,
+        false
     );
 } else {
     // load selected payment module
     //require(DIR_WS_CLASSES . "payment.php");
-    $payment_modules = new \common\classes\payment("multisafepay");
+    $payment_modules = new \common\classes\payment('multisafepay');
     $payment_module = $GLOBALS[$payment_modules->selected_module];
 
     //require(DIR_WS_CLASSES . "order.php");
     $order = new \common\classes\Order($_GET['transactionid']);
 
-    $order_status_query = tep_db_query("SELECT orders_status_id FROM " . TABLE_ORDERS_STATUS . " WHERE orders_status_name = '" . $order->info['orders_status'] . "' AND language_id = '" . $languages_id . "'");
+    $order_status_query = tep_db_query('SELECT orders_status_id FROM ' . TABLE_ORDERS_STATUS . " WHERE orders_status_name = '" . $order->info['orders_status'] . "' AND language_id = '" . $languages_id . "'");
     $order_status = tep_db_fetch_array($order_status_query);
     $order->info['order_status'] = $order_status['orders_status_id'];
 
@@ -44,15 +50,14 @@ if (empty($_GET['transactionid'])) {
 
     switch ($status) {
         default:
-            $message = "OK";
-            $url = tep_href_link("ext/modules/payment/multisafepay/success.php", '', 'NONSSL');
+            $message = 'OK';
+            $url = tep_href_link('ext/modules/payment/multisafepay/success.php', '', 'NONSSL');
     }
 }
 
 if ($initial_request) {
-    echo "<p><a href=\"" . $url . "\">" . sprintf(MODULE_PAYMENT_MULTISAFEPAY_TEXT_RETURN_TO_SHOP, htmlspecialchars(STORE_NAME)) . "</a></p>";
+    echo '<p><a href="' . $url . '">' . sprintf(MODULE_PAYMENT_MULTISAFEPAY_TEXT_RETURN_TO_SHOP, htmlspecialchars(STORE_NAME)) . '</a></p>';
 } else {
-    header("Content-type: text/plain");
+    header('Content-type: text/plain');
     echo $message;
 }
-?>

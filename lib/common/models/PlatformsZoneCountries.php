@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
 use yii\db\ActiveRecord;
@@ -11,17 +13,17 @@ use yii\db\ActiveRecord;
  * @property int $platform_id
  * @property int $zone_country_id
  */
-class PlatformsZoneCountries extends ActiveRecord 
+class PlatformsZoneCountries extends ActiveRecord
 {
     public static function tableName()
     {
         return '{{platforms_zone_countries}}';
     }
-    
+
     public static function create($array, $platformId)
-    {   
+    {
         $platformsZoneCountries = [];
-        
+
         foreach ($array as $item => $country) {
             $platformsZoneCountry = new static();
             $platformsZoneCountry->platform_id = $platformId;

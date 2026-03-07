@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,11 +16,9 @@ namespace frontend\design\boxes\product;
 
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Weight extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -38,18 +38,19 @@ class Weight extends Widget
         if ($data['model'] && \yii\helpers\ArrayHelper::getValue($this->settings, [0,'show_model']) != 'no') {
             \frontend\design\JsonLd::addData(['Product' => [
                 'weight' => [
-                    "@type" => "QuantitativeValue",
-                    "@id" => "https://schema.org/QuantitativeValue",
-                    "unitText" => "Kg",
-                    "unitCode" => "KGM",
-                    "value" => $weightKg,
-                ]
+                    '@type' => 'QuantitativeValue',
+                    '@id' => 'https://schema.org/QuantitativeValue',
+                    'unitText' => 'Kg',
+                    'unitCode' => 'KGM',
+                    'value' => $weightKg,
+                ],
             ]], ['Product', 'weight']);
         }
 
-
         $optWU = $this->settings[0]['display_weight'] ?? null;
-        if ('no' === $optWU) return '';
+        if ('no' === $optWU) {
+            return '';
+        }
 
         $weightUnit = defined('TEXT_WEIGHT_UNIT_KG') ? TEXT_WEIGHT_UNIT_KG : 'Kgs';
         $weight = round($weightKg, 2);

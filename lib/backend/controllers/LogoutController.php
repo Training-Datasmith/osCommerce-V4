@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -29,11 +31,11 @@ class LogoutController extends Controller
         global $login_id, $device_hash;
 
         $alslHash = trim(Yii::$app->request->get('hash'));
-        if ( !empty($alslHash) ) {
+        if (!empty($alslHash)) {
             Translation::init('admin/logout');
             $this->layout = false;
             return $this->render('sessions', [
-                'formAction' => \yii\helpers\Url::to(['logout/', 'hash'=>null]),
+                'formAction' => \yii\helpers\Url::to(['logout/', 'hash' => null]),
                 'alslHash' => $alslHash,
             ]);
         }
@@ -64,7 +66,8 @@ class LogoutController extends Controller
             $adminLoginLogRecord->all_date = date('Y-m-d H:i:s');
             try {
                 $adminLoginLogRecord->save();
-            } catch (\Exception $exc) {}
+            } catch (\Exception $exc) {
+            }
         }
 
         \common\models\AdminLoginSession::deleteAll(['als_admin_id' => (int)$login_id, 'als_device_id' => trim($device_hash)]);

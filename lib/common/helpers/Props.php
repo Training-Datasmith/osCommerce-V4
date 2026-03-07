@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -18,8 +20,8 @@ use Yii;
 /**
  * All commented prieces of code are provided only as example
  */
-class Props extends \common\classes\AbstractProps {
-
+class Props extends \common\classes\AbstractProps
+{
     private static $workers = null;
 
     public static function getWorkers()
@@ -27,7 +29,7 @@ class Props extends \common\classes\AbstractProps {
         if (is_null(self::$workers)) {
             self::$workers = [
                 /* classes of \common\classes\PropsWorkerAbstract */
-                \common\classes\PropsWorkerAttrText::class
+                \common\classes\PropsWorkerAttrText::class,
             ];
             foreach (\common\helpers\Hooks::getList('product_props/init_workers') as $filename) {
                 include($filename);
@@ -36,7 +38,8 @@ class Props extends \common\classes\AbstractProps {
         return self::$workers;
     }
 
-    public static function ParamsToXml($params = array(), $productId = false) {
+    public static function ParamsToXml($params = [], $productId = false)
+    {
         $data = [];
         foreach (self::getWorkers() as $worker) {
             $data = array_merge($data, $worker::paramsToXml($params, $productId));
@@ -47,7 +50,8 @@ class Props extends \common\classes\AbstractProps {
         return self::toXML($data);
     }
 
-    public static function explainParams($params = [], $tax_rate = 0) {
+    public static function explainParams($params = [], $tax_rate = 0)
+    {
         $attr = false;
         /* if (isset($params['recipe'])) {
           if (!is_array($attr)) $attr = [];
@@ -102,7 +106,8 @@ class Props extends \common\classes\AbstractProps {
      * @param type $uprid
      * @return type
      */
-    public static function normalize_id($uprid) {
+    public static function normalize_id($uprid)
+    {
         foreach (self::getWorkers() as $worker) {
             $uprid = $worker::normalize_id($uprid);
         }
@@ -115,7 +120,8 @@ class Props extends \common\classes\AbstractProps {
      * @param type $props
      * @return type
      */
-    public static function cartUprid($products_id, $props) {
+    public static function cartUprid($products_id, $props)
+    {
         $products_id = self::normalize_id($products_id);
         if (!empty($props)) {
             $propsData = self::XmlToParams($props);
@@ -133,8 +139,9 @@ class Props extends \common\classes\AbstractProps {
      * @param $props string props xml
      * @return string props xml
      */
-    public static function onCartAdd($props) {
-        $propsData = empty($props)? [] : static::XmlToParams($props);
+    public static function onCartAdd($props)
+    {
+        $propsData = empty($props) ? [] : static::XmlToParams($props);
         foreach (self::getWorkers() as $worker) {
             $propsData = $worker::onCartAdd($propsData);
         }
@@ -146,11 +153,13 @@ class Props extends \common\classes\AbstractProps {
      *
      * @return bool
      */
-    public static function afterCartRestore($cart) {
+    public static function afterCartRestore($cart)
+    {
         return self::cartChanged($cart);
     }
 
-    public static function cartChanged($cart) {
+    public static function cartChanged($cart)
+    {
         $updateCart = false;
         /* if ( is_array($cart->contents) && count($cart->contents)>0 ) {
           $cartRecipeIds = [];
@@ -198,20 +207,21 @@ class Props extends \common\classes\AbstractProps {
      * @param $cartProduct
      * @return mixed
      */
-    public static function applyToCartProductArray($cartProduct) {
-//        if (isset($cartProduct['propsData']) && is_array($cartProduct['propsData'])) {
-//            if (isset($cartProduct['propsData']['recipe']) && isset($cartProduct['propsData']['recipe']['data'])) {
-//                if (isset($cartProduct['propsData']['recipe']['data']['views']) && is_array($cartProduct['propsData']['recipe']['data']['views'])) {
-//                    $views = array_values($cartProduct['propsData']['recipe']['data']['views']);
-//                    foreach ($views as $view) {
-//                        if (is_array($view) && !empty($view['image'])) {
-//                            $cartProduct['image_external'] = $view['image'];
-//                            break;
-//                        }
-//                    }
-//                }
-//            }
-//        }
+    public static function applyToCartProductArray($cartProduct)
+    {
+        //        if (isset($cartProduct['propsData']) && is_array($cartProduct['propsData'])) {
+        //            if (isset($cartProduct['propsData']['recipe']) && isset($cartProduct['propsData']['recipe']['data'])) {
+        //                if (isset($cartProduct['propsData']['recipe']['data']['views']) && is_array($cartProduct['propsData']['recipe']['data']['views'])) {
+        //                    $views = array_values($cartProduct['propsData']['recipe']['data']['views']);
+        //                    foreach ($views as $view) {
+        //                        if (is_array($view) && !empty($view['image'])) {
+        //                            $cartProduct['image_external'] = $view['image'];
+        //                            break;
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
         return $cartProduct;
     }
 
@@ -220,7 +230,8 @@ class Props extends \common\classes\AbstractProps {
      * @param type $orderProduct
      * @return string
      */
-    public static function adminOrderProductView($orderProduct) {
+    public static function adminOrderProductView($orderProduct)
+    {
         $info = '';
 
         /* if ( isset($orderProduct['propsData']) && is_array($orderProduct['propsData']) ) {
@@ -246,7 +257,8 @@ class Props extends \common\classes\AbstractProps {
         return $info;
     }
 
-    public static function adminOrderImageUrl($orderProduct) {
+    public static function adminOrderImageUrl($orderProduct)
+    {
         $info = '';
         /*if (isset($orderProduct['propsData']) && is_array($orderProduct['propsData'])) {
             $recipeInfo = '';

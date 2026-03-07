@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models\repositories;
 
 use common\models\PlatformsCurrenciesMargin;
@@ -10,7 +12,7 @@ class CurrenciesMarginRepositoty
     {
         return PlatformsCurrenciesMargin::deleteAll(['platform_id' => $platformId]);
     }
-    
+
     public function save(PlatformsCurrenciesMargin $platCurrenMargin)
     {
         if (!$platCurrenMargin->save()) {

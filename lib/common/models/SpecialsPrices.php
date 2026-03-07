@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,8 +13,6 @@
  */
 
 namespace common\models;
-
-use Yii;
 
 /**
  * This is the model class for table "specials_prices".
@@ -61,13 +61,14 @@ class SpecialsPrices extends \yii\db\ActiveRecord
     /**
      * delete lost (without related special) price
      */
-    public static function cleanup() {
-      self::deleteAll([
-        'not in',
-        'specials_id',
-        (Specials::find()->select('specials_id')->distinct())
-      ])
-      ;
+    public static function cleanup()
+    {
+        self::deleteAll([
+          'not in',
+          'specials_id',
+          (Specials::find()->select('specials_id')->distinct()),
+        ])
+        ;
 
     }
 }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,12 +15,10 @@
 namespace backend\design\boxes;
 
 use common\helpers\Translation;
-use Yii;
 use yii\base\Widget;
 
 class BatchProducts extends Widget
 {
-
     public $id;
     public $params;
     public $settings;
@@ -33,10 +33,12 @@ class BatchProducts extends Widget
     {
         $sortingOptions = \common\helpers\Sorting::getPossibleSortOptions();
         $sortingOptions[''] = TEXT_RANDOM;
-        $sorting = \common\helpers\Html::dropDownList('setting[0][sort_order]',
+        $sorting = \common\helpers\Html::dropDownList(
+            'setting[0][sort_order]',
             $this->settings[0]['sort_order'],
             $sortingOptions,
-            ['class' => 'form-control']);
+            ['class' => 'form-control']
+        );
 
         $batchSelectedWidgets = \common\models\DesignBoxesTmp::find()->where([
             'widget_name' => 'BatchSelectedProducts',
@@ -51,12 +53,11 @@ class BatchProducts extends Widget
         ];
 
         $extra_xsell_lists = [];
-        if ($ext = \common\helpers\Acl::checkExtensionAllowed('UpSell'))
-        {
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('UpSell')) {
             $extra_xsell_lists = $ext::getXsellTypeList();
         }
 
-        foreach ($extra_xsell_lists as $extra_xsell_list){
+        foreach ($extra_xsell_lists as $extra_xsell_list) {
             $product_sources['xsell_'.$extra_xsell_list['xsell_type_id']] = $extra_xsell_list['xsell_type_name'];
         }
 

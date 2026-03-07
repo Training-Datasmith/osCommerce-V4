@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,10 +15,9 @@
 namespace common\models;
 
 use common\models\queries\CategoriesQuery;
-use Yii;
-use yii\db\ActiveRecord;
-
 use paulzi\nestedsets\NestedSetsBehavior;
+
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "categories".
@@ -58,7 +59,8 @@ class Categories extends ActiveRecord
         return 'categories';
     }
 
-    public function behaviors() {
+    public function behaviors()
+    {
         return [
             'nestedSets' => [
                 'class' => NestedSetsBehavior::class,
@@ -76,7 +78,6 @@ class Categories extends ActiveRecord
             self::SCENARIO_DEFAULT => self::OP_ALL,
         ];
     }
-
 
     /**
      * {@inheritdoc}
@@ -132,12 +133,12 @@ class Categories extends ActiveRecord
 
     public function getSupplierDiscounts()
     {
-        return $this->hasMany(SuppliersCatalogDiscount::class,['category_id' => 'categories_id']);
+        return $this->hasMany(SuppliersCatalogDiscount::class, ['category_id' => 'categories_id']);
     }
 
     public function getSupplierPriceRules()
     {
-        return $this->hasMany(SuppliersCatalogPriceRules::class,['category_id' => 'categories_id']);
+        return $this->hasMany(SuppliersCatalogPriceRules::class, ['category_id' => 'categories_id']);
     }
 
     //public function getGroupsCategories() - removed due extracting extension UsersGroupsRestriction - use this
@@ -171,10 +172,10 @@ class Categories extends ActiveRecord
      */
     public function getCurrentPlatform()
     {
-      $platform_id = \common\classes\platform::currentId();
+        $platform_id = \common\classes\platform::currentId();
         return $this->hasMany(PlatformsCategories::className(), ['categories_id' => 'categories_id'])
             ->andWhere(['{{%platforms_categories}}.platform_id' => $platform_id])
-            ;
+        ;
     }
 
     /**
@@ -183,10 +184,10 @@ class Categories extends ActiveRecord
      */
     public function getDescription()
     {
-      $languages_id = \Yii::$app->settings->get('languages_id');
+        $languages_id = \Yii::$app->settings->get('languages_id');
         return $this->hasOne(CategoriesDescription::className(), ['categories_id' => 'categories_id'])
             ->andWhere(['{{%categories_description}}.language_id' => $languages_id])
-            ;
+        ;
     }
 
     /**
@@ -195,54 +196,58 @@ class Categories extends ActiveRecord
      */
     public function getPlatformSettings()
     {
-      $currentPlatformId = \common\classes\platform::currentId();
-      return $this->hasOne(CategoriesPlatformSettings::className(), ['categories_id' => 'categories_id'])
-            ->andOnCondition(['{{%categories_platform_settings}}.platform_id' => $currentPlatformId]);
+        $currentPlatformId = \common\classes\platform::currentId();
+        return $this->hasOne(CategoriesPlatformSettings::className(), ['categories_id' => 'categories_id'])
+              ->andOnCondition(['{{%categories_platform_settings}}.platform_id' => $currentPlatformId]);
     }
 
-/**
- * return homepage categories
- * @return \yii\db\ActiveQuery
- */
-    public static function getHomepageCategories() {
-      $languages_id = \Yii::$app->settings->get('languages_id');
-       return self::find()->active()->withDescription($languages_id)->joinWith(['platformSettings'])
-             ->andWhere(['or',
-                         '{{%categories}}.show_on_home = 1 and {{%categories_platform_settings}}.show_on_home is null ' ,
-                        ['{{%categories_platform_settings}}.show_on_home' => 1],
-                        ]
-                )
-           ;
+    /**
+     * return homepage categories
+     * @return \yii\db\ActiveQuery
+     */
+    public static function getHomepageCategories()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
+        return self::find()->active()->withDescription($languages_id)->joinWith(['platformSettings'])
+              ->andWhere(
+                  ['or',
+                          '{{%categories}}.show_on_home = 1 and {{%categories_platform_settings}}.show_on_home is null ' ,
+                         ['{{%categories_platform_settings}}.show_on_home' => 1],
+                         ]
+              )
+        ;
     }
 
-
-/**
- * link to products_to_categories
- * @return \yii\db\ActiveQuery
- */
-    public function getProductIds() {
-       return $this->hasMany(Products2Categories::class, ['categories_id' => 'categories_id'])           ;
+    /**
+     * link to products_to_categories
+     * @return \yii\db\ActiveQuery
+     */
+    public function getProductIds()
+    {
+        return $this->hasMany(Products2Categories::class, ['categories_id' => 'categories_id'])           ;
     }
 
-    public function getProducts() {
+    public function getProducts()
+    {
         return $this->hasMany(Products::class, ['products_id' => 'products_id'])->via('productsIds');
     }
 
-// SeoRedirectsNamed model moved to extensions/SeoRedirectsNamed/models
-//    public function getSeoRedirects() {
-//       return $this->hasMany(SeoRedirectsNamed::class, ['owner_id' => 'categories_id'])->andOnCondition('redirects_type = "category"');
-//    }
+    // SeoRedirectsNamed model moved to extensions/SeoRedirectsNamed/models
+    //    public function getSeoRedirects() {
+    //       return $this->hasMany(SeoRedirectsNamed::class, ['owner_id' => 'categories_id'])->andOnCondition('redirects_type = "category"');
+    //    }
 
-/**
- * return active parents linked to current platform
- * @return \yii\db\ActiveQuery
- */
-    public function getVisibleParents() {
-      $currentPlatformId = \common\classes\platform::currentId();
-       return $this->getParents()
-            ->andWhere(['categories_status' => 1])
-            ->joinWith('platforms', false)
-            ->andWhere(['platform_id' => $currentPlatformId]);
+    /**
+     * return active parents linked to current platform
+     * @return \yii\db\ActiveQuery
+     */
+    public function getVisibleParents()
+    {
+        $currentPlatformId = \common\classes\platform::currentId();
+        return $this->getParents()
+             ->andWhere(['categories_status' => 1])
+             ->joinWith('platforms', false)
+             ->andWhere(['platform_id' => $currentPlatformId]);
     }
 
     /**
@@ -252,53 +257,53 @@ class Categories extends ActiveRecord
      * @param int $categoryId category id
      * @return bool
      */
-    public static function isVisible($categoryId) {
-      $ret = false;
-      $currentPlatformId = \common\classes\platform::currentId();
-      $c = self::find()->alias('c')
-          ->andWhere(['c.categories_id' => (int)$categoryId, 'categories_status' => 1])
-          ->joinWith('platforms p', false)
-          ->andWhere(['platform_id' => $currentPlatformId])
-          ->one();
-
-      if ($c) {
-        $p = $c->getParents()
-            ->andWhere(['categories_status' => 1])
-            ->joinWith('platforms', false)
+    public static function isVisible($categoryId)
+    {
+        $ret = false;
+        $currentPlatformId = \common\classes\platform::currentId();
+        $c = self::find()->alias('c')
+            ->andWhere(['c.categories_id' => (int)$categoryId, 'categories_status' => 1])
+            ->joinWith('platforms p', false)
             ->andWhere(['platform_id' => $currentPlatformId])
-            ->asArray()->all();
+            ->one();
 
-        if (is_array($p) && (!isset($p[0]['parents_id']) || $p[0]['parents_id'] == 0) && $c->categories_level == count($p)+1) {
-          $ret=true;
+        if ($c) {
+            $p = $c->getParents()
+                ->andWhere(['categories_status' => 1])
+                ->joinWith('platforms', false)
+                ->andWhere(['platform_id' => $currentPlatformId])
+                ->asArray()->all();
+
+            if (is_array($p) && (!isset($p[0]['parents_id']) || $p[0]['parents_id'] == 0) && $c->categories_level == count($p) + 1) {
+                $ret = true;
+            }
         }
-      }
-      return $ret;
+        return $ret;
     }
 
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
 
-        if ( $insert ) {
+        if ($insert) {
             /** @var \common\extensions\UserGroupsRestrictions\UserGroupsRestrictions $ext */
             if ($ext = \common\helpers\Acl::checkExtensionAllowed('UserGroupsRestrictions', 'allowed')) {
-                if ( $groupService = $ext::getGroupsService() ){
+                if ($groupService = $ext::getGroupsService()) {
                     $groupService->addCategoryToAllGroups($this->categories_id);
                 }
             }
         }
     }
 
-
     public function getPlatform()
     {
         return $this->hasMany(PlatformsCategories::className(), ['categories_id' => 'categories_id']);
     }
 
-// SeoRedirectsNamed model moved to extensions/SeoRedirectsNamed/models
-//    public function getSeoRedirectsNamed()
-//    {
-//        return $this->hasMany(SeoRedirectsNamed::className(), ['owner_id' => 'categories_id'])->andWhere(['redirects_type'=>'category']);
-//    }
+    // SeoRedirectsNamed model moved to extensions/SeoRedirectsNamed/models
+    //    public function getSeoRedirectsNamed()
+    //    {
+    //        return $this->hasMany(SeoRedirectsNamed::className(), ['owner_id' => 'categories_id'])->andWhere(['redirects_type'=>'category']);
+    //    }
 
 }

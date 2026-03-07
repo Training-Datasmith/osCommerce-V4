@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\helpers;
 
 use common\models\CategoriesDescription;
@@ -26,7 +28,7 @@ class CategoriesDescriptionHelper
                     "(CASE WHEN cd1.categories_name = '' THEN cd.categories_name ELSE cd1.categories_name END) AS categories_name",
                     "(CASE WHEN cd1.categories_heading_title = '' THEN cd.categories_heading_title ELSE cd1.categories_heading_title END) AS categories_heading_title",
                     "(CASE WHEN cd1.categories_description = '' THEN cd.categories_description ELSE cd1.categories_description END) AS categories_description",
-                    'c.categories_image', 'c.banners_group', 'cd.noindex_option', 'cd.nofollow_option', 'cd.rel_canonical', 'cd.categories_h1_tag'
+                    'c.categories_image', 'c.banners_group', 'cd.noindex_option', 'cd.nofollow_option', 'cd.rel_canonical', 'cd.categories_h1_tag',
                         ]);
         $category->innerJoinWith(['categories c'], false);
         $category->leftJoin('categories_description cd1', 'cd1.categories_id = c.categories_id');
@@ -42,12 +44,12 @@ class CategoriesDescriptionHelper
                 'cd1.affiliate_id' => $session,
                 'cd.categories_id' => $currentCategoryId,
                 'cd.language_id' => $languages_id,
-                'c.categories_status' => 1
+                'c.categories_status' => 1,
             ]);
 
         if ($groupWhere && \common\helpers\Acl::checkExtensionTableExist('UserGroupsRestrictions', 'GroupsCategories')) {
             $category->andWhere([
-                'gc.groups_id' => $customerGroupsId
+                'gc.groups_id' => $customerGroupsId,
             ]);
         }
 

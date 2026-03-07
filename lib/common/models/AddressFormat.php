@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
 use yii\db\ActiveRecord;
@@ -9,7 +11,7 @@ use yii\db\ActiveRecord;
  *
  * @property integer $address_format_id
  * @property string $address_format
- * @property string $address_summary 
+ * @property string $address_summary
  * @property integer $address_format_title
  */
 class AddressFormat extends ActiveRecord
@@ -23,15 +25,14 @@ class AddressFormat extends ActiveRecord
     {
         parent::afterSave($insert, $changedAttributes);
 
-        \yii\caching\TagDependency::invalidate(\Yii::$app->getCache(),'address_format');
+        \yii\caching\TagDependency::invalidate(\Yii::$app->getCache(), 'address_format');
     }
 
     public function afterDelete()
     {
         parent::afterDelete();
 
-        \yii\caching\TagDependency::invalidate(\Yii::$app->getCache(),'address_format');
+        \yii\caching\TagDependency::invalidate(\Yii::$app->getCache(), 'address_format');
     }
-
 
 }

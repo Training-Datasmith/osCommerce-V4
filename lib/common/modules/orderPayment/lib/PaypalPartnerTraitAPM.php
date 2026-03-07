@@ -1,36 +1,42 @@
 <?php
+
+declare(strict_types=1);
+
 namespace common\modules\orderPayment\lib;
 
-trait PaypalPartnerTraitAPM {
-
-/**
- * show agreement near standard checkout button
- */
-    public function apmsWithAgreement() {
+trait PaypalPartnerTraitAPM
+{
+    /**
+     * show agreement near standard checkout button
+     */
+    public function apmsWithAgreement()
+    {
         $ret = [];
-        if (($this->billing['country']['countries_iso_code_2']??null) == 'DE') {
+        if (($this->billing['country']['countries_iso_code_2'] ?? null) == 'DE') {
             $ret[] = 'pui';
         }
         return $ret;
     }
 
-/**
- * show standard checkout button (add callback)
- */
-    public function apmsWithoutOwnButton() {
+    /**
+     * show standard checkout button (add callback)
+     */
+    public function apmsWithoutOwnButton()
+    {
 
         $ret = ['giropay', 'sofort', 'bancontact', 'blik', 'p24', 'eps', 'ideal', 'mybank'];
 
         if (!empty($this->getAPMTemplate('card'))) {
             $ret[] = 'card';
         }
-        if (($this->billing['country']['countries_iso_code_2']??null) == 'DE') {
+        if (($this->billing['country']['countries_iso_code_2'] ?? null) == 'DE') {
             $ret[] = 'pui';
         }
-        
+
         return $ret;
     }
-    public function getAPMTemplates() {
+    public function getAPMTemplates()
+    {
         $methods = $paypalMethods = [];
         $fundings = $this->getFundings();
 
@@ -48,7 +54,8 @@ trait PaypalPartnerTraitAPM {
         return $methods;
     }
 
-    public function getAPMJSCallbacks() {
+    public function getAPMJSCallbacks()
+    {
         $methods = $paypalMethods = [];
         $fundings = $this->getFundings();
 
@@ -65,8 +72,9 @@ trait PaypalPartnerTraitAPM {
         }
         return $methods;
     }
-    
-    public function getAPMTemplate($option) {
+
+    public function getAPMTemplate($option)
+    {
         $ret = '';
         $currency = \Yii::$app->settings->get('currency');
         switch ($option) {
@@ -95,11 +103,11 @@ trait PaypalPartnerTraitAPM {
 </div>
                     ';
                 }
-            break;
+                break;
 
             case 'pui':
                 $ret = '';
-                if ($currency =='EUR' && $this->billing['country']['countries_iso_code_2'] == 'DE') {
+                if ($currency == 'EUR' && $this->billing['country']['countries_iso_code_2'] == 'DE') {
 
                     $showPhone = $showBirthDay = true;
                     if (in_array(ACCOUNT_TELEPHONE, ['required', 'required_register', 'visible', 'visible_register'])) {
@@ -113,7 +121,7 @@ trait PaypalPartnerTraitAPM {
                     }
 
                     $platformId = $this->getPlatformId();
-                    if ($showPhone || $showBirthDay ) {
+                    if ($showPhone || $showBirthDay) {
                         $ret = '
 <style>
     .ppp_pui .pui_field input {position: initial;}
@@ -143,22 +151,23 @@ trait PaypalPartnerTraitAPM {
                         ';
                     }
                 }
-            break;
+                break;
             case '_ideal':
                 $ret .= '
                     <div class="ppp-ideal" id="ppp-ideal"></div>
                         ';
-            break;
+                break;
         }
         return $ret;
     }
 
-    public function getAPMJSCallback($option) {
+    public function getAPMJSCallback($option)
+    {
         $ret = '';
         //$createUrl = \Yii::$app->urlManager->createAbsoluteUrl(["callback/webhooks.payment.{$this->code}", 'action' => 'createOrder', 'option' => $option]);
         $getCCOptionsUrl = \Yii::$app->urlManager->createAbsoluteUrl(["callback/webhooks.payment.{$this->code}", 'action' => 'customerDetails', 'option' => $option]);
         $retrieveUrl = \Yii::$app->urlManager->createAbsoluteUrl(["callback/webhooks.payment.{$this->code}", 'action' => 'retrieveOrder', 'partlypaid' => $this->isPartlyPaid()]);
-        $generalError = str_replace(["'", "\n"], ["\\'", '<br>'], defined('PAYPAL_PARTNER_TEXT_ERROR_CAPTURE')?PAYPAL_PARTNER_TEXT_ERROR_CAPTURE:'Payment could not be captured.');
+        $generalError = str_replace(["'", "\n"], ["\\'", '<br>'], defined('PAYPAL_PARTNER_TEXT_ERROR_CAPTURE') ? PAYPAL_PARTNER_TEXT_ERROR_CAPTURE : 'Payment could not be captured.');
         $generalErrorModule = str_replace(["'", "\n"], ["\\'", '<br>'], defined('MODULE_PAYMENT_PAYPAL_PARTNER_GENERAL_ERROR') ? MODULE_PAYMENT_PAYPAL_PARTNER_GENERAL_ERROR : "Can't create order");
         switch ($option) {
             case 'card':
@@ -249,9 +258,9 @@ trait PaypalPartnerTraitAPM {
             });
         }
 ";
-          break;
+                break;
             case 'pui':
-                if (($this->billing['country']['countries_iso_code_2']??null) == 'DE') {
+                if (($this->billing['country']['countries_iso_code_2'] ?? null) == 'DE') {
                     $createUrl = \Yii::$app->urlManager->createAbsoluteUrl(["callback/webhooks.payment.{$this->code}", 'action' => 'createOrder', 'option' => $option]);
                     $ret = "
         window.{$this->code}_callback_{$option} = function () {
@@ -301,7 +310,7 @@ trait PaypalPartnerTraitAPM {
         }
 ";
                 }
-          break;
+                break;
             case 'giropay':
             case 'bancontact':
             case 'blik':
@@ -310,7 +319,7 @@ trait PaypalPartnerTraitAPM {
             case 'mybank':
             case 'sofort':
             case 'ideal':
-                if ($this->validAPMCountry($option, ($this->billing['country']['countries_iso_code_2']??null))) {
+                if ($this->validAPMCountry($option, ($this->billing['country']['countries_iso_code_2'] ?? null))) {
                     $createUrl = \Yii::$app->urlManager->createAbsoluteUrl(["callback/webhooks.payment.{$this->code}", 'action' => 'createOrder', 'option' => $option]);
                     $ret = "
         window.{$this->code}_callback_{$option} = function () {
@@ -346,20 +355,21 @@ trait PaypalPartnerTraitAPM {
         }
 ";
                 }
-          break;
+                break;
 
         }
         return $ret;
     }
 
-/**
- * paranoic - could be return true; (PayPal should return error if APM is not available for country/currency)
- * need to be updated if APM became available for new country
- * @param string $option APM
- * @param string $code country ISO 2 code
- * @return bool
- */
-    protected function validAPMCountry($option, $code){
+    /**
+     * paranoic - could be return true; (PayPal should return error if APM is not available for country/currency)
+     * need to be updated if APM became available for new country
+     * @param string $option APM
+     * @param string $code country ISO 2 code
+     * @return bool
+     */
+    protected function validAPMCountry($option, $code)
+    {
         $ret = false;
         switch ($option) {
             case 'bancontact':
@@ -387,8 +397,9 @@ trait PaypalPartnerTraitAPM {
         }
         return $ret;
     }
-    
-    public function getAPMJS($option) {
+
+    public function getAPMJS($option)
+    {
         $ret = '';
         $createUrl = \Yii::$app->urlManager->createAbsoluteUrl(["callback/webhooks.payment.{$this->code}", 'action' => 'createOrder', 'option' => $option]);
         $getCreateUrl = \Yii::$app->urlManager->createAbsoluteUrl(["callback/webhooks.payment.{$this->code}", 'action' => 'createOrder', 'option' => $option, 'get' => 1, 'partlypaid' => $this->isPartlyPaid()]);
@@ -403,7 +414,7 @@ trait PaypalPartnerTraitAPM {
                                 body: $('#frmCheckout').serialize()
                             }";
         }
-        
+
         switch ($option) {
             case 'pui': //upon invoice
                 if ($this->billing['country']['countries_iso_code_2'] == 'DE') {
@@ -489,7 +500,7 @@ window.paypal_render_subfields_{$option} = function () {
 }
 ";
                 }
-          break;
+                break;
             case 'paypal':
                 //wallets butons and details
                 $platformId = $this->getPlatformId();
@@ -506,12 +517,13 @@ window.paypal_render_subfields_{$option} = function () {
 }
 ";
                 }
-          break;
+                break;
         }
         return $ret;
     }
 
-    public function setAPMSetting($post) {
+    public function setAPMSetting($post)
+    {
         $payment = $post['payment'];
         if (in_array($payment, ['paypal_partner_pui'])) {
             $this->requireItemVat = true;
@@ -519,7 +531,8 @@ window.paypal_render_subfields_{$option} = function () {
 
     }
 
-    public function addAPMDetails(&$request, $order, $post) {
+    public function addAPMDetails(&$request, $order, $post)
+    {
         $payment = $post['payment'];
         //pay upon invoice available in DE and requires EN|DE-DE locale
         $locale = str_replace('_', '-', \Yii::$app->settings->get('locale'));
@@ -531,12 +544,12 @@ window.paypal_render_subfields_{$option} = function () {
         }
 
         if ($country_code == 'DE' && substr($locale, -2) != 'DE') {
-            $locale = substr($locale , 0, -2) . 'DE';
+            $locale = substr($locale, 0, -2) . 'DE';
         }
-        
+
         $fullname = '';
         if (!empty($request->body['payer']['name'])) {
-            $fullname = ($request->body['payer']['name']['given_name']??null) . ' ' . ($request->body['payer']['name']['surname']??null);
+            $fullname = ($request->body['payer']['name']['given_name'] ?? null) . ' ' . ($request->body['payer']['name']['surname'] ?? null);
         } elseif (!empty($request->body['purchase_units'][0]['shipping']['name']['full_name'])) {
             $fullname = $request->body['purchase_units'][0]['shipping']['name']['full_name'];
         }
@@ -546,7 +559,7 @@ window.paypal_render_subfields_{$option} = function () {
         }
         switch ($payment) {
             case 'paypal_partner_pui':
-                if ($request->body['intent']=='CAPTURE' &&  $country_code == 'DE') {
+                if ($request->body['intent'] == 'CAPTURE' &&  $country_code == 'DE') {
                     $dob = $telephone = '';
                     $prefix = preg_replace('/\D/', '', $this->billing['country']['dialling_prefix']);
                     if (!empty($post['checkout']['telephone'])) {
@@ -556,7 +569,7 @@ window.paypal_render_subfields_{$option} = function () {
                         $telephone = $post['paypal_telephone'];
                     }
                     $telephone = preg_replace('/\D/', '', $telephone);
-                    if ($prefix == substr($telephone, 0, strlen($prefix))){
+                    if ($prefix == substr($telephone, 0, strlen($prefix))) {
                         $telephone = substr($telephone, strlen($prefix));
                     }
 
@@ -565,34 +578,34 @@ window.paypal_render_subfields_{$option} = function () {
 
                     } elseif ($this->manager->isCustomerAssigned()) {
                         $cust = $this->manager->getCustomersIdentity();
-                        if ($cust && substr($cust->customers_dob, 0, 4)>1900) {
+                        if ($cust && substr($cust->customers_dob, 0, 4) > 1900) {
                             $dob = substr($cust->customers_dob, 0, 10);
                         }
                     }
-       
+
                     $payment_source =  [
-                                "pay_upon_invoice" =>
+                                'pay_upon_invoice' =>
                                 [
-                                    'name' => $request->body['payer']['name']??null,
-                                    'email' => $request->body['payer']['email_address']??$email_address,
-                                    'billing_address' => $request->body['payer']['address']??null,
+                                    'name' => $request->body['payer']['name'] ?? null,
+                                    'email' => $request->body['payer']['email_address'] ?? $email_address,
+                                    'billing_address' => $request->body['payer']['address'] ?? null,
                                     'birth_date' => $dob,
                                     'phone' => [
                                       'national_number' => $telephone,
-                                      'country_code' => $prefix
+                                      'country_code' => $prefix,
                                     ],
                                     'experience_context' => [
                                       'locale' => $locale,
-                                      'customer_service_instructions' => [TEXT_INVOICE_SOMETHING_WRONG . ' ' . STORE_OWNER_EMAIL_ADDRESS]
-                                    ]
+                                      'customer_service_instructions' => [TEXT_INVOICE_SOMETHING_WRONG . ' ' . STORE_OWNER_EMAIL_ADDRESS],
+                                    ],
 
-                                ]
+                                ],
 
                     ];
                     $request->body['payment_source'] = $payment_source;
-                    $request->body['processing_instruction'] = "ORDER_COMPLETE_ON_PAYMENT_APPROVAL";
+                    $request->body['processing_instruction'] = 'ORDER_COMPLETE_ON_PAYMENT_APPROVAL';
                 }
-            break;
+                break;
             case 'paypal_partner_giropay':
             case 'paypal_partner_bancontact':
             case 'paypal_partner_blik':
@@ -602,41 +615,41 @@ window.paypal_render_subfields_{$option} = function () {
             case 'paypal_partner_sofort':
             case 'paypal_partner_ideal':
                 $_option = str_replace('paypal_partner_', '', $payment);
-                if ($request->body['intent']=='CAPTURE') {
+                if ($request->body['intent'] == 'CAPTURE') {
                     $payment_source =  [
                                 "$_option" =>
                                 [
-                                    'name' => ($request->body['payer']['name']['given_name']??null) . ' ' . ($request->body['payer']['name']['surname']??null),
-                                    'country_code' => $country_code
-                                ]
+                                    'name' => ($request->body['payer']['name']['given_name'] ?? null) . ' ' . ($request->body['payer']['name']['surname'] ?? null),
+                                    'country_code' => $country_code,
+                                ],
 
                     ];
-                    if (in_array($_option, ['blik', 'sofort', 'p24'])){
+                    if (in_array($_option, ['blik', 'sofort', 'p24'])) {
                         $payment_source[$_option]['email'] = $request->body['payer']['email_address'];
                     }
                     /*if (in_array($_option, ['ideal'])){
                         $payment_source[$_option]['bic'] = $post['paypal_partner_bic'];
                     }*/
                     $request->body['payment_source'] = $payment_source;
-                    $request->body['processing_instruction'] = "ORDER_COMPLETE_ON_PAYMENT_APPROVAL";
-                    
+                    $request->body['processing_instruction'] = 'ORDER_COMPLETE_ON_PAYMENT_APPROVAL';
+
                     $request->body['application_context']['return_url'] = tep_href_link("callback/webhooks.payment.{$this->code}", 'method='. $_option . '&action=returnAPM', 'SSL', true, false);
                     $request->body['application_context']['cancel_url'] = tep_href_link("callback/webhooks.payment.{$this->code}", 'method=' . $_option . '&action=cancelAPM', 'SSL', true, false);
 
                     $this->redirectMethodsBeforeLeave($request);
                 }
-            break;
+                break;
         }
-
 
     }
 
-/**
- * process return from APM
- * @param string $method
- */
-    public function returnAPM($method) {
-        if ($this->saveOrderBefore() == 'Order' ) {
+    /**
+     * process return from APM
+     * @param string $method
+     */
+    public function returnAPM($method)
+    {
+        if ($this->saveOrderBefore() == 'Order') {
             if ($this->manager && $this->manager->has('ppp_order_before')) {
                 $orders_id = $this->manager->get('ppp_order_before');
             }
@@ -654,7 +667,7 @@ window.paypal_render_subfields_{$option} = function () {
                     $this->no_process($order);
 
                     //$order->notify_customer($order->getProductsHtmlForEmail(),[]);
-                    
+
                     $this->no_process_after($order);
 
                 } else {
@@ -663,28 +676,29 @@ window.paypal_render_subfields_{$option} = function () {
                         ->select('child_id')
                         ->scalar();
                 }
-            } 
+            }
         }
         if ($orders_id) {
             $url = \Yii::$app->urlManager->createAbsoluteUrl(['checkout/success', 'order_id' => orders_id]);
-            
+
         } else {
             //redirect to account history page with a message
             $messageStack = \Yii::$container->get('message_stack');
             $messageStack->add_session(SESSION_EXPIRED_LOGIN_OR_CHECK_EMAIL, 'account_password', 'warning');
             $url = \Yii::$app->urlManager->createAbsoluteUrl(['account']);
-            
+
         }
         tep_redirect($url);
     }
-    
-    public function cancelAPM($method) {
+
+    public function cancelAPM($method)
+    {
         if ($this->saveOrderBefore() == 'Order' && $this->manager && $this->manager->has('ppp_order_before')) {
             //cancel real order if it's created according settings.
             $orders_id = $this->manager->get('ppp_order_before');
             $order = $this->manager->getOrderInstanceWithId('\common\classes\Order', $orders_id);
             $order_status = $this->refundOrderStatus();
-            if (!$this->isPartlyPaid() && (int)$order_status>0 && $order_status != $order->info['order_status']) {
+            if (!$this->isPartlyPaid() && (int)$order_status > 0 && $order_status != $order->info['order_status']) {
                 \common\helpers\Order::setStatus($order->order_id, (int)$order_status, [
                     'comments' => TEXT_CANCELLED_BY_CUSTOMER,
                     'customer_notified' => 0,
@@ -694,21 +708,23 @@ window.paypal_render_subfields_{$option} = function () {
         tep_redirect($this->getCheckoutUrl([], self::PAYMENT_PAGE));
     }
 
-/**
- * save tmp/live order and set its ID as invoice id in the create order request (to PayPal)
- * @param type $request
- */
-    public function redirectMethodsBeforeLeave(&$request) {
+    /**
+     * save tmp/live order and set its ID as invoice id in the create order request (to PayPal)
+     * @param type $request
+     */
+    public function redirectMethodsBeforeLeave(&$request)
+    {
         try {
             $invoiceId = $this->checkSaveTmpOrder();
         } catch (\Exception $e) {
-            \Yii::warning(" #### " .print_r($e->getMessage() . ' ' . $e->getTraceAsString(), true), 'exception_' . $this->code);
+            \Yii::warning(' #### ' .print_r($e->getMessage() . ' ' . $e->getTraceAsString(), true), 'exception_' . $this->code);
         }
         $request->body['purchase_units'][0]['invoice_id'] = $invoiceId;
 
     }
-    
-    public function validateAPMCreateOrderResponse($method, $pRes) {
+
+    public function validateAPMCreateOrderResponse($method, $pRes)
+    {
         $response['id'] = $pRes->result->id;
         $response['option'] = $method;
         switch ($method) {
@@ -723,7 +739,7 @@ window.paypal_render_subfields_{$option} = function () {
                 if ($pRes->result->status == 'PAYER_ACTION_REQUIRED' && !empty($pRes->result->payment_source->$method)) {
                     $url = false;
                     if (!empty($pRes->result->links) && is_array($pRes->result->links)) {
-                        foreach($pRes->result->links as $link) {
+                        foreach ($pRes->result->links as $link) {
                             if ($link->rel == 'payer-action') {
                                 $url = $link->href;
                                 break;
@@ -734,11 +750,11 @@ window.paypal_render_subfields_{$option} = function () {
                         $response['url'] = $url;
                     } else {
                         $response = ['error' => 1, 'message' => TEXT_UNEXPECTED_PAYMENT_ERROR . ' ' . '(NO_REDIRECT_URL)'];
-                        \Yii::warning("NO_REDIRECT_URL #### " .print_r($pRes, true), 'TLDEBUG' . $this->code);
+                        \Yii::warning('NO_REDIRECT_URL #### ' .print_r($pRes, true), 'TLDEBUG' . $this->code);
                     }
                 } else {
                     $response = ['error' => 1, 'message' => TEXT_UNEXPECTED_PAYMENT_ERROR . ' ' . '(UNEXPECTED_STATUS)'];
-                    \Yii::warning("UNEXPECTED_STATUS #### " .print_r($pRes, true), 'TLDEBUG' . $this->code);
+                    \Yii::warning('UNEXPECTED_STATUS #### ' .print_r($pRes, true), 'TLDEBUG' . $this->code);
                 }
                 break;
             case 'card':
@@ -748,31 +764,32 @@ window.paypal_render_subfields_{$option} = function () {
                 break;
             default:
                 $response = ['error' => 1, 'message' => TEXT_UNEXPECTED_PAYMENT_ERROR . ' ' . '(UNEXPECTED_METHOD)'];
-                \Yii::warning("UNEXPECTED_METHOD #### " .print_r($pRes, true), 'TLDEBUG' . $this->code);
+                \Yii::warning('UNEXPECTED_METHOD #### ' .print_r($pRes, true), 'TLDEBUG' . $this->code);
                 break;
         }
         return $response;
-        
+
     }
 
-
-    public static function getFundingTitle($option) {
+    public static function getFundingTitle($option)
+    {
         $data = self::$possibleFundings[$option];
-        return (defined($data['translation_key'])? constant($data['translation_key']):$data['default_translation']);
+        return (defined($data['translation_key']) ? constant($data['translation_key']) : $data['default_translation']);
     }
 
-    public static function possibleFundingArray() {
-        $ret = ['all' => '<span class="paypal-partner-pm">' . (defined('TEXT_ALL')?TEXT_ALL:'All') . '</span>'];
+    public static function possibleFundingArray()
+    {
+        $ret = ['all' => '<span class="paypal-partner-pm">' . (defined('TEXT_ALL') ? TEXT_ALL : 'All') . '</span>'];
 
-        $platformISO2 = ''; 
+        $platformISO2 = '';
         $country_id = 0;
         $platform_id = self::getPlatformId();
         $country_id = \common\helpers\PlatformConfig::getStoreCountry($platform_id);
         if (!empty($platform_id)) {
             $address = \common\helpers\PlatformConfig::getDefaultAddress($platform_id);
-            $country_id = $address['country_id']??0;
+            $country_id = $address['country_id'] ?? 0;
         }
-        
+
         if ($country_id > 0) {
             $cinfo = \common\helpers\Country::get_country_info_by_id($country_id);
             $platformISO2 = strtolower($cinfo['countries_iso_code_2']);

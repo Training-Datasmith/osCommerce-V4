@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -24,7 +26,7 @@ class m220912_101943_isbn_setting extends Migration
     {
         $check = (new yii\db\Query())->from('configuration')->where(['configuration_key' => 'MODULE_NP_SENDER_AREA_REF'])->exists();
         if (!$check) {
-            $this->insert('configuration',[
+            $this->insert('configuration', [
                 'configuration_title' => 'Show ISBN',
                 'configuration_key' => 'SHOW_ISBN',
                 'configuration_value' => 'False',
@@ -32,7 +34,7 @@ class m220912_101943_isbn_setting extends Migration
                 'configuration_group_id' => 'TEXT_STOCK',
                 'sort_order' => 50,
                 'date_added' => new \yii\db\Expression('NOW()'),
-                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),'
+                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),',
             ]);
         }
 

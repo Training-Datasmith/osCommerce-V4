@@ -1,33 +1,37 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\extensions\CouponsAndVauchers;
 
-use Yii;
 use common\classes\order_total;
+use Yii;
 
 // Coupons and Vauchers
 class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
 {
-
-    public static function getDescription() {
+    public static function getDescription()
+    {
         return 'This extension makes it possible to use coupons and vouchers while purchasing.';
     }
-    
-    public static function allowed() {
+
+    public static function allowed()
+    {
         return self::enabled();
     }
-    
-    public static function orderCouponVoucher($gv_redeem_code) {
+
+    public static function orderCouponVoucher($gv_redeem_code)
+    {
         if (!self::allowed()) {
             return '';
         }
@@ -35,12 +39,13 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
                     'gv_redeem_code' => $gv_redeem_code,
         ]]);
     }
-    
-    public static function orderEditCouponVoucher() {
+
+    public static function orderEditCouponVoucher()
+    {
         if (!self::allowed()) {
             return '';
         }
-      /** @var order_total $order_total_modules */
+        /** @var order_total $order_total_modules */
         global $order_total_modules, $cart;
 
         if ((isset($_POST['action']) && $_POST['action'] == 'apply_coupon')) {
@@ -50,11 +55,11 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
                 $cart->clearTotalKey('ot_coupon');
                 $cart->clearHiddenModule('ot_coupon');
                 $order_total_modules->collect_posts('ot_coupon');
-                if(isset($_POST['pos'])){
+                if (isset($_POST['pos'])) {
                     $_POST['gv_redeem_code'] = $couponCode;
                     $order_total_modules->collect_posts('ot_gv');
                 }
-            } else if (isset($_POST['gv_redeem_code']) && isset($_POST['gv_redeem_code']['gv']) && !empty($_POST['gv_redeem_code']['gv'])) {
+            } elseif (isset($_POST['gv_redeem_code']) && isset($_POST['gv_redeem_code']['gv']) && !empty($_POST['gv_redeem_code']['gv'])) {
                 $_POST['gv_redeem_code'] = $_POST['gv_redeem_code']['gv'];
                 $order_total_modules->collect_posts('ot_gv');
             }
@@ -70,12 +75,13 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
         }
     }
 
-    public static function cartDiscountCoupon($manager) {
+    public static function cartDiscountCoupon($manager)
+    {
         if (!self::allowed()) {
             return '';
         }
         //global $cc_id;
-        
+
         $messageStack = \Yii::$container->get('message_stack');
         $message_discount_coupon = '';
         if ($messageStack->size('cart_discount_coupon') > 0) {
@@ -89,7 +95,8 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
         ]]);
     }
 
-    public static function cartGiftCertificate($manager) {
+    public static function cartGiftCertificate($manager)
+    {
         if (!self::allowed()) {
             return '';
         }
@@ -98,14 +105,15 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
         if ($messageStack->size('cart_discount_gv') > 0) {
             $message_discount_gv = $messageStack->output('cart_discount_gv');
         }
-        $ot_gv_data = array(
+        $ot_gv_data = [
             'message_discount_gv' => $message_discount_gv,
-        );
+        ];
 
         return \common\extensions\CouponsAndVauchers\Render::widget(['template' => 'gift-certificate.tpl', 'params' => [$ot_gv_data]]);
     }
 
-    public static function cartCreditAmount($manager) {
+    public static function cartCreditAmount($manager)
+    {
         if (!self::allowed()) {
             return '';
         }
@@ -115,16 +123,16 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
         if ($messageStack->size('cart_discount_gv') > 0) {
             $message_discount_gv = $messageStack->output('cart_discount_gv');
         }
-        $ot_gv_data = array(
+        $ot_gv_data = [
             'can_apply_gv_credit' => false,
             'message_discount_gv' => $message_discount_gv,
             'credit_amount' => '',
             'credit_gv_in_use' => $manager->has('cot_gv'),
             'cot_gv_amount' => $manager->getCreditModules()['custom_gv_amount'],
-        );
+        ];
         if (defined('MODULE_ORDER_TOTAL_GV_STATUS') && MODULE_ORDER_TOTAL_GV_STATUS == 'true' && $manager->isCustomerAssigned()) {
             $customer = $manager->getCustomersIdentity();
-            if ($customer->credit_amount){
+            if ($customer->credit_amount) {
                 $ot_gv_data['can_apply_gv_credit'] = true;
                 $ot_gv_data['credit_amount'] = $currencies->format($customer->credit_amount);
             }
@@ -133,7 +141,8 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
         return \common\extensions\CouponsAndVauchers\Render::widget(['template' => 'credit-amount.tpl', 'params' => $ot_gv_data]);
     }
 
-    public static function checkoutCouponVoucher($credit_modules, $id = 0) {
+    public static function checkoutCouponVoucher($credit_modules, $id = 0)
+    {
         if (!self::allowed()) {
             return '';
         }
@@ -142,32 +151,33 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
                     'id' => $id,
         ]]);
     }
-    
-    public static function updateCartFactory($goto) {
+
+    public static function updateCartFactory($goto)
+    {
         if (!self::allowed()) {
             return '';
         }
         $post = $_POST; // not Yii::$app->request->post() because of manual settings of $_POST[] for apply_coupon link
 
         $manager = \common\services\OrderManager::loadManager();
-        if ( strpos(Yii::$app->controller->id, 'quote')===0 ) {
+        if (strpos(Yii::$app->controller->id, 'quote') === 0) {
             global $quote;
             $manager->loadCart($quote);
         }
-        if (Yii::$app->request->post('gv_redeem_code') === ''){
+        if (Yii::$app->request->post('gv_redeem_code') === '') {
             $manager->remove('cot_gv');
             $manager->remove('cc_id');
             $manager->remove('cc_code');
         }
         $credit_modules_result = $manager->totalCollectPosts($post);
-        
-        if ( isset($credit_modules_result['ot_coupon']) && isset($credit_modules_result['ot_coupon']['message']) ){
+
+        if (isset($credit_modules_result['ot_coupon']) && isset($credit_modules_result['ot_coupon']['message'])) {
             $messageStack = \Yii::$container->get('message_stack');
             $_msg = '<span class="msb-message">' . $credit_modules_result['ot_coupon']['message'] . '</span>';
             if (!empty($credit_modules_result['ot_coupon']['description'])) {
-              $_msg = '<span class="msb-desc msb-coupon-desc" style="display:none">' . $credit_modules_result['ot_coupon']['description'] . ' </span>'. $_msg;
+                $_msg = '<span class="msb-desc msb-coupon-desc" style="display:none">' . $credit_modules_result['ot_coupon']['description'] . ' </span>'. $_msg;
             }
-            $messageStack->add_session($_msg, 'cart_discount_coupon', $credit_modules_result['ot_coupon']['error']?'error':'success' );
+            $messageStack->add_session($_msg, 'cart_discount_coupon', $credit_modules_result['ot_coupon']['error'] ? 'error' : 'success');
         }
 
         $credit_apply = tep_db_prepare_input($_POST['credit_apply'] ?? 0);
@@ -179,13 +189,13 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
                 if (isset($credit_apply['gv']['cot_gv_present']) && !isset($credit_apply['gv']['cot_gv'])) {
                     $manager->remove('cot_gv');
                 }
-                $manager->addEvent(['before'=> 'prepareEstimateData', 'method' => 'collect_posts', 'module' => 'ot_gv', 'data' => $credit_apply['gv'], 'message_class' => 'cart_discount_gv'  ]);
+                $manager->addEvent(['before' => 'prepareEstimateData', 'method' => 'collect_posts', 'module' => 'ot_gv', 'data' => $credit_apply['gv'], 'message_class' => 'cart_discount_gv'  ]);
 
             }
 
             if (isset($credit_apply['coupon']) && isset($credit_apply['coupon']['gv_redeem_code']) && !empty($credit_apply['coupon']['gv_redeem_code'])) {
 
-                $manager->addEvent(['before'=> 'prepareEstimateData', 'method' => 'collect_posts', 'module' => 'ot_coupon', 'data' => $credit_apply['coupon'], 'message_class' => 'cart_discount_coupon' ]);
+                $manager->addEvent(['before' => 'prepareEstimateData', 'method' => 'collect_posts', 'module' => 'ot_coupon', 'data' => $credit_apply['coupon'], 'message_class' => 'cart_discount_coupon' ]);
 
             }
 
@@ -199,17 +209,18 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
                 'bonus_apply' => $post['use_bonus_points'] ? 'y' : 'n',
             ];
 
-            $manager->addEvent(['before'=> 'prepareEstimateData', 'method' => 'collect_posts', 'module' => 'ot_bonus_points', 'data' => $data, 'message_class' => 'cart_bonus_points' ]);
+            $manager->addEvent(['before' => 'prepareEstimateData', 'method' => 'collect_posts', 'module' => 'ot_bonus_points', 'data' => $data, 'message_class' => 'cart_bonus_points' ]);
 
         }
-        
+
         if (isset($_GET['code']) && $_GET['action'] == 'remove_cart_total') {
             $cart = $manager->getCart();
             $cart->removeCcItem($_GET['code']);
         }
     }
-    
-    public static function resetCoupons() {
+
+    public static function resetCoupons()
+    {
         if (!self::allowed()) {
             return '';
         }
@@ -217,20 +228,21 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
         $cart = $manager->getCart();
         $cart->clearCcItems();
     }
-    
-    public static function restoreCartFactory($goto) {
+
+    public static function restoreCartFactory($goto)
+    {
         if (!self::allowed()) {
             return '';
         }
-        
+
         $messageStack = \Yii::$container->get('message_stack');
         $credit_apply = tep_db_prepare_input($_GET['credit_apply']);
         if (is_array($credit_apply)) {
             \common\helpers\Translation::init('ordertotal');
             $manager = \common\services\OrderManager::loadManager();
             if (isset($credit_apply['coupon']) && isset($credit_apply['coupon']['gv_redeem_code']) && !empty($credit_apply['coupon']['gv_redeem_code'])) {
-                
-                $manager->addEvent(['before'=> 'prepareEstimateData', 'method' => 'collect_posts', 'module' => 'ot_coupon', 'data' => $credit_apply['coupon'], 'message_class' => 'cart_discount_coupon' ]);
+
+                $manager->addEvent(['before' => 'prepareEstimateData', 'method' => 'collect_posts', 'module' => 'ot_coupon', 'data' => $credit_apply['coupon'], 'message_class' => 'cart_discount_coupon' ]);
                 /*
                 $gv_query = tep_db_query("select c.coupon_id, c.coupon_amount from " . TABLE_COUPONS . " c, " . TABLE_COUPON_EMAIL_TRACK . " et where coupon_code = '" . tep_db_input($credit_apply['coupon']['gv_redeem_code']) . "' and c.coupon_id = et.coupon_id and et.customer_id_sent = '" . (int) Yii::$app->user->getId() . "'");
                 if (tep_db_num_rows($gv_query) > 0) {
@@ -262,20 +274,20 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
                     foreach ($credit_apply['coupon'] as $_key => $_val) {
                         unset($_POST[$_key]);
                     }
-                   
+
                 } else {
                     $messageStack->add_session(ERROR_NO_INVALID_REDEEM_COUPON, 'shopping_cart', 'error');
                 }*/
             }
 
             if (isset($credit_apply['gv']) && isset($credit_apply['gv']['gv_redeem_code']) && !empty($credit_apply['gv']['gv_redeem_code'])) {
-                
+
                 if (isset($credit_apply['gv']['cot_gv_present']) && !isset($credit_apply['gv']['cot_gv'])) {
                     $manager->remove('cot_gv');
                 }
-                
-                $manager->addEvent(['before'=> 'prepareEstimateData', 'method' => 'collect_posts', 'module' => 'ot_gv', 'data' => $credit_apply['gv'], 'message_class' => 'cart_discount_gv'  ]);
-                
+
+                $manager->addEvent(['before' => 'prepareEstimateData', 'method' => 'collect_posts', 'module' => 'ot_gv', 'data' => $credit_apply['gv'], 'message_class' => 'cart_discount_gv'  ]);
+
                 /*foreach ($credit_apply['gv'] as $_key => $_val) {
                     $_POST[$_key] = $_val;
                 }
@@ -311,14 +323,16 @@ class CouponsAndVauchers extends \common\classes\modules\ModuleExtensions
         }
     }
 
-    public static function getWidgets($type = 'general') {
+    public static function getWidgets($type = 'general')
+    {
         if (!self::allowed()) {
             return '';
         }
-        if ($type == 'checkout')
+        if ($type == 'checkout') {
             return [[
                 'name' => 'CouponsAndVauchers\Checkout', 'title' => 'Coupons And Vouchers', 'description' => '', 'type' => 'checkout',
             ]];
+        }
     }
 
 }

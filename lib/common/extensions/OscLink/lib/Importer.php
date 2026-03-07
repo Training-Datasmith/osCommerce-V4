@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace OscLink;
 
-use \common\helpers\Assert;
 use common\extensions\OscLink\models\Configuration;
 use common\extensions\OscLink\models\Entity;
 use common\extensions\OscLink\models\Mapping;
@@ -32,7 +33,7 @@ class Importer implements \OscLink\XML\ImportTuningInterface
     private $count_in_batch;
 
     // fat entities have small batch count
-    const BATCH_COUNT = ['categories' => 50, 'products' => 20, 'orders' => 20, 'products_options' => 50];
+    public const BATCH_COUNT = ['categories' => 50, 'products' => 20, 'orders' => 20, 'products_options' => 50];
 
     public function __construct($conf)
     {
@@ -51,7 +52,7 @@ class Importer implements \OscLink\XML\ImportTuningInterface
 
             // platform_id
             if ($updateObject instanceof \common\models\ProductsDescription) {
-                \OscLink\Logger::get()->log_record($updateObject, "platform_id $updateObject->platform_id changed to $this->platform_id_def" );
+                \OscLink\Logger::get()->log_record($updateObject, "platform_id $updateObject->platform_id changed to $this->platform_id_def");
                 $updateObject->platform_id = $this->platform_id_def;
             }
             if ($updateObject instanceof \common\models\Products) {
@@ -65,7 +66,7 @@ class Importer implements \OscLink\XML\ImportTuningInterface
 
     public function afterImport($updateObject, $data, $isNewRecord)
     {
-        \OscLink\Logger::get()->log(\OscLink\Helper::getIdentAR($updateObject). (!$isNewRecord? ' was added' : ' was updated'));
+        \OscLink\Logger::get()->log(\OscLink\Helper::getIdentAR($updateObject). (!$isNewRecord ? ' was added' : ' was updated'));
 
         if ($updateObject instanceof \common\models\Products) {
             \Yii::$app->db->createCommand()->upsert(\common\models\PlatformsProducts::tablename(), ['platform_id' => $this->platform_id, 'products_id' => $updateObject->products_id], false)->execute();
@@ -92,7 +93,7 @@ class Importer implements \OscLink\XML\ImportTuningInterface
 
     public function finishedImport()
     {
-        switch($this->feed_cur) {
+        switch ($this->feed_cur) {
             case 'categories':
                 \Yii::$app->getDb()->createCommand('UPDATE menus SET last_modified = (SELECT MIN(date_added) - INTERVAL 1 DAY FROM categories)')->execute();
                 \common\helpers\Categories::update_categories();
@@ -112,7 +113,6 @@ class Importer implements \OscLink\XML\ImportTuningInterface
         Configuration::throwIfCanceled();
     }
 
-
     public function Import($feeds)
     {
         set_time_limit(0);
@@ -121,7 +121,7 @@ class Importer implements \OscLink\XML\ImportTuningInterface
         }
         $this->downloader->checkVersion();
 
-        foreach($feeds as $feed) {
+        foreach ($feeds as $feed) {
             $this->feed_cur = $feed;
             $feed_name = \OscLink\Helper::getFeedName($feed);
 
@@ -146,7 +146,7 @@ class Importer implements \OscLink\XML\ImportTuningInterface
             \OscLink\Logger::print($mirrorIds ? "The same ids for $feed" : "Mapping ids for $feed");
             \OscLink\XML\IOCore::get()->setTablenamesWithMirrorIds($mirrorIds ? $feed : []);
 
-            for ($this->batch_offset=$offset_start; $this->batch_offset < $this->count_all; $this->batch_offset += $this->batch_count) {
+            for ($this->batch_offset = $offset_start; $this->batch_offset < $this->count_all; $this->batch_offset += $this->batch_count) {
                 $this->count_in_batch = 0;
                 $fn = $this->downloader->getFeed($feed, $this->batch_offset, $this->batch_count);
 
@@ -154,7 +154,9 @@ class Importer implements \OscLink\XML\ImportTuningInterface
                 $project->setStructure($structure, $this);
 
                 $imported = $project->import();
-                if (function_exists('gc_collect_cycles')) gc_collect_cycles();
+                if (function_exists('gc_collect_cycles')) {
+                    gc_collect_cycles();
+                }
 
                 \OscLink\Helper::sumCols($imported_sum, $imported);
             }
@@ -176,15 +178,15 @@ class Importer implements \OscLink\XML\ImportTuningInterface
     {
         set_time_limit(0);
         \OscLink\XML\IOCore::get(); // init Yii::$container
-        
+
         $imported_sum = [];
         $error_sum = 0;
         \OscLink\Progress::$percent_prev_stage = 0;
-        \OscLink\Progress::$percent_in_cur_stage = intval(1/count($feeds) * 100);
-        foreach($feeds as $feed) {
+        \OscLink\Progress::$percent_in_cur_stage = intval(1 / count($feeds) * 100);
+        foreach ($feeds as $feed) {
             $this->feed_cur = $feed;
             $feed_name = \OscLink\Helper::getFeedName($feed);
-            \OscLink\Progress::Log("Start cleaning for $feed_name..." );
+            \OscLink\Progress::Log("Start cleaning for $feed_name...");
 
             $project = new \OscLink\XML\Project();
             $structure = \OscLink\XML\IOCore::getExportStructure($feed);

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230217_105317_designer extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/design',[
+        $this->addTranslation('admin/design', [
             'APPLY_MIGRATION' => 'Apply Migration',
             'CREATE_MIGRATION' => 'Create Migration',
         ]);

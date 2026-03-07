@@ -1,9 +1,11 @@
 <?php
+
+declare(strict_types=1);
+
 namespace common\models\forms;
 
 use yii\base\Model;
 use yii\web\UploadedFile;
-use Yii;
 
 class FilesForm extends Model
 {

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,27 +14,25 @@
 
 namespace frontend\design\boxes\invoice;
 
-use Yii;
-use yii\base\Widget;
+use backend\design\editor\Formatter;
 use frontend\design\IncludeTpl;
 use frontend\design\Info;
-use \backend\design\editor\Formatter;
+use yii\base\Widget;
 
 class Products extends Widget
 {
+    public $id;
+    public $file;
+    public $params;
+    public $settings;
 
-  public $id;
-  public $file;
-  public $params;
-  public $settings;
+    public function init()
+    {
+        parent::init();
+    }
 
-  public function init()
-  {
-    parent::init();
-  }
-
-  public function run()
-  {
+    public function run()
+    {
         $currencies = \Yii::$container->get('currencies');
 
         if ($this->settings[0]['pdf']) {
@@ -62,11 +62,10 @@ class Products extends Widget
                                 <td style=" border-top: 1px solid #ccc">' . \common\helpers\Product::getVirtualItemQuantity($product['id'], $product['qty']) . '</td>
                                 <td style=" border-top: 1px solid #ccc">' . $product['name'];
                         if (isset($product['tpl_attributes']) && !empty($product['tpl_attributes'])) {
-                            $html .= '<br><span style="font-size: 0.9em"><i>' . str_replace(array('&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;', "\n\t"), array('&nbsp;', '<b>', '</b>', '<br>', '<br>'), htmlspecialchars($product['tpl_attributes'])) . '</i></span>';
-                        } else
-                        if (is_array($product['attributes'] ?? null)) {
+                            $html .= '<br><span style="font-size: 0.9em"><i>' . str_replace(['&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;', "\n\t"], ['&nbsp;', '<b>', '</b>', '<br>', '<br>'], htmlspecialchars($product['tpl_attributes'])) . '</i></span>';
+                        } elseif (is_array($product['attributes'] ?? null)) {
                             foreach ($product['attributes'] as $attribut) {
-                                $html .= '<br><span style="font-size: 0.9em">&nbsp;<i> - ' . str_replace(array('&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;'), array('&nbsp;', '<b>', '</b>', '<br>'), htmlspecialchars($attribut['option'])) . ': ' . $attribut['value'] . '</i></span>';
+                                $html .= '<br><span style="font-size: 0.9em">&nbsp;<i> - ' . str_replace(['&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;'], ['&nbsp;', '<b>', '</b>', '<br>'], htmlspecialchars($attribut['option'])) . ': ' . $attribut['value'] . '</i></span>';
                             }
                         }
                         if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductAssets', 'allowed')) {
@@ -80,19 +79,19 @@ class Products extends Widget
                                 <td style=" border-top: 1px solid #ccc">' . $product['model'] . '</td>
                                 <td style=" border-top: 1px solid #ccc">' . \common\helpers\Tax::display_tax_value($product['tax']) . '%</td>
 
-                                <td style="text-align:right; border-top: 1px solid #ccc">' . $currencies->format(($currencies->calculate_price_in_order($order->info, $product['final_price']) * \common\helpers\Product::getVirtualItemQuantityValue($product['id'])), true, ($order->info['invoice_currency']??$order->info['currency']), ($order->info['invoice_currency_value']??$order->info['currency_value'])) . '</td>
-                                <td style="text-align:right; border-top: 1px solid #ccc">' . Formatter::priceEx((\common\helpers\Product::getVirtualItemQuantityValue($product['id']) * $product['final_price']), $product['tax'], $product['qty'], ($order->info['invoice_currency']??$order->info['currency']), ($order->info['invoice_currency_value']??$order->info['currency_value']))
+                                <td style="text-align:right; border-top: 1px solid #ccc">' . $currencies->format(($currencies->calculate_price_in_order($order->info, $product['final_price']) * \common\helpers\Product::getVirtualItemQuantityValue($product['id'])), true, ($order->info['invoice_currency'] ?? $order->info['currency']), ($order->info['invoice_currency_value'] ?? $order->info['currency_value'])) . '</td>
+                                <td style="text-align:right; border-top: 1px solid #ccc">' . Formatter::priceEx((\common\helpers\Product::getVirtualItemQuantityValue($product['id']) * $product['final_price']), $product['tax'], $product['qty'], ($order->info['invoice_currency'] ?? $order->info['currency']), ($order->info['invoice_currency_value'] ?? $order->info['currency_value']))
 . '</td>'
-                            . '<td style="text-align:right; border-top: 1px solid #ccc"><b>' .  Formatter::price((\common\helpers\Product::getVirtualItemQuantityValue($product['id']) * $product['final_price']), $product['tax'], $product['qty'], ($order->info['invoice_currency']??$order->info['currency']), ($order->info['invoice_currency_value']??$order->info['currency_value'])) . '</b></td>
+                            . '<td style="text-align:right; border-top: 1px solid #ccc"><b>' .  Formatter::price((\common\helpers\Product::getVirtualItemQuantityValue($product['id']) * $product['final_price']), $product['tax'], $product['qty'], ($order->info['invoice_currency'] ?? $order->info['currency']), ($order->info['invoice_currency_value'] ?? $order->info['currency_value'])) . '</b></td>
                             </tr>';
                     }
                     $counter++;
                 }
             }
-            if ($order instanceof \common\classes\Splinter){
-    if ($order->isCreditNote() && is_array($order->mixed)){
-        foreach($order->mixed as $mixdata){
-            $html .= '
+            if ($order instanceof \common\classes\Splinter) {
+                if ($order->isCreditNote() && is_array($order->mixed)) {
+                    foreach ($order->mixed as $mixdata) {
+                        $html .= '
           <tr>
             <td style=" border-top: 1px solid #ccc"></td>
             <td style=" border-top: 1px solid #ccc">' . $mixdata['data'] . '</td>
@@ -104,25 +103,22 @@ class Products extends Widget
             <td style="text-align:right; border-top: 1px solid #ccc"><b>' . $currencies->format($mixdata['value_inc_tax'], true, $order->info['currency'], $order->info['currency_value']) . '</b></td>
           </tr>
     ';
-        }
-    }
-}
+                    }
+                }
+            }
 
-      $html .= '
+            $html .= '
 </table>
 ';
 
-
-
-
-      return $html;
-    } else {
-      return IncludeTpl::widget(['file' => 'boxes/invoice/products.tpl', 'params' => [
-        'order' => $this->params['order'],
-        'currencies' => $this->params['currencies'],
-        'to_pdf' => ($_GET['to_pdf'] ? 1 : 0),
-        'width' => Info::blockWidth($this->id)
-      ]]);
+            return $html;
+        } else {
+            return IncludeTpl::widget(['file' => 'boxes/invoice/products.tpl', 'params' => [
+              'order' => $this->params['order'],
+              'currencies' => $this->params['currencies'],
+              'to_pdf' => ($_GET['to_pdf'] ? 1 : 0),
+              'width' => Info::blockWidth($this->id),
+            ]]);
+        }
     }
-  }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -28,10 +30,10 @@ class XmlParser
      */
     private $currentItem = [];
     private $NameNum = 0;
-    
+
     /**
      * Parse the passed XML
-     * 
+     *
      * @param object $rootObject
      * @param string $xml The xml string to parse.
      * @return mixed A PHP object
@@ -41,7 +43,7 @@ class XmlParser
         $this->rootObject = $rootObject;
         $this->currentItem = [];
         $this->NameNum = 0;
-                
+
         $parser = xml_parser_create_ns('UTF-8', '@');
 
         xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
@@ -92,12 +94,12 @@ class XmlParser
                 if (count($this->currentItem) == 1) {
                     $this->rootObject->{$this->currentItem[0]} = $cdata;
                 } else {
-                    $deep =& $this->rootObject->{$this->currentItem[0]};
+                    $deep = & $this->rootObject->{$this->currentItem[0]};
                     foreach ($this->currentItem as $key => $value) {
                         if ($key == 0) {
                             continue;
                         }
-                        $deep =& $deep[$value];
+                        $deep = & $deep[$value];
                     }
                     $deep .= $cdata;
                 }
@@ -117,5 +119,5 @@ class XmlParser
             array_pop($this->currentItem);
         }
     }
-   
+
 }

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
 
 /**
  * Class BankAccount
- * 
+ *
  * A resource representing a bank account that can be used to fund a payment.
  * @deprecated Deprecated. It is for internal use only. It may be removed in next major revision.
  *
@@ -42,7 +44,7 @@ class BankAccount extends PayPalModel
      * ID of the bank account being saved for later use.
      * @deprecated Not publicly available
      * @param string $id
-     * 
+     *
      * @return $this
      */
     public function setId($id)
@@ -65,7 +67,7 @@ class BankAccount extends PayPalModel
      * Account number in either IBAN (max length 34) or BBAN (max length 17) format.
      *
      * @param string $account_number
-     * 
+     *
      * @return $this
      */
     public function setAccountNumber($account_number)
@@ -89,7 +91,7 @@ class BankAccount extends PayPalModel
      * Valid Values: ["BBAN", "IBAN"]
      *
      * @param string $account_number_type
-     * 
+     *
      * @return $this
      */
     public function setAccountNumberType($account_number_type)
@@ -112,7 +114,7 @@ class BankAccount extends PayPalModel
      * Routing transit number (aka Bank Code) of the bank (typically for domestic use only - for international use, IBAN includes bank code). For more information refer to http://en.wikipedia.org/wiki/Bank_code.
      *
      * @param string $routing_number
-     * 
+     *
      * @return $this
      */
     public function setRoutingNumber($routing_number)
@@ -136,7 +138,7 @@ class BankAccount extends PayPalModel
      * Valid Values: ["CHECKING", "SAVINGS"]
      *
      * @param string $account_type
-     * 
+     *
      * @return $this
      */
     public function setAccountType($account_type)
@@ -159,7 +161,7 @@ class BankAccount extends PayPalModel
      * A customer designated name.
      *
      * @param string $account_name
-     * 
+     *
      * @return $this
      */
     public function setAccountName($account_name)
@@ -183,7 +185,7 @@ class BankAccount extends PayPalModel
      * Valid Values: ["PERSONAL", "COMPANY"]
      *
      * @param string $check_type
-     * 
+     *
      * @return $this
      */
     public function setCheckType($check_type)
@@ -207,7 +209,7 @@ class BankAccount extends PayPalModel
      * Valid Values: ["CCD", "PPD", "TEL", "POP", "ARC", "RCK", "WEB"]
      *
      * @param string $auth_type
-     * 
+     *
      * @return $this
      */
     public function setAuthType($auth_type)
@@ -230,7 +232,7 @@ class BankAccount extends PayPalModel
      * Time at which the authorization (or check) was captured. Use this field if the user authorization needs to be captured due to any privacy requirements.
      *
      * @param string $auth_capture_timestamp
-     * 
+     *
      * @return $this
      */
     public function setAuthCaptureTimestamp($auth_capture_timestamp)
@@ -253,7 +255,7 @@ class BankAccount extends PayPalModel
      * Name of the bank.
      *
      * @param string $bank_name
-     * 
+     *
      * @return $this
      */
     public function setBankName($bank_name)
@@ -276,7 +278,7 @@ class BankAccount extends PayPalModel
      * 2 letter country code of the Bank.
      *
      * @param string $country_code
-     * 
+     *
      * @return $this
      */
     public function setCountryCode($country_code)
@@ -299,7 +301,7 @@ class BankAccount extends PayPalModel
      * Account holder's first name.
      *
      * @param string $first_name
-     * 
+     *
      * @return $this
      */
     public function setFirstName($first_name)
@@ -322,7 +324,7 @@ class BankAccount extends PayPalModel
      * Account holder's last name.
      *
      * @param string $last_name
-     * 
+     *
      * @return $this
      */
     public function setLastName($last_name)
@@ -345,7 +347,7 @@ class BankAccount extends PayPalModel
      * Birth date of the bank account holder.
      *
      * @param string $birth_date
-     * 
+     *
      * @return $this
      */
     public function setBirthDate($birth_date)
@@ -368,7 +370,7 @@ class BankAccount extends PayPalModel
      * Billing address.
      *
      * @param \PayPal\Api\Address $billing_address
-     * 
+     *
      * @return $this
      */
     public function setBillingAddress($billing_address)
@@ -392,7 +394,7 @@ class BankAccount extends PayPalModel
      * Valid Values: ["ACTIVE", "INACTIVE", "DELETED"]
      *
      * @param string $state
-     * 
+     *
      * @return $this
      */
     public function setState($state)
@@ -416,7 +418,7 @@ class BankAccount extends PayPalModel
      * Valid Values: ["UNCONFIRMED", "CONFIRMED"]
      *
      * @param string $confirmation_status
-     * 
+     *
      * @return $this
      */
     public function setConfirmationStatus($confirmation_status)
@@ -439,7 +441,7 @@ class BankAccount extends PayPalModel
      * [DEPRECATED] Use external_customer_id instead.
      *
      * @param string $payer_id
-     * 
+     *
      * @return $this
      */
     public function setPayerId($payer_id)
@@ -462,7 +464,7 @@ class BankAccount extends PayPalModel
      * A unique identifier of the customer to whom this bank account belongs to. Generated and provided by the facilitator. This is required when creating or using a stored funding instrument in vault.
      *
      * @param string $external_customer_id
-     * 
+     *
      * @return $this
      */
     public function setExternalCustomerId($external_customer_id)
@@ -485,7 +487,7 @@ class BankAccount extends PayPalModel
      * A unique identifier of the merchant for which this bank account has been stored for. Generated and provided by the facilitator so it can be used to restrict the usage of the bank account to the specific merchant.
      *
      * @param string $merchant_id
-     * 
+     *
      * @return $this
      */
     public function setMerchantId($merchant_id)
@@ -508,7 +510,7 @@ class BankAccount extends PayPalModel
      * Time the resource was created.
      *
      * @param string $create_time
-     * 
+     *
      * @return $this
      */
     public function setCreateTime($create_time)
@@ -531,7 +533,7 @@ class BankAccount extends PayPalModel
      * Time the resource was last updated.
      *
      * @param string $update_time
-     * 
+     *
      * @return $this
      */
     public function setUpdateTime($update_time)
@@ -554,7 +556,7 @@ class BankAccount extends PayPalModel
      * Date/Time until this resource can be used to fund a payment.
      *
      * @param string $valid_until
-     * 
+     *
      * @return $this
      */
     public function setValidUntil($valid_until)
@@ -577,7 +579,7 @@ class BankAccount extends PayPalModel
      * Sets Links
      *
      * @param \PayPal\Api\Links[] $links
-     * 
+     *
      * @return $this
      */
     public function setLinks($links)
@@ -605,10 +607,10 @@ class BankAccount extends PayPalModel
     public function addLink($links)
     {
         if (!$this->getLinks()) {
-            return $this->setLinks(array($links));
+            return $this->setLinks([$links]);
         } else {
             return $this->setLinks(
-                array_merge($this->getLinks(), array($links))
+                array_merge($this->getLinks(), [$links])
             );
         }
     }
@@ -622,7 +624,7 @@ class BankAccount extends PayPalModel
     public function removeLink($links)
     {
         return $this->setLinks(
-            array_diff($this->getLinks(), array($links))
+            array_diff($this->getLinks(), [$links])
         );
     }
 

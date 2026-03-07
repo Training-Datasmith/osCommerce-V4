@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -30,7 +32,9 @@ class Logger
         return dirname(__DIR__).'/logs/' . $basename . '.log';
     }
 
-    protected function __clone() { }
+    protected function __clone()
+    {
+    }
 
     public static function get()
     {
@@ -43,7 +47,7 @@ class Logger
     public function log($msg)
     {
         if (false === @file_put_contents($this->filename, self::getPrefix() . "$msg\n", FILE_APPEND)) {
-            \Yii::warning('Could write to log: ' , $this->filename);
+            \Yii::warning('Could write to log: ', $this->filename);
         }
 
     }
@@ -55,14 +59,13 @@ class Logger
 
     public static function print($msg)
     {
-        self::get()->log( $msg );
+        self::get()->log($msg);
     }
 
     public static function printf()
     {
-        self::print( call_user_func_array('sprintf', func_get_args()) );
+        self::print(call_user_func_array('sprintf', func_get_args()));
     }
-
 
     public function getFilename()
     {
@@ -72,7 +75,7 @@ class Logger
     public static function getPrefix()
     {
         $prefix = implode(': ', self::$prefix);
-        return empty($prefix)? '' : $prefix.'=> ';
+        return empty($prefix) ? '' : $prefix.'=> ';
     }
 
     public static function addPrefix($prefix)

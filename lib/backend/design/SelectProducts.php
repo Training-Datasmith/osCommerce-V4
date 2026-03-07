@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace backend\design;
 
-use Yii;
 use yii\base\Widget;
 
 class SelectProducts extends Widget
@@ -27,7 +28,8 @@ class SelectProducts extends Widget
     public $selectedBackLink_c;
     public $onlyIncludeJs = false;
 
-    public function init(){
+    public function init()
+    {
         parent::init();
     }
 
@@ -44,7 +46,7 @@ class SelectProducts extends Widget
         \backend\design\Data::addJsData(['tr' => $tr]);
 
         $selectedProducts = [];
-        if (is_array($this->selectedProducts) ) {
+        if (is_array($this->selectedProducts)) {
             foreach ($this->selectedProducts as $product) {
                 $selectedProducts[] = $product;
             }

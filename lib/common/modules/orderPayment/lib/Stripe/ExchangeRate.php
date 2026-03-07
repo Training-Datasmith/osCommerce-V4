@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -23,8 +25,7 @@ namespace Stripe;
  */
 class ExchangeRate extends ApiResource
 {
-    const OBJECT_NAME = 'exchange_rate';
-
     use ApiOperations\All;
     use ApiOperations\Retrieve;
+    public const OBJECT_NAME = 'exchange_rate';
 }

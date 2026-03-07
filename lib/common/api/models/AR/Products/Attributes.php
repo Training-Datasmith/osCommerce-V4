@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -18,7 +20,6 @@ use common\api\models\AR\Products\Attributes\Prices as Attributes_Prices;
 
 class Attributes extends EPMap
 {
-
     protected $hideFields = [
         'products_attributes_id',
         'products_id',
@@ -39,15 +40,14 @@ class Attributes extends EPMap
 
     public function __construct(array $config = [])
     {
-        $marketPresent = defined('USE_MARKET_PRICES') && USE_MARKET_PRICES=='True';
+        $marketPresent = defined('USE_MARKET_PRICES') && USE_MARKET_PRICES == 'True';
         $groupsPresent = \common\helpers\Extensions::isCustomerGroupsAllowed();
-        if ( !$marketPresent && !$groupsPresent ) {
+        if (!$marketPresent && !$groupsPresent) {
             unset($this->childCollections['prices']);
         }
 
         parent::__construct($config);
     }
-
 
     /**
      * @inheritdoc
@@ -72,14 +72,13 @@ class Attributes extends EPMap
         parent::parentEPMap($parentObject);
     }
 
-
     public function matchIndexedValue(EPMap $importedObject)
     {
         if (
-            !is_null($importedObject->options_id) && !is_null($this->options_id) && $importedObject->options_id==$this->options_id
+            !is_null($importedObject->options_id) && !is_null($this->options_id) && $importedObject->options_id == $this->options_id
             &&
-            !is_null($importedObject->options_values_id) && !is_null($this->options_values_id) && $importedObject->options_values_id==$this->options_values_id
-        ){
+            !is_null($importedObject->options_values_id) && !is_null($this->options_values_id) && $importedObject->options_values_id == $this->options_values_id
+        ) {
             $this->pendingRemoval = false;
             return true;
         }
@@ -104,16 +103,16 @@ class Attributes extends EPMap
     {
         $data = parent::exportArray($fields);
 
-        if (count($fields)==0 || in_array('options_name',$fields) || in_array('options_values_name',$fields) || in_array('is_virtual',$fields)) {
+        if (count($fields) == 0 || in_array('options_name', $fields) || in_array('options_values_name', $fields) || in_array('is_virtual', $fields)) {
             $tools = \backend\models\EP\Tools::getInstance();
 
-            if (count($fields)==0 || in_array('options_name',$fields)) {
-                $data['options_name'] = $tools->get_option_name($this->options_id, \common\classes\language::defaultId() );
+            if (count($fields) == 0 || in_array('options_name', $fields)) {
+                $data['options_name'] = $tools->get_option_name($this->options_id, \common\classes\language::defaultId());
             }
-            if (count($fields)==0 || in_array('options_values_name',$fields)) {
-                $data['options_values_name'] = $tools->get_option_value_name($this->options_values_id, \common\classes\language::defaultId() );
+            if (count($fields) == 0 || in_array('options_values_name', $fields)) {
+                $data['options_values_name'] = $tools->get_option_value_name($this->options_values_id, \common\classes\language::defaultId());
             }
-            if (count($fields)==0 || in_array('is_virtual',$fields)) {
+            if (count($fields) == 0 || in_array('is_virtual', $fields)) {
                 $data['is_virtual'] = $tools->is_option_virtual($this->options_id);
             }
         }
@@ -122,12 +121,12 @@ class Attributes extends EPMap
 
     public function initCollectionByLookupKey_Prices($lookupKeys)
     {
-        $loadAll = in_array('*',$lookupKeys);
-        foreach(Attributes_Prices::getAllKeyCodes() as $keyCode=>$lookupPK){
+        $loadAll = in_array('*', $lookupKeys);
+        foreach (Attributes_Prices::getAllKeyCodes() as $keyCode => $lookupPK) {
             $this->childCollections['prices'][$keyCode] = null;
-            if ( is_null($this->products_attributes_id) ) {
+            if (is_null($this->products_attributes_id)) {
                 $this->childCollections['prices'][$keyCode] = new Attributes_Prices($lookupPK);
-            }elseif( $loadAll || in_array($keyCode,$lookupKeys) ) {
+            } elseif ($loadAll || in_array($keyCode, $lookupKeys)) {
                 if (!isset($this->childCollections['prices'][$keyCode])) {
                     $lookupPK['products_attributes_id'] = $this->products_attributes_id;
                     $this->childCollections['prices'][$keyCode] = Attributes_Prices::findOne($lookupPK);
@@ -139,6 +138,5 @@ class Attributes extends EPMap
         }
         return $this->childCollections['prices'];
     }
-
 
 }

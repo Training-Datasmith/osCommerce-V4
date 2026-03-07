@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes;
 
+use frontend\design\IncludeTpl;
+use frontend\design\Info;
 use Yii;
 use yii\base\Widget;
 use yii\helpers\ArrayHelper;
-use frontend\design\IncludeTpl;
-use frontend\design\Info;
-use common\helpers\Product;
-use common\classes\platform;
 
 class Bestsellers extends Widget
 {
@@ -43,10 +43,10 @@ class Bestsellers extends Widget
             $max = 4;
         }
 
-        if ((!empty($this->settings[0]['days']) && (int)$this->settings[0]['days']>0) ||
-            (defined('BESTSELLERS_SOLD_LAST_DAYS') && (int)BESTSELLERS_SOLD_LAST_DAYS>0) ) {
+        if ((!empty($this->settings[0]['days']) && (int)$this->settings[0]['days'] > 0) ||
+            (defined('BESTSELLERS_SOLD_LAST_DAYS') && (int)BESTSELLERS_SOLD_LAST_DAYS > 0)) {
             $exclude_order_statuses_array = \common\helpers\Order::extractStatuses(DASHBOARD_EXCLUDE_ORDER_STATUSES);
-            if (!empty($this->settings[0]['days']) && (int)$this->settings[0]['days']>0) {
+            if (!empty($this->settings[0]['days']) && (int)$this->settings[0]['days'] > 0) {
                 $days = (int)$this->settings[0]['days'];
             }
             if (empty($days)) {
@@ -60,9 +60,9 @@ class Bestsellers extends Widget
                                 'and',
                                 'op.products_id=p.products_id',
                                 ['>=', 'o.date_purchased', date('Y-m-d', strtotime($days . ' days ago')) ],
-                                ['not in', 'o.orders_status', $exclude_order_statuses_array]
-                              ])
-                ]
+                                ['not in', 'o.orders_status', $exclude_order_statuses_array],
+                              ]),
+                ],
               ];
         } else {
             $andWhere = ['and', 'p.products_ordered > 0'];
@@ -81,7 +81,7 @@ class Bestsellers extends Widget
                     'and',
                     'p2c.products_id=p.products_id',
                     ['IN', 'p2c.categories_id', $categories],
-                ])
+                ]),
             ];
         }
 
@@ -93,7 +93,7 @@ class Bestsellers extends Widget
 
         $this->settings['listing_type'] = 'bestsellers';
         $this->settings[0]['view_as'] = ($this->settings[0]['view_as'] ?? false);
-//echo __FILE__ .':' . __LINE__ . ' ' . $q->buildQuery()->getQuery()->createCommand()->rawSql . "<br>\n";
+        //echo __FILE__ .':' . __LINE__ . ' ' . $q->buildQuery()->getQuery()->createCommand()->rawSql . "<br>\n";
         $products = Info::getListProductsDetails($q->buildQuery()->allIds(), $this->settings);
 
         if (count($products) <= 0) {
@@ -110,14 +110,14 @@ class Bestsellers extends Widget
                     'products' => Yii::$container->get('products')->getAllProducts($this->settings['listing_type']),
                     'settings' => $this->settings,
                     'languages_id' => $languages_id,
-                    'id' => $this->id
-                ]
+                    'id' => $this->id,
+                ],
             ]);
         } else {
             return \frontend\design\boxes\ProductListing::widget([
                 'products' => Yii::$container->get('products')->getAllProducts($this->settings['listing_type']),
                 'settings' => $this->settings,
-                'id' => $this->id
+                'id' => $this->id,
             ]);
         }
 

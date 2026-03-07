@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
 use frontend\design\Info;
-use common\classes\platform;
-use common\helpers\Product;
+use Yii;
+use yii\base\Widget;
 use yii\helpers\ArrayHelper;
 
 class NewProducts extends Widget
@@ -47,7 +47,7 @@ class NewProducts extends Widget
          *  0x2 bundle
          *  0x4 PC Conf
          */
-        if (isset($this->settings[0]['product_types']) && $this->settings[0]['product_types']>0) {
+        if (isset($this->settings[0]['product_types']) && $this->settings[0]['product_types'] > 0) {
             $type_where = ' ( 0 ';
             if ($this->settings[0]['product_types'] & 1) {
                 $type_where .= ' or (p.is_bundle=0 and p.products_pctemplates_id=0)';
@@ -63,11 +63,11 @@ class NewProducts extends Widget
             $type_where = '';
         }
 
-        if (defined('NEW_MARK_UNTIL_DAYS') && intval(constant('NEW_MARK_UNTIL_DAYS'))>0) {
-          if (!empty($type_where)) {
-            $type_where .= ' and ';
-          }
-          $type_where .= 'p.products_new_until>="' . date(\common\helpers\Date::DATABASE_DATE_FORMAT) . '"';
+        if (defined('NEW_MARK_UNTIL_DAYS') && intval(constant('NEW_MARK_UNTIL_DAYS')) > 0) {
+            if (!empty($type_where)) {
+                $type_where .= ' and ';
+            }
+            $type_where .= 'p.products_new_until>="' . date(\common\helpers\Date::DATABASE_DATE_FORMAT) . '"';
         }
 
         $q = new \common\components\ProductsQuery([
@@ -89,14 +89,14 @@ class NewProducts extends Widget
                         'products' => Yii::$container->get('products')->getAllProducts($this->settings['listing_type']),
                         'settings' => $this->settings,
                         'languages_id' => $languages_id,
-                        'id' => $this->id
-                    ]
+                        'id' => $this->id,
+                    ],
                 ]);
             } else {
                 return \frontend\design\boxes\ProductListing::widget([
                     'products' => Yii::$container->get('products')->getAllProducts($this->settings['listing_type']),
                     'settings' => $this->settings,
-                    'id' => $this->id
+                    'id' => $this->id,
                 ]);
             }
 

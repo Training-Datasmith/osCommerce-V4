@@ -1,14 +1,16 @@
 <?php
 
+declare(strict_types=1);
+
 $config = [
     'components' => [
         'request' => [
             // !!! insert a secret key in the following (if it is empty) - this is required by cookie validation
             'cookieValidationKey' => 'IqdADG0qMX8Lf9H0fn6wlBJgQsj-XM0H',
         ],
-        'mobileDetect' => array(
-            'class' => '\common\extensions\MobileDetect\MobileDetect'
-        ),
+        'mobileDetect' => [
+            'class' => '\common\extensions\MobileDetect\MobileDetect',
+        ],
     ],
 ];
 

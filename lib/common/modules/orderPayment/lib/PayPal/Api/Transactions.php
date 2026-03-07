@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -7,7 +9,7 @@ use PayPal\Common\PayPalModel;
 /**
  * Class Transactions
  *
- * 
+ *
  *
  * @package PayPal\Api
  *
@@ -17,10 +19,10 @@ class Transactions extends PayPalModel
 {
     /**
      * Amount being collected.
-     * 
+     *
      *
      * @param \PayPal\Api\Amount $amount
-     * 
+     *
      * @return $this
      */
     public function setAmount($amount)

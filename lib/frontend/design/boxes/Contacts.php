@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,14 +15,11 @@
 namespace frontend\design\boxes;
 
 use frontend\design\Info;
-use Yii;
-use yii\base\Widget;
-use frontend\design\IncludeTpl;
 use frontend\design\JsonLd;
+use yii\base\Widget;
 
 class Contacts extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -40,7 +39,7 @@ class Contacts extends Widget
         switch ($this->settings[0]['view_item']) {
             case 'phone_number':
                 JsonLd::addData(['Organization' => [
-                    'telephone' => $data['telephone']
+                    'telephone' => $data['telephone'],
                 ]], ['Organization', 'telephone']);
                 if (isset($this->settings[0]['add_link_on_phone']) && $this->settings[0]['add_link_on_phone']) {
                     $data['telephone'] = '<a href="tel:' . $data['telephone'] . '">' . $data['telephone'] . '</a>';
@@ -48,7 +47,7 @@ class Contacts extends Widget
                 return $data['telephone'];
             case 'email':
                 JsonLd::addData(['Organization' => [
-                    'email' => $data['email_address']
+                    'email' => $data['email_address'],
                 ]], ['Organization', 'email']);
 
                 if ($this->settings[0]['use_at_in_email']) {
@@ -60,12 +59,12 @@ class Contacts extends Widget
                 return $data['email_address'];
             case 'name':
                 JsonLd::addData(['Organization' => [
-                    'name' => $data['company']
+                    'name' => $data['company'],
                 ]], ['Organization', 'name']);
                 return $data['company'];
             case 'address':
 
-                if (!$this->settings[0]['address_spacer']){
+                if (!$this->settings[0]['address_spacer']) {
                     $this->settings[0]['address_spacer'] = '<br>';
                 }
 
@@ -98,12 +97,12 @@ class Contacts extends Widget
                 }
 
                 JsonLd::addData(['Organization' => [
-                    'address' => $ldAddress
+                    'address' => $ldAddress,
                 ]], ['Organization', 'address']);
 
                 if (isset($data['company_vat']) && !empty($data['company_vat']) && in_array('company_vat', $addressFormatArrFlat)) {
                     JsonLd::addData(['Organization' => [
-                        'vatID' => $data['entry_company_vat']
+                        'vatID' => $data['entry_company_vat'],
                     ]], ['Organization', 'vatID']);
                 }
 
@@ -127,15 +126,16 @@ class Contacts extends Widget
                     0,
                     ' ',
                     $this->settings[0]['address_spacer'],
-                    true);
+                    true
+                );
             case 'company_no':
                 JsonLd::addData(['Organization' => [
-                    'leiCode' => $data['reg_number']
+                    'leiCode' => $data['reg_number'],
                 ]], ['Organization', 'leiCode']);
                 return $data['reg_number'];
             case 'company_vat_id':
                 JsonLd::addData(['Organization' => [
-                    'vatID' => $data['entry_company_vat']
+                    'vatID' => $data['entry_company_vat'],
                 ]], ['Organization', 'vatID']);
                 return $data['entry_company_vat'];
             case 'opening_hours':
@@ -151,39 +151,63 @@ class Contacts extends Widget
 
                         $first = strpos($content, '##POSTCODE##');
                         if ($first !== false) {
-                            if ($first < $firstGlobal) $firstGlobal = $first;
+                            if ($first < $firstGlobal) {
+                                $firstGlobal = $first;
+                            }
                             $last = $first + 12;
-                            if ($last > $lastGlobal) $lastGlobal = $last;
+                            if ($last > $lastGlobal) {
+                                $lastGlobal = $last;
+                            }
                         }
                         $first = strpos($content, '##STREET_ADDRESS##');
                         if ($first !== false) {
-                            if ($first < $firstGlobal) $firstGlobal = $first;
+                            if ($first < $firstGlobal) {
+                                $firstGlobal = $first;
+                            }
                             $last = $first + 18;
-                            if ($last > $lastGlobal) $lastGlobal = $last;
+                            if ($last > $lastGlobal) {
+                                $lastGlobal = $last;
+                            }
                         }
                         $first = strpos($content, '##SUBURB##');
                         if ($first !== false) {
-                            if ($first < $firstGlobal) $firstGlobal = $first;
+                            if ($first < $firstGlobal) {
+                                $firstGlobal = $first;
+                            }
                             $last = $first + 10;
-                            if ($last > $lastGlobal) $lastGlobal = $last;
+                            if ($last > $lastGlobal) {
+                                $lastGlobal = $last;
+                            }
                         }
                         $first = strpos($content, '##CITY##');
                         if ($first !== false) {
-                            if ($first < $firstGlobal) $firstGlobal = $first;
+                            if ($first < $firstGlobal) {
+                                $firstGlobal = $first;
+                            }
                             $last = $first + 8;
-                            if ($last > $lastGlobal) $lastGlobal = $last;
+                            if ($last > $lastGlobal) {
+                                $lastGlobal = $last;
+                            }
                         }
                         $first = strpos($content, '##STATE##');
                         if ($first !== false) {
-                            if ($first < $firstGlobal) $firstGlobal = $first;
+                            if ($first < $firstGlobal) {
+                                $firstGlobal = $first;
+                            }
                             $last = $first + 9;
-                            if ($last > $lastGlobal) $lastGlobal = $last;
+                            if ($last > $lastGlobal) {
+                                $lastGlobal = $last;
+                            }
                         }
                         $first = strpos($content, '##COUNTRY##');
                         if ($first !== false) {
-                            if ($first < $firstGlobal) $firstGlobal = $first;
+                            if ($first < $firstGlobal) {
+                                $firstGlobal = $first;
+                            }
                             $last = $first + 11;
-                            if ($last > $lastGlobal) $lastGlobal = $last;
+                            if ($last > $lastGlobal) {
+                                $lastGlobal = $last;
+                            }
                         }
 
                         if ($firstGlobal < $lastGlobal) {
@@ -222,43 +246,42 @@ class Contacts extends Widget
                     $content = str_replace('##STATE##', self::data('state', $data, $this->settings[0]['seo_tags']), $content);
                     $content = str_replace('##REG_NUMBER##', self::data('reg_number', $data, $this->settings[0]['seo_tags']), $content);
                     $content = str_replace('##COUNTRY##', self::data('country', $data, $this->settings[0]['seo_tags']), $content);
-                    $content = str_replace('##OPEN##', self::openingHours( $data, $this->settings[0]['time_format']), $content);
+                    $content = str_replace('##OPEN##', self::openingHours($data, $this->settings[0]['time_format']), $content);
                     $content = str_replace('##POST_ADDRESS##', self::data('post_address', $data, $this->settings[0]['seo_tags']), $content);
 
-                    $content = preg_replace('/,[, ]+/', ", ", $content);
+                    $content = preg_replace('/,[, ]+/', ', ', $content);
                     $content = preg_replace('/[\n]+/', "\n", $content);
-                    $content = preg_replace('/[ ]+/', " ", $content);
-                    $content = preg_replace('/[\n]+,/', ",", $content);
+                    $content = preg_replace('/[ ]+/', ' ', $content);
+                    $content = preg_replace('/[\n]+,/', ',', $content);
                     $content = preg_replace('/[ ]{0,},[ ]{0,}\n[ ]{0,}[,\n ]+,/', ",\n", $content);
-                    $content = preg_replace('/[,]+,/', ",", $content);
+                    $content = preg_replace('/[,]+,/', ',', $content);
                     //$content = preg_replace('/,[, \n]+/', ",\n", $content);
                     $content = str_replace("\n", '<br>', $content);
 
-                    $content = preg_replace_callback("/\#\#([A-Z_]+)\#\#/", self::class . "::translate", $content);
+                    $content = preg_replace_callback("/\#\#([A-Z_]+)\#\#/", self::class . '::translate', $content);
 
                     if ($this->settings[0]['seo_tags']) {
                         $content = '<span itemscope="" itemtype="http://schema.org/Organization">' . $content . '</span>';
                     }
 
-
-                    if (strpos($ldContent, '##REG_NUMBER##') && $data['reg_number']){
+                    if (strpos($ldContent, '##REG_NUMBER##') && $data['reg_number']) {
                         JsonLd::addData(['Organization' => [
-                            'leiCode' => $data['reg_number']
+                            'leiCode' => $data['reg_number'],
                         ]], ['Organization', 'leiCode']);
                     }
-                    if (strpos($ldContent, '##COMPANY##') && $data['company']){
+                    if (strpos($ldContent, '##COMPANY##') && $data['company']) {
                         JsonLd::addData(['Organization' => [
-                            'name' => $data['company']
+                            'name' => $data['company'],
                         ]], ['Organization', 'name']);
                     }
-                    if (strpos($ldContent, '##EMAIL_ADDRESS##') && $data['email_address']){
+                    if (strpos($ldContent, '##EMAIL_ADDRESS##') && $data['email_address']) {
                         JsonLd::addData(['Organization' => [
-                            'email' => $data['email_address']
+                            'email' => $data['email_address'],
                         ]], ['Organization', 'email']);
                     }
-                    if (strpos($ldContent, '##TELEPHONE##') && $data['telephone']){
+                    if (strpos($ldContent, '##TELEPHONE##') && $data['telephone']) {
                         JsonLd::addData(['Organization' => [
-                            'telephone' => $data['telephone']
+                            'telephone' => $data['telephone'],
                         ]], ['Organization', 'telephone']);
                     }
 
@@ -289,7 +312,7 @@ class Contacts extends Widget
                             $ldAddress['addressLocality'] = $data['suburb'];
                         }
                         JsonLd::addData(['Organization' => [
-                            'address' => $ldAddress
+                            'address' => $ldAddress,
                         ]], ['Organization', 'address']);
                     }
 
@@ -301,7 +324,8 @@ class Contacts extends Widget
 
     }
 
-    public static function translate($matches) {
+    public static function translate($matches)
+    {
         return defined($matches[1]) ? constant($matches[1]) : $matches[1];
     }
 
@@ -310,77 +334,132 @@ class Contacts extends Widget
         $content = '';
         switch ($name) {
             case 'owner':
-                if ($seo && $data[$name]) $content .= '<span itemprop="founder">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="founder">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name]) $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'name':
-                if ($seo && $data[$name]) $content .= '<span itemprop="name">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="name">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name]) $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'email_address':
-                if ($seo && $data[$name]) $content .= '<span itemprop="email">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="email">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name])  $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'email_extra':
                 $content .= $data[$name];
                 break;
             case 'telephone':
-                if ($seo && $data[$name]) $content .= '<span itemprop="telephone">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="telephone">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name])  $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'landline':
                 $content .= $data[$name];
+                // no break
             case 'company':
-                if ($seo && $data[$name]) $content .= '<span itemprop="legalName">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="legalName">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name])  $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'company_vat':
-                if ($seo && $data[$name]) $content .= '<span itemprop="vatID">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="vatID">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name])  $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'postcode':
-                if ($seo && $data[$name]) $content .= '<span itemprop="postalCode">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="postalCode">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name])  $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'street_address':
-                if ($seo && $data[$name]) $content .= '<span itemprop="streetAddress">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="streetAddress">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name])  $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'suburb':
-                if ($seo && $data[$name]) $content .= '<span itemprop="addressRegion">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="addressRegion">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name])  $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'city':
-                if ($seo && $data[$name]) $content .= '<span itemprop="addressLocality">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="addressLocality">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name])  $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'state':
-                if ($seo && $data[$name]) $content .= '<span itemprop="addressLocality">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="addressLocality">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name])  $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'reg_number':
-                if ($seo && $data[$name]) $content .= '<span itemprop="leiCode">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="leiCode">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name])  $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'country':
-                if ($seo && $data[$name]) $content .= '<span itemprop="addressCountry">';
+                if ($seo && $data[$name]) {
+                    $content .= '<span itemprop="addressCountry">';
+                }
                 $content .= $data[$name];
-                if ($seo && $data[$name])  $content .= '</span>';
+                if ($seo && $data[$name]) {
+                    $content .= '</span>';
+                }
                 break;
             case 'post_address':
-                if ($seo) $content .= '<address itemprop="address" itemscope="" itemtype="http://schema.org/PostalAddress">';
+                if ($seo) {
+                    $content .= '<address itemprop="address" itemscope="" itemtype="http://schema.org/PostalAddress">';
+                }
                 $address = $data;
                 $address['name'] = '';
                 $address['reg_number'] = '';
@@ -390,8 +469,11 @@ class Contacts extends Widget
                     0,
                     ' ',
                     ', ',
-                    $seo);
-                if ($seo)  $content .= '</address>';
+                    $seo
+                );
+                if ($seo) {
+                    $content .= '</address>';
+                }
                 $content = str_replace("\n", ' ', $content);
                 break;
         }
@@ -403,18 +485,18 @@ class Contacts extends Widget
     {
         if ($timeFormat == '24') {
             foreach ($data['open'] as $key => $item) {
-                $data['open'][$key]['time_from'] = date("G:i", strtotime($item['time_from']));
-                $data['open'][$key]['time_to'] = date("G:i", strtotime($item['time_to']));
+                $data['open'][$key]['time_from'] = date('G:i', strtotime($item['time_from']));
+                $data['open'][$key]['time_to'] = date('G:i', strtotime($item['time_to']));
             }
         }
         foreach ($data['open'] as $key => $item) {
-            $data['open'][$key]['from'] = date("G:i", strtotime($item['time_from']));
-            $data['open'][$key]['to'] = date("G:i", strtotime($item['time_to']));
+            $data['open'][$key]['from'] = date('G:i', strtotime($item['time_from']));
+            $data['open'][$key]['to'] = date('G:i', strtotime($item['time_to']));
         }
 
         $ours = '';
         $jsonOurs = [];
-        foreach ($data['open'] as $item){
+        foreach ($data['open'] as $item) {
             if (!$item['days_short']) {
                 $item['days_short'] = 'Everyday';
             }
@@ -429,7 +511,7 @@ class Contacts extends Widget
         }
 
         JsonLd::addData(['Organization' => [
-            'openingHoursSpecification' => $jsonOurs
+            'openingHoursSpecification' => $jsonOurs,
         ]], ['Organization', 'openingHoursSpecification']);
 
         return $ours;

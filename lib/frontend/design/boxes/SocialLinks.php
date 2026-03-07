@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,13 +15,11 @@
 namespace frontend\design\boxes;
 
 use common\classes\Images;
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class SocialLinks extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -45,7 +45,7 @@ class SocialLinks extends Widget
         foreach ($socials as $key => $social) {
 
             \frontend\design\JsonLd::addData(['Organization' => [
-                'sameAs' => [$social['link']]
+                'sameAs' => [$social['link']],
             ]], ['Organization', 'sameAs']);
 
             if (is_file(Images::getFSCatalogImagesPath() . $socials[$key]['image'])) {

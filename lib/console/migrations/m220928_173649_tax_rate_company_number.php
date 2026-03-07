@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -31,9 +33,9 @@ class m220928_173649_tax_rate_company_number extends Migration
      */
     public function safeDown()
     {
-/*        echo "m220928_173649_tax_rate_company_number cannot be reverted.\n";
+        /*        echo "m220928_173649_tax_rate_company_number cannot be reverted.\n";
 
-        return false;*/
+                return false;*/
     }
 
     /*

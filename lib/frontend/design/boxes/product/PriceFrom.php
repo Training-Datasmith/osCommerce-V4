@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\product;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class PriceFrom extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -45,7 +46,7 @@ class PriceFrom extends Widget
         if (!is_array($dt)) {
             return '';
         }
-        for ($i=1, $n=sizeof($dt); $i<=$n; $i=$i+2) {
+        for ($i = 1, $n = sizeof($dt); $i <= $n; $i = $i + 2) {
             if ($dt[$i] && $dt[$i] < $minPrice || !$minPrice) {
                 $minPrice = $dt[$i];
             }

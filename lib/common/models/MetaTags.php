@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "meta_tags".
@@ -23,7 +23,8 @@ class MetaTags extends \yii\db\ActiveRecord
         return 'meta_tags';
     }
 
-    public static function primaryKey() {
+    public static function primaryKey()
+    {
         return ['meta_tags_key', 'language_id', 'platform_id'];
     }
 

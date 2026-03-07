@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Common;
 
 use PayPal\Exception\PayPalConfigurationException;
@@ -11,21 +13,19 @@ use PayPal\Exception\PayPalConfigurationException;
  */
 class ReflectionUtil
 {
-
     /**
      * Reflection Methods
      *
      * @var \ReflectionMethod[]
      */
-    private static $propertiesRefl = array();
+    private static $propertiesRefl = [];
 
     /**
      * Properties Type
      *
      * @var string[]
      */
-    private static $propertiesType = array();
-
+    private static $propertiesType = [];
 
     /**
      * Gets Property Class of the given property.
@@ -81,7 +81,7 @@ class ReflectionUtil
         }
 
         if (isset($param)) {
-            return substr($param, -strlen('[]'))==='[]';
+            return substr($param, -strlen('[]')) === '[]';
         } else {
             throw new PayPalConfigurationException("Getter function for '$propertyName' in '$class' class should have a proper return type.");
         }
@@ -99,14 +99,14 @@ class ReflectionUtil
     {
         $class = is_object($class) ? get_class($class) : $class;
         if (!class_exists('ReflectionProperty')) {
-            throw new \RuntimeException("Property type of " . $class . "::{$propertyName} cannot be resolved");
+            throw new \RuntimeException('Property type of ' . $class . "::{$propertyName} cannot be resolved");
         }
 
-        if ($annotations =& self::$propertiesType[$class][$propertyName]) {
+        if ($annotations = & self::$propertiesType[$class][$propertyName]) {
             return $annotations;
         }
 
-        if (!($refl =& self::$propertiesRefl[$class][$propertyName])) {
+        if (!($refl = & self::$propertiesRefl[$class][$propertyName])) {
             $getter = self::getter($class, $propertyName);
             $refl = new \ReflectionMethod($class, $getter);
             self::$propertiesRefl[$class][$propertyName] = $refl;
@@ -117,7 +117,8 @@ class ReflectionUtil
             '~\@([^\s@\(]+)[\t ]*(?:\(?([^\n@]+)\)?)?~i',
             $refl->getDocComment(),
             $annots,
-            PREG_PATTERN_ORDER)) {
+            PREG_PATTERN_ORDER
+        )) {
             return null;
         }
         foreach ($annots[1] as $i => $annot) {
@@ -148,8 +149,8 @@ class ReflectionUtil
      */
     public static function getter($class, $propertyName)
     {
-        return method_exists($class, "get" . ucfirst($propertyName)) ?
-            "get" . ucfirst($propertyName) :
-            "get" . preg_replace_callback("/([_\-\s]?([a-z0-9]+))/", self::class . "::replace_callback", $propertyName);
+        return method_exists($class, 'get' . ucfirst($propertyName)) ?
+            'get' . ucfirst($propertyName) :
+            'get' . preg_replace_callback("/([_\-\s]?([a-z0-9]+))/", self::class . '::replace_callback', $propertyName);
     }
 }

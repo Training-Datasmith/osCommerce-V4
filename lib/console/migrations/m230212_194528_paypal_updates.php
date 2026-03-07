@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -29,7 +31,6 @@ class m230212_194528_paypal_updates extends Migration
             'PAYPAL_PARTNER_PRIMARY_EMAIL' => 'Primary e-mail',
             'PAYPAL_PARTNER_PRIMARY_CURRENCY' => 'Primary currency',
 
-
           'PAYPAL_PARTNER_CAPABILITIES' => 'Capabilities',
             'PAYPAL_PARTNER_CARD_PROCESSING_VIRTUAL_TERMINAL_TEXT' => 'Virtual terminal',
             'PAYPAL_PARTNER_COMMERCIAL_ENTITY_TEXT' => 'Commercial',
@@ -48,12 +49,10 @@ class m230212_194528_paypal_updates extends Migration
 
         $this->db->createCommand(
             "update translation set translation_value='Enable payment methods' where translation_key in ('MODULE_PAYMENT_PAYPAL_PARTNER_BUTTON_FUNDING_DESCRIPTION', 'MODULE_PAYMENT_PAYPAL_PARTNER_BUTTON_FUNDING_TITLE') and translation_entity='payment'"
-
         )->execute();
 
         $this->db->createCommand(
             "update translation set translation_value='ATTENTION. Your PayPal account will be disconnected now. <br>Disconnecting your PayPal account will prevent you from offering PayPal on your website. <br>You\'ll need access to PayPal account or PayPal developer account to offer PayPal on website again. <br>You could export current settings for backup (click No and use appropriate buttons on listing).<br><br>Do you wish to continue?' where translation_key in ('TEXT_PAYPAL_PARTNER_UNLINK_PROMPT') and translation_entity='admin/main'"
-
         )->execute();
 
     }
@@ -63,9 +62,9 @@ class m230212_194528_paypal_updates extends Migration
      */
     public function safeDown()
     {
-//        echo "m230212_194528_paypal_updates cannot be reverted.\n";
+        //        echo "m230212_194528_paypal_updates cannot be reverted.\n";
 
-  //      return false;
+        //      return false;
     }
 
     /*

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -54,27 +56,26 @@ namespace Stripe;
  */
 class Source extends ApiResource
 {
-    const OBJECT_NAME = 'source';
-
     use ApiOperations\Create;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
 
-    const FLOW_CODE_VERIFICATION = 'code_verification';
-    const FLOW_NONE = 'none';
-    const FLOW_RECEIVER = 'receiver';
-    const FLOW_REDIRECT = 'redirect';
-
-    const STATUS_CANCELED = 'canceled';
-    const STATUS_CHARGEABLE = 'chargeable';
-    const STATUS_CONSUMED = 'consumed';
-    const STATUS_FAILED = 'failed';
-    const STATUS_PENDING = 'pending';
-
-    const USAGE_REUSABLE = 'reusable';
-    const USAGE_SINGLE_USE = 'single_use';
-
     use ApiOperations\NestedResource;
+    public const OBJECT_NAME = 'source';
+
+    public const FLOW_CODE_VERIFICATION = 'code_verification';
+    public const FLOW_NONE = 'none';
+    public const FLOW_RECEIVER = 'receiver';
+    public const FLOW_REDIRECT = 'redirect';
+
+    public const STATUS_CANCELED = 'canceled';
+    public const STATUS_CHARGEABLE = 'chargeable';
+    public const STATUS_CONSUMED = 'consumed';
+    public const STATUS_FAILED = 'failed';
+    public const STATUS_PENDING = 'pending';
+
+    public const USAGE_REUSABLE = 'reusable';
+    public const USAGE_SINGLE_USE = 'single_use';
 
     /**
      * @param null|array $params

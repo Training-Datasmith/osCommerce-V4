@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,5 +19,4 @@ use common\api\models\AR\EPMap;
 
 class Value extends EPMap
 {
-
 }

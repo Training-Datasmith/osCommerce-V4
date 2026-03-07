@@ -1,29 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace suppliersarea\widgets;
 
-use Yii;
-use yii\helpers\Html;
-
-class QuantityEditor extends \yii\base\Widget {
-
-    
+class QuantityEditor extends \yii\base\Widget
+{
     public $product;
-    
-    public function init() {
-        parent::init();        
+
+    public function init()
+    {
+        parent::init();
     }
 
-    public function run() {    
-        
+    public function run()
+    {
+
         $uprid = $this->product->uprid;
-        
-        return $this->render('quantity-editor',[
+
+        return $this->render('quantity-editor', [
             'value' => $this->product->suppliers_quantity,
             'b_uprid' => base64_encode($uprid),
-            'uprid' => $uprid,            
+            'uprid' => $uprid,
             'baseUrl' => \suppliersarea\SupplierModule::getInstance()->baseUrl,
         ]);
-        
+
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Stripe;
 
 /**
@@ -12,9 +14,8 @@ namespace Stripe;
  */
 class Collection extends StripeObject implements \Countable, \IteratorAggregate
 {
-    const OBJECT_NAME = 'list';
-
     use ApiOperations\Request;
+    public const OBJECT_NAME = 'list';
 
     /** @var array */
     protected $filters = [];

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -30,7 +32,7 @@ class ResetCacheBehavior extends Behavior
 
     public function deleteCache()
     {
-        foreach ($this->cache_id as $id){
+        foreach ($this->cache_id as $id) {
             \Yii::$app->cache->delete($id);
         }
     }

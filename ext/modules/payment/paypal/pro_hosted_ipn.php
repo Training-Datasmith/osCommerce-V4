@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /*
   $Id: pro_hosted_ipn.php 6498 2017-07-20 14:37:07Z dbalagov $
 
@@ -10,28 +12,27 @@
   Released under the GNU General Public License
 */
 
-  chdir('../../../../');
-  require('includes/application_top.php');
+chdir('../../../../');
+require('includes/application_top.php');
 
-  if (!defined('MODULE_PAYMENT_PAYPAL_PRO_HS_STATUS') || (MODULE_PAYMENT_PAYPAL_PRO_HS_STATUS  != 'True')) {
+if (!defined('MODULE_PAYMENT_PAYPAL_PRO_HS_STATUS') || (MODULE_PAYMENT_PAYPAL_PRO_HS_STATUS  != 'True')) {
     exit;
-  }
+}
 
-  require('includes/modules/payment/paypal_pro_hs.php');
+require('includes/modules/payment/paypal_pro_hs.php');
 
-  $result = false;
+$result = false;
 
-  if ( isset($_POST['txn_id']) && !empty($_POST['txn_id']) ) {
+if (isset($_POST['txn_id']) && !empty($_POST['txn_id'])) {
     $paypal_pro_hs = new paypal_pro_hs();
 
     $result = $paypal_pro_hs->getTransactionDetails($_POST['txn_id']);
-  }
+}
 
-  if ( is_array($result) && isset($result['ACK']) && (($result['ACK'] == 'Success') || ($result['ACK'] == 'SuccessWithWarning')) ) {
+if (is_array($result) && isset($result['ACK']) && (($result['ACK'] == 'Success') || ($result['ACK'] == 'SuccessWithWarning'))) {
     $pphs_result = $result;
 
     $paypal_pro_hs->verifyTransaction(true);
-  }
+}
 
-  require('includes/application_bottom.php');/**/
-?>
+require('includes/application_bottom.php');

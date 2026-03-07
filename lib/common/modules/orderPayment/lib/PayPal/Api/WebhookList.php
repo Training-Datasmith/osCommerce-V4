@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -19,7 +21,7 @@ class WebhookList extends PayPalModel
      * A list of webhooks.
      *
      * @param \PayPal\Api\Webhook[] $webhooks
-     * 
+     *
      * @return $this
      */
     public function setWebhooks($webhooks)
@@ -47,10 +49,10 @@ class WebhookList extends PayPalModel
     public function addWebhook($webhook)
     {
         if (!$this->getWebhooks()) {
-            return $this->setWebhooks(array($webhook));
+            return $this->setWebhooks([$webhook]);
         } else {
             return $this->setWebhooks(
-                array_merge($this->getWebhooks(), array($webhook))
+                array_merge($this->getWebhooks(), [$webhook])
             );
         }
     }
@@ -64,7 +66,7 @@ class WebhookList extends PayPalModel
     public function removeWebhook($webhook)
     {
         return $this->setWebhooks(
-            array_diff($this->getWebhooks(), array($webhook))
+            array_diff($this->getWebhooks(), [$webhook])
         );
     }
 

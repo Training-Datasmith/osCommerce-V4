@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,10 +24,8 @@ class m230209_113504_support_system extends Migration
      */
     public function safeUp()
     {
-        if (method_exists($this, 'isOldExtension'))
-        {
-            if (!$this->isOldExtension('SupportSystem'))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension('SupportSystem')) {
                 $this->removeTranslation('admin/main', ['BOX_SUPPORT_SYSTEM_SETTINGS']);
                 $this->removeAcl(['TEXT_SETTINGS', 'BOX_HEADING_CONFIGURATION', 'BOX_SUPPORT_SYSTEM_SETTINGS']);
                 $this->removeAdminMenu('BOX_SUPPORT_SYSTEM_SETTINGS');
@@ -44,8 +44,7 @@ class m230209_113504_support_system extends Migration
                     $this->getDb()->createCommand("DELETE FROM `configuration_group` WHERE `configuration_group_title` = 'Support Settings'")->execute();
                 }
             }
-            if (!\common\helpers\Extensions::isInstalled('SupportSystem'))
-            {
+            if (!\common\helpers\Extensions::isInstalled('SupportSystem')) {
                 $this->dropTableIfExists('support_system_info');
                 $this->dropTableIfExists('support_system');
             }
@@ -65,8 +64,8 @@ class m230209_113504_support_system extends Migration
             'date_added' => $this->dateTime(),
             'last_modified' => $this->dateTime(),
             'status'    => $this->integer(1),
-            'sort_order' => $this->integer()->defaultValue(0)
-        ],$tableOption);
+            'sort_order' => $this->integer()->defaultValue(0),
+        ], $tableOption);
         $this->createIndex('idx_tp', 'support_system', ['products_id', 'topic_id']);
 
         $this->createTable('support_system_info', [
@@ -83,14 +82,14 @@ class m230209_113504_support_system extends Migration
         $this->addForeignKey('idx_fk', 'support_system_info', 'topic_id', 'support_system', 'topic_id');
         $this->addPrimaryKey('pk_idx', 'support_system_info', ['topic_id', 'language_id', 'platform_id']);
 
-        $this->addTranslation('admin/main',[
+        $this->addTranslation('admin/main', [
             'BOX_SUPPORT_SYSTEM' => 'Support System',
         ]);
         $this->appendAcl(['BOX_HEADING_CATALOG', 'BOX_SUPPORT_SYSTEM']);
         $this->addAdminMenuAfter([
             'path' => 'support-system',
-            'title' => 'BOX_SUPPORT_SYSTEM'
-        ],'BOX_CATALOG_COMPETITORS');
+            'title' => 'BOX_SUPPORT_SYSTEM',
+        ], 'BOX_CATALOG_COMPETITORS');
 
         $this->getDb()->createCommand("INSERT INTO `configuration_group` (
                 `configuration_group_id` ,`configuration_group_title` ,`configuration_group_description` ,`sort_order` ,`visible`)
@@ -117,14 +116,14 @@ class m230209_113504_support_system extends Migration
                 (NULL ,  'Show video iframe on preview',  'SHOW_VIDEO_IN_PREVIE',  'true',  'Show video iframe on preview',  '".$gId."',  '3', NULL ,  '0000-00-00 00:00:00', NULL ,  'tep_cfg_select_option(array(''true'', ''false''),'),
                 (NULL ,  'Open topic at new window',  'OPEN_TOPIC_NEW_WINDOW',  'false',  'Open topic at new window',  '".$gId."',  '4', NULL ,  '0000-00-00 00:00:00', NULL ,  'tep_cfg_select_option(array(''true'', ''false''),')
             ;")->execute();
-        $this->addTranslation('admin/main',[
+        $this->addTranslation('admin/main', [
             'BOX_SUPPORT_SYSTEM_SETTINGS' => 'Support System Settings',
         ]);
         $this->appendAcl(['TEXT_SETTINGS', 'BOX_HEADING_CONFIGURATION', 'BOX_SUPPORT_SYSTEM_SETTINGS']);
         $this->addAdminMenuAfter([
             'path' => 'configuration/index?groupid='.$gId,
-            'title' => 'BOX_SUPPORT_SYSTEM_SETTINGS'
-        ],'BOX_CONFIGURATION_BONUS_PROGRAMS');
+            'title' => 'BOX_SUPPORT_SYSTEM_SETTINGS',
+        ], 'BOX_CONFIGURATION_BONUS_PROGRAMS');
         $this->addTranslation('admin/support-system', [
             'HEADING_TITLE'  => 'Support System',
             'TEXT_CREATE_NEW_TOPIC' => 'New Topic',

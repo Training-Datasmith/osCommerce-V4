@@ -1,11 +1,13 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models\Product;
 
 use common\models\Products;
 use yii\behaviors\TimestampBehavior;
-use yii\db\ActiveRecord;
 use yii\db\ActiveQuery;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "products_notes".

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,11 +16,9 @@ namespace common\models\repositories;
 
 use common\components\Customer;
 use common\models\Customers;
-use yii\db\ActiveQuery;
 
 class CustomersRepository
 {
-
     /**
      * @param bool $active
      * @param bool $asArray
@@ -112,7 +112,6 @@ class CustomersRepository
         }
         return $customer;
     }
-
 
     /**
      * @param $id

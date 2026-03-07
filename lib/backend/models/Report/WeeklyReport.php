@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace backend\models\Report;
 
 use Yii;
 
-class WeeklyReport extends BasicReport implements ReportInterface {
-
-    CONST DELIMETER = "/";
-    CONST SHOW_ROWS = 50;
+class WeeklyReport extends BasicReport implements ReportInterface
+{
+    public const DELIMETER = '/';
+    public const SHOW_ROWS = 50;
 
     protected $start_day;
     protected $end_day;
@@ -37,7 +39,8 @@ class WeeklyReport extends BasicReport implements ReportInterface {
     ];
     protected $current_range;
 
-    public function __construct($data) {
+    public function __construct($data)
+    {
         switch ($data['range']) {
             case 'week':
                 if (isset($data['week'])) {
@@ -50,9 +53,9 @@ class WeeklyReport extends BasicReport implements ReportInterface {
                         $this->end_day = $range->end['day'];
                         $this->end_month = $range->end['month'];
                         $this->end_year = $range->end['year'];
-                        if (isset($data['week_cmp']) AND ($data['week'] != $data['week_cmp'])) {
+                        if (isset($data['week_cmp']) and ($data['week'] != $data['week_cmp'])) {
                             $week_cmp = $this->parseDate($data['week_cmp'], true);
-                            if (isset($week_cmp->start) AND isset($week_cmp->end) AND ((int)$week_cmp->start['year'] > 0) AND ((int)$week_cmp->end['year'] > 0)) {
+                            if (isset($week_cmp->start) and isset($week_cmp->end) and ((int)$week_cmp->start['year'] > 0) and ((int)$week_cmp->end['year'] > 0)) {
                                 $this->week_cmp = $data['week_cmp'];
                                 $this->start_day_cmp = $week_cmp->start['day'];
                                 $this->start_month_cmp = $week_cmp->start['month'];
@@ -82,32 +85,40 @@ class WeeklyReport extends BasicReport implements ReportInterface {
                 break;
         }
 
-        if (isset($data['range']))
+        if (isset($data['range'])) {
             $this->current_range = $data['range'];
+        }
 
-        if (empty($this->start_day))
-            $this->start_day = date("d", strtotime("- 7 days "));
-        if (empty($this->end_day))
-            $this->end_day = date("d");
-        if (empty($this->start_month))
-            $this->start_month = date("m", strtotime("- 7 days "));
-        if (empty($this->end_month))
-            $this->end_month = date("m");
-        if (empty($this->start_year))
-            $this->start_year = date("Y", strtotime("- 7 days "));
-        if (empty($this->end_year))
-            $this->end_year = date("Y");
+        if (empty($this->start_day)) {
+            $this->start_day = date('d', strtotime('- 7 days '));
+        }
+        if (empty($this->end_day)) {
+            $this->end_day = date('d');
+        }
+        if (empty($this->start_month)) {
+            $this->start_month = date('m', strtotime('- 7 days '));
+        }
+        if (empty($this->end_month)) {
+            $this->end_month = date('m');
+        }
+        if (empty($this->start_year)) {
+            $this->start_year = date('Y', strtotime('- 7 days '));
+        }
+        if (empty($this->end_year)) {
+            $this->end_year = date('Y');
+        }
 
-        $this->week = $this->start_day . self::DELIMETER . $this->start_month . self::DELIMETER . $this->start_year . "-" . $this->end_day . self::DELIMETER . $this->end_month . self::DELIMETER . $this->end_year;
+        $this->week = $this->start_day . self::DELIMETER . $this->start_month . self::DELIMETER . $this->start_year . '-' . $this->end_day . self::DELIMETER . $this->end_month . self::DELIMETER . $this->end_year;
         //need ordering check
         $this->checkMonthDayYear();
         //echo'<pre>';print_r($this);
         parent::__construct($data);
     }
 
-    public function getOptions($range) {
+    public function getOptions($range)
+    {
         switch ($range) {
-            case 'week' :
+            case 'week':
                 return Yii::$app->controller->renderAjax('week', [
                             'week' => $this->week,
                             'week_cmp' => trim($this->week_cmp),
@@ -123,10 +134,11 @@ class WeeklyReport extends BasicReport implements ReportInterface {
         }
     }
 
-    public function parseDate($date, $isRange = false) {
+    public function parseDate($date, $isRange = false)
+    {
         $_start = $_end = [];
         if ($isRange) {
-            $ex = explode("-", $date);
+            $ex = explode('-', $date);
             $_start = explode(self::DELIMETER, $ex[0]);
             $_end = explode(self::DELIMETER, $ex[1]);
         } else {
@@ -153,10 +165,13 @@ class WeeklyReport extends BasicReport implements ReportInterface {
         return $range;
     }
 
-    public function loadPurchases($for_map = false) {
-        $where = " ( o.date_purchased between '" . $this->start_year . "-" . $this->start_month . "-" . $this->start_day . " 00:00:00' and '" . $this->end_year . "-" . $this->end_month . "-" . $this->end_day . " 23:59:59' ) ";
+    public function loadPurchases($for_map = false)
+    {
+        $where = " ( o.date_purchased between '" . $this->start_year . '-' . $this->start_month . '-' . $this->start_day . " 00:00:00' and '" . $this->end_year . '-' . $this->end_month . '-' . $this->end_day . " 23:59:59' ) ";
         $data = $this->getRawData($where, $for_map);
-        if ($for_map) return $data;
+        if ($for_map) {
+            return $data;
+        }
         if (is_array($data)) {
             $filled = false;
             $new_data = [];
@@ -168,13 +183,13 @@ class WeeklyReport extends BasicReport implements ReportInterface {
                             $template[$key] = '';
                         }
                     }
-                    $new_data = $this->prepareDaysRange($template, "d M Y", $this->class_range);
+                    $new_data = $this->prepareDaysRange($template, 'd M Y', $this->class_range);
                     $filled = true;
                 }
                 if (!empty($v['period'])) {
-                    $data[$k]['period'] = date("d M Y", strtotime($v['period']));
-                    $data[$k]['period_full'] = date("m/d/Y H:00:00", strtotime($v['period']));
-                    $new_data[date("d-m-Y", strtotime($v['period']))] = $data[$k];
+                    $data[$k]['period'] = date('d M Y', strtotime($v['period']));
+                    $data[$k]['period_full'] = date('m/d/Y H:00:00', strtotime($v['period']));
+                    $new_data[date('d-m-Y', strtotime($v['period']))] = $data[$k];
                 }
             }
             $_temp = [];
@@ -184,33 +199,38 @@ class WeeklyReport extends BasicReport implements ReportInterface {
             $data = $_temp;
             //$this->end_month = date("m", strtotime($v['period']));
 
-            if (($this->current_range == 'week') AND ((int)$this->start_year_cmp > 0)) {
+            if (($this->current_range == 'week') and ((int)$this->start_year_cmp > 0)) {
                 $data = $this->comparePurchases($data);
             }
         }
         return $data;
     }
 
-    public function getRange() {
-        return date("d M Y", mktime(0, 0, 0, $this->start_month, $this->start_day, $this->start_year)) . ' - ' . date("d M Y", mktime(0, 0, 0, $this->end_month, $this->end_day, $this->end_year));
+    public function getRange()
+    {
+        return date('d M Y', mktime(0, 0, 0, $this->start_month, $this->start_day, $this->start_year)) . ' - ' . date('d M Y', mktime(0, 0, 0, $this->end_month, $this->end_day, $this->end_year));
     }
 
-    public function getTableTitle() {
+    public function getTableTitle()
+    {
         return TEXT_SALES_WEEKLY_STATISTICS;
     }
 
-    public function convertColumnTitle($value) {
+    public function convertColumnTitle($value)
+    {
         if ($value == 'period') {
             return parent::convertColumnTitle(TEXT_DATE);
         }
         return parent::convertColumnTitle($value);
     }
 
-    public function getRowsCount() {
+    public function getRowsCount()
+    {
         return self::SHOW_ROWS;
     }
 
-    public function hasDailyItems(){
+    public function hasDailyItems()
+    {
         return true;
     }
 

@@ -1,30 +1,30 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\classes\extended;
 
-use common\classes\shipping;
-use common\models\Customers;
 use common\classes\events\common\order\OrderSetParentEvent;
-use yii\helpers\ArrayHelper;
-use yii\web\Session;
-use common\classes\platform;
+use common\classes\shipping;
 use common\helpers\Address;
+use yii\helpers\ArrayHelper;
 
 #[\AllowDynamicProperties]
-abstract class OrderShadowAbstract implements OrderInterface {
-
-    public function prepareOrderInfo() {
+abstract class OrderShadowAbstract implements OrderInterface
+{
+    public function prepareOrderInfo()
+    {
 
         $cart = $this->manager->getCart();
 
@@ -42,9 +42,9 @@ abstract class OrderShadowAbstract implements OrderInterface {
                     $delivery_option_ex = $delivery_option['cost_ex'];
                 }
             }
-            
+
         }
-        
+
         $payment = $this->manager->getPayment();
 
         $this->info = [
@@ -63,20 +63,20 @@ abstract class OrderShadowAbstract implements OrderInterface {
             'shipping_cost' => @$shipping['cost'] + $delivery_option_inc,
             'shipping_no_cost' => @$shipping['no_cost'],
             'shipping_cost_inc_tax' => @$shipping['cost_inc_tax'] + $delivery_option_inc,
-            'shipping_cost_exc_tax' => (isset($shipping['cost_exc_tax'])?$shipping['cost_exc_tax']:@$shipping['cost']) + $delivery_option_ex,
+            'shipping_cost_exc_tax' => (isset($shipping['cost_exc_tax']) ? $shipping['cost_exc_tax'] : @$shipping['cost']) + $delivery_option_ex,
             'subtotal' => 0,
             'subtotal_inc_tax' => 0,
             'subtotal_exc_tax' => 0,
             'total_paid_exc_tax' => 0,
             'total_paid_inc_tax' => 0,
             'tax' => 0,
-            'tax_groups' => array(),
+            'tax_groups' => [],
             'comments' => $this->manager->has('comments') ? $this->manager->get('comments') : '',
             'greet_card' => $this->manager->get('greet_card'),
             'pointto' => $this->manager->get('pointto'),
             'delivery_date' => $this->manager->get('order_delivery_date'),
-            'purchase_order' =>isset($_SESSION['purchase_order']) ? $_SESSION['purchase_order'] : '',
-            'basket_id' => (int) $cart->basketID
+            'purchase_order' => isset($_SESSION['purchase_order']) ? $_SESSION['purchase_order'] : '',
+            'basket_id' => (int) $cart->basketID,
         ];
 
         $this->setPaymentStatus($payment);
@@ -85,8 +85,9 @@ abstract class OrderShadowAbstract implements OrderInterface {
             $this->info['order_status'] = $new_status;
         }
     }
-    
-    public function setPaymentStatus($payment){
+
+    public function setPaymentStatus($payment)
+    {
         if ($this->manager->getPaymentCollection()->isPaymentSelected()) {
             $pModule = $this->manager->getPaymentCollection()->getSelectedPayment();
             if (method_exists($pModule, 'getTitle')) {
@@ -95,9 +96,9 @@ abstract class OrderShadowAbstract implements OrderInterface {
                 $this->info['payment_method'] = $pModule->title;
             }
             //$this->info['payment_class'] = $pModule->code;
-            if ( $this->manager->has('admin_edit_order') && $this->manager->get('admin_edit_order') && \frontend\design\Info::isTotallyAdmin() ) {
+            if ($this->manager->has('admin_edit_order') && $this->manager->get('admin_edit_order') && \frontend\design\Info::isTotallyAdmin()) {
                 // prevent set default payment status to order on save - edit order
-            }else{
+            } else {
                 if (isset($pModule->order_status) && is_numeric($pModule->order_status) && ($pModule->order_status > 0)) {
                     $this->info['order_status'] = $pModule->order_status;
                 }
@@ -105,7 +106,8 @@ abstract class OrderShadowAbstract implements OrderInterface {
         }
     }
 
-    public function prepareProducts() {
+    public function prepareProducts()
+    {
         $cart = $this->manager->getCart();
 
         $this->manager->defineOrderTaxAddress();
@@ -137,14 +139,14 @@ abstract class OrderShadowAbstract implements OrderInterface {
 
         $_products = [];
         foreach ($products as $product) {
-            if ( isset($product['linked_products']) && is_array($product['linked_products']) ){
+            if (isset($product['linked_products']) && is_array($product['linked_products'])) {
                 $linked_products = $product['linked_products'];
                 unset($product['linked_products']);
                 $_products[] = $product;
-                foreach ($linked_products as $linked_product){
+                foreach ($linked_products as $linked_product) {
                     $_products[] = $linked_product;
                 }
-            }else{
+            } else {
                 $_products[] = $product;
             }
         }
@@ -156,7 +158,7 @@ abstract class OrderShadowAbstract implements OrderInterface {
 
         for ($i = 0, $n = sizeof($products); $i < $n; $i++) {
             $tax_values = $this->getTaxValues($products[$i]['tax_class_id']);
-            $this->products[$index] = array('qty' => $products[$i]['quantity'],
+            $this->products[$index] = ['qty' => $products[$i]['quantity'],
                 'reserved_qty' => $products[$i]['reserved_qty'],
                 'name' => $products[$i]['name'],
                 'model' => $products[$i]['model'],
@@ -168,7 +170,7 @@ abstract class OrderShadowAbstract implements OrderInterface {
                 'tax_class_id' => $products[$i]['tax_class_id'],
                 'tax_description' => $tax_values['tax_description'],
                 'props' => ArrayHelper::getValue($products, [$i, 'props']),
-                'propsData' => (isset($products[$i]['propsData'])?$products[$i]['propsData']:''),
+                'propsData' => (isset($products[$i]['propsData']) ? $products[$i]['propsData'] : ''),
                 'ga' => $products[$i]['ga'],
                 'price' => $products[$i]['price'],
                 'final_price' => $products[$i]['final_price'],
@@ -176,10 +178,10 @@ abstract class OrderShadowAbstract implements OrderInterface {
                 'template_uprid' => $products[$i]['id'],
                 'parent_product' => ArrayHelper::getValue($products, [$i, 'parent']),
                 'sub_products' => ArrayHelper::getValue($products, [$i, 'sub_products']),
-                'relation_type' => isset($products[$i]['relation_type'])?$products[$i]['relation_type']:'',
+                'relation_type' => isset($products[$i]['relation_type']) ? $products[$i]['relation_type'] : '',
                 'configurator_price' => $cart->configurator_price($products[$i]['id'], $products),
                 /* PC configurator addon end */
-                'sort_order' => (isset($products[$i]['sort_order'])?$products[$i]['sort_order']:$index),
+                'sort_order' => (isset($products[$i]['sort_order']) ? $products[$i]['sort_order'] : $index),
                 'weight' => $products[$i]['weight'],
                 'gift_wrap_price' => $products[$i]['gift_wrap_price'],
                 'gift_wrapped' => $products[$i]['gift_wrapped'],
@@ -189,12 +191,12 @@ abstract class OrderShadowAbstract implements OrderInterface {
                 'subscription' => $products[$i]['subscription'],
                 'subscription_code' => $products[$i]['subscription_code'],
                 'promo_id' => $products[$i]['promo_id'] ?? 0,
-                'specials_id' => (!empty($products[$i]['special_price'])? ($products[$i]['specials_id']??0) : 0),
+                'specials_id' => (!empty($products[$i]['special_price']) ? ($products[$i]['specials_id'] ?? 0) : 0),
 // {{ Bonus Points
                 'bonus_points_price' => ArrayHelper::getValue($products, [$i,'bonus_points_price']),
                 'bonus_points_cost' => ArrayHelper::getValue($products, [$i,'bonus_points_cost']),
-// }}                
-                'overwritten' => $products[$i]['overwritten']);
+// }}
+                'overwritten' => $products[$i]['overwritten']];
             if ($ext = \common\helpers\Acl::checkExtensionAllowed('PackUnits', 'allowed')) {
                 $this->products[$index] = array_merge($ext::cartOrderFrontend($index, $cart, $products[$i]), $this->products[$index]);
             }
@@ -203,71 +205,77 @@ abstract class OrderShadowAbstract implements OrderInterface {
             }
             $subindex = 0;
 
-            $bundle_prods_options = array();
-            $bundle_prods_options_array = array();
+            $bundle_prods_options = [];
+            $bundle_prods_options_array = [];
             if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductBundles', 'allowed')) {
                 list($bundle_prods_options_array, $bundle_prods_options) = $ext::cartOrder($products[$i], ($this->manager->has('customer_groups_id') ? $this->manager->get('customer_groups_id') : DEFAULT_USER_GROUP));
             }
 
             if ($products[$i]['attributes']) {
                 reset($products[$i]['attributes']);
-// {{ Virtual Gift Card
+                // {{ Virtual Gift Card
                 if (ArrayHelper::getValue($products, [$i,'virtual_gift_card']) && $products[$i]['attributes'][0] > 0) {
                     global $languages_id;
-                    $virtual_gift_card = tep_db_fetch_array(tep_db_query("select vgcb.products_id, if(length(pd1.products_name), pd1.products_name, pd.products_name) as products_name, p.products_model, p.products_image, p.products_weight, p.products_tax_class_id, vgcb.products_price, vgcb.virtual_gift_card_recipients_name, vgcb.virtual_gift_card_recipients_email, vgcb.virtual_gift_card_message, vgcb.virtual_gift_card_senders_name from " . TABLE_VIRTUAL_GIFT_CARD_BASKET . " vgcb, " . TABLE_PRODUCTS_DESCRIPTION . " pd, " . TABLE_PRODUCTS . " p left join " . TABLE_PRODUCTS_DESCRIPTION . " pd1 on pd1.products_id = p.products_id and pd1.language_id = '" . (int) $languages_id . "' and pd1.platform_id = '" . intval(\Yii::$app->get('platform')->config()->getPlatformToDescription()) . "' where length(vgcb.virtual_gift_card_code) = 0 and vgcb.virtual_gift_card_basket_id = '" . (int) $products[$i]['attributes'][0] . "' and p.products_id = vgcb.products_id and pd.platform_id = '" . intval(\common\classes\platform::defaultId()) . "' and pd.products_id = p.products_id and pd.language_id = '" . (int) $languages_id . "' and " . (!\Yii::$app->user->isGuest ? " vgcb.customers_id = '" . (int) \Yii::$app->user->getId() . "'" : " vgcb.session_id = '" . tep_session_id() . "'")));
+                    $virtual_gift_card = tep_db_fetch_array(tep_db_query('select vgcb.products_id, if(length(pd1.products_name), pd1.products_name, pd.products_name) as products_name, p.products_model, p.products_image, p.products_weight, p.products_tax_class_id, vgcb.products_price, vgcb.virtual_gift_card_recipients_name, vgcb.virtual_gift_card_recipients_email, vgcb.virtual_gift_card_message, vgcb.virtual_gift_card_senders_name from ' . TABLE_VIRTUAL_GIFT_CARD_BASKET . ' vgcb, ' . TABLE_PRODUCTS_DESCRIPTION . ' pd, ' . TABLE_PRODUCTS . ' p left join ' . TABLE_PRODUCTS_DESCRIPTION . " pd1 on pd1.products_id = p.products_id and pd1.language_id = '" . (int) $languages_id . "' and pd1.platform_id = '" . intval(\Yii::$app->get('platform')->config()->getPlatformToDescription()) . "' where length(vgcb.virtual_gift_card_code) = 0 and vgcb.virtual_gift_card_basket_id = '" . (int) $products[$i]['attributes'][0] . "' and p.products_id = vgcb.products_id and pd.platform_id = '" . intval(\common\classes\platform::defaultId()) . "' and pd.products_id = p.products_id and pd.language_id = '" . (int) $languages_id . "' and " . (!\Yii::$app->user->isGuest ? " vgcb.customers_id = '" . (int) \Yii::$app->user->getId() . "'" : " vgcb.session_id = '" . tep_session_id() . "'")));
                     $products_options_values_name = "\n";
-                    if (tep_not_null($virtual_gift_card['virtual_gift_card_recipients_name']))
+                    if (tep_not_null($virtual_gift_card['virtual_gift_card_recipients_name'])) {
                         $products_options_values_name .= TEXT_GIFT_CARD_RECIPIENTS_NAME . ' ' . $virtual_gift_card['virtual_gift_card_recipients_name'] . "\n";
-                    if (tep_not_null($virtual_gift_card['virtual_gift_card_recipients_email']))
+                    }
+                    if (tep_not_null($virtual_gift_card['virtual_gift_card_recipients_email'])) {
                         $products_options_values_name .= TEXT_GIFT_CARD_RECIPIENTS_EMAIL . ' ' . $virtual_gift_card['virtual_gift_card_recipients_email'] . "\n";
-                    if (tep_not_null($virtual_gift_card['virtual_gift_card_message']))
+                    }
+                    if (tep_not_null($virtual_gift_card['virtual_gift_card_message'])) {
                         $products_options_values_name .= TEXT_GIFT_CARD_MESSAGE . ' ' . $virtual_gift_card['virtual_gift_card_message'] . "\n";
-                    if (tep_not_null($virtual_gift_card['virtual_gift_card_senders_name']))
+                    }
+                    if (tep_not_null($virtual_gift_card['virtual_gift_card_senders_name'])) {
                         $products_options_values_name .= TEXT_GIFT_CARD_SENDERS_NAME . ' ' . $virtual_gift_card['virtual_gift_card_senders_name'] . "\n";
-                    $this->products[$index]['attributes'][$subindex] = array('option' => TEXT_GIFT_CARD_DETAILS,
+                    }
+                    $this->products[$index]['attributes'][$subindex] = ['option' => TEXT_GIFT_CARD_DETAILS,
                         'value' => $products_options_values_name,
                         'option_id' => 0,
-                        'value_id' => $products[$i]['attributes'][0]);
-                } else
-// }}
-                if (is_array($products[$i]['attributes'])) {
+                        'value_id' => $products[$i]['attributes'][0]];
+                } elseif // }}
+                (is_array($products[$i]['attributes'])) {
                     $attrText = \common\classes\PropsWorkerAttrText::getAttrText($products[$i]['props'] ?? null);
                     foreach ($products[$i]['attributes'] as $option => $value) {
-// {{ Products Bundle Sets
-                        if (in_array((string) $option, $bundle_prods_options))
+                        // {{ Products Bundle Sets
+                        if (in_array((string) $option, $bundle_prods_options)) {
                             continue;
-// }}
-                        $attributes_query = tep_db_query("select pa.products_attributes_id, popt.products_options_name, poval.products_options_values_name, pa.options_values_price, pa.price_prefix from " . TABLE_PRODUCTS_OPTIONS . " popt, " . TABLE_PRODUCTS_OPTIONS_VALUES . " poval, " . TABLE_PRODUCTS_ATTRIBUTES . " pa where pa.products_id = '" . (int) $products[$i]['id'] . "' and pa.options_id = '" . (int) $option . "' and pa.options_id = popt.products_options_id and pa.options_values_id = '" . (int) $value . "' and pa.options_values_id = poval.products_options_values_id and popt.language_id = '" . (int) $this->info['language_id'] . "' and poval.language_id = '" . (int) $this->info['language_id'] . "'");
+                        }
+                        // }}
+                        $attributes_query = tep_db_query('select pa.products_attributes_id, popt.products_options_name, poval.products_options_values_name, pa.options_values_price, pa.price_prefix from ' . TABLE_PRODUCTS_OPTIONS . ' popt, ' . TABLE_PRODUCTS_OPTIONS_VALUES . ' poval, ' . TABLE_PRODUCTS_ATTRIBUTES . " pa where pa.products_id = '" . (int) $products[$i]['id'] . "' and pa.options_id = '" . (int) $option . "' and pa.options_id = popt.products_options_id and pa.options_values_id = '" . (int) $value . "' and pa.options_values_id = poval.products_options_values_id and popt.language_id = '" . (int) $this->info['language_id'] . "' and poval.language_id = '" . (int) $this->info['language_id'] . "'");
                         $attributes = tep_db_fetch_array($attributes_query);
-                        $attributes['options_values_price'] = \common\helpers\Attributes::get_options_values_price($attributes['products_attributes_id']??null, $products[$i]['quantity'] ?? 0);
+                        $attributes['options_values_price'] = \common\helpers\Attributes::get_options_values_price($attributes['products_attributes_id'] ?? null, $products[$i]['quantity'] ?? 0);
 
-                        if (isset($attributes['products_options_name']))
-                        $this->products[$index]['attributes'][$subindex] = array('option' => $attributes['products_options_name'],
-                            'value' => ((isset($attrText[$option]) && !empty($attrText[$option])) ? $attrText[$option] : ($attributes['products_options_values_name']??null)),
-                            'option_id' => $option,
-                            'value_id' => $value,
-                            'prefix' => $attributes['price_prefix']??null,
-                            'price' => $attributes['options_values_price']??null);
+                        if (isset($attributes['products_options_name'])) {
+                            $this->products[$index]['attributes'][$subindex] = ['option' => $attributes['products_options_name'],
+                                'value' => ((isset($attrText[$option]) && !empty($attrText[$option])) ? $attrText[$option] : ($attributes['products_options_values_name'] ?? null)),
+                                'option_id' => $option,
+                                'value_id' => $value,
+                                'prefix' => $attributes['price_prefix'] ?? null,
+                                'price' => $attributes['options_values_price'] ?? null];
+                        }
 
                         $subindex++;
                     }
                 }
             }
 
-// {{ Products Bundle Sets
+            // {{ Products Bundle Sets
             foreach ($bundle_prods_options_array as $bundle_prods_option) {
                 $this->products[$index]['attributes'][$subindex] = $bundle_prods_option;
                 $subindex++;
             }
-// }}
+            // }}
             if ($products[$i]['gift_wrapped']) {
-                if (!is_array($this->products[$index]))
-                    $this->products[$index] = array();
-                $this->products[$index]['attributes'][] = array(
+                if (!is_array($this->products[$index])) {
+                    $this->products[$index] = [];
+                }
+                $this->products[$index]['attributes'][] = [
                     'option' => GIFT_WRAP_OPTION,
                     'value' => GIFT_WRAP_VALUE_YES,
                     'option_id' => -2,
-                    'value_id' => -2);
+                    'value_id' => -2];
             }
 
             $index++;
@@ -278,17 +286,18 @@ abstract class OrderShadowAbstract implements OrderInterface {
         $this->compactLinkedProducts();
     }
 
-    public function _setAddress($address) {
+    public function _setAddress($address)
+    {
 
         $vat_status = self::getAddressItem($address, 'company_vat');
         /** @var \common\extensions\VatOnOrder\VatOnOrder $ext */
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('VatOnOrder', 'allowed')) {
             $vat_status = $ext::check_vat_status($address);
             if ($vat_status > 1) {
-              $address['entry_company_vat'] = \common\helpers\Validations::sanitizeVatId(self::getAddressItem($address, 'company_vat'));
+                $address['entry_company_vat'] = \common\helpers\Validations::sanitizeVatId(self::getAddressItem($address, 'company_vat'));
             }
         }
-        
+
         $customs_number_status = (!empty(self::getAddressItem($address, 'customs_number')) || empty(self::getAddressItem($address, 'company')));
 
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('CustomersMultiEmails', 'allowed')) {
@@ -385,7 +394,7 @@ abstract class OrderShadowAbstract implements OrderInterface {
         //            'country_id' => '150',
         //        ]
         $state = trim(self::getAddressItem($address, 'state'));
-        return array(
+        return [
             'address_book_id' => $address['address_book_id'] ?? null,
             'gender' => self::getAddressItem($address, 'gender'),
             'firstname' => self::getAddressItem($address, 'firstname'),
@@ -403,21 +412,23 @@ abstract class OrderShadowAbstract implements OrderInterface {
             'postcode' => self::getAddressItem($address, 'postcode'),
             'state' => empty($state) ? \common\helpers\Zones::get_zone_name(self::getAddressItem($address, 'country_id'), self::getAddressItem($address, 'zone_id'), '') : $state,
             'zone_id' => self::getAddressItem($address, 'zone_id'),
-            'country' => array(
+            'country' => [
                 'id' => $address['country']['countries_id'] ?? ($address['country']['id'] ?? null),
                 'title' => $address['country']['countries_name'] ?? ($address['country']['title'] ?? null),
                 'iso_code_2' => $address['country']['countries_iso_code_2'] ?? ($address['country']['iso_code_2'] ?? null),
-                'iso_code_3' => $address['country']['countries_iso_code_3'] ?? ($address['country']['so_code_3'] ?? null)
-            ),
+                'iso_code_3' => $address['country']['countries_iso_code_3'] ?? ($address['country']['so_code_3'] ?? null),
+            ],
             'country_id' => self::getAddressItem($address, 'country_id'),
-            'format_id' => $address['country']['address_format_id'] ?? null);
+            'format_id' => $address['country']['address_format_id'] ?? null];
     }
 
-    private static function getAddressItem($array, $itemKey) {
+    private static function getAddressItem($array, $itemKey)
+    {
         return $array['entry_' . $itemKey] ?? ($array[$itemKey] ?? null);
     }
 
-    public function prepareOrderAddresses() {
+    public function prepareOrderAddresses()
+    {
         global $languages_id;
 
         $this->customer = [];
@@ -436,7 +447,7 @@ abstract class OrderShadowAbstract implements OrderInterface {
                     'lastname' => $customer->customers_lastname,
                     'telephone' => $customer->customers_telephone,
                     'landline' => $customer->customers_landline,
-                    'email_address' => $customer->customers_email_address
+                    'email_address' => $customer->customers_email_address,
                 ];
                 if ($this->manager->get('is_multi') == 1) {
                     $this->customer['email_address'] = $this->manager->get('customer_email_address');
@@ -451,7 +462,7 @@ abstract class OrderShadowAbstract implements OrderInterface {
                         'postcode' => $address['entry_postcode'],
                         'state' => ((tep_not_null($address['entry_state'])) ? $address['entry_state'] : \common\helpers\Zones::get_zone_name($address['entry_country_id'], $address['entry_zone_id'], '')),
                         'zone_id' => $address['entry_zone_id'],
-                        'country' => array('id' => $address['country']['countries_id'], 'title' => $address['country']['countries_name'], 'iso_code_2' => $address['country']['countries_iso_code_2'], 'iso_code_3' => $address['country']['countries_iso_code_3']),
+                        'country' => ['id' => $address['country']['countries_id'], 'title' => $address['country']['countries_name'], 'iso_code_2' => $address['country']['countries_iso_code_2'], 'iso_code_3' => $address['country']['countries_iso_code_3']],
                         'format_id' => $address['country']['address_format_id'],
                         'company' => $address['entry_company'],
                         'company_vat' => $address['entry_company_vat'],
@@ -506,14 +517,15 @@ abstract class OrderShadowAbstract implements OrderInterface {
      * @param array $product - item from orders products
      * @return int
      */
-    protected function getCancelledQty($product){
+    protected function getCancelledQty($product)
+    {
         $cancelled = 0;
         $cart = $this->manager->getCart();
-        if (is_object($cart) && $cart->order_id){//in admin
+        if (is_object($cart) && $cart->order_id) {//in admin
             $query = $this->getProductsARModel()->where(['orders_id' => $cart->order_id, 'uprid' => (string)$product['id'], 'products_id' => (int)$product['id']]);
-            if($query->exists()){
+            if ($query->exists()) {
                 $pModel = $query->one();
-                if ($pModel->hasAttribute('qty_cnld')){
+                if ($pModel->hasAttribute('qty_cnld')) {
                     $cancelled = $pModel->qty_cnld;
                 }
             }
@@ -528,7 +540,8 @@ abstract class OrderShadowAbstract implements OrderInterface {
         return DISPLAY_PRICE_WITH_TAX == 'true' || \common\helpers\Tax::displayTaxable();
     }
 
-    public function prepareOrderInfoTotals() {
+    public function prepareOrderInfoTotals()
+    {
 
         if (!$this->products) {
             $this->prepareProducts();
@@ -539,8 +552,8 @@ abstract class OrderShadowAbstract implements OrderInterface {
             $currencies = \Yii::$container->get('currencies');
             $currency = \Yii::$app->settings->get('currency');
             if (\frontend\design\Info::isTotallyAdmin() && empty($currency)) {
-              $currency = DEFAULT_CURRENCY;
-              \Yii::$app->settings->set('currency', $currency);
+                $currency = DEFAULT_CURRENCY;
+                \Yii::$app->settings->set('currency', $currency);
             }
             $_roundTo = $currencies->currencies[$currency]['decimal_places'];
 
@@ -555,7 +568,7 @@ abstract class OrderShadowAbstract implements OrderInterface {
                 $this->info['subtotal'] += $shown_price;
 
                 if (defined('PRICE_WITH_BACK_TAX') && PRICE_WITH_BACK_TAX == 'True') {
-                    if ($_tax>0) {
+                    if ($_tax > 0) {
                         $this->info['subtotal_exc_tax'] += \common\helpers\Tax::reduce_tax_always($_price * $_qty, $_tax);
                         $this->info['subtotal_inc_tax'] += $_price * $_qty;
                     } else {
@@ -574,12 +587,12 @@ abstract class OrderShadowAbstract implements OrderInterface {
                 $products_tax = abs($this->products[$index]['tax']);
                 $products_tax_description = $this->products[$index]['tax_description'] ?? '';
                 if (self::isPricesWithTax()) {
-                    if ($_tax>0) {
-                        $this->info['tax'] += \common\helpers\Tax::roundTax($shown_price - ($shown_price / (($products_tax < 10) ? "1.0" . str_replace('.', '', $products_tax) : "1." . str_replace('.', '', $products_tax))));
+                    if ($_tax > 0) {
+                        $this->info['tax'] += \common\helpers\Tax::roundTax($shown_price - ($shown_price / (($products_tax < 10) ? '1.0' . str_replace('.', '', $products_tax) : '1.' . str_replace('.', '', $products_tax))));
                         if (isset($this->info['tax_groups']["$products_tax_description"])) {
-                            $this->info['tax_groups']["$products_tax_description"] += \common\helpers\Tax::roundTax($shown_price - ($shown_price / (($products_tax < 10) ? "1.0" . str_replace('.', '', $products_tax) : "1." . str_replace('.', '', $products_tax))));
+                            $this->info['tax_groups']["$products_tax_description"] += \common\helpers\Tax::roundTax($shown_price - ($shown_price / (($products_tax < 10) ? '1.0' . str_replace('.', '', $products_tax) : '1.' . str_replace('.', '', $products_tax))));
                         } else {
-                            $this->info['tax_groups']["$products_tax_description"] = \common\helpers\Tax::roundTax($shown_price - ($shown_price / (($products_tax < 10) ? "1.0" . str_replace('.', '', $products_tax) : "1." . str_replace('.', '', $products_tax))));
+                            $this->info['tax_groups']["$products_tax_description"] = \common\helpers\Tax::roundTax($shown_price - ($shown_price / (($products_tax < 10) ? '1.0' . str_replace('.', '', $products_tax) : '1.' . str_replace('.', '', $products_tax))));
                         }
                     }
 
@@ -595,7 +608,6 @@ abstract class OrderShadowAbstract implements OrderInterface {
                     }
                 }
             }
-
 
             $this->info['total_inc_tax'] = $this->info['subtotal_inc_tax'] + $this->info['shipping_cost_inc_tax']; //$this->info['shipping_cost_exc_tax'];
             $this->info['total_exc_tax'] = $this->info['subtotal_exc_tax'] + $this->info['shipping_cost_exc_tax'];
@@ -621,64 +633,69 @@ abstract class OrderShadowAbstract implements OrderInterface {
      * Save parent class type to real Order
      * @param type $order_id
      */
-    public function setParent($order_id){
-        if ($order_id){
+    public function setParent($order_id)
+    {
+        if ($order_id) {
             $opModel = new \common\models\OrdersParent();
             $opModel->orders_id = $order_id;
             $opModel->owner_class = get_called_class();
-            if($opModel->save(false)){
+            if ($opModel->save(false)) {
                 \Yii::$container->get('eventDispatcher')->dispatch(new OrderSetParentEvent($this, $order_id));
             }
         }
     }
-        
-    public function addLegend($comment, $admin_id){
-        if ($this->order_id && ($comment || $admin_id)){
-            $sql_data_array = array(
+
+    public function addLegend($comment, $admin_id)
+    {
+        if ($this->order_id && ($comment || $admin_id)) {
+            $sql_data_array = [
                 'orders_id' => $this->order_id,
                 'comments' => $comment,
                 'admin_id' => (int)$admin_id,
-                'date_added' => 'now()'
-            );
+                'date_added' => 'now()',
+            ];
             tep_db_perform($this->table_prefix . TABLE_ORDERS_HISTORY, $sql_data_array);
         }
     }
 
-    function getTaxValues($tax_class_id) {
+    public function getTaxValues($tax_class_id)
+    {
 
-      if (defined('TAX_ADDRESS_OPTION') && (int)TAX_ADDRESS_OPTION == 1) { // by shipping address
-        if ($this->manager->isShippingNeeded() || $this->withDelivery) {
-          $check_delivery = $this->manager->getDeliveryAddress();
-        } else {
-          $check_delivery = $this->manager->getBillingAddress();
-        }
-        $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->info['platform_id'], $tax_class_id, Address::extractCountryId($check_delivery), $check_delivery['zone_id'] ?? 0);
+        if (defined('TAX_ADDRESS_OPTION') && (int)TAX_ADDRESS_OPTION == 1) { // by shipping address
+            if ($this->manager->isShippingNeeded() || $this->withDelivery) {
+                $check_delivery = $this->manager->getDeliveryAddress();
+            } else {
+                $check_delivery = $this->manager->getBillingAddress();
+            }
+            $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->info['platform_id'], $tax_class_id, Address::extractCountryId($check_delivery), $check_delivery['zone_id'] ?? 0);
 
-      } elseif (defined('TAX_ADDRESS_OPTION') && (int)TAX_ADDRESS_OPTION == 0) { // by billing address
-        $check_billing = $this->manager->getBillingAddress();
-        $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->info['platform_id'], $tax_class_id, Address::extractCountryId($check_billing), $check_billing['zone_id'] ?? 0);
-
-      } else {
-        // Seems DAA specific - any of (on checkout only)
-
-        $check_delivery = $this->manager->getDeliveryAddress();
-        $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->info['platform_id'], $tax_class_id, Address::extractCountryId($check_delivery), $check_delivery['zone_id'] ?? 0);
-        if ($delivery_tax_values['tax'] > 0) {
-        } else { 
+        } elseif (defined('TAX_ADDRESS_OPTION') && (int)TAX_ADDRESS_OPTION == 0) { // by billing address
             $check_billing = $this->manager->getBillingAddress();
             $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->info['platform_id'], $tax_class_id, Address::extractCountryId($check_billing), $check_billing['zone_id'] ?? 0);
+
+        } else {
+            // Seems DAA specific - any of (on checkout only)
+
+            $check_delivery = $this->manager->getDeliveryAddress();
+            $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->info['platform_id'], $tax_class_id, Address::extractCountryId($check_delivery), $check_delivery['zone_id'] ?? 0);
+            if ($delivery_tax_values['tax'] > 0) {
+            } else {
+                $check_billing = $this->manager->getBillingAddress();
+                $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->info['platform_id'], $tax_class_id, Address::extractCountryId($check_billing), $check_billing['zone_id'] ?? 0);
+            }
+
         }
-        
-      }
-      return $delivery_tax_values;
+        return $delivery_tax_values;
 
     }
-    
-    public function hasTransactions(){
+
+    public function hasTransactions()
+    {
         return false;
     }
-    
-    public function maintainSplittering(){
+
+    public function maintainSplittering()
+    {
         return false;
     }
     /**
@@ -686,9 +703,12 @@ abstract class OrderShadowAbstract implements OrderInterface {
      * @param \yii\db\ActiveRecord $arModel
      * @return \yii\db\ActiveRecord
      */
-    public static function getARModelNew(\yii\db\ActiveRecord $arModel){
-        if ($arModel){
-            if ($arModel->isNewRecord) $arModel->loadDefaultValues();
+    public static function getARModelNew(\yii\db\ActiveRecord $arModel)
+    {
+        if ($arModel) {
+            if ($arModel->isNewRecord) {
+                $arModel->loadDefaultValues();
+            }
         }
         return $arModel;
     }

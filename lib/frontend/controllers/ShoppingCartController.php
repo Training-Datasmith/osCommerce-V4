@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,19 +15,18 @@
 
 namespace frontend\controllers;
 
-use common\models\repositories\CouponRepository;
 use frontend\design\boxes\cart\OrderTotal;
 use frontend\design\boxes\cart\ShippingEstimator;
-use frontend\design\boxes\packingslip\Products;
 use frontend\design\Info;
 use Yii;
 
 /**
  * Site controller
  */
-class ShoppingCartController extends Sceleton {
-
-    public function actionIndex() {
+class ShoppingCartController extends Sceleton
+{
+    public function actionIndex()
+    {
         global $cart, $breadcrumb;
 
         if (GROUPS_DISABLE_CART) {
@@ -42,13 +43,13 @@ class ShoppingCartController extends Sceleton {
         }
 
         $popupMode = (Yii::$app->request->isAjax && (int)Yii::$app->request->get('popup') && Info::themeSetting('after_add') == 'popup');
-        if ($cart->notEmpty() && defined("SKIP_CART_PAGE") && SKIP_CART_PAGE == 'True' && !$popupMode) {
+        if ($cart->notEmpty() && defined('SKIP_CART_PAGE') && SKIP_CART_PAGE == 'True' && !$popupMode) {
             $this->redirect('checkout');
         }
 
         //--- I don't know if this is safe enough?
         if (!Yii::$app->user->isGuest) {
-            if( $multiCart = \common\helpers\Extensions::isAllowed('MultiCart') ) {
+            if ($multiCart = \common\helpers\Extensions::isAllowed('MultiCart')) {
                 $customer_id = Yii::$app->user->getId();
                 $multiCart::restoreCarts($cart, $customer_id);
                 $uid = $multiCart::getCurrentCartKey();
@@ -74,15 +75,15 @@ class ShoppingCartController extends Sceleton {
         if (Yii::$app->request->isPost && isset($_POST['ajax_estimate'])) {
             return $this->actionEstimate();
         }
-        if (!$this->manager->hasCart()){
+        if (!$this->manager->hasCart()) {
             $this->manager->loadCart($cart);
         }
         $this->manager->createOrderInstance('\common\classes\Order');
 
-        $render_data = array(
+        $render_data = [
             'action' => tep_href_link(FILENAME_SHOPPING_CART, 'action=update_product'),
-            'manager' => $this->manager
-        );
+            'manager' => $this->manager,
+        ];
         if (!$popupMode) {
             $render_data = array_merge($render_data, $this->manager->prepareEstimateData());
         }
@@ -95,14 +96,14 @@ class ShoppingCartController extends Sceleton {
         if ($messageStack->size('cart_discount_gv') > 0) {
             $message_discount_gv = $messageStack->output('cart_discount_gv');
         }
-        $ot_gv_data = array(
+        $ot_gv_data = [
             'can_apply_gv_credit' => false,
             'message_discount_gv' => $message_discount_gv,
             'credit_amount' => '',
             'credit_gv_in_use' => $this->manager->has('cot_gv'),
             'message_discount_coupon' => $message_discount_coupon,
-            'message_shopping_cart' => ( $messageStack->size('shopping_cart') > 0 ? $messageStack->output('shopping_cart') : '' ),
-        );
+            'message_shopping_cart' => ($messageStack->size('shopping_cart') > 0 ? $messageStack->output('shopping_cart') : ''),
+        ];
 
         $render_data = array_merge($render_data, $ot_gv_data);
 
@@ -118,7 +119,8 @@ class ShoppingCartController extends Sceleton {
         }
     }
 
-    public function actionEstimate() {
+    public function actionEstimate()
+    {
         $this->layout = false;
         global $cart;
 
@@ -131,8 +133,8 @@ class ShoppingCartController extends Sceleton {
                 $post['country_id'] = (int) $post['country_id'];
             }
 
-            if ($this->manager->isCustomerAssigned()){
-                if ($post['sendto']){
+            if ($this->manager->isCustomerAssigned()) {
+                if ($post['sendto']) {
                     $this->manager->changeCustomerAddressSelection('shipping', $post['sendto']);
                     $this->manager->resetDeliveryAddress();
                     $this->manager->changeCustomerAddressSelection('billing', $post['sendto']);
@@ -140,10 +142,10 @@ class ShoppingCartController extends Sceleton {
                     $this->manager->set('shipping', false);
                 }
             } elseif ($post['country_id']) {
-               Yii::$app->storage->set('customer_country_id', $post['country_id']);
-               if ($this->manager->has('estimate_ship')){
+                Yii::$app->storage->set('customer_country_id', $post['country_id']);
+                if ($this->manager->has('estimate_ship')) {
                     $estimate = $this->manager->get('estimate_ship');
-                    if ($estimate['country_id'] != $post['country_id']){
+                    if ($estimate['country_id'] != $post['country_id']) {
                         $this->manager->set('estimate_ship', ['country_id' => $post['country_id'], 'postcode' => $post['post_code']]);
                         $this->manager->resetDeliveryAddress();
                         $this->manager->set('estimate_bill', ['country_id' => $post['country_id'], 'postcode' => $post['post_code']]);
@@ -158,18 +160,18 @@ class ShoppingCartController extends Sceleton {
                     $this->manager->resetBillingAddress();
                 }
             }
-            if ($post['shipping']??null){
+            if ($post['shipping'] ?? null) {
                 $this->manager->setSelectedShipping($post['shipping']);
             }
         }
 
-        return json_encode(array('estimate' => ShippingEstimator::widget(['params' =>['manager' => $this->manager]]), 'total' => OrderTotal::widget(['params' =>['manager' => $this->manager]])));
+        return json_encode(['estimate' => ShippingEstimator::widget(['params' => ['manager' => $this->manager]]), 'total' => OrderTotal::widget(['params' => ['manager' => $this->manager]])]);
     }
 
-
-    private function seadate($day) {
-        $rawtime = strtotime("-" . $day . " days");
-        $ndate = date("Ymd", $rawtime);
+    private function seadate($day)
+    {
+        $rawtime = strtotime('-' . $day . ' days');
+        $ndate = date('Ymd', $rawtime);
 
         return $ndate;
     }
@@ -177,23 +179,24 @@ class ShoppingCartController extends Sceleton {
     /**
      * @note Not used. This actions from MiltiCart extension frontend controller
      */
-//    public function actionSaveCart() {
-//        if ($ext = \common\helpers\Extensions::isAllowed('MultiCart')) {
-//            $ext::saveCart();
-//        }
-//        return $this->redirect('index');
-//    }
-//
-//    public function actionApplyCart($uid) {
-//        if ($ext = \common\helpers\Extensions::isAllowed('MultiCart')) {
-//            $ext::applyCart($uid);
-//        }
-//        return $this->redirect('index');
-//    }
+    //    public function actionSaveCart() {
+    //        if ($ext = \common\helpers\Extensions::isAllowed('MultiCart')) {
+    //            $ext::saveCart();
+    //        }
+    //        return $this->redirect('index');
+    //    }
+    //
+    //    public function actionApplyCart($uid) {
+    //        if ($ext = \common\helpers\Extensions::isAllowed('MultiCart')) {
+    //            $ext::applyCart($uid);
+    //        }
+    //        return $this->redirect('index');
+    //    }
 
     public $manager;
 
-    public function __construct($id, $module, $config = []) {
+    public function __construct($id, $module, $config = [])
+    {
         parent::__construct($id, $module, $config);
         $this->manager = new \common\services\OrderManager(Yii::$app->get('storage'));
         $this->manager->setModulesVisibility(['shop_order']);
@@ -205,8 +208,9 @@ class ShoppingCartController extends Sceleton {
     /**
      * cron 'Abandoned Cart Notification' shopping-cart/notify-cart
      */
-    public function actionNotifyCart() {
-        $sql = "SELECT cb.customers_id cid,
+    public function actionNotifyCart()
+    {
+        $sql = 'SELECT cb.customers_id cid,
                 cb.products_id pid,
                 cb.customers_basket_quantity qty,
                 cb.customers_basket_date_added bdate,
@@ -226,13 +230,13 @@ class ShoppingCartController extends Sceleton {
                 cb.language_id,
                 st.offered_discount,
                 if(ISNULL(st.offered_discount),0,st.offered_discount) as offered_discount_data
-           FROM " . TABLE_CUSTOMERS_BASKET . " AS cb
-           INNER JOIN " . TABLE_CUSTOMERS . " AS cus ON  cb.customers_id = cus.customers_id and cus.opc_temp_account=0
-           LEFT JOIN " . TABLE_CUSTOMERS_INFO . " ci ON ci.customers_info_id = cus.customers_id
-           LEFT JOIN " . TABLE_SCART . " st ON cus.customers_id=st.customers_id AND cb.basket_id=st.basket_id
+           FROM ' . TABLE_CUSTOMERS_BASKET . ' AS cb
+           INNER JOIN ' . TABLE_CUSTOMERS . ' AS cus ON  cb.customers_id = cus.customers_id and cus.opc_temp_account=0
+           LEFT JOIN ' . TABLE_CUSTOMERS_INFO . ' ci ON ci.customers_info_id = cus.customers_id
+           LEFT JOIN ' . TABLE_SCART . ' st ON cus.customers_id=st.customers_id AND cb.basket_id=st.basket_id
            WHERE  cus.admin_id > 0 AND (st.offered_discount < 3 or  ISNULL(st.offered_discount)) and (st.workedout = 0 or  ISNULL(st.workedout))  and (st.contacted = 0 or  ISNULL(st.contacted)) AND TIMESTAMPDIFF(HOUR, ci.time_long,NOW() ) > 0
            GROUP BY cb.customers_id
-           ORDER BY ci.time_long";
+           ORDER BY ci.time_long';
 
         $query = tep_db_query($sql);
         $recovery_carts = [];
@@ -267,13 +271,13 @@ class ShoppingCartController extends Sceleton {
 
             $platform = new \common\classes\platform_config($recovery_cart['platform_id']);
 
-            $sql = "select cb.products_id pid, cb.customers_basket_quantity qty, p.products_price price,
+            $sql = 'select cb.products_id pid, cb.customers_basket_quantity qty, p.products_price price,
                 p.products_tax_class_id taxclass,p.products_id pidd,
                 p.products_model model,
                 pd.products_name name,
                 cb.final_price as final_price
-                from " . TABLE_CUSTOMERS_BASKET . " cb, " . TABLE_CUSTOMERS . " cus, " . TABLE_PRODUCTS . " p
-                LEFT JOIN " . TABLE_PRODUCTS_DESCRIPTION . " pd ON pd.products_id=p.products_id
+                from ' . TABLE_CUSTOMERS_BASKET . ' cb, ' . TABLE_CUSTOMERS . ' cus, ' . TABLE_PRODUCTS . ' p
+                LEFT JOIN ' . TABLE_PRODUCTS_DESCRIPTION . " pd ON pd.products_id=p.products_id
                   WHERE cb.customers_id = cus.customers_id AND cus.customers_id = '" . $cid . "'
                         AND p.products_id = CONVERT(cb.products_id, UNSIGNED INTEGER )
                         AND pd.products_id = p.products_id and pd.platform_id = '".(int)Yii::$app->get('platform')->config()->getPlatformToDescription()."' AND pd.language_id = " . (int) $recovery_cart['language_id'];
@@ -286,28 +290,28 @@ class ShoppingCartController extends Sceleton {
             while ($inrec2 = tep_db_fetch_array($query2)) {
 
                 $sprice = $inrec2['final_price'];
-                $sprice += ( $sprice * \common\helpers\Tax::get_tax_rate($inrec2['taxclass']) / 100 );
+                $sprice += ($sprice * \common\helpers\Tax::get_tax_rate($inrec2['taxclass']) / 100);
 
-                $tprice = $tprice + ( $inrec2['qty'] * $sprice );
+                $tprice = $tprice + ($inrec2['qty'] * $sprice);
                 $pprice_formated = $currencies->format($sprice, false, $recovery_cart['currency'], $recovery_cart['currency']);
-                $tpprice_formated = $currencies->format(( $inrec2['qty'] * $sprice), false, $recovery_cart['currency'], $recovery_cart['currency']);
+                $tpprice_formated = $currencies->format(($inrec2['qty'] * $sprice), false, $recovery_cart['currency'], $recovery_cart['currency']);
                 $image = '';
 
                 $product_link = Yii::$app->urlManager->createAbsoluteUrl([
                     'catalog/product',
-                    'products_id' => $inrec2['pid']
+                    'products_id' => $inrec2['pid'],
                         ]);
                 if (EMAIL_USE_HTML == 'true') {
                     $image = \common\classes\Images::getImage($inrec2['pidd'], 'Small');
 
                     $ptoductArr[] = '
 <div style="text-align: center; padding: 20px;">
-    <div>' . ( $image ? '<a href="' . $product_link . '">' . $image . '</a>' : '' ) . '</div>
+    <div>' . ($image ? '<a href="' . $product_link . '">' . $image . '</a>' : '') . '</div>
     <div style="margin-bottom: 10px"><a href="' . $product_link . '" style="font-size: 16px; font-weight: bold; color: #444444; text-decoration:none;">' . $inrec2['qty'] . ' x ' . $inrec2['name'] . '</a></div>
     <div style="font-size: 24px">' . $pprice_formated . '</div>
 </div>';
                 } else {
-                    $mline .= $recovery_cart['qty'] . ' x  ' . $inrec2['name'] . "-" . $pprice_formated . "\n";
+                    $mline .= $recovery_cart['qty'] . ' x  ' . $inrec2['name'] . '-' . $pprice_formated . "\n";
                 }
             }
 
@@ -315,7 +319,7 @@ class ShoppingCartController extends Sceleton {
                 $count = count($ptoductArr);
                 $last = $count % $columns;
                 $ptoduct .= '<table  cellpadding="0" cellspacing="0" width="100%" border="0"><tr style="vertical-align: top">';
-                for ($i = 0; $i < ( $count - $last ); $i ++) {
+                for ($i = 0; $i < ($count - $last); $i++) {
                     if ($i != 0 && $i % $columns == 0) {
                         $ptoduct .= '</tr><tr style="vertical-align: top">';
                     }
@@ -324,16 +328,16 @@ class ShoppingCartController extends Sceleton {
                 $ptoduct .= '</tr></table>';
 
                 $ptoduct .= '<table  cellpadding="0" cellspacing="0" width="100%" border="0"><tr style="vertical-align: top">';
-                for ($i; $i < $count; $i ++) {
+                for ($i; $i < $count; $i++) {
                     $ptoduct .= '<td width="' . floor(100 / $last) . '%">' . $ptoductArr[$i] . '</td>';
                 }
                 $ptoduct .= '</tr></table>';
             }
 
             $mline = $ptoduct;
-            $custname = $recovery_cart['fname'] . " " . $recovery_cart['lname'] . ' &lt;' . $recovery_cart['email'] . '&gt;';
+            $custname = $recovery_cart['fname'] . ' ' . $recovery_cart['lname'] . ' &lt;' . $recovery_cart['email'] . '&gt;';
 
-            $email_params = array();
+            $email_params = [];
             $email_params['STORE_NAME'] = $platform->const_value('STORE_NAME');
             $email_params['STORE_OWNER'] = $platform->const_value('STORE_OWNER');
             $email_params['STORE_OWNER_EMAIL_ADDRESS'] = $platform->const_value('STORE_OWNER_EMAIL_ADDRESS');
@@ -344,7 +348,6 @@ class ShoppingCartController extends Sceleton {
             \common\helpers\Mail::send($admins[$admin_id]['admin_firstname'] . ' ' . $admins[$admin_id]['admin_lastname'], $admins[$admin_id]['admin_email_address'], $email_subject, $email_text, $email_params['STORE_OWNER'], $email_params['STORE_OWNER_EMAIL_ADDRESS']);
 
         }
-
 
     }
 }

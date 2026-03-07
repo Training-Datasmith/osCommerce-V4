@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,13 +25,12 @@ class m230809_172247_shipping_carrier_pick_remove_old_translation extends Migrat
     public function safeUp()
     {
         $ext = 'common\extensions\ShippingCarrierPick\Setup';
-        if (method_exists($this, 'isOldProject'))
-        {
+        if (method_exists($this, 'isOldProject')) {
             if (!$this->isOldProject() || !class_exists($ext) || method_exists($ext, 'isAppShop')) {
                 $this->removeTranslation('admin/shipping-carrier-pick');
                 $this->removeTranslation('admin/orders', [
                     'TEXT_BATCH_LABELS',
-                    'TEXT_BATCH_LABEL_POPUP_TITLE'
+                    'TEXT_BATCH_LABEL_POPUP_TITLE',
                 ]);
             }
         }
@@ -40,7 +41,7 @@ class m230809_172247_shipping_carrier_pick_remove_old_translation extends Migrat
      */
     public function safeDown()
     {
-        $this->addTranslation('admin/shipping-carrier-pick',[
+        $this->addTranslation('admin/shipping-carrier-pick', [
             'HEADING_TITLE' => 'Shipping Carrier rules',
             'TEXT_CREATE_NEW_SELECTION' => 'Create new',
             'TEXT_SELECTION_NAME' => 'Selection name',
@@ -57,7 +58,7 @@ class m230809_172247_shipping_carrier_pick_remove_old_translation extends Migrat
             'TEXT_BATCH_MODULE_NOT_FOUND' =>  'Label module "%s" not found',
         ]);
 
-        $this->addTranslation('admin/orders',[
+        $this->addTranslation('admin/orders', [
             'TEXT_BATCH_LABELS' => 'Shipping Label',
             'TEXT_BATCH_LABEL_POPUP_TITLE' => 'Batch create labels',
         ]);

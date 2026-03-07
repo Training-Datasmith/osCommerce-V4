@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,12 @@
 
 namespace frontend\design\boxes\catalog;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
 use frontend\design\Info;
+use yii\base\Widget;
 
 class AdditionalImages extends Widget
 {
-
     public $file;
     public $params;
     public $content;
@@ -36,45 +36,45 @@ class AdditionalImages extends Widget
         $platformId = \common\classes\platform::currentId();
         Info::addBoxToCss('slick');
         Info::addBoxToCss('fancybox');
-		if($current_category_id > 0){
-			$allImages = \common\helpers\Image::getCategoriesAdditionalImages($current_category_id);
-	
-			if (is_array($allImages[$platformId]) && count($allImages[$platformId])) {
-				$images = $allImages[$platformId];
-			} else {
-				$images = $allImages[0];
-			}
-	
-			if (!is_array($images) || !count($images)) {
-				return '';
-			}
-	
-			foreach ($images as $key => $image) {
-				$images[$key]['img'] = \common\classes\Images::getImageSet(
-					$image['image'],
-					'Category gallery add',
-					[
-						'alt' => '',
-						'title' => '',
-					],
-					Info::themeSetting('na_category', 'hide')
-				);
-			}
-	
-			Info::addJsData(['widgets' => [
-				$this->id => [
-					'colInRowCarousel' => $this->settings['colInRowCarousel'],
-					'fancybox' => $this->settings[0]['fancibox'],
-					'carousel' => $this->settings[0]['carousel'],
-					'col_in_row' => $this->settings[0]['col_in_row'],
-					'autoplay' => $this->settings[0]['autoplay'],
-					'autoplaySpeed' => $this->settings[0]['autoplaySpeed'],
-					'speed' => $this->settings[0]['speed'],
-				]]]);
-	
-			return IncludeTpl::widget(['file' => 'boxes/catalog/additional-images.tpl', 'params' => [
-				'images' => $images
-			]]);
-		}
+        if ($current_category_id > 0) {
+            $allImages = \common\helpers\Image::getCategoriesAdditionalImages($current_category_id);
+
+            if (is_array($allImages[$platformId]) && count($allImages[$platformId])) {
+                $images = $allImages[$platformId];
+            } else {
+                $images = $allImages[0];
+            }
+
+            if (!is_array($images) || !count($images)) {
+                return '';
+            }
+
+            foreach ($images as $key => $image) {
+                $images[$key]['img'] = \common\classes\Images::getImageSet(
+                    $image['image'],
+                    'Category gallery add',
+                    [
+                        'alt' => '',
+                        'title' => '',
+                    ],
+                    Info::themeSetting('na_category', 'hide')
+                );
+            }
+
+            Info::addJsData(['widgets' => [
+                $this->id => [
+                    'colInRowCarousel' => $this->settings['colInRowCarousel'],
+                    'fancybox' => $this->settings[0]['fancibox'],
+                    'carousel' => $this->settings[0]['carousel'],
+                    'col_in_row' => $this->settings[0]['col_in_row'],
+                    'autoplay' => $this->settings[0]['autoplay'],
+                    'autoplaySpeed' => $this->settings[0]['autoplaySpeed'],
+                    'speed' => $this->settings[0]['speed'],
+                ]]]);
+
+            return IncludeTpl::widget(['file' => 'boxes/catalog/additional-images.tpl', 'params' => [
+                'images' => $images,
+            ]]);
+        }
     }
 }

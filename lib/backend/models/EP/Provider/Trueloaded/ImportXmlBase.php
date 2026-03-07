@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,12 @@
 
 namespace backend\models\EP\Provider\Trueloaded;
 
-use Yii;
 use backend\models\EP\Messages;
 use backend\models\EP\Provider\DatasourceInterface;
+use Yii;
 
-abstract class ImportXmlBase implements DatasourceInterface {
-
+abstract class ImportXmlBase implements DatasourceInterface
+{
     protected $feed;
     protected $providerClass;
 
@@ -35,19 +37,23 @@ abstract class ImportXmlBase implements DatasourceInterface {
      */
     protected $providerObj;
 
-    function __construct($config) {
+    public function __construct($config)
+    {
         $this->config = $config;
     }
 
-    public function allowRunInPopup() {
+    public function allowRunInPopup()
+    {
         return true;
     }
 
-    public function getProgress() {
+    public function getProgress()
+    {
         return $this->readerObj->getProgress();
     }
 
-    public function prepareProcess(Messages $message) {
+    public function prepareProcess(Messages $message)
+    {
 
         if (empty($this->feed)) {
             throw new \Exception('XML feed is not defined');
@@ -72,7 +78,7 @@ abstract class ImportXmlBase implements DatasourceInterface {
             default:
                 throw new \Exception('Secure method is invalid: '.$secure_method);
         }
-        if (YII_ENV=='dev') { // disable cheking self-signed cert
+        if (YII_ENV == 'dev') { // disable cheking self-signed cert
             $stream_context_params['ssl'] = ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true];
         }
         // download XML feed to working folder
@@ -82,7 +88,7 @@ abstract class ImportXmlBase implements DatasourceInterface {
             throw new \Exception('Provider Class is not defined');
         }
         $this->providerObj = new $this->providerClass([
-            'job_configure' => (isset($this->job_configure['import']) && is_array($this->job_configure['import']) ? $this->job_configure['import'] : [])
+            'job_configure' => (isset($this->job_configure['import']) && is_array($this->job_configure['import']) ? $this->job_configure['import'] : []),
         ]);
 
         $readerConfig = array_merge([
@@ -100,7 +106,8 @@ abstract class ImportXmlBase implements DatasourceInterface {
         }
     }
 
-    public function processRow(Messages $message) {
+    public function processRow(Messages $message)
+    {
         if ($data = $this->readerObj->read()) {
             $this->providerObj->importRow($data, $message);
             $this->row_count++;
@@ -109,7 +116,8 @@ abstract class ImportXmlBase implements DatasourceInterface {
         return false;
     }
 
-    public function postProcess(Messages $message) {
+    public function postProcess(Messages $message)
+    {
         if ($this->row_count > 0) {
             $message->info('Row(s) Imported: ' . $this->row_count);
         }

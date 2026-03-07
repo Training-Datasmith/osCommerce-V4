@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,20 +14,19 @@
 
 namespace common\models;
 
-
 use yii\db\ActiveRecord;
 
 class EpLinkProducts extends ActiveRecord
 {
-    const EP_LINK_CREATED = 1;
-    const EP_LINK_UPDATED = 2;
+    public const EP_LINK_CREATED = 1;
+    public const EP_LINK_UPDATED = 2;
 
     public static function tableName()
     {
         return 'ep_holbi_soap_link_products';
     }
 
-    public static function getLinkByRemoteId($directory_id, $remote_product_id, $as_array=true)
+    public static function getLinkByRemoteId($directory_id, $remote_product_id, $as_array = true)
     {
         return static::find()->where([
             'ep_directory_id' => (int)$directory_id,
@@ -33,7 +34,7 @@ class EpLinkProducts extends ActiveRecord
         ])->asArray($as_array)->one();
     }
 
-    public static function getLinkByLocalId($directory_id, $local_product_id, $as_array=true)
+    public static function getLinkByLocalId($directory_id, $local_product_id, $as_array = true)
     {
         return static::find()->where([
             'ep_directory_id' => (int)$directory_id,
@@ -49,24 +50,24 @@ class EpLinkProducts extends ActiveRecord
      * @return int
      * @throws \yii\db\Exception
      */
-    public static function touchById($directory_id, $local_product_id, $data=[], $custom_update_data=false)
+    public static function touchById($directory_id, $local_product_id, $data = [], $custom_update_data = false)
     {
         $link_key = [
             'ep_directory_id' => (int)$directory_id,
             'local_products_id' => (int)$local_product_id,
         ];
 
-        if ( static::find()->where($link_key)->count() ){
-            if ( is_array($custom_update_data) ){
-                if ( count($custom_update_data)>0 ) {
+        if (static::find()->where($link_key)->count()) {
+            if (is_array($custom_update_data)) {
+                if (count($custom_update_data) > 0) {
                     static::updateAll($custom_update_data, $link_key);
                 }
-            }else {
+            } else {
                 static::updateAll($data, $link_key);
             }
 
             return static::EP_LINK_UPDATED;
-        }else{
+        } else {
             $create_link = array_merge($data, $link_key);
 
             static::getDb()->createCommand()->batchInsert(

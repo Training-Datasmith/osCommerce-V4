@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "global_payments_transactions".
@@ -45,7 +45,7 @@ class GlobalPaymentsTransactions extends \yii\db\ActiveRecord
             [['store', 'card_type'], 'string', 'max' => 50],
             [['gp_order_id', 'customer_name', 'card_holder_name', 'card_details', 'customer_ref', 'card_ref'], 'string', 'max' => 255],
             [['exp_date'], 'string', 'max' => 10],
-            [['code'], 'string', 'max' => 2]
+            [['code'], 'string', 'max' => 2],
         ];
     }
 

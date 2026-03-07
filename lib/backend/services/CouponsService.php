@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -15,10 +17,8 @@ namespace backend\services;
 use common\models\Coupons;
 use common\models\repositories\CouponRepository;
 
-
 class CouponsService
 {
-
     /** @var CouponsRepository */
     private $couponsRepository;
 
@@ -29,24 +29,24 @@ class CouponsService
 
     public function setActive(Coupons $coupon)
     {
-        if(!is_object($coupon)){
+        if (!is_object($coupon)) {
             throw new \RuntimeException('Coupon error data.');
         }
-        if($coupon->coupon_active === Coupons::STATUS_ACTIVE){
+        if ($coupon->coupon_active === Coupons::STATUS_ACTIVE) {
             return true;
         }
-        return $this->couponsRepository->edit($coupon,['coupon_active' => Coupons::STATUS_ACTIVE]);
+        return $this->couponsRepository->edit($coupon, ['coupon_active' => Coupons::STATUS_ACTIVE]);
     }
 
     public function setDisable(Coupons $coupon)
     {
-        if(!is_object($coupon)){
+        if (!is_object($coupon)) {
             throw new \RuntimeException('Coupon error data.');
         }
-        if($coupon->coupon_active === Coupons::STATUS_DISABLE){
+        if ($coupon->coupon_active === Coupons::STATUS_DISABLE) {
             return true;
         }
-        return $this->couponsRepository->edit($coupon,['coupon_active' => Coupons::STATUS_DISABLE]);
+        return $this->couponsRepository->edit($coupon, ['coupon_active' => Coupons::STATUS_DISABLE]);
     }
 
     public function getById(int $id)

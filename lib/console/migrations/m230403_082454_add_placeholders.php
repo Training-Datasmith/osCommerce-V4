@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -121,9 +123,6 @@ class m230403_082454_add_placeholders extends Migration
             '116127'          => 'account-side',
 
         ];
-/*
-
-*/
 
         foreach ($placeholders as $microtime => $placeholder) {
             $this->update('design_boxes', ['widget_params' => $placeholder], ['microtime' => $microtime]);

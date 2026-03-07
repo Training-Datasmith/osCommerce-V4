@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class TopText extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -34,7 +34,7 @@ class TopText extends Widget
 
             return IncludeTpl::widget(['file' => 'boxes/top-text.tpl', 'params' => [
                 'text' => TOP_TEXT,
-                'settings' => $this->settings
+                'settings' => $this->settings,
             ]]);
 
         } else {

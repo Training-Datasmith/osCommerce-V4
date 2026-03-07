@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,15 +15,8 @@
 namespace frontend\design\boxes;
 
 use common\models\ThemesSettings;
-use Yii;
-use yii\base\Widget;
-use yii\helpers\ArrayHelper;
 use frontend\design\IncludeTpl;
-use frontend\design\ListingSql;
-use frontend\design\SplitPageResults;
-use frontend\design\Info;
-use backend\design\Style;
-use common\classes\design;
+use yii\base\Widget;
 
 class TableRow extends Widget
 {

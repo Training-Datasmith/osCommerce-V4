@@ -1,8 +1,15 @@
-<?php 
+<?php
+
+declare(strict_types=1);
+
 namespace common\modules\email\Mandrill;
+
 use common\modules\email\Mandrill;
-class Whitelists {
-    public function __construct(Mandrill $master) {
+
+class Whitelists
+{
+    public function __construct(Mandrill $master)
+    {
         $this->master = $master;
     }
 
@@ -16,8 +23,9 @@ automatically.
      *     - email string the email address you provided
      *     - added boolean whether the operation succeeded
      */
-    public function add($email, $comment=null) {
-        $_params = array("email" => $email, "comment" => $comment);
+    public function add($email, $comment = null)
+    {
+        $_params = ['email' => $email, 'comment' => $comment];
         return $this->master->call('whitelists/add', $_params);
     }
 
@@ -31,8 +39,9 @@ address or search prefix to limit the results. Returns up to 1000 results.
      *         - detail string a description of why the email was whitelisted
      *         - created_at string when the email was added to the whitelist
      */
-    public function getList($email=null) {
-        $_params = array("email" => $email);
+    public function getList($email = null)
+    {
+        $_params = ['email' => $email];
         return $this->master->call('whitelists/list', $_params);
     }
 
@@ -43,11 +52,10 @@ address or search prefix to limit the results. Returns up to 1000 results.
      *     - email string the email address that was removed from the blacklist
      *     - deleted boolean whether the address was deleted successfully
      */
-    public function delete($email) {
-        $_params = array("email" => $email);
+    public function delete($email)
+    {
+        $_params = ['email' => $email];
         return $this->master->call('whitelists/delete', $_params);
     }
 
 }
-
-

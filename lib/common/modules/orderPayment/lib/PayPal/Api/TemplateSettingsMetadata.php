@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -19,7 +21,7 @@ class TemplateSettingsMetadata extends PayPalModel
      * Indicates whether this field should be hidden. default is false
      *
      * @param bool $hidden
-     * 
+     *
      * @return $this
      */
     public function setHidden($hidden)

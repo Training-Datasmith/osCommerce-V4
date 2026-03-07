@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230411_150526_design_wizard extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/design',[
+        $this->addTranslation('admin/design', [
             'TEXT_CONTINUE' => 'Continue',
             'TEXT_FINISH' => 'Finish',
             'ENTER_THEME_NAME' => 'Please enter Theme name',

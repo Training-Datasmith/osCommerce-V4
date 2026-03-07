@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace common\api\models\AR;
 
-
 use common\api\models\AR\Customer\Address;
 use common\api\models\AR\Customer\Info;
 
 class Customer extends EPMap
 {
-
     public $credit_amount_delta;
     public $customers_bonus_points_delta;
 
@@ -58,12 +58,13 @@ class Customer extends EPMap
         return ['customers_id'];
     }
 
-    public static function maxAddresses() {
-      $def = 5;
-      if (defined('MAX_ADDRESS_BOOK_ENTRIES') && intval(MAX_ADDRESS_BOOK_ENTRIES)>0) {
-        $def = intval(MAX_ADDRESS_BOOK_ENTRIES);
-      }
-      return min(20, $def);
+    public static function maxAddresses()
+    {
+        $def = 5;
+        if (defined('MAX_ADDRESS_BOOK_ENTRIES') && intval(MAX_ADDRESS_BOOK_ENTRIES) > 0) {
+            $def = intval(MAX_ADDRESS_BOOK_ENTRIES);
+        }
+        return min(20, $def);
     }
 
     public function customFields()
@@ -80,22 +81,22 @@ class Customer extends EPMap
         $keys = array_values($keys);
         $credit_idx = array_search('credit_amount', $keys);
         $credit_delta_idx = array_search('credit_amount_delta', $keys);
-        if ( $credit_idx!==false && $credit_delta_idx!==false ) {
+        if ($credit_idx !== false && $credit_delta_idx !== false) {
             unset($keys[$credit_delta_idx]);
-            array_splice($keys, $credit_idx+1, 0, ['credit_amount_delta']);
+            array_splice($keys, $credit_idx + 1, 0, ['credit_amount_delta']);
         }
         $bonus_points_idx = array_search('customers_bonus_points', $keys);
         $bonus_points_delta_idx = array_search('customers_bonus_points_delta', $keys);
-        if ( $bonus_points_idx!==false && $bonus_points_delta_idx!==false ) {
+        if ($bonus_points_idx !== false && $bonus_points_delta_idx !== false) {
             unset($keys[$bonus_points_delta_idx]);
-            array_splice($keys, $bonus_points_idx+1, 0, ['customers_bonus_points_delta']);
+            array_splice($keys, $bonus_points_idx + 1, 0, ['customers_bonus_points_delta']);
         }
 
         return $keys;
     }
 
-
-    public function rules() {
+    public function rules()
+    {
         return array_merge(
             parent::rules(),
             [
@@ -107,7 +108,7 @@ class Customer extends EPMap
 
     public function initCollectionByLookupKey_Addresses($lookupKeys)
     {
-        if ( !is_array($this->childCollections['addresses']) ) {
+        if (!is_array($this->childCollections['addresses'])) {
             $this->childCollections['addresses'] = [];
             if ($this->customers_id) {
                 $this->childCollections['addresses'] =
@@ -125,10 +126,9 @@ class Customer extends EPMap
         return $this->childCollections['addresses'];
     }
 
-
     public function initCollectionByLookupKey_Info($lookupKeys)
     {
-        if ( !is_array($this->childCollections['info'])) {
+        if (!is_array($this->childCollections['info'])) {
             $this->childCollections['info'] = [];
             if ($this->customers_id) {
                 $info = Info::findOne(['customers_info_id' => $this->customers_id]);
@@ -144,21 +144,21 @@ class Customer extends EPMap
     {
         $export = parent::exportArray($fields);
 
-        if ( array_key_exists('customers_currency_id', $export) || in_array('customers_currency',$fields) ) {
+        if (array_key_exists('customers_currency_id', $export) || in_array('customers_currency', $fields)) {
             $export['customers_currency'] = \common\helpers\Currencies::getCurrencyCode($this->customers_currency_id);
         }
 
-        if (!defined('ALLOW_CUSTOMER_CREDIT_AMOUNT') || ALLOW_CUSTOMER_CREDIT_AMOUNT == 'false'){
+        if (!defined('ALLOW_CUSTOMER_CREDIT_AMOUNT') || ALLOW_CUSTOMER_CREDIT_AMOUNT == 'false') {
             unset($export['credit_amount']);
-        }else{
-            if ( (count($fields)==0 || array_key_exists('credit_amount_delta', $fields))) {
+        } else {
+            if ((count($fields) == 0 || array_key_exists('credit_amount_delta', $fields))) {
                 $export['credit_amount_delta'] = '';
             }
         }
-        if (!\common\helpers\Acl::checkExtensionAllowed('BonusActions')){
+        if (!\common\helpers\Acl::checkExtensionAllowed('BonusActions')) {
             unset($export['customers_bonus_points']);
-        }else{
-            if ( (count($fields)==0 || array_key_exists('customers_bonus_points_delta', $fields))) {
+        } else {
+            if ((count($fields) == 0 || array_key_exists('customers_bonus_points_delta', $fields))) {
                 $export['customers_bonus_points_delta'] = '';
             }
         }
@@ -167,25 +167,25 @@ class Customer extends EPMap
 
     public function importArray($data)
     {
-        if ( array_key_exists('customers_currency', $data) ) {
+        if (array_key_exists('customers_currency', $data)) {
             $data['customers_currency_id'] = \common\helpers\Currencies::getCurrencyId($data['customers_currency']);
         }
-        if (!defined('ALLOW_CUSTOMER_CREDIT_AMOUNT') || ALLOW_CUSTOMER_CREDIT_AMOUNT == 'false'){
+        if (!defined('ALLOW_CUSTOMER_CREDIT_AMOUNT') || ALLOW_CUSTOMER_CREDIT_AMOUNT == 'false') {
             unset($data['credit_amount']);
             unset($data['credit_amount_delta']);
-        }else{
-            if ( !empty($this->modelFlags['credit_amount_delta']) ) {
+        } else {
+            if (!empty($this->modelFlags['credit_amount_delta'])) {
                 unset($data['credit_amount']);
-                if ( array_key_exists('credit_amount_delta', $data) && !empty($data['credit_amount_delta'])) {
+                if (array_key_exists('credit_amount_delta', $data) && !empty($data['credit_amount_delta'])) {
                     $data['credit_amount'] = (float)$this->credit_amount + (float)$data['credit_amount_delta'];
                 }
             }
         }
-        if (!\common\helpers\Acl::checkExtensionAllowed('BonusActions')){
+        if (!\common\helpers\Acl::checkExtensionAllowed('BonusActions')) {
             unset($data['customers_bonus_points']);
             unset($data['customers_bonus_points_delta']);
-        }else{
-            if ( !empty($this->modelFlags['customers_bonus_points_delta']) ) {
+        } else {
+            if (!empty($this->modelFlags['customers_bonus_points_delta'])) {
                 unset($data['customers_bonus_points']);
                 if (array_key_exists('customers_bonus_points_delta', $data) && !empty($data['customers_bonus_points_delta'])) {
                     $data['customers_bonus_points'] = (float)$this->customers_bonus_points + (float)$data['customers_bonus_points_delta'];
@@ -197,10 +197,9 @@ class Customer extends EPMap
         return $importResult;
     }
 
-
     public function beforeSave($insert)
     {
-        if ( $insert && (!is_array($this->childCollections['info']) || count($this->childCollections['info'])==0) ) {
+        if ($insert && (!is_array($this->childCollections['info']) || count($this->childCollections['info']) == 0)) {
             $this->childCollections['info'] = [];
             $this->childCollections['info'][] = new Info();
         }
@@ -211,7 +210,7 @@ class Customer extends EPMap
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
-        if ( array_key_exists('credit_amount', $changedAttributes) || array_key_exists('customers_bonus_points', $changedAttributes) ) {
+        if (array_key_exists('credit_amount', $changedAttributes) || array_key_exists('customers_bonus_points', $changedAttributes)) {
             static $customer;
             if (!is_object($customer)) {
                 $customer = new \common\components\Customer();
@@ -230,6 +229,5 @@ class Customer extends EPMap
             }
         }
     }
-
 
 }

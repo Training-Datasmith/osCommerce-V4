@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of True Loaded.
  *
@@ -20,7 +22,7 @@ class m230116_133307_coupon_free_shipping_update extends Migration
      */
     public function safeUp()
     {
-        if (!$this->isFieldExists('free_shipping','coupons')) {
+        if (!$this->isFieldExists('free_shipping', 'coupons')) {
             $this->addColumn(
                 'coupons',
                 'free_shipping',

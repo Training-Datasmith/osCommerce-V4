@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -47,32 +49,31 @@ namespace Stripe;
  */
 class Subscription extends ApiResource
 {
-    const OBJECT_NAME = 'subscription';
-
     use ApiOperations\All;
     use ApiOperations\Create;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
 
-    const PAYMENT_BEHAVIOR_ALLOW_INCOMPLETE = 'allow_incomplete';
-    const PAYMENT_BEHAVIOR_ERROR_IF_INCOMPLETE = 'error_if_incomplete';
-    const PAYMENT_BEHAVIOR_PENDING_IF_INCOMPLETE = 'pending_if_incomplete';
-
-    const PRORATION_BEHAVIOR_ALWAYS_INVOICE = 'always_invoice';
-    const PRORATION_BEHAVIOR_CREATE_PRORATIONS = 'create_prorations';
-    const PRORATION_BEHAVIOR_NONE = 'none';
-
-    const STATUS_ACTIVE = 'active';
-    const STATUS_CANCELED = 'canceled';
-    const STATUS_INCOMPLETE = 'incomplete';
-    const STATUS_INCOMPLETE_EXPIRED = 'incomplete_expired';
-    const STATUS_PAST_DUE = 'past_due';
-    const STATUS_TRIALING = 'trialing';
-    const STATUS_UNPAID = 'unpaid';
-
     use ApiOperations\Delete {
         delete as protected _delete;
-      }
+    }
+    public const OBJECT_NAME = 'subscription';
+
+    public const PAYMENT_BEHAVIOR_ALLOW_INCOMPLETE = 'allow_incomplete';
+    public const PAYMENT_BEHAVIOR_ERROR_IF_INCOMPLETE = 'error_if_incomplete';
+    public const PAYMENT_BEHAVIOR_PENDING_IF_INCOMPLETE = 'pending_if_incomplete';
+
+    public const PRORATION_BEHAVIOR_ALWAYS_INVOICE = 'always_invoice';
+    public const PRORATION_BEHAVIOR_CREATE_PRORATIONS = 'create_prorations';
+    public const PRORATION_BEHAVIOR_NONE = 'none';
+
+    public const STATUS_ACTIVE = 'active';
+    public const STATUS_CANCELED = 'canceled';
+    public const STATUS_INCOMPLETE = 'incomplete';
+    public const STATUS_INCOMPLETE_EXPIRED = 'incomplete_expired';
+    public const STATUS_PAST_DUE = 'past_due';
+    public const STATUS_TRIALING = 'trialing';
+    public const STATUS_UNPAID = 'unpaid';
 
     public static function getSavedNestedResources()
     {

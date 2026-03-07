@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\account;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class SpendBalance extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -34,7 +35,7 @@ class SpendBalance extends Widget
         $customers_id = (int)Yii::$app->user->getId();
 
         $coupons = [];
-        
+
         $spendArray = [];
         $redeem = \common\models\CouponRedeemTrack::find()
                 ->where(['customer_id' => $customers_id])
@@ -48,7 +49,7 @@ class SpendBalance extends Widget
                 $spendArray[$record['coupon_id']] = $record['spend_amount'];
             }
         }
-        
+
         foreach ($spendArray as $coupon_id => $spend_amount) {
             $result = \common\models\Coupons::find()->active()->andWhere(['coupon_id' => (int) $coupon_id])->one();
             if ($result instanceof \common\models\Coupons) {
@@ -61,11 +62,11 @@ class SpendBalance extends Widget
                 }
             }
         }
-        
+
         if (count($coupons) == 0) {
             return '';
         }
-        
+
         return IncludeTpl::widget(['file' => 'boxes/account/spend-balance.tpl', 'params' => [
             'coupons' => $coupons,
 

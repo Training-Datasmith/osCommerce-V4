@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,17 +14,15 @@
 
 namespace common\api\models\AR;
 
-
 use common\api\models\AR\Categories\AssignedCustomerGroups as CategoryAssignedCustomerGroups;
+use common\api\models\AR\Categories\AssignedDepartments;
 use common\api\models\AR\Categories\AssignedPlatforms;
 use common\api\models\AR\Categories\Description;
-use common\api\models\AR\Categories\AssignedDepartments;
 use yii\db\Expression;
 use yii\helpers\FileHelper;
 
 class Categories extends EPMap
 {
-
     protected $hideFields = [
         'previous_status',
         'last_xml_import',
@@ -40,7 +40,7 @@ class Categories extends EPMap
 
     protected $indexedCollections = [
         'assigned_platforms' => 'common\api\models\AR\Categories\AssignedPlatforms',
-        'assigned_customer_groups' => 'common\api\models\AR\Categories\AssignedCustomerGroups'
+        'assigned_customer_groups' => 'common\api\models\AR\Categories\AssignedCustomerGroups',
     ];
 
     public $categories_image_data = '';
@@ -56,7 +56,7 @@ class Categories extends EPMap
 
     public function __construct(array $config = [])
     {
-        if ( defined('TABLE_DEPARTMENTS_CATEGORIES') ) {
+        if (defined('TABLE_DEPARTMENTS_CATEGORIES')) {
             $this->childCollections['assigned_departments'] = false;
             $this->indexedCollections['assigned_departments'] = 'common\api\models\AR\Categories\AssignedDepartments';
         }
@@ -67,7 +67,6 @@ class Categories extends EPMap
 
         parent::__construct($config);
     }
-
 
     public static function tableName()
     {
@@ -98,12 +97,12 @@ class Categories extends EPMap
 
     public function initCollectionByLookupKey_Descriptions($lookupKeys)
     {
-        $loadAll = in_array('*',$lookupKeys);
-        foreach(Description::getAllKeyCodes() as $keyCode=>$lookupPK){
+        $loadAll = in_array('*', $lookupKeys);
+        foreach (Description::getAllKeyCodes() as $keyCode => $lookupPK) {
             $this->childCollections['descriptions'][$keyCode] = null;
-            if ( is_null($this->categories_id) ) {
+            if (is_null($this->categories_id)) {
                 $this->childCollections['descriptions'][$keyCode] = new Description($lookupPK);
-            }elseif( $loadAll || in_array($keyCode,$lookupKeys) ) {
+            } elseif ($loadAll || in_array($keyCode, $lookupKeys)) {
                 if (!isset($this->childCollections['descriptions'][$keyCode])) {
                     $lookupPK['categories_id'] = $this->categories_id;
                     $this->childCollections['descriptions'][$keyCode] = Description::findOne($lookupPK);
@@ -118,7 +117,7 @@ class Categories extends EPMap
 
     public function initCollectionByLookupKey_AssignedPlatforms($lookupKeys)
     {
-        if ( !is_array($this->childCollections['assigned_platforms']) ) {
+        if (!is_array($this->childCollections['assigned_platforms'])) {
             $this->childCollections['assigned_platforms'] = [];
             if ($this->categories_id) {
                 $this->childCollections['assigned_platforms'] =
@@ -133,7 +132,7 @@ class Categories extends EPMap
 
     public function initCollectionByLookupKey_AssignedCustomerGroups($lookupKeys)
     {
-        if ( !is_array($this->childCollections['assigned_customer_groups']) ) {
+        if (!is_array($this->childCollections['assigned_customer_groups'])) {
             $this->childCollections['assigned_customer_groups'] = [];
             if ($this->categories_id) {
                 $this->childCollections['assigned_customer_groups'] =
@@ -148,7 +147,7 @@ class Categories extends EPMap
 
     public function initCollectionByLookupKey_AssignedDepartments($lookupKeys)
     {
-        if ( !is_array($this->childCollections['assigned_departments']) ) {
+        if (!is_array($this->childCollections['assigned_departments'])) {
             $this->childCollections['assigned_departments'] = [];
             if ($this->categories_id) {
                 $this->childCollections['assigned_departments'] =
@@ -163,7 +162,7 @@ class Categories extends EPMap
 
     public function exportArray(array $fields = [])
     {
-        if ( !empty($this->categories_image) && is_file(\common\classes\Images::getFSCatalogImagesPath().$this->categories_image) ) {
+        if (!empty($this->categories_image) && is_file(\common\classes\Images::getFSCatalogImagesPath().$this->categories_image)) {
             if (count($fields) == 0 || array_key_exists('categories_image_data', $fields)) {
                 //$this->categories_image_data = file_get_contents(\common\classes\Images::getFSCatalogImagesPath().$data['categories_image']);
             }
@@ -171,7 +170,7 @@ class Categories extends EPMap
                 $this->categories_image_source_url = \Yii::$app->get('platform')->config()->getCatalogBaseUrl(true).DIR_WS_IMAGES/*.\common\classes\Images::getWSCatalogImagesPath(false)*/.rawurlencode($this->categories_image);
             }
         }
-        if ( !empty($this->categories_image_2) && is_file(\common\classes\Images::getFSCatalogImagesPath().$this->categories_image_2) ) {
+        if (!empty($this->categories_image_2) && is_file(\common\classes\Images::getFSCatalogImagesPath().$this->categories_image_2)) {
             if (count($fields) == 0 || array_key_exists('categories_image_2_data', $fields)) {
                 //$this->categories_image_2_data = file_get_contents(\common\classes\Images::getFSCatalogImagesPath().$data['categories_image_2']);
             }
@@ -179,7 +178,7 @@ class Categories extends EPMap
                 $this->categories_image_2_source_url = \Yii::$app->get('platform')->config()->getCatalogBaseUrl(true).DIR_WS_IMAGES/*.\common\classes\Images::getWSCatalogImagesPath(false)*/.rawurlencode($this->categories_image_2);
             }
         }
-        if ( !empty($this->categories_image_3) && is_file(\common\classes\Images::getFSCatalogImagesPath().$this->categories_image_3) ) {
+        if (!empty($this->categories_image_3) && is_file(\common\classes\Images::getFSCatalogImagesPath().$this->categories_image_3)) {
             if (count($fields) == 0 || array_key_exists('categories_image_3_data', $fields)) {
                 //$this->categories_image_3_data = file_get_contents(\common\classes\Images::getFSCatalogImagesPath().$data['categories_image_3']);
             }
@@ -188,22 +187,22 @@ class Categories extends EPMap
             }
         }
         $data = parent::exportArray($fields);
-        if ( (count($fields)==0 || array_key_exists('categories_image_data', $fields)) && !empty($this->categories_image_data) ) {
+        if ((count($fields) == 0 || array_key_exists('categories_image_data', $fields)) && !empty($this->categories_image_data)) {
             $data['categories_image_data'] = base64_encode($this->categories_image_data);
         }
-        if ( (count($fields)==0 || array_key_exists('categories_image_2_data', $fields)) && !empty($this->categories_image_2_data) ) {
+        if ((count($fields) == 0 || array_key_exists('categories_image_2_data', $fields)) && !empty($this->categories_image_2_data)) {
             $data['categories_image_2_data'] = base64_encode($this->categories_image_2_data);
         }
-        if ( (count($fields)==0 || array_key_exists('categories_image_3_data', $fields)) && !empty($this->categories_image_3_data) ) {
+        if ((count($fields) == 0 || array_key_exists('categories_image_3_data', $fields)) && !empty($this->categories_image_3_data)) {
             $data['categories_image_3_data'] = base64_encode($this->categories_image_3_data);
         }
-        if ( (count($fields)==0 || array_key_exists('categories_image_source_url', $fields)) && !is_null($this->categories_image_source_url) ) {
+        if ((count($fields) == 0 || array_key_exists('categories_image_source_url', $fields)) && !is_null($this->categories_image_source_url)) {
             $data['categories_image_source_url'] = $this->categories_image_source_url;
         }
-        if ( (count($fields)==0 || array_key_exists('categories_image_2_source_url', $fields)) && !is_null($this->categories_image_2_source_url) ) {
+        if ((count($fields) == 0 || array_key_exists('categories_image_2_source_url', $fields)) && !is_null($this->categories_image_2_source_url)) {
             $data['categories_image_2_source_url'] = $this->categories_image_2_source_url;
         }
-        if ( (count($fields)==0 || array_key_exists('categories_image_3_source_url', $fields)) && !is_null($this->categories_image_3_source_url) ) {
+        if ((count($fields) == 0 || array_key_exists('categories_image_3_source_url', $fields)) && !is_null($this->categories_image_3_source_url)) {
             $data['categories_image_3_source_url'] = $this->categories_image_3_source_url;
         }
 
@@ -214,24 +213,24 @@ class Categories extends EPMap
     {
         $result = parent::importArray($data);
 
-        if ( isset($data['categories_image_data']) && !empty($data['categories_image_data']) ) {
+        if (isset($data['categories_image_data']) && !empty($data['categories_image_data'])) {
             $this->categories_image_data = base64_decode($data['categories_image_data']);
-        }elseif ( array_key_exists('categories_image_source_url',$data) && !empty($data['categories_image_source_url']) ){
+        } elseif (array_key_exists('categories_image_source_url', $data) && !empty($data['categories_image_source_url'])) {
             $this->categories_image_source_url = $data['categories_image_source_url'];
         }
 
-        if ( isset($data['categories_image_2_data']) && !empty($data['categories_image_2_data']) ) {
+        if (isset($data['categories_image_2_data']) && !empty($data['categories_image_2_data'])) {
             $this->categories_image_2_data = base64_decode($data['categories_image_2_data']);
-        }elseif ( array_key_exists('categories_image_2_source_url',$data) && !empty($data['categories_image_2_source_url']) ){
+        } elseif (array_key_exists('categories_image_2_source_url', $data) && !empty($data['categories_image_2_source_url'])) {
             $this->categories_image_2_source_url = $data['categories_image_2_source_url'];
         }
-        if ( isset($data['categories_image_3_data']) && !empty($data['categories_image_3_data']) ) {
+        if (isset($data['categories_image_3_data']) && !empty($data['categories_image_3_data'])) {
             $this->categories_image_3_data = base64_decode($data['categories_image_3_data']);
-        }elseif ( array_key_exists('categories_image_3_source_url',$data) && !empty($data['categories_image_3_source_url']) ){
+        } elseif (array_key_exists('categories_image_3_source_url', $data) && !empty($data['categories_image_3_source_url'])) {
             $this->categories_image_3_source_url = $data['categories_image_3_source_url'];
         }
 
-        if ( isset($data['AutoStatus']) ){
+        if (isset($data['AutoStatus'])) {
             $this->AutoStatus = $data['AutoStatus'];
         }
 
@@ -240,73 +239,78 @@ class Categories extends EPMap
 
     public function beforeSave($insert)
     {
-        if ( $ext = \common\helpers\Acl::checkExtensionAllowed('AutomaticallyStatus', 'allowed') && isset($this->auto_status) ) {
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('AutomaticallyStatus', 'allowed') && isset($this->auto_status)) {
             unset($this->categories_status);
         }
 
         $targetDir = \common\classes\Images::getFSCatalogImagesPath();
-        if ( !empty($this->categories_image_source_url) || !empty($this->categories_image_data) ) {
-            $targetFilename = !empty($this->categories_image)?$this->categories_image:basename($this->categories_image_source_url);
-            if ( !empty($this->categories_image_source_url) ) {
-                if ( !is_dir(dirname($targetDir.$targetFilename)) ) {
+        if (!empty($this->categories_image_source_url) || !empty($this->categories_image_data)) {
+            $targetFilename = !empty($this->categories_image) ? $this->categories_image : basename($this->categories_image_source_url);
+            if (!empty($this->categories_image_source_url)) {
+                if (!is_dir(dirname($targetDir.$targetFilename))) {
                     try {
                         FileHelper::createDirectory(dirname($targetDir.$targetFilename), 0777);
-                    }catch (\Exception $ex){}
+                    } catch (\Exception $ex) {
+                    }
                 }
                 @copy($this->categories_image_source_url, $targetDir.$targetFilename);
-            }elseif (!empty($this->categories_image_data) && !empty($targetFilename)) {
+            } elseif (!empty($this->categories_image_data) && !empty($targetFilename)) {
                 @file_put_contents($targetDir.$targetFilename, $this->categories_image_data);
                 unset($this->categories_image_data);
             }
         }
-        if ( !empty($this->categories_image_2_source_url) || !empty($this->categories_image_2_data) ) {
-            $targetFilename = !empty($this->categories_image_2)?$this->categories_image_2:basename($this->categories_image_2_source_url);
-            if ( !empty($this->categories_image_2_source_url) ) {
-                if ( !is_dir(dirname($targetDir.$targetFilename)) ) {
+        if (!empty($this->categories_image_2_source_url) || !empty($this->categories_image_2_data)) {
+            $targetFilename = !empty($this->categories_image_2) ? $this->categories_image_2 : basename($this->categories_image_2_source_url);
+            if (!empty($this->categories_image_2_source_url)) {
+                if (!is_dir(dirname($targetDir.$targetFilename))) {
                     try {
                         FileHelper::createDirectory(dirname($targetDir.$targetFilename), 0777);
-                    }catch (\Exception $ex){}
+                    } catch (\Exception $ex) {
+                    }
                 }
                 @copy($this->categories_image_2_source_url, $targetDir.$targetFilename);
-            }elseif (!empty($this->categories_image_2_data) && !empty($targetFilename)) {
+            } elseif (!empty($this->categories_image_2_data) && !empty($targetFilename)) {
                 @file_put_contents($targetDir.$targetFilename, $this->categories_image_2_data);
                 unset($this->categories_image_2_data);
             }
         }
-        if ( !empty($this->categories_image_3_source_url) || !empty($this->categories_image_3_data) ) {
-            $targetFilename = !empty($this->categories_image_3)?$this->categories_image_3:basename($this->categories_image_3_source_url);
-            if ( !empty($this->categories_image_3_source_url) ) {
-                if ( !is_dir(dirname($targetDir.$targetFilename)) ) {
+        if (!empty($this->categories_image_3_source_url) || !empty($this->categories_image_3_data)) {
+            $targetFilename = !empty($this->categories_image_3) ? $this->categories_image_3 : basename($this->categories_image_3_source_url);
+            if (!empty($this->categories_image_3_source_url)) {
+                if (!is_dir(dirname($targetDir.$targetFilename))) {
                     try {
                         FileHelper::createDirectory(dirname($targetDir.$targetFilename), 0777);
-                    }catch (\Exception $ex){}
+                    } catch (\Exception $ex) {
+                    }
                 }
                 @copy($this->categories_image_3_source_url, $targetDir.$targetFilename);
-            }elseif (!empty($this->categories_image_3_data) && !empty($targetFilename)) {
+            } elseif (!empty($this->categories_image_3_data) && !empty($targetFilename)) {
                 @file_put_contents($targetDir.$targetFilename, $this->categories_image_3_data);
                 unset($this->categories_image_3_data);
             }
         }
 
-        if ( $insert ) {
-            if (is_null($this->categories_status)) $this->categories_status = 0; // override default from table schema
-            if ( empty($this->date_added) ) {
-                $this->date_added = new Expression("NOW()");
+        if ($insert) {
+            if (is_null($this->categories_status)) {
+                $this->categories_status = 0;
+            } // override default from table schema
+            if (empty($this->date_added)) {
+                $this->date_added = new Expression('NOW()');
             }
-        }else{
-            if ( $this->isModified() ) {
-                $this->last_modified = new Expression("NOW()");
+        } else {
+            if ($this->isModified()) {
+                $this->last_modified = new Expression('NOW()');
             }
         }
 
         $this->changedName = false;
         $defaultKey = \common\classes\language::get_code(\common\classes\language::defaultId()).'_0';
-        if( is_array($this->childCollections['descriptions']) && isset($this->childCollections['descriptions'][$defaultKey]) && is_object($this->childCollections['descriptions'][$defaultKey]) ){
+        if (is_array($this->childCollections['descriptions']) && isset($this->childCollections['descriptions'][$defaultKey]) && is_object($this->childCollections['descriptions'][$defaultKey])) {
             $defaultDescription = $this->childCollections['descriptions'][$defaultKey];
             /**
              * @var EPMap $defaultDescription
              */
-            if (  $defaultDescription->isAttributeChanged('categories_name',false) ) {
+            if ($defaultDescription->isAttributeChanged('categories_name', false)) {
                 $this->changedName = true;
             }
         }
@@ -317,15 +321,15 @@ class Categories extends EPMap
     public function afterSave($insert, $changedAttributes)
     {
         parent::afterSave($insert, $changedAttributes);
-        if ( array_key_exists('sort_order', $changedAttributes) || $this->changedName ) {
+        if (array_key_exists('sort_order', $changedAttributes) || $this->changedName) {
             \common\helpers\Categories::update_categories();
         }
 
-        if ( isset($this->auto_status) && $ext = \common\helpers\Acl::checkExtensionAllowed('AutomaticallyStatus', 'allowed') ) {
+        if (isset($this->auto_status) && $ext = \common\helpers\Acl::checkExtensionAllowed('AutomaticallyStatus', 'allowed')) {
             $ext::setAutoStatusCategory($this->categories_id, $this->auto_status, true);
             unset($this->auto_status);
         }
-        if ( $insert && !is_array($this->childCollections['assigned_customer_groups']??null) ) {
+        if ($insert && !is_array($this->childCollections['assigned_customer_groups'] ?? null)) {
             /** @var \common\extensions\UserGroupsRestrictions\UserGroupsRestrictions $ext */
             if ($ext = \common\helpers\Acl::checkExtensionAllowed('UserGroupsRestrictions', 'allowed')) {
                 if ($groupService = $ext::getGroupsService()) {
@@ -335,6 +339,5 @@ class Categories extends EPMap
         }
 
     }
-
 
 }

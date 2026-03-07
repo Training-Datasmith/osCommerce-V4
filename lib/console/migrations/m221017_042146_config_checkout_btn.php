@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,20 +24,20 @@ class m221017_042146_config_checkout_btn extends Migration
      */
     public function safeUp()
     {
-       $this->insert('configuration',[
-            'configuration_title' => 'Checkout button pay with card',
-            'configuration_key' => 'CHECKOUT_BTN_TEXT',
-            'configuration_value' => 'True',
-            'configuration_description' => 'Checkout button pay with card',
-            'configuration_group_id' => 'BOX_CONFIGURATION_MYSTORE',
-            'sort_order' => 35,
-            'date_added' => new \yii\db\Expression('NOW()'),
-            'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),'
-        ]);
-		
-		$this->addTranslation('main', [
+        $this->insert('configuration', [
+             'configuration_title' => 'Checkout button pay with card',
+             'configuration_key' => 'CHECKOUT_BTN_TEXT',
+             'configuration_value' => 'True',
+             'configuration_description' => 'Checkout button pay with card',
+             'configuration_group_id' => 'BOX_CONFIGURATION_MYSTORE',
+             'sort_order' => 35,
+             'date_added' => new \yii\db\Expression('NOW()'),
+             'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),',
+         ]);
+
+        $this->addTranslation('main', [
           'TEXT_PAY_NOW' => 'Pay Now',
-		  'TEXT_PAY_WITH_CARD' => 'Pay with card',
+          'TEXT_PAY_WITH_CARD' => 'Pay with card',
         ]);
     }
 

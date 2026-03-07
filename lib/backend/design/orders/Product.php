@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,13 @@
 
 namespace backend\design\orders;
 
-
+use common\classes\Images;
+use common\helpers\OrderProduct;
 use Yii;
 use yii\base\Widget;
-use common\helpers\OrderProduct;
-use common\classes\Images;
 
-class Product extends Widget {
-
+class Product extends Widget
+{
     public $product;
     public $manager;
     public $opsArray;
@@ -34,20 +35,24 @@ class Product extends Widget {
     public $warehouses_allocated_array = [];
     public $suppliers_allocated_array = [];
 
-    public function init(){
+    public function init()
+    {
         parent::init();
-        if (!$this->currency)
+        if (!$this->currency) {
             $this->currency = $this->order->info['currency'];
-        if (!$this->currency_value)
+        }
+        if (!$this->currency_value) {
             $this->currency_value = $this->order->info['currency_value'];
+        }
     }
 
-    public function run(){
+    public function run()
+    {
         global $languages_id;
 
         $isTemporary = false;
         foreach (\common\helpers\OrderProduct::getAllocatedArray($this->product['orders_products_id'], true) as $opaRecord) {
-            if ((int)$opaRecord['is_temporary'] > 0 AND (int)$opaRecord['allocate_received'] > (int)$opaRecord['allocate_dispatched']) {
+            if ((int)$opaRecord['is_temporary'] > 0 and (int)$opaRecord['allocate_received'] > (int)$opaRecord['allocate_dispatched']) {
                 $isTemporary = true;
                 break;
             }
@@ -62,7 +67,7 @@ class Product extends Widget {
         /**
          * @var $ext \common\extensions\Handlers\Handlers
          */
-        if ( ($ext = \common\helpers\Acl::checkExtensionAllowed('Handlers', 'allowed')) && !$ext::checkAccess((int) $this->product['id'], $this->handlers_array) ) {
+        if (($ext = \common\helpers\Acl::checkExtensionAllowed('Handlers', 'allowed')) && !$ext::checkAccess((int) $this->product['id'], $this->handlers_array)) {
             return ;
         }
 
@@ -99,10 +104,10 @@ class Product extends Widget {
         foreach (\common\helpers\OrderProduct::getAllocatedArray($this->product['orders_products_id']) as $orderProductAllocateRecord) {
             $locationName = trim(\common\helpers\Warehouses::getLocationPath($orderProductAllocateRecord['location_id'], $orderProductAllocateRecord['warehouse_id'], $this->locationBlockList));
             if ($orderProductAllocateRecord['layers_id']) {
-                $locationName .= ', ' . \common\helpers\Translation::getTranslationValue('TEXT_EXPIRY_DATE', 'admin/categories') . ' ' . \common\helpers\Date::date_short(\common\helpers\Warehouses::getExpiryDateByLayersID($orderProductAllocateRecord['layers_id'])); 
+                $locationName .= ', ' . \common\helpers\Translation::getTranslationValue('TEXT_EXPIRY_DATE', 'admin/categories') . ' ' . \common\helpers\Date::date_short(\common\helpers\Warehouses::getExpiryDateByLayersID($orderProductAllocateRecord['layers_id']));
             }
             if ($orderProductAllocateRecord['batch_id']) {
-                $locationName .= ', ' . TEXT_WAREHOUSES_PRODUCTS_BATCH_NAME . ' ' . \common\helpers\Warehouses::getBatchNameByBatchID($orderProductAllocateRecord['batch_id']); 
+                $locationName .= ', ' . TEXT_WAREHOUSES_PRODUCTS_BATCH_NAME . ' ' . \common\helpers\Warehouses::getBatchNameByBatchID($orderProductAllocateRecord['batch_id']);
             }
             $location .= '<div>'
                 . (isset($this->warehouseList[$orderProductAllocateRecord['warehouse_id']]) ? $this->warehouseList[$orderProductAllocateRecord['warehouse_id']] : 'N/A')
@@ -123,17 +128,17 @@ class Product extends Widget {
         }
 
         $asset = null;
-        if ($this->product['promo_id'] && \common\helpers\Acl::checkExtensionAllowed('Promotions')){
+        if ($this->product['promo_id'] && \common\helpers\Acl::checkExtensionAllowed('Promotions')) {
             $asset = \common\extensions\Promotions\models\PromotionService::getAsset($this->product['promo_id'], $this->product['id']);
         }
 
-        $opsArray = array();
+        $opsArray = [];
         foreach (\common\models\OrdersProductsStatus::findAll(['language_id' => (int)$languages_id]) as $opsRecord) {
             $opsArray[$opsRecord->orders_products_status_id] = $opsRecord;
         }
         unset($opsRecord);
 
-        $suppliersPricesArray = array();
+        $suppliersPricesArray = [];
         foreach (\common\models\OrdersProductsAllocate::findAll(['orders_products_id' => (int)$this->product['orders_products_id']]) as $opaRecord) {
             if ($opaRecord->suppliers_price > 0) {
                 if (!isset($suppliersPricesArray[$opaRecord->suppliers_id])) {
@@ -144,7 +149,7 @@ class Product extends Widget {
             }
         }
 
-        return $this->render('product',[
+        return $this->render('product', [
             'rowClass' => $rowClass,
             'manager' => $this->manager,
             'order' => $this->order,
@@ -167,7 +172,7 @@ class Product extends Widget {
                 'deficit'    => $opsArray[OrderProduct::OPS_STOCK_DEFICIT]->orders_products_status_name_long ?? TEXT_STATUS_LONG_OPS_STOCK_DEFICIT,
                 'received'   => $opsArray[OrderProduct::OPS_RECEIVED]->orders_products_status_name_long ?? TEXT_STATUS_LONG_OPS_RECEIVED,
                 'dispatched' => $opsArray[OrderProduct::OPS_DISPATCHED]->orders_products_status_name_long ?? TEXT_STATUS_LONG_OPS_DISPATCHED,
-                'delivered'  => $opsArray[OrderProduct::OPS_DELIVERED]->orders_products_status_name_long ?? TEXT_STATUS_LONG_OPS_DELIVERED
+                'delivered'  => $opsArray[OrderProduct::OPS_DELIVERED]->orders_products_status_name_long ?? TEXT_STATUS_LONG_OPS_DELIVERED,
             ],
             'suppliersPricesArray' => $suppliersPricesArray,
         ]);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPalCheckoutSdk\Core;
 
 class SandboxEnvironment extends PayPalEnvironment
@@ -11,6 +13,6 @@ class SandboxEnvironment extends PayPalEnvironment
 
     public function baseUrl()
     {
-        return "https://api.sandbox.paypal.com";
+        return 'https://api.sandbox.paypal.com';
     }
 }

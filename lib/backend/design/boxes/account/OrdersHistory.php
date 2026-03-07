@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace backend\design\boxes\account;
 
-use Yii;
 use yii\base\Widget;
 
 class OrdersHistory extends Widget
 {
-
     public $id;
     public $params;
     public $settings;
@@ -30,8 +30,8 @@ class OrdersHistory extends Widget
 
     public function run()
     {
-        $settings = tep_db_query("select setting_value from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . $this->settings['theme_name'] . "' and setting_group = 'added_page' and setting_name = 'account'");
-        $links = array();
+        $settings = tep_db_query('select setting_value from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . $this->settings['theme_name'] . "' and setting_group = 'added_page' and setting_name = 'account'");
+        $links = [];
         while ($item = tep_db_fetch_array($settings)) {
             $links[] = $item['setting_value'];
         }

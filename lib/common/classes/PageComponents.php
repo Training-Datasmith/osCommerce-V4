@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -14,12 +16,12 @@ namespace common\classes;
 
 use Yii;
 
-class PageComponents {
-
+class PageComponents
+{
     public static function addComponents($text)
     {
-        if ( !empty($text) && strpos($text,'##COMPONENT%')!==false ) {
-            $text = preg_replace_callback("/\#\#COMPONENT\%([^\#^\%]+)[\%]{0,1}([^\#]{0,})##/", self::class . "::addComponent", $text);
+        if (!empty($text) && strpos($text, '##COMPONENT%') !== false) {
+            $text = preg_replace_callback("/\#\#COMPONENT\%([^\#^\%]+)[\%]{0,1}([^\#]{0,})##/", self::class . '::addComponent', $text);
         }
 
         return $text;
@@ -41,14 +43,14 @@ class PageComponents {
         if ($matches[2]) {
             $arr = explode('=', $matches[2]);
             $params = [
-                $arr[0] => $arr[1]
+                $arr[0] => $arr[1],
             ];
         }
 
         return \frontend\design\Block::widget([
             'name' => \common\classes\design::pageName($matches[1]),
             'params' => [
-                'params' => $params
+                'params' => $params,
             ],
         ]);
     }

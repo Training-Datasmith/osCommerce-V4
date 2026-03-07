@@ -1,28 +1,31 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace backend\widgets;
 
-use Yii;
-use yii\base\Widget;
 use common\helpers\Html;
+use yii\base\Widget;
 
-class News extends Widget {
-    
+class News extends Widget
+{
     public $url = '';
-    
+
     public function run()
     {
-        if (!$this->url) return '';
+        if (!$this->url) {
+            return '';
+        }
 
         $xml = simplexml_load_file($this->url);
         $news = [];
@@ -37,8 +40,8 @@ class News extends Widget {
                 'image' => $img,
                 'description' => str_replace('&nbsp;', ' ', strip_tags($item->description)),
                 'pubDate' => $item->pubDate,
-                'date' => date( \common\helpers\Date::DATE_FORMAT, strtotime($item->pubDate)),
-                'dateTime' => date( \common\helpers\Date::DATE_TIME_FORMAT, strtotime($item->pubDate)),
+                'date' => date(\common\helpers\Date::DATE_FORMAT, strtotime($item->pubDate)),
+                'dateTime' => date(\common\helpers\Date::DATE_TIME_FORMAT, strtotime($item->pubDate)),
             ];
         }
 

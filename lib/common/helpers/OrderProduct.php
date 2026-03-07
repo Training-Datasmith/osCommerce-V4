@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,14 +16,14 @@ namespace common\helpers;
 
 class OrderProduct
 {
-    const OPS_QUOTED = 1;
-    const OPS_STOCK_DEFICIT = 10;
-    const OPS_STOCK_PENDING = 12;
-    const OPS_STOCK_ORDERED = 15;
-    const OPS_RECEIVED = 20;
-    const OPS_DISPATCHED = 30;
-    const OPS_DELIVERED = 40;
-    const OPS_CANCELLED = 50;
+    public const OPS_QUOTED = 1;
+    public const OPS_STOCK_DEFICIT = 10;
+    public const OPS_STOCK_PENDING = 12;
+    public const OPS_STOCK_ORDERED = 15;
+    public const OPS_RECEIVED = 20;
+    public const OPS_DISPATCHED = 30;
+    public const OPS_DELIVERED = 40;
+    public const OPS_CANCELLED = 50;
 
     /**
      * Automatically allocating stock for Order Product.
@@ -57,7 +59,7 @@ class OrderProduct
         if (\common\helpers\Product::isValidAllocated($orderProductRecord->uprid) != true) {
             return false;
         }
-        if (defined('STOCK_LIMITED') AND STOCK_LIMITED == 'true') {
+        if (defined('STOCK_LIMITED') and STOCK_LIMITED == 'true') {
             $return = self::doAllocateAutomaticWarehouse($orderProductRecord, $orderRecord, $productRecord);
         } else {
             $return = self::doAllocateAutomaticUnlimited($orderProductRecord, $orderRecord, $productRecord);
@@ -117,9 +119,9 @@ class OrderProduct
                         $STORE_OWNER_EMAIL_ADDRESS = $platform_config->const_value('STORE_OWNER_EMAIL_ADDRESS');
                         $STORE_OWNER = $platform_config->const_value('STORE_OWNER');
 
-                        $email_params = array();
+                        $email_params = [];
                         $email_params['STORE_NAME'] = $STORE_NAME;
-                        $email_params['ORDER_NUMBER'] = method_exists($orderRecord, 'getOrderNumber')?$orderRecord->getOrderNumber():$orderRecord->orders_id;
+                        $email_params['ORDER_NUMBER'] = method_exists($orderRecord, 'getOrderNumber') ? $orderRecord->getOrderNumber() : $orderRecord->orders_id;
                         $email_params['PRODUCTS_ORDERED'] = $orderProductRecord->products_name . ' (' . $orderProductRecord->products_model . ') X ' . $orderProductRecord->products_quantity;
 
                         list($email_subject, $email_text) = \common\helpers\Mail::get_parsed_email_template('Warehouse notification', $email_params);
@@ -132,10 +134,10 @@ class OrderProduct
                         $need_qty = $productQuantityReal - \common\helpers\Warehouses::get_products_quantity($warehouse_uprid, $collect_warehouse_id);
                         if ($need_qty > 0) {
                             \common\helpers\Warehouses::relocateQty(
-                                    $warehouse_uprid,
-                                    $CollectionPoint->relocate_warehouse_id,
-                                    $collect_warehouse_id,
-                                    $need_qty
+                                $warehouse_uprid,
+                                $CollectionPoint->relocate_warehouse_id,
+                                $collect_warehouse_id,
+                                $need_qty
                             );
                         }
                         // }} relocate missing stock
@@ -146,9 +148,9 @@ class OrderProduct
 
         $warehouseIdArray = \common\helpers\Product::getWarehouseIdPriorityArray($uProductId, $productQuantityReal, $orderRecord->platform_id);
 
-        if ( $force_sell_from_collect_warehouse_id!==false ){
-            $_existIdx = array_search((int)$force_sell_from_collect_warehouse_id,$warehouseIdArray);
-            if ( $_existIdx!==false ){
+        if ($force_sell_from_collect_warehouse_id !== false) {
+            $_existIdx = array_search((int)$force_sell_from_collect_warehouse_id, $warehouseIdArray);
+            if ($_existIdx !== false) {
                 unset($warehouseIdArray[$_existIdx]);
             }
             array_unshift($warehouseIdArray, (int)$force_sell_from_collect_warehouse_id);
@@ -173,10 +175,10 @@ class OrderProduct
                             if (isset($warehouseProductArray[$layerId][$warehouseId][$supplierId][$locationId][$batchId])) {
                                 $warehouseProduct = $warehouseProductArray[$layerId][$warehouseId][$supplierId][$locationId][$batchId];
                                 if (($warehouseProduct['layers_id'] == $layerId)
-                                    AND ($warehouseProduct['warehouse_id'] == $warehouseId)
-                                    AND ($warehouseProduct['suppliers_id'] == $supplierId)
-                                    AND ($warehouseProduct['location_id'] == $locationId)
-                                    AND ($warehouseProduct['batch_id'] == $batchId)
+                                    and ($warehouseProduct['warehouse_id'] == $warehouseId)
+                                    and ($warehouseProduct['suppliers_id'] == $supplierId)
+                                    and ($warehouseProduct['location_id'] == $locationId)
+                                    and ($warehouseProduct['batch_id'] == $batchId)
                                 ) {
                                     $key = "{$warehouseProduct['layers_id']}_{$warehouseProduct['warehouse_id']}_{$warehouseProduct['suppliers_id']}_{$warehouseProduct['location_id']}_{$warehouseProduct['batch_id']}";
                                     $warehouseProductPriorityArray[$key] = $warehouseProduct;
@@ -301,7 +303,8 @@ class OrderProduct
                             unset($receivedQuantity);
                         }
                         try {
-                            (($orderProductAllocated->allocate_received > 0)
+                            (
+                                ($orderProductAllocated->allocate_received > 0)
                                 ? $orderProductAllocated->save(false)
                                 : $orderProductAllocated->delete()
                             );
@@ -488,7 +491,8 @@ class OrderProduct
                                     $orderProductAllocated->allocate_received = $stockReceived;
                                     try {
                                         ($stockReceived > 0 ? $orderProductAllocated->save() : $orderProductAllocated->delete());
-                                    } catch (\Exception $exc) {}
+                                    } catch (\Exception $exc) {
+                                    }
                                     unset($stockReceived);
                                     unset($orderProductAllocated);
                                     unset($orderProductAllocatedArray[$warehouseId][$supplierId][$locationId][$layerId][$batchId]);
@@ -512,18 +516,20 @@ class OrderProduct
                 foreach ($locationArray as $locationId => $layersArray) {
                     foreach ($layersArray as $layerId => $batchArray) {
                         foreach ($batchArray as $batchId => $orderProductAllocated) {
-                            if ($productQuantityReceived >= $productQuantityReal AND $productQuantityReceived == self::getReceived($orderProductRecord, true)) {
+                            if ($productQuantityReceived >= $productQuantityReal and $productQuantityReceived == self::getReceived($orderProductRecord, true)) {
                                 break 5;
                             }
                             if ($orderProductAllocated->allocate_dispatched > 0) {
                                 $orderProductAllocated->allocate_received = $orderProductAllocated->allocate_dispatched;
                                 try {
                                     $orderProductAllocated->save();
-                                } catch (\Exception $exc) {}
+                                } catch (\Exception $exc) {
+                                }
                             } else {
                                 try {
                                     $orderProductAllocated->delete();
-                                } catch (\Exception $exc) {}
+                                } catch (\Exception $exc) {
+                                }
                             }
                         }
                     }
@@ -585,7 +591,8 @@ class OrderProduct
                                 $orderProductAllocateRecord->suppliers_price = \common\models\SuppliersProducts::getSuppliersPrice($uProductId, $supplierId);
                                 $orderProductAllocateRecord->save();
                                 unset($orderProductAllocateRecord);
-                            } catch (\Exception $exc) {}
+                            } catch (\Exception $exc) {
+                            }
                             unset($stockReceived);
                         }
                     }
@@ -612,7 +619,8 @@ class OrderProduct
         try {
             $orderProductRecord->qty_rcvd = $productQuantityReceived;
             $orderProductRecord->save();
-        } catch (\Exception $exc) {}
+        } catch (\Exception $exc) {
+        }
         unset($productQuantityReceived);
         return true;
     }
@@ -639,7 +647,7 @@ class OrderProduct
         $quantityAwaiting = (int)$quantity;
         $quantity = 0;
         $orderProductRecord = self::getRecord($orderProductRecord);
-        if ($quantityAwaiting >= 0 AND $orderProductRecord instanceof \common\models\OrdersProducts) {
+        if ($quantityAwaiting >= 0 and $orderProductRecord instanceof \common\models\OrdersProducts) {
             if (self::isValidAllocated($orderProductRecord) == true) {
                 $opAllocateRecord = \common\models\OrdersProductsAllocate::find()
                     ->where(['orders_products_id' => $orderProductRecord->orders_products_id])
@@ -668,7 +676,7 @@ class OrderProduct
                             ->andWhere(['layers_id' => $layerId])
                             ->andWhere(['batch_id' => $batchId])
                             ->asArray(true)->one();
-                        if ($quantityAwaiting > 0 AND is_array($wpRecord) AND (int)$wpRecord['products_quantity'] > 0) {
+                        if ($quantityAwaiting > 0 and is_array($wpRecord) and (int)$wpRecord['products_quantity'] > 0) {
                             if ($quantityAwaiting > (int)$wpRecord['products_quantity']) {
                                 $quantityAwaiting = (int)$wpRecord['products_quantity'];
                             }
@@ -770,9 +778,9 @@ class OrderProduct
             }
             $updateStockParams = [
                 'orders_id' => $orderProductRecord->orders_id,
-                'admin_id' => $login_id
+                'admin_id' => $login_id,
             ];
-            if ($orderProductRecord->hasMethod('stockUpdateExtraParams')){
+            if ($orderProductRecord->hasMethod('stockUpdateExtraParams')) {
                 $orderProductStockParams = $orderProductRecord->stockUpdateExtraParams();
                 $updateStockParams = array_merge($orderProductStockParams, $updateStockParams);
             }
@@ -798,12 +806,13 @@ class OrderProduct
                 $warehouseStockQuantityNew = \common\helpers\Warehouses::update_products_quantity(
                     $uProductId,
                     $orderProductAllocateRecord->warehouse_id,
-                    $quantityAwaiting, '-',
+                    $quantityAwaiting,
+                    '-',
                     $orderProductAllocateRecord->suppliers_id,
                     $orderProductAllocateRecord->location_id,
                     array_merge($updateStockParams, [
                         'layers_id' => $orderProductAllocateRecord->layers_id,
-                        'batch_id' => $orderProductAllocateRecord->batch_id
+                        'batch_id' => $orderProductAllocateRecord->batch_id,
                     ])
                 );
                 if ($warehouseStockQuantityNew < $warehouseStockQuantity) {
@@ -816,13 +825,14 @@ class OrderProduct
                         $warehouseStockQuantity = \common\helpers\Warehouses::update_products_quantity(
                             $uProductId,
                             $orderProductAllocateRecord->warehouse_id,
-                            $quantityAwaiting, '+',
+                            $quantityAwaiting,
+                            '+',
                             $orderProductAllocateRecord->suppliers_id,
                             $orderProductAllocateRecord->location_id,
                             array_merge($updateStockParams, [
                                 'layers_id' => $orderProductAllocateRecord->layers_id,
                                 'batch_id' => $orderProductAllocateRecord->batch_id,
-                                'comments' => TEXT_ORDER_PRODUCT_DO_DISPATCH_ERROR_RESTOCK
+                                'comments' => TEXT_ORDER_PRODUCT_DO_DISPATCH_ERROR_RESTOCK,
                             ])
                         );
                         $quantityAwaiting = 0;
@@ -838,7 +848,7 @@ class OrderProduct
             unset($warehouseStockQuantity);
             unset($quantityAwaiting);
             unset($login_id);
-            if ((int)$isForced > 0 AND $quantityDispatch > 0) {
+            if ((int)$isForced > 0 and $quantityDispatch > 0) {
                 $orderRecord = \common\helpers\Order::getRecord($orderProductRecord->orders_id);
                 if ($orderRecord instanceof \common\models\Orders) {
                     $warehouseIdArray = \common\helpers\Product::getWarehouseIdPriorityArray($uProductId, $quantityDispatch, $orderRecord->platform_id);
@@ -875,7 +885,8 @@ class OrderProduct
                             try {
                                 $orderProductAllocateRecord->save();
                                 $quantityDispatch = 0;
-                            } catch (\Exception $exc) {}
+                            } catch (\Exception $exc) {
+                            }
                             unset($orderProductAllocateRecord);
                             if ($quantityDispatch == 0) {
                                 break 2;
@@ -923,13 +934,13 @@ class OrderProduct
         $quantityAwaiting = (int)$quantity;
         $quantity = 0;
         $orderProductRecord = self::getRecord($orderProductRecord);
-        if (($quantityAwaiting > 0) AND ($orderProductRecord instanceof \common\models\OrdersProducts)) {
+        if (($quantityAwaiting > 0) and ($orderProductRecord instanceof \common\models\OrdersProducts)) {
             if (self::isValidAllocated($orderProductRecord) == true) {
                 $updateStockParams = [
                     'orders_id' => $orderProductRecord->orders_id,
-                    'admin_id' => $login_id
+                    'admin_id' => $login_id,
                 ];
-                if ($orderProductRecord->hasMethod('stockUpdateExtraParams')){
+                if ($orderProductRecord->hasMethod('stockUpdateExtraParams')) {
                     $orderProductStockParams = $orderProductRecord->stockUpdateExtraParams();
                     $updateStockParams = array_merge($orderProductStockParams, $updateStockParams);
                 }
@@ -939,19 +950,19 @@ class OrderProduct
                     if ($quantityAwaiting <= 0) {
                         break;
                     }
-                    if ($warehouseId !== false AND $warehouseId != $opAllocateRecord->warehouse_id) {
+                    if ($warehouseId !== false and $warehouseId != $opAllocateRecord->warehouse_id) {
                         continue;
                     }
-                    if ($supplierId !== false AND $supplierId != $opAllocateRecord->suppliers_id) {
+                    if ($supplierId !== false and $supplierId != $opAllocateRecord->suppliers_id) {
                         continue;
                     }
-                    if ($locationId !== false AND $locationId != $opAllocateRecord->location_id) {
+                    if ($locationId !== false and $locationId != $opAllocateRecord->location_id) {
                         continue;
                     }
-                    if ($layerId !== false AND $layerId != $opAllocateRecord->layers_id) {
+                    if ($layerId !== false and $layerId != $opAllocateRecord->layers_id) {
                         continue;
                     }
-                    if ($batchId !== false AND $batchId != $opAllocateRecord->batch_id) {
+                    if ($batchId !== false and $batchId != $opAllocateRecord->batch_id) {
                         continue;
                     }
                     $awaitingDispatch = ((int)$opAllocateRecord->allocate_received - (int)$opAllocateRecord->allocate_dispatched);
@@ -963,7 +974,8 @@ class OrderProduct
                         $quantityWarehouseNew = \common\helpers\Warehouses::update_products_quantity(
                             $opAllocateRecord->products_id,
                             $opAllocateRecord->warehouse_id,
-                            $awaitingDispatch, '-',
+                            $awaitingDispatch,
+                            '-',
                             $opAllocateRecord->suppliers_id,
                             $opAllocateRecord->location_id,
                             array_merge($updateStockParams, [
@@ -972,7 +984,7 @@ class OrderProduct
                             ])
                         );
                         $quantityWarehouse -= $quantityWarehouseNew;
-                        $awaitingDispatch = (($quantityWarehouse >= 0 AND $quantityWarehouse <= $awaitingDispatch) ? $quantityWarehouse : $awaitingDispatch);
+                        $awaitingDispatch = (($quantityWarehouse >= 0 and $quantityWarehouse <= $awaitingDispatch) ? $quantityWarehouse : $awaitingDispatch);
                         unset($quantityWarehouseNew);
                         unset($quantityWarehouse);
                         if ($awaitingDispatch > 0) {
@@ -985,13 +997,14 @@ class OrderProduct
                                 \common\helpers\Warehouses::update_products_quantity(
                                     $opAllocateRecord->products_id,
                                     $opAllocateRecord->warehouse_id,
-                                    $awaitingDispatch, '+',
+                                    $awaitingDispatch,
+                                    '+',
                                     $opAllocateRecord->suppliers_id,
                                     $opAllocateRecord->location_id,
                                     array_merge($updateStockParams, [
                                         'layers_id' => $opAllocateRecord->layers_id,
                                         'batch_id' => $opAllocateRecord->batch_id,
-                                        'comments' => TEXT_ORDER_PRODUCT_DO_DISPATCH_ERROR_RESTOCK
+                                        'comments' => TEXT_ORDER_PRODUCT_DO_DISPATCH_ERROR_RESTOCK,
                                     ])
                                 );
                             }
@@ -1036,7 +1049,8 @@ class OrderProduct
                 $opAllocateRecord->allocate_delivered = $opAllocateRecord->allocate_dispatched;
                 try {
                     $opAllocateRecord->save();
-                } catch (\Exception $exc) {}
+                } catch (\Exception $exc) {
+                }
             }
             unset($opAllocateRecord);
             self::evaluate($orderProductRecord);
@@ -1069,7 +1083,7 @@ class OrderProduct
         $quantityAwaiting = (int)$quantity;
         $quantity = 0;
         $orderProductRecord = self::getRecord($orderProductRecord);
-        if (($quantityAwaiting > 0) AND ($orderProductRecord instanceof \common\models\OrdersProducts)) {
+        if (($quantityAwaiting > 0) and ($orderProductRecord instanceof \common\models\OrdersProducts)) {
             if (self::isValidAllocated($orderProductRecord) == true) {
                 $opAllocateRecord = \common\models\OrdersProductsAllocate::find()
                     ->where(['orders_products_id' => $orderProductRecord->orders_products_id])
@@ -1129,9 +1143,9 @@ class OrderProduct
             }
             $updateStockParams = [
                 'orders_id' => $orderProductRecord->orders_id,
-                'admin_id' => $login_id
+                'admin_id' => $login_id,
             ];
-            if ($orderProductRecord->hasMethod('stockUpdateExtraParams')){
+            if ($orderProductRecord->hasMethod('stockUpdateExtraParams')) {
                 $orderProductStockParams = $orderProductRecord->stockUpdateExtraParams();
                 $updateStockParams = array_merge($orderProductStockParams, $updateStockParams);
             }
@@ -1143,13 +1157,14 @@ class OrderProduct
                         \common\helpers\Warehouses::update_products_quantity(
                             $orderProductAllocateRecord->products_id,
                             $orderProductAllocateRecord->warehouse_id,
-                            $orderProductAllocateRecord->allocate_dispatched, '+',
+                            $orderProductAllocateRecord->allocate_dispatched,
+                            '+',
                             $orderProductAllocateRecord->suppliers_id,
                             $orderProductAllocateRecord->location_id,
                             array_merge($updateStockParams, [
                                 'layers_id' => $orderProductAllocateRecord->layers_id,
                                 'batch_id' => $orderProductAllocateRecord->batch_id,
-                                'comments' => $messageStock
+                                'comments' => $messageStock,
                             ])
                         );
                     }
@@ -1210,7 +1225,7 @@ class OrderProduct
         $quantityQuote = (int)$quantity;
         $quantity = 0;
         $orderProductRecord = self::getRecord($orderProductRecord);
-        if (($quantityQuote > 0) AND ($orderProductRecord instanceof \common\models\OrdersProducts)) {
+        if (($quantityQuote > 0) and ($orderProductRecord instanceof \common\models\OrdersProducts)) {
             if (self::isValidAllocated($orderProductRecord) == true) {
                 if ((int)$isUseDeficit > 0) {
                     $quantityQuoteTmp = ($quantityQuote - self::getStockDeficit($orderProductRecord));
@@ -1257,7 +1272,8 @@ class OrderProduct
                 $orderProductRecord->qty_cnld = (($orderProductRecord->qty_cnld > $orderProductRecord->products_quantity) ? $orderProductRecord->products_quantity : $orderProductRecord->qty_cnld);
                 try {
                     $orderProductRecord->save();
-                } catch (\Exception $exc) {}
+                } catch (\Exception $exc) {
+                }
                 self::evaluate($orderProductRecord);
                 \common\helpers\Product::doCache($orderProductRecord->products_id);
             }
@@ -1297,12 +1313,13 @@ class OrderProduct
                 return false;
             }
             self::evaluate($orderProductRecord);
-            if ($orderProductRecord->qty_rcvd == 0 AND $orderProductRecord->orders_products_status == self::OPS_STOCK_DEFICIT) {
+            if ($orderProductRecord->qty_rcvd == 0 and $orderProductRecord->orders_products_status == self::OPS_STOCK_DEFICIT) {
                 $orderProductRecord->orders_products_status = self::OPS_QUOTED;
                 $orderProductRecord->orders_products_status_manual = 0;
                 try {
                     $orderProductRecord->save();
-                } catch (\Exception $exc) {}
+                } catch (\Exception $exc) {
+                }
             }
             unset($orderProductRecord);
             unset($isReset);
@@ -1333,13 +1350,13 @@ class OrderProduct
         $quantityAwaiting = (int)$quantity;
         $quantity = 0;
         $orderProductRecord = self::getRecord($orderProductRecord);
-        if (($quantityAwaiting > 0) AND ($orderProductRecord instanceof \common\models\OrdersProducts)) {
+        if (($quantityAwaiting > 0) and ($orderProductRecord instanceof \common\models\OrdersProducts)) {
             if (self::isValidAllocated($orderProductRecord) == true) {
                 $updateStockParams = [
                     'orders_id' => $orderProductRecord->orders_id,
-                    'admin_id' => $login_id
+                    'admin_id' => $login_id,
                 ];
-                if ($orderProductRecord->hasMethod('stockUpdateExtraParams')){
+                if ($orderProductRecord->hasMethod('stockUpdateExtraParams')) {
                     $orderProductStockParams = $orderProductRecord->stockUpdateExtraParams();
                     $updateStockParams = array_merge($orderProductStockParams, $updateStockParams);
                 }
@@ -1363,13 +1380,14 @@ class OrderProduct
                         $quantityWarehouseNew = \common\helpers\Warehouses::update_products_quantity(
                             $opAllocateRecord->products_id,
                             $opAllocateRecord->warehouse_id,
-                            $quantityRestock, '+',
+                            $quantityRestock,
+                            '+',
                             $opAllocateRecord->suppliers_id,
                             $opAllocateRecord->location_id,
                             array_merge($updateStockParams, [
                                 'layers_id' => $opAllocateRecord->layers_id,
                                 'batch_id' => $opAllocateRecord->batch_id,
-                                'comments' => TEXT_ORDER_PRODUCT_DO_QUOTE_RESTOCK
+                                'comments' => TEXT_ORDER_PRODUCT_DO_QUOTE_RESTOCK,
                             ])
                         );
                         if ($quantityWarehouse == $quantityWarehouseNew) {
@@ -1397,12 +1415,13 @@ class OrderProduct
                         $quantity = $quantityAwaiting;
                         self::evaluate($orderProductRecord);
                         \common\helpers\Product::doCache($orderProductRecord->products_id);
-                        if ($orderProductRecord->qty_rcvd == 0 AND $orderProductRecord->orders_products_status == self::OPS_STOCK_DEFICIT) {
+                        if ($orderProductRecord->qty_rcvd == 0 and $orderProductRecord->orders_products_status == self::OPS_STOCK_DEFICIT) {
                             $orderProductRecord->orders_products_status = self::OPS_QUOTED;
                             $orderProductRecord->orders_products_status_manual = 0;
                             try {
                                 $orderProductRecord->save();
-                            } catch (\Exception $exc) {}
+                            } catch (\Exception $exc) {
+                            }
                         }
                     }
                 }
@@ -1438,7 +1457,7 @@ class OrderProduct
             $orderProductQuantityDelivered = 0;
             foreach (self::getAllocatedArray($orderProductRecord, false) as $orderProductAllocated) {
                 if ($orderProductAllocated->allocate_dispatched > 0
-                    OR $orderProductAllocated->allocate_delivered > 0
+                    or $orderProductAllocated->allocate_delivered > 0
                 ) {
                     $isSave = false;
                     if ($orderProductAllocated->allocate_delivered > $orderProductAllocated->allocate_dispatched) {
@@ -1471,8 +1490,8 @@ class OrderProduct
             }
             unset($orderProductAllocated);
             if ($orderProductRecord->qty_rcvd != $orderProductQuantityReceived
-                OR $orderProductRecord->qty_dspd != $orderProductQuantityDispatched
-                OR $orderProductRecord->qty_dlvd != $orderProductQuantityDelivered
+                or $orderProductRecord->qty_dspd != $orderProductQuantityDispatched
+                or $orderProductRecord->qty_dlvd != $orderProductQuantityDelivered
             ) {
                 try {
                     $orderProductRecord->qty_rcvd = $orderProductQuantityReceived;
@@ -1535,7 +1554,7 @@ class OrderProduct
         $return = [];
         $orderProductRecord = self::getRecord($orderProductRecord);
         if ($orderProductRecord instanceof \common\models\OrdersProducts) {
-            if (trim($orderProductRecord->sub_products) != '' && $orderProductRecord->relation_type!='linked') {
+            if (trim($orderProductRecord->sub_products) != '' && $orderProductRecord->relation_type != 'linked') {
                 foreach ((\common\models\OrdersProducts::find()
                     ->where(['orders_id' => $orderProductRecord->orders_id])
                     ->andWhere(['parent_product' => trim($orderProductRecord->template_uprid)])
@@ -1580,19 +1599,19 @@ class OrderProduct
                     $opcQuantityMultiplier = (int)ceil((int)$orderProductChildRecord->products_quantity / (int)$orderProductRecord->products_quantity);
                 }
                 $opcQuantityReal = (int)floor(self::getQuantityReal($orderProductChildRecord) / $opcQuantityMultiplier);
-                if (($orderProductQuantityReal < 0) OR ($orderProductQuantityReal > $opcQuantityReal)) {
+                if (($orderProductQuantityReal < 0) or ($orderProductQuantityReal > $opcQuantityReal)) {
                     $orderProductQuantityReal = $opcQuantityReal;
                 }
                 $opcReceived = (int)floor(self::getReceived($orderProductChildRecord) / $opcQuantityMultiplier);
-                if (($orderProductReceived < 0) OR ($orderProductReceived > $opcReceived)) {
+                if (($orderProductReceived < 0) or ($orderProductReceived > $opcReceived)) {
                     $orderProductReceived = $opcReceived;
                 }
                 $opcDispatched = (int)floor(self::getDispatched($orderProductChildRecord) / $opcQuantityMultiplier);
-                if (($orderProductDispatched < 0) OR ($orderProductDispatched > $opcDispatched)) {
+                if (($orderProductDispatched < 0) or ($orderProductDispatched > $opcDispatched)) {
                     $orderProductDispatched = $opcDispatched;
                 }
                 $opcDelivered = (int)floor(self::getDelivered($orderProductChildRecord) / $opcQuantityMultiplier);
-                if (($orderProductDelivered < 0) OR ($orderProductDelivered > $opcDelivered)) {
+                if (($orderProductDelivered < 0) or ($orderProductDelivered > $opcDelivered)) {
                     $orderProductDelivered = $opcDelivered;
                 }
             }
@@ -1607,7 +1626,8 @@ class OrderProduct
                 foreach (self::getAllocatedArray($orderProductRecord, false) as $orderProductAllocated) {
                     try {
                         $orderProductAllocated->delete();
-                    } catch (\Exception $exc) {}
+                    } catch (\Exception $exc) {
+                    }
                 }
                 unset($orderProductAllocated);
             } else {
@@ -1621,7 +1641,8 @@ class OrderProduct
                 foreach (self::getAllocatedArray($orderProductRecord, false) as $orderProductAllocated) {
                     try {
                         $orderProductAllocated->delete();
-                    } catch (\Exception $exc) {}
+                    } catch (\Exception $exc) {
+                    }
                 }
                 unset($orderProductAllocated);
             } else {
@@ -1647,10 +1668,10 @@ class OrderProduct
                 }
             }
             if ($orderProductRecord->qty_rcvd != $orderProductReceived
-                OR $orderProductRecord->qty_dspd != $orderProductDispatched
-                OR $orderProductRecord->qty_dlvd != $orderProductDelivered
-                OR $orderProductRecord->qty_cnld != $orderProductCancelled
-                OR $return != $orderProductStatus
+                or $orderProductRecord->qty_dspd != $orderProductDispatched
+                or $orderProductRecord->qty_dlvd != $orderProductDelivered
+                or $orderProductRecord->qty_cnld != $orderProductCancelled
+                or $return != $orderProductStatus
             ) {
                 $orderProductRecord->qty_rcvd = $orderProductReceived;
                 $orderProductRecord->qty_dspd = $orderProductDispatched;
@@ -1722,8 +1743,7 @@ class OrderProduct
         if ($orderProductRecord instanceof \common\models\OrdersProducts) {
             foreach ((\common\models\OrdersProductsAllocate::find()
                 ->where(['orders_products_id' => $orderProductRecord->orders_products_id])
-                ->asArray($asArray)->all())
-                    as $opAllocateRecord
+                ->asArray($asArray)->all()) as $opAllocateRecord
             ) {
                 $return[] = $opAllocateRecord;
             }
@@ -1889,50 +1909,50 @@ class OrderProduct
                 'long' => 'Quoted',
                 'short' => 'Qted',
                 'colour' => '#667981',
-                'key' => 'OPS_QUOTED'
+                'key' => 'OPS_QUOTED',
             ],
             self::OPS_STOCK_DEFICIT => [
                 'long' => 'Stock deficit',
                 'short' => 'StckDfct',
                 'colour' => '#ff9100',
-                'key' => 'OPS_STOCK_DEFICIT'
+                'key' => 'OPS_STOCK_DEFICIT',
             ],
             self::OPS_STOCK_PENDING => [
                 'long' => 'Stock pending',
                 'short' => 'StckPndg',
                 'colour' => '#8e8d0d',
-                'key' => 'OPS_STOCK_PENDING'
+                'key' => 'OPS_STOCK_PENDING',
             ],
             self::OPS_STOCK_ORDERED => [
                 'long' => 'Stock ordered',
                 'short' => 'StckOrdr',
                 'colour' => '#aa00ff',
-                'key' => 'OPS_STOCK_ORDERED'
+                'key' => 'OPS_STOCK_ORDERED',
             ],
             self::OPS_RECEIVED => [
                 'long' => 'Received',
                 'short' => 'Rcvd',
                 'colour' => '#283593',
-                'key' => 'OPS_RECEIVED'
+                'key' => 'OPS_RECEIVED',
             ],
             self::OPS_DISPATCHED => [
                 'long' => 'Dispatched',
                 'short' => 'Dspd',
                 'colour' => '#2962ff',
-                'key' => 'OPS_DISPATCHED'
+                'key' => 'OPS_DISPATCHED',
             ],
             self::OPS_DELIVERED => [
                 'long' => 'Delivered',
                 'short' => 'Dlvd',
                 'colour' => '#028908',
-                'key' => 'OPS_DELIVERED'
+                'key' => 'OPS_DELIVERED',
             ],
             self::OPS_CANCELLED => [
                 'long' => 'Cancelled',
                 'short' => 'Cnld',
                 'colour' => '#ff0000',
-                'key' => 'OPS_CANCELLED'
-            ]
+                'key' => 'OPS_CANCELLED',
+            ],
         ];
     }
 }

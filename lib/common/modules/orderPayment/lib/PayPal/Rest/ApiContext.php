@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Rest;
 
 use PayPal\Core\PayPalConfigManager;
@@ -14,7 +16,6 @@ use PayPal\Core\PayPalCredentialManager;
  */
 class ApiContext
 {
-
     /**
      * Unique request id to be used for this call
      * The user can either generate one as per application
@@ -31,7 +32,6 @@ class ApiContext
      * @var \PayPal\Auth\OAuthTokenCredential
      */
     private $credential;
-
 
     /**
      * Construct
@@ -61,7 +61,7 @@ class ApiContext
     public function getRequestHeaders()
     {
         $result = PayPalConfigManager::getInstance()->get('http.headers');
-        $headers = array();
+        $headers = [];
         foreach ($result as $header => $value) {
             $headerName = ltrim($header, 'http.headers');
             $headers[$headerName] = $value;
@@ -75,7 +75,7 @@ class ApiContext
         if (!(substr($name, 0, strlen('http.headers')) === 'http.headers')) {
             $name = 'http.headers.' . $name;
         }
-        PayPalConfigManager::getInstance()->addConfigs(array($name => $value));
+        PayPalConfigManager::getInstance()->addConfigs([$name => $value]);
     }
 
     /**

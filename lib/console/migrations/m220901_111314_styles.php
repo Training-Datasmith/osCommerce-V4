@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,20 +24,24 @@ class m220901_111314_styles extends Migration
      */
     public function safeUp()
     {
-        $this->update('themes_styles',
+        $this->update(
+            'themes_styles',
             ['value' => '20'],
             [
                 'selector' => '.b-bottom .notify-form',
                 'attribute' => 'padding-top',
                 'value' => '0',
-            ]);
-        $this->update('themes_styles',
+            ]
+        );
+        $this->update(
+            'themes_styles',
             ['value' => '20'],
             [
                 'selector' => '.b-bottom .notify-form',
                 'attribute' => 'padding-bottom',
                 'value' => '0',
-            ]);
+            ]
+        );
     }
 
     /**

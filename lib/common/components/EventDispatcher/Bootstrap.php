@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,14 +12,10 @@
  */
 declare(strict_types=1);
 
-
 namespace common\components\EventDispatcher;
-
 
 use common\components\EventDispatcher\Provider\Provider;
 use common\components\EventDispatcher\Provider\ProvidersAggregate;
-use common\services\CategoriesService;
-use common\services\ProductService;
 use yii\base\BootstrapInterface;
 
 class Bootstrap implements BootstrapInterface

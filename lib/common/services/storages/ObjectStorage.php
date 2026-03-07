@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,63 +13,75 @@
  */
 
 namespace common\services\storages;
+
 use Yii;
 
-class ObjectStorage implements StorageInterface {
-    
+class ObjectStorage implements StorageInterface
+{
     protected $_pointer = null;
-    
+
     private $_storageName = '_tlStorageId';
     private $_storageID;
-    
+
     private $data = [];
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->_storageID = Yii::$app->security->generateRandomString();
     }
-    
-    public function setPointer(string $pointer){
+
+    public function setPointer(string $pointer)
+    {
         $this->_storageID = $pointer;
     }
-    
-    public function getPointer(){
+
+    public function getPointer()
+    {
         return $this->_storageID;
     }
-    
-    public function pointerShifted(){
+
+    public function pointerShifted()
+    {
         return false;
     }
 
-    public function get($name){
+    public function get($name)
+    {
         $var = $this->_get();
         return isset($var[$name]) ? $var[$name] : null;
     }
-    
-    public function getAll(){
+
+    public function getAll()
+    {
         return $this->_get();
     }
 
-    public function set($name, $value){
+    public function set($name, $value)
+    {
         $this->data[$name] = $value;
     }
-    
-    private function _get(){
+
+    private function _get()
+    {
         return $this->data;
     }
-    
-    public function has($name){
+
+    public function has($name)
+    {
         return isset($this->data[$name]);
     }
-    
-    public function remove($name){
-        if ($this->has($name)){
+
+    public function remove($name)
+    {
+        if ($this->has($name)) {
             $var = $this->_get();
             unset($var[$name]);
             $this->data = $var;
         }
     }
-    
-    public function removeAll(){
+
+    public function removeAll()
+    {
         $this->data = [];
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -21,7 +23,7 @@ class Billing extends PayPalModel
      * Identifier of the instrument in PayPal Wallet
      *
      * @param string $billing_agreement_id
-     * 
+     *
      * @return $this
      */
     public function setBillingAgreementId($billing_agreement_id)

@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
-use yii\db\ActiveRecord;
 use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
 
 class OrdersTransactionsChildren extends ActiveRecord
 {
@@ -11,19 +13,22 @@ class OrdersTransactionsChildren extends ActiveRecord
     {
         return 'orders_transactions_children';
     }
-    
-    public static function primaryKey(){
+
+    public static function primaryKey()
+    {
         return ['orders_transactions_child_id'];
     }
-    
-    public function rules() {
+
+    public function rules()
+    {
         return [
             [['orders_transactions_id', 'transaction_id', 'transaction_status', 'orders_id'], 'required'],
             [['transaction_amount', 'transaction_currency', 'comments', 'admin_id'], 'safe'],
         ];
     }
 
-    public function behaviors() {
+    public function behaviors()
+    {
         return [
             [
                 'class' => TimestampBehavior::className(),
@@ -34,9 +39,10 @@ class OrdersTransactionsChildren extends ActiveRecord
             ],
         ];
     }
-    
-    public static function create($id, $transaction_id, $orders_id, $status, $amount, $currency, $comments, $admin_id){
-        if ($id && $transaction_id){
+
+    public static function create($id, $transaction_id, $orders_id, $status, $amount, $currency, $comments, $admin_id)
+    {
+        if ($id && $transaction_id) {
             $child = new self();
             $child->orders_transactions_id = $id;
             $child->transaction_id = $transaction_id;
@@ -46,15 +52,16 @@ class OrdersTransactionsChildren extends ActiveRecord
             $child->transaction_currency = $currency;
             $child->comments = $comments;
             $child->admin_id = $admin_id;
-            if ($child->validate()){
+            if ($child->validate()) {
                 $child->save();
                 return $child;
             }
         }
         return false;
     }
-    
-    public function getOrdersTransaction(){
+
+    public function getOrdersTransaction()
+    {
         return $this->hasOne(OrdersTransactions::className(), ['orders_transactions_id' => 'orders_transactions_id']);
     }
 }

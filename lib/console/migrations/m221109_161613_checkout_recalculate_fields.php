@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m221109_161613_checkout_recalculate_fields extends Migration
      */
     public function safeUp()
     {
-        $this->insert('configuration',[
+        $this->insert('configuration', [
             'configuration_title' => 'Trigger recalculate shipping',
             'configuration_key' => 'TRIGGER_RECALCULATE_FIELDS',
             'configuration_value' => 'postcode, state, city, country',
@@ -31,7 +33,7 @@ class m221109_161613_checkout_recalculate_fields extends Migration
             'sort_order' => 3245,
             'date_added' => new \yii\db\Expression('NOW()'),
             'use_function' => 'getCheckoutRecalculateFields',
-            'set_function' => 'setCheckoutRecalculateFields('
+            'set_function' => 'setCheckoutRecalculateFields(',
         ]);
     }
 

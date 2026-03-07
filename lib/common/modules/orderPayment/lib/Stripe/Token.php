@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -45,13 +47,12 @@ namespace Stripe;
  */
 class Token extends ApiResource
 {
-    const OBJECT_NAME = 'token';
-
     use ApiOperations\Create;
     use ApiOperations\Retrieve;
+    public const OBJECT_NAME = 'token';
 
-    const TYPE_ACCOUNT = 'account';
-    const TYPE_BANK_ACCOUNT = 'bank_account';
-    const TYPE_CARD = 'card';
-    const TYPE_PII = 'pii';
+    public const TYPE_ACCOUNT = 'account';
+    public const TYPE_BANK_ACCOUNT = 'bank_account';
+    public const TYPE_CARD = 'card';
+    public const TYPE_PII = 'pii';
 }

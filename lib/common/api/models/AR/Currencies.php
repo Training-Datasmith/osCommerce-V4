@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /*
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,11 +14,8 @@
 
 namespace common\api\models\AR;
 
-use yii\db\Expression;
-
 class Currencies extends EPMap
 {
-
     protected $hideFields = [
     ];
 
@@ -36,7 +35,8 @@ class Currencies extends EPMap
         return ['currencies_id'];
     }
 
-    public function rules() {
+    public function rules()
+    {
         return array_merge(
             parent::rules(),
             [

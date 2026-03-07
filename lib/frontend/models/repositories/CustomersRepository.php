@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace frontend\models\repositories;
 
 use common\models\Customers;
 
-class CustomersRepository 
+class CustomersRepository
 {
     /**
-     * 
+     *
      * @param int $customerId
      * @return array
      */
@@ -16,11 +18,11 @@ class CustomersRepository
         $customer = Customers::find()->where(['customers_id' => $customerId])->with('defaultAddress')->asArray()->one();
         return $customer;
     }
-    
+
     public function getOneArray(array $array)
     {
         $customersArr = [];
-        
+
         foreach ($array as $key => $val) {
             if (!is_array($val)) {
                 $customersArr[$key] = $val;

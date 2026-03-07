@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace backend\models\EP\Provider\Trueloaded;
 
-use backend\models\EP\Directory;
 use backend\models\EP\Messages;
 use backend\models\EP\Provider\ExportInterface;
 use backend\models\EP\Provider\ImportInterface;
@@ -67,13 +68,13 @@ class XmlBase extends ProviderAbstract implements ImportInterface, ExportInterfa
 
         Project::checkLocalProjects();
         IOCore::get();
-        if ( is_array($this->job_configure) && isset($this->job_configure['import']) ) {
-            if ( !empty($this->job_configure['import']['projectCode']) ) {
+        if (is_array($this->job_configure) && isset($this->job_configure['import'])) {
+            if (!empty($this->job_configure['import']['projectCode'])) {
                 IOCore::get()->setProjectByCode($this->job_configure['import']['projectCode']);
             }
         }
 
-        if ( $this->directoryObj ) {
+        if ($this->directoryObj) {
             $this->setImagesDirectory($this->directoryObj->filesRoot());
         }
 
@@ -83,10 +84,10 @@ class XmlBase extends ProviderAbstract implements ImportInterface, ExportInterfa
 
         $this->activeQuery = $collection::find()->where([]);
 
-        if ( !empty($Data[$collection]['where']) ) {
+        if (!empty($Data[$collection]['where'])) {
             $this->activeQuery->andWhere($Data[$collection]['where']);
         }
-        if ( !empty($Data[$collection]['orderBy']) ) {
+        if (!empty($Data[$collection]['orderBy'])) {
             $this->activeQuery->orderBy($Data[$collection]['orderBy']);
         }
 
@@ -112,10 +113,10 @@ class XmlBase extends ProviderAbstract implements ImportInterface, ExportInterfa
     public function exchangeXml()
     {
         $rootConfig = current($this->ConfigureMap['Data']);
-        list($rowsTag,$rowTag) = explode('>',$rootConfig['xmlCollection'],2);
+        list($rowsTag, $rowTag) = explode('>', $rootConfig['xmlCollection'], 2);
         $header = $this->ConfigureMap['Header'];
-        if ( !is_array($header) ) {
-            $header = ['type'=>$header];
+        if (!is_array($header)) {
+            $header = ['type' => $header];
         }
         return [
             [
@@ -130,13 +131,13 @@ class XmlBase extends ProviderAbstract implements ImportInterface, ExportInterfa
     public function prepareExport($useColumns, $filter)
     {
         IOCore::get()->setProjectId(1);
-        if ( is_array($filter) ) {
-            if ( isset($filter['projectId']) && $filter['projectId'] > 0 ) {
+        if (is_array($filter)) {
+            if (isset($filter['projectId']) && $filter['projectId'] > 0) {
                 IOCore::get()->setProjectId((int)$filter['projectId']);
             }
 
-            $this->withImages = ( isset($filter['with_images']) && $filter['with_images']);
-            if ( $this->withImages ) {
+            $this->withImages = (isset($filter['with_images']) && $filter['with_images']);
+            if ($this->withImages) {
                 IOCore::get()->setAttachmentMode(['attach_file']);
             }
         }
@@ -150,42 +151,43 @@ class XmlBase extends ProviderAbstract implements ImportInterface, ExportInterfa
     public function exportRow()
     {
         $data = $this->batchQuery->current();
-        if ( is_object($data) ) {
+        if (is_object($data)) {
             $this->batchQuery->next();
 
             $collectionConfig = current($this->ConfigureMap['Data']);
-            list($_dummy,$elementTag) = explode('>',$collectionConfig['xmlCollection'],2);
+            list($_dummy, $elementTag) = explode('>', $collectionConfig['xmlCollection'], 2);
 
             $iodata = $this->serializer->exportModel($data, $collectionConfig);
 
-            $writeData = array(
-                ':xmlConfig' => array(),
-                ':feed_data' => array(),
-            );
-            if ($this->firstWrite){
+            $writeData = [
+                ':xmlConfig' => [],
+                ':feed_data' => [],
+            ];
+            if ($this->firstWrite) {
                 $writeData[':xmlConfig'] = current($this->exchangeXml());
-                if ( empty($writeData[':xmlConfig']['Header']['projectCode']) ) {
+                if (empty($writeData[':xmlConfig']['Header']['projectCode'])) {
                     $writeData[':xmlConfig']['Header']['projectCode'] = IOCore::get()->getProjectCode();
                 }
             }
 
-
-            foreach ($iodata->getAttachmentList() as $IOAttachment){
+            foreach ($iodata->getAttachmentList() as $IOAttachment) {
                 /**
                  * @var IOAttachment $IOAttachment
                  */
-                if ( $file = $IOAttachment->getAttachmentFileName() ) {
-                    if (!isset($writeData[':attachments'])) $writeData[':attachments'] = array();
-                    $inArchiveName = 'images/' .  (( $IOAttachment->archiveFileName )?$IOAttachment->archiveFileName:$IOAttachment->value);
+                if ($file = $IOAttachment->getAttachmentFileName()) {
+                    if (!isset($writeData[':attachments'])) {
+                        $writeData[':attachments'] = [];
+                    }
+                    $inArchiveName = 'images/' .  (($IOAttachment->archiveFileName) ? $IOAttachment->archiveFileName : $IOAttachment->value);
                     // {{ themes archive hack
-                    if ( strpos($IOAttachment->value,'/')===0 ) {
-                        $inArchiveName = 'images/' . substr($IOAttachment->value, strrpos($IOAttachment->value,'/'));
+                    if (strpos($IOAttachment->value, '/') === 0) {
+                        $inArchiveName = 'images/' . substr($IOAttachment->value, strrpos($IOAttachment->value, '/'));
                     }
                     // }} themes archive hack
-                    $writeData[':attachments'][] = array(
+                    $writeData[':attachments'][] = [
                         'filename' => $file,
                         'localname' => $inArchiveName,
-                    );
+                    ];
                     $IOAttachment->attach_file = $inArchiveName;
                 }
             }
@@ -198,7 +200,9 @@ class XmlBase extends ProviderAbstract implements ImportInterface, ExportInterfa
 
     public function importRow($data, Messages $message)
     {
-        if ( !($data instanceof \SimpleXMLElement) ) return;
+        if (!($data instanceof \SimpleXMLElement)) {
+            return;
+        }
 
         $ioData = $this->xmlParser->makeIoData($data);
 
@@ -211,6 +215,5 @@ class XmlBase extends ProviderAbstract implements ImportInterface, ExportInterfa
     {
 
     }
-
 
 }

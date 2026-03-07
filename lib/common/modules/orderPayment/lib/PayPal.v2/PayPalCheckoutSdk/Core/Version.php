@@ -1,8 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPalCheckoutSdk\Core;
 
 class Version
 {
-    const VERSION = "1.0.1";
+    public const VERSION = '1.0.1';
 }

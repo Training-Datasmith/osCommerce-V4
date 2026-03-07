@@ -1,8 +1,15 @@
-<?php 
+<?php
+
+declare(strict_types=1);
+
 namespace common\modules\email\Mandrill;
+
 use common\modules\email\Mandrill;
-class Users {
-    public function __construct(Mandrill $master) {
+
+class Users
+{
+    public function __construct(Mandrill $master)
+    {
         $this->master = $master;
     }
 
@@ -83,8 +90,9 @@ class Users {
      *             - clicks integer the number of URLs that have been clicked in the lifetime of the user's account
      *             - unique_clicks integer the number of unique clicks for emails sent in the lifetime of the user's account
      */
-    public function info() {
-        $_params = array();
+    public function info()
+    {
+        $_params = [];
         return $this->master->call('users/info', $_params);
     }
 
@@ -92,8 +100,9 @@ class Users {
      * Validate an API key and respond to a ping
      * @return string the string "PONG!"
      */
-    public function ping() {
-        $_params = array();
+    public function ping()
+    {
+        $_params = [];
         return $this->master->call('users/ping', $_params);
     }
 
@@ -101,8 +110,9 @@ class Users {
      * Validate an API key and respond to a ping (anal JSON parser version)
      * @return struct a struct with one key "PING" with a static value "PONG!"
      */
-    public function ping2() {
-        $_params = array();
+    public function ping2()
+    {
+        $_params = [];
         return $this->master->call('users/ping2', $_params);
     }
 
@@ -123,11 +133,10 @@ class Users {
      *         - unique_opens integer the number of unique opens for emails sent for this sender
      *         - unique_clicks integer the number of unique clicks for emails sent for this sender
      */
-    public function senders() {
-        $_params = array();
+    public function senders()
+    {
+        $_params = [];
         return $this->master->call('users/senders', $_params);
     }
 
 }
-
-

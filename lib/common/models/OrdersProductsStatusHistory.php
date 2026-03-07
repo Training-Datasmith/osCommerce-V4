@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "orders_products_status_history".
@@ -35,7 +35,7 @@ class OrdersProductsStatusHistory extends \yii\db\ActiveRecord
             [['orders_id', 'orders_products_id', 'orders_products_status_id', 'orders_products_status_manual_id', 'admin_id'], 'required'],
             [['orders_id', 'orders_products_id', 'orders_products_status_id', 'orders_products_status_manual_id', 'admin_id'], 'integer'],
             [['date_added'], 'safe'],
-            [['comments'], 'string']
+            [['comments'], 'string'],
         ];
     }
 

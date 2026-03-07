@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace common\api\models\AR\Products;
 
-
 use common\api\models\AR\EPMap;
 
 class GiftWrap extends EPMap
 {
-
     protected $hideFields = [
         'gw_id',
         'products_id',
@@ -55,10 +55,10 @@ class GiftWrap extends EPMap
         }
 
         if (
-            !is_null($importedObject->groups_id) && !is_null($this->groups_id) && $importedObject->groups_id==$this->groups_id
+            !is_null($importedObject->groups_id) && !is_null($this->groups_id) && $importedObject->groups_id == $this->groups_id
             &&
-            !is_null($importedObject->currencies_id) && !is_null($this->currencies_id) && $importedObject->currencies_id==$this->currencies_id
-        ){
+            !is_null($importedObject->currencies_id) && !is_null($this->currencies_id) && $importedObject->currencies_id == $this->currencies_id
+        ) {
             $this->pendingRemoval = false;
             return true;
         }

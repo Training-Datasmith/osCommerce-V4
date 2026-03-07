@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -15,6 +17,6 @@
  * @var $TabAccess \backend\models\ProductEdit\TabAccess
  */
 
-if ( ($ext =\common\helpers\Extensions::isAllowed('StockControl')) && $TabAccess->tabDataSave('TEXT_MAIN_DETAILS') && ($productModel->returnProductType() == 'product' )) {
+if (($ext = \common\helpers\Extensions::isAllowed('StockControl')) && $TabAccess->tabDataSave('TEXT_MAIN_DETAILS') && ($productModel->returnProductType() == 'product')) {
     $ext::saveProduct($productModel);
 }

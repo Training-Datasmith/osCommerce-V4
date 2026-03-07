@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230727_090538_order_translations extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/orders',[
+        $this->addTranslation('admin/orders', [
             'ORDER_SUMMARY' => 'Order summary',
             'SAME_AS_SHIPPING_ADDRESS' => 'same as Shipping Address',
             'SHIPPING_IS_NOT_SELECTED' => 'Shipping is not selected',

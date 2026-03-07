@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,7 @@
 
 namespace frontend\design\boxes\invoice;
 
-use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class TotalProductsCanceled extends Widget
 {
@@ -30,7 +30,7 @@ class TotalProductsCanceled extends Widget
     public function run()
     {
         \common\helpers\Translation::init('admin/design');
-        $order = $this->params["order"];
+        $order = $this->params['order'];
 
         return array_sum(\yii\helpers\ArrayHelper::getColumn($order->products, 'qty_cnld'));
     }

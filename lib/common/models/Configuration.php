@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
-use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 
@@ -31,7 +32,8 @@ class Configuration extends ActiveRecord
         return 'configuration';
     }
 
-    public function behaviors() {
+    public function behaviors()
+    {
         return [
             [
                 'class' => TimestampBehavior::class,
@@ -59,9 +61,10 @@ class Configuration extends ActiveRecord
         ];
     }
 
-    public static function updateByKey($key, $value){
+    public static function updateByKey($key, $value)
+    {
         $conf = self::find()->where(['configuration_key' => $key])->one();
-        if ($conf){
+        if ($conf) {
             $conf->configuration_value = $value;
             $conf->save(false);
         }

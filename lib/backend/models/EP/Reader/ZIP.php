@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +13,6 @@
  */
 
 namespace backend\models\EP\Reader;
-
 
 use yii\base\BaseObject;
 
@@ -27,7 +28,8 @@ class ZIP extends BaseObject implements ReaderInterface
     {
         try {
             parent::__set($name, $value);
-        }catch (\Exception $ex){}
+        } catch (\Exception $ex) {
+        }
     }
 
     public function readColumns()
@@ -43,11 +45,11 @@ class ZIP extends BaseObject implements ReaderInterface
             $this->numFiles = $this->file_handle->numFiles;
             $this->fileCursor = 0;
         }
-        if ( $this->file_handle && $this->fileCursor<$this->file_handle->numFiles) {
+        if ($this->file_handle && $this->fileCursor < $this->file_handle->numFiles) {
             $filename = $this->file_handle->getNameIndex($this->fileCursor);
             $stream = $this->file_handle->getStream($filename);
             $this->fileCursor++;
-            if ( preg_match('#[/|\\\]$#',$filename) ) {
+            if (preg_match('#[/|\\\]$#', $filename)) {
                 // skip directory
                 return $this->read();
             }
@@ -72,9 +74,8 @@ class ZIP extends BaseObject implements ReaderInterface
     public function getProgress()
     {
         $filePosition = $this->currentPosition();
-        $percentDone = min(100,($filePosition/filesize($this->numFiles))*100);
-        return number_format(  $percentDone,1,'.','');
+        $percentDone = min(100, ($filePosition / filesize($this->numFiles)) * 100);
+        return number_format($percentDone, 1, '.', '');
     }
-
 
 }

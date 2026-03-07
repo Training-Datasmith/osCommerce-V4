@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,14 @@
 
 namespace frontend\design\boxes\account;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
 use frontend\design\Info;
+use Yii;
+use yii\base\Widget;
 use yii\helpers\ArrayHelper;
 
 class CustomerAdditionalField extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -35,7 +36,9 @@ class CustomerAdditionalField extends Widget
 
     public function run()
     {
-        if (!\common\helpers\Acl::checkExtensionAllowed('CustomerAdditionalFields')) return '';
+        if (!\common\helpers\Acl::checkExtensionAllowed('CustomerAdditionalFields')) {
+            return '';
+        }
 
         global $languages_id;
         if ($this->params['customers_id']) {
@@ -58,9 +61,8 @@ class CustomerAdditionalField extends Widget
         $field = $field->asArray()->one();
         $this->field = $field;
 
-
         $value = [];
-        if ($field['additional_fields_id'] && $this->customersId){
+        if ($field['additional_fields_id'] && $this->customersId) {
             $value = \common\extensions\CustomerAdditionalFields\models\CustomersAdditionalFields::find()
                 ->where([
                     'additional_fields_id' => $field['additional_fields_id'],
@@ -69,7 +71,7 @@ class CustomerAdditionalField extends Widget
                 ->asArray()
                 ->one();
         }
-        if (!($value['value'] ?? false) && ArrayHelper::getValue($this->settings, [0, 'default_fields_id']) && $this->customersId){
+        if (!($value['value'] ?? false) && ArrayHelper::getValue($this->settings, [0, 'default_fields_id']) && $this->customersId) {
             $value = \common\extensions\CustomerAdditionalFields\models\CustomersAdditionalFields::find()
                 ->where([
                     'additional_fields_id' => $this->settings[0]['default_fields_id'],
@@ -78,9 +80,9 @@ class CustomerAdditionalField extends Widget
                 ->asArray()
                 ->one();
 
-            if (!($value['value']??null)) {
+            if (!($value['value'] ?? null)) {
                 $fieldType = \common\extensions\CustomerAdditionalFields\models\AdditionalFields::findOne(['additional_fields_id' => $this->settings[0]['default_fields_id']])->field_type;
-                if ($fieldType && in_array($fieldType, ['customer_gender', 'customer_firstname', 'customer_lastname', 'customer_email_address', 'customer_phone', 'customer_email'])){
+                if ($fieldType && in_array($fieldType, ['customer_gender', 'customer_firstname', 'customer_lastname', 'customer_email_address', 'customer_phone', 'customer_email'])) {
 
                     $customer = \common\models\Customers::findOne($this->customersId);
                     if ($customer) {
@@ -93,7 +95,6 @@ class CustomerAdditionalField extends Widget
             }
         }
         $this->value = ($value['value'] ?? false);
-
 
         $valuesList = [];
         if ($field['field_type'] == 'radio' || $field['field_type'] == 'select') {
@@ -123,7 +124,7 @@ class CustomerAdditionalField extends Widget
             $downloadAction = 'account/download-customer-file';
         }
 
-        if ($this->settings[0]['pdf'] || $this->params['pdf']/* || $this->settings[0]['show'] || $this->params['show']*/){
+        if ($this->settings[0]['pdf'] || $this->params['pdf']/* || $this->settings[0]['show'] || $this->params['show']*/) {
             if ($field['field_type'] == 'checkbox') {
                 $img = ''. 'themes/basic/img/';
                 if ($this->value) {
@@ -132,7 +133,7 @@ class CustomerAdditionalField extends Widget
                     $img .= 'not-checked.jpg';
                 }
 
-                if ( is_file(DIR_FS_CATALOG . $img) ) {
+                if (is_file(DIR_FS_CATALOG . $img)) {
                     if (ArrayHelper::getValue($this->settings, [0, 'show']) || ($this->params['show'] ?? false)) {
                         return '<img src="' . DIR_WS_CATALOG . $img . '" width="20">';
                     } else {
@@ -154,7 +155,7 @@ class CustomerAdditionalField extends Widget
             } elseif (in_array($field['field_type'], ['select'])) {
 
                 foreach ($valuesList as $key => $selectValue) {
-                    if ( (string)$this->value == (string)$key) {
+                    if ((string)$this->value == (string)$key) {
                         return $selectValue;
                     }
                 }
@@ -171,7 +172,7 @@ class CustomerAdditionalField extends Widget
                     } else {
                         $img .= 'not-checked.jpg';
                     }
-                    if ( is_file(DIR_FS_CATALOG . $img) ) {
+                    if (is_file(DIR_FS_CATALOG . $img)) {
                         if (($this->settings[0]['show'] ?? false) || ($this->params['show'] ?? false)) {
                             $radio .= '<table width="100%" cellpadding="2"><tr><td style="width: 25px"><img src="' . DIR_WS_CATALOG . $img . '" width="20" style="vertical-align: top;" valign="top"></td><td width="100%">' . $item . '</td></tr></table></div>';
                         } else {
@@ -181,7 +182,7 @@ class CustomerAdditionalField extends Widget
                 }
                 if ($field['option'] && !$foundValue && $this->value) {
                     $img = 'themes/basic/img/checked.jpg';
-                    if ( is_file(DIR_FS_CATALOG . $img) ) {
+                    if (is_file(DIR_FS_CATALOG . $img)) {
                         if ($this->settings[0]['show'] || $this->params['show']) {
                             $radio .= '<table width="100%"><tr><td style="width: 25px"><img src="' . DIR_WS_CATALOG . $img . '" width="20" style="vertical-align: top;" valign="top"></td><td width="100%">' . $this->value . '</td></tr></table>';
                         } else {
@@ -192,11 +193,11 @@ class CustomerAdditionalField extends Widget
 
                 return $radio;
 
-            }  elseif (in_array($field['field_type'], ['file'])) {
+            } elseif (in_array($field['field_type'], ['file'])) {
 
                 $files = '';
-                foreach (explode("\n", $this->value) as $file){
-                    if ($file){
+                foreach (explode("\n", $this->value) as $file) {
+                    if ($file) {
                         $files .= '
                     <div class="tf-file">
                         <a href="' . Yii::$app->urlManager->createUrl([$downloadAction, 'file' => $file]) . '">' . $file . '</a>
@@ -209,7 +210,7 @@ class CustomerAdditionalField extends Widget
                 $tmpVal = json_decode($this->value);
 
                 $_values = '';
-                foreach (json_decode($this->value) as $_value){
+                foreach (json_decode($this->value) as $_value) {
                     $_values .= '<table width="100%" border="0" cellspacing="0" cellpadding="0">
                         <tr><td width="35%">' . $field['title'] . ':</td><td width="65%">' . $_value . '</td></tr>
                     </table><div style="font-size: 5px"></div>';
@@ -230,7 +231,7 @@ class CustomerAdditionalField extends Widget
                     $table .= '<td style="border: 1px solid #000; width: ' . $cellSize . 'px; height: ' . $cellSize . 'px; line-height: ' . $cellSize . 'px; text-align: center">' . $char . '</td>';
                     $count++;
                     if ($count >= $cells) {
-                        $rowCount ++;
+                        $rowCount++;
                         if ($rowCount < $rows || count($valueArrey) > $cells) {
                             $table .= '</tr><tr>';
                             $count = 0;
@@ -240,7 +241,7 @@ class CustomerAdditionalField extends Widget
                 for ($i = $count; $i < $cells; $i++) {
                     $table .= '<td style="border: 1px solid #000; width: ' . $cellSize . 'px; height: ' . $cellSize . 'px; line-height: ' . $cellSize . 'px; text-align: center"> </td>';
                 }
-                $rowCount ++;
+                $rowCount++;
                 for ($j = $rowCount; $j < $rows; $j++) {
                     $table .= '</tr><tr>';
                     for ($i = 0; $i < $cells; $i++) {
@@ -266,7 +267,7 @@ class CustomerAdditionalField extends Widget
             $this->value = $tmpVal[0];
             $multifield = $tmpVal;
             Info::addJsData(['multifields' => [
-                $field['additional_fields_id'] => $tmpVal
+                $field['additional_fields_id'] => $tmpVal,
             ]]);
         }
 

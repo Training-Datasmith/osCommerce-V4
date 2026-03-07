@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-
 use yii\db\ActiveRecord;
 
 /**
@@ -24,7 +25,6 @@ use yii\db\ActiveRecord;
  */
 class ReviewsDescription extends ActiveRecord
 {
-
     /**
      * @inheritdoc
      */

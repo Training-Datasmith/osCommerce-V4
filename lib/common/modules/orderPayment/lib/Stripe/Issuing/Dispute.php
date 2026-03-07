@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe\Issuing;
@@ -27,12 +29,11 @@ namespace Stripe\Issuing;
  */
 class Dispute extends \Stripe\ApiResource
 {
-    const OBJECT_NAME = 'issuing.dispute';
-
     use \Stripe\ApiOperations\All;
     use \Stripe\ApiOperations\Create;
     use \Stripe\ApiOperations\Retrieve;
     use \Stripe\ApiOperations\Update;
+    public const OBJECT_NAME = 'issuing.dispute';
 
     /**
      * @param null|array $params

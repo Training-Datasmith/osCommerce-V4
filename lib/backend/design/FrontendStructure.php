@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,10 +14,9 @@
 
 namespace backend\design;
 
+use common\classes\design;
 use Yii;
 use yii\helpers\ArrayHelper;
-use common\models\ThemesStyles;
-use common\classes\design;
 
 class FrontendStructure
 {
@@ -628,17 +629,19 @@ class FrontendStructure
     ];
 
     private static $hasSettings = [
-        'product', 'categories', 'products', 'home', 'order', 'inform', 'invoice', 'packingslip'
+        'product', 'categories', 'products', 'home', 'order', 'inform', 'invoice', 'packingslip',
     ];
 
     private static function init()
     {
-        if (self::$fielded) return false;
+        if (self::$fielded) {
+            return false;
+        }
         self::$fielded = true;
 
         if (Yii::$app->request->get('theme_name')) {
             self::$theme_name = Yii::$app->request->get('theme_name');
-        } elseif (defined("THEME_NAME")) {
+        } elseif (defined('THEME_NAME')) {
             self::$theme_name = THEME_NAME;
         } else {
             return false;
@@ -695,7 +698,7 @@ class FrontendStructure
         $productsId = \common\models\Products::find()->alias('p')
             ->select(['p.products_id'])
             ->innerJoin([
-                'plp' => \common\models\PlatformsProducts::tableName()
+                'plp' => \common\models\PlatformsProducts::tableName(),
             ], "plp.products_id=p.products_id and plp.platform_id='" . $platformId . "'")
             ->where(['p.products_status' => '1'])->one()->products_id ?? null;
 
@@ -707,7 +710,7 @@ class FrontendStructure
         $categoriesId = \common\models\Categories::find()->alias('c')
             ->select(['c.parent_id'])
             ->innerJoin([
-                'plc' => \common\models\PlatformsCategories::tableName()
+                'plc' => \common\models\PlatformsCategories::tableName(),
             ], "plc.categories_id=c.categories_id and plc.platform_id='" . $platformId . "'")
             ->where('parent_id != 0 and categories_status = 1')->one()->parent_id ?? null;
 
@@ -733,7 +736,7 @@ class FrontendStructure
             $informationId = \common\models\Information::findOne([
                 'visible' => '1',
                 'platform_id' => $platformId,
-            ])->information_id??null;
+            ])->information_id ?? null;
         }
 
         self::$pages[$pageKey]['get_params'][$platformId]['info_id'] = $informationId;
@@ -765,8 +768,8 @@ class FrontendStructure
 
     private static function fieldPages()
     {
-        foreach (\common\helpers\Acl::getExtensionPages() as $page){
-            $groupName = design::pageName($page['group']??null);
+        foreach (\common\helpers\Acl::getExtensionPages() as $page) {
+            $groupName = design::pageName($page['group'] ?? null);
             self::$pages[$page['name']] = [
                 'action' => $page['action'],
                 'name' => $page['name'],
@@ -774,7 +777,7 @@ class FrontendStructure
                 'title' => $page['title'],
                 'type' => $page['type'],
                 'group' => $groupName,
-                'settings' => $page['settings'] ?? false
+                'settings' => $page['settings'] ?? false,
             ];
             if (!ArrayHelper::getValue(self::$groups, $groupName)) {
                 self::$groups[$groupName] = [
@@ -783,7 +786,7 @@ class FrontendStructure
                     'types' => [$page['type']],
                 ];
             } else {
-                if (!in_array($page['type'], self::$groups[$groupName]['types'])){
+                if (!in_array($page['type'], self::$groups[$groupName]['types'])) {
                     self::$groups[$groupName]['types'] = array_merge(self::$groups[$groupName]['types'], [$page['type']]);
                 }
             }
@@ -815,7 +818,7 @@ class FrontendStructure
                 'type' => $page['setting_name'],
                 'group' => self::$groupByType[$page['setting_name']] ?? null,
                 'settings' => in_array($page['setting_name'] ?? null, self::$hasSettings),
-                'added' => true
+                'added' => true,
             ];
             if ($page['setting_name'] == 'gift_card') {
                 self::$pages[design::pageName($page['setting_value']) . '_pdf'] = [
@@ -826,7 +829,7 @@ class FrontendStructure
                     'type' => $page['setting_name'] . '_pdf',
                     'group' => self::$groupByType[$page['setting_name']],
                     'settings' => in_array($page['setting_name'], self::$hasSettings),
-                    'added' => true
+                    'added' => true,
                 ];
             }
         }
@@ -845,7 +848,7 @@ class FrontendStructure
         $_theme_id = (int)$theme->id;
         $themePlatforms = [];
         $platforms = \common\models\PlatformsToThemes::find()->where([
-            'theme_id' => $_theme_id
+            'theme_id' => $_theme_id,
         ])->asArray()->all();
 
         if (is_array($platforms)) {
@@ -857,9 +860,9 @@ class FrontendStructure
                 }
             }
         }
-        if ( count($themePlatforms)==0 ) {
+        if (count($themePlatforms) == 0) {
             $themePlatforms = \common\classes\platform::getList();
-            $themePlatforms = array_slice($themePlatforms,0,1);
+            $themePlatforms = array_slice($themePlatforms, 0, 1);
         }
 
         return $themePlatforms;
@@ -878,7 +881,8 @@ class FrontendStructure
         return [$type];
     }
 
-    public static function getPageGroups(){
+    public static function getPageGroups()
+    {
         self::init();
 
         if (self::$theme_name == \common\classes\design::pageName(BACKEND_THEME_NAME)) {
@@ -887,17 +891,20 @@ class FrontendStructure
         return self::$groups;
     }
 
-    public static function getPageTypes(){
+    public static function getPageTypes()
+    {
         self::init();
         return self::$types;
     }
 
-    public static function getPages(){
+    public static function getPages()
+    {
         self::init();
         return self::$pages;
     }
 
-    public static function getGroupCategories(){
+    public static function getGroupCategories()
+    {
         $categories = [
             'header' => ['tile' => 'Header'],
             'footer' => ['tile' => 'Footer'],

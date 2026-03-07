@@ -1,11 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\classes\qrcode;
+
 require_once('init.php');
 //---- qrencode.php -----------------------------
-
-
-
 
 /*
  * PHP QR Code encoder
@@ -32,21 +32,21 @@ require_once('init.php');
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
- 
-    class QRrsblock {
-        public $dataLength;
-        public $data = array();
-        public $eccLength;
-        public $ecc = array();
-        
-        public function __construct($dl, $data, $el, &$ecc, QRrsItem $rs)
-        {
-            $rs->encode_rs_char($data, $ecc);
-        
-            $this->dataLength = $dl;
-            $this->data = $data;
-            $this->eccLength = $el;
-            $this->ecc = $ecc;
-        }
-    };
-    
+
+class QRrsblock
+{
+    public $dataLength;
+    public $data = [];
+    public $eccLength;
+    public $ecc = [];
+
+    public function __construct($dl, $data, $el, &$ecc, QRrsItem $rs)
+    {
+        $rs->encode_rs_char($data, $ecc);
+
+        $this->dataLength = $dl;
+        $this->data = $data;
+        $this->eccLength = $el;
+        $this->ecc = $ecc;
+    }
+};

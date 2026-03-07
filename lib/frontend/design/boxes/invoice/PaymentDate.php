@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\invoice;
 
-use Yii;
-use yii\base\Widget;
 use common\helpers\Date;
+use yii\base\Widget;
 
 class PaymentDate extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -31,9 +31,9 @@ class PaymentDate extends Widget
     public function run()
     {
         if (!empty($this->settings[0]['custom_format'])) {
-            $rawDate = Date::date_long($this->params["order"]->info['date_purchased'], $this->settings[0]['custom_format']);
+            $rawDate = Date::date_long($this->params['order']->info['date_purchased'], $this->settings[0]['custom_format']);
         } else {
-            $rawDate = Date::date_long($this->params["order"]->info['date_purchased']);
+            $rawDate = Date::date_long($this->params['order']->info['date_purchased']);
         }
 
         return Date::translateDate($rawDate, $this->params['language_id']);

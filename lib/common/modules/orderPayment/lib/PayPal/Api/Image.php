@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -17,7 +19,7 @@ class Image extends PayPalModel
      * List of invoices belonging to a merchant.
      *
      * @param string $imageBase64String
-     * 
+     *
      * @return $this
      */
     public function setImage($imageBase64String)

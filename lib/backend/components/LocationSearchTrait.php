@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -9,14 +11,15 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+
 namespace backend\components;
 
 use yii;
 
 trait LocationSearchTrait
 {
-
-    public function actionAddressState() {
+    public function actionAddressState(): void
+    {
         $term = tep_db_prepare_input(Yii::$app->request->get('term'));
         $country = tep_db_prepare_input(Yii::$app->request->get('country'));
 
@@ -34,11 +37,12 @@ trait LocationSearchTrait
         echo json_encode($zones);
     }
 
-    public function actionAddressCity() {
+    public function actionAddressCity(): void
+    {
         $term = tep_db_prepare_input(Yii::$app->request->get('term'));
-        $state = tep_db_prepare_input(Yii::$app->request->get('state',''));
+        $state = tep_db_prepare_input(Yii::$app->request->get('state', ''));
         $country = tep_db_prepare_input(Yii::$app->request->get('country'));
-        $out_data = Yii::$app->request->get('out_data',[]);
+        $out_data = Yii::$app->request->get('out_data', []);
 
         $cities = [];
         $cities_queryActive = \common\models\Cities::find()
@@ -48,22 +52,22 @@ trait LocationSearchTrait
             ->andFilterWhere(['like', 'c.city_name', $term])
             ->orderBy('c.city_name')
             ->select(['c.city_name','z.zone_name']);
-        if ( $state ){
-          $zones_queryActive = clone $cities_queryActive;
-          $zones_queryActive->andFilterWhere(['z.zone_name'=>$state]);
-          if ( $zones_queryActive->count()>0 ){
-              $cities_queryActive = $zones_queryActive;
-          }
+        if ($state) {
+            $zones_queryActive = clone $cities_queryActive;
+            $zones_queryActive->andFilterWhere(['z.zone_name' => $state]);
+            if ($zones_queryActive->count() > 0) {
+                $cities_queryActive = $zones_queryActive;
+            }
         }
 
-        if ( count($out_data)>0 ){
+        if (count($out_data) > 0) {
             $cities_queryActive
                 ->join('left join', \common\models\Countries::tableName().' cc', "cc.countries_id=c.city_country_id and cc.language_id='".\Yii::$app->settings->get('languages_id')."'");
             $cities_queryActive->addSelect(['c.city_id', 'cc.countries_id', 'cc.countries_name','z.zone_id']);
         }
 
         foreach ($cities_queryActive->asArray()->all() as $response) {
-            if ( count($out_data)>0 ){
+            if (count($out_data) > 0) {
                 $cities[] = [
                     'value' => $response['city_name'],
                     'city_id' => $response['city_id'],
@@ -73,7 +77,7 @@ trait LocationSearchTrait
                     'country_id' => $response['countries_id'],
                     'country_name' => $response['countries_name'],
                 ];
-            }else {
+            } else {
                 $cities[] = [
                     'id' => $response['city_name'],
                     'value' => $response['city_name'],
@@ -84,7 +88,8 @@ trait LocationSearchTrait
         echo json_encode($cities);
     }
 
-    public function actionAddressPostcode() {
+    public function actionAddressPostcode(): void
+    {
         $term = tep_db_prepare_input(Yii::$app->request->get('term'));
         $country = tep_db_prepare_input(Yii::$app->request->get('country'));
 
@@ -96,10 +101,10 @@ trait LocationSearchTrait
             ->andFilterWhere(['country_id' => $country])
             ->join('left join', \common\models\Cities::tableName().' c', 'c.city_id=p.city_id')
             ->join('left join', \common\models\Zones::tableName().' z', 'z.zone_id=p.zone_id')
-            ->orderBy(['p.postcode'=>SORT_ASC])
+            ->orderBy(['p.postcode' => SORT_ASC])
             ->select(['p.postcode', 'p.suburb', 'c.city_name', 'z.zone_name']);
 
-        foreach ($searchAddress->asArray()->all() as $addr){
+        foreach ($searchAddress->asArray()->all() as $addr) {
             $addresses[] = [
                 'id' => $addr['postcode'],
                 'value' => $addr['postcode'],

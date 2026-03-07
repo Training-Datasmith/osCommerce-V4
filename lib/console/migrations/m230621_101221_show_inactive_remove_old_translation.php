@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,10 +24,8 @@ class m230621_101221_show_inactive_remove_old_translation extends Migration
      */
     public function safeUp()
     {
-        if (method_exists($this, 'isOldExtension'))
-        {
-            if (!$this->isOldExtension('ShowInactive'))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension('ShowInactive')) {
                 $this->removeTranslation('main', ['TEXT_SHOW_ABSENT_PRODUCTS']);
             }
         }

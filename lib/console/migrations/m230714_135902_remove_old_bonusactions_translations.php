@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,14 +24,14 @@ class m230714_135902_remove_old_bonusactions_translations extends Migration
      */
     public function safeUp()
     {
-        $this->removeTranslation('admin/customers' , [
+        $this->removeTranslation('admin/customers', [
             'ENTRY_BONUS_AMOUNT',
             'ENTRY_BONUS_HISTORY',
         ]);
-        $this->removeTranslation('main' , [
+        $this->removeTranslation('main', [
             'TRANSFER_BONUS_POINTS_WARNING',
         ]);
-        $this->removeTranslation('admin/main' , [
+        $this->removeTranslation('admin/main', [
             'TRANSFER_BONUS_POINTS_TO_CREDIT_AMOUNT_TEXT',
             'TRANSFER_BONUS_POINTS_NOTIFY',
             'TRANSFER_BONUS_POINTS_WARNING',
@@ -41,14 +43,14 @@ class m230714_135902_remove_old_bonusactions_translations extends Migration
      */
     public function safeDown()
     {
-        $this->addTranslation('admin/customers' , [
+        $this->addTranslation('admin/customers', [
             'ENTRY_BONUS_AMOUNT' => 'Bonus amount',
             'ENTRY_BONUS_HISTORY' => 'Bonus editing history',
         ]);
-        $this->addTranslation('main' , [
+        $this->addTranslation('main', [
             'TRANSFER_BONUS_POINTS_WARNING' => 'Transfer %s bonus(es)',
         ]);
-        $this->addTranslation('admin/main' , [
+        $this->addTranslation('admin/main', [
             'TRANSFER_BONUS_POINTS_TO_CREDIT_AMOUNT_TEXT' => 'Transfer To Credit Amount',
             'TRANSFER_BONUS_POINTS_NOTIFY' => '*Notification of the user according to the checked checkboxes in the corresponding blocks.',
             'TRANSFER_BONUS_POINTS_WARNING' => 'Transfer %s bonus(es)',

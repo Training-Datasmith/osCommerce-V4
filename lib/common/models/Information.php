@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
 use common\models\queries\InformationQuery;
-use Yii;
 
 /**
  * This is the model class for table "information".
@@ -46,14 +47,14 @@ use Yii;
  */
 class Information extends \yii\db\ActiveRecord
 {
-    const STATUS_DISABLE = 0;
-    const STATUS_ACTIVE = 1;
+    public const STATUS_DISABLE = 0;
+    public const STATUS_ACTIVE = 1;
 
-    const STATUS_HIDE = 1;
-    const STATUS_SHOW = 0;
+    public const STATUS_HIDE = 1;
+    public const STATUS_SHOW = 0;
 
-    const TYPE_DEFAULT = 0;
-    const TYPE_CATALOG_PAGES = 1;
+    public const TYPE_DEFAULT = 0;
+    public const TYPE_CATALOG_PAGES = 1;
 
     /**
      * @inheritdoc
@@ -66,8 +67,8 @@ class Information extends \yii\db\ActiveRecord
     public static function mergeDescriptionColumnList()
     {
         $merge_list = [];
-        foreach (static::getTableSchema()->columns as $column){
-            if ($column->phpType=='string'){
+        foreach (static::getTableSchema()->columns as $column) {
+            if ($column->phpType == 'string') {
                 $merge_list[] = $column->name;
             }
         }

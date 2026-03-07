@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,6 @@
 
 namespace OscLink\XML;
 
-
-use yii\helpers\FileHelper;
-
 class IOGalleryAttachment extends IOAttachment
 {
     public $record;
@@ -24,17 +23,19 @@ class IOGalleryAttachment extends IOAttachment
     {
         static $pool = [];
         $checkFile_sha1 = '';
-        if ( isset($pool[$name]) ) {
-            if ( empty($pool[$name]['sha1']) ) $pool[$name]['sha1'] = sha1_file($pool[$name]['file']);
+        if (isset($pool[$name])) {
+            if (empty($pool[$name]['sha1'])) {
+                $pool[$name]['sha1'] = sha1_file($pool[$name]['file']);
+            }
             $checkFile_sha1 = sha1_file($physicalFile);
-            if ( $checkFile_sha1!==$pool[$name]['sha1'] ) {
+            if ($checkFile_sha1 !== $pool[$name]['sha1']) {
                 return false;
-            }else{
+            } else {
                 return true;
             }
         }
 
-        $pool[$name] = ['file'=>$physicalFile,'sha1'=>$checkFile_sha1];
+        $pool[$name] = ['file' => $physicalFile,'sha1' => $checkFile_sha1];
 
         return true;
     }
@@ -43,11 +44,11 @@ class IOGalleryAttachment extends IOAttachment
     {
         $AttachmentFileName = parent::getAttachmentFileName();
 
-        if ( !empty($this->value) && $AttachmentFileName ) {
+        if (!empty($this->value) && $AttachmentFileName) {
             $this->archiveFileName = $this->value;
-            if ( is_object($this->record) && !empty($this->record->orig_file_name) ) {
+            if (is_object($this->record) && !empty($this->record->orig_file_name)) {
                 $this->archiveFileName = $this->record->orig_file_name;
-                if(!static::canUseArchiveName($this->archiveFileName, $AttachmentFileName)){
+                if (!static::canUseArchiveName($this->archiveFileName, $AttachmentFileName)) {
                     $this->archiveFileName = implode('_', $this->record->getPrimaryKey(true)).'_'.$this->record->orig_file_name;
                 }
             }

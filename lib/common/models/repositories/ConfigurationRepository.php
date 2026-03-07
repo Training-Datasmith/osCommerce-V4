@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,9 +12,10 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-namespace common\models\repositories;
-use common\models\Configuration;
 
+namespace common\models\repositories;
+
+use common\models\Configuration;
 
 /**
  * Class ConfigurationRepository
@@ -26,10 +29,10 @@ final class ConfigurationRepository
      */
     public function findById($id)
     {
-        $configuration = Configuration::find()->where(['configuration_id'=> $id])->limit(1)->one();
+        $configuration = Configuration::find()->where(['configuration_id' => $id])->limit(1)->one();
         return $configuration;
     }
-    
+
     /**
      * @param array|int $id
      * @return array|Configuration|null
@@ -73,13 +76,13 @@ final class ConfigurationRepository
      */
     public function edit(Configuration $configuration, $params = [], $safeOnly = false)
     {
-        foreach ($params as $attribute => $param){
-            if(!$configuration->hasAttribute($attribute)){
+        foreach ($params as $attribute => $param) {
+            if (!$configuration->hasAttribute($attribute)) {
                 unset($params[$attribute]);
             }
         }
         $configuration->setAttributes($params, $safeOnly);
-        if(!$configuration->update(false, array_keys($params))){
+        if (!$configuration->update(false, array_keys($params))) {
             return $configuration->getErrors();
         }
         return true;
@@ -107,7 +110,8 @@ final class ConfigurationRepository
      * @throws \Throwable
      * @throws \yii\db\StaleObjectException
      */
-    public function updateByKey(string $key, string $value){
+    public function updateByKey(string $key, string $value)
+    {
         $configuration = $this->findByKey($key);
         if (!$configuration) {
             return false;

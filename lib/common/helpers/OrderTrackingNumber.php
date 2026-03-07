@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\helpers;
 
-
 use common\models\TrackingCarriers;
 use yii\helpers\ArrayHelper;
 
@@ -21,21 +22,21 @@ use yii\helpers\ArrayHelper;
  */
 class OrderTrackingNumber
 {
-
     public static function getCarriersVariants()
     {
         return ArrayHelper::map(
             TrackingCarriers::find()
-                ->orderBy(['tracking_carriers_name'=>SORT_ASC])
+                ->orderBy(['tracking_carriers_name' => SORT_ASC])
                 ->asArray()
                 ->all(),
-            'tracking_carriers_id', 'tracking_carriers_name'
+            'tracking_carriers_id',
+            'tracking_carriers_name'
         );
     }
 
     public static function getCarrierId($name)
     {
-        if ($carrier = TrackingCarriers::findOne(['tracking_carriers_name'=>$name])){
+        if ($carrier = TrackingCarriers::findOne(['tracking_carriers_name' => $name])) {
             return $carrier->tracking_carriers_id;
         }
         return 0;
@@ -43,7 +44,7 @@ class OrderTrackingNumber
 
     public static function getCarrierName($id)
     {
-        if ($carrier = TrackingCarriers::findOne(['tracking_carriers_id'=>$id])){
+        if ($carrier = TrackingCarriers::findOne(['tracking_carriers_id' => $id])) {
             return $carrier->tracking_carriers_name;
         }
         return '';

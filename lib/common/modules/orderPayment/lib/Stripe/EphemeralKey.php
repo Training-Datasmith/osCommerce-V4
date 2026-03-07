@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -15,13 +17,12 @@ namespace Stripe;
  */
 class EphemeralKey extends ApiResource
 {
-    const OBJECT_NAME = 'ephemeral_key';
-
     use ApiOperations\Create {
         create as protected _create;
     }
 
     use ApiOperations\Delete;
+    public const OBJECT_NAME = 'ephemeral_key';
 
     /**
      * @param null|array $params

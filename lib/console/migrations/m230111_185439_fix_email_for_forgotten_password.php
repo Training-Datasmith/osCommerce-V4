@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -44,7 +46,7 @@ class m230111_185439_fix_email_for_forgotten_password extends Migration
 
 <p><span style="font-size:12px;">Kind regards,<br />
 The team of&nbsp;##STORE_NAME##</span></p>
-'
+',
             ],
             'text' => [
                 'subject' => '##STORE_NAME## - New Password',
@@ -59,10 +61,9 @@ Please don't hesitate to contact us at ##STORE_OWNER_EMAIL_ADDRESS## should you 
 
 Kind regards,
 The team of ##STORE_NAME##
-"
+",
             ],
         ]);
-
 
     }
 

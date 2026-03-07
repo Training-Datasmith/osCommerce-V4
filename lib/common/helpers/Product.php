@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,19 +15,19 @@
 namespace common\helpers;
 
 use backend\models\ProductNameDecorator;
-use Yii;
 use common\classes\platform;
-use common\extensions\UserGroupsRestrictions\UserGroupsRestrictions;
 use common\helpers\Inventory as InventoryHelper;
+use Yii;
 
 defined('ALLOW_ANY_QUERY_CACHE') or define('ALLOW_ANY_QUERY_CACHE', 'True');
 
-class Product {
-    const PRODUCT_RECORD_CACHE = 1;
-
+class Product
+{
     use SqlTrait;
+    public const PRODUCT_RECORD_CACHE = 1;
 
-    public static function getTemporaryStockTableName() {
+    public static function getTemporaryStockTableName()
+    {
         return \common\helpers\Warehouses::getTemporaryStockTableName();
     }
 
@@ -36,14 +38,14 @@ class Product {
 
     public static function priceProductIdColumn()
     {
-        if ( defined('LISTING_SUB_PRODUCT') && LISTING_SUB_PRODUCT=='True' ) {
+        if (defined('LISTING_SUB_PRODUCT') && LISTING_SUB_PRODUCT == 'True') {
             return 'products_id_price';
         }
         return 'products_id';
     }
     public static function stockProductIdColumn()
     {
-        if ( defined('LISTING_SUB_PRODUCT') && LISTING_SUB_PRODUCT=='True' ) {
+        if (defined('LISTING_SUB_PRODUCT') && LISTING_SUB_PRODUCT == 'True') {
             return 'products_id_stock';
         }
         return 'products_id';
@@ -52,7 +54,7 @@ class Product {
     public static function subProductMainAttributesShare()
     {
         static $table_columns = false;
-        if ( !is_array($table_columns) ) {
+        if (!is_array($table_columns)) {
             $table_columns = Yii::$app->getDb()->getTableSchema('products')->getColumnNames();
             $table_columns = array_flip($table_columns);
 
@@ -85,7 +87,7 @@ class Product {
                 'products_id_price',
                 'maps_id',
             ];
-            foreach ($exceptColumns as $exceptColumn){
+            foreach ($exceptColumns as $exceptColumn) {
                 unset($table_columns[$exceptColumn]);
             }
             $table_columns = array_values(array_flip($table_columns));
@@ -97,16 +99,16 @@ class Product {
     public static function isListing($productId)
     {
         return !!\common\models\Products::find()
-            ->where(['products_id'=>$productId])
+            ->where(['products_id' => $productId])
             ->select(['is_listing_product'])
             ->scalar();
     }
 
     public static function childDetach($childProductId)
     {
-        if ($product = \common\models\Products::findOne($childProductId)){
+        if ($product = \common\models\Products::findOne($childProductId)) {
             $product->parent_products_id = 0;
-            if ($product->save(false)){
+            if ($product->save(false)) {
                 return true;
             }
         }
@@ -115,9 +117,9 @@ class Product {
 
     public static function childAttach($childProductId, $parentProductId)
     {
-        if ($product = \common\models\Products::findOne($childProductId)){
+        if ($product = \common\models\Products::findOne($childProductId)) {
             $product->parent_products_id = $parentProductId;
-            if ($product->save(false)){
+            if ($product->save(false)) {
                 \common\helpers\SubProduct::copyAttributesFromParent($childProductId);
                 return true;
             }
@@ -133,27 +135,31 @@ class Product {
         /**
          * @var $productContainer \common\components\ProductsContainer
          */
-        if ( !is_array($params) ) $params = ['products_id'=>$params];
+        if (!is_array($params)) {
+            $params = ['products_id' => $params];
+        }
 
         $productContainer = \Yii::$container->get('products');
         $productContainer->loadProducts($params);
-        return $productContainer->getProduct($params["products_id"]);
+        return $productContainer->getProduct($params['products_id']);
     }
 
-    public static function getState($and = false){
-      /* @var $ext \common\extensions\ShowInactive\ShowInactive */
+    public static function getState($and = false)
+    {
+        /* @var $ext \common\extensions\ShowInactive\ShowInactive */
         if ($ext = \common\helpers\Extensions::isAllowed('ShowInactive')) {
             return $ext::getState($and);
         } else {
-            return ($and ? " and ": " ") . " p.products_status = 1 ";
+            return ($and ? ' and ' : ' ') . ' p.products_status = 1 ';
         }
     }
 
-    public static function priceProductId($unifiedProductId){
-        if (preg_match('/^(\d+)\{/',$unifiedProductId, $match)){
+    public static function priceProductId($unifiedProductId)
+    {
+        if (preg_match('/^(\d+)\{/', $unifiedProductId, $match)) {
             $unifiedProductId = \common\helpers\Product::normalizePricePrid((int)$match[1]).substr($unifiedProductId, strlen($match[1]));
             $unifiedProductId = \common\helpers\Inventory::normalize_id($unifiedProductId);
-        }else{
+        } else {
             $unifiedProductId = \common\helpers\Product::normalizePricePrid((int)$unifiedProductId);
         }
         return $unifiedProductId;
@@ -166,17 +172,19 @@ class Product {
             ->select('parent_products_id')
             ->asArray()
             ->one();
-        return $parentage['parent_products_id']>0;
+        return $parentage['parent_products_id'] > 0;
     }
 
     public static function normalizePricePrid($productsId)
     {
         static $lastNormalized = [];
-        if ( count($lastNormalized)>50 ) $lastNormalized = [];
-        if ( !isset($lastNormalized[$productsId]) ) {
+        if (count($lastNormalized) > 50) {
+            $lastNormalized = [];
+        }
+        if (!isset($lastNormalized[$productsId])) {
             ///2do check in the storage first (* from products)
             $lastNormalized[$productsId] = (int)$productsId;
-            if ( self::priceProductIdColumn()!=='products_id' ) {
+            if (self::priceProductIdColumn() !== 'products_id') {
                 $parentage = static::getProductColumns((int)$productsId, [self::priceProductIdColumn()]);
                 if (is_array($parentage) && $parentage[self::priceProductIdColumn()] > 0) {
                     $lastNormalized[$productsId] = (int)$parentage[self::priceProductIdColumn()];
@@ -191,13 +199,15 @@ class Product {
     public static function normalizePrid($productsId)
     {
         static $lastNormalized = [];
-        if ( count($lastNormalized)>50 ) $lastNormalized = [];
-        if ( !isset($lastNormalized[$productsId]) ) {
-          ///2do check in the storage first (* from products)
+        if (count($lastNormalized) > 50) {
+            $lastNormalized = [];
+        }
+        if (!isset($lastNormalized[$productsId])) {
+            ///2do check in the storage first (* from products)
             $lastNormalized[$productsId] = (int)$productsId;
-            if ( self::stockProductIdColumn()=='products_id' ){
+            if (self::stockProductIdColumn() == 'products_id') {
                 $lastNormalized[(int)$productsId] = (int)$productsId;
-            }else {
+            } else {
                 $parentage = static::getProductColumns((int)$productsId, [self::stockProductIdColumn()]);
                 if (is_array($parentage) && isset($parentage[self::stockProductIdColumn()]) && $parentage[self::stockProductIdColumn()] > 0) {
                     $lastNormalized[$productsId] = (int)$parentage[self::stockProductIdColumn()];
@@ -217,14 +227,15 @@ class Product {
      * @param bool $cart - allow share cart between platform
      * @return int
      */
-    public static function check_product($products_id, $check_status = 1, $view = false, $cart = false) {
+    public static function check_product($products_id, $check_status = 1, $view = false, $cart = false)
+    {
         $customer_groups_id = (int) \Yii::$app->storage->get('customer_groups_id');
 
         $products_join = '';
         if (platform::activeId() && $check_status) {
-          if (!$cart || !defined('SHOPPING_CART_SHARE') || SHOPPING_CART_SHARE != 'True') {
-            $products_join .= self::sqlProductsToPlatform();
-          }
+            if (!$cart || !defined('SHOPPING_CART_SHARE') || SHOPPING_CART_SHARE != 'True') {
+                $products_join .= self::sqlProductsToPlatform();
+            }
         }
 
         $force_skip = false;
@@ -235,38 +246,39 @@ class Product {
             return false;
         }
 
-        if ($view){
+        if ($view) {
             $state = self::getState(true);
         } else {
-            $state = " and p.products_status = 1 ";
+            $state = ' and p.products_status = 1 ';
         }
 
         if ($customer_groups_id == 0) {
-            $products_check_query = tep_db_query("select p.products_id from " . TABLE_PRODUCTS . " p {$products_join} " . "  where p.products_id = '" . (int) $products_id . "' " . ($check_status ?  $state . self::get_sql_product_restrictions(array('p', 'pd', 's', 'sp', 'pp')) . "" : ""));
+            $products_check_query = tep_db_query('select p.products_id from ' . TABLE_PRODUCTS . " p {$products_join} " . "  where p.products_id = '" . (int) $products_id . "' " . ($check_status ? $state . self::get_sql_product_restrictions(['p', 'pd', 's', 'sp', 'pp']) . '' : ''));
         } else {
-            $products_check_query = tep_db_query("select p.products_id from " . TABLE_PRODUCTS . " p {$products_join} " . " left join " . TABLE_PRODUCTS_PRICES . " pgp on p.products_id = pgp.products_id and pgp.groups_id = '" . (int) $customer_groups_id . "'  where if(pgp.products_group_price is null, 1, pgp.products_group_price != -1 ) and p.products_id = '" . (int) $products_id . "'  " . ($check_status ? $state . self::get_sql_product_restrictions(array('p', 'pd', 's', 'sp', 'pp')) . "" : ""));
+            $products_check_query = tep_db_query('select p.products_id from ' . TABLE_PRODUCTS . " p {$products_join} " . ' left join ' . TABLE_PRODUCTS_PRICES . " pgp on p.products_id = pgp.products_id and pgp.groups_id = '" . (int) $customer_groups_id . "'  where if(pgp.products_group_price is null, 1, pgp.products_group_price != -1 ) and p.products_id = '" . (int) $products_id . "'  " . ($check_status ? $state . self::get_sql_product_restrictions(['p', 'pd', 's', 'sp', 'pp']) . '' : ''));
         }
         return tep_db_num_rows($products_check_query);
     }
 
-    public static function get_product_order_quantity($product_id, $data = null) {
-        static $fetched = array();
+    public static function get_product_order_quantity($product_id, $data = null)
+    {
+        static $fetched = [];
         if (!isset($fetched[(int) $product_id]) && is_array($data) && array_key_exists('order_quantity_minimal', $data) && array_key_exists('order_quantity_max', $data) && array_key_exists('order_quantity_step', $data)) {
-            $fetched[(int) $product_id] = array(
+            $fetched[(int) $product_id] = [
                 'order_quantity_minimal' => $data['order_quantity_minimal'],
                 'order_quantity_max' => $data['order_quantity_max'],
                 'order_quantity_step' => $data['order_quantity_step'],
-            );
+            ];
         }
         if (!isset($fetched[(int) $product_id])) {
-            $get_data_r = tep_db_query("SELECT order_quantity_minimal, order_quantity_max, order_quantity_step, pack_unit, packaging FROM " . TABLE_PRODUCTS . " WHERE products_id='" . (int) $product_id . "'");
+            $get_data_r = tep_db_query('SELECT order_quantity_minimal, order_quantity_max, order_quantity_step, pack_unit, packaging FROM ' . TABLE_PRODUCTS . " WHERE products_id='" . (int) $product_id . "'");
             if (tep_db_num_rows($get_data_r) > 0) {
                 $fetched[(int)$product_id] = tep_db_fetch_array($get_data_r);
-//                if ( $fetched[(int)$product_id]['pack_unit']>0 || $fetched[(int)$product_id]['packaging']>0 ) {
-//                   $fetched[(int)$product_id]['order_quantity_step'] = 1;
-//                }
+                //                if ( $fetched[(int)$product_id]['pack_unit']>0 || $fetched[(int)$product_id]['packaging']>0 ) {
+                //                   $fetched[(int)$product_id]['order_quantity_step'] = 1;
+                //                }
             } else {
-                $fetched[(int)$product_id] = array('order_quantity_minimal' => 1,'order_quantity_max' => -1, 'order_quantity_step' => 1,);
+                $fetched[(int)$product_id] = ['order_quantity_minimal' => 1,'order_quantity_max' => -1, 'order_quantity_step' => 1,];
             }
         }
         $fetched[(int) $product_id]['order_quantity_minimal'] = max(1, $fetched[(int) $product_id]['order_quantity_minimal']);
@@ -277,28 +289,30 @@ class Product {
         return $fetched[(int) $product_id];
     }
 
-    public static function filter_product_order_quantity($product_id, $quantity, $quantity_is_top_bound = false) {
+    public static function filter_product_order_quantity($product_id, $quantity, $quantity_is_top_bound = false)
+    {
         $order_qty_data = self::get_product_order_quantity($product_id);
-        if ( $order_qty_data['order_quantity_minimal']>$order_qty_data['order_quantity_step'] ) {
-          $result_quantity = max($order_qty_data['order_quantity_minimal'], $quantity,1);
-          $base_qty = $order_qty_data['order_quantity_minimal'];
-        }else{
-          $result_quantity = max($order_qty_data['order_quantity_minimal'],$quantity, 1);
-          $base_qty = 0;
+        if ($order_qty_data['order_quantity_minimal'] > $order_qty_data['order_quantity_step']) {
+            $result_quantity = max($order_qty_data['order_quantity_minimal'], $quantity, 1);
+            $base_qty = $order_qty_data['order_quantity_minimal'];
+        } else {
+            $result_quantity = max($order_qty_data['order_quantity_minimal'], $quantity, 1);
+            $base_qty = 0;
         }
-        if ( $result_quantity>$order_qty_data['order_quantity_minimal'] && (($result_quantity-$base_qty)%$order_qty_data['order_quantity_step'])!=0 ) {
-          $result_quantity = $base_qty+((intval(($result_quantity-$base_qty) / $order_qty_data['order_quantity_step'])+1)*$order_qty_data['order_quantity_step']);
+        if ($result_quantity > $order_qty_data['order_quantity_minimal'] && (($result_quantity - $base_qty) % $order_qty_data['order_quantity_step']) != 0) {
+            $result_quantity = $base_qty + ((intval(($result_quantity - $base_qty) / $order_qty_data['order_quantity_step']) + 1) * $order_qty_data['order_quantity_step']);
         }
-        if ( $quantity_is_top_bound && $result_quantity>$quantity ) {
-          $result_quantity = max($order_qty_data['order_quantity_minimal'],$result_quantity-$order_qty_data['order_quantity_step']);
+        if ($quantity_is_top_bound && $result_quantity > $quantity) {
+            $result_quantity = max($order_qty_data['order_quantity_minimal'], $result_quantity - $order_qty_data['order_quantity_step']);
         }
         return $result_quantity;
     }
 
-    public static function get_product_path($products_id) {
+    public static function get_product_path($products_id)
+    {
 
         static $last_call_result = [];
-        if ( !empty($last_call_result['products_id']) && (int)$last_call_result['products_id']==(int)$products_id ) {
+        if (!empty($last_call_result['products_id']) && (int)$last_call_result['products_id'] == (int)$products_id) {
             return $last_call_result['cPath'];
         }
 
@@ -315,21 +329,21 @@ class Product {
 
         $linked_categories = Yii::$app->getDb()
             ->createCommand(
-                "select p2c.categories_id ".
-                "from " . TABLE_PRODUCTS . " p, " .
-                TABLE_PRODUCTS_TO_CATEGORIES . " p2c {$categories_join}, " . TABLE_CATEGORIES . " c ".
+                'select p2c.categories_id '.
+                'from ' . TABLE_PRODUCTS . ' p, ' .
+                TABLE_PRODUCTS_TO_CATEGORIES . " p2c {$categories_join}, " . TABLE_CATEGORIES . ' c '.
                 "where p.products_id = '" . (int) $products_id . "' " .
-                self::getState(true) . self::get_sql_product_restrictions(array('p', 'pd', 's', 'sp', 'pp')) .
-                " and p.products_id = p2c.products_id and c.categories_id=p2c.categories_id and c.categories_status=1"
+                self::getState(true) . self::get_sql_product_restrictions(['p', 'pd', 's', 'sp', 'pp']) .
+                ' and p.products_id = p2c.products_id and c.categories_id=p2c.categories_id and c.categories_status=1'
             )
             ->queryAll();
 
         $category = false;
         if (count($linked_categories) >= 1) {
             $category = $linked_categories[0];
-            if (count($linked_categories) > 1 && strpos(Yii::$app->id,'frontend')!==false) {
+            if (count($linked_categories) > 1 && strpos(Yii::$app->id, 'frontend') !== false) {
                 if (Yii::$app->has('request') && Yii::$app->request instanceof \yii\web\Request) {
-                    $ref_path = \parse_url(trim(Yii::$app->request->getReferrer()??''), PHP_URL_PATH);
+                    $ref_path = \parse_url(trim(Yii::$app->request->getReferrer() ?? ''), PHP_URL_PATH);
                     foreach ($linked_categories as $check_category) {
                         $_link = Yii::$app->getUrlManager()->createAbsoluteUrl(['catalog/index', 'cPath' => $check_category['categories_id']]);
                         if (\parse_url($_link, PHP_URL_PATH) == $ref_path) {
@@ -343,83 +357,88 @@ class Product {
 
         if ($category) {
 
-            $categories = array();
+            $categories = [];
             \common\helpers\Categories::get_parent_categories($categories, $category['categories_id']);
 
             $categories = array_reverse($categories);
 
             $cPath = implode('_', $categories);
 
-            if (tep_not_null($cPath))
+            if (tep_not_null($cPath)) {
                 $cPath .= '_';
+            }
             $cPath .= $category['categories_id'];
         }
 
-        $last_call_result = array(
+        $last_call_result = [
             'products_id' => (int)$products_id,
             'cPath' => $cPath,
-        );
+        ];
 
         return $cPath;
     }
 
-    public static function getProductWeight($uprid, $qty=1) {
-      $products_weight = $qty * self::get_products_weight($uprid);
-          if (\common\helpers\Extensions::isAllowed('Inventory') && !InventoryHelper::disabledOnProduct($uprid)){
-              $simpleUprid = InventoryHelper::normalize_id($uprid);
-              if (($inventory_weight = InventoryHelper::get_inventory_weight_by_uprid($simpleUprid)) > 0) {
-                  $products_weight += $qty * $inventory_weight;
-              }
-          } else {
-              /*if (isset($this->contents[$products_id]['attributes'])) {
-                  reset($this->contents[$products_id]['attributes']);
-                  if (is_array($this->contents[$products_id]['attributes'])) {
-                      foreach ($this->contents[$products_id]['attributes'] as $option => $value) {
-                          $option_arr = explode('-', $option);
-                          $attribute_price_query = tep_db_query("select products_attributes_id, options_values_price, price_prefix, products_attributes_weight, products_attributes_weight_prefix from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) ($option_arr[1] > 0 ? $option_arr[1] : $prid) . "' and options_id = '" . (int) $option_arr[0] . "' and options_values_id = '" . (int) $value . "'");
-                          $attribute_price = tep_db_fetch_array($attribute_price_query);
-                          if (tep_not_null($attribute_price['products_attributes_weight'])) {
-                              if ($attribute_price['products_attributes_weight_prefix'] == '+' || $attribute_price['products_attributes_weight_prefix'] == '') {
-                                  $products_weight += $qty * $attribute_price['products_attributes_weight'];
-                              } else {
-                                  $products_weight -= $qty * $attribute_price['products_attributes_weight'];
-                              }
-                          }
-                      }
-                  }
-              }*/
-          }
-          return $products_weight;
-    }
-
-    public static function get_products_weight($products_id) {
-      $ret = 0;
-      $product = tep_db_fetch_array(tep_db_query("select is_bundle, products_id, products_weight, products_file from " . TABLE_PRODUCTS . " where products_id = '" . (int) $products_id . "'"));
-      if (empty($product['products_file'])) {
-        // same as in shopping_cart
-        if ($product['is_bundle']) {
-            if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductBundles', 'allowed')) {
-              $ret = $ext::getWeight($product);
+    public static function getProductWeight($uprid, $qty = 1)
+    {
+        $products_weight = $qty * self::get_products_weight($uprid);
+        if (\common\helpers\Extensions::isAllowed('Inventory') && !InventoryHelper::disabledOnProduct($uprid)) {
+            $simpleUprid = InventoryHelper::normalize_id($uprid);
+            if (($inventory_weight = InventoryHelper::get_inventory_weight_by_uprid($simpleUprid)) > 0) {
+                $products_weight += $qty * $inventory_weight;
             }
         } else {
-          $ret = $product['products_weight'];
+            /*if (isset($this->contents[$products_id]['attributes'])) {
+                reset($this->contents[$products_id]['attributes']);
+                if (is_array($this->contents[$products_id]['attributes'])) {
+                    foreach ($this->contents[$products_id]['attributes'] as $option => $value) {
+                        $option_arr = explode('-', $option);
+                        $attribute_price_query = tep_db_query("select products_attributes_id, options_values_price, price_prefix, products_attributes_weight, products_attributes_weight_prefix from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) ($option_arr[1] > 0 ? $option_arr[1] : $prid) . "' and options_id = '" . (int) $option_arr[0] . "' and options_values_id = '" . (int) $value . "'");
+                        $attribute_price = tep_db_fetch_array($attribute_price_query);
+                        if (tep_not_null($attribute_price['products_attributes_weight'])) {
+                            if ($attribute_price['products_attributes_weight_prefix'] == '+' || $attribute_price['products_attributes_weight_prefix'] == '') {
+                                $products_weight += $qty * $attribute_price['products_attributes_weight'];
+                            } else {
+                                $products_weight -= $qty * $attribute_price['products_attributes_weight'];
+                            }
+                        }
+                    }
+                }
+            }*/
         }
-      }
-      return $ret;
+        return $products_weight;
     }
 
-    public static function get_manufacturers_name($product_id) {
-        $manufacturers_query = tep_db_query("select manufacturers_name from " . TABLE_MANUFACTURERS . " m, " . TABLE_PRODUCTS . " p where p.manufacturers_id = m.manufacturers_id and p.products_id='".(int)$product_id."'");
+    public static function get_products_weight($products_id)
+    {
+        $ret = 0;
+        $product = tep_db_fetch_array(tep_db_query('select is_bundle, products_id, products_weight, products_file from ' . TABLE_PRODUCTS . " where products_id = '" . (int) $products_id . "'"));
+        if (empty($product['products_file'])) {
+            // same as in shopping_cart
+            if ($product['is_bundle']) {
+                if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductBundles', 'allowed')) {
+                    $ret = $ext::getWeight($product);
+                }
+            } else {
+                $ret = $product['products_weight'];
+            }
+        }
+        return $ret;
+    }
+
+    public static function get_manufacturers_name($product_id)
+    {
+        $manufacturers_query = tep_db_query('select manufacturers_name from ' . TABLE_MANUFACTURERS . ' m, ' . TABLE_PRODUCTS . " p where p.manufacturers_id = m.manufacturers_id and p.products_id='".(int)$product_id."'");
         $manufacturers = tep_db_fetch_array($manufacturers_query);
         return $manufacturers['manufacturers_name'];
     }
 
-    public static function get_products_volume(int $products_id, bool $weight = false) {
-        $product = tep_db_fetch_array(tep_db_query("select is_bundle, products_id, length_cm, width_cm, height_cm, bundle_volume_calc, volume_weight_cm from " . TABLE_PRODUCTS . " where products_id = '" . $products_id . "'"));
+    public static function get_products_volume(int $products_id, bool $weight = false)
+    {
+        $product = tep_db_fetch_array(tep_db_query('select is_bundle, products_id, length_cm, width_cm, height_cm, bundle_volume_calc, volume_weight_cm from ' . TABLE_PRODUCTS . " where products_id = '" . $products_id . "'"));
         if ($product['is_bundle']) {
-          if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductBundles', 'allowed')) {
-            return $ext::getVolume($product, $weight);
-          }
+            if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductBundles', 'allowed')) {
+                return $ext::getVolume($product, $weight);
+            }
         }
         $volume = $product['length_cm'] * $product['width_cm'] * $product['height_cm'];
         if ($weight) {
@@ -429,42 +448,46 @@ class Product {
         return $volume;
     }
 
-    public static function convert_kgs_to_lbs($weight) {
-      return round($weight * 2.20462, 2);
+    public static function convert_kgs_to_lbs($weight)
+    {
+        return round($weight * 2.20462, 2);
     }
 
-    public static function convert_lbs_to_kgs($weight) {
-      return round($weight / 2.20462, 3);
+    public static function convert_lbs_to_kgs($weight)
+    {
+        return round($weight / 2.20462, 3);
     }
 
-    public static function convert_inch_to_cm($size) {
-      return round($size * 2.54, 1);
+    public static function convert_inch_to_cm($size)
+    {
+        return round($size * 2.54, 1);
     }
 
-    public static function convert_cm_to_inch($size) {
-      return round($size / 2.54, 2);
+    public static function convert_cm_to_inch($size)
+    {
+        return round($size / 2.54, 2);
     }
 
     public static function getProductColumns($products_id, $fields)
     {
         $column_values = [];
         static $container;
-        if ( !is_object($container) && Yii::$container->has('products') ) {
+        if (!is_object($container) && Yii::$container->has('products')) {
             $container = Yii::$container->get('products');
         }
-        if (is_object($container) && $container->has((int)$products_id)){
+        if (is_object($container) && $container->has((int)$products_id)) {
             $productItem = $container->getProduct((int)$products_id);
-            foreach ($fields as $idx=>$field) {
+            foreach ($fields as $idx => $field) {
                 if (array_key_exists($field, (array)$productItem)) {
                     $column_values[$field] = $productItem[$field];
                     unset($fields[$idx]);
                 }
             }
         }
-        if ( count($fields)>0 ){
+        if (count($fields) > 0) {
             $missingValues = Yii::$app->getDb()->createCommand(
-                "select `".implode('`, `', $fields)."` ".
-                "from " . TABLE_PRODUCTS . " ".
+                'select `'.implode('`, `', $fields).'` '.
+                'from ' . TABLE_PRODUCTS . ' '.
                 "where products_id = '" . (int) $products_id . "'"
             )->queryOne();
             $column_values = array_merge($column_values, (array)$missingValues);
@@ -473,18 +496,21 @@ class Product {
         return $column_values;
     }
 
-    public static function get_products_info($products_id, $field) {
+    public static function get_products_info($products_id, $field)
+    {
         $product = static::getProductColumns($products_id, [$field]);
         return $product[$field] ?? null;
     }
 
-    public static function get_backend_products_name($product_id, $language = '', $platform_id = '', $search_terms = array()) {
+    public static function get_backend_products_name($product_id, $language = '', $platform_id = '', $search_terms = [])
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
-        if (empty($language))
+        if (empty($language)) {
             $language = $languages_id;
+        }
         $_def = \common\classes\platform::defaultId();
         $platform_id = (int)($platform_id ? $platform_id : $_def);
-        $product_query = tep_db_query("select ".ProductNameDecorator::instance()->listingQueryExpression('pd','pd1')." as products_name from " . TABLE_PRODUCTS_DESCRIPTION . " pd left join " . TABLE_PRODUCTS_DESCRIPTION . " pd1 on pd.products_id = pd1.products_id and pd1.platform_id = '".intval($platform_id)."' and pd1.language_id = '" . (int) $language . "' where pd.products_id = '" . (int) $product_id . "' and pd.language_id = '" . (int) \common\helpers\Language::get_default_language_id() . "' and pd.platform_id = '" . $_def . "'");
+        $product_query = tep_db_query('select '.ProductNameDecorator::instance()->listingQueryExpression('pd', 'pd1').' as products_name from ' . TABLE_PRODUCTS_DESCRIPTION . ' pd left join ' . TABLE_PRODUCTS_DESCRIPTION . " pd1 on pd.products_id = pd1.products_id and pd1.platform_id = '".intval($platform_id)."' and pd1.language_id = '" . (int) $language . "' where pd.products_id = '" . (int) $product_id . "' and pd.language_id = '" . (int) \common\helpers\Language::get_default_language_id() . "' and pd.platform_id = '" . $_def . "'");
         $product = tep_db_fetch_array($product_query);
         if (!isset($product['products_name'])) {
             return '';
@@ -500,19 +526,21 @@ class Product {
         }
     }
 
-    public static function get_products_name($product_id, $language = '', $platform_id = '', $search_terms = array()) {
+    public static function get_products_name($product_id, $language = '', $platform_id = '', $search_terms = [])
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
-        if (empty($language))
+        if (empty($language)) {
             $language = $languages_id;
+        }
         $_def = \common\classes\platform::defaultId();
         $platform_id = (int)($platform_id ? $platform_id : $_def);
-        $product_query = tep_db_query("select if(length(pd1.products_name) > 0, pd1.products_name, pd.products_name) as products_name from " . TABLE_PRODUCTS_DESCRIPTION . " pd left join " . TABLE_PRODUCTS_DESCRIPTION . " pd1 on pd.products_id = pd1.products_id and pd1.platform_id = '".intval($platform_id)."' and pd1.language_id = '" . (int) $language . "' where pd.products_id = '" . (int) $product_id . "' and pd.language_id = '" . (int) \common\helpers\Language::get_default_language_id() . "' and pd.platform_id = '" . $_def . "'");
+        $product_query = tep_db_query('select if(length(pd1.products_name) > 0, pd1.products_name, pd.products_name) as products_name from ' . TABLE_PRODUCTS_DESCRIPTION . ' pd left join ' . TABLE_PRODUCTS_DESCRIPTION . " pd1 on pd.products_id = pd1.products_id and pd1.platform_id = '".intval($platform_id)."' and pd1.language_id = '" . (int) $language . "' where pd.products_id = '" . (int) $product_id . "' and pd.language_id = '" . (int) \common\helpers\Language::get_default_language_id() . "' and pd.platform_id = '" . $_def . "'");
         $product = tep_db_fetch_array($product_query);
-        if (empty($product['products_name']) && stripos(\Yii::$app->id, 'backend')!==false){
+        if (empty($product['products_name']) && stripos(\Yii::$app->id, 'backend') !== false) {
             $product = Yii::$app->getDb()->createCommand(
-                "SELECT products_name FROM ".TABLE_PRODUCTS_DESCRIPTION." ".
+                'SELECT products_name FROM '.TABLE_PRODUCTS_DESCRIPTION.' '.
                 "WHERE products_id='".(int)$product_id."' AND products_name!='' ".
-                "LIMIT 1"
+                'LIMIT 1'
             )->queryOne();
         }
         if (!isset($product['products_name'])) {
@@ -529,14 +557,15 @@ class Product {
         }
     }
 
-    public static function get_products_description($product_id, $language = '', $platform_id = '') {
+    public static function get_products_description($product_id, $language = '', $platform_id = '')
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
         if (empty($language)) {
             $language = $languages_id;
         }
         $_def = \common\classes\platform::defaultId();
         $platform_id = (int) ($platform_id ? $platform_id : $_def);
-        $product_query = tep_db_query("select if(length(pd1.products_description) > 0, pd1.products_description, pd.products_description) as products_description from " . TABLE_PRODUCTS_DESCRIPTION . " pd left join " . TABLE_PRODUCTS_DESCRIPTION . " pd1 on pd.products_id = pd1.products_id and pd1.platform_id = '" . intval($platform_id) . "' and pd1.language_id = '" . (int) $language . "' where pd.products_id = '" . (int) $product_id . "' and pd.language_id = '" . (int) \common\helpers\Language::get_default_language_id() . "' and pd.platform_id = '" . $_def . "'");
+        $product_query = tep_db_query('select if(length(pd1.products_description) > 0, pd1.products_description, pd.products_description) as products_description from ' . TABLE_PRODUCTS_DESCRIPTION . ' pd left join ' . TABLE_PRODUCTS_DESCRIPTION . " pd1 on pd.products_id = pd1.products_id and pd1.platform_id = '" . intval($platform_id) . "' and pd1.language_id = '" . (int) $language . "' where pd.products_id = '" . (int) $product_id . "' and pd.language_id = '" . (int) \common\helpers\Language::get_default_language_id() . "' and pd.platform_id = '" . $_def . "'");
         $product = tep_db_fetch_array($product_query);
         if (!isset($product['products_description'])) {
             return '';
@@ -546,13 +575,17 @@ class Product {
 
     public static function getSeoName($products_id, $language_id, $platform_id = null)
     {
-        if ( empty($language_id) ) $language_id = (int)$GLOBALS['languages_id'];
-        if ( empty($platform_id))  $platform_id = \common\classes\platform::defaultId ();
+        if (empty($language_id)) {
+            $language_id = (int)$GLOBALS['languages_id'];
+        }
+        if (empty($platform_id)) {
+            $platform_id = \common\classes\platform::defaultId();
+        }
         $_key = (int)$products_id.'^'.(int)$language_id.'^'.$platform_id;
-        static $_lookup_product = array();
-        if ( isset($_lookup_product[$_key]) ) {
+        static $_lookup_product = [];
+        if (isset($_lookup_product[$_key])) {
             $product = $_lookup_product[$_key];
-        }else {
+        } else {
             /*$product = tep_db_fetch_array(tep_db_query(
                 "select if(length(pd.products_seo_page_name) > 0, pd.products_seo_page_name, p.products_seo_page_name) as products_seo_page_name ".
                 "from " . TABLE_PRODUCTS . " p ".
@@ -563,31 +596,34 @@ class Product {
             ));*/
             $product = false;
             $product_r = tep_db_query(
-                "select pd.products_seo_page_name as products_seo_page_name ".
-                "from " . TABLE_PRODUCTS_DESCRIPTION . " pd ".
+                'select pd.products_seo_page_name as products_seo_page_name '.
+                'from ' . TABLE_PRODUCTS_DESCRIPTION . ' pd '.
                 "where pd.products_id = '" . (int)$products_id . "' and pd.language_id = '" . (int)$language_id . "' AND pd.platform_id ='" .(int)$platform_id. "' "
             );
-            if ( tep_db_num_rows($product_r)>0 ) {
+            if (tep_db_num_rows($product_r) > 0) {
                 $product = tep_db_fetch_array($product_r);
             }
-            if ( !is_array($product) || empty($product['products_seo_page_name']) ) {
+            if (!is_array($product) || empty($product['products_seo_page_name'])) {
                 $product_r = tep_db_query(
-                    "select p.products_seo_page_name as products_seo_page_name ".
-                    "from " . TABLE_PRODUCTS . " p ".
+                    'select p.products_seo_page_name as products_seo_page_name '.
+                    'from ' . TABLE_PRODUCTS . ' p '.
                     "where p.products_id = '" . (int)$products_id . "' "
                 );
-                if ( tep_db_num_rows($product_r)>0 ) {
+                if (tep_db_num_rows($product_r) > 0) {
                     $product = tep_db_fetch_array($product_r);
                 }
             }
 
-            if ( count($_lookup_product)>50 ) $_lookup_product = array();
+            if (count($_lookup_product) > 50) {
+                $_lookup_product = [];
+            }
             $_lookup_product[$_key] = $product;
         }
         return $product['products_seo_page_name'] ?? null;
     }
 
-    public static function get_products_stock($products_id) {
+    public static function get_products_stock($products_id)
+    {
         $products_id = \common\helpers\Inventory::normalizeInventoryId($products_id);
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('UserGroupsRestrictions', 'isAllowed')) {
             if (!$ext::isStockAvailable($products_id)) {
@@ -599,8 +635,8 @@ class Product {
         } else {
             $customers_temporary_stock_quantity = 0;
         }
-        if (\common\helpers\Extensions::isAllowed('Inventory') && strpos($products_id,'{')!==false && !\common\helpers\Inventory::disabledOnProduct($products_id)) {
-            $stock_query = tep_db_query("select products_quantity, suppliers_stock_quantity, stock_control from " . TABLE_INVENTORY . " where products_id = '" . tep_db_input($products_id) . "'");
+        if (\common\helpers\Extensions::isAllowed('Inventory') && strpos($products_id, '{') !== false && !\common\helpers\Inventory::disabledOnProduct($products_id)) {
+            $stock_query = tep_db_query('select products_quantity, suppliers_stock_quantity, stock_control from ' . TABLE_INVENTORY . " where products_id = '" . tep_db_input($products_id) . "'");
             if (tep_db_num_rows($stock_query)) {
                 $stock_values = tep_db_fetch_array($stock_query);
                 $stock_values['products_quantity'] = self::getAvailable($products_id, 0);
@@ -611,7 +647,9 @@ class Product {
                 /** @var \common\extensions\ReportFreezeStock\ReportFreezeStock $ext */
                 if (($ext = \common\helpers\Extensions::isAllowed('ReportFreezeStock')) && $ext::isFreezed()) {
                     $freezeModel = \common\helpers\Extensions::getModel('ReportFreezeStock', 'FreezeInventory');
-                    if (empty($freezeModel)) $freezeInventory = null;
+                    if (empty($freezeModel)) {
+                        $freezeInventory = null;
+                    }
                     $freezeInventory = $freezeModel::find()->where(['products_id' => $products_id])->asArray()->one();
                     if (is_array($freezeInventory)) {
                         $stock_values = array_merge($stock_values, $freezeInventory);
@@ -619,7 +657,7 @@ class Product {
                 }
             } else {
                 $products_id = \common\helpers\Inventory::get_prid($products_id);
-                $stock_query = tep_db_query("select products_quantity, suppliers_stock_quantity, stock_control from " . TABLE_PRODUCTS . " where products_id = '" . (int) $products_id . "'");
+                $stock_query = tep_db_query('select products_quantity, suppliers_stock_quantity, stock_control from ' . TABLE_PRODUCTS . " where products_id = '" . (int) $products_id . "'");
                 $stock_values = tep_db_fetch_array($stock_query);
                 $stock_values['products_quantity'] = self::getAvailable((int)$products_id, 0);
                 if ($extScl = \common\helpers\Acl::checkExtensionAllowed('StockControl', 'allowed')) {
@@ -647,23 +685,24 @@ class Product {
                 }
             }
         }
-        $stock = ($stock_values['products_quantity']??0) + ($stock_values['suppliers_stock_quantity']??0) + $customers_temporary_stock_quantity - self::get_customers_limit_stock_quantity($products_id);
+        $stock = ($stock_values['products_quantity'] ?? 0) + ($stock_values['suppliers_stock_quantity'] ?? 0) + $customers_temporary_stock_quantity - self::get_customers_limit_stock_quantity($products_id);
         if ($stock < 0) {
             $stock = 0;
         }
         return $stock;
     }
 
-    public static function get_customers_limit_stock_quantity($products_id) {
+    public static function get_customers_limit_stock_quantity($products_id)
+    {
         $products_id = \common\helpers\Inventory::get_prid($products_id);
         $product_values = static::getProductColumns((int) $products_id, ['stock_limit', 'manufacturers_id']);
-        if (($product_values['stock_limit']??null) > -1) {
+        if (($product_values['stock_limit'] ?? null) > -1) {
             return $product_values['stock_limit'];
         }
         $stockLevelLimit = 0;
         //check brand
-        if (($product_values['manufacturers_id']??null) > 0) {
-            $manufacturer_query = tep_db_query("select stock_limit from " . TABLE_MANUFACTURERS . " where manufacturers_id = '" . (int) $product_values['manufacturers_id'] . "'");
+        if (($product_values['manufacturers_id'] ?? null) > 0) {
+            $manufacturer_query = tep_db_query('select stock_limit from ' . TABLE_MANUFACTURERS . " where manufacturers_id = '" . (int) $product_values['manufacturers_id'] . "'");
             $manufacturer_values = tep_db_fetch_array($manufacturer_query);
             \common\helpers\Php8::nullArrProps($manufacturer_values, ['stock_limit']);
             if ($manufacturer_values['stock_limit'] > -1) {
@@ -671,13 +710,14 @@ class Product {
             }
         }
         $cat_r = tep_db_query(
-               "SELECT c.categories_id, c.stock_limit
+            "SELECT c.categories_id, c.stock_limit
                 FROM categories c
                 INNER JOIN products_to_categories p2c ON (c.categories_id=p2c.categories_id)
                 INNER JOIN platforms_categories pc ON (pc.categories_id=p2c.categories_id and pc.platform_id='" . \common\classes\platform::currentId() . "') ".
-                "WHERE p2c.products_id='".$products_id."' ");
-        if(tep_db_num_rows($cat_r)>0){
-            while($cat_r_array = tep_db_fetch_array($cat_r)) {
+                "WHERE p2c.products_id='".$products_id."' "
+        );
+        if (tep_db_num_rows($cat_r) > 0) {
+            while ($cat_r_array = tep_db_fetch_array($cat_r)) {
                 if ($cat_r_array['stock_limit'] > $stockLevelLimit) {
                     $stockLevelLimit = $cat_r_array['stock_limit'];
                 }
@@ -689,7 +729,8 @@ class Product {
         return $stockLevelLimit;
     }
 
-    public static function check_stock($products_id, $products_quantity) {
+    public static function check_stock($products_id, $products_quantity)
+    {
         if (defined('TEMPORARY_STOCK_ENABLE') && TEMPORARY_STOCK_ENABLE == 'true') {
             $products_quantity -= self::get_customers_temporary_stock_quantity($products_id);
         }
@@ -703,40 +744,43 @@ class Product {
         return $out_of_stock;
     }
 
-    public static function get_allocated_stock_quantity($products_id) {
+    public static function get_allocated_stock_quantity($products_id)
+    {
         return 0;
-        $orders_status_array = array(); // not Completed and not Cancelled orders
-        $orders_status_query = tep_db_query("select distinct orders_status_id from " . TABLE_ORDERS_STATUS . " where orders_status_groups_id not in (4,5)");
+        $orders_status_array = []; // not Completed and not Cancelled orders
+        $orders_status_query = tep_db_query('select distinct orders_status_id from ' . TABLE_ORDERS_STATUS . ' where orders_status_groups_id not in (4,5)');
         while ($orders_status = tep_db_fetch_array($orders_status_query)) {
-          $orders_status_array[] = $orders_status['orders_status_id'];
+            $orders_status_array[] = $orders_status['orders_status_id'];
         }
         if (strpos(\common\helpers\Inventory::normalize_id_excl_virtual($products_id), '{') !== false) {
-            $allocated_stock_data = tep_db_fetch_array(tep_db_query("select sum(op.products_quantity) as allocated_stock_quantity from " . TABLE_INVENTORY . " i left join " . TABLE_ORDERS_PRODUCTS . " op on op.uprid = i.products_id and op.products_id = i.prid left join " . TABLE_ORDERS . " o on o.orders_id = op.orders_id where i.products_id = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($products_id)) . "' and o.stock_updated = '1' and o.orders_status in ('" . implode("','", $orders_status_array) . "') group by i.products_id"));
-            tep_db_query("update " . TABLE_INVENTORY . " set allocated_stock_quantity = '" . (int)$allocated_stock_data['allocated_stock_quantity'] . "', warehouse_stock_quantity =  products_quantity + '" . (int)$allocated_stock_data['allocated_stock_quantity'] . "' + temporary_stock_quantity where products_id = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($products_id)) . "'");
+            $allocated_stock_data = tep_db_fetch_array(tep_db_query('select sum(op.products_quantity) as allocated_stock_quantity from ' . TABLE_INVENTORY . ' i left join ' . TABLE_ORDERS_PRODUCTS . ' op on op.uprid = i.products_id and op.products_id = i.prid left join ' . TABLE_ORDERS . " o on o.orders_id = op.orders_id where i.products_id = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($products_id)) . "' and o.stock_updated = '1' and o.orders_status in ('" . implode("','", $orders_status_array) . "') group by i.products_id"));
+            tep_db_query('update ' . TABLE_INVENTORY . " set allocated_stock_quantity = '" . (int)$allocated_stock_data['allocated_stock_quantity'] . "', warehouse_stock_quantity =  products_quantity + '" . (int)$allocated_stock_data['allocated_stock_quantity'] . "' + temporary_stock_quantity where products_id = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($products_id)) . "'");
         } else {
-            $allocated_stock_data = tep_db_fetch_array(tep_db_query("select sum(op.products_quantity) as allocated_stock_quantity from " . TABLE_PRODUCTS . " p left join " . TABLE_ORDERS_PRODUCTS . " op on op.products_id = p.products_id left join " . TABLE_ORDERS . " o on o.orders_id = op.orders_id where p.products_id = '" . (int)$products_id . "' and o.stock_updated = '1' and o.orders_status in ('" . implode("','", $orders_status_array) . "') group by p.products_id"));
-            tep_db_query("update " . TABLE_PRODUCTS . " set allocated_stock_quantity = '" . (int)$allocated_stock_data['allocated_stock_quantity'] . "', warehouse_stock_quantity =  products_quantity + '" . (int)$allocated_stock_data['allocated_stock_quantity'] . "' + temporary_stock_quantity where products_id = '" . (int)$products_id . "'");
+            $allocated_stock_data = tep_db_fetch_array(tep_db_query('select sum(op.products_quantity) as allocated_stock_quantity from ' . TABLE_PRODUCTS . ' p left join ' . TABLE_ORDERS_PRODUCTS . ' op on op.products_id = p.products_id left join ' . TABLE_ORDERS . " o on o.orders_id = op.orders_id where p.products_id = '" . (int)$products_id . "' and o.stock_updated = '1' and o.orders_status in ('" . implode("','", $orders_status_array) . "') group by p.products_id"));
+            tep_db_query('update ' . TABLE_PRODUCTS . " set allocated_stock_quantity = '" . (int)$allocated_stock_data['allocated_stock_quantity'] . "', warehouse_stock_quantity =  products_quantity + '" . (int)$allocated_stock_data['allocated_stock_quantity'] . "' + temporary_stock_quantity where products_id = '" . (int)$products_id . "'");
         }
         return (int)$allocated_stock_data['allocated_stock_quantity'];
     }
 
-    public static function get_temporary_stock_quantity($products_id) {
+    public static function get_temporary_stock_quantity($products_id)
+    {
         return 0;
         if (strpos(\common\helpers\Inventory::normalize_id_excl_virtual($products_id), '{') !== false) {
-            $temporary_stock_data = tep_db_fetch_array(tep_db_query("select sum(temporary_stock_quantity) as temporary_stock_quantity from " . self::getTemporaryStockTableName() . " where if(length(normalize_id) > 0, normalize_id, products_id) = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($products_id)) . "' group by if(length(normalize_id) > 0, normalize_id, products_id)"));
-            tep_db_query("update " . TABLE_INVENTORY . " set temporary_stock_quantity = '" . (int)$temporary_stock_data['temporary_stock_quantity'] . "', warehouse_stock_quantity =  products_quantity + allocated_stock_quantity + '" . (int)$temporary_stock_data['temporary_stock_quantity'] . "' where products_id = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($products_id)) . "'");
+            $temporary_stock_data = tep_db_fetch_array(tep_db_query('select sum(temporary_stock_quantity) as temporary_stock_quantity from ' . self::getTemporaryStockTableName() . " where if(length(normalize_id) > 0, normalize_id, products_id) = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($products_id)) . "' group by if(length(normalize_id) > 0, normalize_id, products_id)"));
+            tep_db_query('update ' . TABLE_INVENTORY . " set temporary_stock_quantity = '" . (int)$temporary_stock_data['temporary_stock_quantity'] . "', warehouse_stock_quantity =  products_quantity + allocated_stock_quantity + '" . (int)$temporary_stock_data['temporary_stock_quantity'] . "' where products_id = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($products_id)) . "'");
         } else {
-            $temporary_stock_data = tep_db_fetch_array(tep_db_query("select sum(temporary_stock_quantity) as temporary_stock_quantity from " . self::getTemporaryStockTableName() . " where prid = '" . (int)$products_id . "' group by prid"));
-            tep_db_query("update " . TABLE_PRODUCTS . " set temporary_stock_quantity = '" . (int)$temporary_stock_data['temporary_stock_quantity'] . "', warehouse_stock_quantity =  products_quantity + allocated_stock_quantity + '" . (int)$temporary_stock_data['temporary_stock_quantity'] . "' where products_id = '" . (int)$products_id . "'");
+            $temporary_stock_data = tep_db_fetch_array(tep_db_query('select sum(temporary_stock_quantity) as temporary_stock_quantity from ' . self::getTemporaryStockTableName() . " where prid = '" . (int)$products_id . "' group by prid"));
+            tep_db_query('update ' . TABLE_PRODUCTS . " set temporary_stock_quantity = '" . (int)$temporary_stock_data['temporary_stock_quantity'] . "', warehouse_stock_quantity =  products_quantity + allocated_stock_quantity + '" . (int)$temporary_stock_data['temporary_stock_quantity'] . "' where products_id = '" . (int)$products_id . "'");
         }
         return $temporary_stock_data['temporary_stock_quantity'];
     }
 
-    public static function cleanup_temporary_stock_quantity() {
+    public static function cleanup_temporary_stock_quantity()
+    {
         if (defined('TEMPORARY_STOCK_ENABLE') && defined('TEMPORARY_STOCK_PERIOD') && TEMPORARY_STOCK_ENABLE == 'true' && TEMPORARY_STOCK_PERIOD > 0) {
-            $temporary_stock_query = tep_db_query("select * from " . self::getTemporaryStockTableName() . " where temporary_stock_datetime < (now() - interval " . (int)TEMPORARY_STOCK_PERIOD . " minute)");
+            $temporary_stock_query = tep_db_query('select * from ' . self::getTemporaryStockTableName() . ' where temporary_stock_datetime < (now() - interval ' . (int)TEMPORARY_STOCK_PERIOD . ' minute)');
             while ($temporary_stock_data = tep_db_fetch_array($temporary_stock_query)) {
-                tep_db_query("delete from " . self::getTemporaryStockTableName() . " where temporary_stock_id = '" . (int)$temporary_stock_data['temporary_stock_id'] . "'");
+                tep_db_query('delete from ' . self::getTemporaryStockTableName() . " where temporary_stock_id = '" . (int)$temporary_stock_data['temporary_stock_id'] . "'");
                 self::log_stock_history_before_update($temporary_stock_data['normalize_id'], $temporary_stock_data['temporary_stock_quantity'], '+', ['warehouse_id' => $temporary_stock_data['warehouse_id'], 'suppliers_id' => $temporary_stock_data['suppliers_id'], 'comments' => TEXT_TEMPORARY_STOCK_UPDATE, 'is_temporary' => 1]);
                 self::update_stock($temporary_stock_data['normalize_id'], $temporary_stock_data['temporary_stock_quantity'], 0, $temporary_stock_data['warehouse_id'], $temporary_stock_data['suppliers_id']);
                 \common\helpers\Warehouses::get_temporary_stock_quantity($temporary_stock_data['normalize_id'], $temporary_stock_data['warehouse_id'], $temporary_stock_data['suppliers_id']);
@@ -744,71 +788,74 @@ class Product {
                 self::doCache($temporary_stock_data['normalize_id']);
                 self::writeHistory($temporary_stock_data['normalize_id'], $temporary_stock_data['warehouse_id'], $temporary_stock_data['suppliers_id'], 0, -$temporary_stock_data['temporary_stock_quantity'], [
                     'comments' => TEXT_TEMPORARY_STOCK_UPDATE,
-                    'is_temporary' => 1
+                    'is_temporary' => 1,
                 ]);
             }
         }
     }
 
-    public static function get_customers_temporary_stock_quantity_data($products_id, $warehouse_id, $suppliers_id, $original_products_id = '') {
+    public static function get_customers_temporary_stock_quantity_data($products_id, $warehouse_id, $suppliers_id, $original_products_id = '')
+    {
         //$the_session_id = tep_session_id();
-        if (\Yii::$app->id=='app-console') {
-          $the_session_id = \Yii::$app->storage->get('guid');
+        if (\Yii::$app->id == 'app-console') {
+            $the_session_id = \Yii::$app->storage->get('guid');
         } else {
-          $the_session_id = tep_session_id();
+            $the_session_id = tep_session_id();
         }
         $original_products_id = trim($original_products_id);
         if (!\Yii::$app->user->isGuest) {
-            $temporary_stock_data = tep_db_fetch_array(tep_db_query("select * from " . self::getTemporaryStockTableName() . " where (customers_id = '" . (int)\Yii::$app->user->getId() . "' or (customers_id = '0' and session_id = '" . tep_db_input($the_session_id) . "')) and products_id = '" . tep_db_input($products_id) . "'" . ($original_products_id != '' ? (" and child_id = '" . tep_db_input($original_products_id) . "'") : '') . " and warehouse_id = '" . (int)$warehouse_id . "' and suppliers_id = '" . (int)$suppliers_id . "'"));
+            $temporary_stock_data = tep_db_fetch_array(tep_db_query('select * from ' . self::getTemporaryStockTableName() . " where (customers_id = '" . (int)\Yii::$app->user->getId() . "' or (customers_id = '0' and session_id = '" . tep_db_input($the_session_id) . "')) and products_id = '" . tep_db_input($products_id) . "'" . ($original_products_id != '' ? (" and child_id = '" . tep_db_input($original_products_id) . "'") : '') . " and warehouse_id = '" . (int)$warehouse_id . "' and suppliers_id = '" . (int)$suppliers_id . "'"));
         } else {
-            $temporary_stock_data = tep_db_fetch_array(tep_db_query("select * from " . self::getTemporaryStockTableName() . " where session_id = '" . tep_db_input($the_session_id) . "' and products_id = '" . tep_db_input($products_id) . "'" . ($original_products_id != '' ? (" and child_id = '" . tep_db_input($original_products_id) . "'") : '') . " and warehouse_id = '" . (int)$warehouse_id . "' and suppliers_id = '" . (int)$suppliers_id . "'"));
+            $temporary_stock_data = tep_db_fetch_array(tep_db_query('select * from ' . self::getTemporaryStockTableName() . " where session_id = '" . tep_db_input($the_session_id) . "' and products_id = '" . tep_db_input($products_id) . "'" . ($original_products_id != '' ? (" and child_id = '" . tep_db_input($original_products_id) . "'") : '') . " and warehouse_id = '" . (int)$warehouse_id . "' and suppliers_id = '" . (int)$suppliers_id . "'"));
         }
         return $temporary_stock_data;
     }
 
     // $warehouse_id = 0 - all warehouses, $suppliers_id = 0 - all suppliers
-    public static function get_customers_temporary_stock_quantity($products_id, $warehouse_id = 0, $suppliers_id = 0, $original_products_id = '') {
+    public static function get_customers_temporary_stock_quantity($products_id, $warehouse_id = 0, $suppliers_id = 0, $original_products_id = '')
+    {
         //$the_session_id = tep_session_id();
-        if (\Yii::$app->id=='app-console') {
-          $the_session_id = \Yii::$app->storage->get('guid');
+        if (\Yii::$app->id == 'app-console') {
+            $the_session_id = \Yii::$app->storage->get('guid');
         } else {
-          $the_session_id = tep_session_id();
+            $the_session_id = tep_session_id();
         }
         $original_products_id = trim($original_products_id);
         if (!\Yii::$app->user->isGuest) {
-            $temporary_stock_data = tep_db_fetch_array(tep_db_query("select sum(temporary_stock_quantity) as temporary_stock_quantity from " . self::getTemporaryStockTableName() . " where (customers_id = '" . (int)\Yii::$app->user->getId() . "' or (customers_id = '0' and session_id = '" . tep_db_input($the_session_id) . "'))" . ($original_products_id != '' ? (" and child_id = '" . tep_db_input($original_products_id) . "'") : '') . " and if(length(normalize_id) > 0, normalize_id, products_id) = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($products_id)) . "'" . ($warehouse_id > 0 ? " and warehouse_id = '" . (int) $warehouse_id . "'" : '') . ($suppliers_id > 0 ? " and suppliers_id = '" . (int) $suppliers_id . "'" : '')));
+            $temporary_stock_data = tep_db_fetch_array(tep_db_query('select sum(temporary_stock_quantity) as temporary_stock_quantity from ' . self::getTemporaryStockTableName() . " where (customers_id = '" . (int)\Yii::$app->user->getId() . "' or (customers_id = '0' and session_id = '" . tep_db_input($the_session_id) . "'))" . ($original_products_id != '' ? (" and child_id = '" . tep_db_input($original_products_id) . "'") : '') . " and if(length(normalize_id) > 0, normalize_id, products_id) = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($products_id)) . "'" . ($warehouse_id > 0 ? " and warehouse_id = '" . (int) $warehouse_id . "'" : '') . ($suppliers_id > 0 ? " and suppliers_id = '" . (int) $suppliers_id . "'" : '')));
         } else {
-            $temporary_stock_data = tep_db_fetch_array(tep_db_query("select sum(temporary_stock_quantity) as temporary_stock_quantity from " . self::getTemporaryStockTableName() . " where session_id = '" . tep_db_input($the_session_id) . "'" . ($original_products_id != '' ? (" and child_id = '" . tep_db_input($original_products_id) . "'") : '') . " and if(length(normalize_id) > 0, normalize_id, products_id) = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($products_id)) . "'" . ($warehouse_id > 0 ? " and warehouse_id = '" . (int) $warehouse_id . "'" : '') . ($suppliers_id > 0 ? " and suppliers_id = '" . (int) $suppliers_id . "'" : '')));
+            $temporary_stock_data = tep_db_fetch_array(tep_db_query('select sum(temporary_stock_quantity) as temporary_stock_quantity from ' . self::getTemporaryStockTableName() . " where session_id = '" . tep_db_input($the_session_id) . "'" . ($original_products_id != '' ? (" and child_id = '" . tep_db_input($original_products_id) . "'") : '') . " and if(length(normalize_id) > 0, normalize_id, products_id) = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($products_id)) . "'" . ($warehouse_id > 0 ? " and warehouse_id = '" . (int) $warehouse_id . "'" : '') . ($suppliers_id > 0 ? " and suppliers_id = '" . (int) $suppliers_id . "'" : '')));
         }
         return $temporary_stock_data['temporary_stock_quantity'];
     }
 
-/**
- *
- * @param int $products_id - required
- * @param int $qty - required
- * @param int $warehouse_id = 0
- * @param int $suppliers_id = 0
- * @param int $not_available = false
- * @param int $original_products_id = ''
- * @param string $keepUntil = 'now()' (parsed with strtotime) actually date+TEMPORARY_STOCK_PERIOD minutes
- */
-    public static function update_customers_temporary_stock_quantity($products_id, $qty, $warehouse_id = 0, $suppliers_id = 0, $not_available = false, $original_products_id = '', $keepUntil = 'now()') {
+    /**
+     *
+     * @param int $products_id - required
+     * @param int $qty - required
+     * @param int $warehouse_id = 0
+     * @param int $suppliers_id = 0
+     * @param int $not_available = false
+     * @param int $original_products_id = ''
+     * @param string $keepUntil = 'now()' (parsed with strtotime) actually date+TEMPORARY_STOCK_PERIOD minutes
+     */
+    public static function update_customers_temporary_stock_quantity($products_id, $qty, $warehouse_id = 0, $suppliers_id = 0, $not_available = false, $original_products_id = '', $keepUntil = 'now()')
+    {
         if (defined('STOCK_LIMITED') && defined('TEMPORARY_STOCK_ENABLE') && STOCK_LIMITED == 'true' && TEMPORARY_STOCK_ENABLE == 'true') {
-          if (\Yii::$app->id=='app-console') {
-            $guid = \Yii::$app->storage->get('guid');
-          } else {
-            $guid = tep_session_id();
-          }
-
-          if ($keepUntil != 'now()') {
-            $tst = strtotime($keepUntil);
-            if ($tst) {
-              $keepUntil = date('Y-m-d H:i:s', $tst);
+            if (\Yii::$app->id == 'app-console') {
+                $guid = \Yii::$app->storage->get('guid');
             } else {
-              $keepUntil = 'now()';
+                $guid = tep_session_id();
             }
-          }
+
+            if ($keepUntil != 'now()') {
+                $tst = strtotime($keepUntil);
+                if ($tst) {
+                    $keepUntil = date('Y-m-d H:i:s', $tst);
+                } else {
+                    $keepUntil = 'now()';
+                }
+            }
 
             if ($warehouse_id == 0) {
                 $warehouse_id = \common\helpers\Warehouses::get_default_warehouse();
@@ -829,7 +876,7 @@ class Product {
                 'normalize_id' => $normalize_id,
                 'temporary_stock_quantity' => $qty,
                 'temporary_stock_datetime' => $keepUntil,
-                'child_id' => $original_products_id
+                'child_id' => $original_products_id,
             ];
             if (preg_match('/^.+\{sub\}(\d+)(\|.*)?$/si', $original_products_id, $match)) {
                 $sql_data_array['parent_id'] = (int)$match[1];
@@ -844,13 +891,13 @@ class Product {
                     tep_db_perform(self::getTemporaryStockTableName(), $sql_data_array, 'update', "temporary_stock_id = '" . (int)$temporary_stock_data['temporary_stock_id'] . "'");
                     if ($not_available && abs($temporary_stock_quantity) > 0) {
                         if ($temporary_stock_quantity > 0) {
-                            tep_db_query("update " . self::getTemporaryStockTableName() . " set not_available_quantity = not_available_quantity + " . (int) abs($temporary_stock_quantity) . " where temporary_stock_id = '" . (int)$temporary_stock_data['temporary_stock_id'] . "'");
+                            tep_db_query('update ' . self::getTemporaryStockTableName() . ' set not_available_quantity = not_available_quantity + ' . (int) abs($temporary_stock_quantity) . " where temporary_stock_id = '" . (int)$temporary_stock_data['temporary_stock_id'] . "'");
                         } else {
-                            tep_db_query("update " . self::getTemporaryStockTableName() . " set not_available_quantity = not_available_quantity - " . (int) abs($temporary_stock_quantity) . " where temporary_stock_id = '" . (int)$temporary_stock_data['temporary_stock_id'] . "'");
+                            tep_db_query('update ' . self::getTemporaryStockTableName() . ' set not_available_quantity = not_available_quantity - ' . (int) abs($temporary_stock_quantity) . " where temporary_stock_id = '" . (int)$temporary_stock_data['temporary_stock_id'] . "'");
                         }
                     }
                 } else {
-                    tep_db_query("delete from " . self::getTemporaryStockTableName() . " where temporary_stock_id = '" . (int)$temporary_stock_data['temporary_stock_id'] . "'");
+                    tep_db_query('delete from ' . self::getTemporaryStockTableName() . " where temporary_stock_id = '" . (int)$temporary_stock_data['temporary_stock_id'] . "'");
                 }
             } elseif ($qty > 0) {
                 $temporary_stock_quantity = $qty;
@@ -870,7 +917,7 @@ class Product {
                 self::doCache($products_id);
                 self::writeHistory($products_id, $warehouse_id, $suppliers_id, 0, $temporary_stock_quantity, [
                     'comments' => TEXT_TEMPORARY_STOCK_UPDATE,
-                    'is_temporary' => 1
+                    'is_temporary' => 1,
                 ]);
             }
             \common\helpers\Warehouses::get_temporary_stock_quantity($normalize_id, $warehouse_id, $suppliers_id);
@@ -878,18 +925,20 @@ class Product {
         }
     }
 
-    public static function remove_customers_temporary_stock_quantity($products_id, $warehouse_id = 0, $suppliers_id = 0) {
+    public static function remove_customers_temporary_stock_quantity($products_id, $warehouse_id = 0, $suppliers_id = 0)
+    {
         self::update_customers_temporary_stock_quantity($products_id, 0, $warehouse_id, $suppliers_id);
     }
 
-    public static function log_stock_history_before_update($uprid, $qty, $qty_prefix, $params = []) {
+    public static function log_stock_history_before_update($uprid, $qty, $qty_prefix, $params = [])
+    {
         return 0;
         if (strpos(\common\helpers\Inventory::normalize_id_excl_virtual($uprid), '{') !== false) {
-            $check = tep_db_fetch_array(tep_db_query("select products_id, prid, products_model, products_quantity from " . TABLE_INVENTORY . " where products_id = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($uprid)) . "'"));
-            $check_warehouse = tep_db_fetch_array(tep_db_query("select sum(warehouse_stock_quantity) as warehouse_stock_quantity from " . TABLE_WAREHOUSES_PRODUCTS . " where warehouse_id = '" . (int) $params['warehouse_id'] . "' and products_id = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($uprid)) . "' and prid = '" . (int)\common\helpers\Inventory::get_prid($uprid) . "'"));
+            $check = tep_db_fetch_array(tep_db_query('select products_id, prid, products_model, products_quantity from ' . TABLE_INVENTORY . " where products_id = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($uprid)) . "'"));
+            $check_warehouse = tep_db_fetch_array(tep_db_query('select sum(warehouse_stock_quantity) as warehouse_stock_quantity from ' . TABLE_WAREHOUSES_PRODUCTS . " where warehouse_id = '" . (int) $params['warehouse_id'] . "' and products_id = '" . tep_db_input(\common\helpers\Inventory::normalize_id_excl_virtual($uprid)) . "' and prid = '" . (int)\common\helpers\Inventory::get_prid($uprid) . "'"));
         } else {
-            $check = tep_db_fetch_array(tep_db_query("select products_id, products_id as prid, products_model, products_quantity from " . TABLE_PRODUCTS . " where products_id = '" . (int)$uprid . "'"));
-            $check_warehouse = tep_db_fetch_array(tep_db_query("select sum(warehouse_stock_quantity) as warehouse_stock_quantity from " . TABLE_WAREHOUSES_PRODUCTS . " where warehouse_id = '" . (int) $params['warehouse_id'] . "' and products_id = '" . (int)$uprid . "' and prid = '" . (int)$uprid . "'"));
+            $check = tep_db_fetch_array(tep_db_query('select products_id, products_id as prid, products_model, products_quantity from ' . TABLE_PRODUCTS . " where products_id = '" . (int)$uprid . "'"));
+            $check_warehouse = tep_db_fetch_array(tep_db_query('select sum(warehouse_stock_quantity) as warehouse_stock_quantity from ' . TABLE_WAREHOUSES_PRODUCTS . " where warehouse_id = '" . (int) $params['warehouse_id'] . "' and products_id = '" . (int)$uprid . "' and prid = '" . (int)$uprid . "'"));
         }
         if ($check['prid'] > 0) {
             $sql_data_array = [
@@ -912,11 +961,13 @@ class Product {
         }
     }
 
-    public static function update_stock($uprid, $qty, $old_qty = 0, $warehouse_id = 0, $suppliers_id = 0, $platform_id = 0) {
+    public static function update_stock($uprid, $qty, $old_qty = 0, $warehouse_id = 0, $suppliers_id = 0, $platform_id = 0)
+    {
         return 0;
         $prid = \common\helpers\Inventory::get_prid($uprid);
-        if (!tep_not_null($prid))
+        if (!tep_not_null($prid)) {
             return false;
+        }
 
         if ($warehouse_id == 0) {
             $warehouse_id = \common\helpers\Warehouses::get_default_warehouse();
@@ -929,9 +980,9 @@ class Product {
         }
         if (defined('STOCK_LIMITED') && STOCK_LIMITED == 'true') {
             if ($qty > $old_qty) {
-                $q = "+" . (int) ($qty - $old_qty) . "";
+                $q = '+' . (int) ($qty - $old_qty) . '';
             } else {
-                $q = "-" . (int) ($old_qty - $qty) . "";
+                $q = '-' . (int) ($old_qty - $qty) . '';
             }
             if (defined('DOWNLOAD_ENABLED') && DOWNLOAD_ENABLED == 'true') {
                 preg_match_all("/\{\d+\}/", $uprid, $arr);
@@ -940,53 +991,54 @@ class Product {
                 $values_id = $arr[0][1];
 
                 if (is_array($options_id)) {
-                    $stock_query_raw = "SELECT count(*) as total FROM " . TABLE_PRODUCTS_ATTRIBUTES . " pa, " . TABLE_PRODUCTS_ATTRIBUTES_DOWNLOAD . " pad WHERE pa.products_attributes_id=pad.products_attributes_id and pa.products_id = '" . (int) $prid . "' and pad.products_attributes_filename<>'' ";
-                    $stock_query_raw .= " and ( 0 ";
+                    $stock_query_raw = 'SELECT count(*) as total FROM ' . TABLE_PRODUCTS_ATTRIBUTES . ' pa, ' . TABLE_PRODUCTS_ATTRIBUTES_DOWNLOAD . " pad WHERE pa.products_attributes_id=pad.products_attributes_id and pa.products_id = '" . (int) $prid . "' and pad.products_attributes_filename<>'' ";
+                    $stock_query_raw .= ' and ( 0 ';
                     for ($k = 0; $k < count($options_id); $k++) {
                         $stock_query_raw .= " OR (pa.options_id = '" . (int) $options_id[$k] . "' AND pa.options_values_id = '" . (int) $values_id[$k] . "')  ";
                     }
-                    $stock_query_raw .= ") ";
+                    $stock_query_raw .= ') ';
                     $d = tep_db_fetch_array(tep_db_query($stock_query_raw));
                     if ($d['total'] > 0) {
                         return true;
                     }
                 }
-                $stock_query_raw = "SELECT count(*) as total FROM " . TABLE_PRODUCTS . " WHERE products_id = '" . (int) $prid . "' and products_file <> '' ";
+                $stock_query_raw = 'SELECT count(*) as total FROM ' . TABLE_PRODUCTS . " WHERE products_id = '" . (int) $prid . "' and products_file <> '' ";
                 $d = tep_db_fetch_array(tep_db_query($stock_query_raw));
                 if ($d['total'] > 0) {
                     return true;
                 }
             }
-/*
-            if (\common\helpers\Acl::checkExtensionAllowed('ProductBundles', 'allowed')) {
-                $vids = array();
-                $attributes_query = tep_db_query("select options_id, options_values_id from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $prid . "'");
-                while ($attributes = tep_db_fetch_array($attributes_query)) {
-                    if (preg_match('/\{' . $attributes['options_id'] . '\}' . $attributes['options_values_id'] . '(\{|$)/', $uprid)) {
-                        $vids[$attributes['options_id']] = $attributes['options_values_id'];
-                    }
-                }
-                ksort($vids);
-                $uprid = \common\helpers\Inventory::get_uprid($prid, $vids);
-            }
-*/
+            /*
+                        if (\common\helpers\Acl::checkExtensionAllowed('ProductBundles', 'allowed')) {
+                            $vids = array();
+                            $attributes_query = tep_db_query("select options_id, options_values_id from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $prid . "'");
+                            while ($attributes = tep_db_fetch_array($attributes_query)) {
+                                if (preg_match('/\{' . $attributes['options_id'] . '\}' . $attributes['options_values_id'] . '(\{|$)/', $uprid)) {
+                                    $vids[$attributes['options_id']] = $attributes['options_values_id'];
+                                }
+                            }
+                            ksort($vids);
+                            $uprid = \common\helpers\Inventory::get_uprid($prid, $vids);
+                        }
+            */
             /** @var \common\extensions\Inventory\Inventory $ext */
             if ($ext = \common\helpers\Extensions::isAllowed('Inventory')) {
                 $ext::updateStock($prid, $uprid, $q, $warehouse_id, $suppliers_id, $platform_id);
             } else {
-                tep_db_query("update " . TABLE_PRODUCTS . " set products_quantity = products_quantity  " . $q . " where products_id = '" . (int)$prid . "'");
-                tep_db_query("update " . TABLE_WAREHOUSES_PRODUCTS . " set products_quantity = products_quantity  " . $q . " where warehouse_id = '" . (int) $warehouse_id . "' and suppliers_id = '" . (int) $suppliers_id . "' and products_id = '" . (int) $prid . "' and prid = '" . (int) $prid . "'");
-                $data_q = tep_db_query("select products_quantity from " . TABLE_PRODUCTS . " where  products_id = '" . (int)$prid . "'");
+                tep_db_query('update ' . TABLE_PRODUCTS . ' set products_quantity = products_quantity  ' . $q . " where products_id = '" . (int)$prid . "'");
+                tep_db_query('update ' . TABLE_WAREHOUSES_PRODUCTS . ' set products_quantity = products_quantity  ' . $q . " where warehouse_id = '" . (int) $warehouse_id . "' and suppliers_id = '" . (int) $suppliers_id . "' and products_id = '" . (int) $prid . "' and prid = '" . (int) $prid . "'");
+                $data_q = tep_db_query('select products_quantity from ' . TABLE_PRODUCTS . " where  products_id = '" . (int)$prid . "'");
                 $data = tep_db_fetch_array($data_q);
                 if ($data['products_quantity'] < 1 && (STOCK_ALLOW_CHECKOUT == 'false')) {
-                    tep_db_query("update " . TABLE_PRODUCTS . " set products_status = 0 where products_id = '" . (int)$prid . "'");
+                    tep_db_query('update ' . TABLE_PRODUCTS . " set products_status = 0 where products_id = '" . (int)$prid . "'");
                 }
             }
         }
     }
 
-    public static function remove_product_image($filename) {
-        $duplicate_image_query = tep_db_query("select count(*) as total from " . TABLE_PRODUCTS . " where products_image = '" . tep_db_input($filename) . "' or products_image_med = '" . tep_db_input($filename) . "' or products_image_lrg = '" . tep_db_input($filename) . "' or products_image_xl_1 = '" . tep_db_input($filename) . "' or products_image_sm_1 = '" . tep_db_input($filename) . "' or products_image_xl_2 = '" . tep_db_input($filename) . "' or products_image_sm_2 = '" . tep_db_input($filename) . "' or products_image_xl_3 = '" . tep_db_input($filename) . "' or products_image_sm_3 = '" . tep_db_input($filename) . "' or products_image_xl_4 = '" . tep_db_input($filename) . "' or products_image_sm_4 = '" . tep_db_input($filename) . "' or products_image_xl_5 = '" . tep_db_input($filename) . "' or products_image_sm_5 = '" . tep_db_input($filename) . "' or products_image_xl_6 = '" . tep_db_input($filename) . "' or products_image_sm_6 = '" . tep_db_input($filename) . "'");
+    public static function remove_product_image($filename)
+    {
+        $duplicate_image_query = tep_db_query('select count(*) as total from ' . TABLE_PRODUCTS . " where products_image = '" . tep_db_input($filename) . "' or products_image_med = '" . tep_db_input($filename) . "' or products_image_lrg = '" . tep_db_input($filename) . "' or products_image_xl_1 = '" . tep_db_input($filename) . "' or products_image_sm_1 = '" . tep_db_input($filename) . "' or products_image_xl_2 = '" . tep_db_input($filename) . "' or products_image_sm_2 = '" . tep_db_input($filename) . "' or products_image_xl_3 = '" . tep_db_input($filename) . "' or products_image_sm_3 = '" . tep_db_input($filename) . "' or products_image_xl_4 = '" . tep_db_input($filename) . "' or products_image_sm_4 = '" . tep_db_input($filename) . "' or products_image_xl_5 = '" . tep_db_input($filename) . "' or products_image_sm_5 = '" . tep_db_input($filename) . "' or products_image_xl_6 = '" . tep_db_input($filename) . "' or products_image_sm_6 = '" . tep_db_input($filename) . "'");
         $duplicate_image = tep_db_fetch_array($duplicate_image_query);
         if ($duplicate_image['total'] < 2) {
             if (file_exists(DIR_FS_CATALOG_IMAGES . $filename)) {
@@ -995,10 +1047,11 @@ class Product {
         }
     }
 
-    public static function remove_product($product_id) {
+    public static function remove_product($product_id)
+    {
         $changePids = [$product_id];
         // {{ remove sub products
-        if ( (int)$product_id>0 ) {
+        if ((int)$product_id > 0) {
             foreach (\common\models\Products::find()
                          ->select('products_id')
                          ->where(['parent_products_id' => (int)$product_id])
@@ -1018,80 +1071,80 @@ class Product {
          * Moved to hook
          */
         // {{ put redirect to category
-//        $get_category_r = tep_db_query(
-//            "SELECT c.categories_id ".
-//            "FROM ".TABLE_PRODUCTS_TO_CATEGORIES." p2c ".
-//              "LEFT JOIN ".TABLE_CATEGORIES." c ON c.categories_id=p2c.categories_id ".
-//            "WHERE p2c.products_id='".(int)$product_id."' ".
-//            "ORDER BY IFNULL(c.categories_left,4000000), c.categories_status DESC ".
-//            "LIMIT 1"
-//        );
-//        if ( tep_db_num_rows($get_category_r)>0 ) {
-//            $_category = tep_db_fetch_array($get_category_r);
-//
-//            tep_db_query(
-//                "INSERT INTO seo_redirect (old_url, new_url, platform_id) ".
-//                "SELECT DISTINCT pd.products_seo_page_name, cd.categories_seo_page_name, pd.platform_id ".
-//                "FROM ".TABLE_PRODUCTS_DESCRIPTION." pd ".
-//                " INNER JOIN ".TABLE_CATEGORIES_DESCRIPTION." cd ON cd.categories_id='".$_category['categories_id']."' AND cd.categories_seo_page_name!='' AND cd.language_id=pd.language_id ".
-//                "WHERE pd.products_seo_page_name!='' AND pd.products_id='".(int)$product_id."' "
-//            );
-//        }
+        //        $get_category_r = tep_db_query(
+        //            "SELECT c.categories_id ".
+        //            "FROM ".TABLE_PRODUCTS_TO_CATEGORIES." p2c ".
+        //              "LEFT JOIN ".TABLE_CATEGORIES." c ON c.categories_id=p2c.categories_id ".
+        //            "WHERE p2c.products_id='".(int)$product_id."' ".
+        //            "ORDER BY IFNULL(c.categories_left,4000000), c.categories_status DESC ".
+        //            "LIMIT 1"
+        //        );
+        //        if ( tep_db_num_rows($get_category_r)>0 ) {
+        //            $_category = tep_db_fetch_array($get_category_r);
+        //
+        //            tep_db_query(
+        //                "INSERT INTO seo_redirect (old_url, new_url, platform_id) ".
+        //                "SELECT DISTINCT pd.products_seo_page_name, cd.categories_seo_page_name, pd.platform_id ".
+        //                "FROM ".TABLE_PRODUCTS_DESCRIPTION." pd ".
+        //                " INNER JOIN ".TABLE_CATEGORIES_DESCRIPTION." cd ON cd.categories_id='".$_category['categories_id']."' AND cd.categories_seo_page_name!='' AND cd.language_id=pd.language_id ".
+        //                "WHERE pd.products_seo_page_name!='' AND pd.products_id='".(int)$product_id."' "
+        //            );
+        //        }
         // }}
 
         //if (USE_MARKET_PRICES == 'True') {
-        tep_db_query("delete from " . TABLE_PRODUCTS_PRICES . " where products_id = '" . (int) $product_id . "'");
-        tep_db_query("delete from " . TABLE_PLATFORMS_PRODUCTS . " where products_id = '" . (int) $product_id . "'");
-        $query = tep_db_query("select specials_id from " . TABLE_SPECIALS . " where products_id = '" . (int) $product_id . "'");
+        tep_db_query('delete from ' . TABLE_PRODUCTS_PRICES . " where products_id = '" . (int) $product_id . "'");
+        tep_db_query('delete from ' . TABLE_PLATFORMS_PRODUCTS . " where products_id = '" . (int) $product_id . "'");
+        $query = tep_db_query('select specials_id from ' . TABLE_SPECIALS . " where products_id = '" . (int) $product_id . "'");
         while ($data = tep_db_fetch_array($query)) {
-            tep_db_query("delete from " . TABLE_SPECIALS_PRICES . " where specials_id = " . $data['specials_id']);
+            tep_db_query('delete from ' . TABLE_SPECIALS_PRICES . ' where specials_id = ' . $data['specials_id']);
         }
-        $query = tep_db_query("select products_attributes_id from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $product_id . "'");
+        $query = tep_db_query('select products_attributes_id from ' . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $product_id . "'");
         while ($data = tep_db_fetch_array($query)) {
-            tep_db_query("delete from " . TABLE_PRODUCTS_ATTRIBUTES_PRICES . " where products_attributes_id = '" . (int) $data['products_attributes_id'] . "'");
+            tep_db_query('delete from ' . TABLE_PRODUCTS_ATTRIBUTES_PRICES . " where products_attributes_id = '" . (int) $data['products_attributes_id'] . "'");
         }
         //}
         if (defined('PRODUCTS_PROPERTIES') && PRODUCTS_PROPERTIES == 'True') {
-            tep_db_query("delete from " . TABLE_PROPERTIES_TO_PRODUCTS . " where products_id = '" . (int) $product_id . "'");
+            tep_db_query('delete from ' . TABLE_PROPERTIES_TO_PRODUCTS . " where products_id = '" . (int) $product_id . "'");
         }
 
-        tep_db_query("delete from " . TABLE_SPECIALS . " where products_id = '" . (int) $product_id . "'");
-        if ( $productModel ) {
+        tep_db_query('delete from ' . TABLE_SPECIALS . " where products_id = '" . (int) $product_id . "'");
+        if ($productModel) {
             $productModel->delete();
         }
-        tep_db_query("delete from " . TABLE_PRODUCTS . " where products_id = '" . (int) $product_id . "'");
-        tep_db_query("delete from " . TABLE_PRODUCTS_TO_CATEGORIES . " where products_id = '" . (int) $product_id . "'");
-        tep_db_query("delete from " . TABLE_PRODUCTS_DESCRIPTION . " where products_id = '" . (int) $product_id . "'");
-        tep_db_query("delete from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $product_id . "'");
-        tep_db_query("delete from " . TABLE_CUSTOMERS_BASKET . " where products_id = '" . (int) $product_id . "'");
-        tep_db_query("delete from " . TABLE_CUSTOMERS_BASKET_ATTRIBUTES . " where products_id = '" . (int) $product_id . "'");
-        tep_db_query("delete from " . TABLE_PRODUCTS_PRICES . " where products_id = '" . (int) $product_id . "'");
-        tep_db_query("delete from " . TABLE_PRODUCTS_COMMENTS . " where products_id = '" . $product_id . "'");
+        tep_db_query('delete from ' . TABLE_PRODUCTS . " where products_id = '" . (int) $product_id . "'");
+        tep_db_query('delete from ' . TABLE_PRODUCTS_TO_CATEGORIES . " where products_id = '" . (int) $product_id . "'");
+        tep_db_query('delete from ' . TABLE_PRODUCTS_DESCRIPTION . " where products_id = '" . (int) $product_id . "'");
+        tep_db_query('delete from ' . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $product_id . "'");
+        tep_db_query('delete from ' . TABLE_CUSTOMERS_BASKET . " where products_id = '" . (int) $product_id . "'");
+        tep_db_query('delete from ' . TABLE_CUSTOMERS_BASKET_ATTRIBUTES . " where products_id = '" . (int) $product_id . "'");
+        tep_db_query('delete from ' . TABLE_PRODUCTS_PRICES . " where products_id = '" . (int) $product_id . "'");
+        tep_db_query('delete from ' . TABLE_PRODUCTS_COMMENTS . " where products_id = '" . $product_id . "'");
 
         /** @var \common\extensions\Inventory\Inventory $ext */
         if ($ext = \common\helpers\Extensions::isAllowed('Inventory')) {
             $ext::deleteProduct((int) $product_id);
         }
 
-        tep_db_query("delete from " . TABLE_SUPPLIERS_PRODUCTS . " where products_id = '" . (int) $product_id . "'");
-        tep_db_query("delete from " . TABLE_WAREHOUSES_PRODUCTS . " where prid = '" . (int) $product_id . "'");
+        tep_db_query('delete from ' . TABLE_SUPPLIERS_PRODUCTS . " where products_id = '" . (int) $product_id . "'");
+        tep_db_query('delete from ' . TABLE_WAREHOUSES_PRODUCTS . " where prid = '" . (int) $product_id . "'");
 
-        $product_reviews_query = tep_db_query("select reviews_id from " . TABLE_REVIEWS . " where products_id = '" . (int) $product_id . "'");
+        $product_reviews_query = tep_db_query('select reviews_id from ' . TABLE_REVIEWS . " where products_id = '" . (int) $product_id . "'");
         while ($product_reviews = tep_db_fetch_array($product_reviews_query)) {
-            tep_db_query("delete from " . TABLE_REVIEWS_DESCRIPTION . " where reviews_id = '" . (int) $product_reviews['reviews_id'] . "'");
+            tep_db_query('delete from ' . TABLE_REVIEWS_DESCRIPTION . " where reviews_id = '" . (int) $product_reviews['reviews_id'] . "'");
         }
-        tep_db_query("delete from " . TABLE_REVIEWS . " where products_id = '" . (int) $product_id . "'");
+        tep_db_query('delete from ' . TABLE_REVIEWS . " where products_id = '" . (int) $product_id . "'");
 
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductTemplates', 'allowed')) {
             $ext::productDelete($product_id);
         }
 
         $schemaCheck = Yii::$app->get('db')->schema->getTableSchema('products_linked_parent');
-        if ( $schemaCheck ) {
+        if ($schemaCheck) {
             tep_db_query("DELETE FROM products_linked_parent WHERE product_id='".$product_id."'");
         }
         $schemaCheck = Yii::$app->get('db')->schema->getTableSchema('products_linked_children');
-        if ( $schemaCheck ) {
+        if ($schemaCheck) {
             tep_db_query("DELETE FROM products_linked_children WHERE parent_product_id='".$product_id."'");
             tep_db_query("DELETE FROM products_linked_children WHERE linked_product_id='".$product_id."'");
         }
@@ -1106,49 +1159,50 @@ class Product {
         }
     }
 
-    public static function trunk_products(){
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_TO_CATEGORIES);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_DESCRIPTION);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_ATTRIBUTES);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_ATTRIBUTES_DOWNLOAD);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_ATTRIBUTES_PRICES);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_PRICES);
-        tep_db_query("TRUNCATE " . TABLE_PROPERTIES_TO_PRODUCTS);
+    public static function trunk_products()
+    {
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_TO_CATEGORIES);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_DESCRIPTION);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_ATTRIBUTES);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_ATTRIBUTES_DOWNLOAD);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_ATTRIBUTES_PRICES);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_PRICES);
+        tep_db_query('TRUNCATE ' . TABLE_PROPERTIES_TO_PRODUCTS);
 
-        tep_db_query("TRUNCATE " . TABLE_INVENTORY);
-        tep_db_query("TRUNCATE " . TABLE_INVENTORY_PRICES);
+        tep_db_query('TRUNCATE ' . TABLE_INVENTORY);
+        tep_db_query('TRUNCATE ' . TABLE_INVENTORY_PRICES);
 
-        tep_db_query("TRUNCATE " . TABLE_SUPPLIERS_PRODUCTS);
-        tep_db_query("TRUNCATE " . TABLE_PLATFORMS_PRODUCTS);
+        tep_db_query('TRUNCATE ' . TABLE_SUPPLIERS_PRODUCTS);
+        tep_db_query('TRUNCATE ' . TABLE_PLATFORMS_PRODUCTS);
 
-        tep_db_query("TRUNCATE " . TABLE_REVIEWS);
-        tep_db_query("TRUNCATE " . TABLE_REVIEWS_DESCRIPTION);
+        tep_db_query('TRUNCATE ' . TABLE_REVIEWS);
+        tep_db_query('TRUNCATE ' . TABLE_REVIEWS_DESCRIPTION);
 
-        tep_db_query("TRUNCATE " . TABLE_SPECIALS);
-        tep_db_query("TRUNCATE " . TABLE_SPECIALS_PRICES);
+        tep_db_query('TRUNCATE ' . TABLE_SPECIALS);
+        tep_db_query('TRUNCATE ' . TABLE_SPECIALS_PRICES);
 
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_IMAGES);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_IMAGES_ATTRIBUTES);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_IMAGES_DESCRIPTION);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_IMAGES_INVENTORY);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_IMAGES);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_IMAGES_ATTRIBUTES);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_IMAGES_DESCRIPTION);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_IMAGES_INVENTORY);
 
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_OPTIONS);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_OPTIONS_VALUES);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_OPTIONS_VALUES_TO_PRODUCTS_OPTIONS);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_OPTIONS);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_OPTIONS_VALUES);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_OPTIONS_VALUES_TO_PRODUCTS_OPTIONS);
 
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_COMMENTS);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_VIDEOS);
-        tep_db_query("TRUNCATE " . TABLE_FEATURED);
-        tep_db_query("TRUNCATE " . TABLE_GIVE_AWAY_PRODUCTS);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_NOTIFY);
-        tep_db_query("TRUNCATE " . TABLE_PRODUCTS_NOTIFICATIONS);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_COMMENTS);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_VIDEOS);
+        tep_db_query('TRUNCATE ' . TABLE_FEATURED);
+        tep_db_query('TRUNCATE ' . TABLE_GIVE_AWAY_PRODUCTS);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_NOTIFY);
+        tep_db_query('TRUNCATE ' . TABLE_PRODUCTS_NOTIFICATIONS);
 
-        tep_db_query("TRUNCATE " . TABLE_STOCK_HISTORY);
-        tep_db_query("TRUNCATE " . \common\models\WarehousesProducts::tableName());
+        tep_db_query('TRUNCATE ' . TABLE_STOCK_HISTORY);
+        tep_db_query('TRUNCATE ' . \common\models\WarehousesProducts::tableName());
 
-        tep_db_query("TRUNCATE " . TABLE_CUSTOMERS_BASKET);
-        tep_db_query("TRUNCATE " . TABLE_CUSTOMERS_BASKET_ATTRIBUTES);
+        tep_db_query('TRUNCATE ' . TABLE_CUSTOMERS_BASKET);
+        tep_db_query('TRUNCATE ' . TABLE_CUSTOMERS_BASKET_ATTRIBUTES);
 
         if (defined('USE_CACHE') && USE_CACHE == 'true') {
             \common\helpers\System::reset_cache_block('categories');
@@ -1164,10 +1218,10 @@ class Product {
             'products_linked_parent', 'products_linked_children',
 
         ];
-        foreach($var_tables as $table) {
-          if ( \Yii::$app->db->schema->getTableSchema($table) ) {
-             tep_db_query("TRUNCATE TABLE $table");
-          }
+        foreach ($var_tables as $table) {
+            if (\Yii::$app->db->schema->getTableSchema($table)) {
+                tep_db_query("TRUNCATE TABLE $table");
+            }
         }
 
         foreach (\common\helpers\Hooks::getList('product/after-trunk') as $filename) {
@@ -1178,9 +1232,11 @@ class Product {
 
     public static function duplicate($products_id, $categories_id, $copy_attributes, $copyCategories = false)
     {
-        $copy_attributes = is_bool($copy_attributes)?$copy_attributes:( !empty($copy_attributes) && $copy_attributes=='yes' );
+        $copy_attributes = is_bool($copy_attributes) ? $copy_attributes : (!empty($copy_attributes) && $copy_attributes == 'yes');
         $originProduct = \common\models\Products::findOne($products_id);
-        if ( !$originProduct ) return false;
+        if (!$originProduct) {
+            return false;
+        }
 
         $__data = $originProduct->getAttributes();
         unset($__data['products_id']);
@@ -1205,17 +1261,17 @@ class Product {
         $productModel->parent_products_id = 0;
         $productModel->products_file = '';
 
-        if (!$productModel->save(false)){
+        if (!$productModel->save(false)) {
             return false;
         }
         $productModel->refresh();
         $dup_products_id = intval($productModel->products_id);
 
         if ($copyCategories) {
-            tep_db_query("insert ignore into " . TABLE_PRODUCTS_TO_CATEGORIES . " (products_id, categories_id) select * from (select '" . (int) $dup_products_id . "', categories_id from ". TABLE_PRODUCTS_TO_CATEGORIES . " where products_id='" . (int)$products_id . "') a");
+            tep_db_query('insert ignore into ' . TABLE_PRODUCTS_TO_CATEGORIES . " (products_id, categories_id) select * from (select '" . (int) $dup_products_id . "', categories_id from ". TABLE_PRODUCTS_TO_CATEGORIES . " where products_id='" . (int)$products_id . "') a");
         }
 
-        tep_db_query("insert ignore into " . TABLE_PRODUCTS_TO_CATEGORIES . " (products_id, categories_id) values ('" . (int) $dup_products_id . "', '" . (int) $categories_id . "')");
+        tep_db_query('insert ignore into ' . TABLE_PRODUCTS_TO_CATEGORIES . " (products_id, categories_id) values ('" . (int) $dup_products_id . "', '" . (int) $categories_id . "')");
 
         $copyModels = [
             '\common\models\ProductsDescription' => 'products_id',
@@ -1228,21 +1284,19 @@ class Product {
         if (\common\helpers\Acl::checkExtensionAllowed('UserGroupsRestrictions')) {
             $copyModels['\common\extensions\UserGroupsRestrictions\models\GroupsProducts'] = 'products_id';
         }
-        foreach ($copyModels as $copyModelClass=>$copyProductColumn){
-            if ( !class_exists($copyModelClass) ) {
+        foreach ($copyModels as $copyModelClass => $copyProductColumn) {
+            if (!class_exists($copyModelClass)) {
                 continue;
             }
 
-            call_user_func_array([$copyModelClass,'deleteAll'], [[$copyProductColumn=>$dup_products_id]]);
-            $sourceCollection = call_user_func_array([$copyModelClass,'findAll'], [[$copyProductColumn=>$originProduct->products_id]]);
-            foreach ($sourceCollection as $originModel)
-            {
+            call_user_func_array([$copyModelClass,'deleteAll'], [[$copyProductColumn => $dup_products_id]]);
+            $sourceCollection = call_user_func_array([$copyModelClass,'findAll'], [[$copyProductColumn => $originProduct->products_id]]);
+            foreach ($sourceCollection as $originModel) {
                 $__data = $originModel->getAttributes();
                 $__data[$copyProductColumn] = $dup_products_id;
                 $copyModel = Yii::createObject($copyModelClass);
-                if ( $copyModel instanceof \yii\db\ActiveRecord )
-                {
-                    if ( $copyModel instanceof \common\models\ProductsDescription ) {
+                if ($copyModel instanceof \yii\db\ActiveRecord) {
+                    if ($copyModel instanceof \common\models\ProductsDescription) {
                         $__data['products_seo_page_name'] = '';
                     }
                     $copyModel->setAttributes($__data, false);
@@ -1254,7 +1308,7 @@ class Product {
 
         // [[ Properties
         if (defined('PRODUCTS_PROPERTIES') && PRODUCTS_PROPERTIES == 'True') {
-            tep_db_query("insert into " . TABLE_PROPERTIES_TO_PRODUCTS . " (products_id, properties_id, values_id, values_flag, extra_value) select * from (select " . (int)$dup_products_id . ", properties_id, values_id, values_flag, extra_value from " . TABLE_PROPERTIES_TO_PRODUCTS . " where products_id = '" . tep_db_input($products_id) . "') a");
+            tep_db_query('insert into ' . TABLE_PROPERTIES_TO_PRODUCTS . ' (products_id, properties_id, values_id, values_flag, extra_value) select * from (select ' . (int)$dup_products_id . ', properties_id, values_id, values_flag, extra_value from ' . TABLE_PROPERTIES_TO_PRODUCTS . " where products_id = '" . tep_db_input($products_id) . "') a");
             /* outdated table structure .... Unknown column 'language_id' in field list
              $properties_query = tep_db_query("select * from " . TABLE_PROPERTIES_TO_PRODUCTS . " where products_id = '" . tep_db_input($products_id) . "'");
             while ($properties = tep_db_fetch_array($properties_query)) {
@@ -1265,16 +1319,15 @@ class Product {
         // ]]
 
         // [[ SUPPLEMENT_STATUS
-        if ((defined('SUPPLEMENT_STATUS') && SUPPLEMENT_STATUS == 'True') && \common\helpers\Acl::checkExtensionAllowed('UpSell'))
-        {
-            $query = tep_db_query("select * from " . TABLE_PRODUCTS_UPSELL . " where products_id = '" . (int) $products_id . "'");
+        if ((defined('SUPPLEMENT_STATUS') && SUPPLEMENT_STATUS == 'True') && \common\helpers\Acl::checkExtensionAllowed('UpSell')) {
+            $query = tep_db_query('select * from ' . TABLE_PRODUCTS_UPSELL . " where products_id = '" . (int) $products_id . "'");
             while ($data = tep_db_fetch_array($query)) {
-                tep_db_query("insert into " . TABLE_PRODUCTS_UPSELL . " (products_id, upsell_id, sort_order) values ('" . $dup_products_id . "', '" . $data['upsell_id'] . "', '" . $data['sort_order'] . "')");
+                tep_db_query('insert into ' . TABLE_PRODUCTS_UPSELL . " (products_id, upsell_id, sort_order) values ('" . $dup_products_id . "', '" . $data['upsell_id'] . "', '" . $data['sort_order'] . "')");
             }
 
-            $query = tep_db_query("select * from " . TABLE_PRODUCTS_XSELL . " where products_id = '" . (int) $products_id . "'");
+            $query = tep_db_query('select * from ' . TABLE_PRODUCTS_XSELL . " where products_id = '" . (int) $products_id . "'");
             while ($data = tep_db_fetch_array($query)) {
-                tep_db_query("insert into " . TABLE_PRODUCTS_XSELL . " (products_id, xsell_id, sort_order) values ('" . $dup_products_id . "', '" . $data['xsell_id'] . "', '" . $data['sort_order'] . "')");
+                tep_db_query('insert into ' . TABLE_PRODUCTS_XSELL . " (products_id, xsell_id, sort_order) values ('" . $dup_products_id . "', '" . $data['xsell_id'] . "', '" . $data['sort_order'] . "')");
             }
         }
         // ]]
@@ -1282,7 +1335,6 @@ class Product {
         $products_id_from = tep_db_input($products_id);
         $products_id_to = $dup_products_id;
         //$products_id = $dup_products_id;
-
 
         if ($copy_attributes) {
             /*$copy_attributes_delete_first = '1';
@@ -1294,10 +1346,10 @@ class Product {
             try {
                 \common\helpers\Attributes::copyProductsAttributes($products_id_from, $products_id_to, true);
             } catch (\Exception $e) {
-                \Yii::warning(" #### " . $e->getCode() . ' ' . print_r($e->getMessage(), true), 'TLDEBUG');
+                \Yii::warning(' #### ' . $e->getCode() . ' ' . print_r($e->getMessage(), true), 'TLDEBUG');
             }
         }
-/// images (after attributes and inventory
+        /// images (after attributes and inventory
         \common\helpers\Image::copyProductImages($products_id, $dup_products_id);
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('PlainProductsDescription', 'allowed')) {
             $ext::reindex($dup_products_id);
@@ -1305,22 +1357,24 @@ class Product {
         return $dup_products_id;
     }
 
-/**
- * common\models\Product\Price()->getProductSpecialPrice
- * @param int $product_id
- * @param int $qty
- * @return float|false
- */
-    public static function get_products_special_price($product_id, $qty = 1) {
+    /**
+     * common\models\Product\Price()->getProductSpecialPrice
+     * @param int $product_id
+     * @param int $qty
+     * @return float|false
+     */
+    public static function get_products_special_price($product_id, $qty = 1)
+    {
         return \common\models\Product\Price::getInstance($product_id)->getProductSpecialPrice([
             'qty' => $qty,
         ]);
     }
 
-    public static function save_specials_prices($specials_id, $group_id, $currencies_id = 0,$specials_groups_prices = 0){
+    public static function save_specials_prices($specials_id, $group_id, $currencies_id = 0, $specials_groups_prices = 0)
+    {
         $sql_data_array = [];
         $sql_data_array['specials_new_products_price'] = (float)$specials_groups_prices;
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as specials_price_exists from " . TABLE_SPECIALS_PRICES . " where specials_id = '" . (int) $specials_id . "' and groups_id = '" . (int) $group_id . "' and currencies_id = '" . (int)$currencies_id . "'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as specials_price_exists from ' . TABLE_SPECIALS_PRICES . " where specials_id = '" . (int) $specials_id . "' and groups_id = '" . (int) $group_id . "' and currencies_id = '" . (int)$currencies_id . "'"));
         if ($check['specials_price_exists']) {
             tep_db_perform(TABLE_SPECIALS_PRICES, $sql_data_array, 'update', "specials_id = '" . (int) $specials_id . "' and groups_id = '" . (int) $group_id . "' and currencies_id = '". (int)$currencies_id."'");
         } else {
@@ -1331,7 +1385,8 @@ class Product {
         }
     }
 
-    public static function get_products_price_for_edit($product_id, $currency_id = 0, $group_id = 0, $default = '') {
+    public static function get_products_price_for_edit($product_id, $currency_id = 0, $group_id = 0, $default = '')
+    {
         if (defined('USE_MARKET_PRICES') && USE_MARKET_PRICES != 'True') {
             $currency_id = 0;
         }
@@ -1339,9 +1394,9 @@ class Product {
             $group_id = 0;
         }
         if ($currency_id == 0 && $group_id == 0) {
-            $product_query = tep_db_query("select products_price from " . TABLE_PRODUCTS . " where products_id = '" . (int)$product_id . "'");
+            $product_query = tep_db_query('select products_price from ' . TABLE_PRODUCTS . " where products_id = '" . (int)$product_id . "'");
         } else {
-            $product_query = tep_db_query("select products_group_price as products_price from " . TABLE_PRODUCTS_PRICES . " where  products_id = '" . (int)$product_id . "' and  groups_id = '" . (int)$group_id . "' and  currencies_id = '" . (int)$currency_id . "'");
+            $product_query = tep_db_query('select products_group_price as products_price from ' . TABLE_PRODUCTS_PRICES . " where  products_id = '" . (int)$product_id . "' and  groups_id = '" . (int)$group_id . "' and  currencies_id = '" . (int)$currency_id . "'");
         }
         $product = tep_db_fetch_array($product_query);
 
@@ -1350,16 +1405,17 @@ class Product {
         }
         return $product['products_price'];
     }
-/**
- * product price in selected currency for specified group (already q-ty discount)
- *
- * @param int $product_id
- * @param int $currency_id
- * @param int $group_id
- * @param float $default price
- * @return float product price in selected currency for specified group
- */
-    public static function get_products_price($products_id, $qty = 1, $price = 0, $curr_id = 0, $group_id = 0) {
+    /**
+     * product price in selected currency for specified group (already q-ty discount)
+     *
+     * @param int $product_id
+     * @param int $currency_id
+     * @param int $group_id
+     * @param float $default price
+     * @return float product price in selected currency for specified group
+     */
+    public static function get_products_price($products_id, $qty = 1, $price = 0, $curr_id = 0, $group_id = 0)
+    {
         return \common\models\Product\Price::getInstance($products_id)->getProductPrice([
             'qty' => $qty,
             'curr_id' => $curr_id,
@@ -1368,7 +1424,8 @@ class Product {
     }
 
     /* function tep_get_products_discount_price($product_id, $currency_id = 0, $group_id = 0, $default = ''){ */
-    public static function get_products_discount_price($products_id, $qty, $products_price, $curr_id = 0, $group_id = 0) {
+    public static function get_products_discount_price($products_id, $qty, $products_price, $curr_id = 0, $group_id = 0)
+    {
         return \common\models\Product\Price::getInstance($products_id)->getProductsDiscountPrice([
             'products_price' => $products_price, //???
             'qty' => $qty,
@@ -1377,7 +1434,8 @@ class Product {
         ]);
     }
 
-    public static function get_products_discount_table($products_id, $curr_id = 0, $group_id = 0) {
+    public static function get_products_discount_table($products_id, $curr_id = 0, $group_id = 0)
+    {
         $customer_groups_id = (int) \Yii::$app->storage->get('customer_groups_id');
 
         if ($curr_id > 0) {
@@ -1398,33 +1456,33 @@ class Product {
 
         $apply_discount = false;
         if ((defined('USE_MARKET_PRICES') && USE_MARKET_PRICES == 'True') || \common\helpers\Extensions::isCustomerGroupsAllowed()) {
-            $query = tep_db_query("select pp.products_group_discount_price as products_price_discount, pp.products_group_price from " . TABLE_PRODUCTS_PRICES . " pp where pp.products_id = '" . (int)$products_id . "' and pp.groups_id = '" . (int)$_customer_groups_id . "' and pp.currencies_id = '" . (USE_MARKET_PRICES == 'True'? $_currency_id :'0'). "'");
+            $query = tep_db_query('select pp.products_group_discount_price as products_price_discount, pp.products_group_price from ' . TABLE_PRODUCTS_PRICES . " pp where pp.products_id = '" . (int)$products_id . "' and pp.groups_id = '" . (int)$_customer_groups_id . "' and pp.currencies_id = '" . (USE_MARKET_PRICES == 'True' ? $_currency_id : '0'). "'");
             $num_rows = tep_db_num_rows($query);
             $data = tep_db_fetch_array($query);
             if (!$num_rows || ($data['products_price_discount'] == '' && $data['products_group_price'] == -2) || $data['products_price_discount'] == -2 || (USE_MARKET_PRICES != 'True' && $_customer_groups_id == 0)) {
                 if (defined('USE_MARKET_PRICES') && USE_MARKET_PRICES == 'True') {
-                    $data = tep_db_fetch_array(tep_db_query("select pp.products_group_discount_price as products_price_discount from " . TABLE_PRODUCTS_PRICES . " pp where pp.products_id = '" . (int)$products_id . "' and pp.groups_id = '0' and pp.currencies_id = '" . (int)$_currency_id . "'"));
+                    $data = tep_db_fetch_array(tep_db_query('select pp.products_group_discount_price as products_price_discount from ' . TABLE_PRODUCTS_PRICES . " pp where pp.products_id = '" . (int)$products_id . "' and pp.groups_id = '0' and pp.currencies_id = '" . (int)$_currency_id . "'"));
                 } else {
-                    $data = tep_db_fetch_array(tep_db_query("select products_price_discount from " . TABLE_PRODUCTS . " where products_id = '" . (int)$products_id . "'"));
+                    $data = tep_db_fetch_array(tep_db_query('select products_price_discount from ' . TABLE_PRODUCTS . " where products_id = '" . (int)$products_id . "'"));
                 }
                 $apply_discount = true;
             }
         } else {
-            $data  = tep_db_fetch_array(tep_db_query("select products_price_discount from " . TABLE_PRODUCTS . " where products_id = '" . (int)$products_id . "'"));
+            $data  = tep_db_fetch_array(tep_db_query('select products_price_discount from ' . TABLE_PRODUCTS . " where products_id = '" . (int)$products_id . "'"));
         }
         if ($data['products_price_discount'] == '' || $data['products_price_discount'] == -1) {
             return false;
         }
-        $ar = preg_split("/[:;]/", preg_replace('/;\s*$/', '', $data['products_price_discount'])); // remove final separator
+        $ar = preg_split('/[:;]/', preg_replace('/;\s*$/', '', $data['products_price_discount'])); // remove final separator
 
-        if (!is_array($ar) || count($ar)<2 || count($ar)%2==1) { // incorrect table format - skip
-          return false;
+        if (!is_array($ar) || count($ar) < 2 || count($ar) % 2 == 1) { // incorrect table format - skip
+            return false;
         }
 
         if ($apply_discount) {
             $discount = \common\helpers\Customer::check_customer_groups($_customer_groups_id, 'groups_discount');
-            for ($i=0, $n=sizeof($ar); $i<$n; $i=$i+2) {
-                $ar[$i+1] = $ar[$i+1] * (1 - ($discount/100));
+            for ($i = 0, $n = sizeof($ar); $i < $n; $i = $i + 2) {
+                $ar[$i + 1] = $ar[$i + 1] * (1 - ($discount / 100));
             }
         }
 
@@ -1435,15 +1493,17 @@ class Product {
         return $ar;
     }
 
-    public static function is_giveaway($products_id) {
-        $query = tep_db_query("select * from " . TABLE_GIVE_AWAY_PRODUCTS . " where products_id = '" . (int) $products_id . "'");
+    public static function is_giveaway($products_id)
+    {
+        $query = tep_db_query('select * from ' . TABLE_GIVE_AWAY_PRODUCTS . " where products_id = '" . (int) $products_id . "'");
         if (tep_db_num_rows($query) > 0) {
             return true;
         }
         return false;
     }
 
-    public static function draw_products_pull_down($name, $parameters = '', $exclude = '') {
+    public static function draw_products_pull_down($name, $parameters = '', $exclude = '')
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
 
         $_params = \Yii::$app->request->getBodyParams();
@@ -1455,7 +1515,7 @@ class Product {
         }
 
         if ($exclude == '') {
-            $exclude = array();
+            $exclude = [];
         }
 
         $select_string = '<select name="' . $name . '"';
@@ -1466,7 +1526,7 @@ class Product {
 
         $select_string .= '>';
 
-        $products_query = tep_db_query("select p.products_id, pd.products_name, p.products_price from " . TABLE_PRODUCTS . " p, " . TABLE_PRODUCTS_DESCRIPTION . " pd where p.products_id = pd.products_id and platform_id = '".intval(\common\classes\platform::defaultId())."' and pd.language_id = '" . (int) $languages_id . "' order by products_name");
+        $products_query = tep_db_query('select p.products_id, pd.products_name, p.products_price from ' . TABLE_PRODUCTS . ' p, ' . TABLE_PRODUCTS_DESCRIPTION . " pd where p.products_id = pd.products_id and platform_id = '".intval(\common\classes\platform::defaultId())."' and pd.language_id = '" . (int) $languages_id . "' order by products_name");
         while ($products = tep_db_fetch_array($products_query)) {
             if (!in_array($products['products_id'], $exclude)) {
                 $select_string .= '<option ' . (($_POST[$name] == $products['products_id']) ? ' selected ' : '') . ' value="' . $products['products_id'] . '">' . $products['products_name'] . ' (' . $currencies->format(\common\helpers\Product::get_products_price($products['products_id'], 1, 0, $currencies->currencies[DEFAULT_CURRENCY]['id']), true, DEFAULT_CURRENCY) . ')</option>';
@@ -1478,15 +1538,16 @@ class Product {
         return $select_string;
     }
 
-/**
- * generally for admin only - get special price value for group/currency
- * @param int $specials_id
- * @param int $currency_id
- * @param int $group_id
- * @param float $default
- * @return float
- */
-    public static function get_specials_price($specials_id, $currency_id = 0, $group_id = 0, $default = '') {
+    /**
+     * generally for admin only - get special price value for group/currency
+     * @param int $specials_id
+     * @param int $currency_id
+     * @param int $group_id
+     * @param float $default
+     * @return float
+     */
+    public static function get_specials_price($specials_id, $currency_id = 0, $group_id = 0, $default = '')
+    {
         if (defined('USE_MARKET_PRICES') && USE_MARKET_PRICES != 'True') {
             $currency_id = 0;
         }
@@ -1494,9 +1555,9 @@ class Product {
             $group_id = 0;
         }
         if ($currency_id == 0 && $group_id == 0) {
-            $specials_query = tep_db_query("select specials_new_products_price from " . TABLE_SPECIALS . " where specials_id = '" . (int)$specials_id . "'");
+            $specials_query = tep_db_query('select specials_new_products_price from ' . TABLE_SPECIALS . " where specials_id = '" . (int)$specials_id . "'");
         } else {
-            $specials_query = tep_db_query("select specials_new_products_price from " . TABLE_SPECIALS_PRICES . " where  specials_id = '" . (int)$specials_id . "' and  groups_id = '" . (int)$group_id . "' and  currencies_id = '" . (int)$currency_id . "'");
+            $specials_query = tep_db_query('select specials_new_products_price from ' . TABLE_SPECIALS_PRICES . " where  specials_id = '" . (int)$specials_id . "' and  groups_id = '" . (int)$group_id . "' and  currencies_id = '" . (int)$currency_id . "'");
         }
         $specials_data = tep_db_fetch_array($specials_query);
         if ($specials_data['specials_new_products_price'] == '' && $default != '') {
@@ -1504,79 +1565,83 @@ class Product {
         }
         return $specials_data['specials_new_products_price'];
     }
-    public static function get_sql_product_restrictions($table_prefixes = array('p', 'pd', 's', 'sp', 'pp'), $listingCheck=true) {
-      // " . \common\helpers\Product::get_sql_product_restrictions(array('p'=>'')) . "
-      $def = array('p', 'pd', 's', 'sp', 'pp');
-      if (!is_array($table_prefixes)) {
-        $table_prefixes['p'] = (trim($table_prefixes)!=''?rtrim($table_prefixes, '.') . '.':'');
-      } else {
-        foreach($table_prefixes as $k => $v) {
-          if (is_integer($k)) {
-            $k = $def[$k];
-          }
-          $table_prefixes[$k] = (trim($v) != '' ? rtrim($v, '.') . '.':'');
+    public static function get_sql_product_restrictions($table_prefixes = ['p', 'pd', 's', 'sp', 'pp'], $listingCheck = true)
+    {
+        // " . \common\helpers\Product::get_sql_product_restrictions(array('p'=>'')) . "
+        $def = ['p', 'pd', 's', 'sp', 'pp'];
+        if (!is_array($table_prefixes)) {
+            $table_prefixes['p'] = (trim($table_prefixes) != '' ? rtrim($table_prefixes, '.') . '.' : '');
+        } else {
+            foreach ($table_prefixes as $k => $v) {
+                if (is_integer($k)) {
+                    $k = $def[$k];
+                }
+                $table_prefixes[$k] = (trim($v) != '' ? rtrim($v, '.') . '.' : '');
+            }
         }
-      }
-      foreach($def as $k) {
-        if (!isset($table_prefixes[$k])) {
-          $table_prefixes[$k] = $k . '.';
+        foreach ($def as $k) {
+            if (!isset($table_prefixes[$k])) {
+                $table_prefixes[$k] = $k . '.';
+            }
         }
-      }
 
-      $where_str = '';
-      static $_cache=[];
-      if (!isset($_cache['hidden_stock_indication'])) {
-        $_cache['hidden_stock_indication'] = \common\classes\StockIndication::getHiddenIds();
-      }
-      if (count($_cache['hidden_stock_indication'])>0 && !\frontend\design\Info::isTotallyAdmin()) {
-        $where_str .= " and " .$table_prefixes['p'] . "stock_indication_id not in ('" . implode("','", $_cache['hidden_stock_indication']) . "')";
-      }
-      if (!$listingCheck && defined('LISTING_SUB_PRODUCT') && LISTING_SUB_PRODUCT=='True' && !\frontend\design\Info::isTotallyAdmin()) {
-        $where_str .= " and " . $table_prefixes['p'] . "is_listing_product=1 ";
-      }
-      if (\common\helpers\Extensions::isAllowed('Inventory')) {
-        if ($groupsInventory = \common\helpers\Acl::checkExtensionTableExist('UserGroupsRestrictions', 'GroupsInventory', 'isAllowed')) {
-          $customer_groups_id = (int) \Yii::$app->storage->get('customer_groups_id');
-          $where_str .= " and ((not exists (select * from " . TABLE_INVENTORY . " where " . $table_prefixes['p'] . "products_id = prid)) or ((exists (select * from " . TABLE_INVENTORY . " where " . $table_prefixes['p'] . "products_id = prid)) and (exists (select * from " . $groupsInventory::tableName() . " where (" . $table_prefixes['p'] . "products_id = prid) and (groups_id = '" . (int)$customer_groups_id . "')))))";
+        $where_str = '';
+        static $_cache = [];
+        if (!isset($_cache['hidden_stock_indication'])) {
+            $_cache['hidden_stock_indication'] = \common\classes\StockIndication::getHiddenIds();
         }
-      }
-      return $where_str;
+        if (count($_cache['hidden_stock_indication']) > 0 && !\frontend\design\Info::isTotallyAdmin()) {
+            $where_str .= ' and ' .$table_prefixes['p'] . "stock_indication_id not in ('" . implode("','", $_cache['hidden_stock_indication']) . "')";
+        }
+        if (!$listingCheck && defined('LISTING_SUB_PRODUCT') && LISTING_SUB_PRODUCT == 'True' && !\frontend\design\Info::isTotallyAdmin()) {
+            $where_str .= ' and ' . $table_prefixes['p'] . 'is_listing_product=1 ';
+        }
+        if (\common\helpers\Extensions::isAllowed('Inventory')) {
+            if ($groupsInventory = \common\helpers\Acl::checkExtensionTableExist('UserGroupsRestrictions', 'GroupsInventory', 'isAllowed')) {
+                $customer_groups_id = (int) \Yii::$app->storage->get('customer_groups_id');
+                $where_str .= ' and ((not exists (select * from ' . TABLE_INVENTORY . ' where ' . $table_prefixes['p'] . 'products_id = prid)) or ((exists (select * from ' . TABLE_INVENTORY . ' where ' . $table_prefixes['p'] . 'products_id = prid)) and (exists (select * from ' . $groupsInventory::tableName() . ' where (' . $table_prefixes['p'] . "products_id = prid) and (groups_id = '" . (int)$customer_groups_id . "')))))";
+            }
+        }
+        return $where_str;
     }
 
-    public static function getProductImages($products_id) {
-      $image_path = DIR_WS_CATALOG_IMAGES . 'products' . '/' . $products_id . '/';
-      $images = [];
-      $images_query = tep_db_query("select id.*, i.* from " . TABLE_PRODUCTS_IMAGES . " as i left join " . TABLE_PRODUCTS_IMAGES_DESCRIPTION . " as id on (i.products_images_id=id.products_images_id and id.language_id=0) where i.products_id = '" . (int) $products_id . "' order by i.sort_order");
-      while ($images_data = tep_db_fetch_array($images_query)) {
-          $images[] = [
-              'products_images_id' => $images_data['products_images_id'],
-              'image_name' => (empty($images_data['hash_file_name']) ? '' : $image_path . $images_data['products_images_id'] . '/' . $images_data['hash_file_name']),
-          ];
-      }
-      return $images;
-    }
-
-    public static function parseQtyDiscountArray($discount) {
-      $qty_discounts = [];
-      if ($discount != '') {
-        foreach (explode(';', $discount) as $qty_discount) {
-          $ar = explode(':', $qty_discount);
-          if ($ar[0] > 0 && $ar[1] > 0) {
-            $qty_discounts[$ar[0]] = $ar[1];
-          }
+    public static function getProductImages($products_id)
+    {
+        $image_path = DIR_WS_CATALOG_IMAGES . 'products' . '/' . $products_id . '/';
+        $images = [];
+        $images_query = tep_db_query('select id.*, i.* from ' . TABLE_PRODUCTS_IMAGES . ' as i left join ' . TABLE_PRODUCTS_IMAGES_DESCRIPTION . " as id on (i.products_images_id=id.products_images_id and id.language_id=0) where i.products_id = '" . (int) $products_id . "' order by i.sort_order");
+        while ($images_data = tep_db_fetch_array($images_query)) {
+            $images[] = [
+                'products_images_id' => $images_data['products_images_id'],
+                'image_name' => (empty($images_data['hash_file_name']) ? '' : $image_path . $images_data['products_images_id'] . '/' . $images_data['hash_file_name']),
+            ];
         }
-      }
-      ksort($qty_discounts);
-      return $qty_discounts;
+        return $images;
     }
 
-    public static function products_groups_name($products_groups_id, $language_id = '') {
+    public static function parseQtyDiscountArray($discount)
+    {
+        $qty_discounts = [];
+        if ($discount != '') {
+            foreach (explode(';', $discount) as $qty_discount) {
+                $ar = explode(':', $qty_discount);
+                if ($ar[0] > 0 && $ar[1] > 0) {
+                    $qty_discounts[$ar[0]] = $ar[1];
+                }
+            }
+        }
+        ksort($qty_discounts);
+        return $qty_discounts;
+    }
+
+    public static function products_groups_name($products_groups_id, $language_id = '')
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
         if (!$language_id) {
             $language_id = $languages_id;
         }
 
-        $products_groups_query = tep_db_query("select products_groups_name from " . TABLE_PRODUCTS_GROUPS . " where products_groups_id = '" . (int)$products_groups_id . "' and language_id = '" . (int)$language_id . "'");
+        $products_groups_query = tep_db_query('select products_groups_name from ' . TABLE_PRODUCTS_GROUPS . " where products_groups_id = '" . (int)$products_groups_id . "' and language_id = '" . (int)$language_id . "'");
         $products_groups = tep_db_fetch_array($products_groups_query);
 
         return $products_groups['products_groups_name'] ?? null;
@@ -1585,27 +1650,27 @@ class Product {
     public static function set_status($productId, $status)
     {
         tep_db_query(
-            "update " . TABLE_PRODUCTS . " ".
-            "set products_status = '" . ($status? 1 : 0) . "', ".
-            " previous_status=NULL, ".
-            " products_last_modified = now() ".
+            'update ' . TABLE_PRODUCTS . ' '.
+            "set products_status = '" . ($status ? 1 : 0) . "', ".
+            ' previous_status=NULL, '.
+            ' products_last_modified = now() '.
             "where products_id = '" . (int)$productId. "'"
         );
-        if ( (int)$productId ) {
-            if ( $status ) {
+        if ((int)$productId) {
+            if ($status) {
                 tep_db_query(
-                    "update " . TABLE_PRODUCTS . " " .
-                    "set products_status = IFNULL(sub_product_prev_status,1), " .
-                    " sub_product_prev_status = NULL, " .
-                    " products_last_modified = NOW() " .
+                    'update ' . TABLE_PRODUCTS . ' ' .
+                    'set products_status = IFNULL(sub_product_prev_status,1), ' .
+                    ' sub_product_prev_status = NULL, ' .
+                    ' products_last_modified = NOW() ' .
                     "where parent_products_id = '" . (int)$productId . "'"
                 );
-            }else {
+            } else {
                 tep_db_query(
-                    "update " . TABLE_PRODUCTS . " " .
-                    "set sub_product_prev_status = products_status, " .
-                    " products_status=0, " .
-                    " products_last_modified = NOW() " .
+                    'update ' . TABLE_PRODUCTS . ' ' .
+                    'set sub_product_prev_status = products_status, ' .
+                    ' products_status=0, ' .
+                    ' products_last_modified = NOW() ' .
                     "where parent_products_id = '" . (int)$productId . "'"
                 );
             }
@@ -1617,145 +1682,149 @@ class Product {
         \common\components\CategoriesCache::getCPC()::invalidateProducts($productId);
     }
 
-    public static function fillGlobalSort($platform_id = 0, $products_id = 0) {
-      if ($products_id==0) {
-        //clean up: delete if product was removed
-        $sql = " delete gs from " . TABLE_PRODUCTS_GLOBAL_SORT . " gs where not exists (select * from " . TABLE_PRODUCTS . " p where p.products_id=gs.products_id)";
-        if ($platform_id>0) {
-          $sql .= " and platform_id='" . (int)$platform_id . "'";
+    public static function fillGlobalSort($platform_id = 0, $products_id = 0)
+    {
+        if ($products_id == 0) {
+            //clean up: delete if product was removed
+            $sql = ' delete gs from ' . TABLE_PRODUCTS_GLOBAL_SORT . ' gs where not exists (select * from ' . TABLE_PRODUCTS . ' p where p.products_id=gs.products_id)';
+            if ($platform_id > 0) {
+                $sql .= " and platform_id='" . (int)$platform_id . "'";
+            }
+            tep_db_query($sql);
         }
-        tep_db_query($sql);
-      }
-// new products to top
-// 2do new products by name
-      if ($platform_id == 0) {
-        $plSql = "";
-      } else {
-        $plSql = " and plp.platform_id='" . (int) $platform_id . "'";
-      }
-      if ($products_id == 0) {
-        $pSql = "";
-      } else {
-        $pSql = " and plp.products_id='" . (int) $products_id . "'";
-      }
-      $sql = " insert ignore into " . TABLE_PRODUCTS_GLOBAL_SORT . " (products_id, platform_id, sort_order) select * from "
-          . "(select plp.products_id, plp.platform_id,  @n:=@n+1 from " . TABLE_PLATFORMS_PRODUCTS . " plp  left join " . TABLE_PRODUCTS_GLOBAL_SORT . " gs1 on plp.products_id=gs1.products_id  and plp.platform_id =gs1.platform_id, (SELECT @n:=ifnull(max(sort_order),0) from " . TABLE_PRODUCTS_GLOBAL_SORT . ") r  where gs1.products_id is null {$plSql} {$pSql} order by " . ("plp.products_id") . ") s";
-      $ret = tep_db_query($sql);
-
-
-      return $ret;
-    }
-
-    public static function globalSortSerialIndex($platform_id, $start = 0, $range = [], $pids=[], $exclude=false) {
-      //update products_global_sort p, (SELECT @n:=@n+1 as cnt, products_id from products_global_sort, (select @n:=0) c where platform_id=1 ORDER BY `sort_order`, `products_id` ) i set sort_order=cnt where platform_id=1 and p.products_id=i.products_id
-      if (is_array($range)) {
-        if (!empty($range)) {
-          $range = array_map('intval', $range);
+        // new products to top
+        // 2do new products by name
+        if ($platform_id == 0) {
+            $plSql = '';
+        } else {
+            $plSql = " and plp.platform_id='" . (int) $platform_id . "'";
         }
-      } else {
-        $range = [];
-      }
-
-      if (is_array($pids)) {
-        if (!empty($pids)) {
-          $pids = array_map('intval', $pids);
+        if ($products_id == 0) {
+            $pSql = '';
+        } else {
+            $pSql = " and plp.products_id='" . (int) $products_id . "'";
         }
-      } else {
-        $pids = [intval($pids)];
-      }
-
-      $sql = " update " . TABLE_PRODUCTS_GLOBAL_SORT . " p, "
-          . "(select products_id, sort_order, @n:=@n+1 as cnt from " . TABLE_PRODUCTS_GLOBAL_SORT . ", (SELECT @n:=" . (int)$start . ") c "
-          . " where platform_id='" . (int)$platform_id . "' "
-          . (!empty($range)?" and sort_order>=" . (int)$range[0] . " and sort_order<=" . (int)$range[1] :'')
-          . (!empty($pids)?" and products_id " . ($exclude?"not ":'') . "in ('" . implode("','", $pids) . "')":'')
-          . " order by sort_order, products_id) i "
-          . "  set p.sort_order=cnt where platform_id='" . (int)$platform_id . "' and p.products_id=i.products_id ";
-      $ret = tep_db_query($sql);
-      //echo $sql . " <BR>\n";
-      //if ($exclude)      die;
-      //return $sql . "<BR>";
-      return $ret;
-    }
-
-    public static function globalSortReindexGroupped($platform_id) {
-      $ret = self::globalSortSerialIndex($platform_id);
-
-      if ($ret ) {
-        $first = true;
-        $q = (new \yii\db\Query())
-            ->select('p.products_groups_id')
-            ->addSelect([
-              'min' => new \yii\db\Expression('min(gso.sort_order)'),
-              'max' => new \yii\db\Expression('max(gso.sort_order)'),
-              'cnt' => new \yii\db\Expression('count(gso.products_id)'),
-              'ids' => new \yii\db\Expression('group_concat(gso.products_id)'),
-            ])
-            ->from(['gso' => TABLE_PRODUCTS_GLOBAL_SORT, 'p' => TABLE_PRODUCTS])
-            ->andWhere('p.products_id=gso.products_id and p.products_groups_id>0')
-            ->andWhere(['gso.platform_id' => (int)$platform_id])
-            ->groupBy('p.products_groups_id')
-            ->having('min(gso.sort_order)+count(gso.products_id)-1!=max(gso.sort_order)')
-            ->orderBy('max(gso.sort_order) desc')
-            ;
-//echo $q ->createCommand()->rawSql . "<br>\n";
-        foreach ($q->all() as $gdata) {
-          $gdata['ids'] = explode(",", $gdata['ids']);
-          if (!$first) { // all indexes could change
-            $toSort = (new \yii\db\Query())
-            ->addSelect([
-              'min' => new \yii\db\Expression('min(gso.sort_order)'),
-              'max' => new \yii\db\Expression('max(gso.sort_order)'),
-              'cnt' => new \yii\db\Expression('count(gso.products_id)'),
-            ])
-            ->from(['gso' => TABLE_PRODUCTS_GLOBAL_SORT])
-            ->andWhere([
-              'gso.platform_id' => (int)$platform_id,
-              'gso.products_id' => $gdata['ids']
-                ])
-            ->one()
-            ;
-            $toSort['ids'] = $gdata['ids'];
-          } else {
-            $first = false;
-            $toSort = $gdata;
-          }
-
-          $ret = self::globalSortReindexGroup($toSort, $platform_id);
-          if (!$ret) {
-            break;
-          }
-        }
-      }
-      return $ret;
-    }
-
-/**
- * sort_order MUST be serial
- * ToDo fill in $groupData if required data is missed
- * @param array $groupData
- * @param int $platform_id
- * @return bool|string true|error message
- */
-    public static function globalSortReindexGroup($groupData, $platform_id) {
-      $ret = self::globalSortSerialIndex($platform_id, $groupData['max']-$groupData['cnt'], [$groupData['min'], $groupData['max']], $groupData['ids']);
-      if ($ret) {
-        $ret = self::globalSortSerialIndex($platform_id, $groupData['min']-1, [$groupData['min'], $groupData['max']], $groupData['ids'], true);
-      }
-      return $ret;
-    }
-
-    public static function copyGlobalSort($fromPlatformId, $toPlatformId) {
-      $ret = false;
-      if ($fromPlatformId>0 && $toPlatformId>0) {
-        $sql = " delete from " . TABLE_PRODUCTS_GLOBAL_SORT . " where platform_id='" . (int)$toPlatformId . "'";
-        tep_db_query($sql);
-
-        $sql = " insert ignore into " . TABLE_PRODUCTS_GLOBAL_SORT . " (products_id, platform_id, sort_order) select products_id, " . (int)$toPlatformId . ", @n:=@n+1 from "
-          . "(select plp.products_id, gs1.sort_order from " . TABLE_PLATFORMS_PRODUCTS . " plp  left join " . TABLE_PRODUCTS_GLOBAL_SORT . " gs1 on plp.products_id=gs1.products_id  and gs1.platform_id='" . (int)$fromPlatformId . "' where plp.platform_id='" . (int)$toPlatformId . "' order by gs1.sort_order is null desc, gs1.sort_order, plp.products_id ) s, (SELECT @n:=0) r  ";
+        $sql = ' insert ignore into ' . TABLE_PRODUCTS_GLOBAL_SORT . ' (products_id, platform_id, sort_order) select * from '
+            . '(select plp.products_id, plp.platform_id,  @n:=@n+1 from ' . TABLE_PLATFORMS_PRODUCTS . ' plp  left join ' . TABLE_PRODUCTS_GLOBAL_SORT . ' gs1 on plp.products_id=gs1.products_id  and plp.platform_id =gs1.platform_id, (SELECT @n:=ifnull(max(sort_order),0) from ' . TABLE_PRODUCTS_GLOBAL_SORT . ") r  where gs1.products_id is null {$plSql} {$pSql} order by " . ('plp.products_id') . ') s';
         $ret = tep_db_query($sql);
-      }
-      return $ret;
+
+        return $ret;
+    }
+
+    public static function globalSortSerialIndex($platform_id, $start = 0, $range = [], $pids = [], $exclude = false)
+    {
+        //update products_global_sort p, (SELECT @n:=@n+1 as cnt, products_id from products_global_sort, (select @n:=0) c where platform_id=1 ORDER BY `sort_order`, `products_id` ) i set sort_order=cnt where platform_id=1 and p.products_id=i.products_id
+        if (is_array($range)) {
+            if (!empty($range)) {
+                $range = array_map('intval', $range);
+            }
+        } else {
+            $range = [];
+        }
+
+        if (is_array($pids)) {
+            if (!empty($pids)) {
+                $pids = array_map('intval', $pids);
+            }
+        } else {
+            $pids = [intval($pids)];
+        }
+
+        $sql = ' update ' . TABLE_PRODUCTS_GLOBAL_SORT . ' p, '
+            . '(select products_id, sort_order, @n:=@n+1 as cnt from ' . TABLE_PRODUCTS_GLOBAL_SORT . ', (SELECT @n:=' . (int)$start . ') c '
+            . " where platform_id='" . (int)$platform_id . "' "
+            . (!empty($range) ? ' and sort_order>=' . (int)$range[0] . ' and sort_order<=' . (int)$range[1] : '')
+            . (!empty($pids) ? ' and products_id ' . ($exclude ? 'not ' : '') . "in ('" . implode("','", $pids) . "')" : '')
+            . ' order by sort_order, products_id) i '
+            . "  set p.sort_order=cnt where platform_id='" . (int)$platform_id . "' and p.products_id=i.products_id ";
+        $ret = tep_db_query($sql);
+        //echo $sql . " <BR>\n";
+        //if ($exclude)      die;
+        //return $sql . "<BR>";
+        return $ret;
+    }
+
+    public static function globalSortReindexGroupped($platform_id)
+    {
+        $ret = self::globalSortSerialIndex($platform_id);
+
+        if ($ret) {
+            $first = true;
+            $q = (new \yii\db\Query())
+                ->select('p.products_groups_id')
+                ->addSelect([
+                  'min' => new \yii\db\Expression('min(gso.sort_order)'),
+                  'max' => new \yii\db\Expression('max(gso.sort_order)'),
+                  'cnt' => new \yii\db\Expression('count(gso.products_id)'),
+                  'ids' => new \yii\db\Expression('group_concat(gso.products_id)'),
+                ])
+                ->from(['gso' => TABLE_PRODUCTS_GLOBAL_SORT, 'p' => TABLE_PRODUCTS])
+                ->andWhere('p.products_id=gso.products_id and p.products_groups_id>0')
+                ->andWhere(['gso.platform_id' => (int)$platform_id])
+                ->groupBy('p.products_groups_id')
+                ->having('min(gso.sort_order)+count(gso.products_id)-1!=max(gso.sort_order)')
+                ->orderBy('max(gso.sort_order) desc')
+            ;
+            //echo $q ->createCommand()->rawSql . "<br>\n";
+            foreach ($q->all() as $gdata) {
+                $gdata['ids'] = explode(',', $gdata['ids']);
+                if (!$first) { // all indexes could change
+                    $toSort = (new \yii\db\Query())
+                    ->addSelect([
+                      'min' => new \yii\db\Expression('min(gso.sort_order)'),
+                      'max' => new \yii\db\Expression('max(gso.sort_order)'),
+                      'cnt' => new \yii\db\Expression('count(gso.products_id)'),
+                    ])
+                    ->from(['gso' => TABLE_PRODUCTS_GLOBAL_SORT])
+                    ->andWhere([
+                      'gso.platform_id' => (int)$platform_id,
+                      'gso.products_id' => $gdata['ids'],
+                        ])
+                    ->one()
+                    ;
+                    $toSort['ids'] = $gdata['ids'];
+                } else {
+                    $first = false;
+                    $toSort = $gdata;
+                }
+
+                $ret = self::globalSortReindexGroup($toSort, $platform_id);
+                if (!$ret) {
+                    break;
+                }
+            }
+        }
+        return $ret;
+    }
+
+    /**
+     * sort_order MUST be serial
+     * ToDo fill in $groupData if required data is missed
+     * @param array $groupData
+     * @param int $platform_id
+     * @return bool|string true|error message
+     */
+    public static function globalSortReindexGroup($groupData, $platform_id)
+    {
+        $ret = self::globalSortSerialIndex($platform_id, $groupData['max'] - $groupData['cnt'], [$groupData['min'], $groupData['max']], $groupData['ids']);
+        if ($ret) {
+            $ret = self::globalSortSerialIndex($platform_id, $groupData['min'] - 1, [$groupData['min'], $groupData['max']], $groupData['ids'], true);
+        }
+        return $ret;
+    }
+
+    public static function copyGlobalSort($fromPlatformId, $toPlatformId)
+    {
+        $ret = false;
+        if ($fromPlatformId > 0 && $toPlatformId > 0) {
+            $sql = ' delete from ' . TABLE_PRODUCTS_GLOBAL_SORT . " where platform_id='" . (int)$toPlatformId . "'";
+            tep_db_query($sql);
+
+            $sql = ' insert ignore into ' . TABLE_PRODUCTS_GLOBAL_SORT . ' (products_id, platform_id, sort_order) select products_id, ' . (int)$toPlatformId . ', @n:=@n+1 from '
+              . '(select plp.products_id, gs1.sort_order from ' . TABLE_PLATFORMS_PRODUCTS . ' plp  left join ' . TABLE_PRODUCTS_GLOBAL_SORT . " gs1 on plp.products_id=gs1.products_id  and gs1.platform_id='" . (int)$fromPlatformId . "' where plp.platform_id='" . (int)$toPlatformId . "' order by gs1.sort_order is null desc, gs1.sort_order, plp.products_id ) s, (SELECT @n:=0) r  ";
+            $ret = tep_db_query($sql);
+        }
+        return $ret;
     }
 
     /**
@@ -1767,103 +1836,106 @@ class Product {
      * @param bool $exclude
      * @return type
      */
-    public static function inCategorySortSerialIndex($categories_id, $start = 0, $range = [], $pids=[], $exclude=false) {
-      if (is_array($range)) {
-        if (!empty($range)) {
-          $range = array_map('intval', $range);
-        }
-      } else {
-        $range = [];
-      }
-
-      if (is_array($pids)) {
-        if (!empty($pids)) {
-          $pids = array_map('intval', $pids);
-        }
-      } else {
-        $pids = [intval($pids)];
-      }
-
-      $sql = " update " . TABLE_PRODUCTS_TO_CATEGORIES . " p, "
-          . "(select products_id, sort_order, @n:=@n+1 as cnt from " . TABLE_PRODUCTS_TO_CATEGORIES . ", (SELECT @n:=" . (int)$start . ") c "
-          . " where categories_id='" . (int)$categories_id . "' "
-          . (!empty($range)?" and sort_order>=" . (int)$range[0] . " and sort_order<=" . (int)$range[1] :'')
-          . (!empty($pids)?" and products_id " . ($exclude?"not ":'') . "in ('" . implode("','", $pids) . "')":'')
-          . " order by sort_order, products_id desc) i "
-          . "  set p.sort_order=cnt where categories_id='" . (int)$categories_id . "' and p.products_id=i.products_id ";
-      $ret = tep_db_query($sql);
-      //echo $sql . " <BR>\n";
-      //if ($exclude)      die;
-      //return $sql . "<BR>";
-      return $ret;
-    }
-
-    public static function inCategorySortReindexGroupped($categories_id) {
-      $ret = self::inCategorySortSerialIndex($categories_id);
-
-      if ($ret ) {
-        $first = true;
-        $q = (new \yii\db\Query())
-            ->select('p.products_groups_id')
-            ->addSelect([
-              'min' => new \yii\db\Expression('min(p2c.sort_order)'),
-              'max' => new \yii\db\Expression('max(p2c.sort_order)'),
-              'cnt' => new \yii\db\Expression('count(p2c.products_id)'),
-              'ids' => new \yii\db\Expression('group_concat(p2c.products_id)'),
-            ])
-            ->from(['p2c' => TABLE_PRODUCTS_TO_CATEGORIES, 'p' => TABLE_PRODUCTS])
-            ->andWhere('p.products_id=p2c.products_id and p.products_groups_id>0')
-            ->andWhere(['p2c.categories_id' => (int)$categories_id])
-            ->groupBy('p.products_groups_id')
-            ->having('min(p2c.sort_order)+count(p2c.products_id)-1!=max(p2c.sort_order)')
-            ->orderBy('max(p2c.sort_order) desc')
-            ;
-        foreach ($q->all() as $gdata) {
-          $gdata['ids'] = explode(",", $gdata['ids']);
-          if (!$first) { // all indexes could change
-            $toSort = (new \yii\db\Query())
-            ->addSelect([
-              'min' => new \yii\db\Expression('min(p2c.sort_order)'),
-              'max' => new \yii\db\Expression('max(p2c.sort_order)'),
-              'cnt' => new \yii\db\Expression('count(p2c.products_id)'),
-            ])
-            ->from(['p2c' => TABLE_PRODUCTS_TO_CATEGORIES])
-            ->andWhere([
-              'p2c.categories_id' => (int)$categories_id,
-              'p2c.products_id' => $gdata['ids']
-                ])
-            ->one()
-            ;
-            $toSort['ids'] = $gdata['ids'];
-          } else {
-            $first = false;
-            $toSort = $gdata;
-          }
-          if ($toSort['min']+$toSort['cnt']-1 != $toSort['max']) {
-
-            $ret = self::inCategorySortReindexGroup($toSort, $categories_id);
-            if (!$ret) {
-              break;
+    public static function inCategorySortSerialIndex($categories_id, $start = 0, $range = [], $pids = [], $exclude = false)
+    {
+        if (is_array($range)) {
+            if (!empty($range)) {
+                $range = array_map('intval', $range);
             }
-          }
+        } else {
+            $range = [];
         }
-      }
-      return $ret;
+
+        if (is_array($pids)) {
+            if (!empty($pids)) {
+                $pids = array_map('intval', $pids);
+            }
+        } else {
+            $pids = [intval($pids)];
+        }
+
+        $sql = ' update ' . TABLE_PRODUCTS_TO_CATEGORIES . ' p, '
+            . '(select products_id, sort_order, @n:=@n+1 as cnt from ' . TABLE_PRODUCTS_TO_CATEGORIES . ', (SELECT @n:=' . (int)$start . ') c '
+            . " where categories_id='" . (int)$categories_id . "' "
+            . (!empty($range) ? ' and sort_order>=' . (int)$range[0] . ' and sort_order<=' . (int)$range[1] : '')
+            . (!empty($pids) ? ' and products_id ' . ($exclude ? 'not ' : '') . "in ('" . implode("','", $pids) . "')" : '')
+            . ' order by sort_order, products_id desc) i '
+            . "  set p.sort_order=cnt where categories_id='" . (int)$categories_id . "' and p.products_id=i.products_id ";
+        $ret = tep_db_query($sql);
+        //echo $sql . " <BR>\n";
+        //if ($exclude)      die;
+        //return $sql . "<BR>";
+        return $ret;
     }
 
-/**
- * sort_order MUST be serial
- * ToDo fill in $groupData if required data is missed
- * @param array $groupData
- * @param int $categories_id
- * @return bool|string true|error message
- */
-    public static function inCategorySortReindexGroup($groupData, $categories_id) {
-      $ret = self::inCategorySortSerialIndex($categories_id, $groupData['min']-1, [$groupData['min'], $groupData['max']], $groupData['ids']);
-      if ($ret) {
-        $ret = self::inCategorySortSerialIndex($categories_id, $groupData['min']+$groupData['cnt']-1, [$groupData['min'], $groupData['max']], $groupData['ids'], true);
-      }
-      return $ret;
+    public static function inCategorySortReindexGroupped($categories_id)
+    {
+        $ret = self::inCategorySortSerialIndex($categories_id);
+
+        if ($ret) {
+            $first = true;
+            $q = (new \yii\db\Query())
+                ->select('p.products_groups_id')
+                ->addSelect([
+                  'min' => new \yii\db\Expression('min(p2c.sort_order)'),
+                  'max' => new \yii\db\Expression('max(p2c.sort_order)'),
+                  'cnt' => new \yii\db\Expression('count(p2c.products_id)'),
+                  'ids' => new \yii\db\Expression('group_concat(p2c.products_id)'),
+                ])
+                ->from(['p2c' => TABLE_PRODUCTS_TO_CATEGORIES, 'p' => TABLE_PRODUCTS])
+                ->andWhere('p.products_id=p2c.products_id and p.products_groups_id>0')
+                ->andWhere(['p2c.categories_id' => (int)$categories_id])
+                ->groupBy('p.products_groups_id')
+                ->having('min(p2c.sort_order)+count(p2c.products_id)-1!=max(p2c.sort_order)')
+                ->orderBy('max(p2c.sort_order) desc')
+            ;
+            foreach ($q->all() as $gdata) {
+                $gdata['ids'] = explode(',', $gdata['ids']);
+                if (!$first) { // all indexes could change
+                    $toSort = (new \yii\db\Query())
+                    ->addSelect([
+                      'min' => new \yii\db\Expression('min(p2c.sort_order)'),
+                      'max' => new \yii\db\Expression('max(p2c.sort_order)'),
+                      'cnt' => new \yii\db\Expression('count(p2c.products_id)'),
+                    ])
+                    ->from(['p2c' => TABLE_PRODUCTS_TO_CATEGORIES])
+                    ->andWhere([
+                      'p2c.categories_id' => (int)$categories_id,
+                      'p2c.products_id' => $gdata['ids'],
+                        ])
+                    ->one()
+                    ;
+                    $toSort['ids'] = $gdata['ids'];
+                } else {
+                    $first = false;
+                    $toSort = $gdata;
+                }
+                if ($toSort['min'] + $toSort['cnt'] - 1 != $toSort['max']) {
+
+                    $ret = self::inCategorySortReindexGroup($toSort, $categories_id);
+                    if (!$ret) {
+                        break;
+                    }
+                }
+            }
+        }
+        return $ret;
+    }
+
+    /**
+     * sort_order MUST be serial
+     * ToDo fill in $groupData if required data is missed
+     * @param array $groupData
+     * @param int $categories_id
+     * @return bool|string true|error message
+     */
+    public static function inCategorySortReindexGroup($groupData, $categories_id)
+    {
+        $ret = self::inCategorySortSerialIndex($categories_id, $groupData['min'] - 1, [$groupData['min'], $groupData['max']], $groupData['ids']);
+        if ($ret) {
+            $ret = self::inCategorySortSerialIndex($categories_id, $groupData['min'] + $groupData['cnt'] - 1, [$groupData['min'], $groupData['max']], $groupData['ids'], true);
+        }
+        return $ret;
     }
 
     /**
@@ -1883,7 +1955,7 @@ class Product {
         $warehouseId = (int)$warehouseId;
         $supplierId = (int)$supplierId;
         $locationId = (int)$locationId;
-        if ($productQuantity != 0 AND $warehouseId > 0 AND $supplierId > 0) {
+        if ($productQuantity != 0 and $warehouseId > 0 and $supplierId > 0) {
             $parameterArray = (is_array($parameterArray) ? $parameterArray : []);
             $layers_id = (int)(isset($parameterArray['layers_id']) ? $parameterArray['layers_id'] : 0);
             $batch_id = (int)(isset($parameterArray['batch_id']) ? $parameterArray['batch_id'] : 0);
@@ -1897,7 +1969,6 @@ class Product {
                     $uProductId = $productRecord->products_id;
                     $inventoryRecord = $productRecord;
                 }
-
 
                 //$productRecord->warehouse_stock_quantity; //22
                 //$productRecord->products_quantity; // 18
@@ -1923,16 +1994,13 @@ class Product {
                 $productQuantityPrefix = ($productQuantity > 0 ? '+' : '-');
                 unset($warehouseProductRecord);
 
-
                 $productRecord->warehouse_stock_quantity  = $warehouseStockQuantity = $productRecord->warehouse_stock_quantity + $productQuantity;
                 $productRecord->products_quantity = $warehouseProductQuantity = $productRecord->products_quantity + $productQuantity;
                 $productRecord->save();
 
-
-
                 //log to freeze_stock_history
                 $stockHistoryRecord = new \common\models\StockHistory();
-                $stockHistoryRecord->setAttributes($parameterArray,false);
+                $stockHistoryRecord->setAttributes($parameterArray, false);
                 try {
                     $stockHistoryRecord->warehouse_id = $warehouseId;
                     $stockHistoryRecord->suppliers_id = $supplierId;
@@ -1990,7 +2058,7 @@ class Product {
                 $productQuantityPrefix = ($productQuantity > 0 ? '+' : '-');
                 unset($warehouseProductRecord);
                 $stockHistoryRecord = new \common\models\StockHistory();
-                $stockHistoryRecord->setAttributes($parameterArray,false);
+                $stockHistoryRecord->setAttributes($parameterArray, false);
                 try {
                     $stockHistoryRecord->warehouse_id = $warehouseId;
                     $stockHistoryRecord->suppliers_id = $supplierId;
@@ -2051,12 +2119,12 @@ class Product {
                     \common\helpers\OrderProduct::OPS_QUOTED,
                     \common\helpers\OrderProduct::OPS_STOCK_DEFICIT,
                     \common\helpers\OrderProduct::OPS_STOCK_ORDERED,
-                    \common\helpers\OrderProduct::OPS_RECEIVED
-                    ]
+                    \common\helpers\OrderProduct::OPS_RECEIVED,
+                    ],
                 ])
                 ->column();
             foreach ($orderProductIdArray as $orderProductId) {
-                $return = (\common\helpers\OrderProduct::doAllocateAutomatic($orderProductId, false) AND $return);
+                $return = (\common\helpers\OrderProduct::doAllocateAutomatic($orderProductId, false) and $return);
             }
             unset($orderProductIdArray);
             unset($orderProductId);
@@ -2116,7 +2184,7 @@ class Product {
         $supplierQuery = \common\models\SuppliersProducts::find()
             ->where([
                 'status' => 1,
-                'products_id' => (int)$uProductId
+                'products_id' => (int)$uProductId,
             ]);
         if (\common\helpers\Inventory::isInventory($uProductId) == true) {
             $supplierQuery->andWhere(['uprid' => $uProductId]);
@@ -2169,7 +2237,7 @@ class Product {
         } else {
             $platformId = (int)$platformId;
             if ($platformId <= 0) {
-                if (defined('PLATFORM_ID') AND (int)PLATFORM_ID > 0) {
+                if (defined('PLATFORM_ID') and (int)PLATFORM_ID > 0) {
                     $platformId = PLATFORM_ID;
                 } elseif (\common\classes\platform::defaultId() > 0) {
                     $platformId = \common\classes\platform::defaultId();
@@ -2198,19 +2266,19 @@ class Product {
                 if (isset($warehouseProductSkipArray[$warehouseProductRecord['warehouse_id']][$warehouseProductRecord['suppliers_id']][$warehouseProductRecord['location_id']][$warehouseProductRecord['layers_id']][$warehouseProductRecord['batch_id']])) {
                     continue;
                 }
-                if ($warehouseId !== false AND $warehouseId != $warehouseProductRecord['warehouse_id']) {
+                if ($warehouseId !== false and $warehouseId != $warehouseProductRecord['warehouse_id']) {
                     continue;
                 }
-                if ($supplierId !== false AND $supplierId != $warehouseProductRecord['suppliers_id']) {
+                if ($supplierId !== false and $supplierId != $warehouseProductRecord['suppliers_id']) {
                     continue;
                 }
-                if ($locationId !== false AND $locationId != $warehouseProductRecord['location_id']) {
+                if ($locationId !== false and $locationId != $warehouseProductRecord['location_id']) {
                     continue;
                 }
-                if ($layersId !== false AND $layersId != $warehouseProductRecord['layers_id']) {
+                if ($layersId !== false and $layersId != $warehouseProductRecord['layers_id']) {
                     continue;
                 }
-                if ($batchId !== false AND $batchId != $warehouseProductRecord['batch_id']) {
+                if ($batchId !== false and $batchId != $warehouseProductRecord['batch_id']) {
                     continue;
                 }
                 if (!in_array($warehouseProductRecord['warehouse_id'], $warehouseIdArray)) {
@@ -2236,22 +2304,22 @@ class Product {
                 if (isset($productAllocatedSkipArray[$productAllocatedRecord['warehouse_id']][$productAllocatedRecord['suppliers_id']][$productAllocatedRecord['location_id']][$productAllocatedRecord['layers_id']][$productAllocatedRecord['batch_id']][$productAllocatedRecord['orders_products_id']])) {
                     continue;
                 }
-                if ($isStockControl!==false && !in_array((int)$productAllocatedRecord['platform_id'], $platformArray) /*$platformId != $productAllocatedRecord['platform_id']*/) {
+                if ($isStockControl !== false && !in_array((int)$productAllocatedRecord['platform_id'], $platformArray) /*$platformId != $productAllocatedRecord['platform_id']*/) {
                     continue;
                 }
-                if ($warehouseId !== false AND $warehouseId != $productAllocatedRecord['warehouse_id']) {
+                if ($warehouseId !== false and $warehouseId != $productAllocatedRecord['warehouse_id']) {
                     continue;
                 }
-                if ($supplierId !== false AND $supplierId != $productAllocatedRecord['suppliers_id']) {
+                if ($supplierId !== false and $supplierId != $productAllocatedRecord['suppliers_id']) {
                     continue;
                 }
-                if ($locationId !== false AND $locationId != $productAllocatedRecord['location_id']) {
+                if ($locationId !== false and $locationId != $productAllocatedRecord['location_id']) {
                     continue;
                 }
-                if ($layersId !== false AND $layersId != $productAllocatedRecord['layers_id']) {
+                if ($layersId !== false and $layersId != $productAllocatedRecord['layers_id']) {
                     continue;
                 }
-                if ($batchId !== false AND $batchId != $productAllocatedRecord['batch_id']) {
+                if ($batchId !== false and $batchId != $productAllocatedRecord['batch_id']) {
                     continue;
                 }
                 if (!in_array($productAllocatedRecord['warehouse_id'], $warehouseIdArray)) {
@@ -2277,19 +2345,19 @@ class Product {
                 if (isset($productAllocatedTemporarySkipArray[$productAllocatedTemporaryRecord['warehouse_id']][$productAllocatedTemporaryRecord['suppliers_id']][$productAllocatedTemporaryRecord['location_id']][$productAllocatedTemporaryRecord['layers_id']][$productAllocatedTemporaryRecord['batch_id']][$productAllocatedTemporaryRecord['temporary_stock_id']])) {
                     continue;
                 }
-                if ($warehouseId !== false AND $warehouseId != $productAllocatedTemporaryRecord['warehouse_id']) {
+                if ($warehouseId !== false and $warehouseId != $productAllocatedTemporaryRecord['warehouse_id']) {
                     continue;
                 }
-                if ($supplierId !== false AND $supplierId != $productAllocatedTemporaryRecord['suppliers_id']) {
+                if ($supplierId !== false and $supplierId != $productAllocatedTemporaryRecord['suppliers_id']) {
                     continue;
                 }
-                if ($locationId !== false AND $locationId != $productAllocatedTemporaryRecord['location_id']) {
+                if ($locationId !== false and $locationId != $productAllocatedTemporaryRecord['location_id']) {
                     continue;
                 }
-                if ($layersId !== false AND $layersId != $productAllocatedTemporaryRecord['layers_id']) {
+                if ($layersId !== false and $layersId != $productAllocatedTemporaryRecord['layers_id']) {
                     continue;
                 }
-                if ($batchId !== false AND $batchId != $productAllocatedTemporaryRecord['batch_id']) {
+                if ($batchId !== false and $batchId != $productAllocatedTemporaryRecord['batch_id']) {
                     continue;
                 }
                 if (!in_array($productAllocatedTemporaryRecord['warehouse_id'], $warehouseIdArray)) {
@@ -2348,7 +2416,7 @@ class Product {
     public static function isValidAllocated($uProductId = 0)
     {
         $uProductId = \common\helpers\Inventory::normalize_id_excl_virtual($uProductId);
-        $orderProductSkipList = array();
+        $orderProductSkipList = [];
         foreach (self::getAllocatedArray($uProductId, false) as $productAllocated) {
             if (!isset($orderProductSkipList[$productAllocated->orders_products_id])) {
                 $orderProductSkipList[$productAllocated->orders_products_id] = $productAllocated->orders_products_id;
@@ -2430,7 +2498,7 @@ class Product {
                 ->asArray($asArray)
                 ->all();
         } else {
-            if (defined('TEMPORARY_STOCK_ENABLE') AND TEMPORARY_STOCK_ENABLE == 'true') {
+            if (defined('TEMPORARY_STOCK_ENABLE') and TEMPORARY_STOCK_ENABLE == 'true') {
                 if (($ext = \common\helpers\Acl::checkExtensionAllowed('ReportFreezeStock')) && $ext::isFreezed()) {
                     $return = $ext::getAllocatedTemporaryArray($uProductId, $asArray);
                 } else {
@@ -2518,7 +2586,7 @@ class Product {
         }
         $platformId = (int)$platformId;
         if ($platformId <= 0) {
-            if (defined('PLATFORM_ID') AND (int)PLATFORM_ID > 0) {
+            if (defined('PLATFORM_ID') and (int)PLATFORM_ID > 0) {
                 $platformId = PLATFORM_ID;
             } elseif (\common\classes\platform::defaultId() > 0) {
                 $platformId = \common\classes\platform::defaultId();
@@ -2539,11 +2607,11 @@ class Product {
         if ($isStockControl == false) {
             $warehouseQuery = \common\models\Warehouses::find()->alias('w')
                 ->leftJoin(\common\models\WarehousesPlatforms::tableName() . ' AS wtp', [
-                    'and', 'w.warehouse_id = wtp.warehouse_id', ['wtp.platform_id' => $platformId]
+                    'and', 'w.warehouse_id = wtp.warehouse_id', ['wtp.platform_id' => $platformId],
                 ])
                 ->where(['ifnull(wtp.status, w.status)' => 1])
                 ->orderBy(['ifnull(wtp.sort_order, w.sort_order)' => SORT_ASC, 'w.warehouse_name' => SORT_ASC])
-                ->cache((defined('ALLOW_ANY_QUERY_CACHE') && ALLOW_ANY_QUERY_CACHE=='True')?self::PRODUCT_RECORD_CACHE : -1)
+                ->cache((defined('ALLOW_ANY_QUERY_CACHE') && ALLOW_ANY_QUERY_CACHE == 'True') ? self::PRODUCT_RECORD_CACHE : -1)
                 ->asArray(true);
             foreach ($warehouseQuery->all() as $warehouseRecord) {
                 $return[] = (int)$warehouseRecord['warehouse_id'];
@@ -2593,7 +2661,7 @@ class Product {
                 ->andWhere(['sp.uprid' => $uProductId])
                 ->andWhere(['s.status' => 1])
                 ->andWhere(['sp.status' => 1])
-                ->cache((defined('ALLOW_ANY_QUERY_CACHE') && ALLOW_ANY_QUERY_CACHE=='True')?self::PRODUCT_RECORD_CACHE : -1)
+                ->cache((defined('ALLOW_ANY_QUERY_CACHE') && ALLOW_ANY_QUERY_CACHE == 'True') ? self::PRODUCT_RECORD_CACHE : -1)
                 ->orderBy(['s.sort_order' => SORT_ASC, 's.suppliers_name' => SORT_ASC]);
             foreach ($supplierQuery->all() as $supplierRecord) {
                 $return[] = (int)$supplierRecord['suppliers_id'];
@@ -2725,7 +2793,7 @@ class Product {
                     ->asArray($asArray)->all()) as $productSetRecord
                 ) {
                     $uProductId = trim(is_array($productSetRecord) ? $productSetRecord['product_id'] : $productSetRecord->product_id);
-                    if (($recursionBreak < 10) AND (count(self::getChildArray($uProductId, true, ($recursionBreak + 1))) == 0)) {
+                    if (($recursionBreak < 10) and (count(self::getChildArray($uProductId, true, ($recursionBreak + 1))) == 0)) {
                         $return[$uProductId] = $productSetRecord;
                     }
                     unset($uProductId);
@@ -2785,7 +2853,7 @@ class Product {
                 unset($warehouseProductRecord);
 
                 $productAllocatedTemporaryArray = [];
-                if (defined('TEMPORARY_STOCK_ENABLE') AND TEMPORARY_STOCK_ENABLE == 'true') {
+                if (defined('TEMPORARY_STOCK_ENABLE') and TEMPORARY_STOCK_ENABLE == 'true') {
                     foreach (\common\models\OrdersProductsTemporaryStock::find()->where(['prid' => $productId])
                         ->asArray(true)->all() as $productAllocatedTemporaryRecord
                     ) {
@@ -2866,7 +2934,7 @@ class Product {
                             $warehouseIdArray = self::getWarehouseIdPriorityArray($warehouseProductRecord->products_id, 1, false);
                             $supplierIdArray = self::getSupplierIdPriorityArray($warehouseProductRecord->products_id);
                             if (!in_array((int)$warehouseProductRecord->warehouse_id, $warehouseIdArray)
-                                OR !in_array((int)$warehouseProductRecord->suppliers_id, $supplierIdArray)
+                                or !in_array((int)$warehouseProductRecord->suppliers_id, $supplierIdArray)
                             ) {
                                 $warehouseProductRecord->warehouse_stock_quantity = 0;
                                 $warehouseProductRecord->products_quantity = ($warehouseProductRecord->warehouse_stock_quantity - ($warehouseProductRecord->allocated_stock_quantity + $warehouseProductRecord->temporary_stock_quantity));
@@ -2886,7 +2954,7 @@ class Product {
                                 $warehouseProductCollectionRecord->temporary_stock_quantity += $warehouseProductRecord->temporary_stock_quantity;
                                 $warehouseProductCollectionRecord->products_quantity += $warehouseProductRecord->products_quantity;
                             }
-                            if ($inventoryId > 0 AND isset($inventoryArray[$warehouseProductRecord->products_id])) {
+                            if ($inventoryId > 0 and isset($inventoryArray[$warehouseProductRecord->products_id])) {
                                 $inventoryArray[$warehouseProductRecord->products_id]->warehouse_stock_quantity += $warehouseProductRecord->warehouse_stock_quantity;
                                 $inventoryArray[$warehouseProductRecord->products_id]->allocated_stock_quantity += $warehouseProductRecord->allocated_stock_quantity;
                                 $inventoryArray[$warehouseProductRecord->products_id]->temporary_stock_quantity += $warehouseProductRecord->temporary_stock_quantity;
@@ -2989,13 +3057,14 @@ class Product {
                     $warehouseProductRecord->products_id = $iId;
                     $warehouseProductRecord->prid = (int)$iId;
                     $warehouseProductRecord->products_model = $productRecord->products_model;
-                    if (($iRecord instanceof \common\models\Inventory) AND $iRecord->products_model != '') {
+                    if (($iRecord instanceof \common\models\Inventory) and $iRecord->products_model != '') {
                         $warehouseProductRecord->products_model = $iRecord->products_model;
                     }
                     $warehouseProductRecord->warehouse_stock_quantity = 9999;
                     try {
                         $warehouseProductRecord->save();
-                    } catch (\Exception $exc) {}
+                    } catch (\Exception $exc) {
+                    }
                     unset($warehouseProductRecord);
                     unset($warehouseId);
                     unset($supplierId);
@@ -3030,7 +3099,7 @@ class Product {
             unset($productAllocatedRecord);
 
             $productAllocatedTemporaryArray = [];
-            if (defined('TEMPORARY_STOCK_ENABLE') AND TEMPORARY_STOCK_ENABLE == 'true') {
+            if (defined('TEMPORARY_STOCK_ENABLE') and TEMPORARY_STOCK_ENABLE == 'true') {
                 foreach (\common\models\OrdersProductsTemporaryStock::find()->where(['prid' => $productId])
                     ->andWhere(['IN', 'normalize_id', array_map('strval', array_keys($inventoryArray))])->asArray(true)->all() as $productAllocatedTemporaryRecord
                 ) {
@@ -3102,7 +3171,7 @@ class Product {
                         $warehouseIdArray = self::getWarehouseIdPriorityArray($warehouseProductRecord->products_id, 1, false);
                         $supplierIdArray = self::getSupplierIdPriorityArray($warehouseProductRecord->products_id);
                         if (!in_array((int)$warehouseProductRecord->warehouse_id, $warehouseIdArray)
-                            OR !in_array((int)$warehouseProductRecord->suppliers_id, $supplierIdArray)
+                            or !in_array((int)$warehouseProductRecord->suppliers_id, $supplierIdArray)
                         ) {
                             $warehouseProductRecord->warehouse_stock_quantity = 0;
                             $warehouseProductRecord->products_quantity = ($warehouseProductRecord->warehouse_stock_quantity - ($warehouseProductRecord->allocated_stock_quantity + $warehouseProductRecord->temporary_stock_quantity));
@@ -3122,7 +3191,7 @@ class Product {
                             $warehouseProductCollectionRecord->temporary_stock_quantity += $warehouseProductRecord->temporary_stock_quantity;
                             $warehouseProductCollectionRecord->products_quantity += $warehouseProductRecord->products_quantity;
                         }
-                        if ($inventoryId > 0 AND isset($inventoryArray[$warehouseProductRecord->products_id])) {
+                        if ($inventoryId > 0 and isset($inventoryArray[$warehouseProductRecord->products_id])) {
                             $inventoryArray[$warehouseProductRecord->products_id]->warehouse_stock_quantity += $warehouseProductRecord->warehouse_stock_quantity;
                             $inventoryArray[$warehouseProductRecord->products_id]->allocated_stock_quantity += $warehouseProductRecord->allocated_stock_quantity;
                             $inventoryArray[$warehouseProductRecord->products_id]->temporary_stock_quantity += $warehouseProductRecord->temporary_stock_quantity;
@@ -3165,15 +3234,15 @@ class Product {
                 $productRecord->suppliers_stock_quantity = self::getQuantitySupplier($productRecord->products_id);
 
                 // {{ switch off EOL
-                if ( $productRecord->stock_indication_id && $productRecord->products_quantity<=0 && in_array((int)$productRecord->stock_indication_id, \common\classes\StockIndication::productDisableByStockIds()) ){
-                    if ( ($productRecord->products_quantity+$productRecord->temporary_stock_quantity)<=0 ) {
+                if ($productRecord->stock_indication_id && $productRecord->products_quantity <= 0 && in_array((int)$productRecord->stock_indication_id, \common\classes\StockIndication::productDisableByStockIds())) {
+                    if (($productRecord->products_quantity + $productRecord->temporary_stock_quantity) <= 0) {
                         $productRecord->products_status = 0;
                     }
                 }
                 // }} switch off EOL
                 // {{ reset to default
-                if ( $productRecord->stock_indication_id && $productRecord->products_quantity<=0 && in_array((int)$productRecord->stock_indication_id, \common\classes\StockIndication::productResetToDefaultStockIds()) ){
-                    if ( ($productRecord->products_quantity+$productRecord->temporary_stock_quantity)<=0 ) {
+                if ($productRecord->stock_indication_id && $productRecord->products_quantity <= 0 && in_array((int)$productRecord->stock_indication_id, \common\classes\StockIndication::productResetToDefaultStockIds())) {
+                    if (($productRecord->products_quantity + $productRecord->temporary_stock_quantity) <= 0) {
                         $productRecord->stock_indication_id = 0;
                         $productRecord->stock_delivery_terms_id = 0;
                     }
@@ -3232,7 +3301,7 @@ class Product {
                         \common\helpers\OrderProduct::OPS_QUOTED,
                         \common\helpers\OrderProduct::OPS_STOCK_DEFICIT,
                         \common\helpers\OrderProduct::OPS_STOCK_ORDERED,
-                        \common\helpers\OrderProduct::OPS_RECEIVED
+                        \common\helpers\OrderProduct::OPS_RECEIVED,
                     ]])
                     ->asArray(true)->all()) as $opRecord
                 ) {
@@ -3254,7 +3323,7 @@ class Product {
                 $bcTemporaryStock = (int)ceil($bcTemporaryStock / $productChildQuantity);
                 unset($productChildQuantity);
                 $bcAvailableStock = ($bcWarehouseStock - ($bcAllocatedStock + $bcTemporaryStock));
-                if (($bpAvailableStock < 0) OR ($bpAvailableStock > $bcAvailableStock)) {
+                if (($bpAvailableStock < 0) or ($bpAvailableStock > $bcAvailableStock)) {
                     $bpWarehouseStock = $bcWarehouseStock;
                     $bpAllocatedStock = $bcAllocatedStock;
                     $bpTemporaryStock = $bcTemporaryStock;
@@ -3278,7 +3347,8 @@ class Product {
             try {
                 $productRecord->save();
                 $return = true;
-            } catch (\Exception $exc) {}
+            } catch (\Exception $exc) {
+            }
             unset($bpWarehouseStock);
             unset($bpAllocatedStock);
             unset($bpTemporaryStock);
@@ -3302,10 +3372,10 @@ class Product {
                     $uProductId = $uProductId->products_id;
                 }
                 $uProductId = \common\extensions\ReportFreezeStock\models\FreezeProducts::find()->andWhere(['products_id' => (int)$uProductId])
-                    ->cache((!$doCache && defined('ALLOW_ANY_QUERY_CACHE') && ALLOW_ANY_QUERY_CACHE=='True')?self::PRODUCT_RECORD_CACHE : -1)
+                    ->cache((!$doCache && defined('ALLOW_ANY_QUERY_CACHE') && ALLOW_ANY_QUERY_CACHE == 'True') ? self::PRODUCT_RECORD_CACHE : -1)
                     ->one();
             }
-            if ((int)$doCache > 0 AND $ext::isFreezeProductRecord($uProductId)) {
+            if ((int)$doCache > 0 and $ext::isFreezeProductRecord($uProductId)) {
                 if (self::doCache($uProductId) != true) {
                     $uProductId = null;
                 }
@@ -3313,10 +3383,10 @@ class Product {
         } else {
             if (!($uProductId instanceof \common\models\Products)) {
                 $uProductId = \common\models\Products::find()->andWhere(['products_id' => (int)$uProductId])
-                    ->cache((!$doCache && defined('ALLOW_ANY_QUERY_CACHE') && ALLOW_ANY_QUERY_CACHE=='True')?self::PRODUCT_RECORD_CACHE : -1)
+                    ->cache((!$doCache && defined('ALLOW_ANY_QUERY_CACHE') && ALLOW_ANY_QUERY_CACHE == 'True') ? self::PRODUCT_RECORD_CACHE : -1)
                     ->one();
             }
-            if ((int)$doCache > 0 AND ($uProductId instanceof \common\models\Products)) {
+            if ((int)$doCache > 0 and ($uProductId instanceof \common\models\Products)) {
                 if (self::doCache($uProductId) != true) {
                     $uProductId = null;
                 }
@@ -3347,7 +3417,7 @@ class Product {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('OrderQuantityStep', 'allowed')) {
             return $ext::getVirtualItemStep($uProductId, $checkArray);
         }
-        return array(1);
+        return [1];
     }
 
     /**
@@ -3355,8 +3425,9 @@ class Product {
      * @param int $products_id
      * @return boolean
      */
-    public static function hasAssets($products_id){
-        if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductAssets', 'allowed')){
+    public static function hasAssets($products_id)
+    {
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductAssets', 'allowed')) {
             return $ext::hasAssets($products_id);
         }
         return false;
@@ -3367,164 +3438,174 @@ class Product {
      * @param array $params
      * @return product asset or null
      */
-    public static function getAssets($uprid, array $params = []){
-        if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductAssets', 'allowed')){
+    public static function getAssets($uprid, array $params = [])
+    {
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductAssets', 'allowed')) {
             return $ext::getAssets($uprid, $params);
         }
         return null;
     }
 
-    public static function getAsset($asset_id){
-        if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductAssets', 'allowed')){
+    public static function getAsset($asset_id)
+    {
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductAssets', 'allowed')) {
             return $ext::getAsset($asset_id);
         }
         return null;
     }
 
-    public static function getSettings($products_id){
+    public static function getSettings($products_id)
+    {
         $settings = \common\models\ProductsSettings::find()->where(['products_id' => intval($products_id)])->one();
         if (!$settings) {
-            $settings = new \common\models\ProductsSettings;
+            $settings = new \common\models\ProductsSettings();
             $settings->loadDefaultValues();
         }
         return $settings;
     }
-/**
- * Url of parent category if product exists or false
- * @param integer $products_id
- * @return string|false
- */
-    public static function get302redirect($products_id) {
-      // parent category if product exists
-      $new_url = false;
-      $product = \common\models\Products::findOne($products_id);
-      if ($product->products_id) {
-        $leaf = false;
-        $check = $product->getCategories()->active()->limit(1)->one();
-        if (!$check) {
-          $check = $product->getCategories()->limit(1)->one();
-        } elseif ($check->categories_status) { // useless if? active() above
-          $leaf = $check->categories_id;
-        }
-        if ($check) {
-          $check = $check->getVisibleParents()->asArray()->all();
-        }
-        //$check = $check ->category[0]->getVisibleParents()->asArray()->one();
+    /**
+     * Url of parent category if product exists or false
+     * @param integer $products_id
+     * @return string|false
+     */
+    public static function get302redirect($products_id)
+    {
+        // parent category if product exists
+        $new_url = false;
+        $product = \common\models\Products::findOne($products_id);
+        if ($product->products_id) {
+            $leaf = false;
+            $check = $product->getCategories()->active()->limit(1)->one();
+            if (!$check) {
+                $check = $product->getCategories()->limit(1)->one();
+            } elseif ($check->categories_status) { // useless if? active() above
+                $leaf = $check->categories_id;
+            }
+            if ($check) {
+                $check = $check->getVisibleParents()->asArray()->all();
+            }
+            //$check = $check ->category[0]->getVisibleParents()->asArray()->one();
 
-        if (!empty($check)) {
-          $path = \yii\helpers\ArrayHelper::map($check, 'categories_id', 'categories_id');
-          if ($leaf) {
-            $path[$leaf] = $leaf;
-          }
-          $new_url = Yii::$app->urlManager->createUrl(['catalog', 'cPath' => implode('_', $path)]);
-        } elseif ($leaf) {
-          $new_url = Yii::$app->urlManager->createUrl(['catalog', 'cPath' => $leaf]);
-        } else {
-          $new_url = Yii::$app->urlManager->createUrl('index');
+            if (!empty($check)) {
+                $path = \yii\helpers\ArrayHelper::map($check, 'categories_id', 'categories_id');
+                if ($leaf) {
+                    $path[$leaf] = $leaf;
+                }
+                $new_url = Yii::$app->urlManager->createUrl(['catalog', 'cPath' => implode('_', $path)]);
+            } elseif ($leaf) {
+                $new_url = Yii::$app->urlManager->createUrl(['catalog', 'cPath' => $leaf]);
+            } else {
+                $new_url = Yii::$app->urlManager->createUrl('index');
+            }
         }
-      }
-      return $new_url;
+        return $new_url;
     }
 
-/**
- * check whether the product is visible and redirects to to parent category if product is not visible
- * @param integer $productsId
- */
-    public static function redirectIfInactive($productsId) {
-      $new_url = false;
-      $check_status = 1;
-      if (\frontend\design\Info::isAdmin()){
-        $check_status = 0;
-      }
-      if (!self::check_product($productsId, $check_status, true)) {
-        $new_url = self::get302redirect($productsId);
-      }
-      if ($new_url && !empty($new_url)) {
-          header('HTTP/1.1 302 Found');
-          header("Location: " . $new_url);
-          exit();
-      }
+    /**
+     * check whether the product is visible and redirects to to parent category if product is not visible
+     * @param integer $productsId
+     */
+    public static function redirectIfInactive($productsId)
+    {
+        $new_url = false;
+        $check_status = 1;
+        if (\frontend\design\Info::isAdmin()) {
+            $check_status = 0;
+        }
+        if (!self::check_product($productsId, $check_status, true)) {
+            $new_url = self::get302redirect($productsId);
+        }
+        if ($new_url && !empty($new_url)) {
+            header('HTTP/1.1 302 Found');
+            header('Location: ' . $new_url);
+            exit();
+        }
 
     }
 
-/**
- *
- * @param string $string to cleanup
- * @param int $checkLength <1 | 1 | >1  do not apply | by conf | by DB full-text settings
- * @return type
- */
-    public static function cleanupSearch($string, $checkLength = 2) {
-      $string = str_replace('<', ' <', $string);
-      $string = preg_replace('/\s+/', ' ', strip_tags($string));
-      if ($checkLength ) {
-        $minLen = 0;
-        if (defined('MSEARCH_WORD_LENGTH') && (int)MSEARCH_WORD_LENGTH>1) {
-          $minLen = (int)MSEARCH_WORD_LENGTH;
+    /**
+     *
+     * @param string $string to cleanup
+     * @param int $checkLength <1 | 1 | >1  do not apply | by conf | by DB full-text settings
+     * @return type
+     */
+    public static function cleanupSearch($string, $checkLength = 2)
+    {
+        $string = str_replace('<', ' <', $string);
+        $string = preg_replace('/\s+/', ' ', strip_tags($string));
+        if ($checkLength) {
+            $minLen = 0;
+            if (defined('MSEARCH_WORD_LENGTH') && (int)MSEARCH_WORD_LENGTH > 1) {
+                $minLen = (int)MSEARCH_WORD_LENGTH;
+            }
+            if ($checkLength == 2 && defined('MSEARCH_ENABLE') && MSEARCH_ENABLE == 'fulltext') {
+                /* @var $ext \common\extensions\PlainProductsDescription\PlainProductsDescription */
+                if ($ext = \common\helpers\Acl::checkExtensionAllowed('PlainProductsDescription', 'allowed')) {
+                    $minLen = max($minLen, $ext::getMinTokenLength());
+                }
+            }
+            if ($minLen > 1) {
+                $words = explode(' ', $string);
+                //$words = array_map(function ($word) { return preg_replace(['/^\W+/', '/\W+$/'], '', $word); },  $words);
+                $words = array_map(function ($word) {
+                    return trim($word, '., -_!?:\'"');
+                }, $words);
+                $words = array_filter($words, function ($__word) use ($minLen) {
+                    return strlen($__word) >= $minLen;
+                });
+                $string = implode(' ', $words);
+            }
         }
-        if ($checkLength == 2 && defined('MSEARCH_ENABLE') && MSEARCH_ENABLE == 'fulltext') {
-          /* @var $ext \common\extensions\PlainProductsDescription\PlainProductsDescription */
-          if ($ext = \common\helpers\Acl::checkExtensionAllowed('PlainProductsDescription', 'allowed')) {
-            $minLen = max($minLen, $ext::getMinTokenLength());
-          }
-        }
-        if ($minLen > 1) {
-          $words = explode(' ', $string);
-          //$words = array_map(function ($word) { return preg_replace(['/^\W+/', '/\W+$/'], '', $word); },  $words);
-          $words = array_map(function ($word) { return trim($word, '., -_!?:\'"'); },  $words);
-          $words = array_filter($words, function ($__word) use($minLen) {
-                              return strlen($__word) >= $minLen;
-                          });
-          $string = implode(' ' , $words);
-        }
-      }
-      return $string;
+        return $string;
     }
 
-/**
- * mmm gets ... random first categories id of product
- * @staticvar array $_cache
- * @param int $productId
- * @return int
- */
-    public static function getCategories ($productId) {
-      static $_cache = [];
-      $productId = intval($productId);
-      $ret = [];
-      if ($productId>0) {
-        if (!isset($_cache[$productId])) {
-          $model = \common\models\Products::find()->andWhere(['products_id' => $productId])->with('listingCategories')->asArray()->one();
+    /**
+     * mmm gets ... random first categories id of product
+     * @staticvar array $_cache
+     * @param int $productId
+     * @return int
+     */
+    public static function getCategories($productId)
+    {
+        static $_cache = [];
+        $productId = intval($productId);
+        $ret = [];
+        if ($productId > 0) {
+            if (!isset($_cache[$productId])) {
+                $model = \common\models\Products::find()->andWhere(['products_id' => $productId])->with('listingCategories')->asArray()->one();
 
-          if ($model) {
-            $ret = $_cache[$productId] = $model['listingCategories'][0];
-          }
-        } else {
-          $ret = $_cache[$productId];
+                if ($model) {
+                    $ret = $_cache[$productId] = $model['listingCategories'][0];
+                }
+            } else {
+                $ret = $_cache[$productId];
+            }
         }
-      }
-      return $ret;
+        return $ret;
     }
 
-/**
- * gets list of properties and values of the product
- * @staticvar array $_cache
- * @param int $productId
- * @return array
- */
-    public static function getPropertiesShort ($productId) {
-      static $_cache = [];
-      $productId = intval($productId);
-      $ret = [];
-      if ($productId>0) {
-        if (!isset($_cache[$productId])) {
-          $model = \common\models\Products::find()->andWhere(['products_id' => $productId])->with('properties')->asArray()->one();
-          if ($model) {
-            $ret = $_cache[$productId] = $model['properties'];
-          }
-        } else {
-          $ret = $_cache[$productId];
+    /**
+     * gets list of properties and values of the product
+     * @staticvar array $_cache
+     * @param int $productId
+     * @return array
+     */
+    public static function getPropertiesShort($productId)
+    {
+        static $_cache = [];
+        $productId = intval($productId);
+        $ret = [];
+        if ($productId > 0) {
+            if (!isset($_cache[$productId])) {
+                $model = \common\models\Products::find()->andWhere(['products_id' => $productId])->with('properties')->asArray()->one();
+                if ($model) {
+                    $ret = $_cache[$productId] = $model['properties'];
+                }
+            } else {
+                $ret = $_cache[$productId];
+            }
         }
-      }
-      return $ret;
+        return $ret;
     }
 
     public static function removeOrderSubProducts(array $products)
@@ -3548,7 +3629,7 @@ class Product {
             }
             return true;
         });
-        array_walk($products, static function($item) use (&$parentProducts) {
+        array_walk($products, static function ($item) use (&$parentProducts) {
             if (!empty($item['parent_product']) && isset($parentProducts[$item['parent_product']])) {
                 $id = $item['template_uprid'] ?: $item['id'];
                 $parentProducts[$item['parent_product']]['subProducts'][$id] = $item;
@@ -3557,112 +3638,113 @@ class Product {
         return $parentProducts;
     }
 
-
     public static function getCategoriesIdListWithParents($productId)
     {
-      $ret = [];
-      if ( (int)$productId>0 ) {
-        $ret = \common\models\Products2Categories::find()->alias('p2c')
-            ->andWhere(['products_id' => $productId])
-            ->innerJoin(TABLE_CATEGORIES . ' c1', 'c1.categories_id=p2c.categories_id')
-            ->innerJoin(TABLE_CATEGORIES . ' c2', 'c1.categories_left >= c2.categories_left and c1.categories_right <= c2.categories_right')
-            ->select('c2.categories_id')
-            ->asArray()->distinct()->column();
-        if (!$ret ) {
-          $ret = [];
+        $ret = [];
+        if ((int)$productId > 0) {
+            $ret = \common\models\Products2Categories::find()->alias('p2c')
+                ->andWhere(['products_id' => $productId])
+                ->innerJoin(TABLE_CATEGORIES . ' c1', 'c1.categories_id=p2c.categories_id')
+                ->innerJoin(TABLE_CATEGORIES . ' c2', 'c1.categories_left >= c2.categories_left and c1.categories_right <= c2.categories_right')
+                ->select('c2.categories_id')
+                ->asArray()->distinct()->column();
+            if (!$ret) {
+                $ret = [];
+            }
         }
-      }
 
-      return $ret;
+        return $ret;
     }
 
-/**
- *
- * @param array|int $productsIds
- * @param array $details
- * @param int|false $limit
- * @return string
- */
-    public static function getAdminDetailsList($productsIds, $details = ['name', 'price', 'status', 'model'], $limit = false) {
-      if (!is_array($productsIds)) {
+    /**
+     *
+     * @param array|int $productsIds
+     * @param array $details
+     * @param int|false $limit
+     * @return string
+     */
+    public static function getAdminDetailsList($productsIds, $details = ['name', 'price', 'status', 'model'], $limit = false)
+    {
+        if (!is_array($productsIds)) {
 
-        if (is_numeric($productsIds)) {
-          $productsIds = [$productsIds];
+            if (is_numeric($productsIds)) {
+                $productsIds = [$productsIds];
+            } else {
+                $productsIds = array_map('intval', preg_split('/,/', $productsIds, -1, PREG_SPLIT_NO_EMPTY));
+            }
+
+        }
+        $pQ = \common\models\Products::find()->alias('p')
+            ->joinWith('backendDescription')
+            ->addSelect('p.products_id, p.products_model, p.products_price, p.products_status')
+            ->andWhere(['p.products_id' => array_map('intval', $productsIds)])
+        ;
+
+        if (false && \backend\models\ProductNameDecorator::instance()->useInternalNameForListing()) {
+            //$pQ->addSelect(['products_name' => new \yii\db\Expression("IF(LENGTH(products_internal_name), products_internal_name, products_name)")]);
+            $orderBy = new \yii\db\Expression('IF(LENGTH(products_internal_name), products_internal_name, products_name)');
         } else {
-          $productsIds = array_map('intval',preg_split('/,/',$productsIds,-1,PREG_SPLIT_NO_EMPTY));
+            $pQ->addSelect('products_name');
+            $orderBy = 'products_name';
         }
 
-      }
-      $pQ = \common\models\Products::find()->alias('p')
-          ->joinWith('backendDescription')
-          ->addSelect('p.products_id, p.products_model, p.products_price, p.products_status')
-          ->andWhere(['p.products_id' => array_map('intval', $productsIds)])
-          ;
-
-      if (false && \backend\models\ProductNameDecorator::instance()->useInternalNameForListing()) {
-        //$pQ->addSelect(['products_name' => new \yii\db\Expression("IF(LENGTH(products_internal_name), products_internal_name, products_name)")]);
-        $orderBy = new \yii\db\Expression("IF(LENGTH(products_internal_name), products_internal_name, products_name)");
-      } else {
-        $pQ->addSelect('products_name');
-        $orderBy = 'products_name';
-      }
-
-      $pQ ->orderBy($orderBy);
-      if ($limit && (int)$limit>0) {
-        $pQ ->limit((int)$limit);
-      }
-      $data = $pQ->asArray()->all();
-      $ret = '';
-      if (!empty($data)) {
-        /** @var \common\classes\Currencies $currencies */
-        $currencies = Yii::$container->get('currencies');
-        foreach ($data as $d) {
-          $ret .= '<div class="row col-md-12 prod-row ' . (!$d['products_status']?'dis_module':'') . '">';
-          if (in_array('name', $details)) {
-            $ret .= '<span class="col-md-8 prod-name">' . $d['products_name'] . '</span>';
-          }
-          if (in_array('model', $details)) {
-            $ret .= '<span class="col-md-2 prod-model">' . $d['products_model'] . '</span>';
-          }
-          if (in_array('price', $details)) {
-            $ret .= '<span class="col-md-2 prod-price">' . $currencies->format($d['products_price']) . '</span>';
-          }
-          $ret .= '</div>';
+        $pQ ->orderBy($orderBy);
+        if ($limit && (int)$limit > 0) {
+            $pQ ->limit((int)$limit);
         }
-        //$ret = '<div class="row col-md-12 container">' . $ret . '</div>';
-      }
+        $data = $pQ->asArray()->all();
+        $ret = '';
+        if (!empty($data)) {
+            /** @var \common\classes\Currencies $currencies */
+            $currencies = Yii::$container->get('currencies');
+            foreach ($data as $d) {
+                $ret .= '<div class="row col-md-12 prod-row ' . (!$d['products_status'] ? 'dis_module' : '') . '">';
+                if (in_array('name', $details)) {
+                    $ret .= '<span class="col-md-8 prod-name">' . $d['products_name'] . '</span>';
+                }
+                if (in_array('model', $details)) {
+                    $ret .= '<span class="col-md-2 prod-model">' . $d['products_model'] . '</span>';
+                }
+                if (in_array('price', $details)) {
+                    $ret .= '<span class="col-md-2 prod-price">' . $currencies->format($d['products_price']) . '</span>';
+                }
+                $ret .= '</div>';
+            }
+            //$ret = '<div class="row col-md-12 container">' . $ret . '</div>';
+        }
 
-      return $ret;
+        return $ret;
 
     }
-/**
- * from product price widget - to check
- * 2do fill in all details to 'clear' array
- * @param array $product product details from storage
- * @param int $qty def 1
- * @param int|false $customer_groups_id from storage if false
- * @return array
- */
-    public static function getPiceDetails($product, $qty=1, $customer_groups_id = false) {
-      if (!$customer_groups_id) {
-        $customer_groups_id = (int) \Yii::$app->storage->get('customer_groups_id');
-      }
-      $ret = $clear = [];
-      $special_ex = $old_ex = $current_ex = '';
-      /** @var \common\classes\Currencies $currencies */
-      $currencies = \Yii::$container->get('currencies');
-      $special_clear = $special_ex_clear = $special_one = $old_one = $special_ex_one = $old_ex_one = $current_ex_one = 0;
-      $special_promo_str = $special_promo_value = $special_promo_ex_value = $special_promo_ex_str = $special_promo_one_value = $special_promo_one_str = $special_promo_ex_one_value = $special_promo_ex_one_str = 0;
-      if ($product['is_bundle']) {
+    /**
+     * from product price widget - to check
+     * 2do fill in all details to 'clear' array
+     * @param array $product product details from storage
+     * @param int $qty def 1
+     * @param int|false $customer_groups_id from storage if false
+     * @return array
+     */
+    public static function getPiceDetails($product, $qty = 1, $customer_groups_id = false)
+    {
+        if (!$customer_groups_id) {
+            $customer_groups_id = (int) \Yii::$app->storage->get('customer_groups_id');
+        }
+        $ret = $clear = [];
+        $special_ex = $old_ex = $current_ex = '';
+        /** @var \common\classes\Currencies $currencies */
+        $currencies = \Yii::$container->get('currencies');
+        $special_clear = $special_ex_clear = $special_one = $old_one = $special_ex_one = $old_ex_one = $current_ex_one = 0;
+        $special_promo_str = $special_promo_value = $special_promo_ex_value = $special_promo_ex_str = $special_promo_one_value = $special_promo_one_str = $special_promo_ex_one_value = $special_promo_ex_one_str = 0;
+        if ($product['is_bundle']) {
             $details = \common\helpers\Bundles::getDetails(['products_id' => $product['products_id']]);
             if ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear']) {
                 $special = $details['actual_bundle_price'];
                 if (!empty($details['actual_bundle_price_ex'])) {
-                  $special_ex = $details['actual_bundle_price_ex'];
+                    $special_ex = $details['actual_bundle_price_ex'];
                 }
                 $old = $details['full_bundle_price'];
                 if (!empty($details['full_bundle_price_ex'])) {
-                  $old_ex = $details['full_bundle_price_ex'];
+                    $old_ex = $details['full_bundle_price_ex'];
                 }
                 $current = '';
             } else {
@@ -3671,14 +3753,14 @@ class Product {
                 $old = '';
                 $current = $details['actual_bundle_price'];
                 if (!empty($details['actual_bundle_price_ex'])) {
-                  $current_ex = $details['actual_bundle_price_ex'];
+                    $current_ex = $details['actual_bundle_price_ex'];
                 }
             }
 
-            $special_clear = ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear']?$details['actual_bundle_price_clear']:false);
-            $old_clear = ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear']?$details['full_bundle_price_clear']:false);
-            $special_ex_clear = ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear']?$details['actual_bundle_price_clear_ex']:false);
-            $old_ex_clear = ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear']?$details['full_bundle_price_clear_ex']:false);
+            $special_clear = ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear'] ? $details['actual_bundle_price_clear'] : false);
+            $old_clear = ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear'] ? $details['full_bundle_price_clear'] : false);
+            $special_ex_clear = ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear'] ? $details['actual_bundle_price_clear_ex'] : false);
+            $old_ex_clear = ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear'] ? $details['full_bundle_price_clear_ex'] : false);
 
             if ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear']) {
                 $product['special_promote_type'] = 0;
@@ -3700,12 +3782,12 @@ class Product {
               'special_ex' => $special_ex_clear,
               'old_ex' => $old_ex_clear,
               'current_ex' => $details['actual_bundle_price_clear_ex'],
-              'discount' => ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear']?
-                $details['full_bundle_price_clear'] - $details['actual_bundle_price_clear']:false),
-              'percent' => ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear'] && $details['full_bundle_price_clear']?
-                round(($details['full_bundle_price_clear'] - $details['actual_bundle_price_clear'])/$details['full_bundle_price_clear']*100) . '%':false),
-              'special_total_qty' => $product['special_total_qty']??0,
-              'special_max_per_order' => $product['special_max_per_order']??0,
+              'discount' => ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear'] ?
+                $details['full_bundle_price_clear'] - $details['actual_bundle_price_clear'] : false),
+              'percent' => ($details['full_bundle_price_clear'] > $details['actual_bundle_price_clear'] && $details['full_bundle_price_clear'] ?
+                round(($details['full_bundle_price_clear'] - $details['actual_bundle_price_clear']) / $details['full_bundle_price_clear'] * 100) . '%' : false),
+              'special_total_qty' => $product['special_total_qty'] ?? 0,
+              'special_max_per_order' => $product['special_max_per_order'] ?? 0,
             ];
             $jsonPrice = $details['actual_bundle_price_clear'];
         } else {
@@ -3720,26 +3802,26 @@ class Product {
 
                 $old_one_clear = $currencies->display_price_clear($product['products_price'], $product['tax_rate'], 1);
                 $old_one = $currencies->format($old_one_clear, false);
-                if (/*$product['tax_rate']>0 && */defined("DISPLAY_BOTH_PRICES") && DISPLAY_BOTH_PRICES =='True') { //&& (!\Yii::$app->storage->has('taxable') || (\Yii::$app->storage->has('taxable') && \Yii::$app->storage->get('taxable')))  - switcher from box and account ...
-                  $special_ex_one_clear = $currencies->display_price_clear($product['special_price'], 0, 1);
-                  $special_ex_one = $currencies->format($special_ex_one_clear, false);
+                if (/*$product['tax_rate']>0 && */defined('DISPLAY_BOTH_PRICES') && DISPLAY_BOTH_PRICES == 'True') { //&& (!\Yii::$app->storage->has('taxable') || (\Yii::$app->storage->has('taxable') && \Yii::$app->storage->get('taxable')))  - switcher from box and account ...
+                    $special_ex_one_clear = $currencies->display_price_clear($product['special_price'], 0, 1);
+                    $special_ex_one = $currencies->format($special_ex_one_clear, false);
 
-                  $old_ex_one_clear = $currencies->display_price_clear($product['products_price'], 0, 1);
-                  $old_ex_one = $currencies->format($old_ex_one_clear, false);
+                    $old_ex_one_clear = $currencies->display_price_clear($product['products_price'], 0, 1);
+                    $old_ex_one = $currencies->format($old_ex_one_clear, false);
                 }
             } else {
                 $current_one = $currencies->display_price($product['products_price'], $product['tax_rate'], 1, true, true);
-                if (/*$product['tax_rate']>0 && */defined("DISPLAY_BOTH_PRICES") && DISPLAY_BOTH_PRICES =='True') {
-                  $current_ex_one = $currencies->display_price($product['products_price'], 0, 1, false, false);
+                if (/*$product['tax_rate']>0 && */defined('DISPLAY_BOTH_PRICES') && DISPLAY_BOTH_PRICES == 'True') {
+                    $current_ex_one = $currencies->display_price($product['products_price'], 0, 1, false, false);
                 }
 
                 if (\common\helpers\Extensions::isCustomerGroupsAllowed() && \common\helpers\Customer::check_customer_groups($customer_groups_id, 'groups_price_as_special') && !isset($product['products_price_main'])) {
-                  $_p = \common\models\Products::find()->select(['products_price_main' => 'products_price', 'products_id'])
-                        ->where('products_id=:products_id', [':products_id' => (int) $product['products_id']])->asArray()->one();
-                  if (!empty($_p)) {
-                    \Yii::$container->get('products')->loadProducts($_p);
-                    $product['products_price_main'] = $_p['products_price_main'];
-                  }
+                    $_p = \common\models\Products::find()->select(['products_price_main' => 'products_price', 'products_id'])
+                          ->where('products_id=:products_id', [':products_id' => (int) $product['products_id']])->asArray()->one();
+                    if (!empty($_p)) {
+                        \Yii::$container->get('products')->loadProducts($_p);
+                        $product['products_price_main'] = $_p['products_price_main'];
+                    }
                 }
 
                 if (\common\helpers\Customer::check_customer_groups($customer_groups_id, 'groups_price_as_special') && $product['products_price_main'] > $product['products_price']) {
@@ -3748,7 +3830,7 @@ class Product {
                     $old_one = $currencies->format($old_one_clear, false);
                     $special_one_clear = $currencies->display_price_clear($product['products_price'], $product['tax_rate'], 1);
 
-                    if (/*$product['tax_rate']>0 && */defined("DISPLAY_BOTH_PRICES") && DISPLAY_BOTH_PRICES =='True') {
+                    if (/*$product['tax_rate']>0 && */defined('DISPLAY_BOTH_PRICES') && DISPLAY_BOTH_PRICES == 'True') {
                         $old_ex_one_clear = $currencies->display_price_clear($product['products_price_main'], 0, 1, false, false);
                         $old_ex_one = $currencies->format($old_ex_one_clear, false);
                         $special_ex_one_clear = $currencies->display_price_clear($product['products_price'], 0, 1, false, false);
@@ -3756,12 +3838,12 @@ class Product {
                     $current = '';
                 }
             }
-/*
-            if ($qty != 1) {
-              $product['products_price'] = $priceInstance->getInventoryPrice(['qty' => $qty]);
-              $product['special_price'] = $priceInstance->getInventorySpecialPrice(['qty' => $qty]);
-            }
-*/
+            /*
+                        if ($qty != 1) {
+                          $product['products_price'] = $priceInstance->getInventoryPrice(['qty' => $qty]);
+                          $product['special_price'] = $priceInstance->getInventorySpecialPrice(['qty' => $qty]);
+                        }
+            */
 
             if (isset($product['special_price']) && $product['special_price'] !== false) {
                 $special_value = $product['special_price'];
@@ -3771,12 +3853,12 @@ class Product {
                 $old_clear = $currencies->display_price_clear($product['products_price'], $product['tax_rate'], $qty);
                 $old = $currencies->format($old_clear, false);
 
-                if (/*$product['tax_rate']>0 && */defined("DISPLAY_BOTH_PRICES") && DISPLAY_BOTH_PRICES =='True') { //&& (!\Yii::$app->storage->has('taxable') || (\Yii::$app->storage->has('taxable') && \Yii::$app->storage->get('taxable')))  - switcher from box and account ...
-                  $special_ex_clear = $currencies->display_price_clear($product['special_price'], 0, $qty);
-                  $special_ex = $currencies->format($special_ex_clear, false);
+                if (/*$product['tax_rate']>0 && */defined('DISPLAY_BOTH_PRICES') && DISPLAY_BOTH_PRICES == 'True') { //&& (!\Yii::$app->storage->has('taxable') || (\Yii::$app->storage->has('taxable') && \Yii::$app->storage->get('taxable')))  - switcher from box and account ...
+                    $special_ex_clear = $currencies->display_price_clear($product['special_price'], 0, $qty);
+                    $special_ex = $currencies->format($special_ex_clear, false);
 
-                  $old_ex_clear = $currencies->display_price_clear($product['products_price'], 0, $qty);
-                  $old_ex = $currencies->format($old_ex_clear, false);
+                    $old_ex_clear = $currencies->display_price_clear($product['products_price'], 0, $qty);
+                    $old_ex = $currencies->format($old_ex_clear, false);
 
                 }
                 $current = $current_ex = '';
@@ -3787,17 +3869,17 @@ class Product {
                 $old = '';
                 $current = $currencies->display_price($product['products_price'], $product['tax_rate'], $qty, true, true);
                 $jsonPrice = $currencies->display_price_clear($product['products_price'], $product['tax_rate'], 1);
-                if (/*$product['tax_rate']>0 && */defined("DISPLAY_BOTH_PRICES") && DISPLAY_BOTH_PRICES =='True') {
-                  $current_ex = $currencies->display_price($product['products_price'], 0, $qty, false, false);
+                if (/*$product['tax_rate']>0 && */defined('DISPLAY_BOTH_PRICES') && DISPLAY_BOTH_PRICES == 'True') {
+                    $current_ex = $currencies->display_price($product['products_price'], 0, $qty, false, false);
                 }
 
                 if (\common\helpers\Extensions::isCustomerGroupsAllowed() && \common\helpers\Customer::check_customer_groups($customer_groups_id, 'groups_price_as_special') && !isset($product['products_price_main'])) {
-                  $_p = \common\models\Products::find()->select(['products_price_main' => 'products_price', 'products_id'])
-                        ->where('products_id=:products_id', [':products_id' => (int) $product['products_id']])->asArray()->one();
-                  if (!empty($_p)) {
-                    \Yii::$container->get('products')->loadProducts($_p);
-                    $product['products_price_main'] = $_p['products_price_main'];
-                  }
+                    $_p = \common\models\Products::find()->select(['products_price_main' => 'products_price', 'products_id'])
+                          ->where('products_id=:products_id', [':products_id' => (int) $product['products_id']])->asArray()->one();
+                    if (!empty($_p)) {
+                        \Yii::$container->get('products')->loadProducts($_p);
+                        $product['products_price_main'] = $_p['products_price_main'];
+                    }
                 }
 
                 if (\common\helpers\Customer::check_customer_groups($customer_groups_id, 'groups_price_as_special') && $product['products_price_main'] > $product['products_price']) {
@@ -3809,7 +3891,7 @@ class Product {
                     $special_clear = $currencies->display_price_clear($product['products_price'], $product['tax_rate'], $qty);
                     $special_one_clear = $currencies->display_price_clear($product['products_price'], $product['tax_rate'], 1);
 
-                    if (/*$product['tax_rate']>0 && */defined("DISPLAY_BOTH_PRICES") && DISPLAY_BOTH_PRICES =='True') {
+                    if (/*$product['tax_rate']>0 && */defined('DISPLAY_BOTH_PRICES') && DISPLAY_BOTH_PRICES == 'True') {
                         $special_ex = $current_ex;
                         $old_ex_clear = $currencies->display_price($product['products_price_main'], 0, $qty);
                         $old_ex = $currencies->format($old_ex_clear, false);
@@ -3822,85 +3904,85 @@ class Product {
             $clear = [
               'special' => ($special_clear ? $special_clear : false),
               //'old' => ((isset($product['special_price']) && $product['special_price'] !== false)?$old_clear:false),
-              'old' => (!empty($old_clear)?$old_clear:false),
+              'old' => (!empty($old_clear) ? $old_clear : false),
               'current' => $currencies->display_price_clear(
-                  (isset($product['special_price']) && $product['special_price'] !== false)?$product['special_price']:$product['products_price'],
-                  $product['tax_rate']),
-              'special_ex' => ($special_ex_clear?$special_ex_clear:false),
-              'old_ex' => ((isset($product['special_price']) && $product['special_price'] !== false)?$product['products_price']:false),
-              'current_ex' => $special_ex_clear?$special_ex_clear:$product['products_price'],
-              'special_total_qty' => $product['special_total_qty']??0,
-              'special_max_per_order' => $product['special_max_per_order']??0,
+                  (isset($product['special_price']) && $product['special_price'] !== false) ? $product['special_price'] : $product['products_price'],
+                  $product['tax_rate']
+              ),
+              'special_ex' => ($special_ex_clear ? $special_ex_clear : false),
+              'old_ex' => ((isset($product['special_price']) && $product['special_price'] !== false) ? $product['products_price'] : false),
+              'current_ex' => $special_ex_clear ? $special_ex_clear : $product['products_price'],
+              'special_total_qty' => $product['special_total_qty'] ?? 0,
+              'special_max_per_order' => $product['special_max_per_order'] ?? 0,
             ];
-            $clear['discount'] = ((isset($product['special_price']) && $product['special_price'] !== false)? $clear['old'] - $clear['special']:false);
-            if (abs($clear['discount'])<0.01) {
-              $clear['discount'] = false;
+            $clear['discount'] = ((isset($product['special_price']) && $product['special_price'] !== false) ? $clear['old'] - $clear['special'] : false);
+            if (abs($clear['discount']) < 0.01) {
+                $clear['discount'] = false;
             } else {
-              $clear['percent'] = ((isset($product['special_price']) && $product['special_price'] !== false && $clear['old']>0)?
-                round(($clear['old'] - $clear['special'])/$clear['old']*100):false);
-              if (abs($clear['percent'])<1) {
-                $clear['percent'] = false;
-              } else {
-                $clear['percent'] .= '%';
-              }
+                $clear['percent'] = ((isset($product['special_price']) && $product['special_price'] !== false && $clear['old'] > 0) ?
+                  round(($clear['old'] - $clear['special']) / $clear['old'] * 100) : false);
+                if (abs($clear['percent']) < 1) {
+                    $clear['percent'] = false;
+                } else {
+                    $clear['percent'] .= '%';
+                }
             }
         }
 
         if (!empty($product['special_promote_type']) && !empty($clear['discount']) /* && isset($product['special_expiration_date']) && $product['special_expiration_date'] != '' */) {
-          if ($product['special_promote_type']==1) { //percent
-            if ($old_clear>0) {
-              $special_promo_value = round(($old_clear - $special_clear)/$old_clear*100);
-            } else {
-             $special_promo_value = 100;
+            if ($product['special_promote_type'] == 1) { //percent
+                if ($old_clear > 0) {
+                    $special_promo_value = round(($old_clear - $special_clear) / $old_clear * 100);
+                } else {
+                    $special_promo_value = 100;
+                }
+                $special_promo_str = $special_promo_value  . '%';
+
+                if ($old_ex_clear > 0) {
+                    $special_promo_ex_value = round(($old_ex_clear - $special_ex_clear) / $old_ex_clear * 100);
+                } else {
+                    $special_promo_ex_value = 100;
+                }
+                $special_promo_ex_str = $special_promo_ex_value  . '%';
+
+                if (isset($old_one_clear)) {
+                    if ($old_one_clear > 0) {
+                        $special_promo_one_value = round(($old_one_clear - $special_one_clear) / $old_one_clear * 100);
+                    } else {
+                        $special_promo_one_value = 100;
+                    }
+                    $special_promo_one_str = $special_promo_one_value  . '%';
+                }
+
+                if (isset($old_ex_one_clear)) {
+                    if ($old_ex_one_clear > 0) {
+                        $special_promo_ex_one_value = round(($old_ex_one_clear - $special_ex_one_clear) / $old_ex_one_clear * 100);
+                    } else {
+                        $special_promo_ex_one_value = 100;
+                    }
+                    $special_promo_ex_one_str = $special_promo_ex_one_value  . '%';
+                }
+
+            } elseif ($product['special_promote_type'] == 2) { //fixed
+                $special_promo_value = $currencies->format_clear($old_clear - $special_clear, false);
+                $special_promo_str = $currencies->format($old_clear - $special_clear, false);
+
+                $special_promo_ex_value = $currencies->format_clear($old_ex_clear - $special_ex_clear, false);
+                $special_promo_ex_str = $currencies->format($old_ex_clear - $special_ex_clear, false);
+
+                if (isset($special_one_clear)) {
+                    $special_promo_one_value = $currencies->format_clear($old_one_clear - $special_one_clear, false);
+                    $special_promo_one_str = $currencies->format($old_one_clear - $special_one_clear, false);
+                }
+                if (isset($special_ex_one_clear)) {
+                    $special_promo_ex_one_value = $currencies->format_clear($old_ex_one_clear - $special_ex_one_clear, false);
+                    $special_promo_ex_one_str = $currencies->format($old_ex_one_clear - $special_ex_one_clear, false);
+                }
+
             }
-            $special_promo_str = $special_promo_value  . '%';
-
-            if ($old_ex_clear>0) {
-              $special_promo_ex_value = round(($old_ex_clear - $special_ex_clear)/$old_ex_clear*100);
-            } else {
-             $special_promo_ex_value = 100;
-            }
-            $special_promo_ex_str = $special_promo_ex_value  . '%';
-
-            if (isset($old_one_clear)) {
-              if ($old_one_clear>0) {
-                $special_promo_one_value = round(($old_one_clear - $special_one_clear)/$old_one_clear*100);
-              } else {
-               $special_promo_one_value = 100;
-              }
-              $special_promo_one_str = $special_promo_one_value  . '%';
-            }
-
-            if (isset($old_ex_one_clear)) {
-              if ($old_ex_one_clear>0) {
-                $special_promo_ex_one_value = round(($old_ex_one_clear - $special_ex_one_clear)/$old_ex_one_clear*100);
-              } else {
-               $special_promo_ex_one_value = 100;
-              }
-              $special_promo_ex_one_str = $special_promo_ex_one_value  . '%';
-            }
-
-
-          } elseif ($product['special_promote_type']==2) { //fixed
-            $special_promo_value = $currencies->format_clear($old_clear - $special_clear, false);
-            $special_promo_str = $currencies->format($old_clear - $special_clear, false);
-
-            $special_promo_ex_value = $currencies->format_clear($old_ex_clear - $special_ex_clear, false);
-            $special_promo_ex_str = $currencies->format($old_ex_clear - $special_ex_clear, false);
-
-            if (isset($special_one_clear)) {
-              $special_promo_one_value = $currencies->format_clear($old_one_clear - $special_one_clear, false);
-              $special_promo_one_str = $currencies->format($old_one_clear - $special_one_clear, false);
-            }
-            if (isset($special_ex_one_clear)) {
-              $special_promo_ex_one_value = $currencies->format_clear($old_ex_one_clear - $special_ex_one_clear, false);
-              $special_promo_ex_one_str = $currencies->format($old_ex_one_clear - $special_ex_one_clear, false);
-            }
-
-          }
         }
 
-        $taxable = (DISPLAY_PRICE_WITH_TAX == 'true') && ($product['tax_rate']>0 );
+        $taxable = (DISPLAY_PRICE_WITH_TAX == 'true') && ($product['tax_rate'] > 0);
         /*if (\Yii::$app->storage->has('taxable')){
           $taxable = $taxable && \Yii::$app->storage->get('taxable');
         }*/
@@ -3936,7 +4018,7 @@ class Product {
           ],
           'clear' => $clear ?? null,
           'jsonPrice' => $jsonPrice ?? null,
-          'special_value' => $special_value ?? null
+          'special_value' => $special_value ?? null,
         ];
 
         return $ret;
@@ -3951,16 +4033,17 @@ class Product {
      * @param int $supplierId
      * @return bool
      */
-    public static function isAvailableForSale($uProductId, $platformId = false, $warehouseId = false, $supplierId = false) {
+    public static function isAvailableForSale($uProductId, $platformId = false, $warehouseId = false, $supplierId = false)
+    {
         $ProductId = \common\helpers\Inventory::get_prid($uProductId);
         $cart_button = isset(\common\models\Products::findOne($ProductId)->cart_button) ? \common\models\Products::findOne($ProductId)->cart_button : 1;
         if ($cart_button) {
             //$product_qty = self::get_products_stock($uProductId);
             $product_qty = self::getAvailable($uProductId, ($platformId > 0 ? $platformId : false), ($warehouseId > 0 ? $warehouseId : false), ($supplierId > 0 ? $supplierId : false));
-            $stock_info = \common\classes\StockIndication::product_info(array(
+            $stock_info = \common\classes\StockIndication::product_info([
                     'products_id' => $uProductId,
                     'products_quantity' => $product_qty,
-            ));
+            ]);
             return $stock_info['flags']['add_to_cart'];
         }
     }
@@ -3973,17 +4056,18 @@ class Product {
      * @param int $supplierId
      * @return bool
      */
-    public static function isAvailableForSaleNow($uProductId, $platformId = false, $warehouseId = false, $supplierId = false) {
+    public static function isAvailableForSaleNow($uProductId, $platformId = false, $warehouseId = false, $supplierId = false)
+    {
         $ProductId = \common\helpers\Inventory::get_prid($uProductId);
         $cart_button = isset(\common\models\Products::findOne($ProductId)->cart_button) ? \common\models\Products::findOne($ProductId)->cart_button : 1;
         if ($cart_button) {
             $product_qty = self::get_products_stock($uProductId);
             //$product_qty = self::getAvailable($uProductId, ($platformId > 0 ? $platformId : false), ($warehouseId > 0 ? $warehouseId : false), ($supplierId > 0 ? $supplierId : false));
-            $stock_info = \common\classes\StockIndication::product_info(array(
+            $stock_info = \common\classes\StockIndication::product_info([
                     'products_id' => $uProductId,
                     'products_quantity' => $product_qty,
-            ));
-            return ($stock_info['flags']['add_to_cart'] && ($product_qty>0) && empty($stock_info['flags']['notify_instock']));
+            ]);
+            return ($stock_info['flags']['add_to_cart'] && ($product_qty > 0) && empty($stock_info['flags']['notify_instock']));
         }
     }
 
@@ -4009,12 +4093,13 @@ class Product {
             ->groupBy(['translation_key'])
             ->asArray(true)->all() as $labelRecord
         ) {
-            $return[$labelRecord['translation_key']] = (defined($labelRecord['translation_key'])
+            $return[$labelRecord['translation_key']] = (
+                defined($labelRecord['translation_key'])
                 ? constant($labelRecord['translation_key']) : $labelRecord['translation_key']
             );
         }
         if ($isSearch == true) {
-            return ((($productUnitLabelKey != '') AND isset($return[$productUnitLabelKey]))
+            return ((($productUnitLabelKey != '') and isset($return[$productUnitLabelKey]))
                 ? (($productUnitLabelReturnValue == true) ? $return[$productUnitLabelKey] : $productUnitLabelKey)
                 : ''
             );
@@ -4038,13 +4123,13 @@ class Product {
     public static function getProductTypes($productArray)
     {
         $res = [];
-        if (($productArray['is_bundle']??null) && \common\helpers\Extensions::isAllowed('ProductBundles')) {
+        if (($productArray['is_bundle'] ?? null) && \common\helpers\Extensions::isAllowed('ProductBundles')) {
             $res = ['bundle'];
-        } elseif (($productArray['products_pctemplates_id']??null) && \common\helpers\Extensions::isAllowed('ProductConfigurator')) {
+        } elseif (($productArray['products_pctemplates_id'] ?? null) && \common\helpers\Extensions::isAllowed('ProductConfigurator')) {
             $res = ['configurator'];
-        } elseif ($productArray['attr_exists']??null) {
+        } elseif ($productArray['attr_exists'] ?? null) {
             $res = ['attributes'];
-            if (!($productArray['without_inventory']??null) && \common\helpers\Extensions::isAllowed('Inventory')) {
+            if (!($productArray['without_inventory'] ?? null) && \common\helpers\Extensions::isAllowed('Inventory')) {
                 $res[] = 'inventory';
             }
         }

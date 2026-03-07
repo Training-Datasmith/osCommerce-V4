@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -39,38 +41,37 @@ namespace Stripe;
  */
 class Payout extends ApiResource
 {
-    const OBJECT_NAME = 'payout';
-
     use ApiOperations\All;
     use ApiOperations\Create;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
+    public const OBJECT_NAME = 'payout';
 
-    const FAILURE_ACCOUNT_CLOSED = 'account_closed';
-    const FAILURE_ACCOUNT_FROZEN = 'account_frozen';
-    const FAILURE_BANK_ACCOUNT_RESTRICTED = 'bank_account_restricted';
-    const FAILURE_BANK_OWNERSHIP_CHANGED = 'bank_ownership_changed';
-    const FAILURE_COULD_NOT_PROCESS = 'could_not_process';
-    const FAILURE_DEBIT_NOT_AUTHORIZED = 'debit_not_authorized';
-    const FAILURE_DECLINED = 'declined';
-    const FAILURE_INCORRECT_ACCOUNT_HOLDER_NAME = 'incorrect_account_holder_name';
-    const FAILURE_INSUFFICIENT_FUNDS = 'insufficient_funds';
-    const FAILURE_INVALID_ACCOUNT_NUMBER = 'invalid_account_number';
-    const FAILURE_INVALID_CURRENCY = 'invalid_currency';
-    const FAILURE_NO_ACCOUNT = 'no_account';
-    const FAILURE_UNSUPPORTED_CARD = 'unsupported_card';
+    public const FAILURE_ACCOUNT_CLOSED = 'account_closed';
+    public const FAILURE_ACCOUNT_FROZEN = 'account_frozen';
+    public const FAILURE_BANK_ACCOUNT_RESTRICTED = 'bank_account_restricted';
+    public const FAILURE_BANK_OWNERSHIP_CHANGED = 'bank_ownership_changed';
+    public const FAILURE_COULD_NOT_PROCESS = 'could_not_process';
+    public const FAILURE_DEBIT_NOT_AUTHORIZED = 'debit_not_authorized';
+    public const FAILURE_DECLINED = 'declined';
+    public const FAILURE_INCORRECT_ACCOUNT_HOLDER_NAME = 'incorrect_account_holder_name';
+    public const FAILURE_INSUFFICIENT_FUNDS = 'insufficient_funds';
+    public const FAILURE_INVALID_ACCOUNT_NUMBER = 'invalid_account_number';
+    public const FAILURE_INVALID_CURRENCY = 'invalid_currency';
+    public const FAILURE_NO_ACCOUNT = 'no_account';
+    public const FAILURE_UNSUPPORTED_CARD = 'unsupported_card';
 
-    const METHOD_INSTANT = 'instant';
-    const METHOD_STANDARD = 'standard';
+    public const METHOD_INSTANT = 'instant';
+    public const METHOD_STANDARD = 'standard';
 
-    const STATUS_CANCELED = 'canceled';
-    const STATUS_FAILED = 'failed';
-    const STATUS_IN_TRANSIT = 'in_transit';
-    const STATUS_PAID = 'paid';
-    const STATUS_PENDING = 'pending';
+    public const STATUS_CANCELED = 'canceled';
+    public const STATUS_FAILED = 'failed';
+    public const STATUS_IN_TRANSIT = 'in_transit';
+    public const STATUS_PAID = 'paid';
+    public const STATUS_PENDING = 'pending';
 
-    const TYPE_BANK_ACCOUNT = 'bank_account';
-    const TYPE_CARD = 'card';
+    public const TYPE_BANK_ACCOUNT = 'bank_account';
+    public const TYPE_CARD = 'card';
 
     /**
      * @param null|array $params

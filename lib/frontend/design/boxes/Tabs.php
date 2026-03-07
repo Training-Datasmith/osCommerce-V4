@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,13 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
-use yii\base\Widget;
-use frontend\design\IncludeTpl;
 use frontend\design\Block;
+use frontend\design\IncludeTpl;
 use frontend\design\Info;
+use yii\base\Widget;
 
 class Tabs extends Widget
 {
-
     public $settings;
     public $params;
     public $id;
@@ -71,11 +71,11 @@ class Tabs extends Widget
 
         $blockTreeData = $this->params['blockTreeData'];
 
-        for($i = 1; $i <= 10; $i++){
+        for ($i = 1; $i <= 10; $i++) {
 
             if (isset($this->settings[0]['tab_' . $i])) {
                 $title = $this->settings[0]['tab_' . $i];
-            } elseif (isset($this->settings[$languages_id]['tab_' . $i])){
+            } elseif (isset($this->settings[$languages_id]['tab_' . $i])) {
                 $title = $this->settings[$languages_id]['tab_' . $i];
             } else {
                 continue;
@@ -102,7 +102,6 @@ class Tabs extends Widget
             }
         }
 
-
         if ($var_content) {
 
             $var .= '<div class="tab-navigation">' . $tabs_headings . '</div>';
@@ -110,14 +109,14 @@ class Tabs extends Widget
 
             $var .= IncludeTpl::widget(['file' => 'boxes/tabs.tpl', 'params' => [
                 'id' => $this->id,
-                'accordion' => $accordion
+                'accordion' => $accordion,
             ]]);
 
             return $var;
 
         } else {
 
-            return "";
+            return '';
 
         }
 

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,16 +14,14 @@
 
 namespace common\helpers;
 
-
 class ApiHelper
 {
-
-    static public function generateApiKey()
+    public static function generateApiKey()
     {
         $__server_part = tep_db_fetch_array(tep_db_query(
-            "SELECT UUID() AS server_part"
+            'SELECT UUID() AS server_part'
         ));
-        return strtolower(str_replace('-','',$__server_part['server_part']).\common\helpers\Password::create_random_value(16));
+        return strtolower(str_replace('-', '', $__server_part['server_part']).\common\helpers\Password::create_random_value(16));
     }
 
 }

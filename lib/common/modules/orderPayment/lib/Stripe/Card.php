@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -43,38 +45,37 @@ namespace Stripe;
  */
 class Card extends ApiResource
 {
-    const OBJECT_NAME = 'card';
-
     use ApiOperations\Delete;
     use ApiOperations\Update;
+    public const OBJECT_NAME = 'card';
 
     /**
      * Possible string representations of the CVC check status.
      *
      * @see https://stripe.com/docs/api/cards/object#card_object-cvc_check
      */
-    const CVC_CHECK_FAIL = 'fail';
-    const CVC_CHECK_PASS = 'pass';
-    const CVC_CHECK_UNAVAILABLE = 'unavailable';
-    const CVC_CHECK_UNCHECKED = 'unchecked';
+    public const CVC_CHECK_FAIL = 'fail';
+    public const CVC_CHECK_PASS = 'pass';
+    public const CVC_CHECK_UNAVAILABLE = 'unavailable';
+    public const CVC_CHECK_UNCHECKED = 'unchecked';
 
     /**
      * Possible string representations of the funding of the card.
      *
      * @see https://stripe.com/docs/api/cards/object#card_object-funding
      */
-    const FUNDING_CREDIT = 'credit';
-    const FUNDING_DEBIT = 'debit';
-    const FUNDING_PREPAID = 'prepaid';
-    const FUNDING_UNKNOWN = 'unknown';
+    public const FUNDING_CREDIT = 'credit';
+    public const FUNDING_DEBIT = 'debit';
+    public const FUNDING_PREPAID = 'prepaid';
+    public const FUNDING_UNKNOWN = 'unknown';
 
     /**
      * Possible string representations of the tokenization method when using Apple Pay or Google Pay.
      *
      * @see https://stripe.com/docs/api/cards/object#card_object-tokenization_method
      */
-    const TOKENIZATION_METHOD_APPLE_PAY = 'apple_pay';
-    const TOKENIZATION_METHOD_GOOGLE_PAY = 'google_pay';
+    public const TOKENIZATION_METHOD_APPLE_PAY = 'apple_pay';
+    public const TOKENIZATION_METHOD_GOOGLE_PAY = 'google_pay';
 
     /**
      * @return string The instance URL for this resource. It needs to be special

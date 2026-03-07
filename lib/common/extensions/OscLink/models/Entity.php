@@ -1,8 +1,8 @@
 <?php
 
-namespace common\extensions\OscLink\models; 
+declare(strict_types=1);
 
-use Yii;
+namespace common\extensions\OscLink\models;
 
 /**
  * This is the model class for table "connector_osclink_entity".
@@ -45,7 +45,6 @@ class Entity extends \yii\db\ActiveRecord
         ];
     }
 
-
     public function getMapping()
     {
         return $this->hasMany(Mapping::class, ['entity_id' => 'id']);
@@ -61,8 +60,6 @@ class Entity extends \yii\db\ActiveRecord
         \common\extensions\OscLink\models\Entity::deleteAll($condition_entity);
     }
 
-
-
     public static function isMappedExist()
     {
         $statusId = self::returnEntityId('@order_status');
@@ -73,7 +70,7 @@ class Entity extends \yii\db\ActiveRecord
     public static function returnEntityId($name, $project_id = 1)
     {
         $row = self::findOne(['project_id' => $project_id, 'entity_name' => $name]);
-        return empty($row)? null : $row->id;
+        return empty($row) ? null : $row->id;
     }
 
     public static function forceEntityId($name, $project_id = 1)

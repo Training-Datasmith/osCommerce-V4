@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -30,7 +32,7 @@ class XML implements ReaderInterface
 
     public $importData = 'array';
 
-    var $parser;
+    public $parser;
     protected $currentTagStack = [];
     protected $detectedIndexed = [];
     protected $lastClosedTag = '';
@@ -60,34 +62,34 @@ class XML implements ReaderInterface
     {
         $this->file_header = null;
         $this->file_start_pointer = 0;
-        $this->file_handle = @fopen($this->filename,'r');
-        if ( !$this->file_handle ) {
+        $this->file_handle = @fopen($this->filename, 'r');
+        if (!$this->file_handle) {
             throw new Exception('Can\'t open file', 20);
         }
 
         $this->currentTagStack = [];
         $this->parser = xml_parser_create('utf-8');
         xml_set_object($this->parser, $this);
-        xml_parser_set_option($this->parser,XML_OPTION_CASE_FOLDING,0);
-        xml_parser_set_option($this->parser,XML_OPTION_SKIP_WHITE,1);
+        xml_parser_set_option($this->parser, XML_OPTION_CASE_FOLDING, 0);
+        xml_parser_set_option($this->parser, XML_OPTION_SKIP_WHITE, 1);
 
-        if ( $this->importData=='SimpleXml' ) {
-            xml_set_element_handler($this->parser, "sx_tag_open", "sx_tag_close");
-            xml_set_character_data_handler($this->parser, "sx_cdata");
+        if ($this->importData == 'SimpleXml') {
+            xml_set_element_handler($this->parser, 'sx_tag_open', 'sx_tag_close');
+            xml_set_character_data_handler($this->parser, 'sx_cdata');
 
-            if ( empty($this->rootTag) ) {
+            if (empty($this->rootTag)) {
                 $collectPath = '/'.$this->rowsTag.'/'.$this->rowTag;
-            }else {
+            } else {
                 $collectPath = '/'.$this->rootTag.'/'.$this->rowsTag.'/'.$this->rowTag;
             }
             $this->collectPath[$collectPath] = $collectPath;
-        }else {
-            xml_set_element_handler($this->parser, "tag_open", "tag_close");
-            xml_set_character_data_handler($this->parser, "cdata");
+        } else {
+            xml_set_element_handler($this->parser, 'tag_open', 'tag_close');
+            xml_set_character_data_handler($this->parser, 'cdata');
 
-            if ( empty($this->rootTag) ) {
+            if (empty($this->rootTag)) {
                 $this->collectPath[$this->rowsTag.'.'.$this->rowTag] = true;
-            }else {
+            } else {
                 $this->collectPath[$this->rootTag . '.' . $this->rowsTag . '.' . $this->rowTag] = true;
             }
         }
@@ -107,7 +109,7 @@ class XML implements ReaderInterface
             $this->openFile();
         }
 
-        if ( $this->importData=='SimpleXml' ) {
+        if ($this->importData == 'SimpleXml') {
             if (count($this->readOutQueue) > 0) {
                 while ($item = array_shift($this->readOutQueue)) {
                     if (count($this->collectPath) > 0) {
@@ -119,7 +121,7 @@ class XML implements ReaderInterface
                     }
                 }
             }
-        }else {
+        } else {
             if (count($this->readOutQueue) > 0) {
                 $data = array_shift($this->readOutQueue);
                 if (count($this->readOutQueue) == 0) {
@@ -133,14 +135,14 @@ class XML implements ReaderInterface
             }
         }
 
-        while ( $data = fread($this->file_handle,4096*1) ){
-            if ( !xml_parse($this->parser, $data, feof($this->file_handle)) ){
+        while ($data = fread($this->file_handle, 4096 * 1)) {
+            if (!xml_parse($this->parser, $data, feof($this->file_handle))) {
                 $fmt = new \yii\i18n\Formatter();
-                $memusage = $fmt->asShortSize(memory_get_usage(true),3);
-                $mempeakusage = $fmt->asShortSize(memory_get_peak_usage(true),3);
-                throw new Exception("XML Error: memusage {$memusage} mempeakusage {$mempeakusage} ".xml_error_string(xml_get_error_code($this->parser))." at line ".xml_get_current_line_number($this->parser)."");
+                $memusage = $fmt->asShortSize(memory_get_usage(true), 3);
+                $mempeakusage = $fmt->asShortSize(memory_get_peak_usage(true), 3);
+                throw new Exception("XML Error: memusage {$memusage} mempeakusage {$mempeakusage} ".xml_error_string(xml_get_error_code($this->parser)).' at line '.xml_get_current_line_number($this->parser).'');
             }
-            if ( $this->importData=='SimpleXml' ) {
+            if ($this->importData == 'SimpleXml') {
                 if (count($this->readOutQueue) > 0) {
                     while ($item = array_shift($this->readOutQueue)) {
                         if (count($this->collectPath) > 0) {
@@ -152,7 +154,7 @@ class XML implements ReaderInterface
                         }
                     }
                 }
-            }else {
+            } else {
                 if (count($this->readOutQueue) > 0) {
                     $data = array_shift($this->readOutQueue);
                     if (count($this->readOutQueue) == 0) {
@@ -182,24 +184,24 @@ class XML implements ReaderInterface
     public function getProgress()
     {
         $filePosition = $this->currentPosition();
-        if ( $this->file_handle ) {
+        if ($this->file_handle) {
             $fstat = fstat($this->file_handle);
-            $percentDone = min(100,($filePosition/max(1,$fstat['size']))*100);
-        }else{
-            $percentDone = min(100,($filePosition/filesize($this->filename))*100);
+            $percentDone = min(100, ($filePosition / max(1, $fstat['size'])) * 100);
+        } else {
+            $percentDone = min(100, ($filePosition / filesize($this->filename)) * 100);
         }
-        return number_format(  $percentDone,1,'.','');
+        return number_format($percentDone, 1, '.', '');
     }
 
-    function tag_open($parser, $tag, $attributes)
+    public function tag_open($parser, $tag, $attributes)
     {
         // {{ indexed arrays
-        if ( $this->lastClosedTag==$tag ) {
+        if ($this->lastClosedTag == $tag) {
             $indexedPath = substr(implode('.', $this->currentTagStack).'.'.$tag, $this->cutCountFromCollectPath);
-            if ( !isset($this->detectedIndexed[$indexedPath]) ) {
+            if (!isset($this->detectedIndexed[$indexedPath])) {
                 $this->detectedIndexed[$indexedPath] = 0;
-                foreach (preg_grep('/^'.preg_quote($indexedPath).'/',array_keys((array)$this->collectedPathData)) as $renameKey){
-                    $this->collectedPathData[str_replace($indexedPath,$indexedPath.'.'.$this->detectedIndexed[$indexedPath],$renameKey)] = $this->collectedPathData[$renameKey];
+                foreach (preg_grep('/^'.preg_quote($indexedPath).'/', array_keys((array)$this->collectedPathData)) as $renameKey) {
+                    $this->collectedPathData[str_replace($indexedPath, $indexedPath.'.'.$this->detectedIndexed[$indexedPath], $renameKey)] = $this->collectedPathData[$renameKey];
                     unset($this->collectedPathData[$renameKey]);
                 }
             }
@@ -208,39 +210,41 @@ class XML implements ReaderInterface
         // }} indexed arrays
         $this->currentTagStack[] = $tag;
         $startedPath = implode('.', $this->currentTagStack);
-        if (isset($this->collectPath[$startedPath])){
+        if (isset($this->collectPath[$startedPath])) {
             unset($this->collectedPathData);
             $this->collectedPathData = [];
-            $this->cutCountFromCollectPath = strlen($startedPath)+1;
+            $this->cutCountFromCollectPath = strlen($startedPath) + 1;
         }
         $this->cdataCollect = '';
-        if ( count($attributes)>0 && is_array($this->collectedPathData) ) {
-            foreach( $attributes as $attributeName=>$attributeValue ) {
-                $this->collectedPathData[substr($startedPath.'.@'.$attributeName,$this->cutCountFromCollectPath)] = $attributeValue;
+        if (count($attributes) > 0 && is_array($this->collectedPathData)) {
+            foreach ($attributes as $attributeName => $attributeValue) {
+                $this->collectedPathData[substr($startedPath.'.@'.$attributeName, $this->cutCountFromCollectPath)] = $attributeValue;
             }
         }
     }
-    function cdata($parser, $cdata)
+    public function cdata($parser, $cdata)
     {
-        if ( !empty($cdata) && $this->cdataCollect!==false ) {
+        if (!empty($cdata) && $this->cdataCollect !== false) {
             $this->cdataCollect .= $cdata;
         }
     }
-    function tag_close($parser, $tag)
+    public function tag_close($parser, $tag)
     {
         $this->lastClosedTag = $tag;
         $closePath = implode('.', $this->currentTagStack);
-        if ( $this->cdataCollect!==false ) {
-            if ( is_array($this->collectedPathData) ) {
-                $dataKey = substr($closePath,$this->cutCountFromCollectPath);
-                foreach( $this->detectedIndexed as $indexedKey=>$indexCounter ){
-                    if ( strpos($dataKey,$indexedKey)!==0 ) continue;
-                    $dataKey = $indexedKey.'.'.$indexCounter.substr($dataKey,strlen($indexedKey));
+        if ($this->cdataCollect !== false) {
+            if (is_array($this->collectedPathData)) {
+                $dataKey = substr($closePath, $this->cutCountFromCollectPath);
+                foreach ($this->detectedIndexed as $indexedKey => $indexCounter) {
+                    if (strpos($dataKey, $indexedKey) !== 0) {
+                        continue;
+                    }
+                    $dataKey = $indexedKey.'.'.$indexCounter.substr($dataKey, strlen($indexedKey));
                 }
                 $this->collectedPathData[$dataKey] = $this->cdataCollect;
             }
         }
-        if ( isset($this->collectPath[$closePath]) ) {
+        if (isset($this->collectPath[$closePath])) {
             $this->lastClosedTag = '';
             $this->detectedIndexed = [];
             $this->readOutQueue[] = \backend\models\EP\ArrayTransform::convertFlatToMultiDimensional($this->collectedPathData);
@@ -256,17 +260,19 @@ class XML implements ReaderInterface
     {
         $this->currentXpathArray[] = $tag;
 
-        if ( !$this->isNodesCollect ) return;
+        if (!$this->isNodesCollect) {
+            return;
+        }
 
-        if ( is_null($this->root) ) {
+        if (is_null($this->root)) {
             $element = new \SimpleXMLElement('<'.$tag.'></'.$tag.'>');
-            $element->registerXPathNamespace('xsi','http://www.w3.org/2001/XMLSchema-instance');
+            $element->registerXPathNamespace('xsi', 'http://www.w3.org/2001/XMLSchema-instance');
             $this->root = $element;
             $this->currentNode = $element;
-        }else{
+        } else {
             $this->currentNode = $this->currentNode->addChild($tag);
-            if ( is_array($attributes) && count($attributes)>0 ) {
-                foreach ($attributes as $attrName=>$attrValue) {
+            if (is_array($attributes) && count($attributes) > 0) {
+                foreach ($attributes as $attrName => $attrValue) {
                     $ns = null;
                     //if ( strpos($attrName,':')!==false ) {
                     //list($ns, /*$attrName*/) = explode(':',$attrName,2);
@@ -281,18 +287,21 @@ class XML implements ReaderInterface
 
     protected function sx_cdata($parser, $cdata)
     {
-        if ( !$this->isNodesCollect ) return;
-        if ( /*(!empty($cdata) && trim($cdata)!=='') &&*/ $this->cdataCollect!==false ) {
+        if (!$this->isNodesCollect) {
+            return;
+        }
+        if ( /*(!empty($cdata) && trim($cdata)!=='') &&*/ $this->cdataCollect !== false) {
             $this->cdataCollect .= $cdata;
         }
     }
 
-    protected function sx_tag_close($parser, $tag){
+    protected function sx_tag_close($parser, $tag)
+    {
         $closeTagPath = $this->currentXpathArray;
-        $closeTagXPath = '/'.implode('/',$closeTagPath);
+        $closeTagXPath = '/'.implode('/', $closeTagPath);
 
         // put collected CDATA
-        if ( $this->cdataCollect!==false ) {
+        if ($this->cdataCollect !== false) {
             //$this->currentNode[0] = $this->cdataCollect; //??
             $this->currentNode[0] = trim($this->cdataCollect);
             $this->cdataCollect = false;
@@ -301,28 +310,27 @@ class XML implements ReaderInterface
         $closedNode = $this->currentNode;
         // shift current to parent
         $parentNodeArray = $this->currentNode->xpath('..');
-        if ( count($parentNodeArray)==1 ) {
+        if (count($parentNodeArray) == 1) {
             $this->currentNode = $parentNodeArray[0];
         }
 
         // fill readOutQueue
-        if ( !empty($this->collectPath) && isset($this->collectPath[$closeTagXPath]) ) {
+        if (!empty($this->collectPath) && isset($this->collectPath[$closeTagXPath])) {
             $this->readOutQueue[] = [
-                'xpath' => '/'.implode('/',$this->currentXpathArray),
+                'xpath' => '/'.implode('/', $this->currentXpathArray),
                 'node' => $closedNode,
             ];
             $closedDomNode = dom_import_simplexml($closedNode);
             $closedDomNode->parentNode->removeChild($closedDomNode);
-        }else
-            if ( empty($this->collectPath) && count($closeTagPath)==2 ) {
-                // collect every 1st level node from root
-                $this->readOutQueue[] = [
-                    'xpath' => '/'.implode('/',$this->currentXpathArray),
-                    'node' => $closedNode,
-                ];
-                $closedDomNode = dom_import_simplexml($closedNode);
-                $closedDomNode->parentNode->removeChild($closedDomNode);
-            }
+        } elseif (empty($this->collectPath) && count($closeTagPath) == 2) {
+            // collect every 1st level node from root
+            $this->readOutQueue[] = [
+                'xpath' => '/'.implode('/', $this->currentXpathArray),
+                'node' => $closedNode,
+            ];
+            $closedDomNode = dom_import_simplexml($closedNode);
+            $closedDomNode->parentNode->removeChild($closedDomNode);
+        }
 
         array_pop($this->currentXpathArray);
     }

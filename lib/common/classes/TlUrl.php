@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -14,12 +16,12 @@ namespace common\classes;
 
 use Yii;
 
-class TlUrl {
-
+class TlUrl
+{
     public static function replaceUrl($text)
     {
-        if ( !empty($text) && strpos($text,'##URL##')!==false ) {
-            $text = preg_replace_callback("/\#\#URL\#\#([^\"]+)/", self::class ."::addUrl", $text);
+        if (!empty($text) && strpos($text, '##URL##') !== false) {
+            $text = preg_replace_callback("/\#\#URL\#\#([^\"]+)/", self::class .'::addUrl', $text);
         }
 
         return $text;
@@ -35,22 +37,24 @@ class TlUrl {
 
         if (isset($arr[1])) {
             $gets = explode('&', $arr[1]);
-            foreach ($gets as $get){
+            foreach ($gets as $get) {
                 $nameVal = explode('=', $get);
                 $url[$nameVal[0]] = $nameVal[1];
             }
         }
-        if (\frontend\design\Info::isTotallyAdmin()){
-            $link = Yii::$app->get('platform')->config()->getCatalogBaseUrl( true );
+        if (\frontend\design\Info::isTotallyAdmin()) {
+            $link = Yii::$app->get('platform')->config()->getCatalogBaseUrl(true);
             $params = '';
             if (count($url) > 1) {
                 $params = '?';
                 foreach ($url as $name => $val) {
-                    if ($name === 0) continue;
+                    if ($name === 0) {
+                        continue;
+                    }
                     $params .= ($params != '?' ? '&' : '') . $name . '=' . $val;
                 }
             }
-            return rtrim($link,'/') . '/' . $url[0] . $params;
+            return rtrim($link, '/') . '/' . $url[0] . $params;
         }
         return Yii::$app->urlManager->createUrl($url);
     }
@@ -65,55 +69,55 @@ class TlUrl {
                 'class' => '',
                 'url' => \Yii::$app->urlManager->createUrl([
                     $action,
-                    'name'=>'info',
+                    'name' => 'info',
                     'editor_id' => $editor,
                     'field' => $field,
                     'languages_id' => $languages_id,
-                    'platform_id' => $platform_id
-                ])
+                    'platform_id' => $platform_id,
+                ]),
             ],[
                 'name' => TEXT_PRODUCTS_LINKS,
                 'class' => '',
                 'url' => \Yii::$app->urlManager->createUrl([
                     $action,
-                    'name'=>'product',
+                    'name' => 'product',
                     'editor_id' => $editor,
                     'field' => $field,
                     'languages_id' => $languages_id,
-                    'platform_id' => $platform_id
-                ])
+                    'platform_id' => $platform_id,
+                ]),
             ],[
                 'name' => TEXT_CATEGORIES_LINKS,
                 'class' => '',
                 'url' => \Yii::$app->urlManager->createUrl([
                     $action,
-                    'name'=>'category',
+                    'name' => 'category',
                     'editor_id' => $editor,
                     'field' => $field,
                     'languages_id' => $languages_id,
-                    'platform_id' => $platform_id
-                ])
+                    'platform_id' => $platform_id,
+                ]),
             ],[
                 'name' => TEXT_BRANDS,
                 'class' => '',
                 'url' => \Yii::$app->urlManager->createUrl([
                     $action,
-                    'name'=>'brand',
+                    'name' => 'brand',
                     'editor_id' => $editor,
                     'field' => $field,
                     'languages_id' => $languages_id,
-                    'platform_id' => $platform_id
+                    'platform_id' => $platform_id,
                 ]),
             ],[
                 'name' => COMMON_LINKS,
                 'class' => '',
                 'url' => \Yii::$app->urlManager->createUrl([
                     $action,
-                    'name'=>'common',
+                    'name' => 'common',
                     'editor_id' => $editor,
                     'field' => $field,
                     'languages_id' => $languages_id,
-                    'platform_id' => $platform_id
+                    'platform_id' => $platform_id,
                 ]),
             ]];
 
@@ -127,7 +131,7 @@ class TlUrl {
                     'editor_id' => $editor,
                     'field' => $field,
                     'languages_id' => $languages_id,
-                    'platform_id' => $platform_id
+                    'platform_id' => $platform_id,
                 ]),
             ];
         }
@@ -143,7 +147,7 @@ class TlUrl {
         $platform_id = $get['platform_id'] ? $get['platform_id'] : \common\classes\platform::firstId();
         $lang_id = $get['languages_id'] ? $get['languages_id'] : $languages_id;
 
-        $items = array();
+        $items = [];
         $suggest = false;
 
         switch ($get['name']) {
@@ -189,15 +193,16 @@ class TlUrl {
     public static function info($platform_id, $languages_id)
     {
         $db_query = tep_db_query(
-            "select * ".
-            "from " . TABLE_INFORMATION . " ".
-            "where languages_id='".$languages_id."' and platform_id=" . $platform_id . " and affiliate_id = 0 ".
-            "order by v_order, info_title ");
+            'select * '.
+            'from ' . TABLE_INFORMATION . ' '.
+            "where languages_id='".$languages_id."' and platform_id=" . $platform_id . ' and affiliate_id = 0 '.
+            'order by v_order, info_title '
+        );
 
         $items = [];
 
-        if (tep_db_num_rows($db_query)>0){
-            while( $val = tep_db_fetch_array($db_query) ) {
+        if (tep_db_num_rows($db_query) > 0) {
+            while ($val = tep_db_fetch_array($db_query)) {
                 $items['info/index?info_id=' . $val['information_id']] = $val['page_title'] ? $val['page_title'] : $val['info_title'];
             }
         }
@@ -209,7 +214,7 @@ class TlUrl {
     {
         $items = [];
 
-        $all_data = \common\helpers\Categories::get_category_tree(0,'','','',false,false, $platform_id, false, false, $languages_id);
+        $all_data = \common\helpers\Categories::get_category_tree(0, '', '', '', false, false, $platform_id, false, false, $languages_id);
         foreach ($all_data as $item) {
             $items['catalog/index?cPath=' . $item['id']] = $item['text'];
         }
@@ -220,7 +225,7 @@ class TlUrl {
     public static function location($platform_id, $languages_id)
     {
         $items = [];
-        if ( $ext = \common\helpers\Acl::checkExtensionAllowed('DeliveryLocation', 'enabled') ){
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('DeliveryLocation', 'enabled')) {
             $items = $ext::htmlEditorLinkList($items, $platform_id, $languages_id);
         }
         return $items;

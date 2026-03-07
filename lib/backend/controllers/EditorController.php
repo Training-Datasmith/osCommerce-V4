@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -15,28 +17,24 @@ namespace backend\controllers;
 
 //use backend\models\EP\DataSources;
 use backend\components\LocationSearchTrait;
-use common\classes\platform_config;
+use backend\design\editor\Formatter;
+use backend\models\AdminCarts;
 use common\classes\platform;
+use common\classes\platform_config;
 use common\components\Customer;
 use common\helpers\Acl;
-use common\helpers\Output;
-use backend\models\AdminCarts;
 use common\helpers\Status;
-use common\helpers\Coupon;
-use common\helpers\Order as OrderHelper;
 use common\models\AddressBook;
-use common\models\Orders;
-use yii\web\Response;
+use Yii;
 use yii\helpers\ArrayHelper;
 use yii\helpers\Url;
-use Yii;
-use backend\design\editor\Formatter;
-use backend\models\EP\Messages;
 
 /**
  * default controller to handle user requests.
  */
-class EditorController extends Sceleton {
+class EditorController extends Sceleton
+{
+    use LocationSearchTrait;
 
     public $acl = ['BOX_HEADING_CUSTOMERS', 'BOX_CUSTOMERS_ORDERS'];
 
@@ -51,9 +49,8 @@ class EditorController extends Sceleton {
     public $admin;
     protected $storage;
 
-    use LocationSearchTrait;
-
-    public function __construct($id, $module = '') {
+    public function __construct($id, $module = '')
+    {
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('BusinessToBusiness', 'allowed')) {
             $ext::checkCustomerGroups();
         }
@@ -82,14 +79,16 @@ class EditorController extends Sceleton {
         $this->manager->setRenderPath('\\backend\\design\\editor\\');
     }
 
-    protected function checkOrderOwner($cart) {
-        if (!$this->admin->checkCartOwnerClear($cart)){
+    protected function checkOrderOwner($cart)
+    {
+        if (!$this->admin->checkCartOwnerClear($cart)) {
             header('HTTP/1.0 406 Not Acceptable');
             die();
         }
     }
 
-    protected function addLog($comment){
+    protected function addLog($comment)
+    {
         global $login_id;
         $log = $this->storage->has('log') ? $this->storage->get('log') : [];
         $log = is_array($log) ? $log : [] ;
@@ -100,19 +99,21 @@ class EditorController extends Sceleton {
         $this->storage->set('log', $log);
     }
 
-    protected function saveLog(){
+    protected function saveLog()
+    {
         $order = $this->manager->getOrderInstance();
-        if ($order && $order->order_id){
+        if ($order && $order->order_id) {
             $log = $this->storage->has('log') ? $this->storage->get('log') : [];
-            foreach($log as $row){
+            foreach ($log as $row) {
                 $order->addLegend($row['comment'], $row['admin_id']);
             }
             $this->storage->remove('log');
         }
     }
 
-    protected function getPIName($uprid){
-        if (\common\helpers\Inventory::isInventory($uprid)){
+    protected function getPIName($uprid)
+    {
+        if (\common\helpers\Inventory::isInventory($uprid)) {
             $name = \common\helpers\Inventory::get_inventory_name_by_uprid($uprid);
         } else {
             $name = \common\helpers\Product::get_products_name($uprid);
@@ -120,7 +121,8 @@ class EditorController extends Sceleton {
         return $name;
     }
 
-    public function pageSettings() {
+    public function pageSettings()
+    {
         $this->topButtons[] = '';
         $this->view->headingTitle = HEADING_TITLE;
         if (isset($_GET['new'])) {
@@ -134,15 +136,16 @@ class EditorController extends Sceleton {
         } else {
             $this->view->backOption = 'orders';
         }
-        $this->selectedMenu = array('customers', 'orders');
+        $this->selectedMenu = ['customers', 'orders'];
     }
 
-    public function obtainCustomerCart($cartInsatnceType, \yii\db\ActiveRecord $order = null, $currentCart = '', $customers_id = null) {
+    public function obtainCustomerCart($cartInsatnceType, \yii\db\ActiveRecord $order = null, $currentCart = '', $customers_id = null)
+    {
         if (tep_not_null($currentCart)) {
             $cart = $this->admin->getCartById($currentCart);
             if (!$cart) {
                 if ($details = \common\helpers\Cart::decodeId($currentCart)) {
-                    $customers_id = ($details['customers_id'] != 0)? $details['customers_id'] : $customers_id;
+                    $customers_id = ($details['customers_id'] != 0) ? $details['customers_id'] : $customers_id;
                     $cart = $this->admin->createCart($cartInsatnceType, $order, $details['basket_id'], $customers_id);
                 }
             } else {
@@ -155,7 +158,8 @@ class EditorController extends Sceleton {
     }
 
     //!!use only after current cart id is defined
-    public function loadCheckoutDetails($order_id = null) {
+    public function loadCheckoutDetails($order_id = null)
+    {
         //we have to know witch source have to be used as main
         //let use "checkout" as point to start
         //if checkout is not defined try to upload data from admin carts or order instance
@@ -164,7 +168,7 @@ class EditorController extends Sceleton {
             $loadded = false;
             if ($this->admin->getCurrentCartID()) {
                 if ($this->admin->hasCheckoutDetails()) {
-                  foreach ($this->admin->getCheckoutDetails() as $name => $value) {
+                    foreach ($this->admin->getCheckoutDetails() as $name => $value) {
                         if ($name == 'customer_id') {
                             $cidExist = true;
                             $cart = $this->manager->get('cart');
@@ -174,9 +178,9 @@ class EditorController extends Sceleton {
                         }
                         $this->manager->set($name, $value);
                     }
-                    if ($this->manager->has('customer')){
+                    if ($this->manager->has('customer')) {
                         $_customer = $this->manager->get('customer');
-                        if ($_customer instanceof \common\components\Customer && $_customer->get('fromOrder')){
+                        if ($_customer instanceof \common\components\Customer && $_customer->get('fromOrder')) {
                             $this->manager->remove('customer_id');
                             $cart = $this->manager->get('cart');
                             if ($cart) {
@@ -197,7 +201,8 @@ class EditorController extends Sceleton {
         }
     }
 
-    public function loadPlatformConsts() {
+    public function loadPlatformConsts()
+    {
         //ask platform/language/currency if not defined!!!!
         if (!$this->manager->has('platform_id')) {
             $this->manager->set('platform_id', \common\classes\platform::defaultId());
@@ -213,8 +218,9 @@ class EditorController extends Sceleton {
                     $_detected = true;
                 }
             }
-            if (!$_detected)
+            if (!$_detected) {
                 $platform_config = $__platform->config(\common\classes\platform::defaultId());
+            }
         }
         $platform_config->constant_up();
         defined('PLATFORM_ID') or define('PLATFORM_ID', $platform_id);
@@ -225,8 +231,8 @@ class EditorController extends Sceleton {
         defined('THEME_NAME') or define('THEME_NAME', $theme_name);
     }
 
-    public function actionCartWorker() {//ajax action
-        $currencies = \Yii::$container->get('currencies');
+    public function actionCartWorker() //ajax action
+    {$currencies = \Yii::$container->get('currencies');
 
         $data = Yii::$app->request->post();
 
@@ -275,10 +281,12 @@ class EditorController extends Sceleton {
                         } else {
                             $cart->add_cart(\common\helpers\Inventory::get_prid($_uprid), $packQty, $attributes, false, 0, ($data['gift_wrap'] ?? null) == 'true');
                         }
-                        $this->addLog($this->getPIName($_uprid) . ' changed qty to ' . (is_scalar($packQty)? $packQty : $packQty['qty']));
+                        $this->addLog($this->getPIName($_uprid) . ' changed qty to ' . (is_scalar($packQty) ? $packQty : $packQty['qty']));
                         break;
                     case 'remove_product':
-                        if (!is_array($uprid)) $uprid = [$uprid];
+                        if (!is_array($uprid)) {
+                            $uprid = [$uprid];
+                        }
                         foreach ($uprid as $pid) {
                             $cart->remove($pid);
                             $this->addLog($this->getPIName($pid) . ' removed ');
@@ -303,7 +311,7 @@ class EditorController extends Sceleton {
                         if (!is_null($uprid)) {
                             $insulator = new \backend\services\ProductInsulatorService($uprid, $this->manager);
                             $insulator->setData($data);
-                            if ($data['action'] == 'change_price'){
+                            if ($data['action'] == 'change_price') {
                                 $insulator->manualPriceChanged = true;
                             }
                             $insulator->setExtraCharge();
@@ -325,10 +333,10 @@ class EditorController extends Sceleton {
                         exit();
                         break;
                     case 'delete_cart':
-                        if (isset($data['deleteCart'])){
+                        if (isset($data['deleteCart'])) {
                             $index = $data['currentCart'];
                             $this->admin->removeCart($data['deleteCart']);
-                            if ($data['deleteCart'] == $index){ //not current cart
+                            if ($data['deleteCart'] == $index) { //not current cart
                                 $goto = $this->getRedirect($cart, true);
                                 $this->manager->clearStorage();
                                 echo json_encode(['goto' => Yii::$app->urlManager->createUrl([$goto, 'orders_id' => Yii::$app->request->get('orders_id')])]);
@@ -371,7 +379,8 @@ class EditorController extends Sceleton {
 
     /* processing with products in basket */
 
-    public function actionShowBasket() {
+    public function actionShowBasket()
+    {
         $_get = Yii::$app->request->get();
 
         $this->storage->setPointer($_get['currentCart']); //!!importnat to set pointer before using stored data
@@ -388,23 +397,23 @@ class EditorController extends Sceleton {
                 case 'load_categories':
                     if (\Yii::$app->request->post('products_id')) {
                         $response = [];
-                        $productsId=\Yii::$app->request->post('products_id');
+                        $productsId = \Yii::$app->request->post('products_id');
                         $product_categories = \common\helpers\Categories::generate_category_path($productsId, 'product');
                         $product_categories_string = '';
                         for ($i = 0, $n = sizeof($product_categories); $i < $n; $i++) {
-                           $category_path = '';
-                           for ($j = 0, $k = sizeof($product_categories[$i]); $j < $k; $j++) {
-                              $category_path .= '<span class="category_path__location">' . $product_categories[$i][$j]['text'] . '</span>&nbsp;&gt;&nbsp;';
-                           }
-                           $category_path = substr($category_path, 0, -16);
-                           $product_categories_string .= '<li class="category_path">' . $category_path . '</li>';
+                            $category_path = '';
+                            for ($j = 0, $k = sizeof($product_categories[$i]); $j < $k; $j++) {
+                                $category_path .= '<span class="category_path__location">' . $product_categories[$i][$j]['text'] . '</span>&nbsp;&gt;&nbsp;';
+                            }
+                            $category_path = substr($category_path, 0, -16);
+                            $product_categories_string .= '<li class="category_path">' . $category_path . '</li>';
                         }
-                        $product_categories_string = ($product_categories_string !='' ? '<ul class="category_path_list">' . $product_categories_string . '</ul>' :"");
-                        $response['categories']=$product_categories_string;
+                        $product_categories_string = ($product_categories_string != '' ? '<ul class="category_path_list">' . $product_categories_string . '</ul>' : '');
+                        $response['categories'] = $product_categories_string;
                         echo json_encode($response);
                     }
                     exit();
-                break;
+                    break;
                 case 'load_product':
                     if (Yii::$app->request->post('products_id')) {
                         $response = [];
@@ -534,7 +543,7 @@ class EditorController extends Sceleton {
         } else {
             if (Yii::$app->request->get('action') == 'show_giveaways') {
                 return $this->manager->render('GiveAway', ['manager' => $this->manager]);
-            } else if (Yii::$app->request->get('action') == 'edit_product') {
+            } elseif (Yii::$app->request->get('action') == 'edit_product') {
                 $uprid = Yii::$app->request->get('uprid');
                 return $this->manager->render('EditProduct', ['manager' => $this->manager, 'uprid' => $uprid]);
             } else {
@@ -546,14 +555,15 @@ class EditorController extends Sceleton {
         }
     }
 
-    public function getRedirect($cart, $toProcess = false){
+    public function getRedirect($cart, $toProcess = false)
+    {
         $goto = '';
         if ($cart->table_prefix == 'sample_') {
             $goto = 'samples/';
             if ($toProcess && $cart->order_id) {
                 $goto .= 'process-samples';
             }
-        } else if ($cart->table_prefix == 'quote_') {
+        } elseif ($cart->table_prefix == 'quote_') {
             $goto = 'quotation/';
             if ($toProcess && $cart->order_id) {
                 $goto .= 'process-quotation';
@@ -569,7 +579,8 @@ class EditorController extends Sceleton {
 
     /* is used for customer/shipping/paymens/order totals preocessing */
 
-    public function actionCheckout() {
+    public function actionCheckout()
+    {
         $_get = Yii::$app->request->get();
         //!!importnat to set pointer before using stored data
         $this->storage->setPointer($_get['currentCart']);
@@ -579,7 +590,7 @@ class EditorController extends Sceleton {
         $cart = $this->manager->get('cart'); //working_cart
         $this->checkOrderOwner($cart);
 
-        if ( !$this->manager->has('admin_edit_order') ){
+        if (!$this->manager->has('admin_edit_order')) {
             $this->manager->set('admin_edit_order', 1);
         }
 
@@ -599,8 +610,8 @@ class EditorController extends Sceleton {
                         case 'recalculate_totals':
                             if (isset($data['update_totals'])) {
                                 foreach ($data['update_totals'] as $module => $values) {
-                                    if (is_array($values)){
-                                        foreach($values as &$value){
+                                    if (is_array($values)) {
+                                        foreach ($values as &$value) {
                                             $value = floatval($value);
                                             $value *= $currencies->get_market_price_rate($cart->currency, DEFAULT_CURRENCY);
                                         }
@@ -612,7 +623,7 @@ class EditorController extends Sceleton {
                         case 'update_amount':
                             if (isset($data['paid_amount'])) {
                                 $value = (float) $data['paid_amount'] * $currencies->get_market_price_rate($cart->currency, DEFAULT_CURRENCY);
-                                $_value = ($data['paid_prefix'] == '-' ? -$value: $value);
+                                $_value = ($data['paid_prefix'] == '-' ? -$value : $value);
                                 $comment = $currencies->format($_value) . ' ' . $data['comment'] . ' (' . \common\helpers\Date::formatDateTime(new \yii\db\Expression('now')) . '), ' . $this->admin->getInfo('admin_firstname') . ' ' . $this->admin->getInfo('admin_lastname');
                                 $cart->setTotalPaid($value, $data['paid_prefix'], $comment);
                                 $this->addLog('Paid amount changed to '. $value);
@@ -642,22 +653,22 @@ class EditorController extends Sceleton {
                             $valid = $this->manager->validateShipping(\Yii::$app->request->post());
 
                             $__guest_order_edit = false;
-                            if ($this->manager->isCustomerAssigned() || $this->manager->getCustomersIdentity()->get('fromOrder')){
-                                if ( isset($data['checkout']['email_address']) && !isset($data['checkout']['firstname']) ) {
-                                    if ( is_array($data['Shipping_address']) ) {
+                            if ($this->manager->isCustomerAssigned() || $this->manager->getCustomersIdentity()->get('fromOrder')) {
+                                if (isset($data['checkout']['email_address']) && !isset($data['checkout']['firstname'])) {
+                                    if (is_array($data['Shipping_address'])) {
                                         $data['checkout']['firstname'] = $data['Shipping_address']['firstname'];
                                         $data['checkout']['lastname'] = $data['Shipping_address']['lastname'];
-                                    }elseif( is_array($data['Billing_address']) ){
+                                    } elseif (is_array($data['Billing_address'])) {
                                         $data['checkout']['firstname'] = $data['Billing_address']['firstname'];
                                         $data['checkout']['lastname'] = $data['Billing_address']['lastname'];
                                     }
                                 }
-                            }else{
-                                if ( isset($data['checkout']['email_address']) && !isset($data['checkout']['firstname']) ){
-                                    if ( is_array($data['Shipping_address']) ) {
+                            } else {
+                                if (isset($data['checkout']['email_address']) && !isset($data['checkout']['firstname'])) {
+                                    if (is_array($data['Shipping_address'])) {
                                         $data['checkout']['firstname'] = $data['Shipping_address']['firstname'];
                                         $data['checkout']['lastname'] = $data['Shipping_address']['lastname'];
-                                    }elseif( is_array($data['Billing_address']) ){
+                                    } elseif (is_array($data['Billing_address'])) {
                                         $data['checkout']['firstname'] = $data['Billing_address']['firstname'];
                                         $data['checkout']['lastname'] = $data['Billing_address']['lastname'];
                                     }
@@ -671,7 +682,7 @@ class EditorController extends Sceleton {
                             }
                             if ($valid) {
                                 $customer = $this->manager->getCustomersIdentity();
-                                if ($__guest_order_edit || $customer->get('fromOrder')){
+                                if ($__guest_order_edit || $customer->get('fromOrder')) {
                                     $customer->fillCustomerFields($this->manager->getCustomerContactForm(false));
                                     $this->manager->set('customer', $customer);
                                 }
@@ -684,10 +695,10 @@ class EditorController extends Sceleton {
                                         $logger->setBeforeObject($beforeObject);
                                         unset($beforeObject);
                                     }
-                                    
+
                                     $this->manager->collectPostData();
-                                    
-                                    if (isset($_POST['status'])){
+
+                                    if (isset($_POST['status'])) {
                                         $this->manager->getCart()->setOrderStatus((int)$_POST['status']);
                                     }
 
@@ -696,10 +707,10 @@ class EditorController extends Sceleton {
                                     $this->manager->checkoutOrderWithAddresses();
                                     /** @var \common\classes\extended\OrderAbstract $order */
                                     $order = $this->manager->getOrderInstance();
-                                    if ($__guest_order_edit || $customer->get('fromOrder')){
+                                    if ($__guest_order_edit || $customer->get('fromOrder')) {
                                         $order->customer = [];
-                                        foreach ($customer->getAttributes() as $field => $value){
-                                            $order->customer[preg_replace("/customers_/", "", $field)] = $value;
+                                        foreach ($customer->getAttributes() as $field => $value) {
+                                            $order->customer[preg_replace('/customers_/', '', $field)] = $value;
                                         }
                                         $order->customer = array_merge($order->customer, $customer->getAll());
                                     }
@@ -711,11 +722,11 @@ class EditorController extends Sceleton {
                                     }
 
                                     // {{ WA: prevent set order status as paid when select payment
-                                    if (!isset($_POST['status'])){
+                                    if (!isset($_POST['status'])) {
                                         $order->info['order_status'] = (int) DEFAULT_ORDERS_STATUS_ID;
-                                        if ( false && Yii::$app->request->get('orders_id') ){
+                                        if (false && Yii::$app->request->get('orders_id')) {
                                             $_order_status = $order->getArModel()->where(['orders_id' => Yii::$app->request->get('orders_id')])->select('orders_status')->scalar();
-                                            if ( $_order_status ){
+                                            if ($_order_status) {
                                                 $order->info['order_status'] = $_order_status;
                                             }
                                         }
@@ -726,11 +737,11 @@ class EditorController extends Sceleton {
                                         $order->info['order_status'] = (int) DEFAULT_ORDERS_STATUS_ID;
                                     }
 
-                                    if (\Yii::$app->request->post('purchase_order', false) !== false){
-                                      $order->info['purchase_order'] = tep_db_prepare_input(\Yii::$app->request->post('purchase_order'));
+                                    if (\Yii::$app->request->post('purchase_order', false) !== false) {
+                                        $order->info['purchase_order'] = tep_db_prepare_input(\Yii::$app->request->post('purchase_order'));
                                     }
 
-                                    if ($order->maintainSplittering()){
+                                    if ($order->maintainSplittering()) {
                                         $this->manager->getOrderSplitter()->makeSplinters(Yii::$app->request->get('orders_id'));
                                     }
 
@@ -742,7 +753,7 @@ class EditorController extends Sceleton {
                                         $order->save_order();
                                     }
 
-                                    if ($order->maintainSplittering()){
+                                    if ($order->maintainSplittering()) {
                                         $this->manager->getOrderSplitter()->updateSplinterOrderId($order->order_id);
                                     }
 
@@ -752,7 +763,7 @@ class EditorController extends Sceleton {
                                         $ext::checkRefund($this->manager, $data['difference']);
                                     }*/
 
-                                    $_notify = false;// email on each save order request :( It's better to send it separately 
+                                    $_notify = false;// email on each save order request :( It's better to send it separately
                                     $order->save_details($_notify);
 
                                     $order->save_products($_notify);// email on each save order request :( It's better to send it separately $data['type'] != 'send_request');
@@ -760,7 +771,7 @@ class EditorController extends Sceleton {
                                     if ($ext = \common\helpers\Acl::checkExtensionAllowed('UpdateAndPay', 'allowed')) {
                                         $ext::saveOrder($this->manager, $data['type'], $data['difference'] ?? null);
                                     }
-                                    if($oldModel && $this->manager->isCustomerAssigned()){
+                                    if ($oldModel && $this->manager->isCustomerAssigned()) {
                                         \common\helpers\Customer::updateBasketId($this->manager->getCustomerAssigned(), $oldModel->basket_id ?? null, $cart->basket_id ?? null);
                                     }
 
@@ -804,7 +815,7 @@ class EditorController extends Sceleton {
                                         $response['reload'] = true;
                                     }*/
                                     $this->layout = false;
-                                    if ( isset($data['get_fresh_aup']) && $data['get_fresh_aup'] ){
+                                    if (isset($data['get_fresh_aup']) && $data['get_fresh_aup']) {
                                         $cInfo = \common\models\Customers::find()->where(['customers_id' => $order->customer['id']])->one();
                                         $aup = \common\helpers\Password::encryptAuthUserParam($order->customer['id'], $order->customer['email_address'], 'payment', ($cInfo->auth_key ?? ''));
                                         $response['frontend_aup_raw'] = $order->customer['id']."\t".$order->customer['email_address'];
@@ -813,8 +824,6 @@ class EditorController extends Sceleton {
                                 } else {
                                     $response = ['message' => 'Changes Not Saved', 'type' => 'wanring'];
                                 }
-
-
 
                             } else {
                                 $messageStack = \Yii::$container->get('message_stack');
@@ -840,10 +849,10 @@ class EditorController extends Sceleton {
                         case 'delete_order':
                             $orders_id = Yii::$app->request->get('orders_id');
                             $goto = $this->getRedirect($cart);
-                            if ($orders_id){
+                            if ($orders_id) {
                                 $order = $this->manager->getOrderInstance();
                                 $order->order_id = $orders_id;
-                                $order->removeOrder($data['restock'] == 'true'? true : false);
+                                $order->removeOrder($data['restock'] == 'true' ? true : false);
                                 $index = $this->admin->getCurrentCartID();
                                 $this->admin->removeCart($index);
                                 $this->manager->clearStorage();
@@ -857,7 +866,7 @@ class EditorController extends Sceleton {
                             foreach ($cRep->search($data['search'])->limit(200)->all() as $customer) {
                                 $customers[] = ['id' => $customer->customers_id, 'text' => \common\helpers\Output::output_string_protected($customer->customers_firstname . ' ' . $customer->customers_lastname . ' (' . $customer->customers_email_address . ')')];
                             }
-                            if (empty($customers)){
+                            if (empty($customers)) {
                                 $customers[] = ['text' => TEXT_NOTHING_FOUND];
                             }
                             echo json_encode($customers);
@@ -869,7 +878,7 @@ class EditorController extends Sceleton {
                             $customer = $cRep->getById($customrs_id);
                             if ($customer) {
                                 $old = null;
-                                if ($cart->customer_id){
+                                if ($cart->customer_id) {
                                     $old = $cRep->getById($cart->customer_id);
                                 }
                                 $this->manager->remove('estimate_ship');
@@ -881,10 +890,10 @@ class EditorController extends Sceleton {
                                 if (!$this->manager->isCustomerAssigned() || ($this->manager->isCustomerAssigned() && $customer->customers_id != $this->manager->getCustomerAssigned())) {
                                     $this->manager->predefineCustomerDetails($customer->customers_id, true);
                                     $cart->setCustomer($customer->customers_id);
-                                    if ($this->manager->getCustomersIdentity()->get('fromOrder')){
+                                    if ($this->manager->getCustomersIdentity()->get('fromOrder')) {
                                         $this->manager->remove('customer');
                                     }
-                                    $this->addLog('New customer assigned '. $customer->customers_firstname. ' '.$customer->customers_lastname . ' (id:'.$customer->customers_id.') from ' . ($old?$old->customers_firstname. ' '.$old->customers_lastname . ' (id:'.$old->customers_id.')' :''));
+                                    $this->addLog('New customer assigned '. $customer->customers_firstname. ' '.$customer->customers_lastname . ' (id:'.$customer->customers_id.') from ' . ($old ? $old->customers_firstname. ' '.$old->customers_lastname . ' (id:'.$old->customers_id.')' : ''));
                                 }
                                 $this->manager->set('cart', $cart);
                                 $this->admin->saveCheckoutDetails($cart, $this->storage);
@@ -979,13 +988,13 @@ class EditorController extends Sceleton {
                                 $response['__ship1'] = $this->manager->getSelectedShipping();
                                 $cart->clearTotalKey('ot_shipping');
                                 $this->manager->getShippingQuotesByChoice(true);
-                            }else{
-                                $collection = $this->manager->getShippingCollection(is_array($preSelectedShipping)?$preSelectedShipping:'');
+                            } else {
+                                $collection = $this->manager->getShippingCollection(is_array($preSelectedShipping) ? $preSelectedShipping : '');
                                 //if ($cheapest = $collection->getFirstQuoteModule('no_shipping')) {
                                 //}else{
-                                    $cheapest = $collection->cheapest();
+                                $cheapest = $collection->cheapest();
                                 //}
-                                if ( !$this->manager->getShipping() && $cheapest ){
+                                if (!$this->manager->getShipping() && $cheapest) {
                                     $this->manager->setSelectedShipping($cheapest['id']);
                                     $cart->clearTotalKey('ot_shipping');
                                     $this->manager->getShippingQuotesByChoice(true);
@@ -1010,7 +1019,7 @@ class EditorController extends Sceleton {
                             }
                             $response['payments'] = $this->manager->render('Payment', ['manager' => $this->manager]);
                             $response['order_totals'] = $this->manager->render('OrderTotals', ['manager' => $this->manager]);
-                            if ($this->manager->isCustomerAssigned()){
+                            if ($this->manager->isCustomerAssigned()) {
                                 $this->manager->remove('estimate_ship');
                                 $this->manager->remove('estimate_bill');
                             }
@@ -1021,13 +1030,13 @@ class EditorController extends Sceleton {
                             $_prev_shipping = $this->manager->getShipping();
                             $shipping = $data['shipping'];
                             if ($shipping) {
-                                if ( preg_match('/^collect/', $shipping ) ) {
-                                    if ( empty($this->manager->getBillto()) ) {
+                                if (preg_match('/^collect/', $shipping)) {
+                                    if (empty($this->manager->getBillto())) {
                                         $this->manager->set('billto', $this->manager->getSendto());
                                     }
                                     $this->manager->set('sendto', false);
-                                }elseif(is_array($_prev_shipping) && $_prev_shipping['module']=='collect'){
-                                    if ( empty($this->manager->getSendto()) && !empty($this->manager->getBillto()) ) {
+                                } elseif (is_array($_prev_shipping) && $_prev_shipping['module'] == 'collect') {
+                                    if (empty($this->manager->getSendto()) && !empty($this->manager->getBillto())) {
                                         $this->manager->set('sendto', $this->manager->getBillto());
                                     }
                                 }
@@ -1048,10 +1057,10 @@ class EditorController extends Sceleton {
                                 $this->addLog('Shipping changed to ' . $_shipping['module']);
                                 $response['_set_to'] = $shipping;
 
-                                $switch_to_collect = (is_array($_prev_shipping) && $_prev_shipping['module']=='collect') && !preg_match('/^collect/',$shipping);
-                                $switch_from_collect = (is_array($_prev_shipping) && $_prev_shipping['module']!='collect') && preg_match('/^collect/',$shipping);
+                                $switch_to_collect = (is_array($_prev_shipping) && $_prev_shipping['module'] == 'collect') && !preg_match('/^collect/', $shipping);
+                                $switch_from_collect = (is_array($_prev_shipping) && $_prev_shipping['module'] != 'collect') && preg_match('/^collect/', $shipping);
 
-                                if ( $switch_to_collect || $switch_from_collect ){
+                                if ($switch_to_collect || $switch_from_collect) {
                                     $response['shipping_address'] = $this->manager->render('ShippingAddress', ['manager' => $this->manager]);
                                     $response['billing_address'] = $this->manager->render('BillingAddress', ['manager' => $this->manager]);
                                 }
@@ -1079,16 +1088,24 @@ class EditorController extends Sceleton {
                             $this->manager->remove('cc_id');
                             $this->manager->remove('cc_code');
 
-                            if ($data['coupon_apply'] != 'y' || isset($data['cot_gv_amount'])) break;
-                            if (!$this->manager->isCustomerAssigned()) break;
+                            if ($data['coupon_apply'] != 'y' || isset($data['cot_gv_amount'])) {
+                                break;
+                            }
+                            if (!$this->manager->isCustomerAssigned()) {
+                                break;
+                            }
 
                             $creditAmount = \common\helpers\Customer::getCreditAmount($cart->customer_id);
-                            if ($creditAmount <= 0) break;
+                            if ($creditAmount <= 0) {
+                                break;
+                            }
 
                             $this->manager->checkoutOrder();
                             $output =  $this->manager->getTotalOutput(false);
                             $otDue = \common\helpers\Php::arrayGetSubArrayBySubValue($output, 'code', 'ot_due')['value'] ?? 0;
-                            if ($otDue <= 0) break;
+                            if ($otDue <= 0) {
+                                break;
+                            }
 
                             $nextCredit = min($otDue, $creditAmount);
                             $data['cot_gv_amount'] = $nextCredit;
@@ -1103,21 +1120,21 @@ class EditorController extends Sceleton {
                         case 'check_refund':
                             $order = $this->manager->getOrderInstance();
                             $orders_id = Yii::$app->request->get('orders_id');
-                            if ($orders_id){
+                            if ($orders_id) {
                                 $order->order_id = $orders_id;
-                                if ($order->hasTransactions()){
+                                if ($order->hasTransactions()) {
                                     $tm = $this->manager->getTransactionManager();
-                                    if ($tm->isReady()){
-                                        if ($tm->getTransactionsCount() > 1){
+                                    if ($tm->isReady()) {
+                                        if ($tm->getTransactionsCount() > 1) {
                                             return json_encode(['message' => 'There are some transactions. To refund do it manualy..', 'value' => 'to_credit']);
                                         } else {
                                             $transaction = $tm->getTransactions()[0];
                                             $payment = $this->manager->getPaymentCollection()->get($transaction->payment_class);
-                                            if ($payment){
+                                            if ($payment) {
                                                 $tm->usePayment($payment);
-                                                if ($tm->canPaymentRefund($transaction->transaction_id)){
+                                                if ($tm->canPaymentRefund($transaction->transaction_id)) {
                                                     return json_encode(['value' => 'refund', 'text' => TEXT_MAKE_REFUND]);
-                                                } else if ($tm->canPaymentVoid($transaction->transaction_id)){
+                                                } elseif ($tm->canPaymentVoid($transaction->transaction_id)) {
                                                     return json_encode(['value' => 'void', 'text' => TEXT_VOID_PAYMENT]);
                                                 }
                                             }
@@ -1204,7 +1221,8 @@ class EditorController extends Sceleton {
         return json_encode($response);
     }
 
-    public function actionCreateAccount() {
+    public function actionCreateAccount()
+    {
         \common\helpers\Translation::init('admin/customers');
         $this->manager->createAccount = true;
         $contactForm = $this->manager->getCustomerContactForm();
@@ -1287,16 +1305,16 @@ class EditorController extends Sceleton {
             } else {
                 $error = true;
                 foreach ($contactForm->getErrors() as $error) {
-                    $messageStack->add((is_array($error) ? implode("<br>", $error) : $error), 'one_page_checkout');
+                    $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), 'one_page_checkout');
                 }
                 if ($this->manager->isShippingNeeded()) {
                     foreach ($shippingForm->getErrors() as $error) {
-                        $messageStack->add((is_array($error) ? implode("<br>", $error) : $error), 'one_page_checkout');
+                        $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), 'one_page_checkout');
                     }
                 }
                 if (!$shipAsBill) {
                     foreach ($billingForm->getErrors() as $error) {
-                        $messageStack->add((is_array($error) ? implode("<br>", $error) : $error), 'one_page_checkout');
+                        $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), 'one_page_checkout');
                     }
                 }
                 if ($messageStack->size('one_page_checkout') > 0) {
@@ -1310,11 +1328,12 @@ class EditorController extends Sceleton {
         return $this->manager->render('Account', ['manager' => $this->manager,
                     'contactForm' => $contactForm,
                     'shippingForm' => $shippingForm,
-                    'billingForm' => $billingForm
+                    'billingForm' => $billingForm,
         ]);
     }
 
-    public function actionLoadTree() {
+    public function actionLoadTree()
+    {
         \common\helpers\Translation::init('admin/platforms');
         $this->layout = false;
 
@@ -1328,9 +1347,11 @@ class EditorController extends Sceleton {
         return $this->manager->render('ProductsBox', ['manager' => $this->manager, 'post' => $post], 'json');
     }
 
-    protected function tep_get_category_children(&$children, $platform_id, $categories_id) {
-        if (!is_array($children))
-            $children = array();
+    protected function tep_get_category_children(&$children, $platform_id, $categories_id)
+    {
+        if (!is_array($children)) {
+            $children = [];
+        }
         foreach ($this->load_tree_slice($platform_id, $categories_id) as $item) {
             $key = $item['key'];
             $children[] = $key;
@@ -1340,7 +1361,8 @@ class EditorController extends Sceleton {
         }
     }
 
-    public function actionSettings() {
+    public function actionSettings()
+    {
         $this->layout = false;
 
         $showFull = true;
@@ -1358,7 +1380,7 @@ class EditorController extends Sceleton {
 
         $entry = new \stdClass();
         $this->loadPlatformDetails($entry, $platform_id, $currency, $language_id);
-        
+
         return $this->renderAjax('settings', [
                     'entry' => $entry,
                     'cl' => !$showFull,
@@ -1368,8 +1390,8 @@ class EditorController extends Sceleton {
         ]);
     }
 
-    public function process($cart) { //for all order instances
-        $currentCart = $this->admin->getCurrentCartID();
+    public function process($cart) //for all order instances
+    {$currentCart = $this->admin->getCurrentCartID();
 
         if ($cart) {
 
@@ -1386,7 +1408,7 @@ class EditorController extends Sceleton {
             $this->loadPlatformConsts();
 
             $this->manager->showAdminOwnerNotification = false;
-            if (!$this->admin->checkCartOwnerClear($cart)){
+            if (!$this->admin->checkCartOwnerClear($cart)) {
                 $this->manager->showAdminOwnerNotification = true;
             }
 
@@ -1394,14 +1416,14 @@ class EditorController extends Sceleton {
             $this->manager->createOrderInstance($this->manager->get('order_instance'));
             $this->loadCheckoutDetails($cart->order_id);
 
-            if ($cart->customer_id && (!$this->manager->isCustomerAssigned() || $cart->customer_id != $this->manager->getCustomerAssigned() )) {
+            if ($cart->customer_id && (!$this->manager->isCustomerAssigned() || $cart->customer_id != $this->manager->getCustomerAssigned())) {
                 $this->manager->predefineCustomerDetails($cart->customer_id);
             }
             $this->manager->set('cart', $cart);
 
-            if (!($this->manager->has('platform_id') && $this->manager->has('currency') && $this->manager->has('languages_id') )) {
+            if (!($this->manager->has('platform_id') && $this->manager->has('currency') && $this->manager->has('languages_id'))) {
                 $this->manager->showSettings = true && (Yii::$app->request->get('currentCart') ?? false);
-                if ($this->manager->showSettings){
+                if ($this->manager->showSettings) {
                     $this->manager->showSettings = $this->minifyPlatforms();
                 }
             }
@@ -1412,9 +1434,9 @@ class EditorController extends Sceleton {
                 // {{ set shipping on open
                 //if ($cheapest = $collection->getFirstQuoteModule('no_shipping')) {
                 //}else{
-                    $cheapest = $collection->cheapest();
+                $cheapest = $collection->cheapest();
                 //}
-                if ( is_array($cheapest) && !$this->manager->getShipping() ){
+                if (is_array($cheapest) && !$this->manager->getShipping()) {
                     $this->manager->setShipping($cheapest);
                     $this->manager->getShippingQuotesByChoice(true);
                 }
@@ -1438,23 +1460,25 @@ class EditorController extends Sceleton {
         }
     }
 
-    public function minifyPlatforms(){
-        if (\common\classes\platform::isMulti(false, true)){
+    public function minifyPlatforms()
+    {
+        if (\common\classes\platform::isMulti(false, true)) {
             return true;
         } else {
             $entry = new \stdClass();
             $this->loadPlatformDetails($entry, \common\classes\platform::defaultId());
-            if ($entry->default_platform){
+            if ($entry->default_platform) {
                 $this->manager->set('platform_id', $entry->default_platform);
             }
-            if ($entry->defualt_platform_currency){
+            if ($entry->defualt_platform_currency) {
                 $this->manager->set('currency', $entry->defualt_platform_currency);
             }
-            if ($entry->defualt_platform_language){
+            if ($entry->defualt_platform_language) {
                 $this->manager->set('languages_id', $entry->defualt_platform_language);
             }
-            if ($this->manager->has('platform_id') && $this->manager->has('currency') && $this->manager->has('languages_id'))
+            if ($this->manager->has('platform_id') && $this->manager->has('currency') && $this->manager->has('languages_id')) {
                 return false;
+            }
         }
         return true;
     }
@@ -1475,9 +1499,9 @@ class EditorController extends Sceleton {
             $this->manager->set('currency', $order->currency);
             $this->manager->set('languages_id', $order->language_id);
         }
-        
+
         $cart = $this->obtainCustomerCart('\common\classes\shopping_cart', $order, Yii::$app->request->get('currentCart', ''));
-        
+
         $currentCart = $this->admin->getCurrentCartID();
         $this->storage->setPointer($currentCart);
         if ($this->admin->newCartCreated) {
@@ -1489,16 +1513,16 @@ class EditorController extends Sceleton {
             }
         }
 
-        if (!Yii::$app->request->get('currentCart') && $currentCart){
+        if (!Yii::$app->request->get('currentCart') && $currentCart) {
             $qParams = Yii::$app->request->getQueryParams();
             $qParams['currentCart'] = $currentCart;
             return $this->redirect(array_merge(['order-edit'], $qParams));
         }
 
-        $titleID = empty($oID)? TEXT_CREATE_NEW_OREDER : TEXT_ORDER_ID . ' #' . $oID;
+        $titleID = empty($oID) ? TEXT_CREATE_NEW_OREDER : TEXT_ORDER_ID . ' #' . $oID;
         $titleDT = empty($order->date_purchased) ? '' : ' <div class="head-or-time">' . TEXT_DATE_AND_TIME . ' ' . $order->date_purchased . '</div>';
         $titlePlatform = $this->manager->has('platform_id') ? ' <div class="order-platform">' .TABLE_HEADING_PLATFORM . ':' . \common\classes\platform::name($this->manager->get('platform_id')) . '</div>' : '';
-        $this->navigation[] = array('title' => $titleID . $titleDT . $titlePlatform);
+        $this->navigation[] = ['title' => $titleID . $titleDT . $titlePlatform];
         //set currency before
         if ($this->manager->has('cart')) {
             $_cart = $this->manager->get('cart');
@@ -1514,9 +1538,12 @@ class EditorController extends Sceleton {
         return $this->process($cart);
     }
 
-    public function actionQuoteEdit() {
+    public function actionQuoteEdit()
+    {
 
-        if (!\common\helpers\Acl::checkExtensionAllowed('Quotations')) return '';
+        if (!\common\helpers\Acl::checkExtensionAllowed('Quotations')) {
+            return '';
+        }
 
         $this->admin->loadCustomersBaskets('quote');
 
@@ -1536,7 +1563,7 @@ class EditorController extends Sceleton {
             $this->storage->removeAll();
         }
 
-        $this->navigation[] = array('title' => (tep_not_null($oID) ? TEXT_QUOTATION : TEXT_CREATE_NEW_QUOTATION) . (tep_not_null($oID) ? ' #' . $oID . ' <div class="head-or-time">' . TEXT_DATE_AND_TIME . ' ' . $order->date_purchased . '</div>' : '') . ($this->manager->has('platform_id')? ' <div class="order-platform">' . TABLE_HEADING_PLATFORM . ':' . \common\classes\platform::name($this->manager->get('platform_id')) . '</div>':''));
+        $this->navigation[] = ['title' => (tep_not_null($oID) ? TEXT_QUOTATION : TEXT_CREATE_NEW_QUOTATION) . (tep_not_null($oID) ? ' #' . $oID . ' <div class="head-or-time">' . TEXT_DATE_AND_TIME . ' ' . $order->date_purchased . '</div>' : '') . ($this->manager->has('platform_id') ? ' <div class="order-platform">' . TABLE_HEADING_PLATFORM . ':' . \common\classes\platform::name($this->manager->get('platform_id')) . '</div>' : '')];
         //set currency before
         if ($this->manager->has('cart')) {
             $_cart = $this->manager->get('cart');
@@ -1552,10 +1579,11 @@ class EditorController extends Sceleton {
         return $this->process($cart);
     }
 
-    public function actionDeletecart() {
+    public function actionDeletecart()
+    {
         $id = Yii::$app->request->post('deleteCart');
         $admin = new AdminCarts();
-        $_cb = explode("-", $id);
+        $_cb = explode('-', $id);
         if ($admin->deleteCartByBC($_cb[0], $_cb[1])) {
             $ids = $admin->getVirtualCartIDs();
             if ($ids) {
@@ -1573,7 +1601,8 @@ class EditorController extends Sceleton {
         exit();
     }
 
-    public function loadPlatformDetails($entry, $platform = 0, $currency = null, $language_id = null) {
+    public function loadPlatformDetails($entry, $platform = 0, $currency = null, $language_id = null)
+    {
         $entry->platforms = \yii\helpers\ArrayHelper::map(platform::getList(false, true), 'id', 'text');
         if (!$platform) {
             $platform = platform::defaultId();
@@ -1625,7 +1654,8 @@ class EditorController extends Sceleton {
         }
     }
 
-    public function actionUpdatepay() {
+    public function actionUpdatepay()
+    {
         $currencies = Yii::$container->get('currencies');
         //$session = new \yii\web\Session;
 
@@ -1633,7 +1663,7 @@ class EditorController extends Sceleton {
         \common\helpers\Translation::init('admin/orders/order-edit');
 
         $this->view->headingTitle = HEADING_TITLE;
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('orders/index'), 'title' => HEADING_TITLE);
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('orders/index'), 'title' => HEADING_TITLE];
         $this->layout = false;
         $data = Yii::$app->request->post();
         $this->storage->setPointer($data['currentCart']); //!!importnat to get current data
@@ -1665,8 +1695,8 @@ class EditorController extends Sceleton {
             $difference = ($difference_ot_total >= 0 ? true : false);
 
             $adminPaymentLink = false;
-            if ( extension_loaded('openssl') ) {
-              $adminPaymentLink = true;
+            if (extension_loaded('openssl')) {
+                $adminPaymentLink = true;
             }
 
             $currency_value = $currencies->currencies[$cart->currency]['value'];
@@ -1683,14 +1713,15 @@ class EditorController extends Sceleton {
         }
     }
 
-    public function actionCreateOrder(){
+    public function actionCreateOrder()
+    {
         $customers_id = Yii::$app->request->get('customers_id');
         $basket_id = Yii::$app->request->get('basket_id', false);
-        if ($customers_id){
+        if ($customers_id) {
 
             $customer = \common\components\Customer::findOne($customers_id);
 
-            if ($customer){
+            if ($customer) {
                 $cart = $this->obtainCustomerCart('\common\classes\shopping_cart', null, '', $customer->customers_id);
 
                 $currentCart = $this->admin->getCurrentCartID();
@@ -1704,7 +1735,7 @@ class EditorController extends Sceleton {
                     $cart->setCustomer($customer->customers_id);
                 }
 
-                if (Yii::$app->request->get('convert')){
+                if (Yii::$app->request->get('convert')) {
                     if ($ext = Acl::checkExtensionAllowed('RecoverShoppingCart', 'allowed')) {
                         $ext::convertCart($cart, true, $basket_id, $customers_id);
                     }
@@ -1719,22 +1750,23 @@ class EditorController extends Sceleton {
         return $this->redirect([$_GET['back'].'/index', 'customers_id' => $customers_id]);
     }
 
-    public function actionOwner(){
+    public function actionOwner()
+    {
         $currentCurrent = Yii::$app->request->get('currentCurrent', null);
         $response = ['reload' => true];
         if ($currentCurrent) {
             $this->storage->setPointer($currentCurrent);
             $cart = $this->manager->get('cart');
-            if ($cart){
+            if ($cart) {
                 $name = $this->admin->getAdminByCart($cart);
-                if (Yii::$app->request->isPost){
-                    if (Yii::$app->request->post('action') == 'confirm'){
-                        if ($this->admin->reassignCart($cart)){
+                if (Yii::$app->request->isPost) {
+                    if (Yii::$app->request->post('action') == 'confirm') {
+                        if ($this->admin->reassignCart($cart)) {
                             $order = $this->manager->getOrderInstanceWithId($this->manager->get('order_instance'), $cart->order_id);
                             $order->addLegend("Order sucessfully reassigned from {$name}", Yii::$app->session->get('login_id'));
                         }
                     }
-                    if (Yii::$app->request->post('action') == 'discard'){
+                    if (Yii::$app->request->post('action') == 'discard') {
                         $order_id = $cart->order_id;
                         $this->admin->deleteCartByOrder($order_id);
                         $order = $this->manager->getOrderInstanceWithId($this->manager->get('order_instance'), $order_id);
@@ -1743,7 +1775,7 @@ class EditorController extends Sceleton {
                 } else {
                     $changesList = [];
                     //----------------------------------------------------------
-                    $admin = tep_db_fetch_array(tep_db_query("select * from " . TABLE_ADMIN_SHOPPING_CARTS . " where customers_id ='" . (int) $cart->customer_id . "' and order_id = '" . (int) $cart->order_id . "' and cart_type='".$this->admin->getCartType($cart)."'"));
+                    $admin = tep_db_fetch_array(tep_db_query('select * from ' . TABLE_ADMIN_SHOPPING_CARTS . " where customers_id ='" . (int) $cart->customer_id . "' and order_id = '" . (int) $cart->order_id . "' and cart_type='".$this->admin->getCartType($cart)."'"));
 
                     $obj1 = $cart;
                     $obj2 = unserialize(base64_decode($admin['customer_basket']));
@@ -1761,15 +1793,15 @@ class EditorController extends Sceleton {
                             if (isset($obj2->contents[$key]['qty'])) {
                                 $qty2 = $obj2->contents[$key]['qty'];
                                 if ($qty > $qty2) {
-                                    $changesList[] = "<font color=\"red\">" . $productname . ": " . $qty . " > " . $qty2 . "</font>";//red
+                                    $changesList[] = '<font color="red">' . $productname . ': ' . $qty . ' > ' . $qty2 . '</font>';//red
                                 } elseif ($qty2 > $qty) {
-                                    $changesList[] = "<font color=\"green\">" . $productname . ": " . $qty . " > " . $qty2 . "</font>";//green
+                                    $changesList[] = '<font color="green">' . $productname . ': ' . $qty . ' > ' . $qty2 . '</font>';//green
                                 } else {
-                                    $changesList[] = $productname . ": " . $qty2;
+                                    $changesList[] = $productname . ': ' . $qty2;
                                 }
 
                             } else {
-                                $changesList[] = "<font color=\"red\">" . $productname . ": DELETED</font>";//red
+                                $changesList[] = '<font color="red">' . $productname . ': DELETED</font>';//red
                             }
                         }
                     }
@@ -1783,9 +1815,8 @@ class EditorController extends Sceleton {
                                 } else {
                                     $productname = \common\helpers\Product::get_products_name($key);
                                 }
-                                $changesList[] = "<font color=\"green\">" . $productname . ": ADDED</font>";//red
+                                $changesList[] = '<font color="green">' . $productname . ': ADDED</font>';//red
                             }
-
 
                         }
                     }
@@ -1793,11 +1824,11 @@ class EditorController extends Sceleton {
                     $obj1Total = $obj1->show_total();
                     $obj2Total = $obj2->show_total();
                     if ($obj1Total > $obj2Total) {
-                        $changesList[] = "<font color=\"red\">Total: " . $obj1Total . " > " . $obj2Total . "</font>";
+                        $changesList[] = '<font color="red">Total: ' . $obj1Total . ' > ' . $obj2Total . '</font>';
                     } elseif ($obj2Total > $obj1Total) {
-                        $changesList[] = "<font color=\"green\">Total: " . $obj1Total . " > " . $obj2Total . "</font>";
+                        $changesList[] = '<font color="green">Total: ' . $obj1Total . ' > ' . $obj2Total . '</font>';
                     } else {
-                        $changesList[] = "Total: " . $obj2Total;
+                        $changesList[] = 'Total: ' . $obj2Total;
                     }
                     //----------------------------------------------------------
                     //draw
@@ -1818,12 +1849,15 @@ class EditorController extends Sceleton {
         exit();
     }
 
-    public function actionOrderEditProducts() {
+    public function actionOrderEditProducts()
+    {
         $draw = Yii::$app->request->get('draw', 1);
         $start = Yii::$app->request->get('start', 0);
         $length = Yii::$app->request->get('length', 10);
 
-        if( $length == -1 ) $length = 10000;
+        if ($length == -1) {
+            $length = 10000;
+        }
 
         $recordsTotal = 0;
         $recordsFiltered = 0;
@@ -1859,24 +1893,25 @@ class EditorController extends Sceleton {
                 }
 
                 $products = $cart->get_products();
-                if (is_array($products)){
-                     foreach($products as $index => $product){
+                if (is_array($products)) {
+                    foreach ($products as $index => $product) {
                         $recordsTotal++;
-                        if ($index >= $start && $index < ($start+$length)) {
-                             if (is_array($product['attributes'])){
+                        if ($index >= $start && $index < ($start + $length)) {
+                            if (is_array($product['attributes'])) {
                                 $attrText = \common\classes\PropsWorkerAttrText::getAttrText($product['props']);
                                 $_attributes = [];
                                 foreach ($product['attributes'] as $option => $value) {
-                                    $attributes_query = tep_db_query("select pa.products_attributes_id, popt.products_options_name, poval.products_options_values_name, pa.options_values_price, pa.price_prefix from " . TABLE_PRODUCTS_OPTIONS . " popt, " . TABLE_PRODUCTS_OPTIONS_VALUES . " poval, " . TABLE_PRODUCTS_ATTRIBUTES . " pa where pa.products_id = '" . (int) $product['id'] . "' and pa.options_id = '" . (int) $option . "' and pa.options_id = popt.products_options_id and pa.options_values_id = '" . (int) $value . "' and pa.options_values_id = poval.products_options_values_id and popt.language_id = '" . (int) $this->manager->get('languages_id') . "' and poval.language_id = '" . (int) $this->manager->get('languages_id') . "'");
+                                    $attributes_query = tep_db_query('select pa.products_attributes_id, popt.products_options_name, poval.products_options_values_name, pa.options_values_price, pa.price_prefix from ' . TABLE_PRODUCTS_OPTIONS . ' popt, ' . TABLE_PRODUCTS_OPTIONS_VALUES . ' poval, ' . TABLE_PRODUCTS_ATTRIBUTES . " pa where pa.products_id = '" . (int) $product['id'] . "' and pa.options_id = '" . (int) $option . "' and pa.options_id = popt.products_options_id and pa.options_values_id = '" . (int) $value . "' and pa.options_values_id = poval.products_options_values_id and popt.language_id = '" . (int) $this->manager->get('languages_id') . "' and poval.language_id = '" . (int) $this->manager->get('languages_id') . "'");
                                     $attributes = tep_db_fetch_array($attributes_query);
 
-                                    if (isset($attributes['products_options_name']))
-                                    $_attributes[] = array(
-                                        'option' => $attributes['products_options_name'],
-                                        'value' => $attributes['products_options_values_name'],
-                                        'option_id' => $option,
-                                        'value_id' => $value,
-                                    );
+                                    if (isset($attributes['products_options_name'])) {
+                                        $_attributes[] = [
+                                            'option' => $attributes['products_options_name'],
+                                            'value' => $attributes['products_options_values_name'],
+                                            'option_id' => $option,
+                                            'value_id' => $value,
+                                        ];
+                                    }
                                 }
                                 $product['attributes'] = $_attributes;
                             }
@@ -1895,10 +1930,10 @@ class EditorController extends Sceleton {
                             $qtyColumn .= tep_draw_hidden_field('uprid', $product['id']);
 
                             $nameColumn = '<table class="table no-border"><tr><td width="25%" class="order-product-image">';
-                            $nameColumn .= '<div>'.\common\classes\Images::getImage($product['id'],'Small') . '</div>';
+                            $nameColumn .= '<div>'.\common\classes\Images::getImage($product['id'], 'Small') . '</div>';
                             $nameColumn .= '</td><td style="text-align:left;vertical-align:middle;">';
                             if (false) {//$isEditInGrid
-                                $nameColumn .= \yii\helpers\Html::input('text', "name", $product['name'],['class' => 'form-control name']);
+                                $nameColumn .= \yii\helpers\Html::input('text', 'name', $product['name'], ['class' => 'form-control name']);
                             } else {
                                 $nameColumn .= '<label class="product-name">' . $product['name'] . '</label>';
                             }
@@ -1906,7 +1941,7 @@ class EditorController extends Sceleton {
                                 $nameColumn .= $pu::queryOrderProcessAdmin($products, $index);
                             }
                             if (is_array($product['attributes']) && count($product['attributes']) > 0) {
-							//
+
                                 foreach ($product['attributes'] as $option => $value) {
                                     $nameColumn .= '<div class="prop-tab-det-inp"><small>&ndash; ';
                                     $nameColumn .= $value['option'] . ' : ';
@@ -1914,11 +1949,11 @@ class EditorController extends Sceleton {
                                     $nameColumn .= '</small></div>';
                                 }
                             }
-							$nameColumn .= '<div><strong>'.TABLE_HEADING_PRODUCTS_MODEL.': </strong>' . $product['model'] . '</div>';
-							if ($cart->cart_allow_giftwrap()) {
+                            $nameColumn .= '<div><strong>'.TABLE_HEADING_PRODUCTS_MODEL.': </strong>' . $product['model'] . '</div>';
+                            if ($cart->cart_allow_giftwrap()) {
                                 $gift_wrap = '';
                                 if ($product['parent'] == '' && $product['gift_wrap_allowed']) {
-                                    $gift_wrap = '<div class="gift-wrap"><strong>'.TEXT_GIFT_WRAP.': </strong><label>+' . $currencies->display_price($product['gift_wrap_price'], $product['tax']) . ' ' . \yii\helpers\Html::checkbox('gift_wrap[' . $product['id'] . ']', $product['gift_wrapped'], ['class' => 'check_on_off gift_wrap', 'onchange'=> "order.updateProductInRow(this, 'change_qty')"]) . '</label></div>';
+                                    $gift_wrap = '<div class="gift-wrap"><strong>'.TEXT_GIFT_WRAP.': </strong><label>+' . $currencies->display_price($product['gift_wrap_price'], $product['tax']) . ' ' . \yii\helpers\Html::checkbox('gift_wrap[' . $product['id'] . ']', $product['gift_wrapped'], ['class' => 'check_on_off gift_wrap', 'onchange' => "order.updateProductInRow(this, 'change_qty')"]) . '</label></div>';
                                 }
                                 $nameColumn .= $gift_wrap;
                             }
@@ -1937,11 +1972,11 @@ class EditorController extends Sceleton {
                                         $class_id = $product['tax_class_id'];
                                     }
                                     $zone = \common\helpers\Tax::get_zone_id($class_id, $tax_address['entry_country_id'], $tax_address['entry_zone_id']);
-                                    $zone_id = $class_id . "_" . $zone;
-                                 }
+                                    $zone_id = $class_id . '_' . $zone;
+                                }
                                 if (\common\helpers\Acl::rule(['ACL_ORDER', 'IMAGE_EDIT_PRODUCT'])) {
                                     //$taxColumn = $this->manager->render('Tax', ['manager' => $this->manager, 'product' => $product, 'tax_address' => $tax_address, 'tax_class_array' => $tax_class_array, 'onchange' => "order.updateProductInRow(this, 'change_tax')" ]);
-                                    $taxColumn = (isset($tax_class_array[$zone_id]) ? '<center>' . $tax_class_array[$zone_id] . '</center>': '');
+                                    $taxColumn = (isset($tax_class_array[$zone_id]) ? '<center>' . $tax_class_array[$zone_id] . '</center>' : '');
                                 } else {
                                     $taxColumn = (isset($tax_class_array[$zone_id]) ? '<center>' . $tax_class_array[$zone_id] . '</center>' : '');
                                 }
@@ -1967,18 +2002,18 @@ class EditorController extends Sceleton {
 
                             // TotalPrice exc vat
                             $responseItem[] = '<div class="qtyWrap">' . $qtyColumn . '</div>';
-							$exc_vat_table = $this->manager->render('Price', ['field' => 'final_price_total_exc_tax', 'price' => $product['final_price'], 'tax' => 0, 'qty' => $product['quantity'], 'currency' => $cart->currency ]);
-							$tax_table = $taxColumn;
-							$responseItem[] = $exc_vat_table . ($tax_table ? ('<div><center><strong>' .TABLE_HEADING_TAX.'</strong></center></div>'.$tax_table) : '');
-//vat on order
+                            $exc_vat_table = $this->manager->render('Price', ['field' => 'final_price_total_exc_tax', 'price' => $product['final_price'], 'tax' => 0, 'qty' => $product['quantity'], 'currency' => $cart->currency ]);
+                            $tax_table = $taxColumn;
+                            $responseItem[] = $exc_vat_table . ($tax_table ? ('<div><center><strong>' .TABLE_HEADING_TAX.'</strong></center></div>'.$tax_table) : '');
+                            //vat on order
                             $_rate = $product['tax_rate'];
-                            if ($_rate>0 && $VatOnOrder = \common\helpers\Acl::checkExtensionAllowed('VatOnOrder', 'allowed')) {
+                            if ($_rate > 0 && $VatOnOrder = \common\helpers\Acl::checkExtensionAllowed('VatOnOrder', 'allowed')) {
                                 if ($VatOnOrder::check_vat_status($tax_address)) {
                                     $_rate = 0;
                                 }
                             }
                             /** @var \common\extensions\BusinessToBusiness\BusinessToBusiness $ext */
-                            if ($_rate>0 && $ext = \common\helpers\Acl::checkExtensionAllowed('BusinessToBusiness', 'allowed')) {
+                            if ($_rate > 0 && $ext = \common\helpers\Acl::checkExtensionAllowed('BusinessToBusiness', 'allowed')) {
                                 if ($ext::checkTaxRate($customer_groups_id)) {
                                     $_rate = 0;
                                 }
@@ -1992,12 +2027,12 @@ class EditorController extends Sceleton {
                             if ($product['parent'] == '') {
                                 if ($product['ga']) {
                                     $actionsColumn .= '<div class="order-product-edit">';
-                                    $actionsColumn .= \yii\helpers\Html::a('<i class="icon-pencil"></i>', Yii::$app->urlManager->createUrl(array_merge($queryParams, ['action' => 'show_giveaways', 'edit' => true])), ['class'=> "popup", 'data-class'=>"add-product"] );
+                                    $actionsColumn .= \yii\helpers\Html::a('<i class="icon-pencil"></i>', Yii::$app->urlManager->createUrl(array_merge($queryParams, ['action' => 'show_giveaways', 'edit' => true])), ['class' => 'popup', 'data-class' => 'add-product']);
                                     $actionsColumn .= '</div>';
                                     $actionsColumn .= '<div class="del-pt" onclick="deleteOrderGiveaway(this);">';
                                 } else {
                                     $actionsColumn .= '<div class="order-product-edit">';
-                                    $actionsColumn .= \yii\helpers\Html::a('<i class="icon-pencil"></i>', Yii::$app->urlManager->createUrl(array_merge($queryParams, ['uprid' => $product['id'], 'action' => 'edit_product'])), ['class'=> "popup", 'data-class'=>"edit-product"] );
+                                    $actionsColumn .= \yii\helpers\Html::a('<i class="icon-pencil"></i>', Yii::$app->urlManager->createUrl(array_merge($queryParams, ['uprid' => $product['id'], 'action' => 'edit_product'])), ['class' => 'popup', 'data-class' => 'edit-product']);
                                     $actionsColumn .= '</div>';
                                     $actionsColumn .= '<div class="del-pt" onclick="deleteOrderProduct(this);">';
                                 }
@@ -2020,12 +2055,12 @@ class EditorController extends Sceleton {
             }
 
         }
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsFiltered,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         return $response;
     }

@@ -1,23 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models\queries;
 
 use yii\db\ActiveQuery;
 
-
-class OrdersQuery extends ActiveQuery {
-
-    public function crossUpEmailSend($send = true) {
+class OrdersQuery extends ActiveQuery
+{
+    public function crossUpEmailSend($send = true)
+    {
         $cross_up_email_send = $send ? 1 : 0;
         return $this->where(['cross_up_email_send' => $cross_up_email_send]);
     }
-
 
     /**
      * @inheritdoc
      * @return Coupons[]|array
      */
-    public function all($db = null) {
+    public function all($db = null)
+    {
         return parent::all($db);
     }
 
@@ -25,9 +27,9 @@ class OrdersQuery extends ActiveQuery {
      * @inheritdoc
      * @return Coupons|array|null
      */
-    public function one($db = null) {
+    public function one($db = null)
+    {
         return parent::one($db);
     }
-    
 
 }

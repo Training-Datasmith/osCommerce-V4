@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,87 +14,86 @@
 
 namespace backend\design;
 
-
 use backend\controllers\DesignController;
-use backend\design\Style;
 use backend\models\Admin;
+use common\classes\design as DesignerHelper;
 use common\models\DesignBoxesSettingsTmp;
 use common\models\DesignBoxesTmp;
 use common\models\ThemesSettings;
 use common\models\ThemesSteps;
 use common\models\ThemesStyles;
-use common\classes\design as DesignerHelper;
 use common\models\ThemesStylesGroups;
 use common\models\ThemesStylesMain;
 use yii\helpers\ArrayHelper;
 
 class Steps
 {
+    public static $elementsEvent = ['stepSave', 'boxAdd', 'blocksMove',
+      'boxSave', 'boxDelete', 'importBlock', 'elementsSave', 'elementsCancel'];
 
-  public static $elementsEvent = ['stepSave', 'boxAdd', 'blocksMove',
-    'boxSave', 'boxDelete', 'importBlock', 'elementsSave', 'elementsCancel'];
+    public static $stylesEvent = ['styleSave', 'themeSave', 'themeCancel'];
 
-  public static $stylesEvent = ['styleSave', 'themeSave', 'themeCancel'];
+    public static function stepSave($event, $data, $theme_name, $change_active = true)
+    {
+        $before = tep_db_fetch_array(tep_db_query('select steps_id from ' . TABLE_THEMES_STEPS . " where active='1' and theme_name='" . tep_db_input($theme_name) . "'"));
 
-  public static function stepSave($event, $data, $theme_name, $change_active = true) {
-    $before = tep_db_fetch_array(tep_db_query("select steps_id from " . TABLE_THEMES_STEPS . " where active='1' and theme_name='" . tep_db_input($theme_name) . "'"));
+        if ($change_active) {
+            tep_db_perform(TABLE_THEMES_STEPS, ['active' => '0'], 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
+        }
 
-    if ($change_active) tep_db_perform(TABLE_THEMES_STEPS, array('active' => '0'), 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
+        $admin = new Admin();
+        $data['designer_mode'] = $admin->getAdditionalData('designer_mode');
 
-    $admin = new Admin;
-    $data['designer_mode'] = $admin->getAdditionalData('designer_mode');
-
-    global $_SESSION;
-    $sql_data_array = array(
-      'parent_id' => $before['steps_id'] ?? 0,
-      'event' => $event,
-      'data' => json_encode($data),
-      'theme_name' => $theme_name,
-      'date_added' => 'now()',
-      'active' => $change_active ? '1' : '',
-      'admin_id' => ($_SESSION && $_SESSION['login_id'] ? $_SESSION['login_id'] : 0),
-      'mode' => ($data['designer_mode'] ? $data['designer_mode'] : 'basic'),
-    );
-    tep_db_perform(TABLE_THEMES_STEPS, $sql_data_array);
-  }
-
+        global $_SESSION;
+        $sql_data_array = [
+          'parent_id' => $before['steps_id'] ?? 0,
+          'event' => $event,
+          'data' => json_encode($data),
+          'theme_name' => $theme_name,
+          'date_added' => 'now()',
+          'active' => $change_active ? '1' : '',
+          'admin_id' => ($_SESSION && $_SESSION['login_id'] ? $_SESSION['login_id'] : 0),
+          'mode' => ($data['designer_mode'] ? $data['designer_mode'] : 'basic'),
+        ];
+        tep_db_perform(TABLE_THEMES_STEPS, $sql_data_array);
+    }
 
     public static function undo($theme_name)
     {
         $step = ThemesSteps::find()->where([
             'active' => '1',
-            'theme_name' => $theme_name
+            'theme_name' => $theme_name,
         ])->asArray()->one();
 
         $action = $step['event'] . 'Undo';
         if (!is_array($step['data'])) {
             $step['data'] = json_decode($step['data'], true);
         }
-        if (method_exists(self::class, $action)){
+        if (method_exists(self::class, $action)) {
             self::$action($step);
         }
 
-        tep_db_perform(TABLE_THEMES_STEPS, array('active' => '0'), 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
-        tep_db_perform(TABLE_THEMES_STEPS, array('active' => '1'), 'update', "steps_id = '" . (int)$step['parent_id'] . "' and theme_name='" . tep_db_input($theme_name) . "'");
-        if (!method_exists(self::class, $action)){
+        tep_db_perform(TABLE_THEMES_STEPS, ['active' => '0'], 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
+        tep_db_perform(TABLE_THEMES_STEPS, ['active' => '1'], 'update', "steps_id = '" . (int)$step['parent_id'] . "' and theme_name='" . tep_db_input($theme_name) . "'");
+        if (!method_exists(self::class, $action)) {
             self::undo($theme_name);
         }
     }
 
-  public static function redo($theme_name, $steps_id) {
-    $step = tep_db_fetch_array(tep_db_query("select * from " . TABLE_THEMES_STEPS . " where steps_id='" . (int)$steps_id . "' and theme_name='" . tep_db_input($theme_name) . "'"));
+    public static function redo($theme_name, $steps_id)
+    {
+        $step = tep_db_fetch_array(tep_db_query('select * from ' . TABLE_THEMES_STEPS . " where steps_id='" . (int)$steps_id . "' and theme_name='" . tep_db_input($theme_name) . "'"));
 
-    $action = $step['event'] . 'Redo';
-      if (!is_array($step['data'])) {
-          $step['data'] = json_decode($step['data'], true);
-      }
-    self::$action($step);
+        $action = $step['event'] . 'Redo';
+        if (!is_array($step['data'])) {
+            $step['data'] = json_decode($step['data'], true);
+        }
+        self::$action($step);
 
-    tep_db_perform(TABLE_THEMES_STEPS, array('active' => '0'), 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
-    tep_db_perform(TABLE_THEMES_STEPS, array('active' => '1'), 'update', "steps_id = '" . (int)$steps_id . "' and theme_name='" . tep_db_input($theme_name) . "'");
+        tep_db_perform(TABLE_THEMES_STEPS, ['active' => '0'], 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
+        tep_db_perform(TABLE_THEMES_STEPS, ['active' => '1'], 'update', "steps_id = '" . (int)$steps_id . "' and theme_name='" . tep_db_input($theme_name) . "'");
 
-  }
-
+    }
 
     public static function createMigration($themeName, $stepsIDs)
     {
@@ -152,7 +153,6 @@ class Steps
 
     }
 
-
     public static function blockNameToStep($blockName, $themeName)
     {
         $block = explode('-', $blockName);
@@ -174,11 +174,11 @@ class Steps
 
     public static function blockNameToDb($blockName, $themeName)
     {
-        if (preg_match ('/^[0-9]{5}/', $blockName) > 0) {
+        if (preg_match('/^[0-9]{5}/', $blockName) > 0) {
             $blockSplit = explode('-', $blockName);
             $_blockNameDb = DesignBoxesTmp::findOne([
                 'microtime' => $blockSplit[0],
-                'theme_name' => $themeName
+                'theme_name' => $themeName,
             ]);
             if (!$_blockNameDb) {
                 return '';
@@ -194,25 +194,26 @@ class Steps
         return $blockNameDb;
     }
 
-
     public static function boxAdd($data)
     {
         $blockName = self::blockNameToStep($data['block_name'], $data['theme_name']);
 
-        $data_s = array(
+        $data_s = [
             'block_id' => $data['id'],
             'microtime' => $data['microtime'],
             'block_name' => $blockName,
             'page_name' => Theme::getPageName($data['id']),
             'widget_name' => $data['widget_name'],
             'sort_order' => $data['sort_order'],
-        );
-        if (isset($data['sort_arr']) && $data['sort_arr']){
+        ];
+        if (isset($data['sort_arr']) && $data['sort_arr']) {
             $data_s = array_merge(
-                $data_s, [
+                $data_s,
+                [
                 'sort_arr' => $data['sort_arr'],
-                'sort_arr_old' => $data['sort_arr_old']
-            ]);
+                'sort_arr_old' => $data['sort_arr_old'],
+            ]
+            );
         }
 
         self::stepSave('boxAdd', $data_s, $data['theme_name']);
@@ -256,22 +257,23 @@ class Steps
             return 'box not added';
         }
 
-        if (!isset($data['sort_arr']) || !is_array($data['sort_arr'])){
+        if (!isset($data['sort_arr']) || !is_array($data['sort_arr'])) {
             return 'box added';
         }
 
-        foreach ($data['sort_arr'] as $microtime => $order){
+        foreach ($data['sort_arr'] as $microtime => $order) {
             $designBoxesSibling = DesignBoxesTmp::findOne([
                 'microtime' => $microtime,
-                'theme_name' => $themeName
+                'theme_name' => $themeName,
             ]);
-            if (!$designBoxesSibling) continue;
+            if (!$designBoxesSibling) {
+                continue;
+            }
             $designBoxesSibling->sort_order = (int)$order;
             $designBoxesSibling->save();
         }
         return 'box added';
     }
-
 
     public static function blocksMove($data)
     {
@@ -293,14 +295,15 @@ class Steps
         self::stepSave('blocksMove', $data_s, $data['theme_name']);
     }
 
-    public static function blocksMoveUndo($step){
+    public static function blocksMoveUndo($step)
+    {
         $data = $step['data'];
 
-        if (!isset($data['positions_old']) || !is_array($data['positions_old'])){
+        if (!isset($data['positions_old']) || !is_array($data['positions_old'])) {
             return '';
         }
 
-        foreach ($data['positions_old'] as $item){
+        foreach ($data['positions_old'] as $item) {
             $designBoxes = DesignBoxesTmp::findOne([
                 'microtime' => $item['microtime'],
                 'theme_name' => $step['theme_name'],
@@ -313,15 +316,16 @@ class Steps
         }
     }
 
-    public static function blocksMoveRedo($step){
+    public static function blocksMoveRedo($step)
+    {
         $data = $step['data'];
         $themeName = $step['theme_name'];
 
-        if (!isset($data['positions']) || !is_array($data['positions'])){
+        if (!isset($data['positions']) || !is_array($data['positions'])) {
             return '';
         }
 
-        foreach ($data['positions'] as $item){
+        foreach ($data['positions'] as $item) {
             $designBoxes = DesignBoxesTmp::findOne([
                 'microtime' => $item['microtime'],
                 'theme_name' => $themeName,
@@ -334,13 +338,14 @@ class Steps
         }
     }
 
-
     public static function settingVisibilityToStep($settings, $themeName)
     {
         $themeMedia = Style::getThemeMedia($themeName);
         foreach ($settings as $key => $setting) {
             if ($setting['visibility'] > 10 && isset($themeMedia[$setting['visibility']])) {
-                if (!isset($settings[$key])) $settings[$key] = [];
+                if (!isset($settings[$key])) {
+                    $settings[$key] = [];
+                }
                 $settings[$key]['visibility'] = $themeMedia[$setting['visibility']];
             }
         }
@@ -383,7 +388,8 @@ class Steps
         self::stepSave('boxSave', $data_s, $data['theme_name']);
     }
 
-    public static function boxSaveUndo($step){
+    public static function boxSaveUndo($step)
+    {
         $data = $step['data'];
 
         if (!isset($data['box_settings_old']) || !is_array($data['box_settings_old'])) {
@@ -402,11 +408,11 @@ class Steps
 
         DesignBoxesSettingsTmp::deleteAll([
             'microtime' => $data['microtime'],
-            'theme_name' => $themeName
+            'theme_name' => $themeName,
         ]);
 
         $data['box_settings_old'] = self::settingVisibilityToDb($data['box_settings_old'], $themeName);
-        foreach ($data['box_settings_old'] as $item){
+        foreach ($data['box_settings_old'] as $item) {
             $designBoxesSettings = new DesignBoxesSettingsTmp();
             $designBoxesSettings->setAttributes([
                 'box_id' => $boxId->id,
@@ -415,7 +421,7 @@ class Steps
                 'setting_name' => $item['setting_name'],
                 'setting_value' => $item['setting_value'],
                 'language_id' => $item['language_id'],
-                'visibility' => $item['visibility']
+                'visibility' => $item['visibility'],
             ]);
             $designBoxesSettings->save();
         }
@@ -437,10 +443,10 @@ class Steps
         $designBox->save();
         DesignBoxesSettingsTmp::deleteAll([
             'microtime' => $data['microtime'],
-            'theme_name' => $themeName
+            'theme_name' => $themeName,
         ]);
         $data['box_settings'] = self::settingVisibilityToDb($data['box_settings'], $themeName);
-        foreach ($data['box_settings'] as $item){
+        foreach ($data['box_settings'] as $item) {
             $designBoxesSettings = new DesignBoxesSettingsTmp();
             $designBoxesSettings->setAttributes([
                 'box_id' => $designBox->id,
@@ -449,12 +455,11 @@ class Steps
                 'setting_name' => $item['setting_name'],
                 'setting_value' => $item['setting_value'],
                 'language_id' => $item['language_id'],
-                'visibility' => $item['visibility']
+                'visibility' => $item['visibility'],
             ]);
             $designBoxesSettings->save();
         }
     }
-
 
     public static function boxDelete($data)
     {
@@ -467,7 +472,8 @@ class Steps
         self::stepSave('boxDelete', $data_s, $data['theme_name']);
     }
 
-    public static function boxDeleteUndo($step){
+    public static function boxDeleteUndo($step)
+    {
         $data = $step['data'];
 
         $blockName = self::blockNameToDb($data['block_name'], $step['theme_name']);
@@ -490,14 +496,13 @@ class Steps
         DesignController::deleteBlock($boxId);
     }
 
-
     public static function removePageTemplate($data)
     {
         $page_name = DesignerHelper::pageName($data['page_title']);
 
         $designBoxes = DesignBoxesTmp::find()->where([
             'block_name' => $page_name,
-            'theme_name' => $data['theme_name']
+            'theme_name' => $data['theme_name'],
         ])->asArray()->all();
 
         $content = [];
@@ -507,9 +512,9 @@ class Steps
 
         $data_s['content'] = $content;
 
-        $themes_settings = tep_db_query("
+        $themes_settings = tep_db_query('
                 select * 
-                from " . TABLE_THEMES_SETTINGS . " 
+                from ' . TABLE_THEMES_SETTINGS . " 
                 where 
                     theme_name = '" . tep_db_input($data['theme_name']) . "' and 
                     ((setting_group = 'added_page' and setting_value = '" . tep_db_input($data['page_title']) . "') or 
@@ -523,19 +528,20 @@ class Steps
         self::stepSave('removePageTemplate', $data_s, $data['theme_name']);
     }
 
-    public static function removePageTemplateUndo($step){
+    public static function removePageTemplateUndo($step)
+    {
         $data = $step['data'];
 
         $addedPage = ThemesSettings::findOne([
             'theme_name' => $step['theme_name'],
             'setting_group' => 'added_page',
-            'setting_value' => $data['page_title']
+            'setting_value' => $data['page_title'],
         ]);
         if ($addedPage) {
             return '';
         }
 
-        foreach ($data['themes_settings'] as $setting){
+        foreach ($data['themes_settings'] as $setting) {
             $addedPage = new ThemesSettings();
             $addedPage->theme_name = $step['theme_name'];
             $addedPage->setting_group = $setting['setting_group'];
@@ -571,23 +577,22 @@ class Steps
     {
         $designBoxes = DesignBoxesTmp::find()->where([
             'block_name' => DesignerHelper::pageName($pageName),
-            'theme_name' => $themeName
+            'theme_name' => $themeName,
         ])->asArray()->all();
         if (is_array($designBoxes)) {
             foreach ($designBoxes as $designBox) {
                 DesignBoxesTmp::deleteAll([
                     'microtime' => $designBox['microtime'],
-                    'theme_name' => $themeName
+                    'theme_name' => $themeName,
                 ]);
                 DesignBoxesSettingsTmp::deleteAll([
                     'microtime' => $designBox['microtime'],
-                    'theme_name' => $themeName
+                    'theme_name' => $themeName,
                 ]);
                 DesignController::deleteBlock($designBox['id']);
             }
         }
     }
-
 
     public static function importBlock($data)
     {
@@ -680,8 +685,8 @@ class Steps
             if (!isset($data['siblings']) || !is_array($data['siblings'])) {
                 continue;
             }
-            foreach ($data['siblings'] as $dataSibling){
-                if ($sibling->microtime == $dataSibling['microtime']){
+            foreach ($data['siblings'] as $dataSibling) {
+                if ($sibling->microtime == $dataSibling['microtime']) {
                     $sibling->sort_order = $dataSibling['sort_order'];
                     $sibling->save();
                 }
@@ -689,80 +694,83 @@ class Steps
         }
     }
 
+    public static function elementsSave($theme_name)
+    {
 
-  public static function elementsSave($theme_name){
+        $data_s = [];
+        self::stepSave('elementsSave', $data_s, $theme_name);
 
-    $data_s = [];
-    self::stepSave('elementsSave', $data_s, $theme_name);
+    }
 
-  }
+    public static function elementsSaveUndo($step)
+    {
+    }
 
-  public static function elementsSaveUndo($step){
-  }
+    public static function elementsSaveRedo($step)
+    {
+    }
 
-  public static function elementsSaveRedo($step){
-  }
+    public static function elementsCancel($theme_name)
+    {
 
+        $current = tep_db_fetch_array(tep_db_query('select * from ' . TABLE_THEMES_STEPS . " where active='1' and theme_name='" . tep_db_input($theme_name) . "'"));
 
-  public static function elementsCancel($theme_name){
-
-    $current = tep_db_fetch_array(tep_db_query("select * from " . TABLE_THEMES_STEPS . " where active='1' and theme_name='" . tep_db_input($theme_name) . "'"));
-
-    $query = tep_db_fetch_array(tep_db_query("
+        $query = tep_db_fetch_array(tep_db_query('
         select * 
-        from " . TABLE_THEMES_STEPS . " 
+        from ' . TABLE_THEMES_STEPS . " 
         where 
           event='elementsSave' and 
           theme_name='" . tep_db_input($theme_name) . "' and
           date_added < '" . $current['date_added'] . "'
         order by	date_added desc limit 1"));
 
-    $data_s = [];
-    self::stepSave('elementsCancel', $data_s, $theme_name, false);
+        $data_s = [];
+        self::stepSave('elementsCancel', $data_s, $theme_name, false);
 
-    $c = 1;
-    $parent_id = $current['parent_id'];
-    $chain = array();
-    $chain[] = $current;
-    while ($c){
-      $chain_query = tep_db_query("select * from " . TABLE_THEMES_STEPS . " where steps_id='" . (int)$parent_id . "' and steps_id != '" . (int)$query['steps_id'] . "' and theme_name='" . tep_db_input($theme_name) . "'");
-      $c = tep_db_num_rows($chain_query);
-      if ($c) {
-        $chain_arr = tep_db_fetch_array($chain_query);
-        $parent_id = $chain_arr['parent_id'];
-        $chain[] = $chain_arr;
-      }
+        $c = 1;
+        $parent_id = $current['parent_id'];
+        $chain = [];
+        $chain[] = $current;
+        while ($c) {
+            $chain_query = tep_db_query('select * from ' . TABLE_THEMES_STEPS . " where steps_id='" . (int)$parent_id . "' and steps_id != '" . (int)$query['steps_id'] . "' and theme_name='" . tep_db_input($theme_name) . "'");
+            $c = tep_db_num_rows($chain_query);
+            if ($c) {
+                $chain_arr = tep_db_fetch_array($chain_query);
+                $parent_id = $chain_arr['parent_id'];
+                $chain[] = $chain_arr;
+            }
+        }
+        $chain[] = $query;
+        $new_parent = $query['steps_id'];
+
+        tep_db_perform(TABLE_THEMES_STEPS, ['active' => '0'], 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
+        tep_db_perform(TABLE_THEMES_STEPS, ['active' => '1'], 'update', "steps_id = '" . (int)$query['steps_id'] . "' and theme_name='" . tep_db_input($theme_name) . "'");
+
+        for ($i = count($chain) - 1; $i >= 0; $i--) {
+            if (!in_array($chain[$i]['event'], self::$elementsEvent)) {
+                tep_db_perform(TABLE_THEMES_STEPS, ['active' => '0'], 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
+                tep_db_perform(TABLE_THEMES_STEPS, [
+                  'parent_id' => $new_parent,
+                  'event' => $chain[$i]['event'],
+                  'data' => $chain[$i]['data'],
+                  'theme_name' => $chain[$i]['theme_name'],
+                  'date_added' => $chain[$i]['date_added'],
+                  'active' => '1',
+                  'admin_id' => $chain[$i]['admin_id'],
+                ]);
+                $new_parent = tep_db_insert_id();
+            }
+        }
+
     }
-    $chain[] = $query;
-    $new_parent = $query['steps_id'];
 
-    tep_db_perform(TABLE_THEMES_STEPS, array('active' => '0'), 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
-    tep_db_perform(TABLE_THEMES_STEPS, array('active' => '1'), 'update', "steps_id = '" . (int)$query['steps_id'] . "' and theme_name='" . tep_db_input($theme_name) . "'");
-
-    for ($i = count($chain)-1; $i >= 0; $i--){
-      if (!in_array($chain[$i]['event'], self::$elementsEvent)) {
-        tep_db_perform(TABLE_THEMES_STEPS, array('active' => '0'), 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
-        tep_db_perform(TABLE_THEMES_STEPS, array(
-          'parent_id' => $new_parent,
-          'event' => $chain[$i]['event'],
-          'data' => $chain[$i]['data'],
-          'theme_name' => $chain[$i]['theme_name'],
-          'date_added' => $chain[$i]['date_added'],
-          'active' => '1',
-          'admin_id' => $chain[$i]['admin_id'],
-        ));
-        $new_parent = tep_db_insert_id();
-      }
+    public static function elementsCancelUndo($step)
+    {
     }
 
-  }
-
-  public static function elementsCancelUndo($step){
-  }
-
-  public static function elementsCancelRedo($step){
-  }
-
+    public static function elementsCancelRedo($step)
+    {
+    }
 
     public static function styleSave($data)
     {
@@ -786,7 +794,7 @@ class Steps
     public static function styleSaveChange($step, $detraction)
     {
         ThemesStylesMain::deleteAll(['theme_name' => $step['theme_name']]);
-        foreach ($step['data'][$detraction . '_styles'] as $style){
+        foreach ($step['data'][$detraction . '_styles'] as $style) {
             $themesStylesMain = new ThemesStylesMain();
             $themesStylesMain->theme_name = $step['theme_name'];
             $themesStylesMain->name = $style['name'];
@@ -797,7 +805,7 @@ class Steps
             $themesStylesMain->save();
         }
         ThemesStylesGroups::deleteAll(['theme_name' => $step['theme_name']]);
-        foreach ($step['data'][$detraction . '_groups'] as $style){
+        foreach ($step['data'][$detraction . '_groups'] as $style) {
             $themesStylesGroup = new ThemesStylesGroups();
             $themesStylesGroup->theme_name = $step['theme_name'];
             $themesStylesGroup->group_id = $style['group_id'];
@@ -807,7 +815,6 @@ class Steps
             $themesStylesGroup->save();
         }
     }
-
 
     public static function settings($data)
     {
@@ -851,7 +858,7 @@ class Steps
 
     public static function settingsChange($new, $old, $themeName)
     {
-        foreach ($old as $item){
+        foreach ($old as $item) {
             $setting = ThemesSettings::findOne([
                 'theme_name' => $themeName,
                 'setting_group' => $item['setting_group'],
@@ -862,7 +869,7 @@ class Steps
                 $setting->delete();
             }
         }
-        foreach ($new as $item){
+        foreach ($new as $item) {
             if ($item['setting_group'] == 'extend') {
                 $setting = ThemesSettings::findOne([
                     'theme_name' => $themeName,
@@ -890,7 +897,6 @@ class Steps
         }
     }
 
-
     public static function cssSave($data)
     {
         $data['attributes_delete'] = self::settingVisibilityToStep($data['attributes_delete'], $data['theme_name']);
@@ -899,17 +905,18 @@ class Steps
         self::stepSave('cssSave', $data, $data['theme_name']);
     }
 
-  public static function cssSaveUndo($step){
-    $data = $step['data'];
+    public static function cssSaveUndo($step)
+    {
+        $data = $step['data'];
 
-      $data['attributes_delete'] = self::settingVisibilityToDb($data['attributes_delete'], $step['theme_name']);
-      $data['attributes_changed'] = self::settingVisibilityToDb($data['attributes_changed'], $step['theme_name']);
-      $data['attributes_new'] = self::settingVisibilityToDb($data['attributes_new'], $step['theme_name']);
+        $data['attributes_delete'] = self::settingVisibilityToDb($data['attributes_delete'], $step['theme_name']);
+        $data['attributes_changed'] = self::settingVisibilityToDb($data['attributes_changed'], $step['theme_name']);
+        $data['attributes_new'] = self::settingVisibilityToDb($data['attributes_new'], $step['theme_name']);
 
-    foreach ($data['attributes_changed'] as $item) {
-        tep_db_perform(TABLE_THEMES_STYLES, [
-            'value' => $item['value_old']
-        ], 'update', "
+        foreach ($data['attributes_changed'] as $item) {
+            tep_db_perform(TABLE_THEMES_STYLES, [
+                'value' => $item['value_old'],
+            ], 'update', "
                 theme_name = '" . tep_db_input($data['theme_name']) . "' and
                 selector = '" . tep_db_input($item['selector']) . "' and
                 attribute = '" . tep_db_input($item['attribute']) . "' and
@@ -917,22 +924,22 @@ class Steps
                 media = '" . tep_db_input($item['media']) . "' and
                 accessibility = '" . tep_db_input($item['accessibility']) . "'
         ");
-    }
+        }
 
-    foreach ($data['attributes_delete'] as $item) {
-        tep_db_perform(TABLE_THEMES_STYLES, [
-                'theme_name' => $data['theme_name'],
-                'selector' => $item['selector'],
-                'attribute' => $item['attribute'],
-                'value' => $item['value_old'] ?? '',
-                'visibility' => $item['visibility'],
-                'media' => $item['media'],
-                'accessibility' => $item['accessibility']
-        ]);
-    }
+        foreach ($data['attributes_delete'] as $item) {
+            tep_db_perform(TABLE_THEMES_STYLES, [
+                    'theme_name' => $data['theme_name'],
+                    'selector' => $item['selector'],
+                    'attribute' => $item['attribute'],
+                    'value' => $item['value_old'] ?? '',
+                    'visibility' => $item['visibility'],
+                    'media' => $item['media'],
+                    'accessibility' => $item['accessibility'],
+            ]);
+        }
 
-    foreach ($data['attributes_new'] as $item) {
-        tep_db_query("delete from " . TABLE_THEMES_STYLES . " where
+        foreach ($data['attributes_new'] as $item) {
+            tep_db_query('delete from ' . TABLE_THEMES_STYLES . " where
                 theme_name = '" . tep_db_input($data['theme_name']) . "' and
                 selector = '" . tep_db_input($item['selector']) . "' and
                 attribute = '" . tep_db_input($item['attribute']) . "' and
@@ -940,10 +947,10 @@ class Steps
                 media = '" . tep_db_input($item['media']) . "' and
                 accessibility = '" . tep_db_input($item['accessibility']) . "'
         ");
-    }
+        }
 
-      Style::createCache($data['theme_name'], self::getAccessibility($data));
-  }
+        Style::createCache($data['theme_name'], self::getAccessibility($data));
+    }
 
     public static function cssSaveRedo($step)
     {
@@ -974,7 +981,7 @@ class Steps
 
     public static function cssSaveAttributes($data, $themeName)
     {
-        if (isset($data) && is_array($data)){
+        if (isset($data) && is_array($data)) {
             foreach ($data as $item) {
                 $styleSet = [
                     'theme_name' => $themeName,
@@ -998,45 +1005,48 @@ class Steps
 
     public static function getAccessibility($data)
     {
-        if (!isset($data) || !is_array($data)){
+        if (!isset($data) || !is_array($data)) {
             return false;
         }
         foreach (['attributes_delete', 'attributes_changed', 'attributes_new'] as $item) {
-            if (!is_array($data[$item]) || !count($data[$item])) continue;
+            if (!is_array($data[$item]) || !count($data[$item])) {
+                continue;
+            }
             $firstItem = reset($data[$item]);
             return $firstItem['accessibility'];
         }
     }
 
+    public static function javascriptSave($data)
+    {
 
-  public static function javascriptSave($data){
+        $query = tep_db_fetch_array(tep_db_query('select steps_id, data, event, admin_id from ' . TABLE_THEMES_STEPS . " where active='1' and theme_name='" . tep_db_input($data['theme_name']) . "'"));
 
-    $query = tep_db_fetch_array(tep_db_query("select steps_id, data, event, admin_id from " . TABLE_THEMES_STEPS . " where active='1' and theme_name='" . tep_db_input($data['theme_name']) . "'"));
+        if ($query['event'] == 'javascriptSave' && $query['admin_id'] == $_SESSION['login_id']) {
 
-    if ($query['event'] == 'javascriptSave' && $query['admin_id'] == $_SESSION['login_id']){
+            $data_s = json_decode($query['data'], true);
+            $data_s['javascript'] = $data['javascript'];
 
-      $data_s = json_decode($query['data'], true);
-      $data_s['javascript'] = $data['javascript'];
+            $sql_data_array = [
+              'data' => json_encode($data_s),
+              'date_added' => 'now()',
+            ];
+            tep_db_perform(TABLE_THEMES_STEPS, $sql_data_array, 'update', "steps_id='" . (int)$query['steps_id'] . "'");
 
-      $sql_data_array = array(
-        'data' => json_encode($data_s),
-        'date_added' => 'now()',
-      );
-      tep_db_perform(TABLE_THEMES_STEPS, $sql_data_array, 'update', "steps_id='" . (int)$query['steps_id'] . "'");
+        } else {
 
-    } else {
+            $data_s = [
+              'javascript_old' => $data['javascript_old'],
+              'javascript' => $data['javascript'],
+            ];
+            self::stepSave('javascriptSave', $data_s, $data['theme_name']);
 
-      $data_s = [
-        'javascript_old' => $data['javascript_old'],
-        'javascript' => $data['javascript'],
-      ];
-      self::stepSave('javascriptSave', $data_s, $data['theme_name']);
+        }
 
     }
 
-  }
-
-    public static function javascriptSaveUndo($step){
+    public static function javascriptSaveUndo($step)
+    {
         $data = $step['data'];
 
         $themesSettings = ThemesSettings::findOne([
@@ -1044,7 +1054,7 @@ class Steps
             'setting_group' => 'javascript',
             'setting_name' => 'javascript',
         ]);
-        if (!$themesSettings){
+        if (!$themesSettings) {
             $themesSettings = new ThemesSettings();
         }
         $themesSettings->setting_value = $data['javascript_old'];
@@ -1061,129 +1071,136 @@ class Steps
             'setting_group' => 'javascript',
             'setting_name' => 'javascript',
         ]);
-        if (!$themesSettings){
+        if (!$themesSettings) {
             $themesSettings = new ThemesSettings();
         }
         $themesSettings->setting_value = $data['javascript'];
         $themesSettings->save();
     }
 
+    public static function backupSubmit($data)
+    {
 
-  public static function backupSubmit($data){
+        $data_s = [
+          'backup_id' => (int)$data['backup_id'],
+        ];
 
-    $data_s = [
-      'backup_id' => (int)$data['backup_id']
-    ];
+        self::stepSave('backupSubmit', $data_s, $data['theme_name']);
+    }
 
-    self::stepSave('backupSubmit', $data_s, $data['theme_name']);
-  }
+    public static function backupSubmitUndo($step)
+    {
+    }
 
-  public static function backupSubmitUndo($step){
-  }
+    public static function backupSubmitRedo($step)
+    {
+    }
 
-  public static function backupSubmitRedo($step){
-  }
+    public static function backupRestore($data)
+    {
 
+        $data_s = [
+          'backup_id' => $data['backup_id'],
+        ];
 
-  public static function backupRestore($data){
+        tep_db_perform(TABLE_THEMES_STEPS, ['active' => '0'], 'update', "active = '1' and theme_name='" . tep_db_input($data['theme_name']) . "'");
+        tep_db_perform(TABLE_THEMES_STEPS, ['active' => '1'], 'update', "data = '" . tep_db_input(json_encode(['backup_id' => (int)$data['backup_id']])) . "' and theme_name='" . tep_db_input($data['theme_name']) . "'");
 
-    $data_s = [
-      'backup_id' => $data['backup_id']
-    ];
+        self::stepSave('backupRestore', $data_s, $data['theme_name'], false);
+    }
 
-    tep_db_perform(TABLE_THEMES_STEPS, array('active' => '0'), 'update', "active = '1' and theme_name='" . tep_db_input($data['theme_name']) . "'");
-    tep_db_perform(TABLE_THEMES_STEPS, array('active' => '1'), 'update', "data = '" . tep_db_input(json_encode(['backup_id' => (int)$data['backup_id']])) . "' and theme_name='" . tep_db_input($data['theme_name']) . "'");
+    public static function backupRestoreUndo($step)
+    {
+    }
 
-    self::stepSave('backupRestore', $data_s, $data['theme_name'], false);
-  }
+    public static function backupRestoreRedo($step)
+    {
+    }
 
-  public static function backupRestoreUndo($step){
-  }
+    public static function themeSave($theme_name)
+    {
 
-  public static function backupRestoreRedo($step){
-  }
+        $data_s = [];
+        self::stepSave('themeSave', $data_s, $theme_name);
 
+    }
 
-  public static function themeSave($theme_name){
+    public static function themeSaveUndo($step)
+    {
+    }
 
-    $data_s = [];
-    self::stepSave('themeSave', $data_s, $theme_name);
+    public static function themeSaveRedo($step)
+    {
+    }
 
-  }
+    public static function themeCancel($theme_name)
+    {
 
-  public static function themeSaveUndo($step){
-  }
+        $current = tep_db_fetch_array(tep_db_query('select * from ' . TABLE_THEMES_STEPS . " where active='1' and theme_name='" . tep_db_input($theme_name) . "'"));
 
-  public static function themeSaveRedo($step){
-  }
-
-
-  public static function themeCancel($theme_name){
-
-    $current = tep_db_fetch_array(tep_db_query("select * from " . TABLE_THEMES_STEPS . " where active='1' and theme_name='" . tep_db_input($theme_name) . "'"));
-
-    $query = tep_db_fetch_array(tep_db_query("
+        $query = tep_db_fetch_array(tep_db_query('
         select * 
-        from " . TABLE_THEMES_STEPS . " 
+        from ' . TABLE_THEMES_STEPS . " 
         where 
           event='themeSave' and 
           theme_name='" . tep_db_input($theme_name) . "' and
           date_added < '" . $current['date_added'] . "'
         order by	date_added desc limit 1"));
 
-    $data_s = [];
-    self::stepSave('themeCancel', $data_s, $theme_name, false);
+        $data_s = [];
+        self::stepSave('themeCancel', $data_s, $theme_name, false);
 
-    $c = 1;
-    $parent_id = $current['parent_id'];
-    $chain = array();
-    $chain[] = $current;
-    while ($c){
-      $chain_query = tep_db_query("select * from " . TABLE_THEMES_STEPS . " where steps_id='" . (int)$parent_id . "' and steps_id != '" . (int)$query['steps_id'] . "' and theme_name='" . tep_db_input($theme_name) . "'");
-      $c = tep_db_num_rows($chain_query);
-      if ($c) {
-        $chain_arr = tep_db_fetch_array($chain_query);
-        $parent_id = $chain_arr['parent_id'];
-        $chain[] = $chain_arr;
-      }
+        $c = 1;
+        $parent_id = $current['parent_id'];
+        $chain = [];
+        $chain[] = $current;
+        while ($c) {
+            $chain_query = tep_db_query('select * from ' . TABLE_THEMES_STEPS . " where steps_id='" . (int)$parent_id . "' and steps_id != '" . (int)$query['steps_id'] . "' and theme_name='" . tep_db_input($theme_name) . "'");
+            $c = tep_db_num_rows($chain_query);
+            if ($c) {
+                $chain_arr = tep_db_fetch_array($chain_query);
+                $parent_id = $chain_arr['parent_id'];
+                $chain[] = $chain_arr;
+            }
+        }
+        $chain[] = $query;
+        $new_parent = $query['steps_id'];
+
+        tep_db_perform(TABLE_THEMES_STEPS, ['active' => '0'], 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
+        tep_db_perform(TABLE_THEMES_STEPS, ['active' => '1'], 'update', "steps_id = '" . (int)$query['steps_id'] . "' and theme_name='" . tep_db_input($theme_name) . "'");
+
+        for ($i = count($chain) - 1; $i >= 0; $i--) {
+            if (!in_array($chain[$i]['event'], self::$stylesEvent)) {
+                tep_db_perform(TABLE_THEMES_STEPS, ['active' => '0'], 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
+                tep_db_perform(TABLE_THEMES_STEPS, [
+                  'parent_id' => $new_parent,
+                  'event' => $chain[$i]['event'],
+                  'data' => $chain[$i]['data'],
+                  'theme_name' => $chain[$i]['theme_name'],
+                  'date_added' => $chain[$i]['date_added'],
+                  'active' => '1',
+                  'admin_id' => $chain[$i]['admin_id'],
+                ]);
+                $new_parent = tep_db_insert_id();
+            }
+        }
+
     }
-    $chain[] = $query;
-    $new_parent = $query['steps_id'];
 
-    tep_db_perform(TABLE_THEMES_STEPS, array('active' => '0'), 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
-    tep_db_perform(TABLE_THEMES_STEPS, array('active' => '1'), 'update', "steps_id = '" . (int)$query['steps_id'] . "' and theme_name='" . tep_db_input($theme_name) . "'");
-
-    for ($i = count($chain)-1; $i >= 0; $i--){
-      if (!in_array($chain[$i]['event'], self::$stylesEvent)) {
-        tep_db_perform(TABLE_THEMES_STEPS, array('active' => '0'), 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
-        tep_db_perform(TABLE_THEMES_STEPS, array(
-          'parent_id' => $new_parent,
-          'event' => $chain[$i]['event'],
-          'data' => $chain[$i]['data'],
-          'theme_name' => $chain[$i]['theme_name'],
-          'date_added' => $chain[$i]['date_added'],
-          'active' => '1',
-          'admin_id' => $chain[$i]['admin_id'],
-        ));
-        $new_parent = tep_db_insert_id();
-      }
+    public static function themeCancelUndo($step)
+    {
     }
 
-  }
-
-  public static function themeCancelUndo($step){
-  }
-
-  public static function themeCancelRedo($step){
-  }
-
+    public static function themeCancelRedo($step)
+    {
+    }
 
     public static function addPage($data)
     {
         $data_s = [
             'page_type' => $data['setting_name'],
             'page_name' => $data['setting_value'],
-            'content' => $data['content']
+            'content' => $data['content'],
         ];
         self::stepSave('addPage', $data_s, $data['theme_name']);
     }
@@ -1196,7 +1213,7 @@ class Steps
             'theme_name' => $step['theme_name'],
             'setting_group' => 'added_page',
             'setting_name' => $data['page_type'],
-            'setting_value' => $data['page_name']
+            'setting_value' => $data['page_name'],
         ]);
 
         self::deletePage($data['page_name'], $step['theme_name']);
@@ -1210,7 +1227,7 @@ class Steps
         $addedPage = ThemesSettings::findOne([
             'theme_name' => $themeName,
             'setting_group' => 'added_page',
-            'setting_value' => $data['page_name']
+            'setting_value' => $data['page_name'],
         ]);
         if ($addedPage) {
             return '';
@@ -1228,18 +1245,18 @@ class Steps
         }
     }
 
-
     public static function addPageSettings($data)
     {
         $data_s = [
             'page_name' => $data['page_name'],
             'settings_old' => $data['settings_old'],
-            'settings' => $data['settings']
+            'settings' => $data['settings'],
         ];
         self::stepSave('addPageSettings', $data_s, $data['theme_name']);
     }
 
-    public static function addPageSettingsUndo($step){
+    public static function addPageSettingsUndo($step)
+    {
         $data = $step['data'];
 
         ThemesSettings::deleteAll([
@@ -1251,7 +1268,7 @@ class Steps
         if (!isset($data['settings_old']) || !is_array($data['settings_old'])) {
             return '';
         }
-        foreach ($data['settings_old'] as $item){
+        foreach ($data['settings_old'] as $item) {
             $themesSettings = new ThemesSettings();
             $themesSettings->theme_name = $step['theme_name'];
             $themesSettings->setting_group = $item['setting_group'];
@@ -1275,7 +1292,7 @@ class Steps
         if (!isset($data['settings']) || !is_array($data['settings_old'])) {
             return '';
         }
-        foreach ($data['settings'] as $item){
+        foreach ($data['settings'] as $item) {
             $themesSettings = new ThemesSettings();
             $themesSettings->theme_name = $themeName;
             $themesSettings->setting_group = $item['setting_group'];
@@ -1285,12 +1302,11 @@ class Steps
         }
     }
 
-
     public static function log($theme_name, $output = [])
     {
 
-        $active = tep_db_fetch_array(tep_db_query("select steps_id from " . TABLE_THEMES_STEPS . " where theme_name='" . tep_db_input($theme_name) . "' and active='1'"));
-        $log = array();
+        $active = tep_db_fetch_array(tep_db_query('select steps_id from ' . TABLE_THEMES_STEPS . " where theme_name='" . tep_db_input($theme_name) . "' and active='1'"));
+        $log = [];
 
         $filter = '';
         if (tep_not_null($output['from'])) {
@@ -1307,12 +1323,12 @@ class Steps
             $limit = ' limit 500';
         }
 
-        $query = tep_db_query("select steps_id, parent_id, event, date_added, admin_id, mode, data from " . TABLE_THEMES_STEPS . " where theme_name='" . tep_db_input($theme_name) . "'" . $filter . " order by date_added desc " . $limit);
+        $query = tep_db_query('select steps_id, parent_id, event, date_added, admin_id, mode, data from ' . TABLE_THEMES_STEPS . " where theme_name='" . tep_db_input($theme_name) . "'" . $filter . ' order by date_added desc ' . $limit);
 
         $current = $active['steps_id'];
         $count = 0;
-        while ($item = tep_db_fetch_array($query)){
-            if (!$count && $output['to']){
+        while ($item = tep_db_fetch_array($query)) {
+            if (!$count && $output['to']) {
                 $current = $item['steps_id'];
                 $count++;
             }
@@ -1320,8 +1336,10 @@ class Steps
             $mode = '';
             if ($item['mode']) {
                 switch ($item['mode']) {
-                    case 'advanced': $mode = EDIT_MODE . ': <b>' . ADVANCED_MODE . '</b>'; break;
-                    case 'expert': $mode = EDIT_MODE . ': <b>' . EXPERT_MODE . '</b>'; break;
+                    case 'advanced': $mode = EDIT_MODE . ': <b>' . ADVANCED_MODE . '</b>';
+                        break;
+                    case 'expert': $mode = EDIT_MODE . ': <b>' . EXPERT_MODE . '</b>';
+                        break;
                     default: $mode = EDIT_MODE . ': <b>' . BASIC_MODE . '</b>';
                 }
             }
@@ -1336,9 +1354,9 @@ class Steps
             ];
         }
 
-        $trunk = array();
-        $tree = array();
-        while (isset($log[$current]) && is_array($log[$current])){
+        $trunk = [];
+        $tree = [];
+        while (isset($log[$current]) && is_array($log[$current])) {
             $trunk[] = $current;
             $tree[$current] = $log[$current];
             $tree[$current]['branches'] = 1;
@@ -1346,9 +1364,9 @@ class Steps
             $current = $log[$current]['parent_id'];
         }
 
-        $branches = array();
-        foreach ($log as $id => $item){
-            if(!in_array($id, $trunk)){
+        $branches = [];
+        foreach ($log as $id => $item) {
+            if (!in_array($id, $trunk)) {
                 $branches[$item['steps_id']] = $item;
             }
         }
@@ -1361,7 +1379,7 @@ class Steps
                     $tree[$item['parent_id']]['branches']++;
 
                     $tree[$item['steps_id']] = $item;
-                    if ($tree[$item['parent_id']]['branches'] == 1){
+                    if ($tree[$item['parent_id']]['branches'] == 1) {
                         $tree[$item['steps_id']]['branch_id'] = $tree[$item['parent_id']]['branch_id'];
                     } else {
                         $tree[$item['steps_id']]['branch_id'] = $item['parent_id'];
@@ -1373,12 +1391,14 @@ class Steps
             }
 
             $count_error++;
-            if ($count_error > 1000000) return 'Error, too many steps. 2';
+            if ($count_error > 1000000) {
+                return 'Error, too many steps. 2';
+            }
         }
 
-        foreach ($tree as $key => $item){
+        foreach ($tree as $key => $item) {
             $tree[$key]['text'] = self::logNames($item['event']) . ($item['warning'] ? '<span class="warning">(' . ICON_WARNING . ')</span>' : '');
-            $tree[$key]['date_added'] = \common\helpers\Date::date_long($tree[$key]['date_added'], "%d %b %Y / %H:%M:%S");
+            $tree[$key]['date_added'] = \common\helpers\Date::date_long($tree[$key]['date_added'], '%d %b %Y / %H:%M:%S');
         }
 
         return $tree;
@@ -1387,14 +1407,14 @@ class Steps
 
     public static function logDetails($id)
     {
-        $details = tep_db_fetch_array(tep_db_query("select * from " . TABLE_THEMES_STEPS . " where steps_id = '" . (int)$id . "'"));
+        $details = tep_db_fetch_array(tep_db_query('select * from ' . TABLE_THEMES_STEPS . " where steps_id = '" . (int)$id . "'"));
 
         $details['name'] = self::logNames($details['event']);
-        $details['date_added'] = \common\helpers\Date::date_long($details['date_added'], "%d %b %Y / %H:%M:%S");
+        $details['date_added'] = \common\helpers\Date::date_long($details['date_added'], '%d %b %Y / %H:%M:%S');
 
-        $admin = tep_db_fetch_array(tep_db_query("
+        $admin = tep_db_fetch_array(tep_db_query('
             select admin_id, admin_firstname, admin_lastname, admin_email_address 
-            from " . TABLE_ADMIN . " 
+            from ' . TABLE_ADMIN . " 
             where admin_id = '" . (int)$details['admin_id'] . "'"));
 
         $data = json_decode($details['data'], true);
@@ -1403,8 +1423,10 @@ class Steps
 
         if (isset($data['designer_mode'])) {
             switch ($data['designer_mode']) {
-                case 'advanced': $details['designer_mode'] = ADVANCED_MODE; break;
-                case 'expert': $details['designer_mode'] = EXPERT_MODE; break;
+                case 'advanced': $details['designer_mode'] = ADVANCED_MODE;
+                    break;
+                case 'expert': $details['designer_mode'] = EXPERT_MODE;
+                    break;
                 default: $details['designer_mode'] = BASIC_MODE;
             }
         }
@@ -1416,13 +1438,12 @@ class Steps
         if ($details['event'] == 'boxSave') {
             $details['page_name'] = $data['page_name'];
 
-            $widget = tep_db_fetch_array(tep_db_query("
+            $widget = tep_db_fetch_array(tep_db_query('
                 select widget_name 
-                from " . TABLE_DESIGN_BOXES_TMP . " 
+                from ' . TABLE_DESIGN_BOXES_TMP . " 
                 where id = '" . (int)$data['box_id'] . "'"));
 
             $details['widget_name'] = $widget['widget_name'];
-
 
             $details['widgetSettings'] = [];
             foreach ($data['box_settings'] as $key => $setting) {
@@ -1431,7 +1452,7 @@ class Steps
                     if (
                         $setting['setting_name'] == $settingOld['setting_name'] &&
                         $setting['visibility'] == $settingOld['visibility']
-                    ){
+                    ) {
                         $details['widgetSettings'][$key]['old'] = $settingOld;
                     }
                 }
@@ -1459,86 +1480,106 @@ class Steps
         return $details;
     }
 
-
-    public static function logNames($event){
+    public static function logNames($event)
+    {
         $text = '';
         switch ($event) {
-            case 'boxAdd': $text = LOG_ADDED_NEW_BLOCK; break;
-            case 'blocksMove': $text = LOG_CHANGED_BLOCK_POSITION; break;
-            case 'boxSave': $text = LOG_CHANGED_BLOCK_SETTINGS; break;
-            case 'boxDelete': $text = LOG_REMOVED_BLOCK; break;
-            case 'importBlock': $text = LOG_IMPORTED_BLOCK; break;
-            case 'elementsSave': $text = LOG_SAVED_EDIT_ELEMENTS_PAGE; break;
-            case 'elementsCancel': $text = LOG_CANCELED_EDIT_ELEMENTS_PAGE; break;
-            case 'styleSave': $text = CHANGED_MAIN_STYLES; break;
-            case 'settings': $text = LOG_CHANGED_THEME_SETTINGS; break;
-            //case 'extendRemove': $text = LOG_REMOVED_EXTEND_FIELD; break;
-            //case 'extendAdd': $text = LOG_ADDED_EXTEND_FIELD; break;
-            case 'cssSave': $text = LOG_SAVED_CSS; break;
-            case 'javascriptSave': $text = LOG_SAVED_JAVASCRIPT; break;
-            case 'backupSubmit': $text = LOG_DID_BACKU; break;
-            case 'backupRestore': $text = LOG_RESTORED_BACKUP; break;
-            case 'themeSave': $text = LOG_SAVED_CUSTOMIZE_THEME_STYLES; break;
-            case 'themeCancel': $text = LOG_CANCELED_CUSTOMIZE_THEME_STYLES; break;
-            case 'addPage': $text = LOG_ADDED_NEW_PAGE; break;
-            case 'removePageTemplate': $text = REMOVED_PAGE_TEMPLATE; break;
-            case 'addPageSettings': $text = LOG_CHANGED_ADDED_PAGE; break;
-            case 'stylesChange': $text = CHANGED_STYLES; break;
-            case 'copyPage': $text = COPIED_PAGE; break;
-            case 'importTheme': $text = IMPORTED_THEME; break;
-            case 'applyMigration': $text = APPLIED_MIGRATION; break;
-            case 'setGroup': $text = SET_WIDGET_GROUP; break;
-            case 'setStyles': $text = SET_MAIN_THEME_STYLES; break;
-            case 'setCss': $text = 'Set css elements'; break;
+            case 'boxAdd': $text = LOG_ADDED_NEW_BLOCK;
+                break;
+            case 'blocksMove': $text = LOG_CHANGED_BLOCK_POSITION;
+                break;
+            case 'boxSave': $text = LOG_CHANGED_BLOCK_SETTINGS;
+                break;
+            case 'boxDelete': $text = LOG_REMOVED_BLOCK;
+                break;
+            case 'importBlock': $text = LOG_IMPORTED_BLOCK;
+                break;
+            case 'elementsSave': $text = LOG_SAVED_EDIT_ELEMENTS_PAGE;
+                break;
+            case 'elementsCancel': $text = LOG_CANCELED_EDIT_ELEMENTS_PAGE;
+                break;
+            case 'styleSave': $text = CHANGED_MAIN_STYLES;
+                break;
+            case 'settings': $text = LOG_CHANGED_THEME_SETTINGS;
+                break;
+                //case 'extendRemove': $text = LOG_REMOVED_EXTEND_FIELD; break;
+                //case 'extendAdd': $text = LOG_ADDED_EXTEND_FIELD; break;
+            case 'cssSave': $text = LOG_SAVED_CSS;
+                break;
+            case 'javascriptSave': $text = LOG_SAVED_JAVASCRIPT;
+                break;
+            case 'backupSubmit': $text = LOG_DID_BACKU;
+                break;
+            case 'backupRestore': $text = LOG_RESTORED_BACKUP;
+                break;
+            case 'themeSave': $text = LOG_SAVED_CUSTOMIZE_THEME_STYLES;
+                break;
+            case 'themeCancel': $text = LOG_CANCELED_CUSTOMIZE_THEME_STYLES;
+                break;
+            case 'addPage': $text = LOG_ADDED_NEW_PAGE;
+                break;
+            case 'removePageTemplate': $text = REMOVED_PAGE_TEMPLATE;
+                break;
+            case 'addPageSettings': $text = LOG_CHANGED_ADDED_PAGE;
+                break;
+            case 'stylesChange': $text = CHANGED_STYLES;
+                break;
+            case 'copyPage': $text = COPIED_PAGE;
+                break;
+            case 'importTheme': $text = IMPORTED_THEME;
+                break;
+            case 'applyMigration': $text = APPLIED_MIGRATION;
+                break;
+            case 'setGroup': $text = SET_WIDGET_GROUP;
+                break;
+            case 'setStyles': $text = SET_MAIN_THEME_STYLES;
+                break;
+            case 'setCss': $text = 'Set css elements';
+                break;
         }
 
         return $text;
     }
-  
-  
-  public static function restore($id){
 
-    $chain = array();
-    $event = 1;
-    $theme_name = 0;
+    public static function restore($id)
+    {
 
+        $chain = [];
+        $event = 1;
+        $theme_name = 0;
 
-    while (!$theme_name){
+        while (!$theme_name) {
 
-      while ($event && $event != 'backupSubmit' && $event != 'backupRestore') {
-        $item = tep_db_fetch_array(tep_db_query("select steps_id, parent_id, event, data from " . TABLE_THEMES_STEPS . " where steps_id = '" . (int)$id . "'"));
-        $event = $item['event'];
-        $chain[] = $item['steps_id'];
-        $id = $item['parent_id'];
-      }
+            while ($event && $event != 'backupSubmit' && $event != 'backupRestore') {
+                $item = tep_db_fetch_array(tep_db_query('select steps_id, parent_id, event, data from ' . TABLE_THEMES_STEPS . " where steps_id = '" . (int)$id . "'"));
+                $event = $item['event'];
+                $chain[] = $item['steps_id'];
+                $id = $item['parent_id'];
+            }
 
-      if (!$event){
-        return LOG_NO_BACKUPS;
-      }
+            if (!$event) {
+                return LOG_NO_BACKUPS;
+            }
 
-      $data = json_decode($item['data'], true);
+            $data = json_decode($item['data'], true);
 
-      $query = tep_db_fetch_array(tep_db_query("select theme_name from " . TABLE_DESIGN_BACKUPS . " where backup_id = '" . (int)$data['backup_id'] . "' limit 1"));
-      $theme_name = $query['theme_name'];
-      if ($theme_name && $data['backup_id']){
-        \backend\design\Backups::backupRestore($data['backup_id'], $theme_name);
-        tep_db_perform(TABLE_THEMES_STEPS, array('active' => '0'), 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
-        tep_db_perform(TABLE_THEMES_STEPS, array('active' => '1'), 'update', "steps_id = '" . $item['steps_id'] . "' and theme_name='" . tep_db_input($theme_name) . "'");
-      }
+            $query = tep_db_fetch_array(tep_db_query('select theme_name from ' . TABLE_DESIGN_BACKUPS . " where backup_id = '" . (int)$data['backup_id'] . "' limit 1"));
+            $theme_name = $query['theme_name'];
+            if ($theme_name && $data['backup_id']) {
+                \backend\design\Backups::backupRestore($data['backup_id'], $theme_name);
+                tep_db_perform(TABLE_THEMES_STEPS, ['active' => '0'], 'update', "active = '1' and theme_name='" . tep_db_input($theme_name) . "'");
+                tep_db_perform(TABLE_THEMES_STEPS, ['active' => '1'], 'update', "steps_id = '" . $item['steps_id'] . "' and theme_name='" . tep_db_input($theme_name) . "'");
+            }
 
-      $event = 1;
+            $event = 1;
+        }
+
+        for ($i = count($chain) - 1; $i >= 0; $i--) {
+            self::redo($theme_name, $chain[$i]);
+        }
+
+        return '';
     }
-
-    for ($i = count($chain)-1; $i >= 0; $i--){
-      self::redo($theme_name, $chain[$i]);
-    }
-
-
-
-
-    return '';
-  }
-
 
     public static function stylesChange($data)
     {
@@ -1551,7 +1592,7 @@ class Steps
         $themesStyles = ThemesStyles::find()
             ->where([
                 'theme_name' => $data['theme_name'],
-                'value' => $data['from']
+                'value' => $data['from'],
             ])
             ->andWhere(['in', 'attribute', $style])
             ->asArray()->all();
@@ -1562,7 +1603,7 @@ class Steps
             ->select(['microtime', 'setting_name', 'visibility'])
             ->where([
                 'theme_name' => $data['theme_name'],
-                'setting_value' => $data['from']
+                'setting_value' => $data['from'],
             ])
             ->andWhere(['in', 'setting_name', $style])
             ->asArray()->all();
@@ -1604,7 +1645,9 @@ class Steps
                 'accessibility' => $themesStyle['accessibility'],
                 'value' => $data[($redo ? 'from' : 'to')],
             ]);
-            if (!$themesStyles) continue;
+            if (!$themesStyles) {
+                continue;
+            }
             $themesStyles->value = $data[($redo ? 'to' : 'from')];
             $themesStyles->save();
         }
@@ -1617,45 +1660,45 @@ class Steps
                 'visibility' => $designBoxesSetting['visibility'],
                 'setting_value' => $data[($redo ? 'from' : 'to')],
             ]);
-            if (!$designBoxesSettings) continue;
+            if (!$designBoxesSettings) {
+                continue;
+            }
             $designBoxesSettings->setting_value = $data[($redo ? 'to' : 'from')];
             $designBoxesSettings->save();
         }
     }
 
+    public static function removeClass($data)
+    {
+        $styles = [];
+        $query = tep_db_query('select * from ' . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($data['theme_name']) . "' and selector = '" . tep_db_input($data['class']) . "'");
+        while ($item = tep_db_fetch_array($query)) {
+            $styles[] = $item;
+        }
 
-  public static function removeClass($data)
-  {
-    $styles = array();
-    $query = tep_db_query("select * from " . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($data['theme_name']) . "' and selector = '" . tep_db_input($data['class']) . "'");
-    while ($item = tep_db_fetch_array($query)) {
-      $styles[] = $item;
+        $data_s = [
+            'styles' => $styles,
+            'class' => $data['class'],
+        ];
+
+        self::stepSave('removeClass', $data_s, $data['theme_name']);
     }
 
-    $data_s = [
-        'styles' => $styles,
-        'class' => $data['class'],
-    ];
+    public static function removeClassUndo($step)
+    {
+        $data = $step['data'];
 
-    self::stepSave('removeClass', $data_s, $data['theme_name']);
-  }
-
-  public static function removeClassUndo($step)
-  {
-    $data = $step['data'];
-
-    foreach ($data['styles'] as $item){
-      tep_db_perform(TABLE_THEMES_STYLES, $item);
+        foreach ($data['styles'] as $item) {
+            tep_db_perform(TABLE_THEMES_STYLES, $item);
+        }
     }
-  }
 
-  public static function removeClassRedo($step)
-  {
-    $data = $step['data'];
+    public static function removeClassRedo($step)
+    {
+        $data = $step['data'];
 
-    tep_db_query("delete from " . TABLE_THEMES_STYLES . " where theme_name = '" .  tep_db_input($step['theme_name']) . "' and selector = '" . tep_db_input($data['class']) . "'");
-  }
-
+        tep_db_query('delete from ' . TABLE_THEMES_STYLES . " where theme_name = '" .  tep_db_input($step['theme_name']) . "' and selector = '" . tep_db_input($data['class']) . "'");
+    }
 
     public static function copyPage($data)
     {
@@ -1682,7 +1725,6 @@ class Steps
         }
     }
 
-
     public static function importTheme($data)
     {
         self::stepSave('importTheme', $data, $data['theme_name']);
@@ -1695,7 +1737,6 @@ class Steps
     public static function importThemeRedo($step)
     {
     }
-
 
     public static function setGroup($data)
     {
@@ -1727,7 +1768,6 @@ class Steps
             }
         }
     }
-
 
     public static function setStyles($data)
     {
@@ -1774,7 +1814,6 @@ class Steps
         }
     }
 
-
     public static function setCss($data)
     {
         self::stepSave('setCss', $data, $data['theme_name']);
@@ -1787,6 +1826,5 @@ class Steps
     {
         Style::setCssElements($step['data']['theme_name'], $step['data']['new']);
     }
-
 
 }

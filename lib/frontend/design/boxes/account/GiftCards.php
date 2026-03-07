@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\account;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class GiftCards extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -34,7 +35,7 @@ class GiftCards extends Widget
         $currencies = \Yii::$container->get('currencies');
 
         $giftCards = \common\models\VirtualGiftCardInfo::find()->where([
-            'customers_id' => $customer->customers_id
+            'customers_id' => $customer->customers_id,
         ])->orderBy('virtual_gift_card_info_id desc')->asArray()->all();
 
         if (!is_array($giftCards) || count($giftCards) < 1) {

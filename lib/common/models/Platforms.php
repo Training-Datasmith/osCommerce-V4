@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,7 +16,6 @@
 namespace common\models;
 
 use common\models\queries\PlatformsQuery;
-use Yii;
 use yii\db\ActiveRecord;
 
 /**
@@ -49,13 +50,14 @@ use yii\db\ActiveRecord;
  * @property int $use_social_login
  * @property int $checkout_logged_customer
  */
-class Platforms extends ActiveRecord {
-
+class Platforms extends ActiveRecord
+{
     /**
      * set table name
      * @return string
      */
-    public static function tableName() {
+    public static function tableName()
+    {
         return 'platforms';
     }
 
@@ -63,7 +65,8 @@ class Platforms extends ActiveRecord {
      * one-to-many
      * @return array
      */
-    public function getPlatformsAddressBook() {
+    public function getPlatformsAddressBook()
+    {
         return $this->hasMany(PlatformsAddressBook::class, ['platform_id' => 'platform_id']);
     }
 
@@ -71,21 +74,24 @@ class Platforms extends ActiveRecord {
      * one-to-many
      * @return array
      */
-    public function getPlatformsGeoZones() {
+    public function getPlatformsGeoZones()
+    {
         return $this->hasMany(PlatformsGeoZones::class, ['platform_id' => 'platform_id']);
     }
     /**
      * one-to-many
      * @return array
      */
-    public function getGeoZones() {
+    public function getGeoZones()
+    {
         return $this->hasMany(GeoZones::class, ['geo_zone_id' => 'geo_zone_id'])->via('platformsGeoZones');
     }
     /**
      * one-to-many
      * @return array
      */
-    public function getShipGeoZones() {
+    public function getShipGeoZones()
+    {
         return $this->hasMany(GeoZones::class, ['geo_zone_id' => 'geo_zone_id'])->andOnCondition('shipping_status=1')->via('geoZones');
     }
 
@@ -93,7 +99,8 @@ class Platforms extends ActiveRecord {
      * generally zones_to_geo_zones so only country id (duplicates)
      * @return array
      */
-    public function getShipCountries() {
+    public function getShipCountries()
+    {
         return $this->hasMany(ZonesToGeoZones::class, ['geo_zone_id' => 'geo_zone_id'])->via('shipGeoZones');
     }
 
@@ -101,7 +108,8 @@ class Platforms extends ActiveRecord {
      * one-to-many
      * @return array
      */
-    public function getPlatformsCountries() {
+    public function getPlatformsCountries()
+    {
         return $this->hasMany(PlatformsCountries::class, ['platform_id' => 'platform_id']);
     }
 
@@ -109,7 +117,8 @@ class Platforms extends ActiveRecord {
      * one-to-one
      * @return object
      */
-    public function getDefaultPlatformsAddressBook() {
+    public function getDefaultPlatformsAddressBook()
+    {
         return $this->getPlatformsAddressBook()
                         ->where(['is_default' => 1])
                         ->limit(1)
@@ -120,7 +129,8 @@ class Platforms extends ActiveRecord {
      * one-to-many
      * @return array
      */
-    public function getPlatformsOpenHours() {
+    public function getPlatformsOpenHours()
+    {
         return $this->hasMany(PlatformsOpenHours::className(), ['platform_id' => 'platform_id']);
     }
 
@@ -128,7 +138,8 @@ class Platforms extends ActiveRecord {
      * one-to-many
      * @return array
      */
-    public function getPlatformsCutOffTimes() {
+    public function getPlatformsCutOffTimes()
+    {
         return $this->hasMany(PlatformsCutOffTimes::className(), ['platform_id' => 'platform_id']);
     }
 
@@ -153,40 +164,42 @@ class Platforms extends ActiveRecord {
     /**
      * @return PlatformsQuery|\yii\db\ActiveQuery
      */
-    public static function find() {
+    public static function find()
+    {
         return new PlatformsQuery(get_called_class());
     }
-    
+
     /*
-     * @return ActiveQuery platforms type object 
+     * @return ActiveQuery platforms type object
      */
-    public static function getPlatformsByType($type = ''){
+    public static function getPlatformsByType($type = '')
+    {
         $platformsQuery = static::find();
-        switch($type){
-            case "virtual":
+        switch ($type) {
+            case 'virtual':
                 $platformsQuery->where(['is_virtual' => 1]);
                 break;
-            case "marketplace":
+            case 'marketplace':
                 $platformsQuery->where(['is_marketplace' => 1]);
                 break;
-            case "non-virtual":
+            case 'non-virtual':
                 $platformsQuery->where(['is_virtual' => 0]);
                 break;
-            case "physical":
+            case 'physical':
             default:
                 $platformsQuery->where(['is_marketplace' => 0, 'is_virtual' => 0]);
                 break;
         }
 
         $platformsQuery->orderBy([
-            "if(is_default=1,0,1)"  => SORT_ASC,
-            "is_marketplace" => SORT_ASC,
-            "is_virtual" => SORT_ASC,
-            "sort_order" => SORT_ASC,
-            "platform_name" => SORT_ASC,
+            'if(is_default=1,0,1)'  => SORT_ASC,
+            'is_marketplace' => SORT_ASC,
+            'is_virtual' => SORT_ASC,
+            'sort_order' => SORT_ASC,
+            'platform_name' => SORT_ASC,
         ]);
 
         return $platformsQuery;
     }
-    
+
 }

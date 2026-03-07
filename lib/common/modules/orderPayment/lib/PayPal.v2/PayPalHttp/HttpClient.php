@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPalHttp;
 
 /**
@@ -37,7 +39,7 @@ class HttpClient
      * @param $environment Environment
      * @see Environment
      */
-    function __construct(Environment $environment)
+    public function __construct(Environment $environment)
     {
         $this->environment = $environment;
         $this->encoder = new Encoder();
@@ -73,18 +75,17 @@ class HttpClient
 
         $url = $this->environment->baseUrl() . $requestCpy->path;
         $formattedHeaders = $this->prepareHeaders($requestCpy->headers);
-        if (!array_key_exists("user-agent", $formattedHeaders)) {
-            $requestCpy->headers["user-agent"] = $this->userAgent();
+        if (!array_key_exists('user-agent', $formattedHeaders)) {
+            $requestCpy->headers['user-agent'] = $this->userAgent();
         }
 
-        $body = "";
+        $body = '';
         if (!is_null($requestCpy->body)) {
             $rawHeaders = $requestCpy->headers;
             $requestCpy->headers = $formattedHeaders;
             $body = $this->encoder->serializeRequest($requestCpy);
-            $requestCpy->headers = $this->mapHeaders($rawHeaders,$requestCpy->headers);
+            $requestCpy->headers = $this->mapHeaders($rawHeaders, $requestCpy->headers);
         }
-
 
         $this->logger->info($requestCpy->verb . ' ' . $url);
         if (!empty($requestCpy->headers['PayPal-Partner-Attribution-Id'])) {
@@ -101,7 +102,7 @@ class HttpClient
             $curl->setOpt(CURLOPT_POSTFIELDS, $body);
         }
 
-        if (strpos($this->environment->baseUrl(), "https://") === 0) {
+        if (strpos($this->environment->baseUrl(), 'https://') === 0) {
             $curl->setOpt(CURLOPT_SSL_VERIFYPEER, true);
             $curl->setOpt(CURLOPT_SSL_VERIFYHOST, 2);
         }
@@ -113,7 +114,7 @@ class HttpClient
         // Get Request and Response Headers
         $requestHeaders = $this->serializeHeaders($requestCpy->headers);
         $this->logger->debug("Request Headers \t: " . implode("\r\n", $requestHeaders));
-        $this->logger->debug(($body && $body != '' ? "Request Data\t\t: " . $body : "No Request Payload") . "\n" . str_repeat('-', 128) . "\n");
+        $this->logger->debug(($body && $body != '' ? "Request Data\t\t: " . $body : 'No Request Payload') . "\n" . str_repeat('-', 128) . "\n");
 
         $response = $this->parseResponse($curl);
         $curl->close();
@@ -127,7 +128,8 @@ class HttpClient
      * @param $headers
      * @return array
      */
-    public function prepareHeaders($headers){
+    public function prepareHeaders($headers)
+    {
         return array_change_key_case($headers);
     }
 
@@ -138,10 +140,11 @@ class HttpClient
      * @param $formattedHeaders
      * @return array
      */
-    public function mapHeaders($rawHeaders, $formattedHeaders){
+    public function mapHeaders($rawHeaders, $formattedHeaders)
+    {
         $rawHeadersKey = array_keys($rawHeaders);
         foreach ($rawHeadersKey as $array_key) {
-            if(array_key_exists(strtolower($array_key), $formattedHeaders)){
+            if (array_key_exists(strtolower($array_key), $formattedHeaders)) {
                 $rawHeaders[$array_key] = $formattedHeaders[strtolower($array_key)];
             }
         }
@@ -155,7 +158,7 @@ class HttpClient
      */
     public function userAgent()
     {
-        return "PayPalHttp-PHP HTTP/1.1";
+        return 'PayPalHttp-PHP HTTP/1.1';
     }
 
     /**
@@ -182,7 +185,7 @@ class HttpClient
         $headerArray = [];
         if ($headers) {
             foreach ($headers as $key => $val) {
-                $headerArray[] = $key . ": " . $val;
+                $headerArray[] = $key . ': ' . $val;
             }
         }
 
@@ -193,25 +196,25 @@ class HttpClient
     {
         $headers = [];
         /** @var Curl $curl */
-        $curl->setOpt(CURLOPT_HEADERFUNCTION,
-            function($curl, $header) use (&$headers)
-            {
+        $curl->setOpt(
+            CURLOPT_HEADERFUNCTION,
+            function ($curl, $header) use (&$headers) {
                 $len = strlen($header);
 
-                $k = "";
-                $v = "";
+                $k = '';
+                $v = '';
 
                 $this->deserializeHeader($header, $k, $v);
                 $headers[$k] = $v;
 
                 return $len;
-            });
+            }
+        );
 
         $responseData = $curl->exec();
         $statusCode = $curl->getInfo(CURLINFO_HTTP_CODE);
         $errorCode = $curl->errNo();
         $error = $curl->error();
-
 
         $this->logger->info("Response Status \t: " . $statusCode);
         $this->logger->debug("Response Headers\t: " . print_r($headers, true));
@@ -223,13 +226,13 @@ class HttpClient
         $body = $responseData;
 
         if ($statusCode >= 200 && $statusCode < 300) {
-            $responseBody = NULL;
+            $responseBody = null;
 
             if (!empty($body)) {
                 $responseBody = $this->encoder->deserializeResponse($body, $this->prepareHeaders($headers));
             }
 
-            $this->logger->debug((!empty($responseBody) ? "Response Data \t: " . print_r($responseBody, true) : "No Response Body") . "\n\n" . str_repeat('=', 128) . "\n");
+            $this->logger->debug((!empty($responseBody) ? "Response Data \t: " . print_r($responseBody, true) : 'No Response Body') . "\n\n" . str_repeat('=', 128) . "\n");
 
             return new HttpResponse(
                 $errorCode === 0 ? $statusCode : $errorCode,
@@ -248,10 +251,10 @@ class HttpClient
     {
         if (strlen($header) > 0) {
             if (empty($header) || strpos($header, ':') === false) {
-                return NULL;
+                return null;
             }
 
-            list($k, $v) = explode(":", $header);
+            list($k, $v) = explode(':', $header);
             $key = trim($k);
             $value = trim($v);
         }

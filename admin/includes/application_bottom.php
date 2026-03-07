@@ -2,16 +2,16 @@
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-if(isset($mysql_error_dump) && is_array($mysql_error_dump) && count($mysql_error_dump)>0) {
-    if ( defined('YII_DEBUG') && YII_DEBUG ) {
+if (isset($mysql_error_dump) && is_array($mysql_error_dump) && count($mysql_error_dump) > 0) {
+    if (defined('YII_DEBUG') && YII_DEBUG) {
         ?>
         <div class="popup-box-wrap popup-box-wrap-mysql">
             <div class="around-pop-up"></div>
@@ -36,11 +36,13 @@ if(isset($mysql_error_dump) && is_array($mysql_error_dump) && count($mysql_error
                                     <td class="error">
                                         <?php
                                         for ($i = 0; $i < count($mysql_error_dump); $i++) {
-                                            if ($i != 0) echo '<hr>';
+                                            if ($i != 0) {
+                                                echo '<hr>';
+                                            }
                                             echo $mysql_error_dump[$i];
                                         }
-                                        tep_session_unregister('mysql_error_dump');
-                                        ?>
+        tep_session_unregister('mysql_error_dump');
+        ?>
                                     </td>
                                 </tr>
                             </table>
@@ -61,16 +63,20 @@ if(isset($mysql_error_dump) && is_array($mysql_error_dump) && count($mysql_error
         </script>
 
         <?php
-    }else{
+    } else {
         tep_session_unregister('mysql_error_dump');
     }
 }
 
 // close session (store variables)
-if (session_status() === PHP_SESSION_ACTIVE) {tep_session_close();}
+if (session_status() === PHP_SESSION_ACTIVE) {
+    tep_session_close();
+}
 
-  if (STORE_PAGE_PARSE_TIME == 'true') {
-    if (!is_object($logger)) $logger = new logger;
+if (STORE_PAGE_PARSE_TIME == 'true') {
+    if (!is_object($logger)) {
+        $logger = new logger();
+    }
     echo $logger->timer_stop(DISPLAY_PAGE_PARSE_TIME);
-  }
+}
 ?>

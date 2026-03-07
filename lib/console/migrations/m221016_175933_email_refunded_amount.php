@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,10 +25,10 @@ class m221016_175933_email_refunded_amount extends Migration
     public function safeUp()
     {
         $this->addTranslation('main', [
-          'AMOUNT_REFUNDED' => 'Total amount refunded: %s'
+          'AMOUNT_REFUNDED' => 'Total amount refunded: %s',
         ]);
         $this->addTranslation('admin/main', [
-          'AMOUNT_REFUNDED' => 'Total amount refunded: %s'
+          'AMOUNT_REFUNDED' => 'Total amount refunded: %s',
         ]);
 
     }
@@ -36,9 +38,9 @@ class m221016_175933_email_refunded_amount extends Migration
      */
     public function safeDown()
     {
-  //      echo "m221016_175933_email_refunded_amount cannot be reverted.\n";
+        //      echo "m221016_175933_email_refunded_amount cannot be reverted.\n";
 
-//        return false;
+        //        return false;
     }
 
     /*

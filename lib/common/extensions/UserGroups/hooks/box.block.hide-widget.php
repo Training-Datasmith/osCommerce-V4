@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 if ($ext = \common\helpers\Acl::checkExtensionAllowed('UserGroups', 'allowed')) {
     if ($settings[0]['user_groups'] ?? false) {
         $groupIds = explode(',', $settings[0]['user_groups']);

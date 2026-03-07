@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -21,14 +23,13 @@ use yii\web\NotFoundHttpException;
  */
 class InfoController extends Sceleton
 {
-
     public function actionIndex()
     {
         global $breadcrumb;
         $languages_id = \Yii::$app->settings->get('languages_id');
 
         $info_id = (int)Yii::$app->request->get('info_id', 0);
-        if(!$info_id) {
+        if (!$info_id) {
             throw new NotFoundHttpException('Page not found.');
         }
 
@@ -42,16 +43,16 @@ class InfoController extends Sceleton
             throw new NotFoundHttpException('Page not found.');
         }
 
-        if ($row['page_title'] == ''){
+        if ($row['page_title'] == '') {
             $title = $row['info_title'];
-        }else{
+        } else {
             $title = $row['page_title'];
         }
-        if ( $title ) {
+        if ($title) {
             $breadcrumb->add($title, tep_href_link(FILENAME_INFORMATION, 'info_id=' . $row['information_id']));
         }
         $params = tep_db_prepare_input(Yii::$app->request->get());
-        if (isset($params['page_name']) && $params['page_name']){
+        if (isset($params['page_name']) && $params['page_name']) {
             $page_name = $params['page_name'];
         } elseif (isset($row['template_name']) && $row['template_name']) {
             $page_name = $row['template_name'];
@@ -78,7 +79,7 @@ class InfoController extends Sceleton
             'description' => $row['description'],
             'title' => $title,
             'page' => 'info',
-            'page_name' => $page_name
+            'page_name' => $page_name,
         ]);
     }
 
@@ -86,7 +87,9 @@ class InfoController extends Sceleton
     {
         $action = filter_var(Yii::$app->request->get('action', ''), FILTER_SANITIZE_STRING);
         // $params = array_diff($_GET, [$action]); may be cause of the error: convert string to array
-        if (isset($_GET['action'])) unset($_GET['action']);
+        if (isset($_GET['action'])) {
+            unset($_GET['action']);
+        }
         $params = $_GET;
         return [
             'custom' => [
@@ -96,13 +99,14 @@ class InfoController extends Sceleton
             ],
         ];
     }
-    
-    public function getHerfLang($platforms_languages){
-        $pages = tep_db_query("select seo_page_name, languages_id from " . TABLE_INFORMATION . " where platform_id = '" . (int)PLATFORM_ID . "' and visible = 1 and information_id = '" . (int)$_GET['info_id'] . "' and languages_id in (" . implode(",", array_values($platforms_languages)) . ")");
+
+    public function getHerfLang($platforms_languages)
+    {
+        $pages = tep_db_query('select seo_page_name, languages_id from ' . TABLE_INFORMATION . " where platform_id = '" . (int)PLATFORM_ID . "' and visible = 1 and information_id = '" . (int)$_GET['info_id'] . "' and languages_id in (" . implode(',', array_values($platforms_languages)) . ')');
         $list = $except = [];
-        if (tep_db_num_rows($pages)){
-            while($page = tep_db_fetch_array($pages)){
-                if (!empty($page['seo_page_name'])){
+        if (tep_db_num_rows($pages)) {
+            while ($page = tep_db_fetch_array($pages)) {
+                if (!empty($page['seo_page_name'])) {
                     $except[] = $_GET['info_id'];
                 }
                 $list[$page['languages_id']] = [$page['seo_page_name'], $except];
@@ -116,7 +120,7 @@ class InfoController extends Sceleton
         $page_name = Yii::$app->request->get('page_name');
 
         return $this->render('components.tpl', [
-            'page_name' => $page_name
+            'page_name' => $page_name,
         ]);
     }
 }

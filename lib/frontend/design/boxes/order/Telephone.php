@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,7 +15,6 @@
 namespace frontend\design\boxes\order;
 
 use common\helpers\Html;
-use Yii;
 use yii\base\Widget;
 
 class Telephone extends Widget

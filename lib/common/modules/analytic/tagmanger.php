@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of True Loaded.
  *
@@ -11,17 +13,17 @@
 
 namespace common\modules\analytic;
 
-use common\classes\platform;
 use common\components\google\modules\AbstractGoogle;
 
-final class tagmanger extends AbstractGoogle {
-    
+final class tagmanger extends AbstractGoogle
+{
     use adTrait;
 
     public $config;
     public $code = 'tagmanger';
 
-    public function getParams() {
+    public function getParams()
+    {
 
         $this->config = [
             $this->code => [
@@ -30,7 +32,7 @@ final class tagmanger extends AbstractGoogle {
                     [
                         'name' => 'code',
                         'value' => 'GTM-',
-                        'type' => 'text'
+                        'type' => 'text',
                     ],
                     [
                         'name' => 'collect_measuring',
@@ -61,20 +63,24 @@ final class tagmanger extends AbstractGoogle {
                         'value' => '0',
                         'type' => 'checkbox',
                         'comment' => '<div class="ord-total" style="text-align:left!important;float: right;"><div class="ord-total-info" style="left:0!important;">In Debug mode it will be used remote GTM script</div></div>',
-                    ]
+                    ],
                 ],
-                'example' => true
+                'example' => true,
             ],
         ];
         return $this->config;
     }
 
-    public function renderWidget($example = false) {
+    public function renderWidget($example = false)
+    {
         return false;
     }
 
-    public function getSelectedCode($gtm_code = '', $part = 1, $parent = null) {
-        if (\Yii::$app->response->getIsNotFound()) return;
+    public function getSelectedCode($gtm_code = '', $part = 1, $parent = null)
+    {
+        if (\Yii::$app->response->getIsNotFound()) {
+            return;
+        }
         $localScriptPath = $this->getGTM($gtm_code, $parent);
         $consent_mode_key = array_search('consent_mode', array_column($this->config[$this->code]['fields'], 'name'));
         if ($part === 1) {
@@ -191,52 +197,55 @@ EOD;
         }
     }
 
-    public function renderExample() {
+    public function renderExample()
+    {
         global $request_type;
 
         $elements = $this->config[$this->code];
         $gtm_code = $elements['fields'][0]['value'];
         $this->config[$this->code]['head'] = $this->getSelectedCode($gtm_code, 1);
-        $context = ' </div> ' . "<pre>" . htmlspecialchars($this->getSelectedCode($gtm_code, 1)) . "</pre>" . ' </div> ';
-        $context .= ' </div> ' . "<pre>" . htmlspecialchars($this->getSelectedCode($gtm_code, 2)) . "</pre>" . ' </div> ';
+        $context = ' </div> ' . '<pre>' . htmlspecialchars($this->getSelectedCode($gtm_code, 1)) . '</pre>' . ' </div> ';
+        $context .= ' </div> ' . '<pre>' . htmlspecialchars($this->getSelectedCode($gtm_code, 2)) . '</pre>' . ' </div> ';
 
         return $context;
     }
 
-    public function getGTM($gtm_code = '', $parent = null) {
+    public function getGTM($gtm_code = '', $parent = null)
+    {
         //"https://www.googletagmanager.com/gtm.js?id=GTM-K66BMX7"
         $remoteScriptPath = "https://www.googletagmanager.com/gtm.js?id={$gtm_code}";
-        if ($this->config[$this->code]['fields'][3]['value']){
+        if ($this->config[$this->code]['fields'][3]['value']) {
             return $remoteScriptPath;
         }
         $localJsFileUri = \frontend\design\Info::themeFile("/js/gtm_{$gtm_code}.js", 'ws');
         $localScriptPath = \frontend\design\Info::themeFile("/js/gtm_{$gtm_code}.js", 'fs');
-        
-        if (is_object($parent) && !$parent->module->config[$this->code]['fields'][2]['value'] && file_exists($localScriptPath)){
+
+        if (is_object($parent) && !$parent->module->config[$this->code]['fields'][2]['value'] && file_exists($localScriptPath)) {
             return $localJsFileUri;
         }
-        
-        if (!file_exists($localScriptPath) || (file_exists($localScriptPath) && (time() - filectime($localScriptPath) > 900 ) )) { //refresh each 15 min
+
+        if (!file_exists($localScriptPath) || (file_exists($localScriptPath) && (time() - filectime($localScriptPath) > 900))) { //refresh each 15 min
             $dir = pathinfo($localScriptPath, PATHINFO_DIRNAME);
-            try{
+            try {
                 if (!is_dir($dir)) {
                     @mkdir($dir, 0777, true);
                 }
-                $ctx = stream_context_create(array('http' => array('timeout' => 1)));
+                $ctx = stream_context_create(['http' => ['timeout' => 1]]);
                 $response = @file_get_contents($remoteScriptPath, 0, $ctx);
                 if ($response != false) {
                     $fp = fopen($localScriptPath, 'w');
                     if (is_writable($localScriptPath)) {
                         //$config = new \common\classes\platform_config(PLATFORM_ID);
                         $config = \Yii::$app->get('platform')->config();
-                        $path =  preg_replace("/http.?:/", "", $config->getCatalogBaseUrl(true));
+                        $path =  preg_replace('/http.?:/', '', $config->getCatalogBaseUrl(true));
                         $gaPath = $path .'themes/basic/js/';
                         $response = preg_replace("/\/\/www\.google\-analytics\.com\//im", $gaPath, $response);
                         fwrite($fp, $response);
                         fclose($fp);
                     }
                 }
-            } catch (\Exception $e){}
+            } catch (\Exception $e) {
+            }
         }
 
         if (!file_exists($localScriptPath)) {

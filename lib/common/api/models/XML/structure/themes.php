@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,17 +19,17 @@ return [
         'common\\models\\Themes' => [
             'xmlCollection' => 'Themes>Theme',
             'properties' => [
-                'themeBackup' => ['class' => 'IOAttachment', /*, 'limitMode' => ['inline']*/]
+                'themeBackup' => ['class' => 'IOAttachment', /*, 'limitMode' => ['inline']*/],
             ],
             'withRelated' => [
                 'assignedToPlatforms' => [
                     'xmlCollection' => 'AssignedToPlatforms>AssignedToPlatform',
-                    'properties' =>[
+                    'properties' => [
 
-                    ]
+                    ],
                 ],
             ],
-        ]
+        ],
     ],
     'covered_tables' => [ 'themes', 'platforms_to_themes', ],
 ];

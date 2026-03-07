@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,25 +18,27 @@ use common\classes\modules\ModuleLabel;
 use common\classes\modules\ModulePayment;
 use common\classes\modules\ModuleShipping;
 
-class Modules {
-
+class Modules
+{
     public static function loadVisibility($platform_id, $forCode)
     {
         static $modulesVisibility = false;
-        if ( !is_array($modulesVisibility) ) {
+        if (!is_array($modulesVisibility)) {
             $modulesVisibility = [];
             foreach (\common\models\ModulesVisibility::find()->where(['platform_id' => (int)$platform_id])->select(['code', 'area'])->asArray()->all() as $moduleVisibility) {
                 $modulesVisibility[strtolower($moduleVisibility['code'])] = explode(',', $moduleVisibility['area']);
             }
         }
-        return isset($modulesVisibility[strtolower($forCode)])?$modulesVisibility[strtolower($forCode)]:false;
+        return isset($modulesVisibility[strtolower($forCode)]) ? $modulesVisibility[strtolower($forCode)] : false;
     }
 
-    public static function count_modules($modules = '') {
+    public static function count_modules($modules = '')
+    {
         $count = 0;
 
-        if (empty($modules))
+        if (empty($modules)) {
             return $count;
+        }
 
         $modules_array = explode(';', $modules);
 
@@ -51,96 +55,98 @@ class Modules {
         return $count;
     }
 
-    public static function count_payment_modules() {
+    public static function count_payment_modules()
+    {
         return self::count_modules(MODULE_PAYMENT_INSTALLED);
     }
 
-    public static function count_shipping_modules() {
+    public static function count_shipping_modules()
+    {
         return self::count_modules(MODULE_SHIPPING_INSTALLED);
     }
 
-/**
- * get shipping modules for [current] platform
- * @param int|null $platformId
- * @return ModuleShipping[] \common\helpers\namespaceModuleClass
- */
-    public static function shippingModules( $platformId = null )
+    /**
+     * get shipping modules for [current] platform
+     * @param int|null $platformId
+     * @return ModuleShipping[] \common\helpers\namespaceModuleClass
+     */
+    public static function shippingModules($platformId = null)
     {
         Translation::init('shipping');
 
         $modulesList = [];
         if (is_null($platformId)) {
-          $platformId = \Yii::$app->get('platform')->config()->getId();
+            $platformId = \Yii::$app->get('platform')->config()->getId();
         }
-        $MODULE_INSTALLED = \common\helpers\Configuration::get_platform_configuration_key_value($platformId,'MODULE_SHIPPING_INSTALLED');
-        $modulesFiles = explode(';',$MODULE_INSTALLED);
+        $MODULE_INSTALLED = \common\helpers\Configuration::get_platform_configuration_key_value($platformId, 'MODULE_SHIPPING_INSTALLED');
+        $modulesFiles = explode(';', $MODULE_INSTALLED);
         foreach ($modulesFiles as $modulesFile) {
-            $moduleClass = substr($modulesFile,0, strrpos($modulesFile,'.'));
+            $moduleClass = substr($modulesFile, 0, strrpos($modulesFile, '.'));
             $namespaceModuleClass = '\\common\\modules\\orderShipping\\'.$moduleClass;
-            if ( is_file(DIR_FS_CATALOG . DIR_WS_MODULES . 'shipping/' . $modulesFile) ) {
+            if (is_file(DIR_FS_CATALOG . DIR_WS_MODULES . 'shipping/' . $modulesFile)) {
                 include_once(DIR_FS_CATALOG . DIR_WS_MODULES . 'shipping/' . $modulesFile);
             }
-            if (class_exists($namespaceModuleClass)){
-                $modulesList[$moduleClass] = new $namespaceModuleClass;
+            if (class_exists($namespaceModuleClass)) {
+                $modulesList[$moduleClass] = new $namespaceModuleClass();
             }
         }
 
         return $modulesList;
     }
 
-/**
- * get payment modules for [current] platform
- * @param int|null $platformId
- * @return ModulePayment[] \common\helpers\namespaceModuleClass
- */
-    public static function paymentModules( $platformId = null )
+    /**
+     * get payment modules for [current] platform
+     * @param int|null $platformId
+     * @return ModulePayment[] \common\helpers\namespaceModuleClass
+     */
+    public static function paymentModules($platformId = null)
     {
         Translation::init('payment');
 
         $modulesList = [];
         if (is_null($platformId)) {
-          $platformId = \Yii::$app->get('platform')->config()->getId();
+            $platformId = \Yii::$app->get('platform')->config()->getId();
         }
-        $MODULE_INSTALLED = \common\helpers\Configuration::get_platform_configuration_key_value($platformId,'MODULE_PAYMENT_INSTALLED');
-        $modulesFiles = explode(';',$MODULE_INSTALLED);
+        $MODULE_INSTALLED = \common\helpers\Configuration::get_platform_configuration_key_value($platformId, 'MODULE_PAYMENT_INSTALLED');
+        $modulesFiles = explode(';', $MODULE_INSTALLED);
         foreach ($modulesFiles as $modulesFile) {
-            $moduleClass = substr($modulesFile,0, strrpos($modulesFile,'.'));
+            $moduleClass = substr($modulesFile, 0, strrpos($modulesFile, '.'));
             $namespaceModuleClass = '\\common\\modules\\orderPayment\\'.$moduleClass;
-            if ( is_file(DIR_FS_CATALOG . DIR_WS_MODULES . 'payment/' . $modulesFile) ) {
+            if (is_file(DIR_FS_CATALOG . DIR_WS_MODULES . 'payment/' . $modulesFile)) {
                 include_once(DIR_FS_CATALOG . DIR_WS_MODULES . 'payment/' . $modulesFile);
             }
-            if( class_exists($namespaceModuleClass) ){
-                $modulesList[$moduleClass] = new $namespaceModuleClass;
+            if (class_exists($namespaceModuleClass)) {
+                $modulesList[$moduleClass] = new $namespaceModuleClass();
             }
         }
 
         return $modulesList;
     }
 
-    public static function getLabelsList($platform_id) {
+    public static function getLabelsList($platform_id)
+    {
         //$path = \Yii::getAlias('@common');
         //$path .= DIRECTORY_SEPARATOR . 'modules' . DIRECTORY_SEPARATOR . 'label';
         $labelsList = [];
         $installed_modules_str = '';
-        $get_actual_value = tep_db_fetch_array(tep_db_query("SELECT configuration_value FROM ".TABLE_PLATFORMS_CONFIGURATION." WHERE configuration_key='MODULE_LABEL_INSTALLED' AND platform_id='".intval($platform_id)."'"));
-        if ( is_array($get_actual_value) ) {
-        $installed_modules_str = $get_actual_value['configuration_value'];
+        $get_actual_value = tep_db_fetch_array(tep_db_query('SELECT configuration_value FROM '.TABLE_PLATFORMS_CONFIGURATION." WHERE configuration_key='MODULE_LABEL_INSTALLED' AND platform_id='".intval($platform_id)."'"));
+        if (is_array($get_actual_value)) {
+            $installed_modules_str = $get_actual_value['configuration_value'];
         }
-        $installed_modules = explode(';',$installed_modules_str);
+        $installed_modules = explode(';', $installed_modules_str);
         if (is_array($installed_modules)) {
             foreach ($installed_modules as $file) {
                 if (substr($file, strrpos($file, '.') + 1) == 'php') {
                     //$labelsList[substr($file, 0, -4)] = substr($file, 0, -4);
                     $file = substr($file, 0, strrpos($file, '.'));
-                    $class = "common\\modules\\label\\" . $file;
-                    if (class_exists($class) && is_subclass_of($class,"common\\classes\\modules\\ModuleLabel") ) {
-                        $module = new $class;
+                    $class = 'common\\modules\\label\\' . $file;
+                    if (class_exists($class) && is_subclass_of($class, 'common\\classes\\modules\\ModuleLabel')) {
+                        $module = new $class();
                         $active = $module->is_module_enabled($platform_id);
                         if ($active) {
                             $labelsList[$file] = $file;
                         }
                     }
-
 
                 }
             }
@@ -167,9 +173,9 @@ class Modules {
         $platformId = \Yii::$app->get('platform')->config()->getId();
         $collection = [];
         foreach (static::getLabelsList($platformId) as $class) {
-            $namespaceModuleClass = "common\\modules\\label\\" . $class;
-            if (class_exists($namespaceModuleClass) && is_subclass_of($namespaceModuleClass, "common\\classes\\modules\\ModuleLabel")) {
-                $label = new $namespaceModuleClass;
+            $namespaceModuleClass = 'common\\modules\\label\\' . $class;
+            if (class_exists($namespaceModuleClass) && is_subclass_of($namespaceModuleClass, 'common\\classes\\modules\\ModuleLabel')) {
+                $label = new $namespaceModuleClass();
                 $collection[$class] = $label;
             }
         }
@@ -182,7 +188,7 @@ class Modules {
     }
 
     /**
-     * Get installed module version 
+     * Get installed module version
      * @param string $code - class name of module: 'UserGroups' or 'paypal_partner'
      * @param string $type - type of module: extension/payment/shipping/
      * @return null|ModuleVer
@@ -210,7 +216,7 @@ class Modules {
      */
     public static function getModuleVerFile(string $code, string $type = 'extension')
     {
-        if ($type=='extension' && ($ext = \common\helpers\Acl::checkExtension($code, 'always'))) {
+        if ($type == 'extension' && ($ext = \common\helpers\Acl::checkExtension($code, 'always'))) {
             return \common\classes\modules\ModuleVer::parse($ext::getVersion());
         } elseif ($class = \common\classes\modules\Module::getClass($type, $code)) {
             return \common\classes\modules\ModuleVer::parse($class::getVersion());
@@ -221,13 +227,15 @@ class Modules {
 
     public static function changeModule(string $code, $do, array $params = [], string $type = 'extension', $platform_id = 0)
     {
-        if ($type == 'extension') $platform_id = 0;
+        if ($type == 'extension') {
+            $platform_id = 0;
+        }
         $rowOld = \common\models\Modules::find()->where(['code' => $code, 'type' => $type, 'platform_id' => $platform_id])->one();
-        $row = empty($rowOld)? new \common\models\Modules() : $rowOld;
+        $row = empty($rowOld) ? new \common\models\Modules() : $rowOld;
 
-        $version = empty($params['version'])? self::getModuleVerFile($code, $type) : \common\classes\modules\ModuleVer::parse($params['version']);
+        $version = empty($params['version']) ? self::getModuleVerFile($code, $type) : \common\classes\modules\ModuleVer::parse($params['version']);
         if (empty($version)) {
-            $version = new \common\classes\modules\ModuleVer(0,0,2);
+            $version = new \common\classes\modules\ModuleVer(0, 0, 2);
         }
 
         $row->code = $code;
@@ -251,7 +259,7 @@ class Modules {
                 $row->state = \common\models\Modules::STATE_UNINSTALLED;
                 if ($row->isNewRecord) {
                     $row->version = $version->toNumber();
-//                    $row->version_db = null;
+                    //                    $row->version_db = null;
                 }
                 break;
             case 'remove_drop':
@@ -266,7 +274,7 @@ class Modules {
                 $row->version_db = \common\classes\modules\ModuleVer::parse($params['version_db'])->toNumber();
                 break;
             default:
-               throw new \Exception('Unknown operation');
+                throw new \Exception('Unknown operation');
         }
         $row->save(false);
     }

@@ -13,18 +13,16 @@
 namespace frontend\controllers;
 
 use backend\services\OrdersService;
+use common\helpers\Translation;
 use common\models\Orders;
 use common\models\OrdersStatusHistory;
 use common\modules\orderPayment\multisafepay;
 use frontend\design\Info;
 use frontend\services\OrderManageService;
 use Yii;
-use common\helpers\Translation;
-use yii\helpers\FileHelper;
-use yii\web\NotFoundHttpException;
 
-class CallbackController extends Sceleton {
-
+class CallbackController extends Sceleton
+{
     public $enableCsrfValidation = false;
 
     /**
@@ -35,7 +33,8 @@ class CallbackController extends Sceleton {
     /** @var \common\services\OrderManager */
     private $manager;
 
-    public function __construct($id, $module, OrderManageService $service, $config = []) {
+    public function __construct($id, $module, OrderManageService $service, $config = [])
+    {
 
         parent::__construct($id, $module, $config);
         $this->orderManageService = $service;
@@ -44,12 +43,12 @@ class CallbackController extends Sceleton {
             $this->manager->assignCustomer(Yii::$app->user->getId());
         }
         if (!method_exists($this->manager, 'getCombineShippingsDefault')) { // for old projects
-        Yii::configure($this->manager, [
-            'combineShippings' => ((!defined('SHIPPING_SEPARATELY') || defined('SHIPPING_SEPARATELY') && SHIPPING_SEPARATELY == 'false') ? true : false),
-        ]);
+            Yii::configure($this->manager, [
+                'combineShippings' => ((!defined('SHIPPING_SEPARATELY') || defined('SHIPPING_SEPARATELY') && SHIPPING_SEPARATELY == 'false') ? true : false),
+            ]);
         }
     }
-/**/
+
     public static function allowedDomains()
     {
         $ret = [];
@@ -60,19 +59,19 @@ class CallbackController extends Sceleton {
                 $pc = new \common\classes\platform_config($pl['id']);
                 $parsed = parse_url($pc->getCatalogBaseUrl(true, false));
                 //$ret[] = $parsed['scheme'] . '://' . $parsed['host'] . (!empty($parsed['port']) && ! in_array($parsed['port'], ['80', '443'])?':'.$parsed['port']:'');
-                $ret[] = 'http://' . $parsed['host'] . (!empty($parsed['port']) && ! in_array($parsed['port'], ['80', '443'])?':'.$parsed['port']:'');
-                $ret[] = 'https://' . $parsed['host'] . (!empty($parsed['port']) && ! in_array($parsed['port'], ['80', '443'])?':'.$parsed['port']:'');
+                $ret[] = 'http://' . $parsed['host'] . (!empty($parsed['port']) && ! in_array($parsed['port'], ['80', '443']) ? ':'.$parsed['port'] : '');
+                $ret[] = 'https://' . $parsed['host'] . (!empty($parsed['port']) && ! in_array($parsed['port'], ['80', '443']) ? ':'.$parsed['port'] : '');
                 $_tmp = $pc->getPlatformData();
-                if ($_tmp['default_platform_id'] > 0 && $_tmp['default_platform_id']!=$pl['id']) {
-                    $get_platform_data_r = tep_db_query("SELECT platform_url, platform_url_secure, ssl_enabled FROM ".TABLE_PLATFORMS." WHERE platform_id='" . $pl['id'] . "'");
+                if ($_tmp['default_platform_id'] > 0 && $_tmp['default_platform_id'] != $pl['id']) {
+                    $get_platform_data_r = tep_db_query('SELECT platform_url, platform_url_secure, ssl_enabled FROM '.TABLE_PLATFORMS." WHERE platform_id='" . $pl['id'] . "'");
                     if ($get_platform_data = tep_db_fetch_array($get_platform_data_r)) {
                         if (empty($get_platform_data['platform_url_secure'])) {
                             $get_platform_data['platform_url_secure'] = $get_platform_data['platform_url'];
                         }
                         $catalog_base = 'https://' . $get_platform_data['platform_url_secure'];
                         $parsed = parse_url($catalog_base);
-                        $ret[] = 'http://' . $parsed['host'] . (!empty($parsed['port']) && ! in_array($parsed['port'], ['80', '443'])?':'.$parsed['port']:'');
-                        $ret[] = 'https://' . $parsed['host'] . (!empty($parsed['port']) && ! in_array($parsed['port'], ['80', '443'])?':'.$parsed['port']:'');
+                        $ret[] = 'http://' . $parsed['host'] . (!empty($parsed['port']) && ! in_array($parsed['port'], ['80', '443']) ? ':'.$parsed['port'] : '');
+                        $ret[] = 'https://' . $parsed['host'] . (!empty($parsed['port']) && ! in_array($parsed['port'], ['80', '443']) ? ':'.$parsed['port'] : '');
                     }
                 }
 
@@ -80,7 +79,6 @@ class CallbackController extends Sceleton {
         }
         return $ret;
     }
-
 
     public function behaviors()
     {
@@ -106,13 +104,14 @@ class CallbackController extends Sceleton {
         return $ret;
     }
 
-    public function actionRedirectByJs() {
+    public function actionRedirectByJs()
+    {
         global $navigation, $request_type;
         if (!$this->manager->isCustomerAssigned()) {
-            $navigation->set_snapshot(array('mode' => 'SSL', 'page' => FILENAME_CHECKOUT_PAYMENT));
+            $navigation->set_snapshot(['mode' => 'SSL', 'page' => FILENAME_CHECKOUT_PAYMENT]);
             tep_redirect(tep_href_link(FILENAME_LOGIN, '', 'SSL'));
         }
-        $method = "get";
+        $method = 'get';
         if (isset($_GET['payment_error']) && tep_not_null($_GET['payment_error'])) {
             $redirect_url = tep_href_link(FILENAME_CHECKOUT_PAYMENT, '', 'SSL');
             $hidden_params = '<input type="hidden" name="payment_error" value="' . str_replace('"', "'", strip_tags($_GET['payment_error'])) . '">';
@@ -125,21 +124,21 @@ class CallbackController extends Sceleton {
             $order = $this->manager->getOrderInstanceWithId('\common\classes\Order', $orderId);
 
             $this->manager->clearAfterProcess();
-            
-            if ($refs && !empty($order->customer['customer_id']) && $order->customer['customer_id'] == $refs) {
-              if ($ext = \common\helpers\Acl::checkExtensionAllowed('ReferFriend', 'allowed')) {
-                  $ext::rf_after_order_placed($order->order_id);
-              }
 
-              if ($ext = \common\helpers\Acl::checkExtensionAllowed('Affiliate', 'allowed')) {
-                  $ext::CheckSales($order);
-              }
+            if ($refs && !empty($order->customer['customer_id']) && $order->customer['customer_id'] == $refs) {
+                if ($ext = \common\helpers\Acl::checkExtensionAllowed('ReferFriend', 'allowed')) {
+                    $ext::rf_after_order_placed($order->order_id);
+                }
+
+                if ($ext = \common\helpers\Acl::checkExtensionAllowed('Affiliate', 'allowed')) {
+                    $ext::CheckSales($order);
+                }
 
             }
 
             //$redirect_url = \Yii::$app->urlManager->createAbsoluteUrl(['checkout/success', 'order_id' => $orderId]);
             if ($orderId) {
-              $hidden_params = '<input type="hidden" name="order_id" value="' . $orderId . '">';
+                $hidden_params = '<input type="hidden" name="order_id" value="' . $orderId . '">';
             }
             $redirect_url = tep_href_link(FILENAME_CHECKOUT_SUCCESS, '', 'SSL');
         }
@@ -153,7 +152,7 @@ class CallbackController extends Sceleton {
             <head>
                 <meta http-equiv="Content-Type" content="text/html; charset=utf-8">
                 <title><?php echo STORE_NAME; ?></title>
-                <base href="<?php echo ( ( $request_type == 'SSL' ) ? HTTPS_SERVER : HTTP_SERVER ) . DIR_WS_CATALOG; ?>">
+                <base href="<?php echo (($request_type == 'SSL') ? HTTPS_SERVER : HTTP_SERVER) . DIR_WS_CATALOG; ?>">
                 <link rel="stylesheet" type="text/css" href="stylesheet.css">
             </head>
             <body marginwidth="0" marginheight="0" topmargin="0" bottommargin="0" leftmargin="0" rightmargin="0">
@@ -174,7 +173,8 @@ class CallbackController extends Sceleton {
         exit();
     }
 
-    public function actionSageServer() {
+    public function actionSageServer()
+    {
         if (isset($_GET['check']) && ($_GET['check'] == 'SERVER')) {
             $payment = $this->manager->getPaymentCollection('sage_pay_server')->getSelectedPayment();
             if (is_object($payment)) {
@@ -183,15 +183,16 @@ class CallbackController extends Sceleton {
         }
     }
 
-    public function actionWebhooks($set, $module) {
-      if ($set=='shipping') {
-        $payment = $this->manager->getShippingCollection()->get($module, false);
-      } elseif ($set=='payment') {
-          $payment = $this->manager->getPaymentCollection($module)->getSelectedPayment();
-            } else {
-        throw new \yii\web\BadRequestHttpException();
-      }
-        if (is_object($payment) && method_exists($payment, 'call_webhooks')){
+    public function actionWebhooks($set, $module)
+    {
+        if ($set == 'shipping') {
+            $payment = $this->manager->getShippingCollection()->get($module, false);
+        } elseif ($set == 'payment') {
+            $payment = $this->manager->getPaymentCollection($module)->getSelectedPayment();
+        } else {
+            throw new \yii\web\BadRequestHttpException();
+        }
+        if (is_object($payment) && method_exists($payment, 'call_webhooks')) {
             $this->manager->setSelectedPayment($payment->code);
             return $payment->call_webhooks(); //CORS - only via return to includeallowed domains in header!!!!
         }
@@ -199,7 +200,8 @@ class CallbackController extends Sceleton {
         exit();
     }
 
-    public function actionCheckoutLiqpay() {
+    public function actionCheckoutLiqpay()
+    {
 
         $order_id = Yii::$app->request->get('order_id');
         $data = Yii::$app->request->post('data');
@@ -207,23 +209,23 @@ class CallbackController extends Sceleton {
 
         $liqpay = $this->manager->getPaymentCollection('liqpay')->getSelectedPayment();
 
-        if (is_object($liqpay)){
+        if (is_object($liqpay)) {
             ob_start();
-            echo "<pre>";
-            print_r("Order_id: " . $order_id);
-            echo "</pre>";
-            echo "<pre>";
-            print_r("data");
-            echo "</pre>";
-            echo "<pre>";
+            echo '<pre>';
+            print_r('Order_id: ' . $order_id);
+            echo '</pre>';
+            echo '<pre>';
+            print_r('data');
+            echo '</pre>';
+            echo '<pre>';
             print_r(json_decode(base64_decode($data)));
-            echo "</pre>";
-            echo "<pre>";
-            print_r("Signature: " . $signature);
-            echo "</pre>";
-            echo "<pre>";
-            print_r("validResponse: " . (bool) $liqpay->validResponse($data, $signature));
-            echo "</pre>";
+            echo '</pre>';
+            echo '<pre>';
+            print_r('Signature: ' . $signature);
+            echo '</pre>';
+            echo '<pre>';
+            print_r('validResponse: ' . (bool) $liqpay->validResponse($data, $signature));
+            echo '</pre>';
 
             if (!empty($order_id) && !empty($signature) && $liqpay->validResponse($data, $signature)) {
                 $objData = json_decode(base64_decode($data));
@@ -239,25 +241,26 @@ class CallbackController extends Sceleton {
             }
 
             $content = ob_get_clean();
-            file_put_contents(DIR_WS_MODULES . "payment/liqpay_callback.log", $content);
+            file_put_contents(DIR_WS_MODULES . 'payment/liqpay_callback.log', $content);
         }
-           
+
         exit;
     }
 
-    public function actionCheckoutPxpay() {
+    public function actionCheckoutPxpay()
+    {
 
         $order_id = Yii::$app->request->get('order_id'); // get ID from trnasaction (vulnerable here)
         $result = Yii::$app->request->get('result');
 
         $module = $this->manager->getPaymentCollection('pxpay')->getSelectedPayment();
-        
+
         //$order = $this->manager->getOrderInstanceWithId('\common\classes\Order', $order_id);
         //$oModel = $order->getARModel()->where(['orders_id' => $order_id])->one();
-        
-/*debug      $outputXml = '<root><Success>1</Success><MerchantReference>59</MerchantReference><AmountSettlement>77.77</AmountSettlement><ResponseText>ResponseText__ResponseText</ResponseText><CardHolderName>TEST PAyer</CardHolderName><TxnId>12345qa67q1</TxnId></root>';
-        $response = new \PxPayResponse($outputXml);
-/**/
+
+        /*debug      $outputXml = '<root><Success>1</Success><MerchantReference>59</MerchantReference><AmountSettlement>77.77</AmountSettlement><ResponseText>ResponseText__ResponseText</ResponseText><CardHolderName>TEST PAyer</CardHolderName><TxnId>12345qa67q1</TxnId></root>';
+                $response = new \PxPayResponse($outputXml);
+        /**/
         $response = $module->getResponse($result);
         $Success = $response->getSuccess();
         $ResponseText = $response->getResponseText();
@@ -295,89 +298,92 @@ class CallbackController extends Sceleton {
          */
         $tmp_id = $response->getMerchantReference();
         if (!empty($tmp_id) && (int)$tmp_id > 0 && $tmp_id != $order_id) {
-          //hack attempt??
-          \Yii::warning('getMerchantReference ' . $tmp_id  . ' != ' . $order_id, 'PXPayCallback');
-          $order_id = $tmp_id;
+            //hack attempt??
+            \Yii::warning('getMerchantReference ' . $tmp_id  . ' != ' . $order_id, 'PXPayCallback');
+            $order_id = $tmp_id;
         }
 
         $order = $this->manager->getOrderInstanceWithId('\common\classes\Order', $order_id);
         $oModel = $order->getARModel()->where(['orders_id' => $order_id])->one();
 
         if ($Success) {
-          if (!empty($oModel->transaction_id) ) {
-            $tList = preg_split('/\|/', $oModel->transaction_id, -1, PREG_SPLIT_NO_EMPTY);
-          } else {
-            $tList = [];
-          }
+            if (!empty($oModel->transaction_id)) {
+                $tList = preg_split('/\|/', $oModel->transaction_id, -1, PREG_SPLIT_NO_EMPTY);
+            } else {
+                $tList = [];
+            }
 
-          if (empty($tList) || !in_array(trim($response->getTxnId()), $tList) ){
-            $order->info['comments'] = str_replace(["\n\n", "\r"], ["\n", ''], $txDetails . $ResponseText);
-            $order->info['order_status'] = $module->paid_status;
+            if (empty($tList) || !in_array(trim($response->getTxnId()), $tList)) {
+                $order->info['comments'] = str_replace(["\n\n", "\r"], ["\n", ''], $txDetails . $ResponseText);
+                $order->info['order_status'] = $module->paid_status;
 
-            /* 2do
+                /* 2do
 // not fully paid
-            if (abs($order->info['total_inc_tax'] - $order->info['total_paid_inc_tax'] - floatval($response->getAmountSettlement())) > 0.01) {
-              $order->info['total_paid_inc_tax'] = $order->info['total_inc_tax'] - floatval($response->getAmountSettlement());
-            }
-            */
-            $oModel->transaction_id = implode('|', array_merge([trim($response->getTxnId())], $tList));
-            $oModel->orders_status = $module->paid_status;
-            $oModel->update(false);
-            
-/**  2do (to replace when special method exists in order class */
-            if (isset($order->products) && is_array($order->products)) {
-              foreach ($order->products as $p) {
-                if (!empty($p['orders_products_id'])) {
-                  \common\helpers\OrderProduct::doAllocateAutomatic($p['orders_products_id'], true);
-                } else {
-                  \Yii::warning('Product stock allocation failed - no orders_products_id Order# ' . $order_id, 'stock allocation');
+                if (abs($order->info['total_inc_tax'] - $order->info['total_paid_inc_tax'] - floatval($response->getAmountSettlement())) > 0.01) {
+                  $order->info['total_paid_inc_tax'] = $order->info['total_inc_tax'] - floatval($response->getAmountSettlement());
                 }
-              }
+                */
+                $oModel->transaction_id = implode('|', array_merge([trim($response->getTxnId())], $tList));
+                $oModel->orders_status = $module->paid_status;
+                $oModel->update(false);
+
+                /**  2do (to replace when special method exists in order class */
+                if (isset($order->products) && is_array($order->products)) {
+                    foreach ($order->products as $p) {
+                        if (!empty($p['orders_products_id'])) {
+                            \common\helpers\OrderProduct::doAllocateAutomatic($p['orders_products_id'], true);
+                        } else {
+                            \Yii::warning('Product stock allocation failed - no orders_products_id Order# ' . $order_id, 'stock allocation');
+                        }
+                    }
+                }
+                /** 2do eof */
+                $order->update_piad_information(true);
+                $order->save_details();
+
+                $order->notify_customer($order->getProductsHtmlForEmail(), []);
+
+                if ($ext = \common\helpers\Acl::checkExtensionAllowed('ReferFriend', 'allowed')) {
+                    $ext::rf_after_order_placed($order_id);
+                }
+
+                //{{ push google analytics data
+                /* Class 'Google\Google_Service_Exception' not found
+                 *  in  lib/vendor/Google/Http/REST.php at line 119*/
+                try {
+                    $provider = (new \common\components\GoogleTools())->getModulesProvider();
+                    $installed_modules = $provider->getInstalledModules($order->info['platform_id']);
+                    if (isset($installed_modules['ecommerce'])) {
+                        $installed_modules['ecommerce']->forceServerSide($order);
+                    }
+
+                } catch (\Exception $e) {
+                }
+                //}}
             }
-    /** 2do eof */
-            $order->update_piad_information(true);
-            $order->save_details();
-            
-            $order->notify_customer($order->getProductsHtmlForEmail(),[]);
 
-            if ($ext = \common\helpers\Acl::checkExtensionAllowed('ReferFriend', 'allowed')) {
-                $ext::rf_after_order_placed($order_id);
-            }
-
-              //{{ push google analytics data
-              /* Class 'Google\Google_Service_Exception' not found
-               *  in  lib/vendor/Google/Http/REST.php at line 119*/
-            try {
-              $provider = (new \common\components\GoogleTools())->getModulesProvider();
-              $installed_modules = $provider->getInstalledModules($order->info['platform_id']);
-              if (isset($installed_modules['ecommerce'])) {
-                $installed_modules['ecommerce']->forceServerSide($order);
-              }
-
-            } catch (\Exception $e) {}
-              //}}
-          }
-          
-          $module->after_process();
-          return $this->redirect(['checkout/success']);
+            $module->after_process();
+            return $this->redirect(['checkout/success']);
         } else {
             $this->orderManageService->changeStatus($order_id, $module->fail_paid_status, $ResponseText);
-            return $this->redirect([ '/checkout', 'returned_order'=> $order_id, 'error_message' => $ResponseText]);
+            return $this->redirect([ '/checkout', 'returned_order' => $order_id, 'error_message' => $ResponseText]);
         }
     }
 
-    public function actionAmazonipn() {
+    public function actionAmazonipn()
+    {
         $operation = Yii::$app->request->post('operation', '');
         $ref = Yii::$app->request->post('ref', '');
 
         $module = $this->manager->getPaymentCollection('amazon_payment')->getSelectedPayment();
-        if ($module){
+        if ($module) {
             $module->processIPN();
         }
     }
 
-    public function actionAmazonUpdate() {
-        
+    public function actionAmazonUpdate()
+    {
+
         $operation = Yii::$app->request->post('operation', '');
         $ref = Yii::$app->request->post('ref', '');
 
@@ -457,7 +463,7 @@ class CallbackController extends Sceleton {
             case 'capture':
                 if ($ad = tep_db_fetch_array(tep_db_query("select * from amazon_payment_orders where amazon_auth_id='" . tep_db_input($ref) . "'"))) {
                     $param = [];
-                    
+
                     $order = $this->manager->getOrderInstanceWithId('\common\classes\Order', $ad['orders_id']);
                     $param['AmazonAuthorizationId'] = $ref;
                     $param['total'] = Yii::$app->request->post('amount', $order->info['total_inc_tax']);
@@ -479,7 +485,7 @@ class CallbackController extends Sceleton {
             case 'refund':
                 if ($ad = tep_db_fetch_array(tep_db_query("select * from amazon_payment_orders where amazon_capture_id='" . tep_db_input($ref) . "'"))) {
                     $param = [];
-                    $order = $this->manager->getOrderInstanceWithId('\common\classes\Order', $ad['orders_id']);                    
+                    $order = $this->manager->getOrderInstanceWithId('\common\classes\Order', $ad['orders_id']);
                     $amount = Yii::$app->request->post('amount', $order->info['subtotal_inc_tax']);
                     $param['AmazonCaptureId'] = $ref;
                     $param['total'] = $amount;
@@ -510,19 +516,24 @@ class CallbackController extends Sceleton {
         Yii::$app->response->data = $ret;
     }
 
-    public function actionMultisafe(){
+    public function actionMultisafe()
+    {
         $action = \Yii::$app->request->get('action');
-        if ($action){
+        if ($action) {
             $multisafepay = $this->manager->getPaymentCollection('multisafepay')->getSelectedPayment();
-            if ($multisafepay){
-                switch ($action){
+            if ($multisafepay) {
+                switch ($action) {
                     case 'multi-notify':
                         \common\helpers\Translation::init('checkout/process');
                         $initial_request = \Yii::$app->request->get('type') == 'initial';
                         if (empty($_GET['transactionid'])) {
-                            $message = "No transaction ID supplied";
+                            $message = 'No transaction ID supplied';
                             $url = tep_href_link(
-                                FILENAME_CHECKOUT_PAYMENT, 'payment_error=' . $multisafepay->code . '&error=' . urlencode($message), 'NONSSL', true, false
+                                FILENAME_CHECKOUT_PAYMENT,
+                                'payment_error=' . $multisafepay->code . '&error=' . urlencode($message),
+                                'NONSSL',
+                                true,
+                                false
                             );
                         } else {
 
@@ -539,21 +550,20 @@ class CallbackController extends Sceleton {
                             $multisafepay->order_id = $_GET['transactionid'];
                             $transdata = $multisafepay->check_transaction();
 
-
-                            if ($multisafepay->msp->details['ewallet']['fastcheckout'] == "NO") {
+                            if ($multisafepay->msp->details['ewallet']['fastcheckout'] == 'NO') {
                                 $status = $multisafepay->checkout_notify($order);
                             } else {
                                 $multisafepay = $this->manager->setSelectedPaymentModule('multisafepay_fastcheckout')->getSelectedPayment();
-                                if ($multisafepay && method_exists($multisafepay, 'checkout_notify')){
+                                if ($multisafepay && method_exists($multisafepay, 'checkout_notify')) {
                                     $status = $multisafepay->checkout_notify($order);
                                 }
                             }
 
                             switch ($status) {
-                                case "initialized":
-                                case "completed":
-                                    $message = "OK";
-                                    $parameters = "action=success";
+                                case 'initialized':
+                                case 'completed':
+                                    $message = 'OK';
+                                    $parameters = 'action=success';
                                     $order->update_piad_information(true);
                                     $order->save_details();
                                     $order->save_products(false);
@@ -564,17 +574,21 @@ class CallbackController extends Sceleton {
                                     $url = tep_href_link('callback/multisafe', $parameters, 'SSL');
                                     break;
                                 default:
-                                    $message = "OK"; //"Error #" . $status;
+                                    $message = 'OK'; //"Error #" . $status;
                                     $url = tep_href_link(
-                                        FILENAME_CHECKOUT_PAYMENT, 'payment_error=' . $multisafepay->code . '&error=' . urlencode($status), 'NONSSL', true, false
+                                        FILENAME_CHECKOUT_PAYMENT,
+                                        'payment_error=' . $multisafepay->code . '&error=' . urlencode($status),
+                                        'NONSSL',
+                                        true,
+                                        false
                                     );
                             }
                         }
 
                         if ($initial_request) {
-                            echo "<p><a href=\"" . $url . "\">" . sprintf(MODULE_PAYMENT_MULTISAFEPAY_TEXT_RETURN_TO_SHOP, htmlspecialchars(STORE_NAME)) . "</a></p>";
+                            echo '<p><a href="' . $url . '">' . sprintf(MODULE_PAYMENT_MULTISAFEPAY_TEXT_RETURN_TO_SHOP, htmlspecialchars(STORE_NAME)) . '</a></p>';
                         } else {
-                            header("Content-type: text/plain");
+                            header('Content-type: text/plain');
                             echo $message;
                         }
                         break;
@@ -593,13 +607,13 @@ class CallbackController extends Sceleton {
                     case 'success':
                         Translation::init('checkout/process');
                         $orderId = (int)\Yii::$app->request->get('transactionid', 0);
-                        if (Yii::$app->user->isGuest){
+                        if (Yii::$app->user->isGuest) {
                             if ($_GET['multisafepay_order_id'] && $_GET['customer_id'] && $_GET['hash']) {
                                 if (md5($_GET['multisafepay_order_id'] . $_GET['customer_id']) == $_GET['hash']) {
                                     $customer_id = $_GET['customer_id'];
                                     $customer = new \common\components\Customer();
                                     $customer->loadCustomer($customer_id);
-                                    if ($customer->customers_id){
+                                    if ($customer->customers_id) {
                                         Yii::$app->user->login($customer);
                                         $customer_id = $customer->customers_id;
                                     }
@@ -622,8 +636,8 @@ class CallbackController extends Sceleton {
                             \common\helpers\Order::setStatus($orderId, (int)MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_COMPLETED, [
                                 'comments' => 'MultiSafepay Completed Pay',
                                 'customer_notified' => 1,
-                            ]);/**/
-                            $order->notify_customer($order->getProductsHtmlForEmail(),[]);
+                            ]);
+                            $order->notify_customer($order->getProductsHtmlForEmail(), []);
                             tep_redirect(tep_href_link(FILENAME_CHECKOUT_SUCCESS));
                         } else {
                             tep_redirect(tep_href_link(FILENAME_DEFAULT));
@@ -643,12 +657,15 @@ class CallbackController extends Sceleton {
       var_dump($result);
       }
       } */
-    public function actionTestApi() {
-        $ess = new \common\components\GooglePrinters(GAPI_SETTINGS);      
-        echo '<pre>';print_r($ess->searchPrinters('6dbdcc39-f095-d0bc-1fe2-b2af69c7a1633'));
+    public function actionTestApi()
+    {
+        $ess = new \common\components\GooglePrinters(GAPI_SETTINGS);
+        echo '<pre>';
+        print_r($ess->searchPrinters('6dbdcc39-f095-d0bc-1fe2-b2af69c7a1633'));
     }
-    
-    public function actionReady() {
+
+    public function actionReady()
+    {
         if (!defined('SUPERADMIN_ENABLED')) {
             return;
         }
@@ -660,33 +677,34 @@ class CallbackController extends Sceleton {
         if (tep_db_num_rows($department_query)) {
             tep_db_query("update departments set locked='0', departments_status='1' where api_key='" . tep_db_input($key) . "'");
             $department = tep_db_fetch_array($department_query);
-            
+
             $name = $department['departments_firstname'] . ' ' . $department['departments_lastname'];
             $email_address = $department['departments_email_address'];
             $email_subject = 'Created new department';
             $email_text = 'Created store ' . $department['departments_https_server'];
-            
+
             \common\helpers\Mail::send($name, $email_address, $email_subject, $email_text, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS);
-            
+
         }
     }
-    
-    public function actionThemes() {
+
+    public function actionThemes()
+    {
         $root_path = \Yii::getAlias('@webroot');
-        $xml = simplexml_load_file($root_path . DIRECTORY_SEPARATOR . "setup.xml") or die("Configuration file is missing");
-/*
-TRUNCATE `design_backups`;
-TRUNCATE `design_boxes`;
-TRUNCATE `design_boxes_cache`;
-TRUNCATE `design_boxes_settings`;
-TRUNCATE `design_boxes_settings_tmp`;
-TRUNCATE `design_boxes_tmp`;
-TRUNCATE `themes_settings`;
-TRUNCATE `themes_steps`;
-TRUNCATE `themes_styles`;
-TRUNCATE `themes_styles_cache`;
-TRUNCATE `themes_styles_tmp`;
- */
+        $xml = simplexml_load_file($root_path . DIRECTORY_SEPARATOR . 'setup.xml') or die('Configuration file is missing');
+        /*
+        TRUNCATE `design_backups`;
+        TRUNCATE `design_boxes`;
+        TRUNCATE `design_boxes_cache`;
+        TRUNCATE `design_boxes_settings`;
+        TRUNCATE `design_boxes_settings_tmp`;
+        TRUNCATE `design_boxes_tmp`;
+        TRUNCATE `themes_settings`;
+        TRUNCATE `themes_steps`;
+        TRUNCATE `themes_styles`;
+        TRUNCATE `themes_styles_cache`;
+        TRUNCATE `themes_styles_tmp`;
+         */
 
         set_time_limit(0);
         // import themes

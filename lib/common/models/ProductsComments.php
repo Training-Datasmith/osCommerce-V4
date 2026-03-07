@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 class ProductsComments extends ActiveRecord
@@ -25,10 +26,11 @@ class ProductsComments extends ActiveRecord
     {
         return TABLE_PRODUCTS_COMMENTS;
     }
-    
-    public function rules(){
+
+    public function rules()
+    {
         return [
-          ['comments', 'string', 'min'=> 1],
+          ['comments', 'string', 'min' => 1],
           ['products_id', 'unique'],
         ];
     }

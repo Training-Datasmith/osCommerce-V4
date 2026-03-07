@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,8 @@ class m240216_184210_add_credit_note_const extends Migration
      */
     public function safeUp()
     {
-        $this->addConfigurationKey([
+        $this->addConfigurationKey(
+            [
                 'configuration_key' => 'CREDIT_NOTE_AVAILABLE',
                 'configuration_title' => 'Show credit note reports',
                 'configuration_description' => '',
@@ -30,7 +33,7 @@ class m240216_184210_add_credit_note_const extends Migration
                 'configuration_value' => 'False',
                 'sort_order' => '200',
                 'date_added' => (new yii\db\Expression('now()')),
-                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),'
+                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),',
             ]
         );
     }

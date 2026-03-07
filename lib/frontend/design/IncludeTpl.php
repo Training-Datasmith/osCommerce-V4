@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,7 +19,6 @@ use yii\base\Widget;
 
 class IncludeTpl extends Widget
 {
-
     public $file;
     public $params;
 
@@ -28,9 +29,11 @@ class IncludeTpl extends Widget
 
     public function run()
     {
-        if (empty(Yii::$app->view->theme->pathMap['@app/views'])) return '';
+        if (empty(Yii::$app->view->theme->pathMap['@app/views'])) {
+            return '';
+        }
 
-        if ( substr($this->file, 0, 1)==='@' && is_file(Yii::getAlias($this->file)) ) {
+        if (substr($this->file, 0, 1) === '@' && is_file(Yii::getAlias($this->file))) {
             return $this->render($this->file, $this->params);
         }
 

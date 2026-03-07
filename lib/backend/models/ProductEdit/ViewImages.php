@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace backend\models\ProductEdit;
 
-
 use common\classes\Images;
 
 class ViewImages
 {
-
     /**
      * @var \objectInfo
      */
@@ -40,7 +40,6 @@ class ViewImages
         //$image_path = Yii::getAlias('@web');
         $image_path_upload = \Yii::getAlias('@webroot') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
 
-
         $images = [];
 
         // {{
@@ -61,7 +60,7 @@ class ViewImages
             $image_product_id = $pInfo->parent_products_id;
         }
 
-        $images_query = tep_db_query("SELECT id.*, i.* FROM " . TABLE_PRODUCTS_IMAGES . " AS i LEFT JOIN " . TABLE_PRODUCTS_IMAGES_DESCRIPTION . " AS id ON (i.products_images_id=id.products_images_id AND id.language_id=0) WHERE i.products_id = '" . (int)$image_product_id . "' ORDER BY i.sort_order");
+        $images_query = tep_db_query('SELECT id.*, i.* FROM ' . TABLE_PRODUCTS_IMAGES . ' AS i LEFT JOIN ' . TABLE_PRODUCTS_IMAGES_DESCRIPTION . " AS id ON (i.products_images_id=id.products_images_id AND id.language_id=0) WHERE i.products_id = '" . (int)$image_product_id . "' ORDER BY i.sort_order");
         while ($images_data = tep_db_fetch_array($images_query)) {
             // {{
             $images_data['use_external_images'] = !!$images_data['use_external_images'];
@@ -72,7 +71,7 @@ class ViewImages
             $preload_image = '';
             $description = [];
             for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
-                $images_description_query = tep_db_query("SELECT * FROM " . TABLE_PRODUCTS_IMAGES_DESCRIPTION . " WHERE language_id = '" . (int)$languages[$i]['id'] . "' AND products_images_id = '" . (int)$images_data['products_images_id'] . "'");
+                $images_description_query = tep_db_query('SELECT * FROM ' . TABLE_PRODUCTS_IMAGES_DESCRIPTION . " WHERE language_id = '" . (int)$languages[$i]['id'] . "' AND products_images_id = '" . (int)$images_data['products_images_id'] . "'");
                 $images_description = tep_db_fetch_array($images_description_query);
                 $imageSize = null;
                 $imageSrc = DIR_FS_CATALOG . DIR_WS_IMAGES . 'products' . '/' . $images_data['products_id'] . '/' . ($images_description['products_images_id'] ?? null) . '/' . ($images_description['hash_file_name'] ?? null);
@@ -82,7 +81,7 @@ class ViewImages
                     } catch (\Exception $ex) {
                     }
                     if ($image_clone_mode) {
-                        if (@copy($imageSrc, $image_path_upload.$images_description['orig_file_name'])){
+                        if (@copy($imageSrc, $image_path_upload.$images_description['orig_file_name'])) {
                             $uploaded_ws_path = \Yii::getAlias('@web/uploads/').$images_description['orig_file_name'];
                             $preload_image = $images_description['orig_file_name'];
                         };
@@ -96,7 +95,7 @@ class ViewImages
                     'id' => $languages[$i]['id'],
                     'code' => $languages[$i]['code'],
                     'name' => $languages[$i]['name'],
-                    'logo' => (isset($languages[$i]['logo'])?$languages[$i]['logo']:''),
+                    'logo' => (isset($languages[$i]['logo']) ? $languages[$i]['logo'] : ''),
                     'image_title' => $images_description['image_title'] ?? null,
                     'image_alt' => $images_description['image_alt'] ?? null,
                     'orig_file_name' => $images_description['orig_file_name'] ?? null,
@@ -118,7 +117,7 @@ class ViewImages
             $inventory = [];
             if (is_array($view->selectedInventory ?? null)) {
                 foreach ($view->selectedInventory as $key => $value) {
-                    $check_data = tep_db_query("SELECT products_images_id FROM " . TABLE_PRODUCTS_IMAGES_INVENTORY . " WHERE products_images_id='" . $images_data['products_images_id'] . "' AND  inventory_id = '" . $value['id'] . "'");
+                    $check_data = tep_db_query('SELECT products_images_id FROM ' . TABLE_PRODUCTS_IMAGES_INVENTORY . " WHERE products_images_id='" . $images_data['products_images_id'] . "' AND  inventory_id = '" . $value['id'] . "'");
                     if (tep_db_num_rows($check_data)) {
                         $inventory[$key] = 1;
                     } else {
@@ -130,19 +129,23 @@ class ViewImages
             // {{
             $_image_url = (empty($images_data['hash_file_name']) ? '' : $image_path . $images_data['products_images_id'] . '/' . $images_data['hash_file_name']);
             $get_image_url_data_r = tep_db_query(
-                "SELECT * FROM " . TABLE_PRODUCTS_IMAGES_EXTERNAL_URL . " " .
+                'SELECT * FROM ' . TABLE_PRODUCTS_IMAGES_EXTERNAL_URL . ' ' .
                 "WHERE products_images_id='" . (int)$images_data['products_images_id'] . "'"
             );
             if (tep_db_num_rows($get_image_url_data_r) > 0) {
                 while ($_image_url_data = tep_db_fetch_array($get_image_url_data_r)) {
                     if ($_image_url_data['language_id'] == 0) {
-                        if (!isset($images_data['external_images'][$_image_url_data['image_types_id']])) continue;
+                        if (!isset($images_data['external_images'][$_image_url_data['image_types_id']])) {
+                            continue;
+                        }
                         $images_data['external_images'][$_image_url_data['image_types_id']]['image_url'] = $_image_url_data['image_url'];
                         if ($images_data['use_external_images']) {
                             $_image_url = $_image_url_data['image_url'];
                         }
                     } else {
-                        if (!isset($description[$_image_url_data['language_id']][$_image_url_data['image_types_id']])) continue;
+                        if (!isset($description[$_image_url_data['language_id']][$_image_url_data['image_types_id']])) {
+                            continue;
+                        }
                         $description[$_image_url_data['language_id']][$_image_url_data['image_types_id']]['image_url'] = $_image_url_data['image_url'];
                     }
                 }
@@ -160,7 +163,7 @@ class ViewImages
                 } catch (\Exception $ex) {
                 }
                 if ($image_clone_mode) {
-                    if (@copy($imageSrc, $image_path_upload.$images_data['orig_file_name'])){
+                    if (@copy($imageSrc, $image_path_upload.$images_data['orig_file_name'])) {
                         $uploaded_ws_path = \Yii::getAlias('@web/uploads/').$images_data['orig_file_name'];
                         $_image_url = $uploaded_ws_path;
                         $preload_image = $images_data['orig_file_name'];
@@ -171,7 +174,7 @@ class ViewImages
                 $images_data['hash_file_name'] = '';
             }
             $images[] = [
-                'products_images_id' => $image_clone_mode?0:$images_data['products_images_id'],
+                'products_images_id' => $image_clone_mode ? 0 : $images_data['products_images_id'],
                 'default_image' => $images_data['default_image'],
                 'image_status' => $images_data['image_status'],
                 'image_name' => (empty($images_data['hash_file_name']) ? $uploaded_ws_path : $image_path . $images_data['products_images_id'] . '/' . $images_data['hash_file_name']),
@@ -190,7 +193,7 @@ class ViewImages
                 'use_external_images' => !!$images_data['use_external_images'],
                 'external_images' => $images_data['external_images'],
                 'link_video_id' => $images_data['link_video_id'],
-                //
+
                 'description' => array_values($description),
                 'inventory' => $inventory,
                 'imageSize' => $imageSize,

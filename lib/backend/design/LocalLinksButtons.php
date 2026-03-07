@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace backend\design;
 
-use Yii;
 use yii\base\Widget;
 
 class LocalLinksButtons extends Widget
 {
-
     public $editor;
     public $field;
     public $platform_id;
@@ -45,7 +45,7 @@ class LocalLinksButtons extends Widget
             'field' => $this->field,
             'platform_id' => $platform_id,
             'languages_id' => $this->languages_id ? $this->languages_id : $lang_id,
-            'action' => 'information_manager/page-links'
+            'action' => 'information_manager/page-links',
         ]);
     }
 }

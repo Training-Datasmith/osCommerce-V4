@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,13 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
-use yii\base\Widget;
-use yii\helpers\ArrayHelper;
 use frontend\design\IncludeTpl;
 use frontend\design\Info;
+use yii\base\Widget;
+use yii\helpers\ArrayHelper;
 
 class TopCategories extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -31,9 +31,9 @@ class TopCategories extends Widget
 
         Info::includeJsFile('boxes/Categories');
         Info::addJsData(['widgets' => [
-            $this->id => [ 'lazyLoad' => (isset($this->settings[0]['lazy_load']) ? $this->settings[0]['lazy_load'] : [])]
+            $this->id => [ 'lazyLoad' => (isset($this->settings[0]['lazy_load']) ? $this->settings[0]['lazy_load'] : [])],
         ]]);
-        if (ArrayHelper::getValue($this->settings,[0, 'view_as']) == 'carousel') {
+        if (ArrayHelper::getValue($this->settings, [0, 'view_as']) == 'carousel') {
             Info::addBoxToCss('slick');
         }
     }
@@ -41,14 +41,12 @@ class TopCategories extends Widget
     public function run()
     {
         $categories = \common\models\Categories::getHomepageCategories();
-        if ($ext =\common\helpers\Acl::checkExtensionAllowed('UserGroupsRestrictions'))
-        {
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('UserGroupsRestrictions')) {
             $categories->innerJoin('groups_categories gc')
                 ->andWhere('gc.categories_id = {{%categories}}.categories_id and gc.groups_id ='.(int) \Yii::$app->storage->get('customer_groups_id'));
         }
         $categories->select('{{%categories}}.categories_id, parent_id, {{%categories}}.maps_id, {{%categories}}.categories_image, {{%categories}}.categories_image_3, {{%categories}}.show_on_home')
-            ->orderBy("categories_left, sort_order, categories_name");
-
+            ->orderBy('categories_left, sort_order, categories_name');
 
         if (isset($this->settings[0]['max_items']) && $this->settings[0]['max_items']) {
             if (!Info::themeSetting('show_empty_categories')) {
@@ -62,7 +60,6 @@ class TopCategories extends Widget
         $categories->andWhere(['{{%categories}}.parent_id' => $parent]);
 
         $cats = $categories->asArray()->all();
-
 
         if (!$cats || !is_array($cats)) {
             return '';
@@ -109,13 +106,13 @@ class TopCategories extends Widget
                     'title' => $cats[$k]['categories_name'],
                 ],
                 Info::themeSetting('na_category', 'hide'),
-                (boolean)ArrayHelper::getValue($this->settings, [0,'lazy_load'])
+                (bool)ArrayHelper::getValue($this->settings, [0,'lazy_load'])
             );
 
             unset($cats[$k]['platformSettings']);
         }
 
-        if (count($cats) == 0){
+        if (count($cats) == 0) {
             return '';
         }
 
@@ -129,9 +126,8 @@ class TopCategories extends Widget
                 'lazy_load' => ArrayHelper::getValue($this->settings, [0,'lazy_load']),
                 'settings' => $this->settings,
                 'id' => $this->id,
-            ]
+            ],
         ]);
-
 
     }
 }

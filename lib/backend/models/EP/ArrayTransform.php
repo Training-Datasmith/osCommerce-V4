@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,9 @@
 
 namespace backend\models\EP;
 
-
 class ArrayTransform
 {
-
-
-    public static function convertMultiDimensionalToFlat($array, $separator='.')
+    public static function convertMultiDimensionalToFlat($array, $separator = '.')
     {
         //return self::__multi_to_flat_set('', $array, $separator);
         $out = [];
@@ -25,17 +24,19 @@ class ArrayTransform
         return $out;
     }
 
-    public static function convertFlatToMultiDimensional($array, $separator='.')
+    public static function convertFlatToMultiDimensional($array, $separator = '.')
     {
         $multi = [];
-        foreach( $array as $multiKey=>$value ){
+        foreach ($array as $multiKey => $value) {
             $keys = explode($separator, $multiKey);
             $key = array_shift($keys);
-            if ( count($keys)==0 ) {
+            if (count($keys) == 0) {
                 $multi[$key] = $value;
-            }else{
-                if ( !isset($multi[$key]) || !is_array($multi[$key]) ) $multi[$key] = [];
-                self::__flat_to_multi_set($multi[$key], $keys, $value );
+            } else {
+                if (!isset($multi[$key]) || !is_array($multi[$key])) {
+                    $multi[$key] = [];
+                }
+                self::__flat_to_multi_set($multi[$key], $keys, $value);
             }
         }
         return $multi;
@@ -57,15 +58,15 @@ class ArrayTransform
     {
         $tmpFlat = self::convertMultiDimensionalToFlat($array);
         $newFlat = [];
-        if ( is_callable($mapping) ) {
-            foreach( array_keys($tmpFlat) as $fromPath ) {
+        if (is_callable($mapping)) {
+            foreach (array_keys($tmpFlat) as $fromPath) {
                 $toPath = $mapping($fromPath);
-                if ( $toPath!==false ) {
+                if ($toPath !== false) {
                     $newFlat[$toPath] = $tmpFlat[$fromPath];
                 }
             }
-        }else {
-            foreach ($mapping as $fromPath=>$toPath) {
+        } else {
+            foreach ($mapping as $fromPath => $toPath) {
                 if (isset($tmpFlat[$fromPath])) {
                     $newFlat[$toPath] = $tmpFlat[$fromPath];
                 }
@@ -74,29 +75,34 @@ class ArrayTransform
         return self::convertFlatToMultiDimensional($newFlat);
     }
 
-
-    private static function __multi_to_flat_set_ref(&$flat, $currentKey, $array, $separator){
+    private static function __multi_to_flat_set_ref(&$flat, $currentKey, $array, $separator)
+    {
         $keyPrepend = '';
-        if ( !empty($currentKey) ) $keyPrepend = $currentKey.$separator;
-        foreach($array as $key=>$val) {
+        if (!empty($currentKey)) {
+            $keyPrepend = $currentKey.$separator;
+        }
+        foreach ($array as $key => $val) {
             $itemKey = $keyPrepend.$key;
-            if ( is_array($val) ) {
+            if (is_array($val)) {
                 self::__multi_to_flat_set_ref($flat, $itemKey, $val, $separator);
-            }else {
+            } else {
                 $flat[$itemKey] = $val;
             }
         }
     }
 
-    private static function __multi_to_flat_set($currentKey, $array, $separator){
+    private static function __multi_to_flat_set($currentKey, $array, $separator)
+    {
         $flat = [];
         $keyPrepend = '';
-        if ( !empty($currentKey) ) $keyPrepend = $currentKey.$separator;
-        foreach($array as $key=>$val) {
+        if (!empty($currentKey)) {
+            $keyPrepend = $currentKey.$separator;
+        }
+        foreach ($array as $key => $val) {
             $itemKey = $keyPrepend.$key;
-            if ( is_array($val) ) {
+            if (is_array($val)) {
                 $flat = array_merge($flat, self::__multi_to_flat_set($itemKey, $val, $separator));
-            }else {
+            } else {
                 $flat[$itemKey] = $val;
             }
         }
@@ -106,11 +112,13 @@ class ArrayTransform
     private static function __flat_to_multi_set(&$array, $keys, $value)
     {
         $key = array_shift($keys);
-        if ( count($keys)==0 ) {
+        if (count($keys) == 0) {
             $array[$key] = $value;
-        }else{
-            if ( !isset($array[$key]) || !is_array($array[$key]) ) $array[$key] = [];
-            self::__flat_to_multi_set($array[$key], $keys, $value );
+        } else {
+            if (!isset($array[$key]) || !is_array($array[$key])) {
+                $array[$key] = [];
+            }
+            self::__flat_to_multi_set($array[$key], $keys, $value);
         }
     }
 

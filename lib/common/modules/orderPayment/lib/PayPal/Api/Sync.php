@@ -1,9 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalResourceModel;
-use PayPal\Validation\ArgumentValidator;
 use PayPal\Rest\ApiContext;
 
 /**
@@ -42,7 +43,7 @@ class Sync extends PayPalResourceModel
      * Identifier of the sale transaction.
      *
      * @param string $id
-     * 
+     *
      * @return $this
      */
     public function setId($id)
@@ -65,7 +66,7 @@ class Sync extends PayPalResourceModel
      * Identifier to the purchase or transaction unit corresponding to this sale transaction.
      *
      * @param string $purchase_unit_reference_id
-     * 
+     *
      * @return $this
      */
     public function setPurchaseUnitReferenceId($purchase_unit_reference_id)
@@ -88,7 +89,7 @@ class Sync extends PayPalResourceModel
      * Amount being collected.
      *
      * @param \PayPal\Api\Amount $amount
-     * 
+     *
      * @return $this
      */
     public function setAmount($amount)
@@ -112,7 +113,7 @@ class Sync extends PayPalResourceModel
      * Valid Values: ["INSTANT_TRANSFER", "MANUAL_BANK_TRANSFER", "DELAYED_TRANSFER", "ECHECK"]
      *
      * @param string $payment_mode
-     * 
+     *
      * @return $this
      */
     public function setPaymentMode($payment_mode)
@@ -136,7 +137,7 @@ class Sync extends PayPalResourceModel
      * Valid Values: ["completed", "partially_refunded", "pending", "refunded", "denied"]
      *
      * @param string $state
-     * 
+     *
      * @return $this
      */
     public function setState($state)
@@ -160,7 +161,7 @@ class Sync extends PayPalResourceModel
      * Valid Values: ["CHARGEBACK", "GUARANTEE", "BUYER_COMPLAINT", "REFUND", "UNCONFIRMED_SHIPPING_ADDRESS", "ECHECK", "INTERNATIONAL_WITHDRAWAL", "RECEIVING_PREFERENCE_MANDATES_MANUAL_ACTION", "PAYMENT_REVIEW", "REGULATORY_REVIEW", "UNILATERAL", "VERIFICATION_REQUIRED", "TRANSACTION_APPROVED_AWAITING_FUNDING"]
      *
      * @param string $reason_code
-     * 
+     *
      * @return $this
      */
     public function setReasonCode($reason_code)
@@ -180,11 +181,11 @@ class Sync extends PayPalResourceModel
     }
 
     /**
-     * The level of seller protection in force for the transaction. Only supported when the `payment_method` is set to `paypal`. 
+     * The level of seller protection in force for the transaction. Only supported when the `payment_method` is set to `paypal`.
      * Valid Values: ["ELIGIBLE", "PARTIALLY_ELIGIBLE", "INELIGIBLE"]
      *
      * @param string $protection_eligibility
-     * 
+     *
      * @return $this
      */
     public function setProtectionEligibility($protection_eligibility)
@@ -194,7 +195,7 @@ class Sync extends PayPalResourceModel
     }
 
     /**
-     * The level of seller protection in force for the transaction. Only supported when the `payment_method` is set to `paypal`. 
+     * The level of seller protection in force for the transaction. Only supported when the `payment_method` is set to `paypal`.
      *
      * @return string
      */
@@ -208,7 +209,7 @@ class Sync extends PayPalResourceModel
      * Valid Values: ["ITEM_NOT_RECEIVED_ELIGIBLE", "UNAUTHORIZED_PAYMENT_ELIGIBLE", "ITEM_NOT_RECEIVED_ELIGIBLE,UNAUTHORIZED_PAYMENT_ELIGIBLE"]
      *
      * @param string $protection_eligibility_type
-     * 
+     *
      * @return $this
      */
     public function setProtectionEligibilityType($protection_eligibility_type)
@@ -231,7 +232,7 @@ class Sync extends PayPalResourceModel
      * Expected clearing time for eCheck Transactions. Returned when payment is made with eCheck. Only supported when the `payment_method` is set to `paypal`.
      *
      * @param string $clearing_time
-     * 
+     *
      * @return $this
      */
     public function setClearingTime($clearing_time)
@@ -255,7 +256,7 @@ class Sync extends PayPalResourceModel
      * Valid Values: ["HELD"]
      *
      * @param string $payment_hold_status
-     * 
+     *
      * @return $this
      */
     public function setPaymentHoldStatus($payment_hold_status)
@@ -278,7 +279,7 @@ class Sync extends PayPalResourceModel
      * Reasons for PayPal holding recipient fund. It is set only if payment hold status is held
      *
      * @param string[] $payment_hold_reasons
-     * 
+     *
      * @return $this
      */
     public function setPaymentHoldReasons($payment_hold_reasons)
@@ -306,10 +307,10 @@ class Sync extends PayPalResourceModel
     public function addPaymentHoldReason($string)
     {
         if (!$this->getPaymentHoldReasons()) {
-            return $this->setPaymentHoldReasons(array($string));
+            return $this->setPaymentHoldReasons([$string]);
         } else {
             return $this->setPaymentHoldReasons(
-                array_merge($this->getPaymentHoldReasons(), array($string))
+                array_merge($this->getPaymentHoldReasons(), [$string])
             );
         }
     }
@@ -323,7 +324,7 @@ class Sync extends PayPalResourceModel
     public function removePaymentHoldReason($string)
     {
         return $this->setPaymentHoldReasons(
-            array_diff($this->getPaymentHoldReasons(), array($string))
+            array_diff($this->getPaymentHoldReasons(), [$string])
         );
     }
 
@@ -331,7 +332,7 @@ class Sync extends PayPalResourceModel
      * Transaction fee applicable for this payment.
      *
      * @param \PayPal\Api\Currency $transaction_fee
-     * 
+     *
      * @return $this
      */
     public function setTransactionFee($transaction_fee)
@@ -354,7 +355,7 @@ class Sync extends PayPalResourceModel
      * Net amount the merchant receives for this transaction in their receivable currency. Returned only in cross-currency use cases where a merchant bills a buyer in a non-primary currency for that buyer.
      *
      * @param \PayPal\Api\Currency $receivable_amount
-     * 
+     *
      * @return $this
      */
     public function setReceivableAmount($receivable_amount)
@@ -377,7 +378,7 @@ class Sync extends PayPalResourceModel
      * Exchange rate applied for this transaction. Returned only in cross-currency use cases where a merchant bills a buyer in a non-primary currency for that buyer.
      *
      * @param string $exchange_rate
-     * 
+     *
      * @return $this
      */
     public function setExchangeRate($exchange_rate)
@@ -400,7 +401,7 @@ class Sync extends PayPalResourceModel
      * Fraud Management Filter (FMF) details applied for the payment that could result in accept, deny, or pending action. Returned in a payment response only if the merchant has enabled FMF in the profile settings and one of the fraud filters was triggered based on those settings. See [Fraud Management Filters Summary](/docs/classic/fmf/integration-guide/FMFSummary/) for more information.
      *
      * @param \PayPal\Api\FmfDetails $fmf_details
-     * 
+     *
      * @return $this
      */
     public function setFmfDetails($fmf_details)
@@ -423,7 +424,7 @@ class Sync extends PayPalResourceModel
      * Receipt id is a payment identification number returned for guest users to identify the payment.
      *
      * @param string $receipt_id
-     * 
+     *
      * @return $this
      */
     public function setReceiptId($receipt_id)
@@ -446,7 +447,7 @@ class Sync extends PayPalResourceModel
      * ID of the payment resource on which this transaction is based.
      *
      * @param string $parent_payment
-     * 
+     *
      * @return $this
      */
     public function setParentPayment($parent_payment)
@@ -469,7 +470,7 @@ class Sync extends PayPalResourceModel
      * Response codes returned by the processor concerning the submitted payment. Only supported when the `payment_method` is set to `credit_card`.
      *
      * @param \PayPal\Api\ProcessorResponse $processor_response
-     * 
+     *
      * @return $this
      */
     public function setProcessorResponse($processor_response)
@@ -492,7 +493,7 @@ class Sync extends PayPalResourceModel
      * ID of the billing agreement used as reference to execute this transaction.
      *
      * @param string $billing_agreement_id
-     * 
+     *
      * @return $this
      */
     public function setBillingAgreementId($billing_agreement_id)
@@ -515,7 +516,7 @@ class Sync extends PayPalResourceModel
      * Time of sale as defined in [RFC 3339 Section 5.6](http://tools.ietf.org/html/rfc3339#section-5.6)
      *
      * @param string $create_time
-     * 
+     *
      * @return $this
      */
     public function setCreateTime($create_time)
@@ -538,7 +539,7 @@ class Sync extends PayPalResourceModel
      * Time the resource was last updated in UTC ISO8601 format.
      *
      * @param string $update_time
-     * 
+     *
      * @return $this
      */
     public function setUpdateTime($update_time)
@@ -565,10 +566,10 @@ class Sync extends PayPalResourceModel
      * @param PayPalRestCall $restCall is the Rest Call Service that is used to make rest calls
      * @return Sale
      */
-    public static function getAll($params = array(), $apiContext = null, $restCall = null, $headers = null)
+    public static function getAll($params = [], $apiContext = null, $restCall = null, $headers = null)
     {
-        
-        $allowedParams = array(
+
+        $allowedParams = [
             'start_date' => 1,
             'end_date' => 1,
             'transaction_id' => 1,
@@ -582,13 +583,13 @@ class Sync extends PayPalResourceModel
             'terminal_id' => 1,
             'balance_affecting_records_only' => 1,
             'page_size' => 1,
-            'page' => 1
-        );
-        
-        $payLoad = "";
+            'page' => 1,
+        ];
+
+        $payLoad = '';
         $json = self::executeCall(
-            "/v1/reporting/transactions?" . http_build_query(array_intersect_key($params, $allowedParams)),
-            "GET",
+            '/v1/reporting/transactions?' . http_build_query(array_intersect_key($params, $allowedParams)),
+            'GET',
             $payLoad,
             $headers,
             $apiContext,

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,11 +16,9 @@ namespace frontend\design\boxes;
 
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Image extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -29,7 +29,7 @@ class Image extends Widget
 
         if (isset($this->settings[0]['lazy_load']) && $this->settings[0]['lazy_load']) {
             \frontend\design\Info::addJsData(['widgets' => [
-                $this->id => ['lazyLoad' => $this->settings[0]['lazy_load']]
+                $this->id => ['lazyLoad' => $this->settings[0]['lazy_load']],
             ]]);
         }
     }
@@ -44,12 +44,14 @@ class Image extends Widget
 
         $settings = (isset($this->settings[$languages_id]) ? $this->settings[$languages_id] : []);
 
-        $image = \frontend\design\Info::themeImage($settings['logo'],
-            [$this->settings[\common\classes\language::defaultId()]['logo'], $this->settings[0]['params']]);
+        $image = \frontend\design\Info::themeImage(
+            $settings['logo'],
+            [$this->settings[\common\classes\language::defaultId()]['logo'], $this->settings[0]['params']]
+        );
 
-        if (isset($this->settings[0]['pdf']) && $this->settings[0]['pdf']){
+        if (isset($this->settings[0]['pdf']) && $this->settings[0]['pdf']) {
 
-            if (function_exists('tep_catalog_href_link')){
+            if (function_exists('tep_catalog_href_link')) {
                 $img = tep_catalog_href_link($image);
             } else {
                 $img = HTTP_SERVER . DIR_WS_HTTP_CATALOG . $image;

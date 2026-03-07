@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,16 +19,16 @@ return [
             'xmlCollection' => 'Categories>Category',
             'orderBy' => ['categories_left' => 'asc'],
             'properties' => [
-                'parent_id' => ['class'=>'IOMap', 'table'=>'categories', 'attribute' => 'categories_id'],
+                'parent_id' => ['class' => 'IOMap', 'table' => 'categories', 'attribute' => 'categories_id'],
                 'categories_level' => false,
                 'categories_left' => false,
                 'categories_right' => false,
-                'categories_image' => ['class'=>'IOAttachment', 'location'=>'@images'],
-                'categories_image_2' => ['class'=>'IOAttachment', 'location'=>'@images'],
+                'categories_image' => ['class' => 'IOAttachment', 'location' => '@images'],
+                'categories_image_2' => ['class' => 'IOAttachment', 'location' => '@images'],
             ],
             'withRelated' => [
                 'descriptions' => [
-                    'where' => ['affiliate_id'=>0],
+                    'where' => ['affiliate_id' => 0],
                     'xmlCollection' => 'Descriptions>Description',
                     'properties' => [
                         'language_id' => ['class' => 'IOLanguageMap'],
@@ -49,13 +51,13 @@ return [
                 ],
 */
             ],
-            'afterImport' => function($model, $data) {
+            'afterImport' => function ($model, $data) {
                 if (isset($data->data['categories_id']) && is_object($data->data['categories_id'])) {
                     $categories_id = $data->data['categories_id']->toImportModel();
-// {{
+                    // {{
                     static $assign_to_all_platform = false;
                     if (!is_array($assign_to_all_platform)) {
-                        $assign_to_all_platform = array_map(function($platform) {
+                        $assign_to_all_platform = array_map(function ($platform) {
                             return [
                                 'platform_id' => $platform['id'],
                             ];
@@ -69,8 +71,8 @@ return [
                     }
 
                     $get_data_r = tep_db_query(
-                        "SELECT c.categories_id, c.categories_seo_page_name, cd.categories_name " .
-                        "FROM categories c " .
+                        'SELECT c.categories_id, c.categories_seo_page_name, cd.categories_name ' .
+                        'FROM categories c ' .
                         " inner join categories_description cd on cd.categories_id = c.categories_id and cd.language_id = '" . (int)\common\helpers\Language::get_default_language_id() . "' " .
                         "where c.categories_id = '" . (int)$categories_id . "'"
                     );
@@ -81,8 +83,8 @@ return [
                             $categories_seo_page_name = \common\helpers\Seo::makeSlug($data['categories_name']);
                         }
                         $check_unique_seo_name = tep_db_fetch_array(tep_db_query(
-                            "SELECT COUNT(*) AS check_double " .
-                            "FROM " . TABLE_CATEGORIES_DESCRIPTION . " " .
+                            'SELECT COUNT(*) AS check_double ' .
+                            'FROM ' . TABLE_CATEGORIES_DESCRIPTION . ' ' .
                             "WHERE categories_id != '" . intval($data['categories_id']) . "' " .
                             " AND categories_seo_page_name = '" . tep_db_input($categories_seo_page_name) . "'"
                         ));
@@ -93,7 +95,7 @@ return [
                             $categoryImport['descriptions'] = [
                                 '*' => [
                                     'categories_seo_page_name' => (string) $categories_seo_page_name,
-                                ]
+                                ],
                             ];
                         }
                     }
@@ -101,8 +103,8 @@ return [
                         $localCategory->importArray($categoryImport);
                         $localCategory->save(false);
                     }
-                    tep_db_query("UPDATE menus SET last_modified = (SELECT MIN(date_added) - INTERVAL 1 DAY FROM categories)");
-// }}
+                    tep_db_query('UPDATE menus SET last_modified = (SELECT MIN(date_added) - INTERVAL 1 DAY FROM categories)');
+                    // }}
                     \common\helpers\Categories::update_categories();
                 }
             },

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -21,7 +23,7 @@ class FileAttachment extends PayPalModel
      * Name of the file attached.
      *
      * @param string $name
-     * 
+     *
      * @return $this
      */
     public function setName($name)
@@ -49,7 +51,7 @@ class FileAttachment extends PayPalModel
      */
     public function setUrl($url)
     {
-        UrlValidator::validate($url, "Url");
+        UrlValidator::validate($url, 'Url');
         $this->url = $url;
         return $this;
     }

@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 /**

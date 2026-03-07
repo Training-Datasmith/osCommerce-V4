@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * Transactional Midle Ware for Paypal modules
  * This file is part of osCommerce ecommerce platform.
@@ -10,9 +12,8 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-namespace common\modules\orderPayment\lib\PaypalPartner\models;
 
-use Yii;
+namespace common\modules\orderPayment\lib\PaypalPartner\models;
 
 /**
  * This is the model class for table "paypal_seller_info".
@@ -42,7 +43,7 @@ use Yii;
  * @property text $boarding_json
  * @property date $boarding_date
  */
- 
+
 class SellerInfo extends \yii\db\ActiveRecord
 {
     /**
@@ -52,20 +53,23 @@ class SellerInfo extends \yii\db\ActiveRecord
     {
         return 'paypal_seller_info';
     }
-    
-    public function rules(){
+
+    public function rules()
+    {
         return [
             [['platform_id', 'tracking_id'], 'required'],
             [[ 'email_address', 'entry_firstname', 'entry_lastname', 'entry_street_address', 'entry_postcode', 'entry_city', 'entry_state', 'entry_country_id', 'is_onboard', 'entry_company', 'partner_id', 'fee_percent', 'entry_telephone', 'fee_editable', 'own_client_id', 'own_client_secret', 'status'], 'safe'],
             [['entry_suburb', 'entry_zone_id', 'payer_id'], 'safe'],
         ];
     }
-    
-    public static function find(){
+
+    public static function find()
+    {
         return new query\SellerInfoQuery(get_called_class());
     }
-    
-    public static function generateTrackingId(){
+
+    public static function generateTrackingId()
+    {
         if (function_exists('random_int') && function_exists('mb_strlen')) {
             $ret = self::random_str(127);
         } else {
@@ -76,49 +80,54 @@ class SellerInfo extends \yii\db\ActiveRecord
 
     private static function random_str(int $length = 64, string $keyspace = '0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ_-'): string
     {
-      if ($length < 1) {
-          throw new \RangeException("Length must be a positive integer");
-      }
-      $pieces = [];
-      $max = mb_strlen($keyspace, '8bit') - 1;
-      for ($i = 0; $i < $length; ++$i) {
-          $pieces []= $keyspace[random_int(0, $max)];
-      }
-      return implode('', $pieces);
+        if ($length < 1) {
+            throw new \RangeException('Length must be a positive integer');
+        }
+        $pieces = [];
+        $max = mb_strlen($keyspace, '8bit') - 1;
+        for ($i = 0; $i < $length; ++$i) {
+            $pieces [] = $keyspace[random_int(0, $max)];
+        }
+        return implode('', $pieces);
     }
 
-    public function isOnBoarded(){
+    public function isOnBoarded()
+    {
         return !!$this->is_onboard;
     }
-    
-    public function updateMerchantId($merchantId){
-        if ($this->psi_id){
+
+    public function updateMerchantId($merchantId)
+    {
+        if ($this->psi_id) {
             $this->setAttribute('payer_id', $merchantId);
-            if (!$this->save()){
+            if (!$this->save()) {
                 throw new \Exception("Seller: payer_id can't be updated");
             }
             return true;
         }
-        trigger_error("updateMerchantId Invalid Seller");
+        trigger_error('updateMerchantId Invalid Seller');
     }
-    
-    public function setOnBoarded(){
-        if ($this->psi_id){
+
+    public function setOnBoarded()
+    {
+        if ($this->psi_id) {
             $this->setAttribute('is_onboard', 1);
-            if (!$this->save()){
+            if (!$this->save()) {
                 throw new \Exception("Seller can't be saved as onBoarded");
             }
             return true;
         }
-        trigger_error("setOnBoarded Invalid Seller");
+        trigger_error('setOnBoarded Invalid Seller');
     }
 
-    public function beforeDelete() {
+    public function beforeDelete()
+    {
         \yii\caching\TagDependency::invalidate(\Yii::$app->cache, 'seller-'. $this->platform_id . '-' . $this->partner_id);
         return parent::beforeDelete();
     }
 
-    public function beforeSave($insert) {
+    public function beforeSave($insert)
+    {
         if (empty($this->tracking_id)) {
             $this->tracking_id = $this->random_str(127);
         }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,32 +14,33 @@
 
 namespace common\models\repositories;
 
-
 use common\models\OrdersTotal;
 
-class OrdersTotalRepository {
-
+class OrdersTotalRepository
+{
     /**
      * @param $orderId
      * @param bool $asArray
      * @return array|OrdersTotal[]|\yii\db\ActiveRecord[]
      */
-	public function getByOrderId($orderId,$asArray = false){
-		$orderTotals = OrdersTotal::find()->where(['orders_id' => $orderId])->indexBy('class')->asArray($asArray)->all();
-		if(empty($orderTotals)) {
-            throw new NotFoundException("Order Totals not found");
+    public function getByOrderId($orderId, $asArray = false)
+    {
+        $orderTotals = OrdersTotal::find()->where(['orders_id' => $orderId])->indexBy('class')->asArray($asArray)->all();
+        if (empty($orderTotals)) {
+            throw new NotFoundException('Order Totals not found');
         }
-		return $orderTotals;
-	}
+        return $orderTotals;
+    }
 
-    public function edit( OrdersTotal $orderTotals, $params = [], $validate = false, $safeOnly = false ) {
-        foreach ( $params as $attribute => $param ) {
-            if ( ! $orderTotals->hasAttribute( $attribute ) ) {
-                unset( $params[ $attribute ] );
+    public function edit(OrdersTotal $orderTotals, $params = [], $validate = false, $safeOnly = false)
+    {
+        foreach ($params as $attribute => $param) {
+            if (! $orderTotals->hasAttribute($attribute)) {
+                unset($params[ $attribute ]);
             }
         }
-        $orderTotals->setAttributes( $params, $safeOnly );
-        if ( ! $orderTotals->update( $validate, array_keys( $params ) ) ) {
+        $orderTotals->setAttributes($params, $safeOnly);
+        if (! $orderTotals->update($validate, array_keys($params))) {
             return $orderTotals->getErrors();
         }
         return true;

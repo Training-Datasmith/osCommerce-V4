@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,9 +12,7 @@
  */
 declare(strict_types=1);
 
-
 namespace common\classes\events\frontend\attributes\productAttributesInfo;
-
 
 class ProductAttributesInfoEvent
 {
@@ -24,8 +23,7 @@ class ProductAttributesInfoEvent
     public function __construct(
         array $productAttributes,
         $customer
-    )
-    {
+    ) {
         $this->productAttributes = $productAttributes;
         $this->customer = $customer;
     }

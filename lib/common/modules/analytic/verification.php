@@ -1,26 +1,27 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of True Loaded.
- * 
+ *
  * @link http://www.holbi.co.uk
  * @copyright Copyright (c) 2005 Holbi Group LTD
- * 
+ *
  * For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
  */
 
 namespace common\modules\analytic;
 
 use common\components\google\modules\AbstractGoogle;
-use common\components\google\modules\GoogleInterface;
-use common\classes\platform;
 
-final class verification extends AbstractGoogle {
-
+final class verification extends AbstractGoogle
+{
     public $config;
     public $code = 'verification';
 
-    public function getParams() {
+    public function getParams()
+    {
 
         $this->config = [
             $this->code => [
@@ -29,8 +30,8 @@ final class verification extends AbstractGoogle {
                     [
                         'name' => 'code',
                         'value' => '',
-                        'type' => 'text'
-                    ]
+                        'type' => 'text',
+                    ],
                 ],
                 'example' => true,
             ],
@@ -38,17 +39,19 @@ final class verification extends AbstractGoogle {
         return $this->config;
     }
 
-    public function renderWidget() {
+    public function renderWidget()
+    {
         return false;
     }
 
-    public function renderExample() {
-        if ($this->params['platform_id']){
+    public function renderExample()
+    {
+        if ($this->params['platform_id']) {
             $code = $this->config[$this->code]['fields'][0]['value'];
-                return "<pre>" . <<<EOD
+            return '<pre>' . <<<EOD
 &lt;meta name="google-site-verification" content="{$code}" /&gt;
 EOD
-                        . "</pre>";
+                    . '</pre>';
         }
         return;
     }

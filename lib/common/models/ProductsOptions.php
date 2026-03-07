@@ -1,10 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveQuery;
-use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "products_options".
@@ -68,9 +68,9 @@ class ProductsOptions extends \yii\db\ActiveRecord
      */
     public function getOptions2Values()
     {
-        return $this->hasMany(ProductsOptions2ProductsOptionsValues::class, ['products_options_id' => 'products_options_id']); 
+        return $this->hasMany(ProductsOptions2ProductsOptionsValues::class, ['products_options_id' => 'products_options_id']);
     }
-    
+
     /**
      * @return \yii\db\ActiveQuery
      */
@@ -122,8 +122,7 @@ class ProductsOptions extends \yii\db\ActiveRecord
 
     public function beforeDelete()
     {
-        if (!parent::beforeDelete())
-        {
+        if (!parent::beforeDelete()) {
             return false;
         }
 
@@ -134,7 +133,6 @@ class ProductsOptions extends \yii\db\ActiveRecord
 
         return true;
     }
-
 
     public static function nextID()
     {

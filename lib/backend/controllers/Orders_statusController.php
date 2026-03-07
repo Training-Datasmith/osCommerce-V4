@@ -18,8 +18,8 @@ use Yii;
 /**
  * default controller to handle user requests.
  */
-class Orders_statusController extends Sceleton  {
-
+class Orders_statusController extends Sceleton
+{
     public $acl = ['TEXT_SETTINGS', 'BOX_LOCALIZATION_ORDERS_STATUS', 'BOX_ORDERS_STATUS'];
     /** @var ConfigurationService */
     private $configurationService;
@@ -29,36 +29,36 @@ class Orders_statusController extends Sceleton  {
         $module,
         ConfigurationService $configurationService,
         array $config = []
-    )
-    {
+    ) {
         parent::__construct($id, $module, $config);
         $this->configurationService = $configurationService;
     }
 
-    public function actionIndex() {
+    public function actionIndex()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
 
         $type_id = (int) Yii::$app->request->get('type_id', 1);
         $row = (int) Yii::$app->request->get('row');
         $osgID = (int) Yii::$app->request->get('osgID');
 
-        $this->selectedMenu = array('settings', 'status', 'orders_status');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('orders_status/index'), 'title' => HEADING_TITLE);
+        $this->selectedMenu = ['settings', 'status', 'orders_status'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('orders_status/index'), 'title' => HEADING_TITLE];
 
         $this->view->headingTitle = HEADING_TITLE;
         $this->topButtons[] = '<a href="' . \Yii::$app->urlManager->createUrl(['orders_status/edit', 'type_id' => $type_id]) . '" class="btn btn-primary">' . TEXT_INFO_HEADING_NEW_ORDERS_STATUS . '</a>';
 
-        $this->view->StatusTable = array(
-            array(
+        $this->view->StatusTable = [
+            [
                 'title' => TABLE_HEADING_ORDERS_STATUS,
                 'not_important' => 0,
-            ),
-        );
+            ],
+        ];
 
         // \common\helpers\Status::getStatusGroupsList(true)
         $ordersStatusGroups = [];
         $ordersStatusGroups[''] = TEXT_ALL_ORDERS_STATUS_GROUPS;
-        $orders_status_groups_query = tep_db_query("select orders_status_groups_id, orders_status_groups_name, orders_status_groups_color from " . TABLE_ORDERS_STATUS_GROUPS . " where language_id = '" . (int) $languages_id . "' and orders_status_type_id = '" . $type_id . "'");
+        $orders_status_groups_query = tep_db_query('select orders_status_groups_id, orders_status_groups_name, orders_status_groups_color from ' . TABLE_ORDERS_STATUS_GROUPS . " where language_id = '" . (int) $languages_id . "' and orders_status_type_id = '" . $type_id . "'");
         while ($orders_status_groups = tep_db_fetch_array($orders_status_groups_query)) {
             $ordersStatusGroups[$orders_status_groups['orders_status_groups_id']] = $orders_status_groups['orders_status_groups_name'];
         }
@@ -69,7 +69,9 @@ class Orders_statusController extends Sceleton  {
         if (isset($_SESSION['messages'])) {
             $messages = $_SESSION['messages'];
             unset($_SESSION['messages']);
-            if (!is_array($messages)) $messages = [];
+            if (!is_array($messages)) {
+                $messages = [];
+            }
         }
         return $this->render('index', [
                     'messages' => $messages,
@@ -104,23 +106,23 @@ class Orders_statusController extends Sceleton  {
         }
 
         $current_page_number = ($start / $length) + 1;
-        $responseList = array();
+        $responseList = [];
 
         if (isset($_GET['order'][0]['column']) && $_GET['order'][0]['dir']) {
             switch ($_GET['order'][0]['column']) {
                 case 0:
-                    $orderBy = "os.orders_status_name " . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
+                    $orderBy = 'os.orders_status_name ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
                     break;
                 default:
-                    $orderBy = "os.orders_status_name";
+                    $orderBy = 'os.orders_status_name';
                     break;
             }
         } else {
-            $orderBy = "os.orders_status_name";
+            $orderBy = 'os.orders_status_name';
         }
 
         //$orders_status_query_raw = "select os.orders_status_id, os.orders_status_name, osg.orders_status_groups_name, ost.orders_status_type_name from " . TABLE_ORDERS_STATUS . " as os left join " . TABLE_ORDERS_STATUS_GROUPS . " as osg on os.orders_status_groups_id=osg.orders_status_groups_id left join " . TABLE_ORDERS_STATUS_TYPE . " as ost on osg.orders_status_type_id=ost.orders_status_type_id where os.language_id = '" . (int)$languages_id . "' and osg.language_id = '" . (int)$languages_id . "' and ost.language_id = '" . (int)$languages_id . "' " . $search . " order by orders_status_type_name, orders_status_groups_name, " . $orderBy;
-        $orders_status_query_raw = "select os.orders_status_id, os.orders_status_name, osg.orders_status_groups_name, os.hidden from " . TABLE_ORDERS_STATUS . " as os left join " . TABLE_ORDERS_STATUS_GROUPS . " as osg on os.orders_status_groups_id=osg.orders_status_groups_id where os.language_id = '" . (int)$languages_id . "' and osg.language_id = '" . (int)$languages_id . "' " . $search . " order by os.hidden, osg.orders_status_groups_id, orders_status_groups_name, " . $orderBy;
+        $orders_status_query_raw = 'select os.orders_status_id, os.orders_status_name, osg.orders_status_groups_name, os.hidden from ' . TABLE_ORDERS_STATUS . ' as os left join ' . TABLE_ORDERS_STATUS_GROUPS . " as osg on os.orders_status_groups_id=osg.orders_status_groups_id where os.language_id = '" . (int)$languages_id . "' and osg.language_id = '" . (int)$languages_id . "' " . $search . ' order by os.hidden, osg.orders_status_groups_id, orders_status_groups_name, ' . $orderBy;
         $orders_status_split = new \splitPageResults($current_page_number, $length, $orders_status_query_raw, $orders_status_query_numrows);
         $orders_status_query = tep_db_query($orders_status_query_raw);
 
@@ -132,42 +134,42 @@ class Orders_statusController extends Sceleton  {
             if ($this->configurationService->isDefaultOrderStatusIdForOnlinePaymentSuccess((int)$orders_status['orders_status_id'])) {
                 $defaultPaymentOSText .= sprintf(' <b>(%s)</b> ', TEXT_DEFAULT_ONLINE_PAYMENT_SUCCESS_ORDERS_STATUS);
             }
-            $responseList[] = array(
-                '<div class="wrap ' . (!empty($orders_status['hidden'])?' dis_module':'') . '"><span class="or-st-color">' /*. $orders_status['orders_status_type_name'] . '/'*/ . $orders_status['orders_status_groups_name'] . '</span>/' . (DEFAULT_ORDERS_STATUS_ID == $orders_status['orders_status_id']? '<b>' . $orders_status['orders_status_name'] . ' (' . TEXT_DEFAULT . ')</b>': $orders_status['orders_status_name']) . $defaultPaymentOSText . tep_draw_hidden_field('id', $orders_status['orders_status_id'], 'class="cell_identify"') . '</div>',
-            );
+            $responseList[] = [
+                '<div class="wrap ' . (!empty($orders_status['hidden']) ? ' dis_module' : '') . '"><span class="or-st-color">' /*. $orders_status['orders_status_type_name'] . '/'*/ . $orders_status['orders_status_groups_name'] . '</span>/' . (DEFAULT_ORDERS_STATUS_ID == $orders_status['orders_status_id'] ? '<b>' . $orders_status['orders_status_name'] . ' (' . TEXT_DEFAULT . ')</b>' : $orders_status['orders_status_name']) . $defaultPaymentOSText . tep_draw_hidden_field('id', $orders_status['orders_status_id'], 'class="cell_identify"') . '</div>',
+            ];
         }
 
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $orders_status_query_numrows,
             'recordsFiltered' => $orders_status_query_numrows,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         echo json_encode($response);
 
     }
 
-    public function actionStatusactions() {
-      $languages_id = \Yii::$app->settings->get('languages_id');
+    public function actionStatusactions()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
 
-      \common\helpers\Translation::init('admin/orders_status');
+        \common\helpers\Translation::init('admin/orders_status');
 
         $orders_status_id = Yii::$app->request->post('orders_status_id', 0);
         $this->layout = false;
         if ($orders_status_id) {
-            $ostatus = tep_db_fetch_array(tep_db_query("select orders_status_id, orders_status_name from " . TABLE_ORDERS_STATUS . " where language_id = '" . (int)$languages_id . "' and orders_status_id='" . (int)$orders_status_id . "'"));
+            $ostatus = tep_db_fetch_array(tep_db_query('select orders_status_id, orders_status_name from ' . TABLE_ORDERS_STATUS . " where language_id = '" . (int)$languages_id . "' and orders_status_id='" . (int)$orders_status_id . "'"));
             $oInfo = new \objectInfo($ostatus, false);
 
             if (is_object($oInfo)) {
                 echo '<div class="or_box_head">' . $oInfo->orders_status_name . '</div>';
-                  $status_query = tep_db_query("select count(*) as count from " . TABLE_ORDERS . " where orders_status = '" . (int)$orders_status_id . "'");
+                $status_query = tep_db_query('select count(*) as count from ' . TABLE_ORDERS . " where orders_status = '" . (int)$orders_status_id . "'");
                 $status = tep_db_fetch_array($status_query);
-
 
                 $orders_status_inputs_string = '';
                 $languages = \common\helpers\Language::get_languages();
                 for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
-                  $orders_status_inputs_string .= '<div class="col_desc">' . $languages[$i]['image'] . '&nbsp;' . \common\helpers\Order::get_order_status_name($oInfo->orders_status_id, $languages[$i]['id']) . '</div>';
+                    $orders_status_inputs_string .= '<div class="col_desc">' . $languages[$i]['image'] . '&nbsp;' . \common\helpers\Order::get_order_status_name($oInfo->orders_status_id, $languages[$i]['id']) . '</div>';
                 }
 
                 $gets = array_filter(\Yii::$app->request->getQueryParams());
@@ -183,17 +185,18 @@ class Orders_statusController extends Sceleton  {
 
     }
 
-    public function actionEdit() {
+    public function actionEdit()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
         \common\helpers\Translation::init('admin/orders_status');
         \common\helpers\Translation::init('admin/email/templates');
 
         $this->topButtons[] = '<span class="btn btn-confirm">' . IMAGE_SAVE . '</span>';
 
-        $orders_status_template = [''=>''] + \common\helpers\Mail::emailTemplatesList();
+        $orders_status_template = ['' => ''] + \common\helpers\Mail::emailTemplatesList();
 
         $orders_status_id = Yii::$app->request->get('orders_status_id', 0);
-        $ostatus = tep_db_fetch_array(tep_db_query("select * from " . TABLE_ORDERS_STATUS . " where language_id = '" . (int)$languages_id . "' and orders_status_id='" . (int)$orders_status_id . "'"));
+        $ostatus = tep_db_fetch_array(tep_db_query('select * from ' . TABLE_ORDERS_STATUS . " where language_id = '" . (int)$languages_id . "' and orders_status_id='" . (int)$orders_status_id . "'"));
         $oInfo = new \objectInfo($ostatus, false);
         $oInfo->orders_status_id = $oInfo->orders_status_id ?? null;
         $oInfo->orders_status_groups_id = $oInfo->orders_status_groups_id ?? null;
@@ -201,7 +204,7 @@ class Orders_statusController extends Sceleton  {
 
         $orders_status_inputs_string = [];
         $languages = \common\helpers\Language::get_languages();
-        for ($i=0, $n=sizeof($languages); $i<$n; $i++) {
+        for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
             $orders_status_inputs_string[$languages[$i]['id']] = \common\helpers\Html::input(
                 'text',
                 'orders_status_name[' . $languages[$i]['id'] . ']',
@@ -210,16 +213,15 @@ class Orders_statusController extends Sceleton  {
             );
         }
 
-
         if ($orders_status_id) {
             $title = TEXT_INFO_HEADING_EDIT_ORDERS_STATUS;
         } else {
             $title =  TEXT_INFO_HEADING_NEW_ORDERS_STATUS;
         }
 
-        $this->selectedMenu = array('settings', 'status', 'orders_status');
+        $this->selectedMenu = ['settings', 'status', 'orders_status'];
         $this->view->headingTitle = $title;
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('orders_status/index'), 'title' => $title);
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('orders_status/index'), 'title' => $title];
         //$this->topButtons[] = '<a href="#" class="create_item" onclick="return statusEdit(0)">'.TEXT_INFO_HEADING_NEW_ORDERS_STATUS.'</a>';
 
         $platforms = \common\classes\platform::getList(false);
@@ -251,13 +253,13 @@ class Orders_statusController extends Sceleton  {
         $osOesList = false;
         $oInfo->orders_status_send_ga = 0;
         $osgRecord = \common\models\OrdersStatusGroups::findOne(['orders_status_groups_id' => $oInfo->orders_status_groups_id]);
-        if ($orders_status_id == 0 OR $osgRecord instanceof \common\models\OrdersStatusGroups) {
-            if ($orders_status_id > 0 AND $osgRecord->orders_status_type_id != \common\helpers\Order::getStatusTypeId()) {
+        if ($orders_status_id == 0 or $osgRecord instanceof \common\models\OrdersStatusGroups) {
+            if ($orders_status_id > 0 and $osgRecord->orders_status_type_id != \common\helpers\Order::getStatusTypeId()) {
                 unset($oInfo->orders_status_allocate_allow);
             } elseif ($orders_status_id == 0) {
                 $oInfo->orders_status_allocate_allow = 0;
             }
-            if ($orders_status_id == 0 OR $osgRecord->orders_status_type_id == \common\helpers\Order::getStatusTypeId()) {
+            if ($orders_status_id == 0 or $osgRecord->orders_status_type_id == \common\helpers\Order::getStatusTypeId()) {
                 $osOesList = [0 => ''];
                 foreach (\common\helpers\Order::getEvaluationStateArray() as $oesId => $oesArray) {
                     $osOesList[$oesId] = (defined('TEXT_EVALUATION_STATE_LONG_' . $oesArray['key']) ? constant('TEXT_EVALUATION_STATE_LONG_' . $oesArray['key']) : $oesArray['long']);
@@ -266,7 +268,7 @@ class Orders_statusController extends Sceleton  {
                 unset($oesId);
             }
             if (\common\helpers\Acl::checkExtensionAllowed('PurchaseOrders') &&
-               ($orders_status_id == 0 OR $osgRecord->orders_status_type_id == \common\extensions\PurchaseOrders\helpers\PurchaseOrder::getStatusTypeId())) {
+               ($orders_status_id == 0 or $osgRecord->orders_status_type_id == \common\extensions\PurchaseOrders\helpers\PurchaseOrder::getStatusTypeId())) {
                 $osOesListPointer = &$osOesList;
                 if (is_array($osOesList)) {
                     $stList = \common\helpers\Status::getStatusTypeList();
@@ -289,9 +291,9 @@ class Orders_statusController extends Sceleton  {
         unset($osgRecord);
 
         $comment_templates['selected'] = $oInfo->comment_template_id ?? null;
-        $comment_templates['items'] = [''=>''];
+        $comment_templates['items'] = ['' => ''];
         $comment_templates['options'] = [];
-        foreach(\common\helpers\CommentTemplate::getActiveVariants($comment_templates['selected']) as $variant){
+        foreach (\common\helpers\CommentTemplate::getActiveVariants($comment_templates['selected']) as $variant) {
             $comment_templates['items'][$variant['id']] = $variant['text'];
             //$comment_templates['options']['items'] = $variant['visibility'];
         }
@@ -304,7 +306,6 @@ class Orders_statusController extends Sceleton  {
         $gets = array_filter(\Yii::$app->request->getQueryParams());
         $gets['orders_status_id'] = $oInfo->orders_status_id;
         $typeId = (int)\Yii::$app->request->get('type_id', 0);
-
 
         return $this->render('edit', [
             'oInfo' => $oInfo,
@@ -321,7 +322,7 @@ class Orders_statusController extends Sceleton  {
             'designTemplates' => $designTemplates,
             'emailDesignTemplate' => $emailDesignTemplate,
             'typeId' => $typeId,
-            'osOesList' => $osOesList
+            'osOesList' => $osOesList,
         ]);
     }
 
@@ -335,7 +336,7 @@ class Orders_statusController extends Sceleton  {
         $hidden = (int)Yii::$app->request->post('hidden', 0);
 
         if ($orders_status_id == 0) {
-            $next_id_query = tep_db_query("select max(orders_status_id) as orders_status_id from " . TABLE_ORDERS_STATUS . " where orders_status_id <> '99999'");//paypal
+            $next_id_query = tep_db_query('select max(orders_status_id) as orders_status_id from ' . TABLE_ORDERS_STATUS . " where orders_status_id <> '99999'");//paypal
             $next_id = tep_db_fetch_array($next_id_query);
             $insert_id = $next_id['orders_status_id'] + 1;
         }
@@ -383,7 +384,7 @@ class Orders_statusController extends Sceleton  {
         if (count($orders_status_name_array) == 0) {
             echo json_encode([
                 'message' => ('Status name can\'t be empty!'),
-                'messageType' => 'alert-error'
+                'messageType' => 'alert-error',
             ]);
             return false;
         }
@@ -394,7 +395,7 @@ class Orders_statusController extends Sceleton  {
 
             $oOrdersStatus = \common\models\OrdersStatus::findOne([
                 'orders_status_id' => $orders_status_id,
-                'language_id' => (int)$language_id
+                'language_id' => (int)$language_id,
             ]);
 
             $action = 'updated';
@@ -412,7 +413,7 @@ class Orders_statusController extends Sceleton  {
             $oOrdersStatus->orders_status_template_sms = tep_db_prepare_input(Yii::$app->request->post('orders_status_template_sms'));
             $oOrdersStatus->automated = (int)Yii::$app->request->post('automated');
             $oOrdersStatus->orders_status_groups_id = $orders_status_groups_id;
-            if (!isset($orders_status_name_array[$language_id]) AND (trim($oOrdersStatus->orders_status_name) != '')) {
+            if (!isset($orders_status_name_array[$language_id]) and (trim($oOrdersStatus->orders_status_name) != '')) {
                 $orders_status_name_array[$language_id] = trim($oOrdersStatus->orders_status_name);
             }
             $oOrdersStatus->orders_status_name = tep_db_prepare_input(isset($orders_status_name_array[$language_id]) ? $orders_status_name_array[$language_id] : $orders_status_name_default);
@@ -439,7 +440,7 @@ class Orders_statusController extends Sceleton  {
         }
 
         if (isset($_POST['default']) && ($_POST['default'] == 'on')) {
-            tep_db_query("update " . TABLE_CONFIGURATION . " set configuration_value = '" . tep_db_input($orders_status_id) . "' where configuration_key = 'DEFAULT_ORDERS_STATUS_ID'");
+            tep_db_query('update ' . TABLE_CONFIGURATION . " set configuration_value = '" . tep_db_input($orders_status_id) . "' where configuration_key = 'DEFAULT_ORDERS_STATUS_ID'");
         }
         $defaultOnlinePaymentStatusChange = (int)\Yii::$app->request->post('defaultOnlinePaymentStatus', 0);
         if ($defaultOnlinePaymentStatusChange === 1) {
@@ -455,7 +456,7 @@ class Orders_statusController extends Sceleton  {
             $designTemplates[$platform['id']];
             $template = \common\models\OrdersStatusToDesignTemplate::findOne([
                 'orders_status_id' => $orders_status_id,
-                'platform_id' => $platform['id']
+                'platform_id' => $platform['id'],
             ]);
             if ($designTemplates[$platform['id']]) {
                 if (!$template) {
@@ -464,7 +465,7 @@ class Orders_statusController extends Sceleton  {
                 $template->attributes = [
                     'orders_status_id' => $orders_status_id,
                     'platform_id' => $platform['id'],
-                    'email_design_template' => $designTemplates[$platform['id']]
+                    'email_design_template' => $designTemplates[$platform['id']],
                 ];
                 $template->save();
             } elseif ($template) {
@@ -491,36 +492,37 @@ class Orders_statusController extends Sceleton  {
         return '';
     }
 
-    public function actionDelete() {
-      global $language;
-      \common\helpers\Translation::init('admin/orders_status');
+    public function actionDelete()
+    {
+        global $language;
+        \common\helpers\Translation::init('admin/orders_status');
 
         $orders_status_id =  (int) Yii::$app->request->post('orders_status_id', 0);
 
-        if($orders_status_id) {
+        if ($orders_status_id) {
             $remove_status = true;
             $status = tep_db_fetch_array(tep_db_query(
-                "SELECT COUNT(*) AS `count` FROM ".TABLE_ORDERS." WHERE orders_status='".$orders_status_id."' "
+                'SELECT COUNT(*) AS `count` FROM '.TABLE_ORDERS." WHERE orders_status='".$orders_status_id."' "
             ));
-            $error = array();
+            $error = [];
             if ($orders_status_id == DEFAULT_ORDERS_STATUS_ID) {
                 $remove_status = false;
-                $error = array('message' => ERROR_REMOVE_DEFAULT_ORDER_STATUS, 'messageType' => 'alert-danger');
+                $error = ['message' => ERROR_REMOVE_DEFAULT_ORDER_STATUS, 'messageType' => 'alert-danger'];
             } elseif ($this->configurationService->isDefaultOrderStatusIdForOnlinePayment($orders_status_id)) {
                 $remove_status = false;
-                $error = array('message' => ERROR_REMOVE_DEFAULT_ONLINE_PAYMENT_ORDERS_STATUS, 'messageType' => 'alert-danger');
+                $error = ['message' => ERROR_REMOVE_DEFAULT_ONLINE_PAYMENT_ORDERS_STATUS, 'messageType' => 'alert-danger'];
             } elseif ($this->configurationService->isDefaultOrderStatusIdForOnlinePaymentSuccess($orders_status_id)) {
                 $remove_status = false;
-                $error = array('message' => TEXT_ERROR_REMOVE_DEFAULT_ONLINE_PAYMENT_SUCCESS_ORDERS_STATUS, 'messageType' => 'alert-danger');
+                $error = ['message' => TEXT_ERROR_REMOVE_DEFAULT_ONLINE_PAYMENT_SUCCESS_ORDERS_STATUS, 'messageType' => 'alert-danger'];
             } elseif ($status['count'] > 0) {
                 $remove_status = false;
-                $error = array('message' => ERROR_STATUS_USED_IN_ORDERS, 'messageType' => 'alert-danger');
+                $error = ['message' => ERROR_STATUS_USED_IN_ORDERS, 'messageType' => 'alert-danger'];
             } else {
-                $history_query = tep_db_query("select count(*) as count from " . TABLE_ORDERS_STATUS_HISTORY . " where orders_status_id = '" . (int)$orders_status_id . "'");
+                $history_query = tep_db_query('select count(*) as count from ' . TABLE_ORDERS_STATUS_HISTORY . " where orders_status_id = '" . (int)$orders_status_id . "'");
                 $history = tep_db_fetch_array($history_query);
                 if ($history['count'] > 0) {
                     $remove_status = false;
-                    $error = array('message' => ERROR_STATUS_USED_IN_HISTORY, 'messageType' => 'alert-danger');
+                    $error = ['message' => ERROR_STATUS_USED_IN_HISTORY, 'messageType' => 'alert-danger'];
                 }
             }
             if (!$remove_status) {
@@ -532,18 +534,18 @@ class Orders_statusController extends Sceleton  {
                 <?php
 
             } else {
-                $orders_status_query = tep_db_query("select configuration_value from " . TABLE_CONFIGURATION . " where configuration_key = 'DEFAULT_ORDERS_STATUS_ID'");
+                $orders_status_query = tep_db_query('select configuration_value from ' . TABLE_CONFIGURATION . " where configuration_key = 'DEFAULT_ORDERS_STATUS_ID'");
                 $orders_status = tep_db_fetch_array($orders_status_query);
 
                 if ($orders_status['configuration_value'] == $orders_status_id) {
-                  tep_db_query("update " . TABLE_CONFIGURATION . " set configuration_value = '' where configuration_key = 'DEFAULT_ORDERS_STATUS_ID'");
+                    tep_db_query('update ' . TABLE_CONFIGURATION . " set configuration_value = '' where configuration_key = 'DEFAULT_ORDERS_STATUS_ID'");
                 }
 
                 if ($this->configurationService->isDefaultOrderStatusIdForOnlinePayment($orders_status_id)) {
                     $this->configurationService->setDefaultOrderStatusIdForOnlinePayment((int) $orders_status['configuration_value']);
                 }
 
-                tep_db_query("delete from " . TABLE_ORDERS_STATUS . " where orders_status_id = '" . tep_db_input($orders_status_id) . "'");
+                tep_db_query('delete from ' . TABLE_ORDERS_STATUS . " where orders_status_id = '" . tep_db_input($orders_status_id) . "'");
                 echo 'reset';
             }
 

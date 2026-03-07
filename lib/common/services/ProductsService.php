@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: user
@@ -25,8 +27,7 @@ class ProductsService
         ProductsRepository $productsRepository,
         ProductsOptionsRepository $productsOptionsRepository,
         CategoriesRepository $categoriesRepository
-    )
-    {
+    ) {
         $this->productsRepository = $productsRepository;
         $this->categoriesRepository = $categoriesRepository;
         $this->productsOptionsRepository = $productsOptionsRepository;
@@ -54,14 +55,14 @@ class ProductsService
 
     public function getAssignedQuoteProductCatalog($active = false)
     {
-        return $this->getAssignedCatalog('request_quote',$active);
+        return $this->getAssignedCatalog('request_quote', $active);
     }
 
-    private function getAssignedCatalog($productField = 'products_status',$active = false)
+    private function getAssignedCatalog($productField = 'products_status', $active = false)
     {
         $assignedKey = [];
-        $assignedProducts = $this->productsRepository->findAssignedCatalog($productField,$active);
-        if($assignedProducts){
+        $assignedProducts = $this->productsRepository->findAssignedCatalog($productField, $active);
+        if ($assignedProducts) {
             foreach ($assignedProducts as $product) {
                 $_key = 'p' . (int) $product['id'] . '_' . $product['cid'];
                 $assignedKey[$_key] = $_key;
@@ -69,10 +70,11 @@ class ProductsService
         }
         return $assignedKey;
     }
-    public function load_tree_slice($categoryId = 0, $languageId = 1) {
+    public function load_tree_slice($categoryId = 0, $languageId = 1)
+    {
         $treeInitData = [];
-        $parentCategories = $this->categoriesRepository->findParentCategories($categoryId,$languageId);
-        if($parentCategories) {
+        $parentCategories = $this->categoriesRepository->findParentCategories($categoryId, $languageId);
+        if ($parentCategories) {
             foreach ($parentCategories as $category) {
                 $category['folder']   = true;
                 $category['lazy']     = true;
@@ -81,8 +83,8 @@ class ProductsService
             }
         }
 
-        $productsAllKey = $this->productsRepository->findCategoryProductsKey($categoryId,$languageId);
-        if($productsAllKey){
+        $productsAllKey = $this->productsRepository->findCategoryProductsKey($categoryId, $languageId);
+        if ($productsAllKey) {
             foreach ($productsAllKey as $product) {
                 $product['selected'] = 0;
                 $treeInitData[] = $product;
@@ -91,16 +93,17 @@ class ProductsService
         return $treeInitData;
     }
 
-    public function get_category_children(&$children, $categoryId,$languages_id) {
+    public function get_category_children(&$children, $categoryId, $languages_id)
+    {
         if (!is_array($children)) {
             $children = [];
         }
-        $slice =  $this->load_tree_slice($categoryId,$languages_id);
+        $slice =  $this->load_tree_slice($categoryId, $languages_id);
         foreach ($slice as $item) {
             $key = $item['key'];
             $children[] = $key;
             if ($item['folder']) {
-                $this->get_category_children($children, intval(substr($item['key'], 1)),$languages_id);
+                $this->get_category_children($children, intval(substr($item['key'], 1)), $languages_id);
             }
         }
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Stripe;
 
 /**
@@ -20,5 +22,5 @@ namespace Stripe;
  */
 class Discount extends StripeObject
 {
-    const OBJECT_NAME = 'discount';
+    public const OBJECT_NAME = 'discount';
 }

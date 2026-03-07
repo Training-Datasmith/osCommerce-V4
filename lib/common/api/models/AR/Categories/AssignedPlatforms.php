@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,7 +19,6 @@ use common\api\models\AR\EPMap;
 
 class AssignedPlatforms extends EPMap
 {
-
     protected $hideFields = [
         'categories_id',
     ];
@@ -38,10 +39,9 @@ class AssignedPlatforms extends EPMap
         parent::parentEPMap($parentObject);
     }
 
-
     public function matchIndexedValue(EPMap $importedObject)
     {
-        if ( !is_null($importedObject->platform_id) && !is_null($this->platform_id) && $importedObject->platform_id==$this->platform_id ){
+        if (!is_null($importedObject->platform_id) && !is_null($this->platform_id) && $importedObject->platform_id == $this->platform_id) {
             $this->pendingRemoval = false;
             return true;
         }

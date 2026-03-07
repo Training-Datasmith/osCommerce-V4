@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,12 @@
 
 namespace frontend\design\boxes\account;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use frontend\design\SplitPageResults;
-use common\helpers\Date as DateHelper;
 
 class OrderPayButton extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -55,7 +54,7 @@ class OrderPayButton extends Widget
         $page = \common\classes\design::pageName($this->settings[0]['link']);
         if ($page) {
             $url = Yii::$app->urlManager->createUrl(['account', 'page_name' => $page, 'order_id' => $order_id]);
-        }  else {
+        } else {
             $url = Yii::$app->urlManager->createUrl(['account', 'order_id' => $order_id]);
         }
 
@@ -63,20 +62,16 @@ class OrderPayButton extends Widget
         if (Yii::$app->request->get('page_name') == $page) {
             $active = true;
         }
-        
-        
+
         $orderStatus = \common\models\OrdersStatus::getDefaultByOrderEvaluationState(\common\helpers\Order::OES_CANCELLED);
         if (is_object($orderStatus)) {
             $order = \common\helpers\Order::getRecord($order_id);
             if (is_object($order)) {
-                if ($orderStatus->orders_status_id == $order->orders_status ) {
+                if ($orderStatus->orders_status_id == $order->orders_status) {
                     return '';
                 }
             }
         }
-        
-        
-        
 
         return IncludeTpl::widget(['file' => 'boxes/account/order-pay-button.tpl', 'params' => [
             'settings' => $this->settings,

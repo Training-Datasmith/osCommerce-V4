@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -13,16 +15,15 @@
 namespace frontend\design;
 
 use backend\design\Style;
-use frontend\design\Info;
+use common\models\DesignBoxes;
+use common\models\DesignBoxesCache;
+use common\models\DesignBoxesSettings;
+use common\models\DesignBoxesSettingsTmp;
+use common\models\DesignBoxesTmp;
+use common\models\ThemesSettings;
 use Yii;
 use yii\base\Widget;
 use yii\helpers\ArrayHelper;
-use common\models\DesignBoxes;
-use common\models\DesignBoxesTmp;
-use common\models\DesignBoxesSettings;
-use common\models\DesignBoxesSettingsTmp;
-use common\models\ThemesSettings;
-use common\models\DesignBoxesCache;
 
 class Block extends Widget
 {
@@ -44,13 +45,13 @@ class Block extends Widget
     {
         global $block_styles, $allWidgetsOnPage;
         $adminDesign = null;
-        if ($this->params['params']['theme_name']?? false) {
+        if ($this->params['params']['theme_name'] ?? false) {
             $this->theme_name = $this->params['params']['theme_name'];
         } else {
             $this->theme_name = THEME_NAME;
         }
 
-        if (defined("DESIGN_BOXES_CACHE")) {
+        if (defined('DESIGN_BOXES_CACHE')) {
             $designBoxesCacheSetting = DESIGN_BOXES_CACHE;
         } else {
             $designBoxesCacheSetting = 'json';
@@ -81,7 +82,7 @@ class Block extends Widget
                 $treeData = $this->treeData($this->name, $this->theme_name);
                 $designBoxesCache->block_name = $this->name;
                 $designBoxesCache->theme_name = $this->theme_name;
-                if ($designBoxesCacheSetting == 'json'){
+                if ($designBoxesCacheSetting == 'json') {
                     $designBoxesCache->json = json_encode($treeData);
                     $designBoxesCache->serialize = $designBoxesCache->serialize ?? '';
                 } else {
@@ -101,7 +102,9 @@ class Block extends Widget
 
         foreach ($treeData as $widget) {
 
-            if ($this->hideWidget($widget['settings'])) continue;
+            if ($this->hideWidget($widget['settings'])) {
+                continue;
+            }
 
             $widgetName = 'frontend\design\boxes\\' . $widget['widget_name'];
             $widgetArray['params'] = (isset($this->params['params']) ? $this->params['params'] : []);
@@ -119,7 +122,7 @@ class Block extends Widget
                 }
             }
 
-            if (isset($settings[0]['ajax']) && !Info::isAdmin()){
+            if (isset($settings[0]['ajax']) && !Info::isAdmin()) {
                 $widgetHtml = '
 <div class="preloader"></div>
 <script type="text/javascript">
@@ -135,15 +138,15 @@ class Block extends Widget
 </script>
 ';
             } else {
-                if (is_file(DIR_FS_CATALOG . 'lib' . DIRECTORY_SEPARATOR . 'frontend' . DIRECTORY_SEPARATOR . 'design' . DIRECTORY_SEPARATOR . 'boxes' . DIRECTORY_SEPARATOR .  str_replace('\\', DIRECTORY_SEPARATOR, $widget['widget_name']) . '.php')){
+                if (is_file(DIR_FS_CATALOG . 'lib' . DIRECTORY_SEPARATOR . 'frontend' . DIRECTORY_SEPARATOR . 'design' . DIRECTORY_SEPARATOR . 'boxes' . DIRECTORY_SEPARATOR .  str_replace('\\', DIRECTORY_SEPARATOR, $widget['widget_name']) . '.php')) {
                     $widgetHtml = $widgetName::widget($widgetArray);
-                } elseif (($ext_widget = \common\helpers\Acl::runExtensionWidget($widget['widget_name'], $widgetArray)) !== false){
+                } elseif (($ext_widget = \common\helpers\Acl::runExtensionWidget($widget['widget_name'], $widgetArray)) !== false) {
                     $widgetHtml = $ext_widget;
                 } elseif (is_file(Yii::getAlias('@backend') . DIRECTORY_SEPARATOR . 'design' . DIRECTORY_SEPARATOR . 'orders' . DIRECTORY_SEPARATOR .  str_replace('\\', DIRECTORY_SEPARATOR, $widget['widget_name']) . '.php')) {
-                    if ($this->params['params']['manager']?? false) {
+                    if ($this->params['params']['manager'] ?? false) {
                         $widgetHtml = $this->params['params']['manager']->render($widget['widget_name'], [
                             'manager' => $this->params['params']['manager'],
-                            'order' => $this->params['params']['order']
+                            'order' => $this->params['params']['order'],
                         ]);
                     } else {
                         $widgetHtml = '';
@@ -166,7 +169,7 @@ class Block extends Widget
             }
 
             $assetName = '\frontend\assets\boxes\\' . $widget['widget_name'] . 'Asset';
-            if (class_exists($assetName)){
+            if (class_exists($assetName)) {
                 $assetName::register($this->view);
             }
 
@@ -214,29 +217,29 @@ class Block extends Widget
             if ($after) {
                 $block_styles[0] .= '#box-' . $widget['id'] . ':after{' . $after . '}';
             }
-            if (isset($settings[0]['col_in_row']) && $settings[0]['col_in_row']){
+            if (isset($settings[0]['col_in_row']) && $settings[0]['col_in_row']) {
                 $block_styles[0] .= $this->colInRow($settings[0]['col_in_row'], $widget['id']);
             }
-            foreach (self::$media_query as $item2){
+            foreach (self::$media_query as $item2) {
                 if (!isset($block_styles[$item2['id']])) {
                     $block_styles[$item2['id']] = '';
                 }
                 $style = self::styles(@$settings['visibility'][$item2['id']], false, $this->theme_name);
-                if ($style){
+                if ($style) {
                     $block_styles[$item2['id']] .= '#box-' . $widget['id'] . '{' . $style . '}';
                 }
-                if (isset($settings['visibility'][$item2['id']][0]['only_icon']) && $settings['visibility'][$item2['id']][0]['only_icon']){
+                if (isset($settings['visibility'][$item2['id']][0]['only_icon']) && $settings['visibility'][$item2['id']][0]['only_icon']) {
                     $block_styles[$item2['id']] .= '#box-' . $widget['id'] . ' .no-text {display:none;}';
                 }
-                if (isset($settings['visibility'][$item2['id']][0]['schema']) && $settings['visibility'][$item2['id']][0]['schema']){
+                if (isset($settings['visibility'][$item2['id']][0]['schema']) && $settings['visibility'][$item2['id']][0]['schema']) {
                     $block_styles[$item2['id']] .= \backend\design\Style::schema($settings['visibility'][$item2['id']][0]['schema'], '#box-' . $widget['id']);
                 }
-                if (isset($settings['visibility'][$item2['id']][0]['col_in_row']) && $settings['visibility'][$item2['id']][0]['col_in_row']){
+                if (isset($settings['visibility'][$item2['id']][0]['col_in_row']) && $settings['visibility'][$item2['id']][0]['col_in_row']) {
                     $block_styles[$item2['id']] .= $this->colInRow($settings['visibility'][$item2['id']][0]['col_in_row'], $widget['id']);
                 }
             }
 
-            if ($widgetHtml == ''){
+            if ($widgetHtml == '') {
                 if (Info::isAdmin() && !$adminDesign && strpos((Yii::$app->request->headers['referer'] ?? ''), DIR_WS_HTTP_ADMIN_CATALOG . 'design')) {
                     $pos = strripos($widget['widget_name'], '\\') + 1;
                     $prefix = '<span class="no-widget-prefix">' . substr($widget['widget_name'], 0, $pos) . '</span>';
@@ -251,12 +254,14 @@ class Block extends Widget
             } else {
                 $blockHtml .= $widgetHtml;
             }
-            if ($widgetHtml != '' || Info::isAdmin()) $blockHtml .= '</div>';
+            if ($widgetHtml != '' || Info::isAdmin()) {
+                $blockHtml .= '</div>';
+            }
         }
 
         $blockOpen = '<div class="block' . (isset($this->params['type']) ? ' ' . $this->params['type'] : '') . '"' . (Info::isAdmin() ? ' data-name="' . $this->name . '"' . (isset($this->params['type']) ? ' data-type="' . $this->params['type'] . '"' : '') . (isset($this->params['cols']) ? ' data-cols="' . $this->params['cols'] . '"' : '') : '') . (isset($this->params['tabs']) ? ' id="tab-' . $this->name . '"' : '') . '>';
 
-        if ($blockHtml){
+        if ($blockHtml) {
             $blockHtml = $blockOpen . $blockHtml . '</div>';
         } elseif (Info::isAdmin()) {
             $blockHtml = $blockOpen . '&nbsp;</div>';
@@ -280,9 +285,9 @@ class Block extends Widget
         foreach ($boxes as $key => $box) {
             $boxes[$key]['settings'] = $this->getBoxesSettings($designBoxesSettings, $box);
 
-            if (is_file(Yii::getAlias('@frontend') . DIRECTORY_SEPARATOR . 'design' . DIRECTORY_SEPARATOR . 'boxes' . DIRECTORY_SEPARATOR .  str_replace('\\', DIRECTORY_SEPARATOR, $box['widget_name']) . '.php')){
+            if (is_file(Yii::getAlias('@frontend') . DIRECTORY_SEPARATOR . 'design' . DIRECTORY_SEPARATOR . 'boxes' . DIRECTORY_SEPARATOR .  str_replace('\\', DIRECTORY_SEPARATOR, $box['widget_name']) . '.php')) {
                 $widget = 'frontend\design\boxes\\' . $box['widget_name'];
-                if (method_exists ($widget, 'children')) {
+                if (method_exists($widget, 'children')) {
                     foreach ($widget::children($box['id'], $boxes[$key]['settings'], $theme_name) as $child) {
                         $boxes[$key]['children'][$child] = $this->treeData($child, $theme_name);
                     }
@@ -336,20 +341,20 @@ class Block extends Widget
     {
 
         $defaultLanguageId = \common\helpers\Language::get_default_language_id();
-        $allLanguages = \Yii::$app->getCache()->getOrSet('block_languages_list',function(){
+        $allLanguages = \Yii::$app->getCache()->getOrSet('block_languages_list', function () {
             return \common\helpers\Language::get_languages();
-        },600);
+        }, 600);
 
         $boxSettings = $designBoxesSettings
             ->where([
-                'box_id' => $box['id']
+                'box_id' => $box['id'],
             ])
             ->asArray()->all();
 
         $settings = [];
 
         foreach ($boxSettings as $set) {
-            if ($set['visibility'] > 0){
+            if ($set['visibility'] > 0) {
                 $settings['visibility'][$set['visibility']][$set['language_id']][$set['setting_name']] = $set['setting_value'];
                 if (isset($set['visibility']) && ArrayHelper::getValue(self::$mediaNames, $set['visibility'])) {
                     $settings['visibility'][$set['setting_name']][self::$mediaNames[$set['visibility']]] = $set['setting_value'];
@@ -418,44 +423,45 @@ class Block extends Widget
         }
 
         if (
-                (
-                    @$settings[0]['visibility_first_view'] && Yii::$app->user->isGuest && !$cookies->has('was_visit') ||
-                    @$settings[0]['visibility_more_view'] && Yii::$app->user->isGuest && $cookies->has('was_visit') ||
-                    @$settings[0]['visibility_logged'] && !Yii::$app->user->isGuest ||
-                    @$settings[0]['visibility_not_logged'] && Yii::$app->user->isGuest
-                ) ||
+            (
+                @$settings[0]['visibility_first_view'] && Yii::$app->user->isGuest && !$cookies->has('was_visit') ||
+                @$settings[0]['visibility_more_view'] && Yii::$app->user->isGuest && $cookies->has('was_visit') ||
+                @$settings[0]['visibility_logged'] && !Yii::$app->user->isGuest ||
+                @$settings[0]['visibility_not_logged'] && Yii::$app->user->isGuest
+            ) ||
 
-                Yii::$app->controller->id == 'index' && Yii::$app->controller->action->id == 'index' && ($settings[0]['visibility_home'] ?? false) ||
-                Yii::$app->controller->id == 'catalog' && Yii::$app->controller->action->id == 'product' && ($settings[0]['visibility_product'] ?? false) ||
-                Yii::$app->controller->id == 'catalog' && Yii::$app->controller->action->id == 'index' && ($settings[0]['visibility_catalog'] ?? false) ||
-                Yii::$app->controller->id == 'info' && Yii::$app->controller->action->id == 'index' && ($settings[0]['visibility_info'] ?? false) ||
-                Yii::$app->controller->id == 'shopping-cart' && Yii::$app->controller->action->id == 'index' && ($settings[0]['visibility_cart'] ?? false) ||
-                Yii::$app->controller->id == 'checkout' && Yii::$app->controller->action->id != 'success' && ($settings[0]['visibility_checkout'] ?? false) ||
-                Yii::$app->controller->id == 'checkout' && Yii::$app->controller->action->id == 'success' && ($settings[0]['visibility_success'] ?? false) ||
-                Yii::$app->controller->id == 'account' && Yii::$app->controller->action->id != 'login' && ($settings[0]['visibility_account'] ?? false) ||
-                Yii::$app->controller->id == 'account' && Yii::$app->controller->action->id == 'login' && ($settings[0]['visibility_login'] ?? false)
-            ){
+            Yii::$app->controller->id == 'index' && Yii::$app->controller->action->id == 'index' && ($settings[0]['visibility_home'] ?? false) ||
+            Yii::$app->controller->id == 'catalog' && Yii::$app->controller->action->id == 'product' && ($settings[0]['visibility_product'] ?? false) ||
+            Yii::$app->controller->id == 'catalog' && Yii::$app->controller->action->id == 'index' && ($settings[0]['visibility_catalog'] ?? false) ||
+            Yii::$app->controller->id == 'info' && Yii::$app->controller->action->id == 'index' && ($settings[0]['visibility_info'] ?? false) ||
+            Yii::$app->controller->id == 'shopping-cart' && Yii::$app->controller->action->id == 'index' && ($settings[0]['visibility_cart'] ?? false) ||
+            Yii::$app->controller->id == 'checkout' && Yii::$app->controller->action->id != 'success' && ($settings[0]['visibility_checkout'] ?? false) ||
+            Yii::$app->controller->id == 'checkout' && Yii::$app->controller->action->id == 'success' && ($settings[0]['visibility_success'] ?? false) ||
+            Yii::$app->controller->id == 'account' && Yii::$app->controller->action->id != 'login' && ($settings[0]['visibility_account'] ?? false) ||
+            Yii::$app->controller->id == 'account' && Yii::$app->controller->action->id == 'login' && ($settings[0]['visibility_login'] ?? false)
+        ) {
             return true;
-        } elseif(
-                !(Yii::$app->controller->id == 'index' && Yii::$app->controller->action->id == 'index' ||
-                    Yii::$app->controller->id == 'index' && Yii::$app->controller->action->id == 'design' ||
-                    Yii::$app->controller->id == 'catalog' && Yii::$app->controller->action->id == 'product' ||
-                    Yii::$app->controller->id == 'catalog' && Yii::$app->controller->action->id == 'index' ||
-                    Yii::$app->controller->id == 'info' && Yii::$app->controller->action->id == 'index' ||
-                    Yii::$app->controller->id == 'shopping-cart' && Yii::$app->controller->action->id == 'index' ||
-                    Yii::$app->controller->id == 'checkout' && Yii::$app->controller->action->id != 'success' ||
-                    Yii::$app->controller->id == 'checkout' && Yii::$app->controller->action->id == 'success' ||
-                    Yii::$app->controller->id == 'account' && Yii::$app->controller->action->id != 'login' ||
-                    Yii::$app->controller->id == 'account' && Yii::$app->controller->action->id == 'login') &&
-                ($settings[0]['visibility_other'] ?? false)
-            ) {
+        } elseif (
+            !(Yii::$app->controller->id == 'index' && Yii::$app->controller->action->id == 'index' ||
+                Yii::$app->controller->id == 'index' && Yii::$app->controller->action->id == 'design' ||
+                Yii::$app->controller->id == 'catalog' && Yii::$app->controller->action->id == 'product' ||
+                Yii::$app->controller->id == 'catalog' && Yii::$app->controller->action->id == 'index' ||
+                Yii::$app->controller->id == 'info' && Yii::$app->controller->action->id == 'index' ||
+                Yii::$app->controller->id == 'shopping-cart' && Yii::$app->controller->action->id == 'index' ||
+                Yii::$app->controller->id == 'checkout' && Yii::$app->controller->action->id != 'success' ||
+                Yii::$app->controller->id == 'checkout' && Yii::$app->controller->action->id == 'success' ||
+                Yii::$app->controller->id == 'account' && Yii::$app->controller->action->id != 'login' ||
+                Yii::$app->controller->id == 'account' && Yii::$app->controller->action->id == 'login') &&
+            ($settings[0]['visibility_other'] ?? false)
+        ) {
             return true;
         } else {
             return false;
         }
     }
 
-    public static function getStyles(){
+    public static function getStyles()
+    {
         global $block_styles;
 
         return \backend\design\Style::getStylesWrapper($block_styles);
@@ -481,30 +487,28 @@ class Block extends Widget
 
         $style .= \backend\design\Style::getAttributes(@$settings[0]);
 
-        if (isset($settings[0]['display_none']) && $settings[0]['display_none']){
+        if (isset($settings[0]['display_none']) && $settings[0]['display_none']) {
             $style .= 'display:none;';
         }
-        if (isset($settings[0]['status']) && $settings[0]['status'] == 'hidden'){ // for admin area
+        if (isset($settings[0]['status']) && $settings[0]['status'] == 'hidden') { // for admin area
             $style .= 'opacity:0.5;z-index:1000;';
         }
 
-        if (isset($settings[0]['box_align']) && $settings[0]['box_align']){
-            if ($settings[0]['box_align'] == 1){
+        if (isset($settings[0]['box_align']) && $settings[0]['box_align']) {
+            if ($settings[0]['box_align'] == 1) {
                 $style .= 'float: left;clear: none;';
             }
-            if ($settings[0]['box_align'] == 2){
+            if ($settings[0]['box_align'] == 2) {
                 $style .= 'display: inline-block;';
             }
-            if ($settings[0]['box_align'] == 3){
+            if ($settings[0]['box_align'] == 3) {
                 $style .= 'float: right;clear: none;';
             }
         }
 
-
         if ($style && $teg) {
             $style = ' style="' . $style . '"';
         }
-
 
         return $style;
     }
@@ -512,19 +516,19 @@ class Block extends Widget
     public function colInRow($val, $id)
     {
 
-        $htm = '#box-' . $id . ' .products-listing.cols-' . $val . ' div.item:nth-child(n){clear:none;width:' . round(100/$val, 4) . '%}';
+        $htm = '#box-' . $id . ' .products-listing.cols-' . $val . ' div.item:nth-child(n){clear:none;width:' . round(100 / $val, 4) . '%}';
         $htm .= '#box-' . $id . ' .products-listing.cols-' . $val . ' div.item:nth-child(' . $val . 'n+1){clear: both}';
         $htm .= '#box-' . $id . ' .products-listing.cols-1 div.item:nth-child(n){clear:none;width:100%}';
         $htm .= '#box-' . $id . ' .products-listing.cols-1 div.item{clear: both}';
 
-        $htm .= '#box-' . $id . ' .items-list .item{width:' . (floor(10000/$val) / 100) . '%}';
+        $htm .= '#box-' . $id . ' .items-list .item{width:' . (floor(10000 / $val) / 100) . '%}';
 
         return $htm;
     }
 
     public static function nameToClass($name)
     {
-        $class = preg_replace('/([A-Z])/', "-\$1", $name);
+        $class = preg_replace('/([A-Z])/', '-$1', $name);
         $class = str_replace('\\', '-', $class);
         $class = ' w-' . $class;
         $class = str_replace('--', '-', $class);
@@ -557,7 +561,7 @@ class Block extends Widget
 
     public static function addToWidgetsList($name)
     {
-        if (!in_array($name, self::$widgetsList)){
+        if (!in_array($name, self::$widgetsList)) {
             self::$widgetsList[] = $name;
         }
     }

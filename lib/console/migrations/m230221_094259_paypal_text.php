@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,9 +24,9 @@ class m230221_094259_paypal_text extends Migration
      */
     public function safeUp()
     {
-        
+
         $this->addTranslation('payment', [
-          'PAYPAL_PARTNER_SELLER_SETUP' => 'New account is being set up. Please NOTE: old one are yet active until your final confirmation.'
+          'PAYPAL_PARTNER_SELLER_SETUP' => 'New account is being set up. Please NOTE: old one are yet active until your final confirmation.',
         ]);
 
     }

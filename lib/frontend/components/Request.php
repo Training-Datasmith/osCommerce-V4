@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,8 @@
 
 namespace frontend\components;
 
-
-class Request extends \yii\web\Request {
-
+class Request extends \yii\web\Request
+{
     public function getIsAjax()
     {
         $origin = $this->headers->get('Origin');

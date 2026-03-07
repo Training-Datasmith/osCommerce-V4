@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -24,10 +26,9 @@ namespace Stripe;
  */
 class PromotionCode extends ApiResource
 {
-    const OBJECT_NAME = 'promotion_code';
-
     use ApiOperations\All;
     use ApiOperations\Create;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
+    public const OBJECT_NAME = 'promotion_code';
 }

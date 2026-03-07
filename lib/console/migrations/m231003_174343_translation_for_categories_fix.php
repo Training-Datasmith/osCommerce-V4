@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -33,7 +35,7 @@ class m231003_174343_translation_for_categories_fix extends Migration
     public function safeDown()
     {
         $this->removeTranslation('admin/categories/productedit', [
-            'TEXT_OVERWRITE_NON_EMPTY_FIELDS'
+            'TEXT_OVERWRITE_NON_EMPTY_FIELDS',
         ]);
     }
 

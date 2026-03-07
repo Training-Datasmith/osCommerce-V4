@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -27,7 +29,6 @@ class m221031_194901_tax_rate_company_Address extends Migration
         $this->db->createCommand("update tax_rates set company_address='Rokicinska 168, 92412, Lodz, Poland <br>Company Registration No. 64641' where company_address='' and company_number<>'' and tax_description LIKE '%poland%'")->execute();
         $this->db->createCommand("update tax_rates set company_address='Unit 21 Fonthill Business Park, Fonthill Road, Clondalkin, D22 FR82, Ireland' where company_address='' ")->execute();
 
-
     }
 
     /**
@@ -35,9 +36,9 @@ class m221031_194901_tax_rate_company_Address extends Migration
      */
     public function safeDown()
     {
-//        echo "m221031_194901_tax_rate_company_Address cannot be reverted.\n";
+        //        echo "m221031_194901_tax_rate_company_Address cannot be reverted.\n";
 
-//        return false;
+        //        return false;
     }
 
     /*

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 class ProductsStockIndication extends ActiveRecord
@@ -41,17 +42,14 @@ class ProductsStockIndication extends ActiveRecord
      */
     public function getCurrentText($language_id = null)
     {
-        if(!is_null($language_id))
-        {
+        if (!is_null($language_id)) {
             return static::find()
-                ->joinWith('productsStockIndicationText', function($q) use ($language_id) {
+                ->joinWith('productsStockIndicationText', function ($q) use ($language_id) {
                     $q->andWhere(['language_id' => $language_id]);
                 })
                 ->limit(1)
                 ->one();
-        }
-        else
-        {
+        } else {
             return null;
         }
     }
@@ -60,20 +58,22 @@ class ProductsStockIndication extends ActiveRecord
      * find default ProductsStockIndication
      * @return null|object
      */
-    static public function getDefault()
+    public static function getDefault()
     {
         return static::findOne(['is_default' => 1]);
     }
-    
-    public static function getHidden(){
+
+    public static function getHidden()
+    {
         static $_cached = null;
-        if (is_null($_cached)){
+        if (is_null($_cached)) {
             $_cached = self::findAll(['is_hidden' => 1]);
         }
         return $_cached;
     }
-    
-    public function beforeDelete() {
+
+    public function beforeDelete()
+    {
         if (!parent::beforeDelete()) {
             return false;
         }

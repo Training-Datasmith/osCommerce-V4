@@ -1,13 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\classes\CPC;
 
 use yii\caching\TagDependency;
 
 class CPCFileCache extends CPCBase implements CPCCacheInterface
 {
-
-    static $cache;
+    public static $cache;
 
     /**
      * @inheritDoc
@@ -35,7 +36,6 @@ class CPCFileCache extends CPCBase implements CPCCacheInterface
         return self::$cache[$cacheId] ?? null;
     }
 
-
     /**
      * @inheritDoc
      */
@@ -54,8 +54,12 @@ class CPCFileCache extends CPCBase implements CPCCacheInterface
      */
     public static function invalidateCategories($categoriesIds): void
     {
-        if (empty($categoriesIds)) return;
-        if (!is_array($categoriesIds)) $categoriesIds = [$categoriesIds];
+        if (empty($categoriesIds)) {
+            return;
+        }
+        if (!is_array($categoriesIds)) {
+            $categoriesIds = [$categoriesIds];
+        }
         // include all parents
         $categoriesIds = \common\models\Categories::find()->alias('c')
             ->withNestedCategories()
@@ -114,7 +118,9 @@ class CPCFileCache extends CPCBase implements CPCCacheInterface
      */
     public static function invalidatePlatforms($platformsIds): void
     {
-        if (!is_array($platformsIds)) $platformsIds = [$platformsIds];
+        if (!is_array($platformsIds)) {
+            $platformsIds = [$platformsIds];
+        }
         if (!empty($platformsIds)) {
             self::$cache = null;
             foreach ($platformsIds as $platformId) {
@@ -133,7 +139,9 @@ class CPCFileCache extends CPCBase implements CPCCacheInterface
     private static function addResultFromCache(&$res, $categoriesIds, $platformId, $groupId)
     {
         $notCachedIds = [];
-        if (!is_array($categoriesIds)) $categoriesIds = [$categoriesIds];
+        if (!is_array($categoriesIds)) {
+            $categoriesIds = [$categoriesIds];
+        }
         $cached = self::getCached($platformId, $groupId);
         if (empty($cached)) {
             $notCachedIds = $categoriesIds;
@@ -152,7 +160,7 @@ class CPCFileCache extends CPCBase implements CPCCacheInterface
     private static function updateCacheWithNewCats(array $categoriesIds, $platformId, $groupId = 0)
     {
         $res = parent::runQuery($platformId, $groupId, $categoriesIds);
-        foreach($categoriesIds as $categoriyId) {
+        foreach ($categoriesIds as $categoriyId) {
             if (!isset($res[$categoriyId])) {
                 $res[$categoriyId] = 0;
             }
@@ -175,7 +183,7 @@ class CPCFileCache extends CPCBase implements CPCCacheInterface
     private static function setCache($platformId, $groupId, array $res)
     {
         $cacheId = self::getCacheName($platformId, $groupId);
-        \Yii::$app->getCache()->set($cacheId, $res, 0, new TagDependency(['tags' => ['cpcc_all', 'cpcc_platform'.$platformId, 'cpcc_group'.$groupId]]) );
+        \Yii::$app->getCache()->set($cacheId, $res, 0, new TagDependency(['tags' => ['cpcc_all', 'cpcc_platform'.$platformId, 'cpcc_group'.$groupId]]));
         self::$cache[$cacheId] = $res;
     }
 

@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "modules_visibility".
@@ -31,7 +31,7 @@ class ModulesVisibility extends \yii\db\ActiveRecord
             [['platform_id'], 'required'],
             [['platform_id'], 'integer'],
             [['area'], 'string'],
-            [['code'], 'string', 'max' => 64]
+            [['code'], 'string', 'max' => 64],
         ];
     }
 

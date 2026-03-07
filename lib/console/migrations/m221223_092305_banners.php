@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -24,7 +26,7 @@ class m221223_092305_banners extends Migration
     {
         $this->alterColumn('banners_new', 'banners_group', $this->string(255)->notNull()->defaultValue(''));
 
-        $this->addTranslation('admin/banner_manager',[
+        $this->addTranslation('admin/banner_manager', [
             'IMAGE_VIDEO_WIDTH' => 'Image/video width',
             'OPEN_LINK_IN_NEW_TAB' => 'Open link in new tab',
             'GROUP_RESOLUTIONS' => 'Group resolutions',
@@ -33,7 +35,6 @@ class m221223_092305_banners extends Migration
             'WINDOW_WIDTH' => 'Window width',
             'IMAGE_VIDEO_SIZES' => 'Image/video sizes',
         ]);
-
 
         // DELETE b FROM banners_new b LEFT JOIN banners_languages l on b.banners_id = l.banners_id WHERE l.banners_id IS NULL
     }

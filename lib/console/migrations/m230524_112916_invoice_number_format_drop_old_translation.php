@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,10 +24,8 @@ class m230524_112916_invoice_number_format_drop_old_translation extends Migratio
      */
     public function safeUp()
     {
-        if (method_exists($this, 'isOldExtension'))
-        {
-            if (!$this->isOldExtension('InvoiceNumberFormat'))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension('InvoiceNumberFormat')) {
                 $this->removeTranslation('admin/invoice_nformat');
             }
         }

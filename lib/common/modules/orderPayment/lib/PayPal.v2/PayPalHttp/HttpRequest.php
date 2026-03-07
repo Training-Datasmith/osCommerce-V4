@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPalHttp;
 
 /**
@@ -32,11 +34,11 @@ class HttpRequest
      */
     public $headers;
 
-    function __construct($path, $verb)
+    public function __construct($path, $verb)
     {
         $this->path = $path;
         $this->verb = $verb;
-        $this->body = NULL;
+        $this->body = null;
         $this->headers = [];
     }
 }

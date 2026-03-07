@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -19,7 +21,7 @@ class PatchRequest extends PayPalModel
      * Placeholder for holding array of patch objects
      *
      * @param \PayPal\Api\Patch[] $patches
-     * 
+     *
      * @return $this
      */
     public function setPatches($patches)
@@ -47,10 +49,10 @@ class PatchRequest extends PayPalModel
     public function addPatch($patch)
     {
         if (!$this->getPatches()) {
-            return $this->setPatches(array($patch));
+            return $this->setPatches([$patch]);
         } else {
             return $this->setPatches(
-                array_merge($this->getPatches(), array($patch))
+                array_merge($this->getPatches(), [$patch])
             );
         }
     }
@@ -64,7 +66,7 @@ class PatchRequest extends PayPalModel
     public function removePatch($patch)
     {
         return $this->setPatches(
-            array_diff($this->getPatches(), array($patch))
+            array_diff($this->getPatches(), [$patch])
         );
     }
 
@@ -77,7 +79,7 @@ class PatchRequest extends PayPalModel
      */
     public function toJSON($options = 0)
     {
-        $json = array();
+        $json = [];
         foreach ($this->getPatches() as $patch) {
             $json[] = $patch->toArray();
         }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,29 +25,34 @@ class m230315_161731_fix_translation_en5 extends Migration
     public function safeUp()
     {
 
+        $this->addTranslation('admin/coupon_admin', ['COUPON_AMOUNT_WITH_TAX_HELP' => 'Is used to determine taxed or not if Discount is Fixed'], true);
+        $this->addTranslation('admin/reviews', ['ENTRY_REVIEW_RATING' => 'Edit review/rating'], true);
+        $this->addTranslation('admin/design', ['SHOW_PAGENATION' => 'Show pagination'], true);
 
-        $this->addTranslation('admin/coupon_admin', ['COUPON_AMOUNT_WITH_TAX_HELP' => 'Is used to determine taxed or not if Discount is Fixed'],true);
-        $this->addTranslation('admin/reviews', ['ENTRY_REVIEW_RATING' => 'Edit review/rating'],true);
-        $this->addTranslation('admin/design', ['SHOW_PAGENATION' => 'Show pagination'],true);
-
-        $this->addTranslation('admin/main',
+        $this->addTranslation(
+            'admin/main',
             [
                 'ERROR_TEMPLATE_IMAGE_DIRECTORY_DOES_NOT_EXIST' => "Error: Templates image directory doesn't exists:",
                 'TEXT_ADJUST_EXPLANATION' => 'Order has difference happened in rounding. You may adjust it hiding difference it tax',
                 'TEXT_CONFIRM_SORT_GROUPPED' => 'Do you really want to sort groupped products and place them together',
                 'TEXT_MESSEAGE_SUCCESS_ADDED' => 'Successfully added',
-            ],true);
+            ],
+            true
+        );
 
-        $this->addTranslation('admin/orders',
+        $this->addTranslation(
+            'admin/orders',
             [
                 'NOT_FULL_ADDRESS' => 'Full address is not available. Authorization is not complete. Click on auth ID to check/update its status',
                 'TEXT_CUSTOMER_COMMENTS' => 'Customers Comments',
-            ],true);
+            ],
+            true
+        );
 
         $this->addTranslation('main', [
                 'TEXT_LOYALTY_NEED_SUBSCRIBE_TS' => 'Subscribe with email notifications and take a part in our loyalty programme',
                 'TEXT_WEDDING_EXISTS' => 'Your partner already has registered wedding',
-            ],true);
+            ], true);
 
         if (!$this->isOldProject() && !$this->isOldExtension('WeddingRegistry')) {
             $this->removeTranslation('main', ['TEXT_WEDDING_EXISTS']);

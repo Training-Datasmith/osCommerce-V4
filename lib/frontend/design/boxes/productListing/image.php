@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,11 @@
 
 namespace frontend\design\boxes\productListing;
 
-use yii\base\Widget;
 use common\classes\Images;
+use yii\base\Widget;
 
 class image extends Widget
 {
-
     public $file;
     public $params;
     public $settings;

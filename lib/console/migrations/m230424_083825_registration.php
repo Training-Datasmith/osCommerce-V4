@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -27,17 +29,17 @@ class m230424_083825_registration extends Migration
             'cev_email' => $this->string(64)->notNull(),
             'cev_code' => $this->string(64)->notNull(),
         ]);
-        
-        $this->addTranslation('main',[
+
+        $this->addTranslation('main', [
             'TEXT_EMAIL_VERIFICATION' => 'Start email validation',
             'TEXT_VERIFICATION_CODE' => 'Verification code for email address',
             'EMPTY_EMAIL_ERROR' => 'Email address cant be empty',
             'ENTRY_VERIFICATION_CODE_ERROR' => 'Wrong email verification code',
         ]);
-        
+
         $check = (new yii\db\Query())->from('configuration')->where(['configuration_key' => 'FLAG_EMAIL_VERIFICATION'])->exists();
         if (!$check) {
-            $this->insert('configuration',[
+            $this->insert('configuration', [
                 'configuration_title' => 'Email verification before registration',
                 'configuration_key' => 'FLAG_EMAIL_VERIFICATION',
                 'configuration_value' => 'False',

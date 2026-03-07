@@ -1,20 +1,22 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-
 namespace common\models;
 
-use yii\db\ActiveRecord;
 use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
+
 /**
  * This is the model class for table "customers_basket".
  *
@@ -39,19 +41,21 @@ use yii\behaviors\TimestampBehavior;
  * @property string $elements
  */
 
-class CustomersBasket extends ActiveRecord {
-
-    public static function tableName() {
+class CustomersBasket extends ActiveRecord
+{
+    public static function tableName()
+    {
         return 'customers_basket';
     }
-    
-    public function behaviors() {
+
+    public function behaviors()
+    {
         return [
             [
                 'class' => TimestampBehavior::className(),
                 'attributes' => [
                     ActiveRecord::EVENT_BEFORE_INSERT => ['customers_basket_date_added'],
-                ],              
+                ],
                  'value' => date('Ymd'),
             ],
         ];
@@ -85,24 +89,26 @@ class CustomersBasket extends ActiveRecord {
         ];
     }
 
-    public function getProductAttributes() {
+    public function getProductAttributes()
+    {
         return $this->hasMany(CustomersBasketAttributes::className(), ['products_id' => 'products_id', 'customers_id' => 'customers_id', 'basket_id' => 'basket_id']);
     }
-    
+
     /*$product is element of shopping cart content*/
-    public static function saveProduct( $product, $customer_id, $cart ){
-        
-        if ($product && $customer_id){
+    public static function saveProduct($product, $customer_id, $cart)
+    {
+
+        if ($product && $customer_id) {
             $products_id = key($product);
             $val = current($product);
             $qty = (int) $val['qty'];
             $productBasket_query = self::find()->where([
                 'customers_id' => (int) $customer_id,
-                'products_id' => $products_id,                
+                'products_id' => $products_id,
             ]);
             $multi_customer_id = 0;
             if ($CustomersMultiEmails = \common\helpers\Acl::checkExtension('CustomersMultiEmails', 'allowed')) {
-                if($CustomersMultiEmails::allowed()) {
+                if ($CustomersMultiEmails::allowed()) {
                     $is_multi = \Yii::$app->get('storage')->get('is_multi');
                     if ($is_multi) {
                         $multi_customer_id = (int)\Yii::$app->get('storage')->get('multi_customer_id');
@@ -110,18 +116,18 @@ class CustomersBasket extends ActiveRecord {
                     $productBasket_query->andWhere(['multi_email_id' => $multi_customer_id]);
                 }
             }
-            if (isset($val['gaw_id']) && $val['gaw_id']){
+            if (isset($val['gaw_id']) && $val['gaw_id']) {
                 $productBasket_query->andWhere(['is_giveaway' => 1]);
             } else {
                 $productBasket_query->andWhere(['is_giveaway' => 0]);
             }
-            
-            if( $multiCart = \common\helpers\Extensions::isAllowed('MultiCart') ) {
+
+            if ($multiCart = \common\helpers\Extensions::isAllowed('MultiCart')) {
                 $multiCart::productsOfCart($productBasket_query, $cart->basketID);
             }
             $productBasket = $productBasket_query->one();
-            
-            if (!$productBasket){
+
+            if (!$productBasket) {
                 $productBasket = new self();
             } else {
                 $qty = \common\helpers\Product::filter_product_order_quantity($products_id, /*$productBasket->customers_basket_quantity + */$qty);
@@ -131,33 +137,33 @@ class CustomersBasket extends ActiveRecord {
                 'products_id' => tep_db_input($products_id),
                 'customers_basket_quantity' => $qty,
                 'parent_product' => strval($val['parent']),
-                'relation_type' => (isset($val['relation_type'])?strval($val['relation_type']):''),
+                'relation_type' => (isset($val['relation_type']) ? strval($val['relation_type']) : ''),
                 'basket_id' => (int)$cart->basketID,
-                'platform_id' => (isset($val['platform_id'])?strval($val['platform_id']):(int)\common\classes\platform::currentId()),
+                'platform_id' => (isset($val['platform_id']) ? strval($val['platform_id']) : (int)\common\classes\platform::currentId()),
                 'language_id' => (int)$cart->language_id,
                 'currency' => $cart->currency,
                 'is_giveaway' => 0,
                 'multi_email_id' => $multi_customer_id,
             ], false);
             //givw away
-            if (isset($val['gaw_id']) && $val['gaw_id']){
+            if (isset($val['gaw_id']) && $val['gaw_id']) {
                 $productBasket->is_giveaway = 1;
                 $productBasket->gaw_id = $val['gaw_id'];
             }
-            
-            $productBasket->setAttribute('props', isset($val['props'])?$val['props']:'');
-            
-            if (($val['is_pack'] ?? false)){
+
+            $productBasket->setAttribute('props', isset($val['props']) ? $val['props'] : '');
+
+            if (($val['is_pack'] ?? false)) {
                 $productBasket->setAttributes([
                     'is_pack' => 1,
                     'unit' => (int)$val['unit'],
                     'pack_unit' => (int)$val['pack_unit'],
                     'packaging' => (int)$val['packaging'],
                     ], false);
-            }            
-            
-            if (!$productBasket->hasErrors()){
-                if ($productBasket->save(false)){
+            }
+
+            if (!$productBasket->hasErrors()) {
+                if ($productBasket->save(false)) {
                     CustomersBasketAttributes::saveProductAttributes($product, $customer_id, $cart);
                     if (isset($val['gift_wrap']) && !CustomersBasketAttributes::hasGiftWrapAttribute($products_id, $customer_id, $cart->basketID)) {
                         $product[$products_id]['attributes'] = ['gift_wrap' => $val['gift_wrap'] ];
@@ -165,16 +171,17 @@ class CustomersBasket extends ActiveRecord {
                     }
                 }
             }
-        }        
+        }
     }
-    
-    public static function getProducts( $customer_id, $basket_id = null ){
+
+    public static function getProducts($customer_id, $basket_id = null)
+    {
         $productBasket = [];
-        if ($customer_id){
+        if ($customer_id) {
             $productBasket_query = CustomersBasket::find()->where('customers_id = "' . (int) $customer_id . '" and is_giveaway = 0');
 
             if ($CustomersMultiEmails = \common\helpers\Acl::checkExtension('CustomersMultiEmails', 'allowed')) {
-                if($CustomersMultiEmails::allowed()) {
+                if ($CustomersMultiEmails::allowed()) {
                     $is_multi = \Yii::$app->get('storage')->get('is_multi');
                     if ($is_multi) {
                         $multi_customer_id = (int)\Yii::$app->get('storage')->get('multi_customer_id');
@@ -184,29 +191,30 @@ class CustomersBasket extends ActiveRecord {
                     $productBasket_query->andWhere(['multi_email_id' => $multi_customer_id]);
                 }
             }
-            
+
             /* filter by current frontend */
             if (defined('SHOPPING_CART_SHARE') && \common\classes\platform::activeId() && SHOPPING_CART_SHARE == 'False') {
-              $productBasket_query->andWhere(['platform_id' => \common\classes\platform::activeId()]);
+                $productBasket_query->andWhere(['platform_id' => \common\classes\platform::activeId()]);
             }
 
             /** @var \common\extensions\MultiCart\MultiCart  $multiCart */
-            if( $multiCart = \common\helpers\Extensions::isAllowed('MultiCart') ) {
+            if ($multiCart = \common\helpers\Extensions::isAllowed('MultiCart')) {
                 $multiCart::productsOfCart($productBasket_query, $basket_id);
             }
-            
+
             $productBasket = $productBasket_query->with('productAttributes')
                     ->asArray()->all();
         }
-        
+
         return $productBasket;
     }
-    
-    public function beforeDelete() {
-        if (!$this->is_giveaway){
+
+    public function beforeDelete()
+    {
+        if (!$this->is_giveaway) {
             $multi_customer_id = 0;
             if ($CustomersMultiEmails = \common\helpers\Acl::checkExtension('CustomersMultiEmails', 'allowed')) {
-                if($CustomersMultiEmails::allowed()) {
+                if ($CustomersMultiEmails::allowed()) {
                     $is_multi = \Yii::$app->get('storage')->get('is_multi');
                     if ($is_multi) {
                         $multi_customer_id = (int)\Yii::$app->get('storage')->get('multi_customer_id');
@@ -222,14 +230,15 @@ class CustomersBasket extends ActiveRecord {
         }
         return parent::beforeDelete();
     }
-    
-    public static function deleteProduct($customer_id, $products_id, $is_giveaway = 0){
-        if ($customer_id && $products_id){
-            
+
+    public static function deleteProduct($customer_id, $products_id, $is_giveaway = 0)
+    {
+        if ($customer_id && $products_id) {
+
             $productBasket_query = self::find()->where(['customers_id' => (int) $customer_id, 'products_id' => $products_id]);
-            
+
             if ($CustomersMultiEmails = \common\helpers\Acl::checkExtension('CustomersMultiEmails', 'allowed')) {
-                if($CustomersMultiEmails::allowed()) {
+                if ($CustomersMultiEmails::allowed()) {
                     $is_multi = \Yii::$app->get('storage')->get('is_multi');
                     if ($is_multi) {
                         $multi_customer_id = (int)\Yii::$app->get('storage')->get('multi_customer_id');
@@ -239,30 +248,31 @@ class CustomersBasket extends ActiveRecord {
                     $productBasket_query->andWhere(['multi_email_id' => $multi_customer_id]);
                 }
             }
-            
-            if ($is_giveaway){
+
+            if ($is_giveaway) {
                 $productBasket_query->andWhere(['is_giveaway' => 1]);
             }
-            if( $multiCart = \common\helpers\Extensions::isAllowed('MultiCart') ) {
+            if ($multiCart = \common\helpers\Extensions::isAllowed('MultiCart')) {
                 $multiCart::productsOfCart($productBasket_query);
             }
             $productBasket = $productBasket_query->one();
-            if ($productBasket){
+            if ($productBasket) {
                 $productBasket->delete();
-            }                        
+            }
         }
     }
-    
-    public static function clearBasket($customer_id, $is_giveaway = 0, $basket_id=null){
-        if ($customer_id){
+
+    public static function clearBasket($customer_id, $is_giveaway = 0, $basket_id = null)
+    {
+        if ($customer_id) {
             $productBasket_query = self::find()->where(['customers_id' => (int) $customer_id]);
 
             if (defined('SHOPPING_CART_SHARE') && \common\classes\platform::activeId() && SHOPPING_CART_SHARE == 'False') {
-              $productBasket_query->andWhere(['platform_id' => \common\classes\platform::activeId()]);
+                $productBasket_query->andWhere(['platform_id' => \common\classes\platform::activeId()]);
             }
-            
+
             if ($CustomersMultiEmails = \common\helpers\Acl::checkExtension('CustomersMultiEmails', 'allowed')) {
-                if($CustomersMultiEmails::allowed()) {
+                if ($CustomersMultiEmails::allowed()) {
                     $is_multi = \Yii::$app->get('storage')->get('is_multi');
                     if ($is_multi) {
                         $multi_customer_id = (int)\Yii::$app->get('storage')->get('multi_customer_id');
@@ -273,34 +283,36 @@ class CustomersBasket extends ActiveRecord {
                 }
             }
 
-            if ($is_giveaway){
+            if ($is_giveaway) {
                 $productBasket_query->andWhere(['is_giveaway' => 1]);
             }
 
-            if( $multiCart = \common\helpers\Extensions::isAllowed('MultiCart') ) {
+            if ($multiCart = \common\helpers\Extensions::isAllowed('MultiCart')) {
                 $multiCart::productsOfCart($productBasket_query, $basket_id);
             }
 
             $productBasket = $productBasket_query->all();
-            if ($productBasket){
-                foreach($productBasket as $product){
+            if ($productBasket) {
+                foreach ($productBasket as $product) {
                     $product->delete();
                 }
             }
         }
     }
-    
-    public static function clearGiveaway($customer_id){
-        if ($customer_id){            
+
+    public static function clearGiveaway($customer_id)
+    {
+        if ($customer_id) {
             self::clearBasket($customer_id, 1);
         }
     }
-    
-    public static function getBasketId($customer_id) {
-        if ($customer_id > 0){
-            $additional = "";
+
+    public static function getBasketId($customer_id)
+    {
+        if ($customer_id > 0) {
+            $additional = '';
             if ($CustomersMultiEmails = \common\helpers\Acl::checkExtension('CustomersMultiEmails', 'allowed')) {
-                if($CustomersMultiEmails::allowed()) {
+                if ($CustomersMultiEmails::allowed()) {
                     $is_multi = \Yii::$app->get('storage')->get('is_multi');
                     if ($is_multi) {
                         $multi_customer_id = (int)\Yii::$app->get('storage')->get('multi_customer_id');
@@ -311,7 +323,9 @@ class CustomersBasket extends ActiveRecord {
                 }
             }
             $b = self::find()->where("customers_id = '" . (int) $customer_id . "'" . $additional)->distinct()->one();
-            if ($b) return $b->basket_id;
+            if ($b) {
+                return $b->basket_id;
+            }
         }
         return false;
     }
@@ -368,13 +382,13 @@ class CustomersBasket extends ActiveRecord {
      * @param string $elements
      * @return array|CustomersBasket|null|ActiveRecord
      */
-    public static function create($customers_id=0,$products_id='0',$customers_basket_quantity=0,$parent_product='',$is_giveaway=0,$gaw_id=0,$is_pack=0,$unit=0,$pack_unit=0,$packaging=0,$basket_id=0,$platform_id=0,$language_id=0,$currency='',$final_price=0.00,$is_temlplate=0,$elements='')
+    public static function create($customers_id = 0, $products_id = '0', $customers_basket_quantity = 0, $parent_product = '', $is_giveaway = 0, $gaw_id = 0, $is_pack = 0, $unit = 0, $pack_unit = 0, $packaging = 0, $basket_id = 0, $platform_id = 0, $language_id = 0, $currency = '', $final_price = 0.00, $is_temlplate = 0, $elements = '')
     {
-        if((int)$customers_id < 1 || $customers_basket_quantity < 1 ){
+        if ((int)$customers_id < 1 || $customers_basket_quantity < 1) {
             throw new \DomainException('wrong input data');
         }
-        $model = static::find()->where(['customers_id'=>$customers_id,'products_id'=>$products_id ])->limit(1)->one();
-        if(is_null($model)){
+        $model = static::find()->where(['customers_id' => $customers_id,'products_id' => $products_id ])->limit(1)->one();
+        if (is_null($model)) {
             $model = new static();
         }
         $model->customers_basket_date_added = date('Ymd');
@@ -384,7 +398,7 @@ class CustomersBasket extends ActiveRecord {
         $model->parent_product = $parent_product;
         $model->is_giveaway = $is_giveaway;
         $model->gaw_id = $gaw_id;
-        $model->is_pack =$is_pack;
+        $model->is_pack = $is_pack;
         $model->unit = $unit;
         $model->pack_unit = $pack_unit;
         $model->packaging = $packaging;
@@ -396,7 +410,7 @@ class CustomersBasket extends ActiveRecord {
         $model->is_temlplate = $is_temlplate;
         $model->elements = $elements;
         if ($CustomersMultiEmails = \common\helpers\Acl::checkExtension('CustomersMultiEmails', 'allowed')) {
-            if($CustomersMultiEmails::allowed()) {
+            if ($CustomersMultiEmails::allowed()) {
                 $is_multi = \Yii::$app->get('storage')->get('is_multi');
                 if ($is_multi) {
                     $multi_customer_id = (int)\Yii::$app->get('storage')->get('multi_customer_id');

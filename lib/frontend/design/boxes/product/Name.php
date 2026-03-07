@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\product;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Name extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -48,24 +49,24 @@ class Name extends Widget
 
         Yii::$app->getView()->registerMetaTag([
             'property' => 'og:title',
-            'content' => $name
-        ],'og:title');
+            'content' => $name,
+        ], 'og:title');
 
         \frontend\design\JsonLd::addData(['Product' => [
-            'name' => $name
+            'name' => $name,
         ]], ['Product', 'name']);
         if ($name2 && $name != $name2) {
             \frontend\design\JsonLd::addData(['Product' => [
-                'alternateName' => $name2
+                'alternateName' => $name2,
             ]], ['Product', 'alternateName']);
         }
         return IncludeTpl::widget(['file' => 'boxes/product/name.tpl', 'params' => [
             'name' => \common\helpers\Html::fixHtmlTags($product['products_name']),
             'h1' => \common\helpers\Html::fixHtmlTags($product['products_h1_tag']),
-            'params'=> $this->params,
-            'settings'=> $this->settings,
+            'params' => $this->params,
+            'settings' => $this->settings,
             'productUrl' => Yii::$app->urlManager->createAbsoluteUrl([
-                'catalog/product', 'products_id' => $params['products_id']])
+                'catalog/product', 'products_id' => $params['products_id']]),
         ]]);
     }
 }

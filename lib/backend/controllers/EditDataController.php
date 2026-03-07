@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -14,13 +16,13 @@
 namespace backend\controllers;
 
 use Yii;
-use yii\helpers\Html;
 
-class EditDataController extends Sceleton {
-
+class EditDataController extends Sceleton
+{
     public $acl = [];
 
-    public function actionInfo() {
+    public function actionInfo()
+    {
 
         \common\helpers\Acl::checkAccess(\frontend\design\EditData::getAccessRule('info'));
 
@@ -41,13 +43,15 @@ class EditDataController extends Sceleton {
 
         if (Yii::$app->request->isPost) {
             $fields = Yii::$app->request->post('field');
-            foreach( $platforms as $platform ) {
+            foreach ($platforms as $platform) {
                 foreach ($languages as $i => $language) {
-                    if (!$fields[$platform['id']][$language['id']]) continue;
+                    if (!$fields[$platform['id']][$language['id']]) {
+                        continue;
+                    }
                     $page = \common\models\Information::findOne([
                         'platform_id' => $platform['id'],
                         'languages_id' => $language['id'],
-                        'information_id' => $pageId
+                        'information_id' => $pageId,
                     ]);
                     if (in_array($fieldName, $splitTags)) {
 
@@ -59,7 +63,7 @@ class EditDataController extends Sceleton {
                         $value = $fields[$platform['id']][$language['id']];
                     }
                     $page->attributes = [
-                        $fieldName => $value
+                        $fieldName => $value,
                     ];
                     $page->save(false);
 
@@ -67,9 +71,8 @@ class EditDataController extends Sceleton {
             }
         }
 
-
         $fields = [];
-        foreach( $platforms as $platform ) {
+        foreach ($platforms as $platform) {
             foreach ($languages as $i => $language) {
                 $data = \backend\components\Information::read_data($pageId, $language['id'], $platform['id']);
                 if (in_array($fieldName, $splitTags)) {
@@ -84,8 +87,9 @@ class EditDataController extends Sceleton {
             }
         }
 
-
-        if (!is_array($fields)) return false;
+        if (!is_array($fields)) {
+            return false;
+        }
 
         $ckEditor = false;
         if ($fieldName == 'description') {
@@ -127,13 +131,15 @@ class EditDataController extends Sceleton {
 
         if (Yii::$app->request->isPost) {
             $fields = Yii::$app->request->post('field');
-            foreach( $platforms as $platform ) {
+            foreach ($platforms as $platform) {
                 foreach ($languages as $i => $language) {
-                    if (!$fields[$platform['id']][$language['id']]) continue;
+                    if (!$fields[$platform['id']][$language['id']]) {
+                        continue;
+                    }
                     $data = \common\models\MetaTags::findOne([
                         'meta_tags_key' => $fieldName,
                         'platform_id' => $platform['id'],
-                        'language_id' => $language['id']
+                        'language_id' => $language['id'],
                     ]);
                     if (in_array($fieldName, $splitTags)) {
 
@@ -151,14 +157,13 @@ class EditDataController extends Sceleton {
             }
         }
 
-
         $fields = [];
-        foreach( $platforms as $platform ) {
+        foreach ($platforms as $platform) {
             foreach ($languages as $i => $language) {
                 $data = \common\models\MetaTags::findOne([
                     'meta_tags_key' => $fieldName,
                     'platform_id' => $platform['id'],
-                    'language_id' => $language['id']
+                    'language_id' => $language['id'],
                 ]);
                 if (in_array($fieldName, $splitTags)) {
 
@@ -172,7 +177,9 @@ class EditDataController extends Sceleton {
             }
         }
 
-        if (!is_array($fields)) return false;
+        if (!is_array($fields)) {
+            return false;
+        }
 
         $this->layout = 'iframe.tpl';
         return $this->render('index.tpl', [
@@ -214,7 +221,6 @@ class EditDataController extends Sceleton {
         $linkId = $menuItem['link_id'];
         $linkTypeText = '';
 
-
         if (Yii::$app->request->isPost) {
             $postFields = Yii::$app->request->post('field');
             $postMenuItems = Yii::$app->request->post('menu_item');
@@ -238,7 +244,7 @@ class EditDataController extends Sceleton {
                         $page = \common\models\Information::findOne([
                             'platform_id' => $platformId,
                             'languages_id' => $language['id'],
-                            'information_id' => $linkId
+                            'information_id' => $linkId,
                         ]);
                         if ($page) {
                             if ($page->info_title || !$page->page_title) {
@@ -290,7 +296,6 @@ class EditDataController extends Sceleton {
                 ->asArray()
                 ->one();
 
-
             $menuItems[$language['id']] = $menuTitle['title'] ?? '';
 
             switch ($linkType) {
@@ -331,7 +336,6 @@ class EditDataController extends Sceleton {
             $brandField = $data->manufacturers_name;
             $linkTypeText = 'Brand name';
         }
-
 
         $actionParams = [
             'edit-data/menu',

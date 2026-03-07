@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +13,6 @@
  */
 
 namespace common\api\models\AR\Products;
-
 
 use backend\models\EP\Tools;
 use common\api\models\AR\EPMap;
@@ -38,10 +39,9 @@ class AssignedCustomerGroups extends EPMap
         parent::parentEPMap($parentObject);
     }
 
-
     public function matchIndexedValue(EPMap $importedObject)
     {
-        if ( !is_null($importedObject->groups_id) && !is_null($this->groups_id) && $importedObject->groups_id==$this->groups_id ){
+        if (!is_null($importedObject->groups_id) && !is_null($this->groups_id) && $importedObject->groups_id == $this->groups_id) {
             $this->pendingRemoval = false;
             return true;
         }

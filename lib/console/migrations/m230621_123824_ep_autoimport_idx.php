@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -28,7 +30,7 @@ class m230621_123824_ep_autoimport_idx extends Migration
           'job_state',
           'file_name',
           'job_id',
-          'run_frequency'
+          'run_frequency',
         ]);
 
     }
@@ -38,9 +40,9 @@ class m230621_123824_ep_autoimport_idx extends Migration
      */
     public function safeDown()
     {
-//        echo "m230621_123824_ep_autoimport_idx cannot be reverted.\n";
+        //        echo "m230621_123824_ep_autoimport_idx cannot be reverted.\n";
 
-//        return false;
+        //        return false;
     }
 
     /*

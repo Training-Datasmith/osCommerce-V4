@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,14 @@
 
 namespace backend\models\EP\Provider;
 
-
-use backend\models\EP\Messages;
 use backend\models\EP;
-use common\classes\Images as CommonImages;
+use backend\models\EP\Messages;
 use common\api\models\AR\Manufacturer;
+use common\classes\Images as CommonImages;
 
 class Brands extends ProviderAbstract implements ImportInterface, ExportInterface
 {
-    protected $data = array();
+    protected $data = [];
     protected $EPtools;
 
     protected $entry_counter = 0;
@@ -29,13 +30,13 @@ class Brands extends ProviderAbstract implements ImportInterface, ExportInterfac
 
     protected $withImages = false;
 
-    function init()
+    public function init()
     {
         parent::init();
         $this->initFields();
         $this->EPtools = new EP\Tools();
 
-        if ( $this->directoryObj ) {
+        if ($this->directoryObj) {
             $this->setImagesDirectory($this->directoryObj->filesRoot(EP\Directory::TYPE_IMAGES));
         }
     }
@@ -47,8 +48,8 @@ class Brands extends ProviderAbstract implements ImportInterface, ExportInterfac
 
     protected function initFields()
     {
-        $this->fields = array();
-        $this->fields[] = array( 'name' => 'key_field', 'value' => 'KEY_FIELD', 'is_key'=>true, 'calculated'=>true, 'get'=>'get_key_field' );
+        $this->fields = [];
+        $this->fields[] = [ 'name' => 'key_field', 'value' => 'KEY_FIELD', 'is_key' => true, 'calculated' => true, 'get' => 'get_key_field' ];
         $dummy = new Manufacturer();
         $attr = $dummy->getPossibleKeys();
         $columnCover = [
@@ -59,10 +60,12 @@ class Brands extends ProviderAbstract implements ImportInterface, ExportInterfac
             'manufacturers_image_source_url' => false,
             'manufacturers_old_seo_page_name' => ['value' => 'Old Seo Page Name'],
         ];
-        foreach ( $attr as $key ) {
-            $columnDescribe = array( 'name' => $key, 'value' => ucwords(preg_replace('/[ \._]/',' ',$key)), );
-            if ( isset($columnCover[$key]) ) {
-                if ($columnCover[$key]==false) continue;
+        foreach ($attr as $key) {
+            $columnDescribe = [ 'name' => $key, 'value' => ucwords(preg_replace('/[ \._]/', ' ', $key)), ];
+            if (isset($columnCover[$key])) {
+                if ($columnCover[$key] == false) {
+                    continue;
+                }
                 if (is_array($columnCover[$key])) {
                     $columnDescribe = array_merge($columnDescribe, $columnCover[$key]);
                 }
@@ -71,7 +74,8 @@ class Brands extends ProviderAbstract implements ImportInterface, ExportInterfac
         }
     }
 
-    function get_key_field( $field_data, $id ){
+    public function get_key_field($field_data, $id)
+    {
         return $id;
     }
 
@@ -82,35 +86,35 @@ class Brands extends ProviderAbstract implements ImportInterface, ExportInterfac
         $main_source = $this->main_source;
 
         $filter_sql = '';
-        if ( is_array($filter) ) {
-            $this->withImages = ( isset($filter['with_images']) && $filter['with_images']);
-            if ( isset($filter['category_id']) && $filter['category_id']>0 ) {
-                $categories = array((int)$filter['category_id']);
+        if (is_array($filter)) {
+            $this->withImages = (isset($filter['with_images']) && $filter['with_images']);
+            if (isset($filter['category_id']) && $filter['category_id'] > 0) {
+                $categories = [(int)$filter['category_id']];
                 \common\helpers\Categories::get_subcategories($categories, $categories[0]);
 
                 $get_categories_brands_r = tep_db_query(
-                    "SELECT DISTINCT p.manufacturers_id ".
-                    "FROM ".TABLE_PRODUCTS." p ".
-                    "  INNER JOIN ".TABLE_PRODUCTS_TO_CATEGORIES." p2c ON p2c.products_id=p.products_id AND p2c.categories_id IN('".implode("','",$categories)."') ".
-                    "WHERE (p.manufacturers_id IS NOT NULL OR p.manufacturers_id!=0) "
+                    'SELECT DISTINCT p.manufacturers_id '.
+                    'FROM '.TABLE_PRODUCTS.' p '.
+                    '  INNER JOIN '.TABLE_PRODUCTS_TO_CATEGORIES." p2c ON p2c.products_id=p.products_id AND p2c.categories_id IN('".implode("','", $categories)."') ".
+                    'WHERE (p.manufacturers_id IS NOT NULL OR p.manufacturers_id!=0) '
                 );
-                if ( tep_db_num_rows($get_categories_brands_r)>0 ) {
+                if (tep_db_num_rows($get_categories_brands_r) > 0) {
                     $brand_ids = [];
-                    while($_categories_brand = tep_db_fetch_array($get_categories_brands_r)){
+                    while ($_categories_brand = tep_db_fetch_array($get_categories_brands_r)) {
                         $brand_ids[] = $_categories_brand['manufacturers_id'];
                     }
                     $filter_sql .= "AND manufacturers_id IN('" . implode("','", $brand_ids) . "') ";
-                }else{
-                    $filter_sql .= "AND 1=0 ";
+                } else {
+                    $filter_sql .= 'AND 1=0 ';
                 }
             }
         }
 
         $main_sql =
-            "SELECT manufacturers_id " .
-            "FROM " . TABLE_MANUFACTURERS . " " .
+            'SELECT manufacturers_id ' .
+            'FROM ' . TABLE_MANUFACTURERS . ' ' .
             "WHERE 1 {$filter_sql} ".
-            "ORDER BY manufacturers_name";
+            'ORDER BY manufacturers_name';
 
         $this->export_query = tep_db_query($main_sql);
     }
@@ -118,30 +122,36 @@ class Brands extends ProviderAbstract implements ImportInterface, ExportInterfac
     public function exportRow()
     {
         $this->data = tep_db_fetch_array($this->export_query);
-        if ( !is_array($this->data) ) return $this->data;
+        if (!is_array($this->data)) {
+            return $this->data;
+        }
 
         //$data_sources = $this->data_sources;
         $export_columns = $this->export_columns;
 
-        $dataObject = Manufacturer::findOne(['manufacturers_id'=>$this->data['manufacturers_id']]);
+        $dataObject = Manufacturer::findOne(['manufacturers_id' => $this->data['manufacturers_id']]);
         $objectMultiData = $dataObject->exportArray([]);
         $objectFlatData = EP\ArrayTransform::convertMultiDimensionalToFlat($objectMultiData);
         $this->data = array_merge($this->data, $objectFlatData);
 
-        foreach( $export_columns as $db_key=>$export ) {
-            if( isset( $export['get'] ) && method_exists($this, $export['get']) ) {
-                $this->data[$db_key] = call_user_func_array(array($this, $export['get']), array($export, $this->data['manufacturers_id']));
+        foreach ($export_columns as $db_key => $export) {
+            if (isset($export['get']) && method_exists($this, $export['get'])) {
+                $this->data[$db_key] = call_user_func_array([$this, $export['get']], [$export, $this->data['manufacturers_id']]);
             }
-            $this->data[$db_key] = isset($this->data[$db_key])?$this->data[$db_key]:'';
+            $this->data[$db_key] = isset($this->data[$db_key]) ? $this->data[$db_key] : '';
         }
 
-        if( $this->withImages ) {
+        if ($this->withImages) {
             $filesAdd = [];
 
             foreach (['manufacturers_image',] as $imageColumn) {
-                if (empty($this->data[$imageColumn])) continue;
+                if (empty($this->data[$imageColumn])) {
+                    continue;
+                }
                 $fsImageName = CommonImages::getFSCatalogImagesPath() . $this->data[$imageColumn];
-                if (!is_file($fsImageName)) continue;
+                if (!is_file($fsImageName)) {
+                    continue;
+                }
 
                 $filesAdd[] = [
                     'filename' => $fsImageName,
@@ -149,7 +159,7 @@ class Brands extends ProviderAbstract implements ImportInterface, ExportInterfac
                 ];
             }
 
-            if ( count($filesAdd)>0 ) {
+            if (count($filesAdd) > 0) {
                 return [
                     ':feed_data' => $this->data,
                     ':attachments' => $filesAdd,
@@ -166,11 +176,11 @@ class Brands extends ProviderAbstract implements ImportInterface, ExportInterfac
         $this->data = $data;
         $multi_data = EP\ArrayTransform::convertFlatToMultiDimensional($this->data);
 
-        $brandModel = Manufacturer::findOne(['manufacturers_id'=>$this->data['key_field']]);
-        if ( !$brandModel ) {
+        $brandModel = Manufacturer::findOne(['manufacturers_id' => $this->data['key_field']]);
+        if (!$brandModel) {
 
             $brandModel =  Manufacturer::findOne(['manufacturers_name' => $multi_data['manufacturers_name']]);
-            if ( !empty($brandModel) ){
+            if (!empty($brandModel)) {
                 $message->info('Duplicate name. Skipped');
                 return false;
             }
@@ -180,7 +190,7 @@ class Brands extends ProviderAbstract implements ImportInterface, ExportInterfac
             unset($multi_data['key_field']);
         }
 
-        if ( !empty($multi_data['manufacturers_image']) ) {
+        if (!empty($multi_data['manufacturers_image'])) {
             if (preg_match('/^https?:\/\//', $multi_data['manufacturers_image'])) {
                 // download remote images
                 $multi_data['manufacturers_image_source_url'] = $multi_data['manufacturers_image'];

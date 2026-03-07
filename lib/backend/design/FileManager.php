@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -183,8 +185,10 @@ class FileManager
 
         $categories = Categories::find()->alias('c')
             ->select(['title' => 'cd.categories_name', 'name' => 'c.categories_id'])
-            ->leftJoin(CategoriesDescription::tableName() . ' cd',
-                "c.categories_id = cd.categories_id and cd.language_id = '" . $languageId . "'")
+            ->leftJoin(
+                CategoriesDescription::tableName() . ' cd',
+                "c.categories_id = cd.categories_id and cd.language_id = '" . $languageId . "'"
+            )
             ->andWhere(['c.parent_id' => $categoryId])
             ->asArray()->all();
 
@@ -211,8 +215,10 @@ class FileManager
 
                 $productsImages = ProductsImagesDescription::find()->alias('pid')
                     ->select('pid.*, pi.products_id')
-                    ->leftJoin(ProductsImages::tableName() . ' pi',
-                        'pi.products_images_id = pid.products_images_id')
+                    ->leftJoin(
+                        ProductsImages::tableName() . ' pi',
+                        'pi.products_images_id = pid.products_images_id'
+                    )
                     ->andWhere(['pi.products_id' => $split[1]])
                     ->andWhere(['not', ['pid.hash_file_name' => '']])
                     ->asArray()->all();
@@ -234,8 +240,10 @@ class FileManager
 
             $categories = Categories::find()->alias('c')
                 ->select(['title' => 'cd.categories_name', 'name' => 'c.categories_id'])
-                ->leftJoin(CategoriesDescription::tableName() . ' cd',
-                    "c.categories_id = cd.categories_id and cd.language_id = '" . $languageId . "'")
+                ->leftJoin(
+                    CategoriesDescription::tableName() . ' cd',
+                    "c.categories_id = cd.categories_id and cd.language_id = '" . $languageId . "'"
+                )
                 ->andWhere(['c.parent_id' => $categoryId])
                 ->asArray()->all();
 
@@ -245,8 +253,10 @@ class FileManager
 
             $products = Products2Categories::find()->alias('p2c')
                 ->select(['pd.products_name', 'pd.products_id'])
-                ->leftJoin(ProductsDescription::tableName() . ' pd',
-                    "p2c.products_id = pd.products_id and pd.language_id = '" . $languageId . "' and pd.platform_id = '" . Platform::defaultId() . "'")
+                ->leftJoin(
+                    ProductsDescription::tableName() . ' pd',
+                    "p2c.products_id = pd.products_id and pd.language_id = '" . $languageId . "' and pd.platform_id = '" . Platform::defaultId() . "'"
+                )
                 ->andWhere(['p2c.categories_id' => $categoryId])
                 ->asArray()->all();
 
@@ -319,7 +329,7 @@ class FileManager
         }
         $types = [];
         foreach ($fileTypes as $type) {
-            if (in_array($type, self::$validFileTypes)){
+            if (in_array($type, self::$validFileTypes)) {
                 $types[] = $type;
             }
         }

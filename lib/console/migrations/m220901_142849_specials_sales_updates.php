@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -24,47 +26,48 @@ class m220901_142849_specials_sales_updates extends Migration
     {
         $this->removeTranslation('admin/main', ['BOX_HEADING_SPECIALS_PROMOTE_TYPE']);
         $this->addTranslation('admin/main', ['BOX_HEADING_SPECIALS_PROMOTE_TYPE' => 'Frontend label']);
-        
+
         $this->addAdminMenuAfter([
             'path' => 'specials-types',
-            'title' => 'BOX_HEADING_SPECIALS_TAGS'
-        ],'BOX_HEADING_FEATURED_TYPES');
-
+            'title' => 'BOX_HEADING_SPECIALS_TAGS',
+        ], 'BOX_HEADING_FEATURED_TYPES');
 
         $this->db->createCommand(
-                        "update translation " .
-                            "set translation_value=:translation_value " .
-                        "WHERE translation_entity=:entity AND translation_key=:translate_key AND translation_value=:translation_value_old ",
-                        [
+            'update translation ' .
+                            'set translation_value=:translation_value ' .
+                        'WHERE translation_entity=:entity AND translation_key=:translate_key AND translation_value=:translation_value_old ',
+            [
                           'entity' => 'admin/main',
                           'translation_value' => 'Q-ty limits',
                           'translation_value_old' => 'Q-ty limits.',
-                          'translate_key' => 'TEXT_QTY_LIMITS'
-            ])
+                          'translate_key' => 'TEXT_QTY_LIMITS',
+            ]
+        )
             ->execute();
         $this->db->createCommand(
-                        "update translation " .
-                            "set translation_value=:translation_value " .
-                        "WHERE translation_entity=:entity AND translation_key=:translate_key AND translation_value=:translation_value_old ",
-                        [
+            'update translation ' .
+                            'set translation_value=:translation_value ' .
+                        'WHERE translation_entity=:entity AND translation_key=:translate_key AND translation_value=:translation_value_old ',
+            [
                           'entity' => 'main',
                           'translation_value' => 'Q-ty limits',
                           'translation_value_old' => 'Q-ty limits.',
-                          'translate_key' => 'TEXT_QTY_LIMITS'
-            ])
+                          'translate_key' => 'TEXT_QTY_LIMITS',
+            ]
+        )
             ->execute();
 
         $this->db->createCommand(
-                        "update translation " .
-                            "set translation_value= substr(translation_value, 1, length(translation_value)-1) " .
+            'update translation ' .
+                            'set translation_value= substr(translation_value, 1, length(translation_value)-1) ' .
                         "WHERE translation_entity like :entity and translation_value like '%:' ",
-                        [
-                          'entity' => 'admin%'
-            ])
+            [
+                          'entity' => 'admin%',
+            ]
+        )
             ->execute();
 
         \yii\caching\TagDependency::invalidate(\Yii::$app->getCache(), 'translation');
-
 
     }
 
@@ -73,9 +76,9 @@ class m220901_142849_specials_sales_updates extends Migration
      */
     public function safeDown()
     {
-//        echo "m220901_142849_specials_sales_updates cannot be reverted.\n";
+        //        echo "m220901_142849_specials_sales_updates cannot be reverted.\n";
 
-  //      return false;
+        //      return false;
     }
 
     /*

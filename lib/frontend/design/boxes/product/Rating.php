@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\product;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Rating extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -36,10 +37,10 @@ class Rating extends Widget
             return '';
         }
 
-        $rating = tep_db_fetch_array(tep_db_query("
+        $rating = tep_db_fetch_array(tep_db_query('
                 select count(*) as count, 
                 AVG(reviews_rating) as average 
-                from " . TABLE_REVIEWS . " 
+                from ' . TABLE_REVIEWS . " 
                 where products_id = '" . (int)$params['products_id'] . "' and status
             "));
 
@@ -47,16 +48,16 @@ class Rating extends Widget
             \frontend\design\JsonLd::addData(['Product' => [
                 'aggregateRating' => [
                     '@type' => 'AggregateRating',
-                    'ratingValue' => round($rating['average']??0),
+                    'ratingValue' => round($rating['average'] ?? 0),
                     'ratingCount' => $rating['count'],
-                ]
+                ],
             ]], ['Product', 'aggregateRating']);
         }
 
         return IncludeTpl::widget(['file' => 'boxes/product/rating.tpl', 'params' => [
-            'rating' => round($rating['average']??0),
+            'rating' => round($rating['average'] ?? 0),
             'count' => $rating['count'],
-            'settings' => $this->settings
+            'settings' => $this->settings,
         ]]);
     }
 }

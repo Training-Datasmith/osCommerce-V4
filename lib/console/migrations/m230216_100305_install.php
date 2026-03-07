@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,9 +25,9 @@ class m230216_100305_install extends Migration
     public function safeUp()
     {
         $this->removeTranslation('admin/easypopulate', [
-            'MESSAGE_KEY_DOMAIN_ERROR'
+            'MESSAGE_KEY_DOMAIN_ERROR',
         ]);
-        
+
         $this->addTranslation('admin/easypopulate', [
             'MESSAGE_KEY_DOMAIN_ERROR' => 'Error: Your \'storage\' key is wrong. Please login at <a target="_blank" href="%1$s">application shop</a> with your credentials and copy it from there. You \'security store key\' for this shop is [%2$s].',
         ]);

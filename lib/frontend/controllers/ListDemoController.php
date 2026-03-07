@@ -1,37 +1,36 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace frontend\controllers;
 
-use Yii;
-use frontend\design\SplitPageResults;
 use frontend\design\ListingSql;
-use frontend\design\boxes\Listing;
-use frontend\design\Info;
+use frontend\design\SplitPageResults;
+use Yii;
 
 /**
  * Site controller
  */
 class ListDemoController extends Sceleton
 {
-
     public function actionIndex()
     {
         $this->view->no_header_footer = true;
 
-        $params = array(
-          'listing_split' => new SplitPageResults(ListingSql::query(array('filename' => FILENAME_SPECIALS)), 1,'p.products_id'),
+        $params = [
+          'listing_split' => new SplitPageResults(ListingSql::query(['filename' => FILENAME_SPECIALS]), 1, 'p.products_id'),
           'this_filename' => FILENAME_SPECIALS,
-        );
+        ];
 
         $get = Yii::$app->request->get();
 
@@ -97,26 +96,23 @@ class ListDemoController extends Sceleton
         $settings[0]['list_type'] = $get['list_type'];
         $settings[0]['list_demo'] = 1;
 
-
         $q = new \common\components\ProductsQuery([
             'limit' => 1,
         ]);
 
         \frontend\design\Info::getListProductsDetails($q->buildQuery()->allIds(), $settings);
 
-        $params = array(
-            'listing_split' => SplitPageResults::make($q->buildQuery()->getQuery(), 1,'*', 'page', 1),
-        );
+        $params = [
+            'listing_split' => SplitPageResults::make($q->buildQuery()->getQuery(), 1, '*', 'page', 1),
+        ];
 
         return $this->render('index.tpl', ['params' => [
-            'params'=>$params,
+            'params' => $params,
             'products' => Yii::$container->get('products')->getAllProducts($settings['listing_type']),
             'settings' => $settings,
-            'id' => '1'
+            'id' => '1',
         ]]);
 
     }
-
-
 
 }

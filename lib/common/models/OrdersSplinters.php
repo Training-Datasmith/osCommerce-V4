@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,10 +14,10 @@
 
 namespace common\models;
 
-use Yii;
-use yii\db\ActiveRecord;
-use yii\behaviors\TimestampBehavior;
 use common\models\queries\OrdersSplintersQuery;
+use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
+
 /**
  * This is the model class for table "orders_splinters".
  *
@@ -33,7 +35,7 @@ use common\models\queries\OrdersSplintersQuery;
  * @property integer $splinters_suborder_id - INV OR CN numbers
  */
 class OrdersSplinters extends ActiveRecord
-{    
+{
     /**
      * set table name
      * @return string
@@ -42,19 +44,22 @@ class OrdersSplinters extends ActiveRecord
     {
         return 'orders_splinters';
     }
-   
-    public function rules() {
+
+    public function rules()
+    {
         return [
             [['splinters_status', 'splinters_type'], 'required'],
             [['orders_id', 'splinters_suborder_id', 'splinters_order', 'admin_id', 'qty', 'value_exc_vat', 'value_inc_tax', 'splinters_owner'], 'safe'],
         ];
     }
-    
-    public static function primaryKey() {
+
+    public static function primaryKey()
+    {
         return ['splinters_id'];
     }
 
-    public function behaviors() {
+    public function behaviors()
+    {
         return [
             [
                 'class' => TimestampBehavior::className(),
@@ -65,13 +70,15 @@ class OrdersSplinters extends ActiveRecord
             ],
         ];
     }
-    
-    public function getAdmin(){
+
+    public function getAdmin()
+    {
         return $this->hasOne(Admin::className(), ['admin_id' => 'admin_id']);
     }
-    
-    public static function create($order_id, $status, $type, $qty, $exc_price, $inc_price, $owner_uid, $data= null, $admin_id = null){
-                
+
+    public static function create($order_id, $status, $type, $qty, $exc_price, $inc_price, $owner_uid, $data = null, $admin_id = null)
+    {
+
         $splinter = new self();
         $splinter->orders_id = $order_id;
         $splinter->splinters_status = $status;
@@ -82,18 +89,20 @@ class OrdersSplinters extends ActiveRecord
         $splinter->value_inc_tax = $inc_price;
         $splinter->value_inc_tax = $inc_price;
         $splinter->splinters_order = $data;
-        
-        if ($splinter->validate()){
+
+        if ($splinter->validate()) {
             $splinter->save();
         }
         return $splinter;
     }
-    
-    public static function find() {
+
+    public static function find()
+    {
         return new OrdersSplintersQuery(get_called_class());
     }
-    
-    public static function getOrdersSplinters($order_id){
+
+    public static function getOrdersSplinters($order_id)
+    {
         return self::find()->where(['orders_id' => $order_id])
                     ->orderBy('date_added');
     }

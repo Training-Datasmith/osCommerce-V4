@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -18,9 +20,10 @@ use Yii;
 /**
  * Messages extension controller
  */
-class MessagesController extends Sceleton {
-
-public function actionIndex() {
+class MessagesController extends Sceleton
+{
+    public function actionIndex()
+    {
         if (Yii::$app->user->isGuest) {
             global $navigation;
             $navigation->set_snapshot();
@@ -31,7 +34,8 @@ public function actionIndex() {
         }
     }
 
-    public function actionList() {
+    public function actionList()
+    {
         if (Yii::$app->user->isGuest) {
             tep_redirect(tep_href_link('messages', '', 'SSL'));
         }
@@ -40,7 +44,8 @@ public function actionIndex() {
         }
     }
 
-    public function actionView() {
+    public function actionView()
+    {
         if (Yii::$app->user->isGuest) {
             global $navigation;
             $navigation->set_snapshot();
@@ -51,7 +56,8 @@ public function actionIndex() {
         }
     }
 
-    public function actionNew() {
+    public function actionNew()
+    {
         if (Yii::$app->user->isGuest) {
             global $navigation;
             $navigation->set_snapshot();
@@ -62,7 +68,8 @@ public function actionIndex() {
         }
     }
 
-    public function actionAttachment() {
+    public function actionAttachment()
+    {
         if (Yii::$app->user->isGuest) {
             global $navigation;
             $navigation->set_snapshot();
@@ -73,7 +80,8 @@ public function actionIndex() {
         }
     }
 
-    public function actionSave() {
+    public function actionSave()
+    {
         if (Yii::$app->user->isGuest) {
             tep_redirect(tep_href_link('messages', '', 'SSL'));
         }
@@ -82,7 +90,8 @@ public function actionIndex() {
         }
     }
 
-    public function actionBulkUnread() {
+    public function actionBulkUnread()
+    {
         if (Yii::$app->user->isGuest) {
             tep_redirect(tep_href_link('messages', '', 'SSL'));
         }
@@ -91,7 +100,8 @@ public function actionIndex() {
         }
     }
 
-    public function actionBulkStarred() {
+    public function actionBulkStarred()
+    {
         if (Yii::$app->user->isGuest) {
             tep_redirect(tep_href_link('messages', '', 'SSL'));
         }
@@ -100,7 +110,8 @@ public function actionIndex() {
         }
     }
 
-    public function actionBulkDelete() {
+    public function actionBulkDelete()
+    {
         if (Yii::$app->user->isGuest) {
             tep_redirect(tep_href_link('messages', '', 'SSL'));
         }
@@ -109,7 +120,8 @@ public function actionIndex() {
         }
     }
 
-    public function actionUpdateUnread() {
+    public function actionUpdateUnread()
+    {
         if (Yii::$app->user->isGuest) {
             tep_redirect(tep_href_link('messages', '', 'SSL'));
         }

@@ -1,33 +1,35 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace frontend\design\boxes;
 
+use common\helpers\Product;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use common\helpers\Tax;
-use common\helpers\Product;
 
 // same widget for all pages (as there could be just info page)
 // 4tpls:  cart, checkout, product pages (include price) and general for all others.
-class KlarnaFinance extends Widget {
-
+class KlarnaFinance extends Widget
+{
     public $file;
     public $params;
     public $settings;
 
-    public function run() {
+    public function run()
+    {
 
         global $cart;
         $manager = \common\services\OrderManager::loadManager($cart);
@@ -87,10 +89,10 @@ class KlarnaFinance extends Widget {
                         }
                         if (!$product->checkAttachedDetails($products::TYPE_STOCK)) {
                             $product_qty = Product::get_products_stock($params['products_id']);
-                            $stock_info = \common\classes\StockIndication::product_info(array(
+                            $stock_info = \common\classes\StockIndication::product_info([
                                   'products_id' => $params['products_id'],
                                   'products_quantity' => $product_qty,
-                            ));
+                            ]);
                             $product = $products->attachDetails($params['products_id'], [$products::TYPE_STOCK => $stock_info])->getProduct($params['products_id']);
                         } else {
                             $stock_info = $product[$products::TYPE_STOCK];
@@ -103,7 +105,7 @@ class KlarnaFinance extends Widget {
                          * 2 - hide if zero
                          */
                         /** @var \common\extensions\Quotations\Quotations $ext */
-                        if (($stock_info['flags']['request_for_quote'] && ( ($ext = \common\helpers\Extensions::isAllowed('Quotations')) && !$ext::optionIsPriceShow() ) /* && $stock_info['flags']['display_price_options'] != 0 */) ||
+                        if (($stock_info['flags']['request_for_quote'] && (($ext = \common\helpers\Extensions::isAllowed('Quotations')) && !$ext::optionIsPriceShow()) /* && $stock_info['flags']['display_price_options'] != 0 */) ||
                             ($stock_info['flags']['display_price_options'] == 1) ||
                             (abs($product['products_price']) < 0.01 && $stock_info['flags']['display_price_options'] == 2)) {
                             $return_price = false;
@@ -152,13 +154,12 @@ class KlarnaFinance extends Widget {
             $theme = $this->settings[0]['theme'];
         }
 
-
         return IncludeTpl::widget(['file' => $file, 'params' => [
                 'locale' => $locale,
                 'theme' => $theme,
                 'data_key' => $data_key,
                 'forceRender' => $forceRender,
-                'price' => $klarna->formatRaw($actualPrice)
+                'price' => $klarna->formatRaw($actualPrice),
         ]]);
     }
 

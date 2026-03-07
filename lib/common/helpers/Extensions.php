@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,8 @@
 
 namespace common\helpers;
 
-use \common\classes\modules\ModuleExtensions;
-use \common\helpers\Acl;
-
 class Extensions
 {
-
     private static $cacheAllowed = [];
     private static $cacheEnabled = []; // cache for Acl::checkXXX instead of const 'ext_EXTENSION_STATUS'
 
@@ -43,9 +41,8 @@ class Extensions
         if (($ext = self::isAllowed($code)) &&
             (
                 (method_exists($ext, $func) && call_user_func([$ext, $func], $args)) ||
-                (method_exists($ext, 'cfg') && class_exists($cfgClass=$ext::cfg()) && method_exists($cfgClass, $func) && call_user_func([$cfgClass, $func], $args))
-            ))
-        {
+                (method_exists($ext, 'cfg') && class_exists($cfgClass = $ext::cfg()) && method_exists($cfgClass, $func) && call_user_func([$cfgClass, $func], $args))
+            )) {
             return $ext;
         }
         return false;
@@ -58,8 +55,6 @@ class Extensions
         }
         return false;
     }
-
-
 
     /**
      * Calls $func if extension $code is allowed
@@ -169,7 +164,7 @@ class Extensions
         try {
             self::install($code);
         } catch (\Exception $e) {
-            \Yii::error( sprintf("%s: %s\n%s", __FUNCTION__, $e->getMessage(), $e->getTraceAsString() ));
+            \Yii::error(sprintf("%s: %s\n%s", __FUNCTION__, $e->getMessage(), $e->getTraceAsString()));
             return $e->getMessage();
         }
     }
@@ -177,11 +172,15 @@ class Extensions
     public static function install($code)
     {
         $ext = \common\helpers\Acl::checkExtension($code, 'allowed');
-        if (!$ext) throw new \Exception("Extension $code not found");
+        if (!$ext) {
+            throw new \Exception("Extension $code not found");
+        }
 
-        if (self::isAllowed($code)) throw new \Exception("Extension $code already installed");
+        if (self::isAllowed($code)) {
+            throw new \Exception("Extension $code already installed");
+        }
 
-        $obj = new $ext;
+        $obj = new $ext();
         $obj->install(0);
 
         $obj->enable_module(0, true);
@@ -207,7 +206,7 @@ class Extensions
                 throw new \Exception("Extenstion $code is not installed");
             }
         }
-        $obj = new $ext;
+        $obj = new $ext();
         if (is_array($options)) {
             foreach ($options as $option) {
                 if (!property_exists($obj, $options)) {
@@ -233,11 +232,10 @@ class Extensions
         try {
             self::uninstall($code, $forceIfUninstalled, $options);
         } catch (\Exception $e) {
-            \Yii::error( sprintf("%s: %s\n%s", __FUNCTION__, $e->getMessage(), $e->getTraceAsString() ));
+            \Yii::error(sprintf("%s: %s\n%s", __FUNCTION__, $e->getMessage(), $e->getTraceAsString()));
             return $e->getMessage();
         }
     }
-
 
     public static function getBaseDirRelative($code)
     {
@@ -263,7 +261,6 @@ class Extensions
         }
     }
 
-
     /**
      * @param string $class className of extension
      * @param string $relativeModelName 'models\Collections' or just 'Collections'
@@ -277,14 +274,16 @@ class Extensions
             if (method_exists($ext, 'getModel') && ($model = $ext::getModel($relativeModelName)) && class_exists($model)) {
                 return $model;
             }
-            if (!empty($allowedFunc) && !(method_exists($ext, $allowedFunc) && call_user_func([$ext, $allowedFunc]))) return null;
+            if (!empty($allowedFunc) && !(method_exists($ext, $allowedFunc) && call_user_func([$ext, $allowedFunc]))) {
+                return null;
+            }
             $reflection_class = new \ReflectionClass($ext);
             $namespace = $reflection_class->getNamespaceName();
             $modelClass = $namespace . "\\$relativeModelName";
             if (!class_exists($modelClass) || ($class == $relativeModelName)) {
                 $modelClass = $namespace . "\\models\\$relativeModelName";
             }
-            if (class_exists($modelClass) && \Yii::$app->db->schema->getTableSchema($modelClass::tablename()) !==null) {
+            if (class_exists($modelClass) && \Yii::$app->db->schema->getTableSchema($modelClass::tablename()) !== null) {
                 return $modelClass;
             }
         }
@@ -301,7 +300,7 @@ class Extensions
             'Quotations' => [
                 'TEXT_EMAIL_QUOTE',
                 'TEXT_QUOTE_CART',
-                'TEXT_QUOTE_CHECKOUT'
+                'TEXT_QUOTE_CHECKOUT',
             ],
             'Samples' => [
                 'TEXT_EMAIL_SAMPLE',
@@ -326,9 +325,11 @@ class Extensions
         $extVariants = [
             'shop_quote' => 'Quotations',
             'shop_sample' => 'Samples',
-            'moderator' => 'GroupAdministrator'
+            'moderator' => 'GroupAdministrator',
         ];
-        if ($variant == 'pos') return self::isPosExist();
+        if ($variant == 'pos') {
+            return self::isPosExist();
+        }
         if (!empty($extVariants[$variant])) {
             return self::isAllowed($extVariants[$variant]);
         }
@@ -378,11 +379,11 @@ class Extensions
             $keysAll = \Yii::$app->getCache()->getOrSet('overwritten-config-keys', function () {
                 $res = [];
                 $extensions = new \DirectoryIterator(\Yii::$aliases['@common'] . '/extensions/');
-                foreach($extensions as $extFile){
+                foreach ($extensions as $extFile) {
                     $class = $extFile->getFilename();
-                    if (method_exists(self::class, 'checkSetup') && ($setup = self::checkSetup($class, 'getOverwrittenCfgKeys'))){
+                    if (method_exists(self::class, 'checkSetup') && ($setup = self::checkSetup($class, 'getOverwrittenCfgKeys'))) {
                         $keys = $setup::getOverwrittenCfgKeys();
-                        if (is_array($keys) && count($keys)>0){
+                        if (is_array($keys) && count($keys) > 0) {
                             foreach ($keys as &$arr) {
                                 $arr['extension'] = $class;
                             }
@@ -391,7 +392,7 @@ class Extensions
                     }
                 }
                 return $res;
-            },0, new \yii\caching\TagDependency(['tags'=>['extension_changed']]));
+            }, 0, new \yii\caching\TagDependency(['tags' => ['extension_changed']]));
         }
         return $keysAll;
     }
@@ -403,7 +404,7 @@ class Extensions
             $class = $res['extension'];
             $defaultValue = '<a href="%s">%s</a>';
             \common\helpers\Translation::init('configuration');
-            $defaultCaption = defined('TEXT_EXTENSION_OVERWRITE_CONFIG_KEY')? TEXT_EXTENSION_OVERWRITE_CONFIG_KEY : 'The extension <strong>%s</strong> enhances this option</a>';
+            $defaultCaption = defined('TEXT_EXTENSION_OVERWRITE_CONFIG_KEY') ? TEXT_EXTENSION_OVERWRITE_CONFIG_KEY : 'The extension <strong>%s</strong> enhances this option</a>';
             $url = \Yii::$app->urlManager->createUrl(['modules/edit', 'set' => 'extensions', 'module' => $class]);
             $caption = isset($arr['caption']) ? $arr['caption'] : sprintf($defaultCaption, $class);
             $res['value'] = sprintf($defaultValue, $url, $caption);

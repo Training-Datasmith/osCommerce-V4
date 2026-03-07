@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,17 +14,15 @@
 
 namespace common\api\models\AR\Customer;
 
-
 use common\api\models\AR\EPMap;
 use yii\db\Expression;
 
 class Info extends EPMap
 {
-
     protected $hideFields = [
         'customers_info_id',
         'time_long',
-        'token'
+        'token',
     ];
 
     protected $parentObject;
@@ -50,12 +50,12 @@ class Info extends EPMap
         return true;
         //return parent::matchIndexedValue($importedObject);
     }
-    
+
     public function importArray($data)
     {
-        if ( !isset($data['global_product_notifications']) ) {
+        if (!isset($data['global_product_notifications'])) {
             $data['global_product_notifications'] = 1;
-        }        
+        }
 
         $importResult = parent::importArray($data);
         return $importResult;
@@ -63,16 +63,14 @@ class Info extends EPMap
 
     public function beforeSave($insert)
     {
-        if ( $insert ) {
-            if ( is_null($this->customers_info_date_account_created) ) {
-                $this->customers_info_date_account_created = new Expression("NOW()");
+        if ($insert) {
+            if (is_null($this->customers_info_date_account_created)) {
+                $this->customers_info_date_account_created = new Expression('NOW()');
             }
-        }else{
-            $this->customers_info_date_account_last_modified = new Expression("NOW()");
+        } else {
+            $this->customers_info_date_account_last_modified = new Expression('NOW()');
         }
         return parent::beforeSave($insert);
     }
-
-
 
 }

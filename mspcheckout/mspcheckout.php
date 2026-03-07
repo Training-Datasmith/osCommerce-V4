@@ -1,13 +1,13 @@
 <?php
 /*
-  MultiSafepay Payment Module for osCommerce 
+  MultiSafepay Payment Module for osCommerce
   http://www.multisafepay.com
 
   Copyright (C) 2008 MultiSafepay.com
  */
 
-if (MODULE_PAYMENT_MULTISAFEPAY_FCO_STATUS == 'True'){
-?>
+if (MODULE_PAYMENT_MULTISAFEPAY_FCO_STATUS == 'True') {
+    ?>
 <div style="float:left;">
 <pre>
 </pre>
@@ -19,19 +19,19 @@ if (MODULE_PAYMENT_MULTISAFEPAY_FCO_STATUS == 'True'){
 		<div align="center">
 <?php
 if ($cart->count_contents() > 0) {
-	echo '<a href="mspcheckout/process.php"><img src="mspcheckout/images/button.png" alt="Checkout" name="Checkout"></a>';
-	//echo ' <p align="right" style="clear: both; padding: 15px 50px 0 0;"> OR </p>';
+    echo '<a href="mspcheckout/process.php"><img src="mspcheckout/images/button.png" alt="Checkout" name="Checkout"></a>';
+    //echo ' <p align="right" style="clear: both; padding: 15px 50px 0 0;"> OR </p>';
 }
-?>
+    ?>
 		</div>
 	</div>
 </div>
 
 <?php
-  // display any MSP error
+      // display any MSP error
 
-  if (isset($_GET['payment_error']) && is_object(${$_GET['payment_error']}) && ($error = ${$_GET['payment_error']}->get_error())) {
-?>
+      if (isset($_GET['payment_error']) && is_object(${$_GET['payment_error']}) && ($error = ${$_GET['payment_error']}->get_error())) {
+          ?>
       <table border="0" width="100%" cellspacing="0" cellpadding="2">
         <tr>
           <td class="main"><b><?php echo \common\helpers\Output::output_string_protected($error['title']); ?></b></td>
@@ -51,8 +51,8 @@ if ($cart->count_contents() > 0) {
       </table>
         
 <?php
-  }
-?>
+      }
+    ?>
 
 <!-- END MSP CHECKOUT -->
 <?php

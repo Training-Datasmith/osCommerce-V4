@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m231103_095453_main_styles_tabs extends Migration
      */
     public function safeUp()
     {
-        if (!$this->isFieldExists('tab', 'themes_styles_groups') ){
+        if (!$this->isFieldExists('tab', 'themes_styles_groups')) {
             $this->addColumn('themes_styles_groups', 'tab', $this->string(128)->notNull());
         }
     }

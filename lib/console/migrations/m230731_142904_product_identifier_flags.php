@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -24,7 +26,7 @@ class m230731_142904_product_identifier_flags extends Migration
     {
         $check = (new yii\db\Query())->from('configuration')->where(['configuration_key' => 'SHOW_ASIN'])->exists();
         if (!$check) {
-            $this->insert('configuration',[
+            $this->insert('configuration', [
                 'configuration_title' => 'Show ASIN',
                 'configuration_key' => 'SHOW_ASIN',
                 'configuration_value' => 'True',
@@ -32,12 +34,12 @@ class m230731_142904_product_identifier_flags extends Migration
                 'configuration_group_id' => 'TEXT_STOCK',
                 'sort_order' => 50,
                 'date_added' => new \yii\db\Expression('NOW()'),
-                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),'
+                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),',
             ]);
         }
         $check = (new yii\db\Query())->from('configuration')->where(['configuration_key' => 'SHOW_EAN'])->exists();
         if (!$check) {
-            $this->insert('configuration',[
+            $this->insert('configuration', [
                 'configuration_title' => 'Show EAN',
                 'configuration_key' => 'SHOW_EAN',
                 'configuration_value' => 'True',
@@ -45,12 +47,12 @@ class m230731_142904_product_identifier_flags extends Migration
                 'configuration_group_id' => 'TEXT_STOCK',
                 'sort_order' => 50,
                 'date_added' => new \yii\db\Expression('NOW()'),
-                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),'
+                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),',
             ]);
         }
         $check = (new yii\db\Query())->from('configuration')->where(['configuration_key' => 'SHOW_UPC'])->exists();
         if (!$check) {
-            $this->insert('configuration',[
+            $this->insert('configuration', [
                 'configuration_title' => 'Show UPC',
                 'configuration_key' => 'SHOW_UPC',
                 'configuration_value' => 'True',
@@ -58,7 +60,7 @@ class m230731_142904_product_identifier_flags extends Migration
                 'configuration_group_id' => 'TEXT_STOCK',
                 'sort_order' => 50,
                 'date_added' => new \yii\db\Expression('NOW()'),
-                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),'
+                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),',
             ]);
         }
 

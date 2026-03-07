@@ -1,13 +1,15 @@
 <?php
 
+declare(strict_types=1);
+
 namespace frontend\models\repositories;
 
 use common\models\Coupons;
 
-class CouponsRepository 
+class CouponsRepository
 {
     /**
-     * 
+     *
      * @param int $gvId
      * @return array
      */

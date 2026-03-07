@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of True Loaded.
  *
@@ -10,14 +12,12 @@
 
 namespace frontend\design\boxes\checkout;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use frontend\forms\registration\CustomerRegistration;
 
 class LoginOnForm extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -41,8 +41,8 @@ class LoginOnForm extends Widget
             'id' => $this->id,
             'params' =>  [
                 'enterModels' => $authContainer->getForms('account/login-box'),
-                'action' => tep_href_link('account/login', 'action=process', 'SSL')
-            ]
+                'action' => tep_href_link('account/login', 'action=process', 'SSL'),
+            ],
         ])]);
     }
 }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 $params = array_merge(
     require(__DIR__ . '/../../common/config/params.php'),
     require(__DIR__ . '/../../common/config/params-local.php'),
@@ -11,7 +13,7 @@ return [
     'basePath' => dirname(__DIR__),
     'bootstrap' => [],
     'controllerNamespace' => 'frontend\controllers',
-    
+
     'name' => 'Trueloaded New',
     'defaultRoute' => 'index/index',
 
@@ -25,18 +27,18 @@ return [
                         'identityClass' => 'suppliersarea\components\SupplierIdentity',
                         'enableAutoLogin' => true,
                         'idParam' => '__sid',
-                        'loginUrl'=>['/index/login'],
+                        'loginUrl' => ['/index/login'],
                         ],
                 ],
-            ]
-        ]
+            ],
+        ],
     ],
     'components' => [
         'storage' => [
-            'class' => '\common\services\storages\SessionStorage'
+            'class' => '\common\services\storages\SessionStorage',
         ],
         'request' => [
-            'class' => '\frontend\components\Request'
+            'class' => '\frontend\components\Request',
         ],
         'urlManager' => [
             'class' => 'app\components\TlUrlManager',
@@ -48,7 +50,7 @@ return [
             'showScriptName' => false,
             'rules' => [
                 ['class' => 'app\components\TlUrlRule', /* 'controller' => 'site' */],
-                '<controller:[\w-]+>'=>'<controller>/index',
+                '<controller:[\w-]+>' => '<controller>/index',
                 '/' => 'index',
             ],
         ],
@@ -71,7 +73,7 @@ return [
                 'basePath' => '@app/themes/basic',
                 'baseUrl' => '@web/themes/basic',
                 'pathMap' => [
-/*                
+/*
     '@app/views' => [
         '@app/themes/christmas', // <-- @app/themes/christmas/site/index.php or @app/themes/basic/site/index.php, depending on which themed file exists.
         '@app/themes/basic',
@@ -84,7 +86,7 @@ return [
             ],
 
         ],
-        
+
         'user' => [
             'identityClass' => 'common\components\Customer',
           // remember me start
@@ -95,7 +97,7 @@ return [
             'autoRenewCookie' => false, //don't use with current implementation
           */
             // remember me end
-            'loginUrl'=>['/account/login'],
+            'loginUrl' => ['/account/login'],
         ],
         'log' => [
             'traceLevel' => YII_DEBUG ? 3 : 0,
@@ -122,7 +124,7 @@ return [
         'assetManager' => [
             'bundles' => [
                 'yii\web\JqueryAsset' => [
-                    'js'=>[]
+                    'js' => [],
                 ],
             ],
         ],

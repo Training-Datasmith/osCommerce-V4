@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,12 @@
 
 namespace common\services;
 
-
 use common\models\Customers;
 use common\models\GlobalPaymentsTransactions;
 use common\models\repositories\GlobalPaymentsTransactionsRepository;
 
-
 class GlobalPaymentsTransactionsService
 {
-
     /** @var GlobalPaymentsTransactionsRepository */
     private $globalPaymentsTransactionsRepository;
 

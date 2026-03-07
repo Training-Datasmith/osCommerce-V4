@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,61 +18,67 @@ class Order
 {
     use StatusTrait;
 
-    const OES_PENDING = 1;
-    const OES_PROCESSING = 10;
-    const OES_RECEIVED = 20;
-    const OES_DISPATCHED = 30;
-    const OES_DELIVERED = 40;
-    const OES_CANCELLED = 50;
-    const OES_PARTIAL_CANCELLED = 60;
+    public const OES_PENDING = 1;
+    public const OES_PROCESSING = 10;
+    public const OES_RECEIVED = 20;
+    public const OES_DISPATCHED = 30;
+    public const OES_DELIVERED = 40;
+    public const OES_CANCELLED = 50;
+    public const OES_PARTIAL_CANCELLED = 60;
 
     public static function getStatusTypeId()
     {
         return 1;
     }
 
-    public static function isExist($order_id) {
+    public static function isExist($order_id)
+    {
         $_status = tep_db_fetch_array(tep_db_query(
-            "SELECT COUNT(*) AS check_exist FROM " . TABLE_ORDERS . " WHERE orders_id = '" . (int) $order_id . "'"
+            'SELECT COUNT(*) AS check_exist FROM ' . TABLE_ORDERS . " WHERE orders_id = '" . (int) $order_id . "'"
         ));
         return !!$_status['check_exist'];
     }
 
-    public static function is_stock_updated($order_id) {
+    public static function is_stock_updated($order_id)
+    {
         $get_stock_status = tep_db_fetch_array(tep_db_query(
-                        "SELECT stock_updated FROM " . TABLE_ORDERS . " WHERE orders_id = '" . (int) $order_id . "'"
+            'SELECT stock_updated FROM ' . TABLE_ORDERS . " WHERE orders_id = '" . (int) $order_id . "'"
         ));
         return !!($get_stock_status['stock_updated'] ?? null);
     }
 
-    public static function restock($order_id) {
-        if (!self::is_stock_updated($order_id)) return;
-        $order_query = tep_db_query("select if(length(uprid), uprid, products_id) as uprid, template_uprid, products_id, products_quantity from " . TABLE_ORDERS_PRODUCTS . " where orders_id = '" . (int) $order_id . "'");
+    public static function restock($order_id)
+    {
+        if (!self::is_stock_updated($order_id)) {
+            return;
+        }
+        $order_query = tep_db_query('select if(length(uprid), uprid, products_id) as uprid, template_uprid, products_id, products_quantity from ' . TABLE_ORDERS_PRODUCTS . " where orders_id = '" . (int) $order_id . "'");
         while ($order = tep_db_fetch_array($order_query)) {
             global $login_id;
-            tep_db_query("update " . TABLE_PRODUCTS . " set products_ordered = products_ordered - " . $order['products_quantity'] . " where products_id = '" . (int) $order['products_id'] . "'");
-/*
-            \common\helpers\Product::log_stock_history_before_update($order['uprid'], $order['products_quantity'], '+',
-                                                                     ['comments' => TEXT_ORDER_STOCK_UPDATE, 'admin_id' => $login_id, 'orders_id' => $order_id]);
-            \common\helpers\Product::update_stock($order['uprid'], $order['products_quantity'], 0);
-            \common\helpers\Product::get_allocated_stock_quantity($order['uprid']);
-*/
+            tep_db_query('update ' . TABLE_PRODUCTS . ' set products_ordered = products_ordered - ' . $order['products_quantity'] . " where products_id = '" . (int) $order['products_id'] . "'");
+            /*
+                        \common\helpers\Product::log_stock_history_before_update($order['uprid'], $order['products_quantity'], '+',
+                                                                                 ['comments' => TEXT_ORDER_STOCK_UPDATE, 'admin_id' => $login_id, 'orders_id' => $order_id]);
+                        \common\helpers\Product::update_stock($order['uprid'], $order['products_quantity'], 0);
+                        \common\helpers\Product::get_allocated_stock_quantity($order['uprid']);
+            */
             \common\helpers\Warehouses::update_stock_of_order($order_id, (strlen($order['template_uprid']) > 0 ? $order['template_uprid'] : $order['uprid']), 0);
         }
     }
 
-    public static function remove_order($order_id, $restock = false, $reason = '') {
+    public static function remove_order($order_id, $restock = false, $reason = '')
+    {
         if ($restock == 'on') {
             self::restock($order_id);
         }
 
-        tep_db_query("delete from " . TABLE_ORDERS . " where orders_id = '" . (int) $order_id . "'");
-        tep_db_query("delete from " . TABLE_ORDERS_PRODUCTS . " where orders_id = '" . (int) $order_id . "'");
-        tep_db_query("delete from " . TABLE_ORDERS_PRODUCTS_ATTRIBUTES . " where orders_id = '" . (int) $order_id . "'");
-        tep_db_query("delete from " . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " where orders_id = '" . (int) $order_id . "'");
-        tep_db_query("delete from " . TABLE_ORDERS_HISTORY . " where orders_id = '" . (int) $order_id . "'");
-        tep_db_query("delete from " . TABLE_ORDERS_STATUS_HISTORY . " where orders_id = '" . (int) $order_id . "'");
-        tep_db_query("delete from " . TABLE_ORDERS_TOTAL . " where orders_id = '" . (int) $order_id . "'");
+        tep_db_query('delete from ' . TABLE_ORDERS . " where orders_id = '" . (int) $order_id . "'");
+        tep_db_query('delete from ' . TABLE_ORDERS_PRODUCTS . " where orders_id = '" . (int) $order_id . "'");
+        tep_db_query('delete from ' . TABLE_ORDERS_PRODUCTS_ATTRIBUTES . " where orders_id = '" . (int) $order_id . "'");
+        tep_db_query('delete from ' . TABLE_ORDERS_PRODUCTS_DOWNLOAD . " where orders_id = '" . (int) $order_id . "'");
+        tep_db_query('delete from ' . TABLE_ORDERS_HISTORY . " where orders_id = '" . (int) $order_id . "'");
+        tep_db_query('delete from ' . TABLE_ORDERS_STATUS_HISTORY . " where orders_id = '" . (int) $order_id . "'");
+        tep_db_query('delete from ' . TABLE_ORDERS_TOTAL . " where orders_id = '" . (int) $order_id . "'");
         \common\models\OrdersProductsAllocate::deleteAll(['orders_id' => (int)$order_id]);
         \common\models\OrdersSplinters::deleteAll(['orders_id' => (int)$order_id]);
         \common\models\OrdersTransactionsChildren::deleteAll(['orders_id' => (int)$order_id]);
@@ -95,7 +103,8 @@ class Order
 
     }
 
-    public static function remove_tmp_order($order_id) {
+    public static function remove_tmp_order($order_id)
+    {
         // 2do TABLE_PRODUCTS . " set products_ordered = products_ordered -
         $t_o = \common\models\TmpOrders::findOne((int) $order_id);
         if (!empty($t_o->child_id)) {
@@ -112,25 +121,27 @@ class Order
 
     }
 
-    public static function get_order_status_name($order_status_id, $language_id = '') {
+    public static function get_order_status_name($order_status_id, $language_id = '')
+    {
         global $languages_id;
 
         if ($order_status_id < 1) {
-            if ( !defined('TEXT_DEFAULT') ) {
-                \common\helpers\Translation::getTranslationValue('TEXT_DEFAULT','admin/main');
-            }else{
+            if (!defined('TEXT_DEFAULT')) {
+                \common\helpers\Translation::getTranslationValue('TEXT_DEFAULT', 'admin/main');
+            } else {
                 $TEXT_DEFAULT = TEXT_DEFAULT;
             }
             return $TEXT_DEFAULT;
         }
 
-        if (!is_numeric($language_id))
+        if (!is_numeric($language_id)) {
             $language_id = $languages_id;
+        }
 
         static $status_names = [];
         $key = (int) $order_status_id .'@'. (int) $language_id;
-        if ( !isset($status_names[$key]) ){
-            $status_query = tep_db_query("select orders_status_name from " . TABLE_ORDERS_STATUS . " where orders_status_id = '" . (int) $order_status_id . "' and language_id = '" . (int) $language_id . "'");
+        if (!isset($status_names[$key])) {
+            $status_query = tep_db_query('select orders_status_name from ' . TABLE_ORDERS_STATUS . " where orders_status_id = '" . (int) $order_status_id . "' and language_id = '" . (int) $language_id . "'");
             $status = tep_db_fetch_array($status_query);
 
             $status_names[$key] = $status['orders_status_name'] ?? null;
@@ -146,7 +157,7 @@ class Order
         }
         $status = \common\models\OrdersProductsStatus::findOne([
             'orders_products_status_id' => $order_products_status_id,
-            'language_id' => $language_id
+            'language_id' => $language_id,
         ]);
         return ($status ? ($isLong == true ? $status->orders_products_status_name_long : $status->orders_products_status_name) : '');
     }
@@ -159,119 +170,120 @@ class Order
         }
         $status = \common\models\OrdersProductsStatusManual::findOne([
             'orders_products_status_manual_id' => $order_products_status_manual_id,
-            'language_id' => $language_id
+            'language_id' => $language_id,
         ]);
         return ($status ? ($isLong == true ? $status->orders_products_status_manual_name_long : $status->orders_products_status_manual_name) : '');
     }
 
-    public static function get_status($default = '', $show_group = false) {
+    public static function get_status($default = '', $show_group = false)
+    {
         global $languages_id;
 
-        $status_array = array();
+        $status_array = [];
         if (!empty($default)) {
-            $status_array[] = array(
+            $status_array[] = [
                 'id' => '',
-                'text' => $default);
+                'text' => $default];
         }
-        if ($show_group){
-            $status_query = tep_db_query("select os.orders_status_id, concat(osg.orders_status_groups_name, ' / ', os.orders_status_name) as orders_status_name from " . TABLE_ORDERS_STATUS . " os left join " . TABLE_ORDERS_STATUS_GROUPS . " osg on osg.orders_status_groups_id = os.orders_status_groups_id and osg.language_id = '" . $languages_id . "' where os.language_id = '" . $languages_id . "' order by orders_status_name");
+        if ($show_group) {
+            $status_query = tep_db_query("select os.orders_status_id, concat(osg.orders_status_groups_name, ' / ', os.orders_status_name) as orders_status_name from " . TABLE_ORDERS_STATUS . ' os left join ' . TABLE_ORDERS_STATUS_GROUPS . " osg on osg.orders_status_groups_id = os.orders_status_groups_id and osg.language_id = '" . $languages_id . "' where os.language_id = '" . $languages_id . "' order by orders_status_name");
         } else {
-            $status_query = tep_db_query("select orders_status_id, orders_status_name from " . TABLE_ORDERS_STATUS . " where language_id = '" . $languages_id . "' order by orders_status_name");
+            $status_query = tep_db_query('select orders_status_id, orders_status_name from ' . TABLE_ORDERS_STATUS . " where language_id = '" . $languages_id . "' order by orders_status_name");
         }
         while ($status = tep_db_fetch_array($status_query)) {
-            $status_array[] = array(
+            $status_array[] = [
                 'id' => $status['orders_status_id'],
-                'text' => $status['orders_status_name']);
+                'text' => $status['orders_status_name']];
         }
         return $status_array;
     }
 
-    public static function getStatusesGrouped($includeAutomated=false)
+    public static function getStatusesGrouped($includeAutomated = false)
     {
         $status = [];
 
         $list = self::getStatuses(!$includeAutomated);
-        if (!empty($list) && is_array($list)){
-          foreach ($list as $group) {
-            if (!empty($group->statuses) && is_array($group->statuses)){
-              $orders_status_groups = $group->attributes;
-              $status[] = [
-                  'text' => $orders_status_groups['orders_status_groups_name'],
-                  'id' => 'group_' . $orders_status_groups['orders_status_groups_id'],
-                  'group_color' => $orders_status_groups['orders_status_groups_color'],
-                  'status_id' => 0,
-                  'group_id' => $orders_status_groups['orders_status_groups_id'],
-              ];
-              foreach ($group->statuses as $st) {
-                $orders_status = $st->attributes;
-                $status[] = [
-                    'text' => '&nbsp;&nbsp;&nbsp;&nbsp;' . $orders_status['orders_status_name'],
-                    'id' => 'status_' . $orders_status['orders_status_id'],
-                    'status_id' => $orders_status['orders_status_id'],
-                    'group_id' => $orders_status_groups['orders_status_groups_id'],
-                ];
-              }
+        if (!empty($list) && is_array($list)) {
+            foreach ($list as $group) {
+                if (!empty($group->statuses) && is_array($group->statuses)) {
+                    $orders_status_groups = $group->attributes;
+                    $status[] = [
+                        'text' => $orders_status_groups['orders_status_groups_name'],
+                        'id' => 'group_' . $orders_status_groups['orders_status_groups_id'],
+                        'group_color' => $orders_status_groups['orders_status_groups_color'],
+                        'status_id' => 0,
+                        'group_id' => $orders_status_groups['orders_status_groups_id'],
+                    ];
+                    foreach ($group->statuses as $st) {
+                        $orders_status = $st->attributes;
+                        $status[] = [
+                            'text' => '&nbsp;&nbsp;&nbsp;&nbsp;' . $orders_status['orders_status_name'],
+                            'id' => 'status_' . $orders_status['orders_status_id'],
+                            'status_id' => $orders_status['orders_status_id'],
+                            'group_id' => $orders_status_groups['orders_status_groups_id'],
+                        ];
+                    }
+                }
             }
-          }
         }
 
         return $status;
-/*
-        $languages_id = \Yii::$app->settings->get('languages_id');
-        $orders_status_groups_query = tep_db_query(
-            "select orders_status_groups_id, orders_status_groups_name, orders_status_groups_color ".
-            "from " . TABLE_ORDERS_STATUS_GROUPS . " ".
-            "where language_id = '" . (int)$languages_id . "' ".
-            " AND orders_status_type_id = '".intval(self::getStatusTypeId())."' ".
-            "order by orders_status_groups_id"
-        );
-        while ($orders_status_groups = tep_db_fetch_array($orders_status_groups_query)) {
-            $status[] = [
-                'text' => $orders_status_groups['orders_status_groups_name'],
-                'id' => 'group_' . $orders_status_groups['orders_status_groups_id'],
-                'group_color' => $orders_status_groups['orders_status_groups_color'],
-                'status_id' => 0,
-                'group_id' => $orders_status_groups['orders_status_groups_id'],
-            ];
-            $orders_status_query = tep_db_query(
-                "select orders_status_id, orders_status_name ".
-                "from " . TABLE_ORDERS_STATUS . " ".
-                "where language_id = '" . (int)$languages_id . "' and orders_status_groups_id='" . $orders_status_groups['orders_status_groups_id'] . "' ".
-                " ".($includeAutomated?"":"AND automated=0 ")." ".
-                "order by orders_status_name"
-            );
-            if ( tep_db_num_rows($orders_status_query)>0 ) {
-                while ($orders_status = tep_db_fetch_array($orders_status_query)) {
+        /*
+                $languages_id = \Yii::$app->settings->get('languages_id');
+                $orders_status_groups_query = tep_db_query(
+                    "select orders_status_groups_id, orders_status_groups_name, orders_status_groups_color ".
+                    "from " . TABLE_ORDERS_STATUS_GROUPS . " ".
+                    "where language_id = '" . (int)$languages_id . "' ".
+                    " AND orders_status_type_id = '".intval(self::getStatusTypeId())."' ".
+                    "order by orders_status_groups_id"
+                );
+                while ($orders_status_groups = tep_db_fetch_array($orders_status_groups_query)) {
                     $status[] = [
-                        'text' => '&nbsp;&nbsp;&nbsp;&nbsp;' . $orders_status['orders_status_name'],
-                        'id' => 'status_' . $orders_status['orders_status_id'],
-                        'status_id' => $orders_status['orders_status_id'],
+                        'text' => $orders_status_groups['orders_status_groups_name'],
+                        'id' => 'group_' . $orders_status_groups['orders_status_groups_id'],
+                        'group_color' => $orders_status_groups['orders_status_groups_color'],
+                        'status_id' => 0,
                         'group_id' => $orders_status_groups['orders_status_groups_id'],
                     ];
+                    $orders_status_query = tep_db_query(
+                        "select orders_status_id, orders_status_name ".
+                        "from " . TABLE_ORDERS_STATUS . " ".
+                        "where language_id = '" . (int)$languages_id . "' and orders_status_groups_id='" . $orders_status_groups['orders_status_groups_id'] . "' ".
+                        " ".($includeAutomated?"":"AND automated=0 ")." ".
+                        "order by orders_status_name"
+                    );
+                    if ( tep_db_num_rows($orders_status_query)>0 ) {
+                        while ($orders_status = tep_db_fetch_array($orders_status_query)) {
+                            $status[] = [
+                                'text' => '&nbsp;&nbsp;&nbsp;&nbsp;' . $orders_status['orders_status_name'],
+                                'id' => 'status_' . $orders_status['orders_status_id'],
+                                'status_id' => $orders_status['orders_status_id'],
+                                'group_id' => $orders_status_groups['orders_status_groups_id'],
+                            ];
+                        }
+                    }elseif($status[ count($status)-1 ]['id']=='group_' . $orders_status_groups['orders_status_groups_id']){
+                        unset($status[ count($status)-1 ]);
+                        $status = array_values($status);
+                    }
                 }
-            }elseif($status[ count($status)-1 ]['id']=='group_' . $orders_status_groups['orders_status_groups_id']){
-                unset($status[ count($status)-1 ]);
-                $status = array_values($status);
-            }
-        }
-        return $status;
- */
+                return $status;
+         */
     }
 
     public static function extractStatuses($statuses_string)
     {
-        $statuses = array();
-        foreach (explode(',',$statuses_string) as $check_status){
+        $statuses = [];
+        foreach (explode(',', $statuses_string) as $check_status) {
             $check_status = trim($check_status);
-            if ( strpos($check_status,'group_')===0 ) {
-                $orders_status_query = tep_db_query("select distinct orders_status_id from " . TABLE_ORDERS_STATUS . " where orders_status_groups_id='" . intval( str_replace('group_','', $check_status) ) . "' ");
+            if (strpos($check_status, 'group_') === 0) {
+                $orders_status_query = tep_db_query('select distinct orders_status_id from ' . TABLE_ORDERS_STATUS . " where orders_status_groups_id='" . intval(str_replace('group_', '', $check_status)) . "' ");
                 while ($orders_status = tep_db_fetch_array($orders_status_query)) {
                     $statuses[(int)$orders_status['orders_status_id']] = (int)$orders_status['orders_status_id'];
                 }
-            }elseif( strpos($check_status,'status_')===0 ){
-                $status_id = intval( str_replace('status_','', $check_status) );
+            } elseif (strpos($check_status, 'status_') === 0) {
+                $status_id = intval(str_replace('status_', '', $check_status));
                 $statuses[ (int)$status_id ] = (int)$status_id;
-            }elseif( (int)$check_status!=0 ){
+            } elseif ((int)$check_status != 0) {
                 $statuses[ (int)$check_status ] = (int)$check_status;
             }
         }
@@ -279,25 +291,28 @@ class Order
         return array_values($statuses);
     }
 
-    public static function orders_status_groups_name($orders_status_groups_id, $language_id = '') {
+    public static function orders_status_groups_name($orders_status_groups_id, $language_id = '')
+    {
         global $languages_id;
 
-        if (!$language_id)
+        if (!$language_id) {
             $language_id = $languages_id;
-        $orders_status_groups_query = tep_db_query("select orders_status_groups_name from " . TABLE_ORDERS_STATUS_GROUPS . " where orders_status_groups_id = '" . (int) $orders_status_groups_id . "' and language_id = '" . (int) $language_id . "'");
+        }
+        $orders_status_groups_query = tep_db_query('select orders_status_groups_name from ' . TABLE_ORDERS_STATUS_GROUPS . " where orders_status_groups_id = '" . (int) $orders_status_groups_id . "' and language_id = '" . (int) $language_id . "'");
         $orders_status_groups = tep_db_fetch_array($orders_status_groups_query);
 
         return $orders_status_groups['orders_status_groups_name'] ?? null;
     }
 
-    public static function get_status_name($id_status) {
+    public static function get_status_name($id_status)
+    {
         global $languages_id;
         $id_status = $id_status === '--none--' ? '' : $id_status;
         if (strlen(trim($id_status)) == 0) {
             return TEXT_NO_STATUS;
         } else {
             $status_name = [];
-            $status_query = tep_db_query("select orders_status_name from " . TABLE_ORDERS_STATUS . " where language_id = '" . $languages_id . "' and orders_status_id IN (" . $id_status . ") order by orders_status_name");
+            $status_query = tep_db_query('select orders_status_name from ' . TABLE_ORDERS_STATUS . " where language_id = '" . $languages_id . "' and orders_status_id IN (" . $id_status . ') order by orders_status_name');
             while ($status = tep_db_fetch_array($status_query)) {
                 $status_name[] = $status['orders_status_name'];
             }
@@ -305,18 +320,19 @@ class Order
         }
     }
 
-    public static function trunk_orders($prefix = '') {
-        tep_db_query("TRUNCATE " . $prefix . TABLE_ORDERS);
-        tep_db_query("TRUNCATE " . $prefix . TABLE_ORDERS_HISTORY);
-        tep_db_query("TRUNCATE " . $prefix . TABLE_ORDERS_PRODUCTS);
-        tep_db_query("TRUNCATE " . $prefix . TABLE_ORDERS_PRODUCTS_ATTRIBUTES);
-        tep_db_query("TRUNCATE " . $prefix . TABLE_ORDERS_PRODUCTS_DOWNLOAD);
-        tep_db_query("TRUNCATE " . $prefix . TABLE_ORDERS_STATUS_HISTORY);
-        tep_db_query("TRUNCATE " . $prefix . TABLE_ORDERS_TOTAL);
+    public static function trunk_orders($prefix = '')
+    {
+        tep_db_query('TRUNCATE ' . $prefix . TABLE_ORDERS);
+        tep_db_query('TRUNCATE ' . $prefix . TABLE_ORDERS_HISTORY);
+        tep_db_query('TRUNCATE ' . $prefix . TABLE_ORDERS_PRODUCTS);
+        tep_db_query('TRUNCATE ' . $prefix . TABLE_ORDERS_PRODUCTS_ATTRIBUTES);
+        tep_db_query('TRUNCATE ' . $prefix . TABLE_ORDERS_PRODUCTS_DOWNLOAD);
+        tep_db_query('TRUNCATE ' . $prefix . TABLE_ORDERS_STATUS_HISTORY);
+        tep_db_query('TRUNCATE ' . $prefix . TABLE_ORDERS_TOTAL);
         if (empty($prefix)) {
             $schemaCheck = \Yii::$app->get('db')->schema->getTableSchema('admin_shopping_carts');
             if ($schemaCheck) {
-                tep_db_query("TRUNCATE TABLE admin_shopping_carts");
+                tep_db_query('TRUNCATE TABLE admin_shopping_carts');
             }
             \common\models\OrdersSplinters::deleteAll();
         }
@@ -325,13 +341,14 @@ class Order
         }
     }
 
-    public static function parse_tracking_number($tracking_number) {
+    public static function parse_tracking_number($tracking_number)
+    {
         if ($tracking_number instanceof \common\classes\OrderTrackingNumber) {
-            return array(
+            return [
                 'number' => $tracking_number->number,
                 'url' => $tracking_number->tracking_url,
                 'carrier' => $tracking_number->carrier,
-            );
+            ];
         }
         $tracking_number = trim($tracking_number, " ,\t\n\r\0\x0B");
 
@@ -353,11 +370,11 @@ class Order
                 $url_path = parse_url($tracking_number, PHP_URL_FRAGMENT);
                 $_url_tracking_number = substr($url_path, ($pos = strrpos($url_path, '/')) > 0 ? $pos + 1 : 0);
             }
-            return array(
+            return [
                 'number' => $_url_tracking_number,
                 'url' => $tracking_number,
                 'carrier' => $carrier,
-            );
+            ];
         } else {
             $tracking_url = TRACKING_NUMBER_URL . str_replace(' ', '', $tracking_number);
             if (stripos($tracking_url, '17track') !== false && strtolower($carrier) == 'fedex') {
@@ -372,36 +389,37 @@ class Order
                 }
                 $carrier = $carrierRecord->tracking_carriers_name;
             }
-            return array(
+            return [
                 'number' => $tracking_number,
                 'url' => $tracking_url,
                 'carrier' => $carrier,
-            );
+            ];
         }
     }
 
-    public static function getUsedTotalClassList($selected = '') {
-      if ($selected=='') {
-        $selected = 'ot_total';
-      }
-      $totals = \common\models\OrdersTotal::find()->select('class')->distinct()->orderBy('class')->all();
-      $ret = [];
-
-      if (is_array($totals)) {
-        foreach($totals as $total) {
-          $name = \common\helpers\Translation::getTranslationValue('MODULE_ORDER_TOTAL_' . strtoupper(str_replace('ot_', '', $total->class)) . '_TITLE', 'ordertotal');
-          if ($name === false) {
-            $name = ucfirst(str_replace(array('ot_', '_'), array('', ' '), $total->class));
-          }
-          $ret[] = [
-            'name' => $name, //full_name,
-            'value' => $total->class,
-            'selected' => ($selected && $selected==$total->class?'selected':''),
-          ];
+    public static function getUsedTotalClassList($selected = '')
+    {
+        if ($selected == '') {
+            $selected = 'ot_total';
         }
-      }
-      unset($totals);
-      return $ret;
+        $totals = \common\models\OrdersTotal::find()->select('class')->distinct()->orderBy('class')->all();
+        $ret = [];
+
+        if (is_array($totals)) {
+            foreach ($totals as $total) {
+                $name = \common\helpers\Translation::getTranslationValue('MODULE_ORDER_TOTAL_' . strtoupper(str_replace('ot_', '', $total->class)) . '_TITLE', 'ordertotal');
+                if ($name === false) {
+                    $name = ucfirst(str_replace(['ot_', '_'], ['', ' '], $total->class));
+                }
+                $ret[] = [
+                  'name' => $name, //full_name,
+                  'value' => $total->class,
+                  'selected' => ($selected && $selected == $total->class ? 'selected' : ''),
+                ];
+            }
+        }
+        unset($totals);
+        return $ret;
     }
 
     /**
@@ -422,7 +440,7 @@ class Order
             }
             $return = true;
             foreach (\common\models\OrdersProducts::findAll(['orders_id' => (int)$orderRecord->orders_id]) as $orderProductRecord) {
-                $return = (\common\helpers\OrderProduct::doDispatch($orderProductRecord, $isForced) AND $return);
+                $return = (\common\helpers\OrderProduct::doDispatch($orderProductRecord, $isForced) and $return);
             }
             unset($orderProductRecord);
             self::evaluate($orderRecord, $orderStatusPreferred);
@@ -451,7 +469,7 @@ class Order
             }
             $return = true;
             foreach (\common\models\OrdersProducts::findAll(['orders_id' => (int)$orderRecord->orders_id]) as $orderProductRecord) {
-                $return = (\common\helpers\OrderProduct::doDeliver($orderProductRecord, $isForced) AND $return);
+                $return = (\common\helpers\OrderProduct::doDeliver($orderProductRecord, $isForced) and $return);
             }
             unset($orderProductRecord);
             self::evaluate($orderRecord, $orderStatusPreferred);
@@ -480,7 +498,7 @@ class Order
             }
             $return = true;
             foreach (\common\models\OrdersProducts::findAll(['orders_id' => (int)$orderRecord->orders_id]) as $orderProductRecord) {
-                $return = (\common\helpers\OrderProduct::doCancel($orderProductRecord, $isRestock) AND $return);
+                $return = (\common\helpers\OrderProduct::doCancel($orderProductRecord, $isRestock) and $return);
             }
             unset($orderProductRecord);
             self::evaluate($orderRecord, $orderStatusPreferred);
@@ -509,7 +527,7 @@ class Order
             $return = true;
             self::updateAllocateAllow($orderRecord, 0);
             foreach (\common\models\OrdersProducts::findAll(['orders_id' => (int)$orderRecord->orders_id]) as $orderProductRecord) {
-                $return = (\common\helpers\OrderProduct::doQuote($orderProductRecord, $isReset) AND $return);
+                $return = (\common\helpers\OrderProduct::doQuote($orderProductRecord, $isReset) and $return);
             }
             unset($orderProductRecord);
             self::evaluate($orderRecord, $orderStatusPreferred);
@@ -538,7 +556,7 @@ class Order
             $return = true;
             self::updateAllocateAllow($orderRecord, 1);
             foreach (\common\models\OrdersProducts::findAll(['orders_id' => (int)$orderRecord->orders_id]) as $orderProductRecord) {
-                $return = (\common\helpers\OrderProduct::doAllocateAutomatic($orderProductRecord) AND $return);
+                $return = (\common\helpers\OrderProduct::doAllocateAutomatic($orderProductRecord) and $return);
             }
             unset($orderProductRecord);
             self::evaluate($orderRecord, $orderStatusPreferred);
@@ -565,7 +583,7 @@ class Order
             }
             $return = true;
             foreach (\common\models\OrdersProducts::findAll(['orders_id' => (int)$orderRecord->orders_id]) as $orderProductRecord) {
-                $return = (\common\helpers\OrderProduct::doAllocateAutomatic($orderProductRecord, true) AND $return);
+                $return = (\common\helpers\OrderProduct::doAllocateAutomatic($orderProductRecord, true) and $return);
             }
             unset($orderProductRecord);
             self::evaluate($orderRecord, $orderStatusPreferred);
@@ -587,12 +605,12 @@ class Order
     {
         $orderRecord = self::getRecord($orderRecord);
         if ($orderRecord instanceof \common\models\Orders) {
-            $orderProductSkipList = array();
+            $orderProductSkipList = [];
             foreach (self::getAllocatedArray($orderRecord, false) as $productAllocated) {
                 if (!isset($orderProductSkipList[$productAllocated->orders_products_id])) {
                     $orderProductSkipList[$productAllocated->orders_products_id] = $productAllocated->orders_products_id;
                     $orderProductRecord = \common\helpers\OrderProduct::getRecord($productAllocated->orders_products_id);
-                    if ($orderProductRecord instanceof \common\models\OrdersProducts AND $orderProductRecord->orders_id == $orderRecord->orders_id) {
+                    if ($orderProductRecord instanceof \common\models\OrdersProducts and $orderProductRecord->orders_id == $orderRecord->orders_id) {
                         if (\common\helpers\OrderProduct::isValidAllocated($orderProductRecord) != true) {
                             unset($orderProductRecord);
                             return false;
@@ -623,8 +641,7 @@ class Order
         if ($orderRecord instanceof \common\models\Orders) {
             foreach ((\common\models\OrdersProductsAllocate::find()
                 ->where(['orders_id' => (int)$orderRecord->orders_id])
-                ->asArray($asArray)->all())
-                    as $opAllocateRecord
+                ->asArray($asArray)->all()) as $opAllocateRecord
             ) {
                 $return[] = $opAllocateRecord;
             }
@@ -669,7 +686,7 @@ class Order
                 $return = self::OES_RECEIVED;
             }
             if ($orderProductStatusArray[\common\helpers\OrderProduct::OPS_STOCK_DEFICIT] > 0
-                OR $orderProductStatusArray[\common\helpers\OrderProduct::OPS_STOCK_ORDERED] > 0
+                or $orderProductStatusArray[\common\helpers\OrderProduct::OPS_STOCK_ORDERED] > 0
             ) {
                 $return = self::OES_PROCESSING;
             }
@@ -682,15 +699,15 @@ class Order
             }
             unset($orderProductStatusArray);
             $orderStatusRecord = \common\models\OrdersStatus::getDefaultByOrderEvaluationState($return, $orderStatusPreferred);
-            if (!($orderStatusRecord instanceof \common\models\OrdersStatus) AND $return == self::OES_DELIVERED) {
+            if (!($orderStatusRecord instanceof \common\models\OrdersStatus) and $return == self::OES_DELIVERED) {
                 $return = self::OES_DISPATCHED;
                 $orderStatusRecord = \common\models\OrdersStatus::getDefaultByOrderEvaluationState($return, $orderStatusPreferred);
             }
-            if (!($orderStatusRecord instanceof \common\models\OrdersStatus) AND $return == self::OES_DISPATCHED) {
+            if (!($orderStatusRecord instanceof \common\models\OrdersStatus) and $return == self::OES_DISPATCHED) {
                 $return = self::OES_RECEIVED;
                 $orderStatusRecord = \common\models\OrdersStatus::getDefaultByOrderEvaluationState($return, $orderStatusPreferred);
             }
-            if (!($orderStatusRecord instanceof \common\models\OrdersStatus) AND $return == self::OES_RECEIVED) {
+            if (!($orderStatusRecord instanceof \common\models\OrdersStatus) and $return == self::OES_RECEIVED) {
                 $return = self::OES_PROCESSING;
                 $orderStatusRecord = \common\models\OrdersStatus::getDefaultByOrderEvaluationState($return, $orderStatusPreferred);
             }
@@ -701,7 +718,7 @@ class Order
             }
             EOF UNCOMMENT IN CASE OF FULLY AUTOMATIC STATUS CHANGE MODE ONLY! */
             $return = $orderStatus;
-            if (($orderStatusRecord instanceof \common\models\OrdersStatus) AND $orderStatusRecord->orders_status_id != $return) {
+            if (($orderStatusRecord instanceof \common\models\OrdersStatus) and $orderStatusRecord->orders_status_id != $return) {
                 $isHistory = false;
                 try {
                     $orderRecord->orders_status = (int)$orderStatusRecord->orders_status_id;
@@ -746,12 +763,13 @@ class Order
             if ($allocateAllow < 0) {
                 $orderStatusRecord = \common\models\OrdersStatus::findOne(['orders_status_id' => $orderRecord->orders_status]);
                 if ($orderStatusRecord instanceof \common\models\OrdersStatus) {
-                    if ($orderStatusRecord->orders_status_allocate_allow > 0 AND $orderRecord->orders_allocate_allow != $orderStatusRecord->orders_status_allocate_allow) {
+                    if ($orderStatusRecord->orders_status_allocate_allow > 0 and $orderRecord->orders_allocate_allow != $orderStatusRecord->orders_status_allocate_allow) {
                         try {
                             $orderRecord->orders_allocate_allow = $orderStatusRecord->orders_status_allocate_allow;
                             $orderRecord->save();
                             $return = $orderRecord->orders_allocate_allow;
-                        } catch (\Exception $exc) {}
+                        } catch (\Exception $exc) {
+                        }
                     }
                 }
                 unset($orderStatusRecord);
@@ -760,7 +778,8 @@ class Order
                     $orderRecord->orders_allocate_allow = $allocateAllow;
                     $orderRecord->save();
                     $return = $orderRecord->orders_allocate_allow;
-                } catch (\Exception $exc) {}
+                } catch (\Exception $exc) {
+                }
             }
         }
         unset($allocateAllow);
@@ -822,7 +841,7 @@ class Order
             $isIgnoreBindEvaluationState = ((int)$isIgnoreBindEvaluationState > 0);
             $orderStatusRecord = \common\models\OrdersStatus::findOne(['orders_status_id' => $orderStatus]);
             if ($orderStatusRecord instanceof \common\models\OrdersStatus) {
-              if ($isIgnoreBindEvaluationState == false) {
+                if ($isIgnoreBindEvaluationState == false) {
                     if ($orderStatusRecord->order_evaluation_state_id == self::OES_PENDING) {
                         self::doPendent($orderRecord, $isAlternativeBehaviour, $orderStatus);
                     } elseif ($orderStatusRecord->order_evaluation_state_id == self::OES_PROCESSING) {
@@ -861,7 +880,7 @@ class Order
                             $manager = \common\services\OrderManager::loadManager();
                             foreach ($orderPaymentRecordArray as $orderPaymentRecord) {
                                 $payment = $manager->getPaymentCollection($orderPaymentRecord['orders_payment_module'])->getSelectedPayment();
-                                if (is_object($payment) && method_exists($payment, 'release')){
+                                if (is_object($payment) && method_exists($payment, 'release')) {
                                     $payment->release($orderPaymentRecord['orders_payment_transaction_id'], $orderStatus);
                                 }
                                 unset($payment);
@@ -878,9 +897,9 @@ class Order
             unset($orderStatusRecord);
             $comments = trim(isset($historyArray['comments']) ? $historyArray['comments'] : '');
             $smscomments = trim(isset($historyArray['smscomments']) ? $historyArray['smscomments'] : '');
-            $dateAdded = isset($historyArray['date_added'])?$historyArray['date_added']:null;
+            $dateAdded = isset($historyArray['date_added']) ? $historyArray['date_added'] : null;
             $isNotified = (isset($historyArray['customer_notified']) ? (((int)$historyArray['customer_notified'] > 0) ? 1 : 0) : 0);
-            if (($isHistory == true) OR ($comments != '') OR ($smscomments != '') OR ($isNotified > 0)) {
+            if (($isHistory == true) or ($comments != '') or ($smscomments != '') or ($isNotified > 0)) {
                 \common\models\OrdersStatusHistory::write(
                     $orderRecord,
                     $return,
@@ -954,7 +973,6 @@ class Order
         unset($orderStatus);
         unset($orderRecord);
 
-
         return $return;
     }
 
@@ -1009,15 +1027,17 @@ class Order
                     foreach ($opaRecordArray as $opaRecord) {
                         \common\helpers\OrderProduct::doCancel($opaRecord->orders_products_id, false);
                     }
-                } catch (\Exception $exc) {}
+                } catch (\Exception $exc) {
+                }
                 unset($opaRecord);
                 try {
-                    if ($isTemporary === true AND $orderStatusExpired > 0) {
+                    if ($isTemporary === true and $orderStatusExpired > 0) {
                         self::setStatus($orderId, $orderStatusExpired, [], false, false);
                     } else {
                         self::evaluate($orderId);
                     }
-                } catch (\Exception $exc) {}
+                } catch (\Exception $exc) {
+                }
             }
             unset($opaRecordArray);
             unset($isTemporary);
@@ -1033,12 +1053,12 @@ class Order
             ->andWhere(['or',
                 ['and',
                     ['!=', 'last_modified', '0000-00-00 00:00:00'],
-                    ['<', 'last_modified', date('Y-m-d H:i:s', strtotime("-{$orderStatusExpiredDurationHours} hours"))]
+                    ['<', 'last_modified', date('Y-m-d H:i:s', strtotime("-{$orderStatusExpiredDurationHours} hours"))],
                 ],
                 ['and',
                     ['last_modified' => '0000-00-00 00:00:00'],
-                    ['<', 'date_purchased', date('Y-m-d H:i:s', strtotime("-{$orderStatusExpiredDurationHours} hours"))]
-                ]
+                    ['<', 'date_purchased', date('Y-m-d H:i:s', strtotime("-{$orderStatusExpiredDurationHours} hours"))],
+                ],
             ])
             ->asArray(true)->select('orders_id')->column() as $orderId
         ) {
@@ -1048,7 +1068,8 @@ class Order
                 } else {
                     \common\helpers\Order::doCancel($orderId, false, 0);
                 }
-            } catch (\Exception $exc) {}
+            } catch (\Exception $exc) {
+            }
         }
         unset($temporaryAllocateOrderStatusIdList);
         unset($orderId);
@@ -1102,56 +1123,58 @@ class Order
             self::OES_PENDING => [
                 'long' => 'Pending',
                 'short' => 'Pndg',
-                'key' => 'OES_PENDING'
+                'key' => 'OES_PENDING',
             ],
             self::OES_PROCESSING => [
                 'long' => 'Processing',
                 'short' => 'Proc',
-                'key' => 'OES_PROCESSING'
+                'key' => 'OES_PROCESSING',
             ],
             self::OES_RECEIVED => [
                 'long' => 'Received',
                 'short' => 'Rcvd',
-                'key' => 'OES_RECEIVED'
+                'key' => 'OES_RECEIVED',
             ],
             self::OES_DISPATCHED => [
                 'long' => 'Dispatched',
                 'short' => 'Dspd',
-                'key' => 'OES_DISPATCHED'
+                'key' => 'OES_DISPATCHED',
             ],
             self::OES_DELIVERED => [
                 'long' => 'Delivered',
                 'short' => 'Dlvd',
-                'key' => 'OES_DELIVERED'
+                'key' => 'OES_DELIVERED',
             ],
             self::OES_CANCELLED => [
                 'long' => 'Cancelled',
                 'short' => 'Cnld',
-                'key' => 'OES_CANCELLED'
+                'key' => 'OES_CANCELLED',
             ],
             self::OES_PARTIAL_CANCELLED => [
                 'long' => 'Partially Cancelled',
                 'short' => 'PartCnld',
-                'key' => 'OES_PARTIAL_CANCELLED'
-            ]
+                'key' => 'OES_PARTIAL_CANCELLED',
+            ],
         ];
     }
 
-    public static function getOrdersQuery(array $fields){
+    public static function getOrdersQuery(array $fields)
+    {
         $cQuery = \common\models\Orders::find()
                 ->select(array_keys($fields))
                 ->where('1=1');
-        foreach($fields as $field => $value){
-            if (is_array($value)){
+        foreach ($fields as $field => $value) {
+            if (is_array($value)) {
                 $cQuery->andWhere(['in', $field, $value]);
-            } else if (is_string($value) && !empty($value)){
+            } elseif (is_string($value) && !empty($value)) {
                 $cQuery->andWhere(['like', $field, $value]);
             }
         }
         return $cQuery;
     }
 
-    public static function getPurchaseOrderId(\common\classes\extended\OrderAbstract $order){
+    public static function getPurchaseOrderId(\common\classes\extended\OrderAbstract $order)
+    {
         return (!empty($order->info['purchase_order']) ? ' #'.$order->info['purchase_order'] : '');
     }
 
@@ -1165,114 +1188,117 @@ class Order
         return $shipmentVolume;
     }
 
-/**
- * query cost and profit amount on order. Ordered product should be allocated (assigned to supplier and its price)
- * @param int|array $orders_ids
- * @return array|null
- */
-    public static function getProfit($orders_ids) {
-      $ret = null;
-      if (is_array($orders_ids)) {
-        $orders_ids = array_map('intval', $orders_ids);
-      }
-
-      if ($orders_ids) {
-         $q = (new \yii\db\Query())
-            ->select([
-              'sum(opa.allocate_received * opa.suppliers_price) as cost',
-              'sum(opa.allocate_received * (op.final_price - opa.suppliers_price)) as profit',
-              'sum(opa.allocate_received * (op.final_price - opa.suppliers_price)) / sum(opa.allocate_received * opa.suppliers_price) * 100 as profit_percent'])
-            ->from(['op' => TABLE_ORDERS_PRODUCTS])
-            ->leftJoin(['opa' => 'orders_products_allocate'], 'op.orders_products_id = opa.orders_products_id')
-            ->andWhere(['op.orders_id' => $orders_ids])
-            ->andWhere('opa.allocate_received > 0 and opa.suppliers_price > 0')
-            ;
+    /**
+     * query cost and profit amount on order. Ordered product should be allocated (assigned to supplier and its price)
+     * @param int|array $orders_ids
+     * @return array|null
+     */
+    public static function getProfit($orders_ids)
+    {
+        $ret = null;
         if (is_array($orders_ids)) {
-          $q->addSelect('op.orders_id')->groupBy('op.orders_id')->indexBy('orders_id');
-          $ret = $q->all();
-        } else {
-          $ret = $q->one();
+            $orders_ids = array_map('intval', $orders_ids);
         }
-      }
-      return $ret;
+
+        if ($orders_ids) {
+            $q = (new \yii\db\Query())
+               ->select([
+                 'sum(opa.allocate_received * opa.suppliers_price) as cost',
+                 'sum(opa.allocate_received * (op.final_price - opa.suppliers_price)) as profit',
+                 'sum(opa.allocate_received * (op.final_price - opa.suppliers_price)) / sum(opa.allocate_received * opa.suppliers_price) * 100 as profit_percent'])
+               ->from(['op' => TABLE_ORDERS_PRODUCTS])
+               ->leftJoin(['opa' => 'orders_products_allocate'], 'op.orders_products_id = opa.orders_products_id')
+               ->andWhere(['op.orders_id' => $orders_ids])
+               ->andWhere('opa.allocate_received > 0 and opa.suppliers_price > 0')
+            ;
+            if (is_array($orders_ids)) {
+                $q->addSelect('op.orders_id')->groupBy('op.orders_id')->indexBy('orders_id');
+                $ret = $q->all();
+            } else {
+                $ret = $q->one();
+            }
+        }
+        return $ret;
     }
 
-    public static function anonimizeOrder($orders_id, $table = ''){
-      $removedId = \common\helpers\Customer::findCreateAnonymousCustomer();
-      $sqlData = [
-          'customers_id' => (int)$removedId,
-          'basket_id' => 0,
-          'customers_name' => 'removed',
-          'customers_firstname' => 'removed',
-          'customers_lastname' => 'removed',
-          'customers_company' => '',
-          'customers_company_vat' => '',
-          'customers_customs_number' => '',
-          'customers_street_address' => '',
-          'customers_suburb' => '',
-          'customers_city' => '',
-          'customers_postcode' => '',
-          //customers_state
-          //customers_country
-          'customers_telephone' => '',
-          'customers_email_address' => 'removed',
-          'delivery_gender' => '',
-          'delivery_name' => 'removed',
-          'delivery_firstname' => 'removed',
-          'delivery_lastname' => 'removed',
-          'delivery_company' => '',
-          'delivery_street_address' => '',
-          'delivery_suburb' => '',
-          'delivery_city' => '',
-          'delivery_postcode' => '',
-          //delivery_state
-          //delivery_country
-          'delivery_address_book_id' => 0,
-          'billing_gender' => '',
-          'billing_name' => 'removed',
-          'billing_firstname' => 'removed',
-          'billing_lastname' => 'removed',
-          'billing_company' => '',
-          'billing_street_address' => '',
-          'billing_suburb' => '',
-          'billing_city' => '',
-          'billing_postcode' => '',
-          //billing_state
-          //billing_country
-          'billing_address_book_id' => 0,
-      ];
+    public static function anonimizeOrder($orders_id, $table = '')
+    {
+        $removedId = \common\helpers\Customer::findCreateAnonymousCustomer();
+        $sqlData = [
+            'customers_id' => (int)$removedId,
+            'basket_id' => 0,
+            'customers_name' => 'removed',
+            'customers_firstname' => 'removed',
+            'customers_lastname' => 'removed',
+            'customers_company' => '',
+            'customers_company_vat' => '',
+            'customers_customs_number' => '',
+            'customers_street_address' => '',
+            'customers_suburb' => '',
+            'customers_city' => '',
+            'customers_postcode' => '',
+            //customers_state
+            //customers_country
+            'customers_telephone' => '',
+            'customers_email_address' => 'removed',
+            'delivery_gender' => '',
+            'delivery_name' => 'removed',
+            'delivery_firstname' => 'removed',
+            'delivery_lastname' => 'removed',
+            'delivery_company' => '',
+            'delivery_street_address' => '',
+            'delivery_suburb' => '',
+            'delivery_city' => '',
+            'delivery_postcode' => '',
+            //delivery_state
+            //delivery_country
+            'delivery_address_book_id' => 0,
+            'billing_gender' => '',
+            'billing_name' => 'removed',
+            'billing_firstname' => 'removed',
+            'billing_lastname' => 'removed',
+            'billing_company' => '',
+            'billing_street_address' => '',
+            'billing_suburb' => '',
+            'billing_city' => '',
+            'billing_postcode' => '',
+            //billing_state
+            //billing_country
+            'billing_address_book_id' => 0,
+        ];
 
-      $statusCheckWhere = "";
-      if (defined('GDPR_CUSTOMER_DELETE_OPEN_ORDER_STATUSES') && !empty(trim(GDPR_CUSTOMER_DELETE_OPEN_ORDER_STATUSES))) {
-        $tmp = array_map('intval', explode(',', GDPR_CUSTOMER_DELETE_OPEN_ORDER_STATUSES));
-        if (is_array($tmp ) && !empty($tmp )) {
-          $statusCheckWhere = " and orders_status not in (" . implode(",", $tmp) . ")";
+        $statusCheckWhere = '';
+        if (defined('GDPR_CUSTOMER_DELETE_OPEN_ORDER_STATUSES') && !empty(trim(GDPR_CUSTOMER_DELETE_OPEN_ORDER_STATUSES))) {
+            $tmp = array_map('intval', explode(',', GDPR_CUSTOMER_DELETE_OPEN_ORDER_STATUSES));
+            if (is_array($tmp) && !empty($tmp)) {
+                $statusCheckWhere = ' and orders_status not in (' . implode(',', $tmp) . ')';
+            }
         }
-      }
-      if (empty($table)) {
-        $table = TABLE_ORDERS;
-      } elseif (!in_array($table, [TABLE_ORDERS, 'quote_'. TABLE_ORDERS, 'sample_' . TABLE_ORDERS, 'tmp_' . TABLE_ORDERS, TABLE_SUBSCRIPTION])) {
-        $table = false;
-      }
-      foreach (\common\helpers\Hooks::getList('orders/order-anonymize') as $filename) {
-        include($filename);
-      }
+        if (empty($table)) {
+            $table = TABLE_ORDERS;
+        } elseif (!in_array($table, [TABLE_ORDERS, 'quote_'. TABLE_ORDERS, 'sample_' . TABLE_ORDERS, 'tmp_' . TABLE_ORDERS, TABLE_SUBSCRIPTION])) {
+            $table = false;
+        }
+        foreach (\common\helpers\Hooks::getList('orders/order-anonymize') as $filename) {
+            include($filename);
+        }
     }
 
-    public static function getStatusesDetails($typeId = 1) {
-      $languages_id = \Yii::$app->settings->get('languages_id');
+    public static function getStatusesDetails($typeId = 1)
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
 
-      $ret = \common\models\OrdersStatus::find()->alias('os')
-          ->leftJoin(['osg' => \common\models\OrdersStatusGroups::tableName()], 'os.orders_status_groups_id=osg.orders_status_groups_id')
-          ->select('os.*, osg.*')
-          ->andWhere(['orders_status_type_id' => $typeId])
-          ->andWhere(['os.language_id' => $languages_id])
-          ->andWhere(['osg.language_id' => $languages_id])
-          ;
-      //echo $ret ->createCommand()->rawSql; die;
-         $ret = $ret->asArray()->indexBy('orders_status_id')->all()
-          ;
-      return $ret;
+        $ret = \common\models\OrdersStatus::find()->alias('os')
+            ->leftJoin(['osg' => \common\models\OrdersStatusGroups::tableName()], 'os.orders_status_groups_id=osg.orders_status_groups_id')
+            ->select('os.*, osg.*')
+            ->andWhere(['orders_status_type_id' => $typeId])
+            ->andWhere(['os.language_id' => $languages_id])
+            ->andWhere(['osg.language_id' => $languages_id])
+        ;
+        //echo $ret ->createCommand()->rawSql; die;
+        $ret = $ret->asArray()->indexBy('orders_status_id')->all()
+        ;
+        return $ret;
     }
 
 }

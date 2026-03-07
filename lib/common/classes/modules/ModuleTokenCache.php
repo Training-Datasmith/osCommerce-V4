@@ -1,19 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of osCommerce ecommerce platform.
- * 
+ *
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright 2000-2023 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\classes\modules;
-use \yii\httpclient\Client;
+
+use yii\httpclient\Client;
 
 /**
  * cache access token (encrypted in DB)
@@ -33,18 +36,19 @@ use \yii\httpclient\Client;
  *
  */
 
-trait ModuleTokenCache {
-
+trait ModuleTokenCache
+{
     public $auth_platform_id = 0;
     public $auth_login_id = 0;
     public $auth_location = 'db'; //2do file
 
-/**
- * get token from Cache, if not found/expired - call getToken and save new token in cache.
- * @return string
- * @throws type
- */
-    protected function getCacheToken() {
+    /**
+     * get token from Cache, if not found/expired - call getToken and save new token in cache.
+     * @return string
+     * @throws type
+     */
+    protected function getCacheToken()
+    {
 
         $platform_id = $admin_id = 0;
         if (!empty($this->auth_platform_id)) {
@@ -53,11 +57,11 @@ trait ModuleTokenCache {
         if (!empty($this->auth_login_id)) {
             $admin_id = intval($this->auth_login_id);
         }
-        
+
         $q = \common\models\ModuleTokens::find()
             ->andWhere(['>', 'valid_until', date(\common\helpers\Date::DATABASE_DATETIME_FORMAT)])
             ->andWhere([
-              'class' => (!empty($this->code)?$this->code:$this->getModuleCode()),
+              'class' => (!empty($this->code) ? $this->code : $this->getModuleCode()),
               'admin_id' => $admin_id,
               'platform_id' => $platform_id,
             ]);
@@ -72,7 +76,7 @@ trait ModuleTokenCache {
                 $key = \Yii::$app->params['secKey.backend'];
             }
 
-            $ret = \Yii::$app->security->decryptByKey( utf8_decode($ret), $key);
+            $ret = \Yii::$app->security->decryptByKey(utf8_decode($ret), $key);
         }
 
         if (empty($ret)) {
@@ -90,14 +94,15 @@ trait ModuleTokenCache {
         return $ret;
     }
 
-    protected function saveTokenToCache($token_info) {
+    protected function saveTokenToCache($token_info)
+    {
         $token = $token_info['token'];
         $until = $token_info['until'];
         if (is_numeric($until)) {
             //time or linux epoch
             // generally 10sec delay is too huge (token is taken from cache right before request - all request details already prepared).
-            if ($until<1689000000) {
-                $until = date(\common\helpers\Date::DATABASE_DATETIME_FORMAT, time()+$until-10);
+            if ($until < 1689000000) {
+                $until = date(\common\helpers\Date::DATABASE_DATETIME_FORMAT, time() + $until - 10);
             } else {
                 $until = date(\common\helpers\Date::DATABASE_DATETIME_FORMAT, $until);
             }
@@ -118,32 +123,33 @@ trait ModuleTokenCache {
 
         if ($this->auth_location == 'db') {
             \common\models\ModuleTokens::DeleteAll([
-              'class' => (!empty($this->code)?$this->code:$this->getModuleCode()),
+              'class' => (!empty($this->code) ? $this->code : $this->getModuleCode()),
               'admin_id' => $admin_id,
               'platform_id' => $platform_id,
             ]);
             $model = new \common\models\ModuleTokens();
             $model->loadDefaultValues();
             $model->setAttributes([
-              'class' => (!empty($this->code)?$this->code:$this->getModuleCode()),
+              'class' => (!empty($this->code) ? $this->code : $this->getModuleCode()),
               'admin_id' => $admin_id,
               'platform_id' => $platform_id,
               'valid_until' => $until,
-              'token' => utf8_encode(\Yii::$app->security->encryptByKey( $token, $key)),
+              'token' => utf8_encode(\Yii::$app->security->encryptByKey($token, $key)),
             ]);
             $model->save();
 
         }
     }
 
-/**
- *
- * @param string $type
- * @param array|false $params POST data or False to send GET request
- * @param array $url_params
- * @return array ['error' => , 'description' => , 'http_code' => , 'data' => ];
- */
-    protected function prepareSendRequest($type, $params, $url_params = []) {
+    /**
+     *
+     * @param string $type
+     * @param array|false $params POST data or False to send GET request
+     * @param array $url_params
+     * @return array ['error' => , 'description' => , 'http_code' => , 'data' => ];
+     */
+    protected function prepareSendRequest($type, $params, $url_params = [])
+    {
         $url = $this->getApiUrl($type);
 
         if (!empty($url_params)) {
@@ -155,14 +161,14 @@ trait ModuleTokenCache {
 
         $client = new Client([
             'requestConfig' => [
-                'format' => ($type != 'get_token'? Client::FORMAT_JSON : Client::FORMAT_RAW_URLENCODED)
+                'format' => ($type != 'get_token' ? Client::FORMAT_JSON : Client::FORMAT_RAW_URLENCODED),
             ],
             'responseConfig' => [
-                'format' => Client::FORMAT_JSON
+                'format' => Client::FORMAT_JSON,
             ],
             'parsers' => [
                 'json' => '\yii\httpclient\JsonParser',
-            ]
+            ],
         ]);
         $request = $client->createRequest();
         $request->setMethod('post');
@@ -177,12 +183,10 @@ trait ModuleTokenCache {
                 $request->headers->set('Authorization', 'Basic ' . base64_encode("$username:$password"));
             }
 
-
             if ($params === false) {
                 $request->setMethod('get');
             }
             $request->setUrl($url)->setData($params);
-
 
             if (!empty($this->debug)) {
                 if ($this->debug > 1) {
@@ -200,14 +204,14 @@ trait ModuleTokenCache {
             if ($transaction_response->isOk) {
                 $return = [
                         'http_code' => $transaction_response->getStatusCode(),
-                        'data' => $transaction_response->getData()
+                        'data' => $transaction_response->getData(),
                     ];
 
             } else {
 
                 $return = [
                   'error' => 1,
-                  'description' => ''
+                  'description' => '',
                 ];
                 $data = $transaction_response->getData();
                 if (!empty($data['description'])) {
@@ -217,7 +221,7 @@ trait ModuleTokenCache {
 
                 if (!empty($data['errors']) && is_array($data['errors'])) {
                     foreach ($data['errors'] as $error) {
-                        $return['description'] .=  ' ' . $error['description'] . ' ' . ($error['property']??'');
+                        $return['description'] .=  ' ' . $error['description'] . ' ' . ($error['property'] ?? '');
                     }
                 } elseif (!empty($data['statusDetail'])) {
                     $return['description'] = $data['statusDetail'];

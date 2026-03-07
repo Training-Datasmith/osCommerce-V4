@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,61 +16,60 @@ namespace frontend\design\boxes\CatalogPages;
 
 use common\classes\Images;
 use common\classes\platform;
+use frontend\design\IncludeTpl;
 use frontend\models\repositories\CatalogPagesReadRepository;
 use frontend\models\repositories\InformationReadRepository;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class CategoryPagesLastListByCatalog extends Widget
 {
+    public $file;
+    public $params;
+    public $content;
+    public $settings;
 
-	public $file;
-	public $params;
-	public $content;
-	public $settings;
-
-	private $catalogPagesId = 0;
-	private $limit = 0;
-	private $catalogPagesRepository;
-	private $informationRepository;
+    private $catalogPagesId = 0;
+    private $limit = 0;
+    private $catalogPagesRepository;
+    private $informationRepository;
     private $platformId;
-	public function __construct( CatalogPagesReadRepository $catalogPagesRepository, InformationReadRepository $informationRepository, $config = [])
-	{
-		parent::__construct($config);
-		$this->catalogPagesRepository = $catalogPagesRepository;
-		$this->informationRepository = $informationRepository;
-	}
+    public function __construct(CatalogPagesReadRepository $catalogPagesRepository, InformationReadRepository $informationRepository, $config = [])
+    {
+        parent::__construct($config);
+        $this->catalogPagesRepository = $catalogPagesRepository;
+        $this->informationRepository = $informationRepository;
+    }
 
-	public function init()
-	{
-		parent::init();
-		$this->catalogPagesId = (int)$this->settings[0]['selectCatalogPageLastListById'];
+    public function init()
+    {
+        parent::init();
+        $this->catalogPagesId = (int)$this->settings[0]['selectCatalogPageLastListById'];
         $this->limit = (int)$this->settings[0]['limitInformationLastListByIdPage'];
-        if($this->limit < 1){
+        if ($this->limit < 1) {
             $this->limit = 6;
         }
-        $this->platformId = (bool)platform::currentId()?(int)platform::currentId():(int)platform::currentId();
-	}
+        $this->platformId = (bool)platform::currentId() ? (int)platform::currentId() : (int)platform::currentId();
+    }
 
-	public function run()
-	{
-		$languages_id = \Yii::$app->settings->get('languages_id');
+    public function run()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
 
-		if($this->catalogPagesId < 1){
-			return '';
-		}
-        $catalogPage = $this->catalogPagesRepository->getShortInfo($this->catalogPagesId,$languages_id,true);
-        if(empty($catalogPage)){
+        if ($this->catalogPagesId < 1) {
             return '';
         }
-        $infoPages = $this->informationRepository->getLastList($languages_id,$this->platformId,$this->limit,true,$catalogPage['catalog_pages_id'],true);
-		$imagePageCatalogPath = Images::getWSCatalogImagesPath().$this->catalogPagesRepository->imagesLocation();
+        $catalogPage = $this->catalogPagesRepository->getShortInfo($this->catalogPagesId, $languages_id, true);
+        if (empty($catalogPage)) {
+            return '';
+        }
+        $infoPages = $this->informationRepository->getLastList($languages_id, $this->platformId, $this->limit, true, $catalogPage['catalog_pages_id'], true);
+        $imagePageCatalogPath = Images::getWSCatalogImagesPath().$this->catalogPagesRepository->imagesLocation();
         $imageInformationPath = Images::getWSCatalogImagesPath().$this->informationRepository->imagesLocation();
-		return IncludeTpl::widget(['file' => 'boxes/category-pages/category-pages-last-list-by-id.tpl', 'params' => [
-			'infoPages' => $infoPages,
+        return IncludeTpl::widget(['file' => 'boxes/category-pages/category-pages-last-list-by-id.tpl', 'params' => [
+            'infoPages' => $infoPages,
             'catalogPage' => $catalogPage,
-			'imagePageCatalogPath' => $imagePageCatalogPath,
+            'imagePageCatalogPath' => $imagePageCatalogPath,
             'imageInformationPath' => $imageInformationPath,
-		]]);
-	}
+        ]]);
+    }
 }

@@ -1,17 +1,19 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Stripe;
 
 class BaseStripeClient implements StripeClientInterface
 {
     /** @var string default base URL for Stripe's API */
-    const DEFAULT_API_BASE = 'https://api.stripe.com';
+    public const DEFAULT_API_BASE = 'https://api.stripe.com';
 
     /** @var string default base URL for Stripe's OAuth API */
-    const DEFAULT_CONNECT_BASE = 'https://connect.stripe.com';
+    public const DEFAULT_CONNECT_BASE = 'https://connect.stripe.com';
 
     /** @var string default base URL for Stripe's Files API */
-    const DEFAULT_FILES_BASE = 'https://files.stripe.com';
+    public const DEFAULT_FILES_BASE = 'https://files.stripe.com';
 
     /** @var array<string, mixed> */
     private $config;

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Exception;
 
 /**
@@ -9,7 +11,6 @@ namespace PayPal\Exception;
  */
 class PayPalInvalidCredentialException extends \Exception
 {
-
     /**
      * Default Constructor
      *

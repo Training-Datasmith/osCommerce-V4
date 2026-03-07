@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Core;
 
 use PayPal\Log\PayPalLogFactory;
@@ -15,7 +17,7 @@ class PayPalLoggingManager
     /**
      * @var array of logging manager instances with class name as key
      */
-    private static $instances = array();
+    private static $instances = [];
 
     /**
      * The logger to be used for all messages

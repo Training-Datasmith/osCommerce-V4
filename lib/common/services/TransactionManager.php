@@ -1,7 +1,8 @@
 <?php
 
-namespace common\services;
+declare(strict_types=1);
 
+namespace common\services;
 
 class TransactionManager
 {

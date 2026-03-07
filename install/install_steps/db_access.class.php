@@ -1,18 +1,20 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-class db_access extends install_generic {
-
-    public static $shortcuts = array('pfh' => array('file_handler', array('installer')));
+class db_access extends install_generic
+{
+    public static $shortcuts = ['pfh' => ['file_handler', ['installer']]];
     public static $before = 'php_check';
     public $next_button = 'inst_db';
 
@@ -21,11 +23,13 @@ class db_access extends install_generic {
     private $dbuser = '';
     private $empty_database = 0;
 
-    public static function before() {
+    public static function before()
+    {
         return self::$before;
     }
 
-    public function get_output() {
+    public function get_output()
+    {
         $showConfirmation = false;
         if (isset($_POST['dbhost'])) {
             $this->dbhost = $_POST['dbhost'];
@@ -43,7 +47,7 @@ class db_access extends install_generic {
                 if ($db_selected) {
                     $db_query = mysqli_query($link, "SELECT count(table_name) as qty FROM information_schema.tables WHERE table_schema = '".$this->dbname."'");
                     $result = mysqli_fetch_array($db_query, MYSQLI_ASSOC);
-                    if (isset($result['qty']) && $result['qty']>0) {
+                    if (isset($result['qty']) && $result['qty'] > 0) {
                         $showConfirmation = true;
                     }
                 }
@@ -89,7 +93,8 @@ class db_access extends install_generic {
         return $content;
     }
 
-    public function get_filled_output() {
+    public function get_filled_output()
+    {
         if (defined('DB_SERVER')) {
             $this->dbhost = DB_SERVER;
         }
@@ -102,7 +107,8 @@ class db_access extends install_generic {
         return $this->get_output();
     }
 
-    public function parse_input() {
+    public function parse_input()
+    {
         if (isset($_POST['prev']) && $_POST['prev'] == 'php_check') {
             return true;
         }
@@ -128,8 +134,7 @@ class db_access extends install_generic {
         }
 
         $db_selected = mysqli_select_db($link, $this->dbname);
-        if (!$db_selected)
-        {
+        if (!$db_selected) {
             $this->log('install_error', 'Wrong database name.');
             return false;
         }
@@ -137,12 +142,12 @@ class db_access extends install_generic {
         if ($this->empty_database != 1) {
             $db_query = mysqli_query($link, "SELECT count(table_name) as qty FROM information_schema.tables WHERE table_schema = '".$this->dbname."'");
             $result = mysqli_fetch_array($db_query, MYSQLI_ASSOC);
-            if (isset($result['qty']) && $result['qty']>0) {
+            if (isset($result['qty']) && $result['qty'] > 0) {
                 $this->log('install_error', 'Database not empty.');
                 return false;
             }
         }
-        
+
         $installed_microtime = microtime(true);
 
         $content  = '<?php' . "\n";
@@ -152,12 +157,12 @@ class db_access extends install_generic {
         $content .= "define('DB_DATABASE', '" . $this->dbname . "');" . "\n";
         $content .= "define('USE_PCONNECT', 'false');" . "\n";
         $content .= "define('STORE_SESSIONS', 'mysql');" . "\n";
-        $content  .= "" . "\n";
+        $content  .= '' . "\n";
         $content  .= "define('INSTALLED_MICROTIME', '". $installed_microtime . "');" . "\n";
         error_clear_last();
         $response = file_put_contents($this->root_path . 'includes/local/configure.php', $content);
         if ($response === false) {
-            $this->log('install_error', 'Can\'t save config file.', error_get_last()['message']??null);
+            $this->log('install_error', 'Can\'t save config file.', error_get_last()['message'] ?? null);
             return false;
         }
 
@@ -174,7 +179,7 @@ class db_access extends install_generic {
         $content  .= "define('HTTPS_CATALOG_SERVER', 'https://" . $hostname . "');" . "\n";
         $content  .= "define('ENABLE_SSL', true);" . "\n";
         $content  .= "define('ENABLE_SSL_CATALOG', true);" . "\n";
-        $content  .= "" . "\n";
+        $content  .= '' . "\n";
         $content  .= 'define(\'DIR_FS_DOCUMENT_ROOT\', $_SERVER[\'DOCUMENT_ROOT\']);' . "\n";
         $content  .= "define('DIR_WS_ADMIN', '" . rtrim($pathname, '/\\') . "/admin/');" . "\n";
         $content  .= "define('DIR_FS_ADMIN', rtrim(DIR_FS_DOCUMENT_ROOT, '/\\\\') . DIR_WS_ADMIN);" . "\n";
@@ -201,20 +206,20 @@ class db_access extends install_generic {
         //$content  .= "define('DIR_FS_CATALOG_MAINPAGE_MODULES', DIR_FS_CATALOG_MODULES . 'mainpage_modules/');" . "\n";
         $content  .= "define('DIR_WS_TEMPLATES', DIR_WS_CATALOG . 'templates/');" . "\n";
         $content  .= "define('DIR_FS_TEMPLATES', DIR_FS_CATALOG . 'templates/');" . "\n";
-        $content  .= "" . "\n";
+        $content  .= '' . "\n";
         $content  .= "define('DB_SERVER', '" . $this->dbhost . "');" . "\n";
         $content  .= "define('DB_SERVER_USERNAME', '" . $this->dbuser . "');" . "\n";
         $content  .= "define('DB_SERVER_PASSWORD', '" . $this->dbpass . "');" . "\n";
         $content  .= "define('DB_DATABASE', '" . $this->dbname . "');" . "\n";
         $content  .= "define('USE_PCONNECT', 'false');" . "\n";
         $content  .= "define('STORE_SESSIONS', 'mysql');" . "\n";
-        $content  .= "" . "\n";
+        $content  .= '' . "\n";
         $content  .= "define('INSTALLED_MICROTIME', '". $installed_microtime . "');" . "\n";
-        $content  .= "" . "\n";
+        $content  .= '' . "\n";
         error_clear_last();
         $response = file_put_contents($this->root_path . 'admin/includes/local/configure.php', $content);
         if ($response === false) {
-            $this->log('install_error', 'Can\'t save admin config file.', error_get_last()['message']??null);
+            $this->log('install_error', 'Can\'t save admin config file.', error_get_last()['message'] ?? null);
             return false;
         }
 
@@ -227,7 +232,7 @@ class db_access extends install_generic {
         while ($result = mysqli_fetch_array($db_query, MYSQLI_ASSOC)) {
             $tableName = isset($result['table_name']) ? $result['table_name'] : $result['TABLE_NAME']; // mysql8
             if (!isset($turnOffForeignKeys)) {
-                mysqli_query($link, "SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;");
+                mysqli_query($link, 'SET @OLD_FOREIGN_KEY_CHECKS=@@FOREIGN_KEY_CHECKS, FOREIGN_KEY_CHECKS=0;');
                 $turnOffForeignKeys = true;
             }
             $sql = "DROP TABLE IF EXISTS `$tableName`;";
@@ -238,13 +243,15 @@ class db_access extends install_generic {
         }
 
         $sqls = $this->parse_sql_file($restore_from);
-        foreach($sqls as $sql) {
+        foreach ($sqls as $sql) {
             $sql = trim($sql);
-            if (empty($sql)) continue;
+            if (empty($sql)) {
+                continue;
+            }
             $result = mysqli_query($link, $sql);
             if (!$result) {
                 $errorMsg = 'Can\'t update database: ' . $link->error;
-                if ( strpos($sql, 'SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT') !== false ) { // session may be terminated due large sql file
+                if (strpos($sql, 'SET CHARACTER_SET_CLIENT=@OLD_CHARACTER_SET_CLIENT') !== false) { // session may be terminated due large sql file
                     Log::write($errorMsg, 'install_error', $sql);
                 } else {
                     $this->log('install_error', $errorMsg, $sql);
@@ -253,10 +260,9 @@ class db_access extends install_generic {
             }
         }
         //exec('mysql -h' . $this->dbhost . ' -u' . $this->dbuser . ' -p' . $this->dbpass . ' ' . $this->dbname . ' < ' . $restore_from);
-        
 
         if (isset($turnOffForeignKeys)) {
-            mysqli_query($link, "SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS");
+            mysqli_query($link, 'SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS');
         }
         mysqli_close($link);
 
@@ -265,7 +271,8 @@ class db_access extends install_generic {
         return true;
     }
 
-    private function parse_sql_file($filename) {
+    private function parse_sql_file($filename)
+    {
         $file = file_get_contents($filename);
         $sqls = explode(";\n", str_replace("\n\n", "\n", str_replace("\r", "\n", $file)));
         $sqls = preg_replace('/^#.*$/m', '', $sqls);

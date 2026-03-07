@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,12 +19,10 @@ function osclink_autoload($class)
     if (preg_match('/^OscLink\\\\(.+)$/', $class, $match)) {
         $filename = __DIR__ .'/'. str_replace('\\', '/', $match[1]) . '.php';
         if (file_exists($filename)) {
-            require_once ($filename);
+            require_once($filename);
             return true;
         } else {
             \Yii::warning("Class $class not found: $filename");
         }
     }
 }
-
- 

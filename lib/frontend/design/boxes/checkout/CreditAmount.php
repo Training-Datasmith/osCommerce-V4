@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\checkout;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class CreditAmount extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -32,9 +32,11 @@ class CreditAmount extends Widget
     {
         /** @var \common\services\OrderManager $manager */
         $manager = $this->params['manager'];
-    
-        if (!$manager->isCustomerAssigned()) return ;
-        
+
+        if (!$manager->isCustomerAssigned()) {
+            return ;
+        }
+
         if (ALLOW_CUSTOMER_CREDIT_AMOUNT != 'true') {
             return '';
         }
@@ -48,7 +50,7 @@ class CreditAmount extends Widget
         return IncludeTpl::widget(['file' => 'boxes/checkout/credit-amount.tpl', 'params' => [
             'credit_modules' => $manager->getCreditModules(),
             'creditPaymentExists' => $creditPaymentExists,
-            'id' => $this->id
+            'id' => $this->id,
         ]]);
     }
 }

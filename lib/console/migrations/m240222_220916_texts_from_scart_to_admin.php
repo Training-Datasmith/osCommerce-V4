@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -40,9 +42,9 @@ class m240222_220916_texts_from_scart_to_admin extends Migration
      */
     public function safeDown()
     {
-//        echo "m240222_220916_texts_from_scart_to_admin cannot be reverted.\n";
-//
-//        return false;
+        //        echo "m240222_220916_texts_from_scart_to_admin cannot be reverted.\n";
+        //
+        //        return false;
     }
 
     /*

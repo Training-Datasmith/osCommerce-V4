@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace backend\models\ProductEdit;
 
-
 class TabAccess
 {
     protected $subProduct = false;
@@ -20,9 +21,9 @@ class TabAccess
 
     public function setProduct($product)
     {
-        if ( is_object($product) && $product->parent_products_id ) {
+        if (is_object($product) && $product->parent_products_id) {
             $this->subProduct = true;
-            $this->supplierDataAllowed = $product->parent_products_id!=$product->products_id_stock;
+            $this->supplierDataAllowed = $product->parent_products_id != $product->products_id_stock;
         }
     }
 
@@ -59,7 +60,7 @@ class TabAccess
 
     public function tabDataSave($tabCode)
     {
-        if ( $this->subProduct && !$this->checkSubProductTabs($tabCode)) {
+        if ($this->subProduct && !$this->checkSubProductTabs($tabCode)) {
             return false;
         }
         return \common\helpers\Acl::rule(['TABLE_HEADING_PRODUCTS', 'IMAGE_EDIT', $tabCode]);
@@ -67,11 +68,10 @@ class TabAccess
 
     public function tabView($tabCode)
     {
-        if ( $this->subProduct && !$this->checkSubProductTabs($tabCode)) {
+        if ($this->subProduct && !$this->checkSubProductTabs($tabCode)) {
             return false;
         }
         return \common\helpers\Acl::rule(['TABLE_HEADING_PRODUCTS', 'IMAGE_EDIT', $tabCode]);
     }
-
 
 }

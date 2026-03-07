@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230309_105432_design_table_row extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/design',[
+        $this->addTranslation('admin/design', [
             'ADD_COLUMN' => 'Add column',
             'REMOVE_COLUMN' => 'Remove column',
             'ORDERS_LIST_ITEMS' => 'Orders List Items',
@@ -38,7 +40,7 @@ class m230309_105432_design_table_row extends Migration
             'ORDER_LOCATION' => 'Order Location',
             'WALKIN_ORDER' => 'Walkin Order',
         ]);
-        $this->addTranslation('admin/main',[
+        $this->addTranslation('admin/main', [
             'ORDERS_LIST' => 'Orders list',
         ]);
     }

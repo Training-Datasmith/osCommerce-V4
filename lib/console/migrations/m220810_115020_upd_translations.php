@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,10 +24,10 @@ class m220810_115020_upd_translations extends Migration
      */
     public function safeUp()
     {
-		$this->update('configuration', ['configuration_value'=>'True'], ['configuration_key'=>'EXPRESS_PAYMENTS_HIDE_CHECKOUT']);
-		$this->update('translation', ['translation_value'=>'From your account dashboard you can <a href="##URL##account?page_name=order_history"> view your recent<br>orders</a>, <a href="##URL##account?page_name=address_book">manage your shipping and billing addresses</a>, and <a href="##URL##account?page_name=account_edit">edit<br> your password and account details</a>.'], ['translation_key'=>'TEXT_ACCOUNT_INFO', 'translation_entity'=>'main']);
-		$this->update('translation', ['translation_value'=>'Welcome to osCommerce platform'], ['translation_key'=>'TEXT_WELCOME_PLATFORM', 'translation_entity'=>'main']);
-        $this->update('translation', ['translation_value'=>'Which smart watch is right for me?', 'translation_key'=>'TEXT_WHICH_ITEM'], ['translation_key'=>'TEXT_WHICH_FITBIT', 'translation_entity'=>'main']);
+        $this->update('configuration', ['configuration_value' => 'True'], ['configuration_key' => 'EXPRESS_PAYMENTS_HIDE_CHECKOUT']);
+        $this->update('translation', ['translation_value' => 'From your account dashboard you can <a href="##URL##account?page_name=order_history"> view your recent<br>orders</a>, <a href="##URL##account?page_name=address_book">manage your shipping and billing addresses</a>, and <a href="##URL##account?page_name=account_edit">edit<br> your password and account details</a>.'], ['translation_key' => 'TEXT_ACCOUNT_INFO', 'translation_entity' => 'main']);
+        $this->update('translation', ['translation_value' => 'Welcome to osCommerce platform'], ['translation_key' => 'TEXT_WELCOME_PLATFORM', 'translation_entity' => 'main']);
+        $this->update('translation', ['translation_value' => 'Which smart watch is right for me?', 'translation_key' => 'TEXT_WHICH_ITEM'], ['translation_key' => 'TEXT_WHICH_FITBIT', 'translation_entity' => 'main']);
     }
 
     /**

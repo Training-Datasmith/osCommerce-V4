@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -22,7 +24,8 @@ class InvoiceNumber extends PayPalModel
      *
      * @return $this
      */
-    public function setNumber($number) {
+    public function setNumber($number)
+    {
         $this->number = $number;
         return $this;
     }
@@ -32,7 +35,8 @@ class InvoiceNumber extends PayPalModel
      *
      * @return string
      */
-    public function getNumber() {
+    public function getNumber()
+    {
         return $this->number;
     }
 }

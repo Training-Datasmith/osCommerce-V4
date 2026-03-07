@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 /**
  * This file is part of osCommerce ecommerce platform.
@@ -11,7 +12,6 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 
 namespace common\extensions\StockControl\models;
 
@@ -40,7 +40,7 @@ class WarehouseInventoryControl extends \yii\db\ActiveRecord
         return [
             [['products_id', 'platform_id'], 'required'],
             [['platform_id', 'warehouse_id'], 'integer'],
-            [['products_id'], 'string', 'max' => 160]
+            [['products_id'], 'string', 'max' => 160],
         ];
     }
 

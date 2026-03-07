@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +13,6 @@
  */
 
 namespace backend\services;
-
 
 use common\models\OrdersTotal;
 use common\models\repositories\OrdersTotalRepository;
@@ -28,12 +29,12 @@ class OrdersTotalService
         $this->ordersTotalRepository = $ordersTotalRepository;
     }
 
-    public function getByOrderId($orderId,$asArray = false)
+    public function getByOrderId($orderId, $asArray = false)
     {
-        return $this->ordersTotalRepository->getByOrderId($orderId,$asArray);
+        return $this->ordersTotalRepository->getByOrderId($orderId, $asArray);
     }
-    public function update( OrdersTotal $orderTotals, $params = [], $validate = false, $safeOnly = false )
+    public function update(OrdersTotal $orderTotals, $params = [], $validate = false, $safeOnly = false)
     {
-        return $this->ordersTotalRepository->edit($orderTotals,$params,$validate,$safeOnly);
+        return $this->ordersTotalRepository->edit($orderTotals, $params, $validate, $safeOnly);
     }
 }

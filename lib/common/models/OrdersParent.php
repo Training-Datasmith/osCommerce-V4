@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
 use yii\db\ActiveRecord;
@@ -10,8 +12,9 @@ class OrdersParent extends ActiveRecord
     {
         return 'orders_parent';
     }
-    
-    public static function primaryKey(){
+
+    public static function primaryKey()
+    {
         return ['orders_id'];
     }
 }

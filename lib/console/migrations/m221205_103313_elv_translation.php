@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,11 +25,11 @@ class m221205_103313_elv_translation extends Migration
     public function safeUp()
     {
         if (\common\helpers\Extensions::isInstalled('ErrorLogViewer')) {
-            $this->removeTranslation('extensions/error-log-viewer',[
+            $this->removeTranslation('extensions/error-log-viewer', [
                 'EXT_ELV_ERR_EXT_DIR_NOT_WRITABLE',
                 'EXT_ELV_ERR_CREATE_ZIP',
             ]);
-            $this->addTranslation('extensions/error-log-viewer',[
+            $this->addTranslation('extensions/error-log-viewer', [
                 'EXT_ELV_ERR_DELETE_OLD_ZIP' => 'Failure to remove old zip file(s). Error: <strong>%s</strong>',
                 'EXT_ELV_ERR_CREATE_ZIP' => 'Failure to create zip file. Error: <strong>%s</strong>',
                 'EXT_ELV_ERR_CREATE_TMP' => 'Can not create temporary folder',

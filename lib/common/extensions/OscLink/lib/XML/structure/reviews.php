@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,8 +19,8 @@ return [
         'common\\models\\Reviews' => [
             'xmlCollection' => 'Reviews>Review',
             'properties' => [
-                'products_id' => ['class'=>'IOMap', 'table'=>'products', 'attribute'=>'products_id'],
-                'customers_id' => ['class'=>'IOMap', 'table'=>'customers', 'attribute'=>'customers_id'],
+                'products_id' => ['class' => 'IOMap', 'table' => 'products', 'attribute' => 'products_id'],
+                'customers_id' => ['class' => 'IOMap', 'table' => 'customers', 'attribute' => 'customers_id'],
             ],
             'withRelated' => [
                 'descriptions' => [
@@ -28,7 +30,7 @@ return [
                     ],
                 ],
             ],
-         ]
+         ],
     ],
     'covered_tables' => [ 'reviews', 'reviews_description', ],
 ];

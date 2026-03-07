@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,8 +14,6 @@
 
 namespace backend\models\forms;
 
-
-use common\models\Platforms;
 use yii\base\Model;
 
 /**
@@ -23,7 +23,7 @@ use yii\base\Model;
 final class ProductsNotesForm extends Model
 {
     /** @var string $note */
-	public $note;
+    public $note;
 
     public function rules()
     {
@@ -51,4 +51,3 @@ final class ProductsNotesForm extends Model
         return json_decode(json_encode($this), true);
     }
 }
-

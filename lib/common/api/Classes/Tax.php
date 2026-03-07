@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -48,11 +50,13 @@ class Tax extends AbstractClass
             foreach (\common\models\TaxRates::find()->where(['tax_class_id' => $this->classId])
                 ->groupBy('tax_zone_id')->asArray(true)->all() as $zoneArray
             ) {
-                $zoneRecord = (\common\models\TaxZones::find()
+                $zoneRecord = (
+                    \common\models\TaxZones::find()
                     ->where(['geo_zone_id' => (int)$zoneArray['tax_zone_id']])->asArray(true)->one()
                 );
                 // RATE
-                $zoneRecord['rateRecordArray'] = (\common\models\TaxRates::find()
+                $zoneRecord['rateRecordArray'] = (
+                    \common\models\TaxRates::find()
                     ->where(['tax_class_id' => $this->classId, 'tax_zone_id' => (int)$zoneArray['tax_zone_id']])->asArray(true)->all()
                 );
                 // EOF RATE
@@ -64,7 +68,8 @@ class Tax extends AbstractClass
                     $zoneToGeoRecord['zone_id'] = (int)$zoneToGeoRecord['zone_id'];
                     $zoneToGeoRecord['zone_country_id'] = (int)$zoneToGeoRecord['zone_country_id'];
                     // GEO ZONE
-                    $geoZoneRecord = ((array)\common\models\Zones::find()
+                    $geoZoneRecord = (
+                        (array)\common\models\Zones::find()
                         ->where(['zone_country_id' => (int)$zoneToGeoRecord['zone_country_id'], 'zone_id' => (int)$zoneToGeoRecord['zone_id']])
                         ->asArray(true)->one()
                     );
@@ -75,7 +80,8 @@ class Tax extends AbstractClass
                     // COUNTRY
                     $languageId = \common\classes\language::defaultId();
                     $languageCode = \common\classes\language::get_code($languageId, true);
-                    $countryRecord = ((array)\common\models\Countries::find()
+                    $countryRecord = (
+                        (array)\common\models\Countries::find()
                         ->where(['countries_id' => (int)$zoneToGeoRecord['zone_country_id'], 'language_id' => $languageId])->asArray(true)->one()
                     );
                     $zoneToGeoRecord['countries_name'] = trim(isset($countryRecord['countries_name']) ? $countryRecord['countries_name'] : '');
@@ -111,10 +117,11 @@ class Tax extends AbstractClass
             return false;
         }
         unset($this->classRecord['tax_class_id']);
-        $this->zoneRecordArray = (is_array($this->zoneRecordArray) ? $this->zoneRecordArray : array());
+        $this->zoneRecordArray = (is_array($this->zoneRecordArray) ? $this->zoneRecordArray : []);
         foreach ($this->zoneRecordArray as $keyZ => &$zoneRecord) {
-            $zoneRecord['rateRecordArray'] = ((isset($zoneRecord['rateRecordArray']) AND is_array($zoneRecord['rateRecordArray']))
-                ? $zoneRecord['rateRecordArray'] : array()
+            $zoneRecord['rateRecordArray'] = (
+                (isset($zoneRecord['rateRecordArray']) and is_array($zoneRecord['rateRecordArray']))
+                ? $zoneRecord['rateRecordArray'] : []
             );
             foreach ($zoneRecord['rateRecordArray'] as $keyR => &$rateRecord) {
                 if (!isset($rateRecord['tax_rate'])) {
@@ -124,8 +131,9 @@ class Tax extends AbstractClass
             unset($rateRecord);
             unset($keyR);
             if (count($zoneRecord['rateRecordArray']) > 0) {
-                $zoneRecord['zoneToGeoRecordArray'] = ((isset($zoneRecord['zoneToGeoRecordArray']) AND is_array($zoneRecord['zoneToGeoRecordArray']))
-                    ? $zoneRecord['zoneToGeoRecordArray'] : array()
+                $zoneRecord['zoneToGeoRecordArray'] = (
+                    (isset($zoneRecord['zoneToGeoRecordArray']) and is_array($zoneRecord['zoneToGeoRecordArray']))
+                    ? $zoneRecord['zoneToGeoRecordArray'] : []
                 );
                 foreach ($zoneRecord['zoneToGeoRecordArray'] as &$zoneToGeoRecord) {
                     unset($zoneToGeoRecord['association_id']);
@@ -285,7 +293,8 @@ class Tax extends AbstractClass
                             }
                             if ($countryId > 0) {
                                 try {
-                                    $zoneToTaxZoneClass = (\common\models\ZonesToTaxZones::find()
+                                    $zoneToTaxZoneClass = (
+                                        \common\models\ZonesToTaxZones::find()
                                         ->where(['geo_zone_id' => $zoneId, 'zone_country_id' => $countryId, 'zone_id' => $geoZoneId])->one()
                                     );
                                     if (!($zoneToTaxZoneClass instanceof \common\models\ZonesToTaxZones)) {

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\checkout;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class ContactInformation extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -31,13 +31,13 @@ class ContactInformation extends Widget
 
     public function run()
     {
-        if(is_object($this->manager)){
+        if (is_object($this->manager)) {
             $this->params['manager'] = $this->manager;
         }
-        
+
         return IncludeTpl::widget(['file' => 'boxes/checkout/contact-information.tpl', 'params' => array_merge($this->params, [
             'settings' => $this->settings,
-            'id' => $this->id
+            'id' => $this->id,
         ])]);
     }
 }

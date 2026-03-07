@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,11 +14,10 @@
 
 namespace backend\design;
 
-use Yii;
-use yii\base\Widget;
+use common\helpers\PageStatus as hPageStatus;
 use common\models\PageStatus;
 use common\models\PageStatusSwitch;
-use common\helpers\PageStatus as hPageStatus;
+use yii\base\Widget;
 
 class ChangeStatus extends Widget
 {
@@ -26,7 +27,8 @@ class ChangeStatus extends Widget
     public $statuses = [];
     public $periods = [];
 
-    public function init(){
+    public function init()
+    {
         parent::init();
     }
 
@@ -66,7 +68,7 @@ class ChangeStatus extends Widget
         }
 
         return $this->render('change-status-' . $name . '.tpl', [
-            'id' => rand (1, 100000),
+            'id' => rand(1, 100000),
             'pageStatusActions' => $this->statusActions(),
             'status' => $status['status'],
             'statuses' => $statuses,
@@ -76,8 +78,8 @@ class ChangeStatus extends Widget
                 'status' => $status['status'],
                 'pageStatusActions' => $this->statusActions(),
                 'pageId' => $this->pageId,
-                'type' => $this->type
-            ])
+                'type' => $this->type,
+            ]),
         ]);
     }
 

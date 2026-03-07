@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe\BillingPortal;
@@ -26,7 +28,6 @@ namespace Stripe\BillingPortal;
  */
 class Session extends \Stripe\ApiResource
 {
-    const OBJECT_NAME = 'billing_portal.session';
-
     use \Stripe\ApiOperations\Create;
+    public const OBJECT_NAME = 'billing_portal.session';
 }

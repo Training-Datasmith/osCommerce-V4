@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models\repositories;
 
 use common\models\PlatformsZoneCountries;
 
-class ZoneCountriesRepository 
+class ZoneCountriesRepository
 {
     public function getPlatformsZoneCountries(int $platformId)
     {
@@ -16,15 +18,15 @@ class ZoneCountriesRepository
         } else {
             throw new NotFoundException('ZoneCountries is not found.');
         }
-         * 
+         *
          */
     }
-    
+
     public function deleteZoneCountry(int $platformId)
     {
         return PlatformsZoneCountries::deleteAll(['platform_id' => $platformId]);
     }
-    
+
     public function save(array $platformsZoneCountries)
     {
         foreach ($platformsZoneCountries as $item) {

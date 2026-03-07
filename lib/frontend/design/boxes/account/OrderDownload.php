@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,13 +16,9 @@ namespace frontend\design\boxes\account;
 
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use frontend\design\SplitPageResults;
-use common\helpers\Date as DateHelper;
 
 class OrderDownload extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -33,6 +31,6 @@ class OrderDownload extends Widget
     public function run()
     {
         $order_id = (int)Yii::$app->request->get('order_id');
-        return \frontend\design\boxes\success\Download::widget(['params' =>['orders_id' => $order_id]]);
+        return \frontend\design\boxes\success\Download::widget(['params' => ['orders_id' => $order_id]]);
     }
 }

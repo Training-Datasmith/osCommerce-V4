@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,9 +15,9 @@
 namespace frontend\design\boxes\info;
 
 use common\components\InformationPage;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Content extends Widget
 {
@@ -31,7 +33,9 @@ class Content extends Widget
     public function run()
     {
         $infoId = (int)Yii::$app->request->get('info_id');
-        if(!$infoId) return '';
+        if (!$infoId) {
+            return '';
+        }
 
         $infoData = InformationPage::getFrontendDataVisible($infoId);
         $html = \frontend\design\Info::widgetToContent($infoData['description']);

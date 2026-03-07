@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,10 @@
 
 namespace frontend\design\boxes\invoice;
 
-use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class OrderType extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -31,8 +30,8 @@ class OrderType extends Widget
     public function run()
     {
         \common\helpers\Translation::init('admin/design');
-        $order = $this->params["order"];
+        $order = $this->params['order'];
 
-        return $order->info['admin_id'] ? (defined("TEXT_MADE_BY_ADMIN") ? TEXT_MADE_BY_ADMIN : 'Made by admin') : (defined("TEXT_MADE_ONLINE") ? TEXT_MADE_ONLINE : 'Made online');
+        return $order->info['admin_id'] ? (defined('TEXT_MADE_BY_ADMIN') ? TEXT_MADE_BY_ADMIN : 'Made by admin') : (defined('TEXT_MADE_ONLINE') ? TEXT_MADE_ONLINE : 'Made online');
     }
 }

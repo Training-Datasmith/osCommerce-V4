@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\services;
 
 use common\models\Product\ProductsDocuments;
@@ -7,7 +9,6 @@ use common\models\repositories\ProductsDocumentsRepository;
 
 final class ProductsDocumentsService
 {
-
     /** @var ProductsDocumentsRepository */
     private $productsDocumentsRepository;
 

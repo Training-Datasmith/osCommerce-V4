@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -31,18 +33,17 @@ namespace Stripe;
  */
 class Topup extends ApiResource
 {
-    const OBJECT_NAME = 'topup';
-
     use ApiOperations\All;
     use ApiOperations\Create;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
+    public const OBJECT_NAME = 'topup';
 
-    const STATUS_CANCELED = 'canceled';
-    const STATUS_FAILED = 'failed';
-    const STATUS_PENDING = 'pending';
-    const STATUS_REVERSED = 'reversed';
-    const STATUS_SUCCEEDED = 'succeeded';
+    public const STATUS_CANCELED = 'canceled';
+    public const STATUS_FAILED = 'failed';
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_REVERSED = 'reversed';
+    public const STATUS_SUCCEEDED = 'succeeded';
 
     /**
      * @param null|array $params

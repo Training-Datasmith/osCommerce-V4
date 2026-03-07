@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 class TmpOrders extends ActiveRecord
@@ -25,12 +26,11 @@ class TmpOrders extends ActiveRecord
     {
         return 'tmp_orders';
     }
-    
+
     public function getCustomer()
     {
         return $this->hasOne(Customers::className(), ['customers_id' => 'customers_id']);
     }
-
 
     /**
      * one-to-many
@@ -50,7 +50,7 @@ class TmpOrders extends ActiveRecord
         return $this->hasMany(TmpOrdersStatusHistory::className(), ['orders_id' => 'orders_id']);
     }
 
-        /**
+    /**
      * one-to-many
      * @return array
      */
@@ -59,5 +59,4 @@ class TmpOrders extends ActiveRecord
         return $this->hasMany(TmpOrdersProducts::className(), ['orders_id' => 'orders_id']);
     }
 
-    
 }

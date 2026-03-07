@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +13,6 @@
  */
 
 namespace backend\models\ProductEdit;
-
 
 use backend\models\EP\Directory;
 use common\models\Products;
@@ -28,12 +29,14 @@ class SaveImportExport
     public function save()
     {
         $directories = Directory::getAll();
-        foreach ($directories as $directory){
+        foreach ($directories as $directory) {
             /**
              * @var Directory $directory
              */
-            if ($directory->directory_type=='datasource' && $datasource = $directory->getDatasource()){
-                if ( !$datasource->allowProductView() ) continue;
+            if ($directory->directory_type == 'datasource' && $datasource = $directory->getDatasource()) {
+                if (!$datasource->allowProductView()) {
+                    continue;
+                }
                 $datasource->productSave($directory, $this->product);
             }
         }

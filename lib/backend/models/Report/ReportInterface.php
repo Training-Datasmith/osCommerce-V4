@@ -1,19 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 namespace backend\models\Report;
 
-
-interface ReportInterface {
-
+interface ReportInterface
+{
     public function loadPurchases();
-    
+
     public function getTableTitle();
-    
+
     public function getRange();
-    
+
     public function getOptions($range);
-    
+
     public function getRowsCount();
-    
+
     public function convertColumnTitle($value);
 }

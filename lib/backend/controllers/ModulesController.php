@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,17 +14,13 @@
 
 namespace backend\controllers;
 
-use common\classes\platform;
-use common\models\Platforms;
-use Yii;
-use common\helpers\Translation;
 use common\classes\modules;
-
-use backend\models\Configuration;
+use common\classes\platform;
+use common\helpers\Translation;
+use Yii;
 
 class ModulesController extends Sceleton
 {
-
     public $acl = ['BOX_HEADING_MODULES'];
 
     public $module_type;
@@ -35,7 +33,7 @@ class ModulesController extends Sceleton
     public $module_namespace;
     protected $module_const_prefix;
     public $enabled;
-    public $validated_extensions = array('php');
+    public $validated_extensions = ['php'];
     protected $selected_platform_id;
     private $_page_title = '';
 
@@ -45,12 +43,12 @@ class ModulesController extends Sceleton
 
         $this->selected_platform_id = \common\classes\platform::firstId();
         $try_set_platform = Yii::$app->request->get('platform_id', 0);
-        if ( Yii::$app->request->isPost ) {
+        if (Yii::$app->request->isPost) {
             $try_set_platform = Yii::$app->request->post('platform_id', $try_set_platform);
         }
-        if ( $try_set_platform>0 ) {
+        if ($try_set_platform > 0) {
             foreach (\common\classes\platform::getList(false) as $_platform) {
-                if ((int)$try_set_platform==(int)$_platform['id']){
+                if ((int)$try_set_platform == (int)$_platform['id']) {
                     $this->selected_platform_id = (int)$try_set_platform;
                     break;
                 }
@@ -60,8 +58,8 @@ class ModulesController extends Sceleton
         \common\helpers\Translation::init('admin/modules');
     }
 
-
-    public function rules($set){
+    public function rules($set)
+    {
 
         if (tep_not_null($set)) {
             $this->module_need_requiring = true;
@@ -79,7 +77,7 @@ class ModulesController extends Sceleton
                     $this->module_class = 'ModuleLabel';
                     $this->_page_title = HEADING_TITLE_MODULES_LABEL;
                     $this->module_need_requiring = false;
-                    $this->module_namespace = "common\\modules\\label\\";
+                    $this->module_namespace = 'common\\modules\\label\\';
                     break;
                 case 'shipping':
                     \common\helpers\Acl::checkAccess(['BOX_HEADING_MODULES', 'BOX_MODULES_SHIPPING']);
@@ -96,7 +94,7 @@ class ModulesController extends Sceleton
                     $this->_page_title = HEADING_TITLE_MODULES_SHIPPING;
                     //define('HEADING_TITLE', HEADING_TITLE_MODULES_SHIPPING);
                     $this->module_need_requiring = false;
-                    $this->module_namespace = "common\\modules\\orderShipping\\";
+                    $this->module_namespace = 'common\\modules\\orderShipping\\';
                     break;
                 case 'dropshipping':
                     \common\helpers\Acl::checkAccess(['BOX_HEADING_MODULES', 'BOX_MODULES_DROPSHIPPING']);
@@ -125,7 +123,7 @@ class ModulesController extends Sceleton
                     $this->_page_title = HEADING_TITLE_MODULES_ORDER_TOTAL;
                     //define('HEADING_TITLE', HEADING_TITLE_MODULES_ORDER_TOTAL);
                     $this->module_need_requiring = false;
-                    $this->module_namespace = "common\\modules\\orderTotal\\";
+                    $this->module_namespace = 'common\\modules\\orderTotal\\';
                     break;
                 case 'extensions':
                     \common\helpers\Acl::checkAccess(['BOX_HEADING_MODULES', 'BOX_MODULES_EXTENSIONS']);
@@ -157,57 +155,58 @@ class ModulesController extends Sceleton
                     $this->_page_title = HEADING_TITLE_MODULES_PAYMENT;
                     //define('HEADING_TITLE', HEADING_TITLE_MODULES_PAYMENT);
                     $this->module_need_requiring = false;
-                    $this->module_namespace = "common\\modules\\orderPayment\\";
+                    $this->module_namespace = 'common\\modules\\orderPayment\\';
                     break;
             }
         }
 
     }
 
-
-    public function actionPppInstall() {
+    public function actionPppInstall()
+    {
         $module = Yii::$app->request->post('module', '');
         $ppp_next = (int)Yii::$app->request->post('ppp_next', 0);
         $platform_id = (int)Yii::$app->request->post('platform_id');
         $set = Yii::$app->request->post('set', 'payment');
         $test_mode = Yii::$app->request->post('test_mode', false);
-          $golive = Yii::$app->request->post('golive', false);
-          if ($golive==='false') {
-              $golive = false;
-          }
-        if ($test_mode==='false') {
+        $golive = Yii::$app->request->post('golive', false);
+        if ($golive === 'false') {
+            $golive = false;
+        }
+        if ($test_mode === 'false') {
             $test_mode = false;
         }
         if (!empty($module)) {
-              if (!$golive) {
-            $instR = $this->actionChange();
+            if (!$golive) {
+                $instR = $this->actionChange();
             }
-                $conf = \common\models\PlatformsConfiguration::findOne(['configuration_key'=>tep_db_input('MODULE_PAYMENT_PAYPAL_PARTNER_TRANSACTION_SERVER'), 'platform_id'=>intval($this->selected_platform_id)]);
-                if ($conf) {
-                  try {
+            $conf = \common\models\PlatformsConfiguration::findOne(['configuration_key' => tep_db_input('MODULE_PAYMENT_PAYPAL_PARTNER_TRANSACTION_SERVER'), 'platform_id' => intval($this->selected_platform_id)]);
+            if ($conf) {
+                try {
                     $conf->configuration_value = 'Live';
                     if ($test_mode && !$golive) {
                         $conf->configuration_value = 'Sandbox';
                     }
                     $conf->save(false);
-                  } catch (\Exception $e) {
+                } catch (\Exception $e) {
                     \Yii::warning($e->getMessage());
-                  }
                 }
-            if (!empty($instR )) {
+            }
+            if (!empty($instR)) {
                 $this->setModuleSortFirst($module);
             }
             if (!empty($instR) || $golive) {
                 // ppp_next =2 create business ppp_next=3 create individual
-                return $this->asJson(['redirect' => \Yii::$app->urlManager->createUrl(['modules/edit', 'platform_id'=>$platform_id, 'set'=>$set, 'module'=>\common\helpers\Output::mb_basename($module), 'ppp_next' => $ppp_next, 'test_mode' => $test_mode]) . '#extra']);
+                return $this->asJson(['redirect' => \Yii::$app->urlManager->createUrl(['modules/edit', 'platform_id' => $platform_id, 'set' => $set, 'module' => \common\helpers\Output::mb_basename($module), 'ppp_next' => $ppp_next, 'test_mode' => $test_mode]) . '#extra']);
             }
         }
     }
 
-    protected function setModuleSortFirst($module) {
+    protected function setModuleSortFirst($module)
+    {
         if (!empty($module)) {
             $module = \common\helpers\Output::mb_basename($module);
-            $conf = \common\models\PlatformsConfiguration::findOne(['configuration_key'=>tep_db_input($this->module_key), 'platform_id'=>intval($this->selected_platform_id)]);
+            $conf = \common\models\PlatformsConfiguration::findOne(['configuration_key' => tep_db_input($this->module_key), 'platform_id' => intval($this->selected_platform_id)]);
             if (!empty($conf)) {
                 $sorted = explode(';', $conf->configuration_value);
                 if ($key = array_search($module. '.php', $sorted) !== false) {
@@ -233,7 +232,6 @@ class ModulesController extends Sceleton
         }
     }
 
-
     public function actionPppStatus()
     {
         //could be overloaded platform (Default sales channel) $platform_config = new \common\classes\platform_config($this->selected_platform_id);
@@ -246,22 +244,22 @@ class ModulesController extends Sceleton
         //$ppp = $platform_config->const_value('MODULE_PAYMENT_PAYPAL_PARTNER_STATUS', null);
         $ret = ['installPPP' => false];
 
-        if (is_null($ppp??null) && $set == 'payment' && $type == 'online') {
+        if (is_null($ppp ?? null) && $set == 'payment' && $type == 'online') {
 
             $class = 'paypal_partner';
             $file = $class . '.php';
-            if (!class_exists($class) OR !is_subclass_of($class, "common\\classes\\modules\\ModulePayment")) {
-                $class = "common\\modules\\orderPayment\\" . $class;
+            if (!class_exists($class) or !is_subclass_of($class, 'common\\classes\\modules\\ModulePayment')) {
+                $class = 'common\\modules\\orderPayment\\' . $class;
             }
 
             if ($this->module_need_requiring) {
                 require_once($this->module_directory . $file);
             }
-            if (class_exists($class) && is_subclass_of($class, "common\\classes\\modules\\ModulePayment")) {
+            if (class_exists($class) && is_subclass_of($class, 'common\\classes\\modules\\ModulePayment')) {
                 /**
                  * @var modules\Module $module
                  */
-                $module = new $class;
+                $module = new $class();
                 //1 - sandbox 2 - live 3 - both partner's keys
                 $ret = $module->getInstallOptions($this->selected_platform_id);
             }
@@ -324,9 +322,9 @@ class ModulesController extends Sceleton
             require_once($this->module_directory . $file);
 
             $class = $module;
-            if (class_exists($class) && is_subclass_of($class,"common\\classes\\modules\\{$this->module_class}") ) {
+            if (class_exists($class) && is_subclass_of($class, "common\\classes\\modules\\{$this->module_class}")) {
 
-                $module = new $class;
+                $module = new $class();
                 if (method_exists($module, 'getTestConnectionResult')) {
                     $ret = $module->getTestConnectionResult();
                 }
@@ -337,15 +335,15 @@ class ModulesController extends Sceleton
         $ppp = null;
         $pppData = ['installPPP' => false];
         if ($set == 'payment' && $type == 'online') {
-/*            $ppp = \common\models\PlatformsConfiguration::findOne([
-                'configuration_key' => 'MODULE_PAYMENT_PAYPAL_PARTNER_STATUS',
-                'platform_id' => $this->selected_platform_id
-            ]);
-*/            if (is_null($ppp) ) {
+            /*            $ppp = \common\models\PlatformsConfiguration::findOne([
+                            'configuration_key' => 'MODULE_PAYMENT_PAYPAL_PARTNER_STATUS',
+                            'platform_id' => $this->selected_platform_id
+                        ]);
+            */            if (is_null($ppp)) {
 
                 $class = 'paypal_partner';
                 $file = $class . '.php';
-                if (!class_exists($class) OR !is_subclass_of($class, "common\\classes\\modules\\ModulePayment")) {
+                if (!class_exists($class) or !is_subclass_of($class, 'common\\classes\\modules\\ModulePayment')) {
                     if (strpos($class, $this->module_namespace) === false) {
                         $class = ($this->module_namespace . $class);
                     }
@@ -354,41 +352,40 @@ class ModulesController extends Sceleton
                     require_once($this->module_directory . $file);
                 }
 
-
-                if (class_exists($class) && is_subclass_of($class, "common\\classes\\modules\\ModulePayment")) {
+                if (class_exists($class) && is_subclass_of($class, 'common\\classes\\modules\\ModulePayment')) {
                     /**
                      * @var modules\Module $module
                      */
-                    $module = new $class;
+                    $module = new $class();
                     if ($this->module_type == 'payment') {
                         if (method_exists($module, 'updateTitle')) {
                             $module->updateTitle($this->selected_platform_id);
                         }
                     }
                     //1 - sandbox 2 - live 3 - both partner's keys
-                        $pppData = $module->getInstallOptions($this->selected_platform_id);
+                    $pppData = $module->getInstallOptions($this->selected_platform_id);
                 }
             }
 
         }
 
-        $this->selectedMenu        = array( 'modules', 'modules?set='.$set );
-        $this->navigation[]        = array( 'link' => Yii::$app->urlManager->createUrl( 'modules/index' ), 'title' => $this->_page_title );
+        $this->selectedMenu        = [ 'modules', 'modules?set='.$set ];
+        $this->navigation[]        = [ 'link' => Yii::$app->urlManager->createUrl('modules/index'), 'title' => $this->_page_title ];
         $this->view->headingTitle  = $this->_page_title;
-        $this->view->modulesTable = array(
+        $this->view->modulesTable = [
             /*array(
 'title' => '<input type="checkbox" class="uniform">',
 'not_important' => 2
             ),*/
-            array(
+            [
                 'title'         => TABLE_HEADING_MODULES,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title'         => TABLE_TEXT_STATUS,
-                'not_important' => 3
-            ),
-        );
+                'not_important' => 3,
+            ],
+        ];
 
         $this->view->filters = new \stdClass();
 
@@ -398,33 +395,36 @@ class ModulesController extends Sceleton
         $this->view->filters->not_installed = (int)Yii::$app->request->get('not_installed', 0);
 
         $_platforms = \common\classes\platform::getList(false);
-        foreach( $_platforms as $_idx=>$_platform ) {
-            $_platforms[$_idx]['link'] = Yii::$app->urlManager->createUrl(['modules/index','platform_id'=>$_platform['id'],'set'=>$set]);
+        foreach ($_platforms as $_idx => $_platform) {
+            $_platforms[$_idx]['link'] = Yii::$app->urlManager->createUrl(['modules/index','platform_id' => $_platform['id'],'set' => $set]);
         }
 
         $type = Yii::$app->request->get('type', '');
 
-        return $this->render('index', [
+        return $this->render(
+            'index',
+            [
             'set' => $set,
             'type' => $type,
             'platforms' => $_platforms,
             'isMultiPlatforms' => $this->module_type != 'extensions' && \common\classes\platform::isMulti(false),
             'selected_platform_id' => $this->selected_platform_id,
             ] + $pppData
-                );
+        );
     }
 
-    private function directoryList(){
-        $directory_array = array();
+    private function directoryList()
+    {
+        $directory_array = [];
         if ($dir = @dir($this->module_directory)) {
             while ($file = $dir->read()) {
                 if (!is_dir($this->module_directory . $file)) {
-                    if (in_array($this->module_type, ['label', 'order_total', 'payment', 'shipping'])){
+                    if (in_array($this->module_type, ['label', 'order_total', 'payment', 'shipping'])) {
                         $directory_array[] = $this->module_namespace . $file;
-                    } else if (in_array(substr($file, strrpos($file, '.')+1), $this->validated_extensions)) {
+                    } elseif (in_array(substr($file, strrpos($file, '.') + 1), $this->validated_extensions)) {
                         $directory_array[] = $file;
                     }
-                } else if ($ext = \common\helpers\Acl::checkExtension($file, 'allowed')) {
+                } elseif ($ext = \common\helpers\Acl::checkExtension($file, 'allowed')) {
                     $directory_array[] = $ext;
                 }
             }
@@ -439,32 +439,32 @@ class ModulesController extends Sceleton
      * @param $set
      * @return \objectInfo
      */
-    private function createInfo($module, $set){
+    private function createInfo($module, $set)
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
 
-
-        $module_info = array(
+        $module_info = [
             'code' => $module->code,
             'title' => $module->title,
             'description' => (isset($module->description) ? $module->description : ''),
             'status' => $module->check($this->selected_platform_id),
-        );
+        ];
 
         $module_keys = $module->keys();
         $module_keys_full = $module->configure_keys();
 
-        $keys_extra = array();
-        for ($j=0, $k=sizeof($module_keys); $j<$k; $j++) {
+        $keys_extra = [];
+        for ($j = 0, $k = sizeof($module_keys); $j < $k; $j++) {
             $key_value_query = tep_db_query(
-                "select configuration_title, configuration_value, configuration_description, use_function, set_function ".
-                "from " . TABLE_PLATFORMS_CONFIGURATION . " ".
+                'select configuration_title, configuration_value, configuration_description, use_function, set_function '.
+                'from ' . TABLE_PLATFORMS_CONFIGURATION . ' '.
                 "where platform_id = '".intval($this->selected_platform_id)."' AND configuration_key = '" . tep_db_input($module_keys[$j]) . "'"
             );
             $key_value = tep_db_fetch_array($key_value_query);
             if (is_array($key_value)) {
-                $keys_extra[$module_keys[$j]]['title'] = (tep_not_null($value = Translation::getTranslationValue($module_keys[$j].'_TITLE', $set , $languages_id)) ? $value : $key_value['configuration_title']);
+                $keys_extra[$module_keys[$j]]['title'] = (tep_not_null($value = Translation::getTranslationValue($module_keys[$j].'_TITLE', $set, $languages_id)) ? $value : $key_value['configuration_title']);
                 $keys_extra[$module_keys[$j]]['value'] =  $key_value['configuration_value'];
-                $keys_extra[$module_keys[$j]]['description'] = (tep_not_null($value = Translation::getTranslationValue($module_keys[$j].'_DESCRIPTION', $set , $languages_id)) ? $value : $key_value['configuration_description']);
+                $keys_extra[$module_keys[$j]]['description'] = (tep_not_null($value = Translation::getTranslationValue($module_keys[$j].'_DESCRIPTION', $set, $languages_id)) ? $value : $key_value['configuration_description']);
                 $keys_extra[$module_keys[$j]]['use_function'] = $key_value['use_function'];
                 $keys_extra[$module_keys[$j]]['set_function'] = $key_value['set_function'];
                 $keys_extra[$module_keys[$j]]['area'] = $module_keys_full[$module_keys[$j]]['area'] ?? null;
@@ -476,7 +476,8 @@ class ModulesController extends Sceleton
         return new \objectInfo($module_info);
     }
 
-    private function fetchArrays($module, $file, &$installed_modules, &$modules_files){
+    private function fetchArrays($module, $file, &$installed_modules, &$modules_files)
+    {
         /**
          * @var modules\Module $module
          */
@@ -484,13 +485,13 @@ class ModulesController extends Sceleton
             $modules_files[$module->code] = $file;
             $sort_key = $module->describe_sort_key();
             $module_sort_order = $module->sort_order;
-            if ( is_object($sort_key) && is_a($sort_key,'common\classes\modules\ModuleSortOrder')) {
+            if (is_object($sort_key) && is_a($sort_key, 'common\classes\modules\ModuleSortOrder')) {
                 $get_sort_order_value_r = tep_db_query(
-                    "select configuration_value ".
-                    "from " . TABLE_PLATFORMS_CONFIGURATION . " ".
+                    'select configuration_value '.
+                    'from ' . TABLE_PLATFORMS_CONFIGURATION . ' '.
                     "where platform_id = '".intval($this->selected_platform_id)."' AND configuration_key = '" . tep_db_input($sort_key->key) . "'"
                 );
-                if ( tep_db_num_rows($get_sort_order_value_r)>0 ) {
+                if (tep_db_num_rows($get_sort_order_value_r) > 0) {
                     $_sort_order_value = tep_db_fetch_array($get_sort_order_value_r);
                     $module_sort_order = $_sort_order_value['configuration_value'];
                 }
@@ -498,7 +499,7 @@ class ModulesController extends Sceleton
             if ($module_sort_order > 0 && !isset($installed_modules[$module_sort_order])) {
                 $installed_modules[$module_sort_order] = $file;
             } else {
-                $installed_modules[] = \common\helpers\Acl::checkExtension($file, 'allowed')? (new \ReflectionClass($file))->getShortName() : $file;
+                $installed_modules[] = \common\helpers\Acl::checkExtension($file, 'allowed') ? (new \ReflectionClass($file))->getShortName() : $file;
             }
         }
     }
@@ -507,7 +508,7 @@ class ModulesController extends Sceleton
     {
         if ($module instanceof \common\classes\modules\Module) {
             $isEnabled = $module->is_module_enabled($this->selected_platform_id);
-            $res =  sprintf("changeModule('%s', 'remove', %s", $module->code, $isEnabled?'true':'false');
+            $res =  sprintf("changeModule('%s', 'remove', %s", $module->code, $isEnabled ? 'true' : 'false');
             if ($module instanceof \common\classes\modules\ModuleExtensions) {
                 $res .= ', [';
                 if ($module->isAbleToDropDatatables()) {
@@ -530,7 +531,7 @@ class ModulesController extends Sceleton
             $res =  sprintf("changeModule('%s', 'install'", $module->code);
             if ($module instanceof \common\classes\modules\ModuleExtensions) {
                 if ($module->isAbleToDeleteAcl()) {
-                    $res .= ", false, true";
+                    $res .= ', false, true';
                 }
             }
             $res .= ')';
@@ -549,28 +550,28 @@ class ModulesController extends Sceleton
         $formFilter = Yii::$app->request->get('filter');
         parse_str($formFilter, $output);
 
-        if ( isset($output['platform_id']) ){
+        if (isset($output['platform_id'])) {
             $this->selected_platform_id = (int)$output['platform_id'];
         }
 
-        if ( isset($output['all_countries']) && $output['all_countries'] == 1 ){
+        if (isset($output['all_countries']) && $output['all_countries'] == 1) {
             $showAllCountries = true;
         } else {
             $showAllCountries = false;
         }
 
-        if ( isset($output['not_installed']) && $output['not_installed'] == 1 ){
+        if (isset($output['not_installed']) && $output['not_installed'] == 1) {
             $showNotInstalled = true;
         } else {
             $showNotInstalled = false;
         }
 
-        if ( isset($output['inactive']) && $output['inactive'] == 1 ){
+        if (isset($output['inactive']) && $output['inactive'] == 1) {
             $showInactive = true;
         } else {
             $showInactive = false;
         }
-        if ( isset($output['type']) && !empty($output['type']) ){
+        if (isset($output['type']) && !empty($output['type'])) {
             $type = $output['type'];
         }
 
@@ -579,22 +580,21 @@ class ModulesController extends Sceleton
         //$file_extension = substr($PHP_SELF, strrpos($PHP_SELF, '.'));
         $directory_array = $this->directoryList();
 
-        $active_modules = array();
-        $installed_modules = array();
-        $modules_files = array();
-        $responseList = array();
+        $active_modules = [];
+        $installed_modules = [];
+        $modules_files = [];
+        $responseList = [];
 
         $_search_active = false;
-        $_sort_by_title = array();
+        $_sort_by_title = [];
 
         \common\helpers\Translation::init($this->module_entity);
 
         $platform_country = platform::country($this->selected_platform_id);
-        for ($i=0, $n=sizeof($directory_array); $i<$n; $i++)
-        {
+        for ($i = 0, $n = sizeof($directory_array); $i < $n; $i++) {
             $file = $directory_array[$i];
 
-            $class = (strpos($file, ".") !== false ? substr($file, 0, strrpos($file, '.')):$file);
+            $class = (strpos($file, '.') !== false ? substr($file, 0, strrpos($file, '.')) : $file);
 
             if ($this->module_need_requiring) {
                 require_once($this->module_directory . $file);
@@ -603,8 +603,8 @@ class ModulesController extends Sceleton
                 $class = "common\\modules\\label\\" . $class;
             }*/
 
-            if (class_exists($class) && is_subclass_of($class,"common\\classes\\modules\\{$this->module_class}") ) {
-                $module = new $class;
+            if (class_exists($class) && is_subclass_of($class, "common\\classes\\modules\\{$this->module_class}")) {
+                $module = new $class();
                 $skip = false;
                 if ($this->module_type == 'payment' || $this->module_type == 'shipping') {
                     if (method_exists($module, 'updateTitle')) {
@@ -625,9 +625,11 @@ class ModulesController extends Sceleton
                  * @var modules\Module $module
                  */
 
-                if ( is_array($search) && !empty($search['value']) ) {
+                if (is_array($search) && !empty($search['value'])) {
                     $_search_active = true;
-                    if ( stripos($module->title,$search['value'])===false ) continue;
+                    if (stripos($module->title, $search['value']) === false) {
+                        continue;
+                    }
                 }
 
                 $this->fetchArrays($module, $file, $installed_modules, $modules_files);
@@ -647,54 +649,59 @@ class ModulesController extends Sceleton
                     $installed = true;
                     $active = $module->is_module_enabled($this->selected_platform_id);
                     $buttons .= '<button class="btn btn-small" onClick="return ' . $this->generateClickFuncForRemoveBtn($module) . '" title="' . TEXT_REMOVE . '">' . TEXT_REMOVE . '</button>';
-                }else{
+                } else {
                     $active = false;
-                    $param_remove_data = ($set==='extensions' && $module->isAbleToDeleteAcl() ) ? ',false, true' : '';
+                    $param_remove_data = ($set === 'extensions' && $module->isAbleToDeleteAcl()) ? ',false, true' : '';
                     $buttons .= '<input type="button" class="btn btn-small" title="'.IMAGE_INSTALL.'" value="' . \common\helpers\Output::output_string(IMAGE_INSTALL) . '" onClick="return '. $this->generateClickFuncForInstallBtn($module) . '">';
                 }
 
                 $active_modules[$file] = $active;
-                $edit_link = Yii::$app->urlManager->createUrl(['modules/edit','platform_id'=>$this->selected_platform_id,'set'=>$set, 'module' => $mInfo->code]);
+                $edit_link = Yii::$app->urlManager->createUrl(['modules/edit','platform_id' => $this->selected_platform_id,'set' => $set, 'module' => $mInfo->code]);
 
-                if((in_array('', $module->getCountries($this->selected_platform_id)) || in_array($platform_country->countries_iso_code_3, $module->getCountries($this->selected_platform_id))) || $showAllCountries){
-                    $responseList[$file] = array(
+                if ((in_array('', $module->getCountries($this->selected_platform_id)) || in_array($platform_country->countries_iso_code_3, $module->getCountries($this->selected_platform_id))) || $showAllCountries) {
+                    $responseList[$file] = [
                         //'<input type="checkbox" class="uniform">',
-                        '<div class="handle_cat_list click_double" '.($installed?' data-click-double="' .$edit_link. '"':'').'><span class="handle"><i class="icon-hand-paper-o"></i></span><div class="module_title' . ($active ? '' :' dis_module') . '">' . (defined($module->title.'_TITLE') ? constant($module->title.'_TITLE'):$module->title) . tep_draw_hidden_field('module', $class, 'class="cell_identify" data-installed="'.($installed?'true':'false').'"') . '</div></div>',
-                        ($installed?'<input name="enabled" type="checkbox" data-module="'.$module->code.'" class="check_on_off" ' . ($active ? 'checked' :'') . '>':'').
-                        (empty($buttons)?'':$buttons),
-                    );
+                        '<div class="handle_cat_list click_double" '.($installed ? ' data-click-double="' .$edit_link. '"' : '').'><span class="handle"><i class="icon-hand-paper-o"></i></span><div class="module_title' . ($active ? '' : ' dis_module') . '">' . (defined($module->title.'_TITLE') ? constant($module->title.'_TITLE') : $module->title) . tep_draw_hidden_field('module', $class, 'class="cell_identify" data-installed="'.($installed ? 'true' : 'false').'"') . '</div></div>',
+                        ($installed ? '<input name="enabled" type="checkbox" data-module="'.$module->code.'" class="check_on_off" ' . ($active ? 'checked' : '') . '>' : '').
+                        (empty($buttons) ? '' : $buttons),
+                    ];
                 }
             }
         }
 
-
         $get_actual_value = tep_db_fetch_array(tep_db_query(
-            "SELECT configuration_value FROM ".TABLE_PLATFORMS_CONFIGURATION." WHERE configuration_key='".tep_db_input($this->module_key_sort)."' AND platform_id='".intval($this->selected_platform_id)."'"
+            'SELECT configuration_value FROM '.TABLE_PLATFORMS_CONFIGURATION." WHERE configuration_key='".tep_db_input($this->module_key_sort)."' AND platform_id='".intval($this->selected_platform_id)."'"
         ));
         $get_actual_installed_value = tep_db_fetch_array(tep_db_query(
-            "SELECT configuration_value FROM ".TABLE_PLATFORMS_CONFIGURATION." WHERE configuration_key='".tep_db_input($this->module_key)."' AND platform_id='".intval($this->selected_platform_id)."'"
+            'SELECT configuration_value FROM '.TABLE_PLATFORMS_CONFIGURATION." WHERE configuration_key='".tep_db_input($this->module_key)."' AND platform_id='".intval($this->selected_platform_id)."'"
         ));
-        if ( false && is_array($get_actual_value) && !empty($get_actual_value['configuration_value']) ) {
-            $new_responseList = array();
-            foreach(explode(';',$get_actual_value['configuration_value']) as $__push_key){
-                if (!isset($responseList[$__push_key])) continue;
+        if (false && is_array($get_actual_value) && !empty($get_actual_value['configuration_value'])) {
+            $new_responseList = [];
+            foreach (explode(';', $get_actual_value['configuration_value']) as $__push_key) {
+                if (!isset($responseList[$__push_key])) {
+                    continue;
+                }
                 $new_responseList[] = $responseList[$__push_key];
                 unset($responseList[$__push_key]);
             }
             $responseList = array_merge($new_responseList, array_values($responseList));
-        }else {
+        } else {
             // {{
-            if ( !in_array($this->module_type,['extensions']) ) {
+            if (!in_array($this->module_type, ['extensions'])) {
                 $_responseList = [];
                 foreach ($responseList as $__path_key => $__value) {
-                    if (strpos($__path_key, '\\') !== false) $__path_key = substr($__path_key, strrpos($__path_key, '\\') + 1);
+                    if (strpos($__path_key, '\\') !== false) {
+                        $__path_key = substr($__path_key, strrpos($__path_key, '\\') + 1);
+                    }
                     $_responseList[$__path_key] = $__value;
                 }
                 $responseList = $_responseList;
 
                 $_active_modules = $active_modules;
                 foreach ($active_modules as $__path_key => $__value) {
-                    if (strpos($__path_key, '\\') !== false) $__path_key = substr($__path_key, strrpos($__path_key, '\\') + 1);
+                    if (strpos($__path_key, '\\') !== false) {
+                        $__path_key = substr($__path_key, strrpos($__path_key, '\\') + 1);
+                    }
                     $_active_modules[$__path_key] = $__value;
                 }
                 $active_modules = $_active_modules;
@@ -702,11 +709,13 @@ class ModulesController extends Sceleton
             // }}
 
             //sort installed by sort key, then uninstalled by title
-            $_installed_top = array();
+            $_installed_top = [];
             $_check_installed = $installed_modules;
-            if (isset($get_actual_installed_value['configuration_value']))
-                foreach (explode(';',$get_actual_installed_value['configuration_value']) as $__installed_module_file) {
-                    if (!isset($responseList[$__installed_module_file])) continue;
+            if (isset($get_actual_installed_value['configuration_value'])) {
+                foreach (explode(';', $get_actual_installed_value['configuration_value']) as $__installed_module_file) {
+                    if (!isset($responseList[$__installed_module_file])) {
+                        continue;
+                    }
                     if (isset($_check_installed[$__installed_module_file])) {
                         unset($_check_installed[$__installed_module_file]);
                     }
@@ -715,29 +724,36 @@ class ModulesController extends Sceleton
                     }
                     unset($responseList[$__installed_module_file]);
                 }
-            if ( count($_check_installed)>0 ) foreach ($_check_installed as $__installed_module_file) {
-                if (!isset($responseList[$__installed_module_file])) continue;
-                if ($showInactive || $active_modules[$__installed_module_file]) {
-                    $_installed_top[] = $responseList[$__installed_module_file];
+            }
+            if (count($_check_installed) > 0) {
+                foreach ($_check_installed as $__installed_module_file) {
+                    if (!isset($responseList[$__installed_module_file])) {
+                        continue;
+                    }
+                    if ($showInactive || $active_modules[$__installed_module_file]) {
+                        $_installed_top[] = $responseList[$__installed_module_file];
+                    }
+                    unset($responseList[$__installed_module_file]);
                 }
-                unset($responseList[$__installed_module_file]);
             }
 
             asort($_sort_by_title, SORT_STRING);
             $_sort_uninstalled = array_keys($_sort_by_title);
-            if ( is_array($get_actual_value) && !empty($get_actual_value['configuration_value']) ) {
-                $_sort_uninstalled = explode(';',$get_actual_value['configuration_value']);
+            if (is_array($get_actual_value) && !empty($get_actual_value['configuration_value'])) {
+                $_sort_uninstalled = explode(';', $get_actual_value['configuration_value']);
             }
 
             //$responseList = array_merge($_installed_top, array_values($responseList));
             $new_responseList = $_installed_top;
             if ($showNotInstalled) {
-                if ( count($responseList)>0 ) {
-                    $new_responseList[] = array('<span class="modules_divider"></span>','<span class="modules_divider"></span>'); // blackline
+                if (count($responseList) > 0) {
+                    $new_responseList[] = ['<span class="modules_divider"></span>','<span class="modules_divider"></span>']; // blackline
                 }
 
                 foreach ($_sort_uninstalled as $__push_key) {
-                    if (!isset($responseList[$__push_key])) continue;
+                    if (!isset($responseList[$__push_key])) {
+                        continue;
+                    }
                     $new_responseList[] = $responseList[$__push_key];
                     unset($responseList[$__push_key]);
                 }
@@ -746,35 +762,34 @@ class ModulesController extends Sceleton
                 $responseList = $new_responseList;
             }
 
-
         }
 
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => sizeof($directory_array),
             'recordsFiltered' => sizeof($directory_array),
-            'params' => array(
+            'params' => [
                 'set' => $set,
                 'platform_id' => $this->selected_platform_id,
-            ),
+            ],
             'data' => $responseList,
-        );
+        ];
 
-        if ( !$_search_active && $this->module_type != 'extensions') {
+        if (!$_search_active && $this->module_type != 'extensions') {
             foreach ($installed_modules as $key => $file) {
                 if (preg_match('/common\\\\modules\\\\[^\\\\]+\\\\(.+)$/si', $file, $match)) {
                     $installed_modules[$key] = $match[1];
                 }
             }
             ksort($installed_modules);
-            $check_query = tep_db_query("select configuration_value from " . TABLE_PLATFORMS_CONFIGURATION. " where configuration_key = '" . tep_db_input($this->module_key) . "' AND platform_id='".intval($this->selected_platform_id)."'");
+            $check_query = tep_db_query('select configuration_value from ' . TABLE_PLATFORMS_CONFIGURATION. " where configuration_key = '" . tep_db_input($this->module_key) . "' AND platform_id='".intval($this->selected_platform_id)."'");
             if (tep_db_num_rows($check_query)) {
                 $check = tep_db_fetch_array($check_query);
                 if ($check['configuration_value'] != implode(';', $installed_modules)) {
-                    tep_db_query("update " . TABLE_PLATFORMS_CONFIGURATION. " set configuration_value = '" . implode(';', array_map('tep_db_input',$installed_modules)) . "', last_modified = now() where configuration_key = '" . tep_db_input($this->module_key) . "' AND platform_id='".intval($this->selected_platform_id)."'");
+                    tep_db_query('update ' . TABLE_PLATFORMS_CONFIGURATION. " set configuration_value = '" . implode(';', array_map('tep_db_input', $installed_modules)) . "', last_modified = now() where configuration_key = '" . tep_db_input($this->module_key) . "' AND platform_id='".intval($this->selected_platform_id)."'");
                 }
             } else {
-                tep_db_query("insert into " . TABLE_PLATFORMS_CONFIGURATION. " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, platform_id) values ('Installed Modules', '" . tep_db_input($this->module_key) . "', '" . implode(';', array_map('tep_db_input',$installed_modules)) . "', 'This is automatically updated. No need to edit.', '6', '0', now(), '".intval($this->selected_platform_id)."')");
+                tep_db_query('insert into ' . TABLE_PLATFORMS_CONFIGURATION. " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added, platform_id) values ('Installed Modules', '" . tep_db_input($this->module_key) . "', '" . implode(';', array_map('tep_db_input', $installed_modules)) . "', 'This is automatically updated. No need to edit.', '6', '0', now(), '".intval($this->selected_platform_id)."')");
             }
         }
 
@@ -789,15 +804,15 @@ class ModulesController extends Sceleton
         $set = Yii::$app->request->post('set', 'payment');
         $file = Yii::$app->request->post('module', '');
         $enabled = Yii::$app->request->post('enabled', '');
-        if ( empty($file) ) {
+        if (empty($file)) {
             die;
         }
         $file .= '.php';
 
         $this->rules($set);
 
-        $installed_modules = array();
-        $modules_files = array();
+        $installed_modules = [];
+        $modules_files = [];
 
         \common\helpers\Translation::init($this->module_entity);
 
@@ -806,75 +821,79 @@ class ModulesController extends Sceleton
             require_once($this->module_directory . $file);
         }
 
-        if (!class_exists($class) OR !is_subclass_of($class, "common\\classes\\modules\\{$this->module_class}")) {
+        if (!class_exists($class) or !is_subclass_of($class, "common\\classes\\modules\\{$this->module_class}")) {
             if (!empty($this->module_namespace) && strpos($class, $this->module_namespace) === false) {
                 $class = ($this->module_namespace . $class);
             }
         }
 
-        if (class_exists($class) && is_subclass_of($class,"common\\classes\\modules\\{$this->module_class}") ) {
-            $module = new $class;
+        if (class_exists($class) && is_subclass_of($class, "common\\classes\\modules\\{$this->module_class}")) {
+            $module = new $class();
             $manualUrl = $class::getManualUrl();
             $this->fetchArrays($module, $file, $installed_modules, $modules_files);
-            if($mInfo = $this->createInfo($module, $set)){
+            if ($mInfo = $this->createInfo($module, $set)) {
                 $sort_order_key_name = $this->module_const_prefix . strtoupper($class).'_SORT_ORDER';
                 if ($this->module_type == 'order_total') {
                     $sort_order_key_name = $this->module_const_prefix . strtoupper(preg_replace('/^ot_/', '', $class)).'_SORT_ORDER';
-                }elseif($this->module_type == 'payment'){
-                    if ( !defined($sort_order_key_name) && strpos($class,'multisafepay_')===0 ) {
+                } elseif ($this->module_type == 'payment') {
+                    if (!defined($sort_order_key_name) && strpos($class, 'multisafepay_') === 0) {
                         $_alter_sort_order_key_name = $this->module_const_prefix . strtoupper(preg_replace('/^multisafepay_/', 'msp_', $class)).'_SORT_ORDER';
-                        if ( defined($_alter_sort_order_key_name) ) $sort_order_key_name = $_alter_sort_order_key_name;
+                        if (defined($_alter_sort_order_key_name)) {
+                            $sort_order_key_name = $_alter_sort_order_key_name;
+                        }
                     }
                 }
 
-                $result->title = (defined($mInfo->title.'_TITLE')? constant($mInfo->title.'_TITLE'):$mInfo->title);
+                $result->title = (defined($mInfo->title.'_TITLE') ? constant($mInfo->title.'_TITLE') : $mInfo->title);
                 $result->module = $module;
 
                 if ($mInfo->status == '1') {
                     $keys = '';
-                    if (is_array($mInfo->keys)) foreach ($mInfo->keys as $__key_name => $value) {
-                        if ( $__key_name==$sort_order_key_name ) {
-                            continue;
-                        }
-                        $keys .= '<b>' . $value['title'] . '</b><br>';
-                        $_t = Translation::getTranslationValue(strtoupper(str_replace(" ", "_", $value['value'])), 'configuration', $languages_id);
-                        $value['value'] = (tep_not_null($_t) ? $_t : $value['value']);
-                        unset($_t);
-
-                        if ($value['use_function']) {
-                            $use_function = $value['use_function'];
-                            if (preg_match('/->/', $use_function)) {
-                                $class_method = explode('->', $use_function);
-                                if (!is_object(${$class_method[0]})) {
-                                    ${$class_method[0]} = Yii::createObject($class_method[0]);
-                                    if (!is_object(${$class_method[0]})) {
-                                        include_once(DIR_WS_CLASSES . $class_method[0] . '.php');
-                                        ${$class_method[0]} = new $class_method[0]();
-                                    }
-                                }
-                                $keys .= tep_call_function($class_method[1], $value['value'], ${$class_method[0]});
-                            }elseif (preg_match('/::/', $use_function)) {
-                                $class_method = explode('::', $use_function);
-                                $ns = '';
-                                if (!method_exists($class_method[0], $class_method[1]) && method_exists('backend\\models\\' . $class_method[0], $class_method[1])) {
-                                    $ns = 'backend\\models\\';
-                                }
-
-                                $keys .= tep_call_function([$ns . $class_method[0], $class_method[1]], $value['value'], ${$class_method[0]} ?? null);
-                            }elseif(method_exists($class, $use_function)){
-                                $keys .= call_user_func_array([$class, $use_function], [$value['value']]);
-                            } else {
-                                $keys .= tep_call_function($use_function, $value['value']);
+                    if (is_array($mInfo->keys)) {
+                        foreach ($mInfo->keys as $__key_name => $value) {
+                            if ($__key_name == $sort_order_key_name) {
+                                continue;
                             }
-                        } else {
+                            $keys .= '<b>' . $value['title'] . '</b><br>';
+                            $_t = Translation::getTranslationValue(strtoupper(str_replace(' ', '_', $value['value'])), 'configuration', $languages_id);
+                            $value['value'] = (tep_not_null($_t) ? $_t : $value['value']);
+                            unset($_t);
 
-                            $keys .= $value['value'];
+                            if ($value['use_function']) {
+                                $use_function = $value['use_function'];
+                                if (preg_match('/->/', $use_function)) {
+                                    $class_method = explode('->', $use_function);
+                                    if (!is_object(${$class_method[0]})) {
+                                        ${$class_method[0]} = Yii::createObject($class_method[0]);
+                                        if (!is_object(${$class_method[0]})) {
+                                            include_once(DIR_WS_CLASSES . $class_method[0] . '.php');
+                                            ${$class_method[0]} = new $class_method[0]();
+                                        }
+                                    }
+                                    $keys .= tep_call_function($class_method[1], $value['value'], ${$class_method[0]});
+                                } elseif (preg_match('/::/', $use_function)) {
+                                    $class_method = explode('::', $use_function);
+                                    $ns = '';
+                                    if (!method_exists($class_method[0], $class_method[1]) && method_exists('backend\\models\\' . $class_method[0], $class_method[1])) {
+                                        $ns = 'backend\\models\\';
+                                    }
+
+                                    $keys .= tep_call_function([$ns . $class_method[0], $class_method[1]], $value['value'], ${$class_method[0]} ?? null);
+                                } elseif (method_exists($class, $use_function)) {
+                                    $keys .= call_user_func_array([$class, $use_function], [$value['value']]);
+                                } else {
+                                    $keys .= tep_call_function($use_function, $value['value']);
+                                }
+                            } else {
+
+                                $keys .= $value['value'];
+                            }
+                            $keys .= '<br>';
                         }
-                        $keys .= '<br>';
                     }
                     $keys = substr($keys, 0, strrpos($keys, '<br>'));
-                    $editLink = Yii::$app->urlManager->createUrl(['modules/edit','platform_id'=>$this->selected_platform_id,'set'=>$set, 'module' => $mInfo->code]);
-                    $translateLink = Yii::$app->urlManager->createUrl(['modules/translation','platform_id'=>$this->selected_platform_id,'set'=>$set, 'module' => $mInfo->code]);
+                    $editLink = Yii::$app->urlManager->createUrl(['modules/edit','platform_id' => $this->selected_platform_id,'set' => $set, 'module' => $mInfo->code]);
+                    $translateLink = Yii::$app->urlManager->createUrl(['modules/translation','platform_id' => $this->selected_platform_id,'set' => $set, 'module' => $mInfo->code]);
 
                 }
                 return $this->renderPartial('view', [
@@ -895,49 +914,46 @@ class ModulesController extends Sceleton
         }
     }
 
-
-
     private function buildKeyHtml($class, $key, $set_function, $value, $languages_id)
     {
-        $method = trim(substr($set_function ?? '', 0, strpos($set_function??'', '(')));
-        if ($set_function && function_exists($method) ) {
+        $method = trim(substr($set_function ?? '', 0, strpos($set_function ?? '', '(')));
+        if ($set_function && function_exists($method)) {
             //$_args = preg_replace("/".$method."[\s\(]*/i", "", $set_function). "'" . $value['value'] . "', '" . $key . "'";
             $_args = [$value, $key];
             $res = call_user_func_array($method, $_args);
-        }elseif (!empty($class) && $set_function && method_exists($class, $method) ){
+        } elseif (!empty($class) && $set_function && method_exists($class, $method)) {
             $_args = [$value, $key];
             $res = call_user_func_array([$class, $method], $_args);
-        }elseif ($set_function && method_exists ('backend\models\Configuration', $method)) {
+        } elseif ($set_function && method_exists('backend\models\Configuration', $method)) {
             if (in_array($method, ['tep_cfg_textarea', 'setTaxAddressBy'])) {
-                $res = call_user_func(array('backend\models\Configuration', $method), ['key' => $key,  'value' => $value]);
+                $res = call_user_func(['backend\models\Configuration', $method], ['key' => $key,  'value' => $value]);
             } else {
                 // eval('$keys .= ' . $set_function . "'" . $value['value'] . "', '" . $key . "');");
-                $_args = preg_replace("/".$method."[\s\(]*/i", "", $set_function). "'" . $value . "', '" . $key . "'";
-                $res = call_user_func(array('backend\models\Configuration', $method), $_args);
+                $_args = preg_replace('/'.$method."[\s\(]*/i", '', $set_function). "'" . $value . "', '" . $key . "'";
+                $res = call_user_func(['backend\models\Configuration', $method], $_args);
             }
         } else {
-            $_t = Translation::getTranslationValue(strtoupper(str_replace(" ", "_", $value)), 'configuration', $languages_id);
+            $_t = Translation::getTranslationValue(strtoupper(str_replace(' ', '_', $value)), 'configuration', $languages_id);
             $_t = (tep_not_null($_t) ? $_t : $value);
             $res = tep_draw_input_field('configuration[' . $key . ']', $_t);
         }
         return $res;
     }
 
-
     public function actionEdit($set, $module)
     {
         $type = $isExtension = null;
         $languages_id = \Yii::$app->settings->get('languages_id');
-        $heading = $contents = array();
+        $heading = $contents = [];
         $file = $module . '.php';
 
         $this->rules($set);
 
         $this->topButtons[] = '<span class="btn btn-confirm" onclick="$(\'#saveModules\').trigger(\'submit\')">' . IMAGE_UPDATE . '</span>';
 
-        $installed_modules = array();
-        $modules_files = array();
-        $heading = $contents = array();
+        $installed_modules = [];
+        $modules_files = [];
+        $heading = $contents = [];
         $restriction = '';
 
         \common\helpers\Translation::init('admin/modules');
@@ -946,50 +962,54 @@ class ModulesController extends Sceleton
         $keys = '';
         $class = substr($file, 0, strrpos($file, '.'));
         if ($this->module_type == 'label') {
-            $class = "common\\modules\\label\\" . $class;
+            $class = 'common\\modules\\label\\' . $class;
         } elseif ($this->module_type == 'order_total') {
-            $class = "common\\modules\\orderTotal\\" . $class;
+            $class = 'common\\modules\\orderTotal\\' . $class;
         } elseif ($this->module_type == 'payment') {
-            $class = "common\\modules\\orderPayment\\" . $class;
+            $class = 'common\\modules\\orderPayment\\' . $class;
         } elseif ($this->module_type == 'shipping') {
-            $class = "common\\modules\\orderShipping\\" . $class;
+            $class = 'common\\modules\\orderShipping\\' . $class;
         } else {
-            if($this->module_type=='extensions'){
-                $class = "common\\extensions\\" . $class."\\".$class;
+            if ($this->module_type == 'extensions') {
+                $class = 'common\\extensions\\' . $class.'\\'.$class;
             }
-            if ( is_file($this->module_directory . $file) ) {
+            if (is_file($this->module_directory . $file)) {
                 include_once($this->module_directory . $file);
             }
         }
 
-        if (class_exists($class) && is_subclass_of($class,"common\\classes\\modules\\{$this->module_class}")) {
-            $module = new $class;
+        if (class_exists($class) && is_subclass_of($class, "common\\classes\\modules\\{$this->module_class}")) {
+            $module = new $class();
             /**
              * @var modules\Module $module
              */
 
-            $type = (method_exists($module, 'isOnline') && $module->isOnline())? 'online' : 'offline';
+            $type = (method_exists($module, 'isOnline') && $module->isOnline()) ? 'online' : 'offline';
             $this->setAcl($set, $type);
             \common\helpers\Acl::checkAccess($this->acl);
             // $this->fetchArrays($module, $file, $installed_modules, $modules_files);
 
-            if($mInfo = $this->createInfo($module, $set)){
+            if ($mInfo = $this->createInfo($module, $set)) {
                 $sort_order_key_name = $this->module_const_prefix . strtoupper($class).'_SORT_ORDER';
                 if ($this->module_type == 'order_total') {
                     $sort_order_key_name = $this->module_const_prefix . strtoupper(preg_replace('/^ot_/', '', $class)).'_SORT_ORDER';
-                }elseif($this->module_type == 'payment'){
-                    if ( !defined($sort_order_key_name) && strpos($class,'multisafepay_')===0 ) {
+                } elseif ($this->module_type == 'payment') {
+                    if (!defined($sort_order_key_name) && strpos($class, 'multisafepay_') === 0) {
                         $_alter_sort_order_key_name = $this->module_const_prefix . strtoupper(preg_replace('/^multisafepay_/', 'msp_', $class)).'_SORT_ORDER';
-                        if ( defined($_alter_sort_order_key_name) ) $sort_order_key_name = $_alter_sort_order_key_name;
+                        if (defined($_alter_sort_order_key_name)) {
+                            $sort_order_key_name = $_alter_sort_order_key_name;
+                        }
                     }
                 }
                 if (is_array($mInfo->keys)) {
                     foreach ($mInfo->keys as $key => $value) {
-                        if ( $sort_order_key_name==$key ) {
+                        if ($sort_order_key_name == $key) {
                             $keys .= tep_draw_hidden_field('configuration[' . $key . ']', $value['value']);
                             continue;
                         }
-                        if (!empty($value['area'])) continue;
+                        if (!empty($value['area'])) {
+                            continue;
+                        }
                         $keys .= '<div class="after modules-line"><div class="modules-label"><b>' . $value['title'] . '</b><div class="modules-description">' . $value['description'] . '</div></div>';
                         $keys .= $this->buildKeyHtml($class, $key, $value['set_function'], $value['value'], $languages_id);
                         $keys .= '</div><br>';
@@ -997,7 +1017,7 @@ class ModulesController extends Sceleton
                 }
                 $keys = substr($keys, 0, strrpos($keys, '<br>'));
 
-                $heading[] = array('text' => '<b>' . $mInfo->title . '</b>');
+                $heading[] = ['text' => '<b>' . $mInfo->title . '</b>'];
 
             }
             if (method_exists($module, 'configure_keys_platforms')) {
@@ -1007,7 +1027,7 @@ class ModulesController extends Sceleton
                     $platformKeysArray = array_keys($platformKeys);
                     $platformValues = \common\models\PlatformsConfiguration::find()
                         ->where(['configuration_key' => $platformKeysArray])
-                        ->indexBy(function($row) {
+                        ->indexBy(function ($row) {
                             return $row['platform_id'].$row['configuration_key'];
                         })
                         ->asArray()
@@ -1017,13 +1037,13 @@ class ModulesController extends Sceleton
                         $platformsRes[$platformId]['id'] = $platformId;
                         $platformsRes[$platformId]['text'] = $platform['text'];
                         $html = '';
-                        foreach ($platformKeys as $key=>$value) {
+                        foreach ($platformKeys as $key => $value) {
                             $platformValue = $platformValues[$platformId.$key]['configuration_value'] ?? $value['value'];
                             if (!isset($platformValues[$platformId.$key])) {
                                 $module->add_platform_key($platformId, $key, $value);
                             }
                             $html .= '<div class="after modules-line"><div class="modules-label"><b>' . $value['title'] . '</b><div class="modules-description">' . $value['description'] . '</div></div>';
-                            $html .= $this->buildKeyHtml($class, $key, $value['set_function']??null, $platformValue, $languages_id);
+                            $html .= $this->buildKeyHtml($class, $key, $value['set_function'] ?? null, $platformValue, $languages_id);
                             $html .= '</div><br>';
                         }
                         $html = substr($html, 0, strrpos($html, '<br>'));
@@ -1053,9 +1073,11 @@ class ModulesController extends Sceleton
             if (method_exists($module, 'getConfigureKeysArea')) {
                 if (is_array($mInfo->keys)) {
                     foreach ($mInfo->keys as $key => $value) {
-                        if ($value['area'] != 'restrictions') continue;
+                        if ($value['area'] != 'restrictions') {
+                            continue;
+                        }
                         $added = true;
-//                      $restriction .= '<div class="after modules-line"><div class="modules-label"><b>' . $value['title'] . '</b><div class="modules-description">' . $value['description'] . '</div></div>';
+                        //                      $restriction .= '<div class="after modules-line"><div class="modules-label"><b>' . $value['title'] . '</b><div class="modules-description">' . $value['description'] . '</div></div>';
                         $restriction .= '<div class=""><div class=""><b>' . $value['title'] . '</b><div class="modules-description">' . $value['description'] . '</div></div>';
                         $restriction .= $this->buildKeyHtml($class, $key, $value['set_function'], $value['value'], $languages_id);
                         $restriction .= '</div><br>';
@@ -1090,18 +1112,20 @@ class ModulesController extends Sceleton
             ->one();
         $platformName = $pRow['platform_name'] ?? '';
         $title = $mInfo->title;
-        if ($this->module_type!='extensions' && !empty($platformName)) {
+        if ($this->module_type != 'extensions' && !empty($platformName)) {
             $title .= ' - ' . $platformName;
         }
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('modules/index'), 'title' => $title );
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('modules/index'), 'title' => $title ];
         $this->view->extra_params = $this->view->extra_params ?? null;
-        return $this->render('edit.tpl', [
+        return $this->render(
+            'edit.tpl',
+            [
             'mainKey' => $keys,
             'translationsKeys' => $tKeys,
             'languages' => \common\helpers\Language::get_languages(true),
             'description' => $module->getDescription(),
             'restriction' => $restriction,
-            'codeMod'=>$mInfo->code,
+            'codeMod' => $mInfo->code,
             'set' => $set,
             'selected_platform_id' => $this->selected_platform_id,
             'platformKeys' => $platformsRes ?? null,
@@ -1109,10 +1133,11 @@ class ModulesController extends Sceleton
             'class' => $class,
             'type' => $type,
         ] + $pppData
-            );
+        );
     }
 
-    public function actionSave(){
+    public function actionSave()
+    {
         $set = \Yii::$app->request->get('set', '');
         $module = \Yii::$app->request->post('module', '');
         $this->rules($set);
@@ -1120,22 +1145,23 @@ class ModulesController extends Sceleton
         if (file_exists($this->module_directory . $module . '.php')) {
             include_once($this->module_directory . $module . '.php');
         }
-        if ($this->module_namespace && in_array($set ,['label', 'ordertotal', 'payment', 'shipping'])) {
+        if ($this->module_namespace && in_array($set, ['label', 'ordertotal', 'payment', 'shipping'])) {
             $module = $this->module_namespace . $module;
-        } elseif($this->module_type=='extensions'){
-            $module = "common\\extensions\\" . $module."\\".$module;
+        } elseif ($this->module_type == 'extensions') {
+            $module = 'common\\extensions\\' . $module.'\\'.$module;
         }
 
         if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
             $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance(\Yii::$app->request->post('module'));
-            ($logUniversal
+            (
+                $logUniversal
                 ->setType($logUniversal::ULT_EXTENSION_UPDATE)
                 ->setRelation(\Yii::$app->request->post('module'))
             );
         }
 
         if (class_exists($module)) {
-            $object = new $module;
+            $object = new $module();
             if (isset($logUniversal)) {
                 $logUniversal->setRelation($object->code);
             }
@@ -1145,20 +1171,21 @@ class ModulesController extends Sceleton
             foreach (\Yii::$app->request->post('configuration') as $key => $value) {
 
                 if (isset($logUniversal)) {
-                    $logUniversal->mergeBeforeArray(\common\models\PlatformsConfiguration::find()
+                    $logUniversal->mergeBeforeArray(
+                        \common\models\PlatformsConfiguration::find()
                         ->select(['configuration_value', 'platform_id', 'configuration_key'])
                         ->where(['platform_id' => (int)$this->selected_platform_id])
                         ->andWhere(['configuration_key' => $key])
-                        ->indexBy(function($record) {
+                        ->indexBy(function ($record) {
                             return ($record['platform_id'] . '|' . $record['configuration_key']);
                         })
                         ->asArray(true)->column()
                     );
                 }
 
-                if( is_array( $value ) ){
-                    $value = implode( ", ", $value);
-                    $value = preg_replace ("/, --none--/", "", $value);
+                if (is_array($value)) {
+                    $value = implode(', ', $value);
+                    $value = preg_replace('/, --none--/', '', $value);
                 }
 
                 //to encrypt sensitive data
@@ -1169,14 +1196,15 @@ class ModulesController extends Sceleton
                 if (is_object($object) && $key == "{$object->code}_EXTENSION_STATUS" && (new \common\classes\platform_config($this->selected_platform_id))->const_value($key) != $value) {
                     $object->enable_module($this->selected_platform_id, $value == 'True');
                 } else {
-                    tep_db_query("update " . TABLE_PLATFORMS_CONFIGURATION . " set configuration_value = '" . tep_db_input(tep_db_prepare_input($value)) . "' where configuration_key = '" . tep_db_input($key) . "' AND platform_id='" . intval($this->selected_platform_id) . "'");
+                    tep_db_query('update ' . TABLE_PLATFORMS_CONFIGURATION . " set configuration_value = '" . tep_db_input(tep_db_prepare_input($value)) . "' where configuration_key = '" . tep_db_input($key) . "' AND platform_id='" . intval($this->selected_platform_id) . "'");
                 }
                 if (isset($logUniversal)) {
-                    $logUniversal->mergeAfterArray(\common\models\PlatformsConfiguration::find()
+                    $logUniversal->mergeAfterArray(
+                        \common\models\PlatformsConfiguration::find()
                         ->select(['configuration_value', 'platform_id', 'configuration_key'])
                         ->where(['platform_id' => (int)$this->selected_platform_id])
                         ->andWhere(['configuration_key' => $key])
-                        ->indexBy(function($record) {
+                        ->indexBy(function ($record) {
                             return ($record['platform_id'] . '|' . $record['configuration_key']);
                         })
                         ->asArray(true)->column()
@@ -1188,11 +1216,11 @@ class ModulesController extends Sceleton
         if (is_array(\Yii::$app->request->post('pconfiguration'))) {
             foreach (\Yii::$app->request->post('pconfiguration') as $platformId => $keysArray) {
                 $platformId = intval($platformId);
-                foreach ($keysArray as $key=>$value) {
+                foreach ($keysArray as $key => $value) {
 
-                    if( is_array( $value ) ){
-                        $value = implode( ", ", $value);
-                        $value = preg_replace ("/, --none--/", "", $value);
+                    if (is_array($value)) {
+                        $value = implode(', ', $value);
+                        $value = preg_replace('/, --none--/', '', $value);
                     }
 
                     //to encrypt sensitive data
@@ -1209,7 +1237,7 @@ class ModulesController extends Sceleton
         if (!empty($translations) && is_array($translations)) {
             $languages = \common\helpers\Language::get_languages(true);
             //$param = 'TITLE';
-            for( $i = 0, $n = sizeof($languages); $i < $n; $i++ ) {
+            for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
                 if (is_array($translations[$languages[$i]['id']])) {
                     foreach ($translations[$languages[$i]['id']] as $cKey => $cValue) {
                         /*if (in_array($cKey, $module->keys())){
@@ -1225,12 +1253,12 @@ class ModulesController extends Sceleton
 
         }
 
-        if (isset($_FILES['configuration'])){
+        if (isset($_FILES['configuration'])) {
             $path = Yii::$aliases['@common'] .DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'certificates';
             \yii\helpers\FileHelper::createDirectory($path);
             foreach ($_FILES['configuration']['name'] as $key => $value) {
-                if (move_uploaded_file ( $_FILES['configuration']['tmp_name'][$key], $path . DIRECTORY_SEPARATOR . $value)){
-                    tep_db_query("update " . TABLE_PLATFORMS_CONFIGURATION. " set configuration_value = '" . tep_db_input(tep_db_prepare_input($value)) . "' where configuration_key = '" . tep_db_input($key) . "' AND platform_id='".intval($this->selected_platform_id)."'");
+                if (move_uploaded_file($_FILES['configuration']['tmp_name'][$key], $path . DIRECTORY_SEPARATOR . $value)) {
+                    tep_db_query('update ' . TABLE_PLATFORMS_CONFIGURATION. " set configuration_value = '" . tep_db_input(tep_db_prepare_input($value)) . "' where configuration_key = '" . tep_db_input($key) . "' AND platform_id='".intval($this->selected_platform_id)."'");
                 }
             }
         }
@@ -1274,7 +1302,8 @@ class ModulesController extends Sceleton
 
     }
 
-    public function actionTranslation(){
+    public function actionTranslation()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
 
         \common\helpers\Translation::init('admin/modules');
@@ -1286,28 +1315,27 @@ class ModulesController extends Sceleton
         $this->rules($set);
         Translation::init($this->module_entity);
 
-        $this->selectedMenu        = array( 'modules', 'modules?set='.$set );
-        $this->navigation[]        = array( 'link' => Yii::$app->urlManager->createUrl( 'modules/index' ), 'title' => $this->_page_title );
+        $this->selectedMenu        = [ 'modules', 'modules?set='.$set ];
+        $this->navigation[]        = [ 'link' => Yii::$app->urlManager->createUrl('modules/index'), 'title' => $this->_page_title ];
         $this->view->headingTitle  = $this->_page_title;
 
-        $file_extension = ".php";
-
+        $file_extension = '.php';
 
         $class = \common\helpers\Output::mb_basename($_module);
 
-        $this->selectedMenu = array( 'modules', 'modules?set='.$set );
-        $heading = $contents = array();
+        $this->selectedMenu = [ 'modules', 'modules?set='.$set ];
+        $heading = $contents = [];
         $file = $_module . $file_extension;
 
         $class = substr($file, 0, strrpos($file, '.'));
         if ($this->module_type == 'label') {
-            $class = "common\\modules\\label\\" . $class;
+            $class = 'common\\modules\\label\\' . $class;
         } elseif ($this->module_type == 'order_total') {
-            $class = "common\\modules\\orderTotal\\" . $class;
+            $class = 'common\\modules\\orderTotal\\' . $class;
         } elseif ($this->module_type == 'payment') {
-            $class = "common\\modules\\orderPayment\\" . $class;
+            $class = 'common\\modules\\orderPayment\\' . $class;
         } elseif ($this->module_type == 'shipping') {
-            $class = "common\\modules\\orderShipping\\" . $class;
+            $class = 'common\\modules\\orderShipping\\' . $class;
         } else {
             if (file_exists($this->module_directory . $file)) {
                 include_once($this->module_directory . $file);
@@ -1315,12 +1343,12 @@ class ModulesController extends Sceleton
         }
 
         if (class_exists($class)) {
-            $module = new $class;
+            $module = new $class();
         }
 
         $params = [];
 
-        if (is_object($module)){
+        if (is_object($module)) {
             $keys = array_merge([/*$module->title, $module->description*/], $module->keys());
 
             $_consts = get_defined_constants(true);
@@ -1328,39 +1356,38 @@ class ModulesController extends Sceleton
 
             $language_consts = [];
             $_code = $module->code;
-            if ($this->module_type == 'order_total'){
+            if ($this->module_type == 'order_total') {
                 $_code = substr($_code, 3);
             }
-            if (is_array($_consts) && count($_consts) && (in_array("MODULE_" . strtoupper($this->module_type . '_' . $module->code)."_TEXT_TITLE", $_consts) || in_array("MODULE_" . strtoupper($this->module_type . '_' . $_code)."_TITLE", $_consts))){
-                $ex = explode("_TEXT_TITLE", "MODULE_" . strtoupper($this->module_type . '_' . $_code)."_TEXT_TITLE");
-                if (count($ex) == 1){
-                    $ex = explode("_TITLE", "MODULE_" . strtoupper($this->module_type . '_' . $_code)."_TITLE");
+            if (is_array($_consts) && count($_consts) && (in_array('MODULE_' . strtoupper($this->module_type . '_' . $module->code).'_TEXT_TITLE', $_consts) || in_array('MODULE_' . strtoupper($this->module_type . '_' . $_code).'_TITLE', $_consts))) {
+                $ex = explode('_TEXT_TITLE', 'MODULE_' . strtoupper($this->module_type . '_' . $_code).'_TEXT_TITLE');
+                if (count($ex) == 1) {
+                    $ex = explode('_TITLE', 'MODULE_' . strtoupper($this->module_type . '_' . $_code).'_TITLE');
                 }
-                if (count($ex) > 1){
+                if (count($ex) > 1) {
                     $module_prefix = $ex[0];
-                    foreach($_consts as $name => $value){
-                        if (strpos($name, $module_prefix .'_' ) !== false && !in_array($name, $keys)){
+                    foreach ($_consts as $name => $value) {
+                        if (strpos($name, $module_prefix .'_') !== false && !in_array($name, $keys)) {
                             $language_consts[] = ['key' => $name, 'value' => $value];
                         }
                     }
                 }
             }
 
-            if(is_array($keys)){
+            if (is_array($keys)) {
                 $languages = \common\helpers\Language::get_languages(true);
                 $title_label = Translation::getTranslationValue('TEXT_TITLE_LABEL', 'configuration', $languages_id);
                 $desc_label = Translation::getTranslationValue('TEXT_DESC_LABEL', 'configuration', $languages_id);
 
-                for( $i = 0, $n = sizeof( $languages ); $i < $n; $i++ ) {
+                for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
 
                     $languages[$i]['logo'] = $languages[$i]['image'];
 
-
-                    if (count($language_consts)){
-                        foreach($language_consts as $data){
+                    if (count($language_consts)) {
+                        foreach ($language_consts as $data) {
                             $key = $data['key'];
                             $params[$i][$key]['configuration_title_label'] = $title_label;
-                            $_value = (tep_not_null($_value = Translation::getTranslationValue($key, $set, $languages[$i]['id']))? $_value :$data['value']);
+                            $_value = (tep_not_null($_value = Translation::getTranslationValue($key, $set, $languages[$i]['id'])) ? $_value : $data['value']);
                             $params[$i][$key]['configuration_title'] = tep_draw_input_field('configuration_title[' . $languages[$i]['id'] . ']['.$key.']', $_value, 'class="form-control form-control-small"');
                             $params[$i][$key]['configuration_desc_label'] = '&nbsp;';
                             $params[$i][$key]['configuration_description'] = '&nbsp;';
@@ -1368,10 +1395,10 @@ class ModulesController extends Sceleton
                         }
                     }
 
-                    foreach($keys as $key){
+                    foreach ($keys as $key) {
 
                         $param = tep_db_fetch_array(tep_db_query(
-                            "select configuration_title, configuration_description from " . TABLE_PLATFORMS_CONFIGURATION. " where configuration_key = '" . strval($key). "' LIMIT 1"
+                            'select configuration_title, configuration_description from ' . TABLE_PLATFORMS_CONFIGURATION. " where configuration_key = '" . strval($key). "' LIMIT 1"
                         ));
 
                         $params[$i]['id'] = $languages[$i]['id'];
@@ -1390,60 +1417,67 @@ class ModulesController extends Sceleton
 
         }
 
-        if (Yii::$app->request->isPost){
+        if (Yii::$app->request->isPost) {
 
             $languages = \common\helpers\Language::get_languages(true);
 
             $accepted = ['configuration_title', 'configuration_description'];
 
-            foreach($_POST as $config_key => $config_variants){
+            foreach ($_POST as $config_key => $config_variants) {
 
-                if (!in_array($config_key, $accepted)) continue;
+                if (!in_array($config_key, $accepted)) {
+                    continue;
+                }
 
-                $ex = explode("_", $config_key);
+                $ex = explode('_', $config_key);
 
                 $param = strtoupper($ex[1]);
 
-                for( $i = 0, $n = sizeof( $languages ); $i < $n; $i++ ) {
+                for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
 
-                    if (is_array($config_variants[$languages[$i]['id']])) foreach ($config_variants[$languages[$i]['id']] as $cKey => $cValue) {
+                    if (is_array($config_variants[$languages[$i]['id']])) {
+                        foreach ($config_variants[$languages[$i]['id']] as $cKey => $cValue) {
 
-                        if (in_array($cKey, $module->keys())){
-                            Translation::setTranslationValue($cKey . '_' . $param, $set, $languages[$i]['id'], $cValue);
-                        } else {
-                            Translation::setTranslationValue($cKey, $set, $languages[$i]['id'], $cValue);
+                            if (in_array($cKey, $module->keys())) {
+                                Translation::setTranslationValue($cKey . '_' . $param, $set, $languages[$i]['id'], $cValue);
+                            } else {
+                                Translation::setTranslationValue($cKey, $set, $languages[$i]['id'], $cValue);
+                            }
+
                         }
-
                     }
                 }
             }
 
             \common\helpers\Translation::resetCache();
 
-            if (Yii::$app->request->isAjax){
+            if (Yii::$app->request->isAjax) {
                 $this->layout = false;
                 echo 'ok';
-            } else
+            } else {
                 return $this->redirect(Yii::$app->urlManager->createUrl('modules/?set='.$set.'&row='.$row));
+            }
 
-        } else
-            return $this->render('translation', ['params' => $params, 'languages' => $languages, 'codeMod'=> $module->code]);
+        } else {
+            return $this->render('translation', ['params' => $params, 'languages' => $languages, 'codeMod' => $module->code]);
+        }
     }
 
-    public function quickTranslationKeys($module, $set){
+    public function quickTranslationKeys($module, $set)
+    {
 
         $ret = $keys = [];
         $languages = \common\helpers\Language::get_languages(true);
 
         if (method_exists($module, 'getQuickTranslationKeys')) {
 
-            foreach($module->getQuickTranslationKeys() as $k => $v) {
+            foreach ($module->getQuickTranslationKeys() as $k => $v) {
                 $keys[] = ['key' => $k, 'value' => $v];
             }
 
         } elseif (!empty($module->quickTranslationKeys) && is_array($module->quickTranslationKeys)) {
 
-            foreach($module->quickTranslationKeys as $k => $v) {
+            foreach ($module->quickTranslationKeys as $k => $v) {
                 $keys[] = ['key' => $k, 'value' => $v];
             }
 
@@ -1454,30 +1488,29 @@ class ModulesController extends Sceleton
 
             $language_consts = [];
             $_code = $module->code;
-            if ($this->module_type == 'order_total'){
+            if ($this->module_type == 'order_total') {
                 $_code = substr($_code, 3);
             }
             $possibleKeys = [];
-            $possibleKeys[] = "MODULE_" . strtoupper($this->module_type . '_' . $module->code)."_TEXT_TITLE";
-            $possibleKeys[] = "MODULE_" . strtoupper($this->module_type . '_' . $_code)."_TITLE";
-            $possibleKeys[] = "MODULE_" . strtoupper($this->module_type . '_' . $module->code)."_TEXT_PUBLIC_TITLE";
-            $possibleKeys[] = "MODULE_" . strtoupper($this->module_type . '_' . $_code)."_PUBLIC_TITLE";
+            $possibleKeys[] = 'MODULE_' . strtoupper($this->module_type . '_' . $module->code).'_TEXT_TITLE';
+            $possibleKeys[] = 'MODULE_' . strtoupper($this->module_type . '_' . $_code).'_TITLE';
+            $possibleKeys[] = 'MODULE_' . strtoupper($this->module_type . '_' . $module->code).'_TEXT_PUBLIC_TITLE';
+            $possibleKeys[] = 'MODULE_' . strtoupper($this->module_type . '_' . $_code).'_PUBLIC_TITLE';
 
             if (is_array($_consts) && !empty(array_intersect(array_keys($_consts), $possibleKeys))) {
-                foreach(array_intersect(array_keys($_consts), $possibleKeys) as $name) {
+                foreach (array_intersect(array_keys($_consts), $possibleKeys) as $name) {
                     $keys[] = ['key' => $name, 'value' => $_consts[$name]];
                 }
             }
 
         }
 
-
         if (!empty($keys) && is_array($keys)) {
-            for( $i = 0, $n = sizeof( $languages ); $i < $n; $i++ ) {
+            for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
                 $title = Translation::getTranslationValue('TEXT_TITLE_LABEL', 'configuration', $languages[$i]['id']);
                 $ret[$i]['id'] = $languages[$i]['id'];
                 $ret[$i]['keys'] = [];
-                foreach($keys as $d) {
+                foreach ($keys as $d) {
                     $key = $d['key'];
                     $_value = Translation::getTranslationValue($key, $set, $languages[$i]['id']);
                     if (empty($_value)) {
@@ -1486,12 +1519,11 @@ class ModulesController extends Sceleton
                     $ret[$i]['keys'][] = [
                         'key' => $key,
                         'configuration_title_label' => $title,
-                        'configuration_title_field' => tep_draw_input_field('configuration_title[' . $languages[$i]['id'] . ']['.$key.']', $_value, 'class="form-control form-control-small"')
+                        'configuration_title_field' => tep_draw_input_field('configuration_title[' . $languages[$i]['id'] . ']['.$key.']', $_value, 'class="form-control form-control-small"'),
                     ];
                 }
             }
         }
-
 
         return $ret;
     }
@@ -1503,21 +1535,24 @@ class ModulesController extends Sceleton
      * @param type $set
      * @return boolean
      */
-    public function needTranslation($module, $set){
+    public function needTranslation($module, $set)
+    {
         return false;
-        if (isset($module->isExtension)) {return false;}
+        if (isset($module->isExtension)) {
+            return false;
+        }
         $keys = array_merge([$module->title, $module->description], $module->keys());
-        if (is_array($keys)){
+        if (is_array($keys)) {
             $res = [];
-            foreach($keys as $key){
-                if (!tep_not_null(Translation::getTranslationValue($key.'_TITLE', $set))){
+            foreach ($keys as $key) {
+                if (!tep_not_null(Translation::getTranslationValue($key.'_TITLE', $set))) {
                     $res[] = 1;
                 } else {
                     $res[] = 0;
                 }
             }
 
-            if (array_sum($res) > 0){ // need tranlation
+            if (array_sum($res) > 0) { // need tranlation
                 return true;
             }
         }
@@ -1535,7 +1570,7 @@ class ModulesController extends Sceleton
         $enabled = Yii::$app->request->post('enabled', '');
         $user_confirmed_drop_datatables = Yii::$app->request->post('user_confirmed_drop_datatables', '');
         $user_confirmed_drop_acl = Yii::$app->request->post('user_confirmed_drop_acl', '');
-        $file_extension = ".php";
+        $file_extension = '.php';
         $this->rules($set);
         \common\helpers\Translation::init($this->module_entity);
         $class = \common\helpers\Output::mb_basename($_module);
@@ -1549,9 +1584,11 @@ class ModulesController extends Sceleton
         } else {
             $class = $this->module_namespace . $_module;
         }
-        if (class_exists($class) && is_subclass_of($class,"common\\classes\\modules\\{$this->module_class}") ) {
-            $module = new $class;
-            if (isset($module->isExtension)) $class = (new \ReflectionClass($class))->getShortName ();
+        if (class_exists($class) && is_subclass_of($class, "common\\classes\\modules\\{$this->module_class}")) {
+            $module = new $class();
+            if (isset($module->isExtension)) {
+                $class = (new \ReflectionClass($class))->getShortName();
+            }
             /**
              * @var modules\Module $module
              */
@@ -1577,21 +1614,21 @@ class ModulesController extends Sceleton
                 if (!$module->check($this->selected_platform_id)) {
                     // $module->remove($this->selected_platform_id);
                     $module->install($this->selected_platform_id);
-                    if ($this->needTranslation($module, $set)){
+                    if ($this->needTranslation($module, $set)) {
                         $response['need_translate'] = $module->code;
                     }
                     $response['need_config'] = $module->code;
-                    $installed_modules_str = defined($this->module_key)?constant($this->module_key):'';
+                    $installed_modules_str = defined($this->module_key) ? constant($this->module_key) : '';
                     $get_actual_value = tep_db_fetch_array(tep_db_query(
-                        "SELECT configuration_value FROM ".TABLE_PLATFORMS_CONFIGURATION." WHERE configuration_key='".tep_db_input($this->module_key)."' AND platform_id='".intval($this->selected_platform_id)."'"
+                        'SELECT configuration_value FROM '.TABLE_PLATFORMS_CONFIGURATION." WHERE configuration_key='".tep_db_input($this->module_key)."' AND platform_id='".intval($this->selected_platform_id)."'"
                     ));
-                    if ( is_array($get_actual_value) ) {
+                    if (is_array($get_actual_value)) {
                         $installed_modules_str = $get_actual_value['configuration_value'];
                     }
-                    $order_count = (count(explode(';',$installed_modules_str))+1)*10+10;
+                    $order_count = (count(explode(';', $installed_modules_str)) + 1) * 10 + 10;
                     tep_db_query(
-                        "update " . TABLE_PLATFORMS_CONFIGURATION. " ".
-                        "set configuration_value = TRIM(BOTH ';' FROM CONCAT(configuration_value,';".tep_db_input(($this->module_namespace?str_replace($this->module_namespace,'', $class):$class) . $file_extension)."')), last_modified = now() ".
+                        'update ' . TABLE_PLATFORMS_CONFIGURATION. ' '.
+                        "set configuration_value = TRIM(BOTH ';' FROM CONCAT(configuration_value,';".tep_db_input(($this->module_namespace ? str_replace($this->module_namespace, '', $class) : $class) . $file_extension)."')), last_modified = now() ".
                         "where configuration_key = '" . tep_db_input($this->module_key) . "' ".
                         " AND platform_id='".intval($this->selected_platform_id)."'"
                     );
@@ -1601,28 +1638,27 @@ class ModulesController extends Sceleton
                 \common\helpers\Translation::resetCache();
                 \common\helpers\Hooks::resetHooks();
             } elseif ($action == 'remove') {
-                if (isset($module->isExtension) && $user_confirmed_drop_datatables== 'true') {
+                if (isset($module->isExtension) && $user_confirmed_drop_datatables == 'true') {
                     $module->userConfirmedDropDatatables = true;
                 }
-                if (isset($module->isExtension) && $user_confirmed_drop_acl== 'true') {
+                if (isset($module->isExtension) && $user_confirmed_drop_acl == 'true') {
                     $module->userConfirmedDeleteAcl = true;
                 }
                 $module->remove($this->selected_platform_id);
                 tep_db_query(
-                    "update " . TABLE_PLATFORMS_CONFIGURATION . " ".
+                    'update ' . TABLE_PLATFORMS_CONFIGURATION . ' '.
                     "set configuration_value = TRIM(BOTH ';' FROM REPLACE(CONCAT(';',configuration_value,';'),'".tep_db_input($class . $file_extension)."','')), last_modified = now() ".
                     "where configuration_key = '" . tep_db_input($this->module_key) . "' ".
                     " AND platform_id='".intval($this->selected_platform_id)."'"
                 );
                 \common\helpers\Translation::resetCache();
                 \common\helpers\Hooks::resetHooks();
-            }elseif($action == 'status'){
-                $module->enable_module($this->selected_platform_id, $enabled == 'on' );
+            } elseif ($action == 'status') {
+                $module->enable_module($this->selected_platform_id, $enabled == 'on');
             }
         }
 
-        $response['redirect'] = Yii::$app->urlManager->createUrl(['modules/list', 'set'=>$set, 'platform_id'=>$this->selected_platform_id]);
-
+        $response['redirect'] = Yii::$app->urlManager->createUrl(['modules/list', 'set' => $set, 'platform_id' => $this->selected_platform_id]);
 
         return json_encode($response);
     }
@@ -1630,36 +1666,39 @@ class ModulesController extends Sceleton
     public function actionSortOrder()
     {
 
-        $sorted = Yii::$app->request->post('module',array());
-        $set = Yii::$app->request->post('set','payment');
+        $sorted = Yii::$app->request->post('module', []);
+        $set = Yii::$app->request->post('set', 'payment');
         $this->rules($set);
 
         $this->updateModulesSortOrder($sorted);
 
-        echo json_encode(array('redirect'=>Yii::$app->urlManager->createUrl(['modules/list', 'set'=>$set, 'platform_id'=>$this->selected_platform_id])));
+        echo json_encode(['redirect' => Yii::$app->urlManager->createUrl(['modules/list', 'set' => $set, 'platform_id' => $this->selected_platform_id])]);
 
     }
 
-    protected function updateModulesSortOrder($sorted) {
-        $sorted = array_map(function($val){
-            if ( strpos($val,'\\')!==false ) $val = substr($val, strrpos($val,'\\')+1);
-            if ( strpos($val,'.php')===false ) {
-                $val.='.php';
+    protected function updateModulesSortOrder($sorted)
+    {
+        $sorted = array_map(function ($val) {
+            if (strpos($val, '\\') !== false) {
+                $val = substr($val, strrpos($val, '\\') + 1);
+            }
+            if (strpos($val, '.php') === false) {
+                $val .= '.php';
             }
             return $val;
-        },$sorted);
+        }, $sorted);
         $sorted = array_values($sorted);
 
         \common\helpers\Translation::init($this->module_entity);
 
         $installedModules = \common\models\PlatformsConfiguration::findOne([
             'configuration_key' => $this->module_key,
-            'platform_id' => $this->selected_platform_id
+            'platform_id' => $this->selected_platform_id,
         ]);
         if (!$installedModules) {
             $installed_sort = $installedModules->configuration_value;
         } else {
-            $installed_sort = defined($this->module_key)?constant($this->module_key):'';
+            $installed_sort = defined($this->module_key) ? constant($this->module_key) : '';
         }
 
         //inactive modules are not shown by default so $installed_sort contains them, but $sorted does NOT
@@ -1668,7 +1707,7 @@ class ModulesController extends Sceleton
         $activeModules = [];
         $inactiveModules = [];
         //fill in by submitted array
-        foreach( explode(';',$installed_sort) as $__installed_module ) {
+        foreach (explode(';', $installed_sort) as $__installed_module) {
             if (in_array($__installed_module, $sorted)) {
                 $activeModules[] = $__installed_module;
             } else {
@@ -1676,20 +1715,19 @@ class ModulesController extends Sceleton
             }
         }
 
-
         //if ( strpos(implode(';', $sorted),$installed_sort)!==0 || implode(';', $sorted)!=$installed_sort ) {
-        if ( $sorted !== $activeModules ) {
+        if ($sorted !== $activeModules) {
             $sorted_idx = array_flip($sorted);
-            $new_order = array();
-            foreach( $activeModules as $__installed_module ) {
+            $new_order = [];
+            foreach ($activeModules as $__installed_module) {
                 $new_order[$sorted_idx[$__installed_module]] = $__installed_module;
             }
-            foreach( $inactiveModules as $__installed_module ) {
+            foreach ($inactiveModules as $__installed_module) {
                 $new_order[] = $__installed_module;
             }
 
             ksort($new_order);
-            $installed_sort = implode(';',$new_order);
+            $installed_sort = implode(';', $new_order);
             if (!$installedModules) {
                 $installedModules = new \common\models\PlatformsConfiguration();
                 $installedModules->loadDefaultValues();
@@ -1707,20 +1745,20 @@ class ModulesController extends Sceleton
             try {
                 $installedModules->save(false);
             } catch (\Exception $e) {
-                \Yii::warning(" #### " . print_r($e->getMessage(), true), 'TLDEBUG');
+                \Yii::warning(' #### ' . print_r($e->getMessage(), true), 'TLDEBUG');
             }
 
             $order_count = 0;
-            foreach ($new_order as $module_file ) {
+            foreach ($new_order as $module_file) {
                 $order_count += 10;
 
                 $class = substr($module_file, 0, strrpos($module_file, '.'));
-                if ( $this->module_namespace ){
+                if ($this->module_namespace) {
                     $class = $this->module_namespace.$class;
                 }
 
                 if (class_exists($class)) {
-                    $module = new $class;
+                    $module = new $class();
                     /**
                      * @var modules\Module $module
                      */
@@ -1746,19 +1784,19 @@ class ModulesController extends Sceleton
     public function actionMultisafepay()
     {
         $languages_id = \Yii::$app->settings->get('languages_id');
-        $heading = $contents = array();
+        $heading = $contents = [];
         $file = 'multisafepay.php';
 
         $this->rules('payment');
 
-        $installed_modules = array();
-        $modules_files = array();
-        $heading = $contents = array();
+        $installed_modules = [];
+        $modules_files = [];
+        $heading = $contents = [];
 
         \common\helpers\Translation::init('admin/modules');
         include_once($this->module_directory . $file);
 
-        $module_keys = array(
+        $module_keys = [
             'MODULE_PAYMENT_MULTISAFEPAY_API_SERVER',
             'MODULE_PAYMENT_MULTISAFEPAY_ACCOUNT_ID',
             'MODULE_PAYMENT_MULTISAFEPAY_SITE_ID',
@@ -1776,114 +1814,115 @@ class ModulesController extends Sceleton
             'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_PARTIAL_REFUNDED',
             'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ENABLER',
             'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ICON_DISABLED',
-        );
+        ];
 
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_API_SERVER'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_API_SERVER'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) VALUES ('Type account', 'MODULE_PAYMENT_MULTISAFEPAY_API_SERVER', 'Live account', '<a href=\'http://www.multisafepay.com/nl/klantenservice-zakelijk/open-een-testaccount.html\' target=\'_blank\' style=\'text-decoration: underline; font-weight: bold; color:#696916; \'>Sign up for a free test account!</a>', '6', '21', 'tep_cfg_select_option(array(\'Live account\', \'Test account\'), ', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) VALUES ('Type account', 'MODULE_PAYMENT_MULTISAFEPAY_API_SERVER', 'Live account', '<a href=\'http://www.multisafepay.com/nl/klantenservice-zakelijk/open-een-testaccount.html\' target=\'_blank\' style=\'text-decoration: underline; font-weight: bold; color:#696916; \'>Sign up for a free test account!</a>', '6', '21', 'tep_cfg_select_option(array(\'Live account\', \'Test account\'), ', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ACCOUNT_ID'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ACCOUNT_ID'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) VALUES ('Account ID', 'MODULE_PAYMENT_MULTISAFEPAY_ACCOUNT_ID', '', 'Your merchant account ID', '6', '22', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) VALUES ('Account ID', 'MODULE_PAYMENT_MULTISAFEPAY_ACCOUNT_ID', '', 'Your merchant account ID', '6', '22', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_SITE_ID'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_SITE_ID'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) VALUES ('Site ID', 'MODULE_PAYMENT_MULTISAFEPAY_SITE_ID', '', 'ID of this site', '6', '23', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) VALUES ('Site ID', 'MODULE_PAYMENT_MULTISAFEPAY_SITE_ID', '', 'ID of this site', '6', '23', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_SITE_SECURE_CODE'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_SITE_SECURE_CODE'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) VALUES ('Site Code', 'MODULE_PAYMENT_MULTISAFEPAY_SITE_SECURE_CODE', '', 'Site code for this site', '6', '24', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, date_added) VALUES ('Site Code', 'MODULE_PAYMENT_MULTISAFEPAY_SITE_SECURE_CODE', '', 'Site code for this site', '6', '24', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_AUTO_REDIRECT'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_AUTO_REDIRECT'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) VALUES ('Auto Redirect', 'MODULE_PAYMENT_MULTISAFEPAY_AUTO_REDIRECT', 'True', 'Enable auto redirect after payment', '6', '20', 'tep_cfg_select_option(array(\'True\', \'False\'), ', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) VALUES ('Auto Redirect', 'MODULE_PAYMENT_MULTISAFEPAY_AUTO_REDIRECT', 'True', 'Enable auto redirect after payment', '6', '20', 'tep_cfg_select_option(array(\'True\', \'False\'), ', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_INITIALIZED'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_INITIALIZED'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Initialized Order Status', 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_INITIALIZED', 0, 'In progress', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Initialized Order Status', 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_INITIALIZED', 0, 'In progress', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_COMPLETED'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_COMPLETED'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Completed Order Status',   'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_COMPLETED',   0, 'Completed successfully', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Completed Order Status',   'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_COMPLETED',   0, 'Completed successfully', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_UNCLEARED'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_UNCLEARED'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Uncleared Order Status',   'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_UNCLEARED',   0, 'Not yet cleared', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Uncleared Order Status',   'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_UNCLEARED',   0, 'Not yet cleared', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_RESERVED'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_RESERVED'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Reserved Order Status',    'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_RESERVED',    0, 'Reserved', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Reserved Order Status',    'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_RESERVED',    0, 'Reserved', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_VOID'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_VOID'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Voided Order Status',      'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_VOID',        0, 'Cancelled', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Voided Order Status',      'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_VOID',        0, 'Cancelled', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_DECLINED'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_DECLINED'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Declined Order Status',    'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_DECLINED',    0, 'Declined (e.g. fraud, not enough balance)', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Declined Order Status',    'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_DECLINED',    0, 'Declined (e.g. fraud, not enough balance)', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REVERSED'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REVERSED'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Reversed Order Status',    'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REVERSED',    0, 'Undone', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Reversed Order Status',    'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REVERSED',    0, 'Undone', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REFUNDED'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REFUNDED'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Refunded Order Status',    'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REFUNDED',    0, 'refunded', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Refunded Order Status',    'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REFUNDED',    0, 'refunded', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_EXPIRED'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_EXPIRED'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Expired Order Status',     'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_EXPIRED',     0, 'Expired', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Expired Order Status',     'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_EXPIRED',     0, 'Expired', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_PARTIAL_REFUNDED'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_PARTIAL_REFUNDED'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Partial refunded Order Status',     'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_PARTIAL_REFUNDED',     0, 'Partial Refunded', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, use_function, date_added) VALUES ('Set Partial refunded Order Status',     'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_PARTIAL_REFUNDED',     0, 'Partial Refunded', '6', '0', 'tep_cfg_pull_down_order_statuses(', '\common\helpers\Order::get_order_status_name', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ENABLER'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ENABLER'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) VALUES ('Enable gateway titles in checkout', 'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ENABLER', 'True', 'Enable the gateway title in checkout', '6', '20', 'tep_cfg_select_option(array(\'True\', \'False\'), ', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) VALUES ('Enable gateway titles in checkout', 'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ENABLER', 'True', 'Enable the gateway title in checkout', '6', '20', 'tep_cfg_select_option(array(\'True\', \'False\'), ', now())");
         }
-        $check = tep_db_fetch_array(tep_db_query("select count(*) as key_exists from " . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ICON_DISABLED'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as key_exists from ' . TABLE_CONFIGURATION . " where configuration_key = 'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ICON_DISABLED'"));
         if (!$check['key_exists']) {
-            tep_db_query("INSERT INTO " . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) VALUES ('Enable icons in gateway titles. If disabled it will overrule option above.', 'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ICON_DISABLED', 'True', 'Enable the icon in the checkout title for the gateway', '6', '20', 'tep_cfg_select_option(array(\'True\', \'False\'), ', now())");
+            tep_db_query('INSERT INTO ' . TABLE_CONFIGURATION . " (configuration_title, configuration_key, configuration_value, configuration_description, configuration_group_id, sort_order, set_function, date_added) VALUES ('Enable icons in gateway titles. If disabled it will overrule option above.', 'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ICON_DISABLED', 'True', 'Enable the icon in the checkout title for the gateway', '6', '20', 'tep_cfg_select_option(array(\'True\', \'False\'), ', now())");
         }
 
-
-        $keys_extra = array();
-        for ($j=0, $k=sizeof($module_keys); $j<$k; $j++) {
-            $key_value_query = tep_db_query("select configuration_title, configuration_value, configuration_description, use_function, set_function from " . TABLE_CONFIGURATION . " where configuration_key = '" . tep_db_input($module_keys[$j]) . "'");
+        $keys_extra = [];
+        for ($j = 0, $k = sizeof($module_keys); $j < $k; $j++) {
+            $key_value_query = tep_db_query('select configuration_title, configuration_value, configuration_description, use_function, set_function from ' . TABLE_CONFIGURATION . " where configuration_key = '" . tep_db_input($module_keys[$j]) . "'");
             $key_value = tep_db_fetch_array($key_value_query);
 
-            $keys_extra[$module_keys[$j]]['title'] = (tep_not_null($value = Translation::getTranslationValue($module_keys[$j].'_TITLE', $set , $languages_id)) ? $value : $key_value['configuration_title']);
+            $keys_extra[$module_keys[$j]]['title'] = (tep_not_null($value = Translation::getTranslationValue($module_keys[$j].'_TITLE', $set, $languages_id)) ? $value : $key_value['configuration_title']);
             $keys_extra[$module_keys[$j]]['value'] =  $key_value['configuration_value'];
-            $keys_extra[$module_keys[$j]]['description'] = (tep_not_null($value = Translation::getTranslationValue($module_keys[$j].'_DESCRIPTION', $set , $languages_id)) ? $value : $key_value['configuration_description']);
+            $keys_extra[$module_keys[$j]]['description'] = (tep_not_null($value = Translation::getTranslationValue($module_keys[$j].'_DESCRIPTION', $set, $languages_id)) ? $value : $key_value['configuration_description']);
             $keys_extra[$module_keys[$j]]['use_function'] = $key_value['use_function'];
             $keys_extra[$module_keys[$j]]['set_function'] = $key_value['set_function'];
         }
 
         $keys = '';
-        if (is_array($keys_extra)) foreach ($keys_extra as $key => $value) {
-            if ( $sort_order_key_name==$key ) {
-                $keys .= tep_draw_hidden_field('configuration[' . $key . ']', $value['value']);
-                continue;
-            }
+        if (is_array($keys_extra)) {
+            foreach ($keys_extra as $key => $value) {
+                if ($sort_order_key_name == $key) {
+                    $keys .= tep_draw_hidden_field('configuration[' . $key . ']', $value['value']);
+                    continue;
+                }
 
-            $keys .= '<b>' . $value['title'] . '</b><br>' . $value['description'] . '<br>';
+                $keys .= '<b>' . $value['title'] . '</b><br>' . $value['description'] . '<br>';
 
-            if ($value['set_function']) {
-                eval('$keys .= ' . $value['set_function'] . "'" . $value['value'] . "', '" . $key . "');");
-            } else {
-                $keys .= tep_draw_input_field('configuration[' . $key . ']', $value['value']);
+                if ($value['set_function']) {
+                    eval('$keys .= ' . $value['set_function'] . "'" . $value['value'] . "', '" . $key . "');");
+                } else {
+                    $keys .= tep_draw_input_field('configuration[' . $key . ']', $value['value']);
+                }
+                $keys .= '<br><br>';
             }
-            $keys .= '<br><br>';
         }
         $keys = substr($keys, 0, strrpos($keys, '<br><br>'));
 
         $class = substr($file, 0, strrpos($file, '.'));
         if (class_exists($class)) {
-            $module = new $class;
+            $module = new $class();
 
             if ($mInfo = $this->createInfo($module, 'payment')) {
-                $heading[] = array('text' => '<b>' . $mInfo->title . '</b>');
+                $heading[] = ['text' => '<b>' . $mInfo->title . '</b>'];
             }
         }
 
@@ -1891,13 +1930,14 @@ class ModulesController extends Sceleton
             $this->layout = false;
         }
 
-        $this->selectedMenu        = array( 'modules', 'modules/multisafepay');
-        $this->navigation[]        = array( 'link' => Yii::$app->urlManager->createUrl( 'modules/multisafepay' ), 'title' => $mInfo->title );
+        $this->selectedMenu        = [ 'modules', 'modules/multisafepay'];
+        $this->navigation[]        = [ 'link' => Yii::$app->urlManager->createUrl('modules/multisafepay'), 'title' => $mInfo->title ];
 
-        return $this->render('edit.tpl', ['mainKey' => $keys, 'codeMod'=>$mInfo->code, 'set' => 'payment']);
+        return $this->render('edit.tpl', ['mainKey' => $keys, 'codeMod' => $mInfo->code, 'set' => 'payment']);
     }
 
-    public function actionExtraParams() {
+    public function actionExtraParams()
+    {
         $set = \Yii::$app->request->post('set', '');
         $module = \Yii::$app->request->post('module', '');
 
@@ -1905,29 +1945,30 @@ class ModulesController extends Sceleton
         \common\helpers\Translation::init($this->module_entity);
 
         if ($this->module_type == 'label') {
-            $module = "common\\modules\\label\\" . $module;
+            $module = 'common\\modules\\label\\' . $module;
         } elseif ($this->module_type == 'order_total') {
-            $module = "common\\modules\\orderTotal\\" . $module;
+            $module = 'common\\modules\\orderTotal\\' . $module;
         } elseif ($this->module_type == 'payment') {
-            $module = "common\\modules\\orderPayment\\" . $module;
+            $module = 'common\\modules\\orderPayment\\' . $module;
         } elseif ($this->module_type == 'shipping') {
-            $module = "common\\modules\\orderShipping\\" . $module;
-        }elseif ($this->module_type == 'extensions'){
-            $module = \common\helpers\Acl::checkExtension($module,'extra_params');
+            $module = 'common\\modules\\orderShipping\\' . $module;
+        } elseif ($this->module_type == 'extensions') {
+            $module = \common\helpers\Acl::checkExtension($module, 'extra_params');
         } elseif (file_exists(DIR_FS_CATALOG_MODULES . $set . '/' . $module . '.php')) {
             include_once(DIR_FS_CATALOG_MODULES . $set . '/' . $module . '.php');
-        }elseif($this->module_type=='extensions'){
-            $module = "common\\extensions\\" . $module."\\".$module;
+        } elseif ($this->module_type == 'extensions') {
+            $module = 'common\\extensions\\' . $module.'\\'.$module;
         }
         if (!empty($module) && class_exists($module)) {
-            $object = new $module;
+            $object = new $module();
             if (method_exists($object, 'extra_params')) {
                 echo $object->extra_params();
             }
         }
     }
 
-    public function actionExport() {
+    public function actionExport()
+    {
         $set = \Yii::$app->request->get('set', '');
         $file = $module = \Yii::$app->request->get('module', '');
         $platform_id = \Yii::$app->request->get('platform_id', 0);
@@ -1942,23 +1983,23 @@ class ModulesController extends Sceleton
         ];
 
         if ($this->module_type == 'label') {
-            $module = "common\\modules\\label\\" . $module;
+            $module = 'common\\modules\\label\\' . $module;
         } elseif ($this->module_type == 'order_total') {
-            $module = "common\\modules\\orderTotal\\" . $module;
+            $module = 'common\\modules\\orderTotal\\' . $module;
         } elseif ($this->module_type == 'payment') {
-            $module = "common\\modules\\orderPayment\\" . $module;
+            $module = 'common\\modules\\orderPayment\\' . $module;
         } elseif ($this->module_type == 'shipping') {
-            $module = "common\\modules\\orderShipping\\" . $module;
-        }elseif ($this->module_type == 'extensions'){
-            $module = \common\helpers\Acl::checkExtension($module,'extra_params');
+            $module = 'common\\modules\\orderShipping\\' . $module;
+        } elseif ($this->module_type == 'extensions') {
+            $module = \common\helpers\Acl::checkExtension($module, 'extra_params');
         } elseif (file_exists(DIR_FS_CATALOG_MODULES . $set . '/' . $module . '.php')) {
             include_once(DIR_FS_CATALOG_MODULES . $set . '/' . $module . '.php');
-        }elseif($this->module_type=='extensions'){
-            $module = "common\\extensions\\" . $module."\\".$module;
+        } elseif ($this->module_type == 'extensions') {
+            $module = 'common\\extensions\\' . $module.'\\'.$module;
         }
 
         if (!empty($module) && class_exists($module)) {
-            $object = new $module;
+            $object = new $module();
             if (method_exists($object, 'keys')) {
                 $keys = $object->keys();
                 $rows = \common\models\PlatformsConfiguration::find()
@@ -1966,7 +2007,7 @@ class ModulesController extends Sceleton
                     ->where(['platform_id' => $platform_id])
                     ->andWhere(['IN', 'configuration_key', $keys])
                     ->all();
-                foreach ($rows  as $row) {
+                foreach ($rows as $row) {
                     $response['keys'][$row['configuration_key']] = base64_encode($row['configuration_value']);
                 }
                 if (method_exists($object, 'get_extra_params')) {
@@ -1978,13 +2019,14 @@ class ModulesController extends Sceleton
             }
         }
         header('Content-Type: application/json');
-        header("Content-Transfer-Encoding: utf-8");
+        header('Content-Transfer-Encoding: utf-8');
         header('Content-disposition: attachment; filename="' . $file . '.json"');
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         return $response;
     }
 
-    public function actionImport() {
+    public function actionImport()
+    {
         if (isset($_FILES['file']['tmp_name'])) {
             $set = \Yii::$app->request->get('set', '');
             $module = \Yii::$app->request->get('module', '');
@@ -2000,7 +2042,7 @@ class ModulesController extends Sceleton
             }
             $this->rules($set);
             if (!empty($module) && class_exists($module)) {
-                $object = new $module;
+                $object = new $module();
                 if (method_exists($object, 'save_config')) {
                     $keys = (array) $jsonfile->keys;
                     foreach ($keys as $i => $k) {
@@ -2017,7 +2059,8 @@ class ModulesController extends Sceleton
         die('error');
     }
 
-    public function actionExportAll() {
+    public function actionExportAll()
+    {
         $set = \Yii::$app->request->get('set', '');
         $platform_id = \Yii::$app->request->get('platform_id', 0);
 
@@ -2025,15 +2068,15 @@ class ModulesController extends Sceleton
 
         $this->rules($set);
         $directory_array = $this->directoryList();
-        foreach($directory_array as $file) {
-            $class = (strpos($file, ".") !== false ? substr($file, 0, strrpos($file, '.')):$file);
+        foreach ($directory_array as $file) {
+            $class = (strpos($file, '.') !== false ? substr($file, 0, strrpos($file, '.')) : $file);
 
             if ($this->module_need_requiring) {
                 require_once($this->module_directory . $file);
             }
 
             if (class_exists($class)) {
-                $module = new $class;
+                $module = new $class();
                 if (method_exists($module, 'keys')) {
                     $keys = $module->keys();
                     $rows = \common\models\PlatformsConfiguration::find()
@@ -2046,7 +2089,7 @@ class ModulesController extends Sceleton
                         'module' => $module->code,
                         'keys' => [],
                     ];
-                    foreach ($rows  as $row) {
+                    foreach ($rows as $row) {
                         $resp['keys'][$row['configuration_key']] = base64_encode($row['configuration_value']);
                     }
                     if (count($resp['keys']) > 0) {
@@ -2063,13 +2106,14 @@ class ModulesController extends Sceleton
         }
 
         header('Content-Type: application/json');
-        header("Content-Transfer-Encoding: utf-8");
+        header('Content-Transfer-Encoding: utf-8');
         header('Content-disposition: attachment; filename="' . $set . '-all.json"');
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         return $response;
     }
 
-    public function actionImportAll() {
+    public function actionImportAll()
+    {
         if (isset($_FILES['file']['tmp_name'])) {
             $set = \Yii::$app->request->get('set', '');
             $platform_id = \Yii::$app->request->get('platform_id', 0);
@@ -2078,13 +2122,13 @@ class ModulesController extends Sceleton
             if (is_array($jsonfile)) {
                 $this->rules($set);
                 $directory_array = $this->directoryList();
-                foreach($directory_array as $file) {
-                    $class = (strpos($file, ".") !== false ? substr($file, 0, strrpos($file, '.')):$file);
+                foreach ($directory_array as $file) {
+                    $class = (strpos($file, '.') !== false ? substr($file, 0, strrpos($file, '.')) : $file);
                     if ($this->module_need_requiring) {
                         require_once($this->module_directory . $file);
                     }
                     if (class_exists($class)) {
-                        $module = new $class;
+                        $module = new $class();
                         $moduleName = \common\helpers\Output::mb_basename($class);
                         $inList = false;
                         foreach ($jsonfile as $row) {

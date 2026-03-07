@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
 use yii\db\ActiveRecord;
@@ -28,10 +30,9 @@ class TrackingNumbers extends ActiveRecord
             return false;
         }
 
-        TrackingNumbersToOrdersProducts::deleteAll(['tracking_numbers_id'=>$this->tracking_numbers_id]);
+        TrackingNumbersToOrdersProducts::deleteAll(['tracking_numbers_id' => $this->tracking_numbers_id]);
 
         return true;
     }
-
 
 }

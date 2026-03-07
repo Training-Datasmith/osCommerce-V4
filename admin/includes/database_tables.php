@@ -1,118 +1,120 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-  define('TABLE_ADMIN', 'admin');
+define('TABLE_ADMIN', 'admin');
 
-  define('TABLE_FEATURED', 'featured');
+define('TABLE_FEATURED', 'featured');
 
 // define the database table names used in the project
-  define('TABLE_ADDRESS_BOOK', 'address_book');
-  define('TABLE_ADDRESS_FORMAT', 'address_format');
-  define('TABLE_BANNERS', 'banners');
-  define('TABLE_BANNERS_HISTORY', 'banners_history');
-  define('TABLE_CATEGORIES', 'categories');
-  define('TABLE_CATEGORIES_DESCRIPTION', 'categories_description');
-  define('TABLE_CONFIGURATION', 'configuration');
-  define('TABLE_COUNTRIES', 'countries');
-  define('TABLE_CURRENCIES', 'currencies');
-  define('TABLE_CUSTOMERS', 'customers');
-  define('TABLE_CUSTOMERS_CREDIT_HISTORY', 'customers_credit_history');
-  define('TABLE_CUSTOMERS_BASKET', 'customers_basket');
-  define('TABLE_CUSTOMERS_BASKET_ATTRIBUTES', 'customers_basket_attributes');
-  define('TABLE_CUSTOMERS_INFO', 'customers_info');
-  define('TABLE_LANGUAGES', 'languages');
-  define('TABLE_MANUFACTURERS', 'manufacturers');
-  define('TABLE_MANUFACTURERS_INFO', 'manufacturers_info');
-  define('TABLE_NEWSLETTERS', 'newsletters');
-  define('TABLE_PLATFORM_CURRENCIES_MARGIN', 'platform_currencies_margin');
-  
-  define('TABLE_ORDERS', 'orders');
-  define('TABLE_ORDERS_PRODUCTS', 'orders_products');
-  define('TABLE_ORDERS_PRODUCTS_ATTRIBUTES', 'orders_products_attributes');
-  define('TABLE_ORDERS_PRODUCTS_DOWNLOAD', 'orders_products_download');
-  define('TABLE_ORDERS_STATUS', 'orders_status');
-  define('TABLE_ORDERS_STATUS_HISTORY', 'orders_status_history');
-  define('TABLE_ORDERS_HISTORY', 'orders_history');
-  define('TABLE_ORDERS_TOTAL', 'orders_total');
-  
-  define('TABLE_PRODUCTS', 'products');
-  define('TABLE_PRODUCTS_ATTRIBUTES', 'products_attributes');
-  define('TABLE_PRODUCTS_ATTRIBUTES_DOWNLOAD', 'products_attributes_download');
-  define('TABLE_PRODUCTS_DESCRIPTION', 'products_description');
-  define('TABLE_PRODUCTS_NOTIFICATIONS', 'products_notifications');
-  define('TABLE_PRODUCTS_NOTIFY', 'products_notify');
-  define('TABLE_PRODUCTS_OPTIONS', 'products_options');
-  define('TABLE_PRODUCTS_OPTIONS_VALUES', 'products_options_values');
-  define('TABLE_PRODUCTS_OPTIONS_VALUES_TO_PRODUCTS_OPTIONS', 'products_options_values_to_products_options');
-  define('TABLE_PRODUCTS_TO_CATEGORIES', 'products_to_categories');
-  define('TABLE_REVIEWS', 'reviews');
-  define('TABLE_REVIEWS_DESCRIPTION', 'reviews_description');
-  define('TABLE_SESSIONS', 'sessions');
-  define('TABLE_SESSIONS_ADMIN', 'sessions_admin');
-  define('TABLE_SPECIALS', 'specials');
-  define('TABLE_TAX_CLASS', 'tax_class');
-  define('TABLE_TAX_RATES', 'tax_rates');
-  define('TABLE_GEO_ZONES', 'geo_zones');
-  define('TABLE_ZONES_TO_GEO_ZONES', 'zones_to_geo_zones');
-  define('TABLE_TAX_ZONES', 'tax_zones');
-  define('TABLE_ZONES_TO_TAX_ZONES', 'zones_to_tax_zones');
-  define('TABLE_ZONES', 'zones');
-  define('TABLE_PAYPALIPN_TXN', 'paypalipn_txn'); // PAYPALIPN
+define('TABLE_ADDRESS_BOOK', 'address_book');
+define('TABLE_ADDRESS_FORMAT', 'address_format');
+define('TABLE_BANNERS', 'banners');
+define('TABLE_BANNERS_HISTORY', 'banners_history');
+define('TABLE_CATEGORIES', 'categories');
+define('TABLE_CATEGORIES_DESCRIPTION', 'categories_description');
+define('TABLE_CONFIGURATION', 'configuration');
+define('TABLE_COUNTRIES', 'countries');
+define('TABLE_CURRENCIES', 'currencies');
+define('TABLE_CUSTOMERS', 'customers');
+define('TABLE_CUSTOMERS_CREDIT_HISTORY', 'customers_credit_history');
+define('TABLE_CUSTOMERS_BASKET', 'customers_basket');
+define('TABLE_CUSTOMERS_BASKET_ATTRIBUTES', 'customers_basket_attributes');
+define('TABLE_CUSTOMERS_INFO', 'customers_info');
+define('TABLE_LANGUAGES', 'languages');
+define('TABLE_MANUFACTURERS', 'manufacturers');
+define('TABLE_MANUFACTURERS_INFO', 'manufacturers_info');
+define('TABLE_NEWSLETTERS', 'newsletters');
+define('TABLE_PLATFORM_CURRENCIES_MARGIN', 'platform_currencies_margin');
+
+define('TABLE_ORDERS', 'orders');
+define('TABLE_ORDERS_PRODUCTS', 'orders_products');
+define('TABLE_ORDERS_PRODUCTS_ATTRIBUTES', 'orders_products_attributes');
+define('TABLE_ORDERS_PRODUCTS_DOWNLOAD', 'orders_products_download');
+define('TABLE_ORDERS_STATUS', 'orders_status');
+define('TABLE_ORDERS_STATUS_HISTORY', 'orders_status_history');
+define('TABLE_ORDERS_HISTORY', 'orders_history');
+define('TABLE_ORDERS_TOTAL', 'orders_total');
+
+define('TABLE_PRODUCTS', 'products');
+define('TABLE_PRODUCTS_ATTRIBUTES', 'products_attributes');
+define('TABLE_PRODUCTS_ATTRIBUTES_DOWNLOAD', 'products_attributes_download');
+define('TABLE_PRODUCTS_DESCRIPTION', 'products_description');
+define('TABLE_PRODUCTS_NOTIFICATIONS', 'products_notifications');
+define('TABLE_PRODUCTS_NOTIFY', 'products_notify');
+define('TABLE_PRODUCTS_OPTIONS', 'products_options');
+define('TABLE_PRODUCTS_OPTIONS_VALUES', 'products_options_values');
+define('TABLE_PRODUCTS_OPTIONS_VALUES_TO_PRODUCTS_OPTIONS', 'products_options_values_to_products_options');
+define('TABLE_PRODUCTS_TO_CATEGORIES', 'products_to_categories');
+define('TABLE_REVIEWS', 'reviews');
+define('TABLE_REVIEWS_DESCRIPTION', 'reviews_description');
+define('TABLE_SESSIONS', 'sessions');
+define('TABLE_SESSIONS_ADMIN', 'sessions_admin');
+define('TABLE_SPECIALS', 'specials');
+define('TABLE_TAX_CLASS', 'tax_class');
+define('TABLE_TAX_RATES', 'tax_rates');
+define('TABLE_GEO_ZONES', 'geo_zones');
+define('TABLE_ZONES_TO_GEO_ZONES', 'zones_to_geo_zones');
+define('TABLE_TAX_ZONES', 'tax_zones');
+define('TABLE_ZONES_TO_TAX_ZONES', 'zones_to_tax_zones');
+define('TABLE_ZONES', 'zones');
+define('TABLE_PAYPALIPN_TXN', 'paypalipn_txn'); // PAYPALIPN
 
 //DWD Modify: Information Page Unlimited 1.1f - PT
-  define('TABLE_INFORMATION', 'information');
+define('TABLE_INFORMATION', 'information');
 //DWD Modify End
 
-  define('TABLE_PRODUCTS_XSELL', 'products_xsell');
-  define('TABLE_PRODUCTS_XSELL_TYPE', 'products_xsell_type');
-  define('TABLE_CATS_PRODUCTS_XSELL', 'cats_products_xsell');
-  define('TABLE_PRODUCTS_UPSELL', 'products_upsell');
-  define('TABLE_CATEGORIES_UPSELL', 'categories_upsell');
-  define('TABLE_CATS_PRODUCTS_UPSELL', 'cats_products_upsell');
-  
-  define('TABLE_PRODUCTS_PRICES', 'products_prices');
-  define('TABLE_PRODUCTS_ATTRIBUTES_PRICES', 'products_attributes_prices');
-  define('TABLE_SPECIALS_PRICES', 'specials_prices');
-  define('TABLE_INVENTORY', 'inventory');
+define('TABLE_PRODUCTS_XSELL', 'products_xsell');
+define('TABLE_PRODUCTS_XSELL_TYPE', 'products_xsell_type');
+define('TABLE_CATS_PRODUCTS_XSELL', 'cats_products_xsell');
+define('TABLE_PRODUCTS_UPSELL', 'products_upsell');
+define('TABLE_CATEGORIES_UPSELL', 'categories_upsell');
+define('TABLE_CATS_PRODUCTS_UPSELL', 'cats_products_upsell');
 
-  define('TABLE_PRODUCTS_STOCK_INDICATION','products_stock_indication');
-  define('TABLE_PRODUCTS_STOCK_INDICATION_TEXT','products_stock_indication_text');
+define('TABLE_PRODUCTS_PRICES', 'products_prices');
+define('TABLE_PRODUCTS_ATTRIBUTES_PRICES', 'products_attributes_prices');
+define('TABLE_SPECIALS_PRICES', 'specials_prices');
+define('TABLE_INVENTORY', 'inventory');
 
-  define('TABLE_PROPERTIES_CATEGORIES', 'properties_categories');
-  define('TABLE_PROPERTIES_CATEGORIES_DESCRIPTION', 'properties_categories_description');
-  define('TABLE_PROPERTIES_TO_PROPERTIES_CATEGORIES', 'properties_to_properties_categories');
-  define('TABLE_PROPERTIES', 'properties');
-  define('TABLE_PROPERTIES_DESCRIPTION', 'properties_description');
-  define('TABLE_PROPERTIES_TO_PRODUCTS', 'properties_to_products');
+define('TABLE_PRODUCTS_STOCK_INDICATION', 'products_stock_indication');
+define('TABLE_PRODUCTS_STOCK_INDICATION_TEXT', 'products_stock_indication_text');
 
-  // groups is a reserved word in MySQL since 8.0.2
-  // Solutions:
-  // 1) define('TABLE_GROUPS', DB_DATABASE.'.groups');
-  //    but generates error if DB_DATABASE contains a hyphen
-  // 2) define('TABLE_GROUPS', '`groups`');
-  //    no side effects found so far
-  define('TABLE_GROUPS', '`groups`');
+define('TABLE_PROPERTIES_CATEGORIES', 'properties_categories');
+define('TABLE_PROPERTIES_CATEGORIES_DESCRIPTION', 'properties_categories_description');
+define('TABLE_PROPERTIES_TO_PROPERTIES_CATEGORIES', 'properties_to_properties_categories');
+define('TABLE_PROPERTIES', 'properties');
+define('TABLE_PROPERTIES_DESCRIPTION', 'properties_description');
+define('TABLE_PROPERTIES_TO_PRODUCTS', 'properties_to_products');
+
+// groups is a reserved word in MySQL since 8.0.2
+// Solutions:
+// 1) define('TABLE_GROUPS', DB_DATABASE.'.groups');
+//    but generates error if DB_DATABASE contains a hyphen
+// 2) define('TABLE_GROUPS', '`groups`');
+//    no side effects found so far
+define('TABLE_GROUPS', '`groups`');
 //  define('TABLE_PRODUCTS_GROUPS_PRICES', 'products_groups_prices');
 //  define('TABLE_PRODUCTS_ATTRIBUTES_GROUPS_PRICES', 'products_attributes_groups_prices');
 //  define('TABLE_SPECIALS_GROUPS_PRICES', 'specials_groups_prices');
-  define('TABLE_SEARCH_ENGINES', 'search_engines');
-  define('TABLE_SEARCH_WORDS', 'search_words'); 
-  define('TABLE_META_TAGS','meta_tags');
+define('TABLE_SEARCH_ENGINES', 'search_engines');
+define('TABLE_SEARCH_WORDS', 'search_words');
+define('TABLE_META_TAGS', 'meta_tags');
 
-  define('TABLE_SETS_PRODUCTS', 'sets_products');
-  define('TABLE_SCART', 'scart');
+define('TABLE_SETS_PRODUCTS', 'sets_products');
+define('TABLE_SCART', 'scart');
 
-  define('TABLE_GIVE_AWAY_PRODUCTS', 'give_away_products');
-  define('TABLE_GIFT_WRAP_PRODUCTS', 'gift_wrap_products');
+define('TABLE_GIVE_AWAY_PRODUCTS', 'give_away_products');
+define('TABLE_GIFT_WRAP_PRODUCTS', 'gift_wrap_products');
 
 define('TABLE_DESIGN_BOXES', 'design_boxes');
 define('TABLE_DESIGN_BOXES_TMP', 'design_boxes_tmp');
@@ -137,12 +139,12 @@ define('TABLE_SUPPLIERS_PRODUCTS', 'suppliers_products');
 define('TABLE_SUPPLIERS_PRODUCTS_OPTIONS', 'suppliers_products_options');
 define('TABLE_SUPPLIERS_PRODUCTS_OPTIONS_VALUES', 'suppliers_products_options_values');
 
-define('TABLE_PRODUCTS_IMAGES', 'products_images'); 
-define('TABLE_PRODUCTS_IMAGES_DESCRIPTION', 'products_images_description'); 
+define('TABLE_PRODUCTS_IMAGES', 'products_images');
+define('TABLE_PRODUCTS_IMAGES_DESCRIPTION', 'products_images_description');
 define('TABLE_PRODUCTS_IMAGES_EXTERNAL_URL', 'products_images_external_url');
 define('TABLE_IMAGE_TYPES', 'image_types');
-define('TABLE_IMAGE_CACHE_KEYS','image_cache_keys');
-define('TABLE_IMAGE_COPY_REFERENCE','image_copy_reference');
+define('TABLE_IMAGE_CACHE_KEYS', 'image_cache_keys');
+define('TABLE_IMAGE_COPY_REFERENCE', 'image_copy_reference');
 define('TABLE_PRODUCTS_IMAGES_ATTRIBUTES', 'products_images_attributes');
 define('TABLE_INVENTORY_PRICES', 'inventory_prices');
 define('TABLE_PRODUCTS_IMAGES_INVENTORY', 'products_images_inventory');
@@ -203,10 +205,10 @@ define('TABLE_VISIBILITY_AREA', 'visibility_area');
 define('TABLE_PRODUCTS_VIDEOS', 'products_videos');
 
 //Additional shipping module zonetable
-  define('TABLE_ZONE_TABLE', 'zone_table');
-  define('TABLE_ZONES_TO_SHIP_ZONES', 'zones_to_ship_zones');
-  define('TABLE_SHIP_ZONES', 'ship_zones');
-  define('TABLE_SHIP_OPTIONS', 'ship_options');
+define('TABLE_ZONE_TABLE', 'zone_table');
+define('TABLE_ZONES_TO_SHIP_ZONES', 'zones_to_ship_zones');
+define('TABLE_SHIP_ZONES', 'ship_zones');
+define('TABLE_SHIP_OPTIONS', 'ship_options');
 
 define('TABLE_EXACT_CRONS', 'exact_crons');
 define('TABLE_CUSTOMERS_ERRORS', 'customers_errors');
@@ -240,11 +242,11 @@ define('TABLE_SMS_DEFAULTS_TEXTS', 'sms_defaults_texts');
 define('TABLE_SEO_REDIRECTS_NAMED', 'seo_redirects_named');
 
 /* PC configurator addon begin */
-  define('TABLE_PRODUCTS_TO_PCTEMPLATES_TO_ELEMENTS', 'products_to_pctemplates_to_elements');
-  define('TABLE_PRODUCTS_TO_ELEMENTS', 'products_to_elements');
-  define('TABLE_PCTEMPLATES_INFO', 'pctemplates_info');
-  define('TABLE_PCTEMPLATES', 'pctemplates');
-  define('TABLE_ELEMENTS', 'elements');
+define('TABLE_PRODUCTS_TO_PCTEMPLATES_TO_ELEMENTS', 'products_to_pctemplates_to_elements');
+define('TABLE_PRODUCTS_TO_ELEMENTS', 'products_to_elements');
+define('TABLE_PCTEMPLATES_INFO', 'pctemplates_info');
+define('TABLE_PCTEMPLATES', 'pctemplates');
+define('TABLE_ELEMENTS', 'elements');
 //  define('TABLE_ORDERS_PRODUCTS_ELEMENTS', 'orders_products_elements');
 /* PC configurator addon end */
 define('TABLE_SOCIALS_ADDONS', 'social_addons');
@@ -321,4 +323,3 @@ define('TABLE_PRODUCTS_GLOBAL_SORT', 'products_global_sort');
 
 define('TABLE_ORDERS_LABEL', 'orders_label');
 define('TABLE_ORDERS_LABEL_TO_ORDERS_PRODUCTS', 'orders_label_to_orders_products');
-

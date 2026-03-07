@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 class GroupsDiscounts extends ActiveRecord
@@ -24,5 +25,5 @@ class GroupsDiscounts extends ActiveRecord
     public static function tableName()
     {
         return 'groups_discounts';
-    }  
+    }
 }

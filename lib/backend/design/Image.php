@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace backend\design;
 
-use Yii;
 use yii\base\Widget;
 
 class Image extends Widget
@@ -31,7 +32,8 @@ class Image extends Widget
     public $fitName = ''; // fit field name to save, only if you set width and height
     public $fitValue = ''; // value of fit field
 
-    public function init(){
+    public function init()
+    {
         parent::init();
     }
 
@@ -40,7 +42,7 @@ class Image extends Widget
         \backend\design\Data::addJsData(['tr' => \common\helpers\Translation::translationsForJs([
             'IMAGE_FIT', 'IMAGE_FIT_COVER', 'IMAGE_FIT_FILL', 'IMAGE_FIT_CONTAIN', 'IMAGE_FIT_NONE', 'IMAGE_FIT_SCALE_DOWN',
             'IMAGE_POSITION', 'TEXT_MIDDLE_CENTER', 'TEXT_TOP_LEFT', 'TEXT_TOP_CENTER', 'TEXT_TOP_RIGHT', 'TEXT_MIDDLE_LEFT',
-            'TEXT_MIDDLE_RIGHT', 'TEXT_BOTTOM_LEFT', 'TEXT_BOTTOM_CENTER', 'TEXT_BOTTOM_RIGHT'
+            'TEXT_MIDDLE_RIGHT', 'TEXT_BOTTOM_LEFT', 'TEXT_BOTTOM_CENTER', 'TEXT_BOTTOM_RIGHT',
         ], false)]);
 
         static $id = 0;
@@ -79,7 +81,7 @@ class Image extends Widget
 
         return $this->render('image.tpl', [
             'data' => addslashes(json_encode($data)),
-            'id' => $id
+            'id' => $id,
         ]);
     }
 }

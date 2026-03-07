@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,20 +14,21 @@
 
 namespace common\services\storages;
 
-use Yii;
 use common\models\DataStorage;
+use Yii;
 
-class DbStorage implements StorageInterface {
-        
+class DbStorage implements StorageInterface
+{
     protected $_storageID = null;
-    
+
     protected $storedData = [];
-    
+
     private $pointerShifted = false;
-    
-    public function __construct($pointer = null) {
-        if (is_null($pointer)){
-            if (is_null($this->_storageID)){
+
+    public function __construct($pointer = null)
+    {
+        if (is_null($pointer)) {
+            if (is_null($this->_storageID)) {
                 $this->_storageID = Yii::$app->security->generateRandomString();
             }
         } else {
@@ -33,54 +36,62 @@ class DbStorage implements StorageInterface {
         }
         $this->cleanOldData();
     }
-    
-    private function cleanOldData(){
-        DataStorage::deleteAll(['<', 'date_modified', new \yii\db\Expression("now() - interval 2 month")]);
+
+    private function cleanOldData()
+    {
+        DataStorage::deleteAll(['<', 'date_modified', new \yii\db\Expression('now() - interval 2 month')]);
     }
-        
-    public function getPointer() {
+
+    public function getPointer()
+    {
         return $this->_storageID;
     }
 
     // storageId should be unique (modified quotes_id, orders_id, simples_id, basket_id)
-    public function setPointer(string $pointer){
-        if ($pointer){
-            if ($pointer != $this->_storageID){
+    public function setPointer(string $pointer)
+    {
+        if ($pointer) {
+            if ($pointer != $this->_storageID) {
                 $this->_storageID = $pointer;
                 $this->storedData = [];
                 $this->pointerShifted = true;
             }
         }
     }
-    
-    public function pointerShifted(){
+
+    public function pointerShifted()
+    {
         return $this->pointerShifted;
     }
-    
-    public function get($name){        
-        if (!$this->storedData){
-           $this->storedData = $this->_get();
+
+    public function get($name)
+    {
+        if (!$this->storedData) {
+            $this->storedData = $this->_get();
         }
         return $this->storedData[$name] ?? null;
     }
-    
-    public function getAll(){
-        if (!$this->storedData){
-           $this->storedData = $this->_get();
+
+    public function getAll()
+    {
+        if (!$this->storedData) {
+            $this->storedData = $this->_get();
         }
         return $this->storedData;
     }
 
-    public function set($name, $value){
+    public function set($name, $value)
+    {
         $this->storedData[$name] = $value;
         $this->_save();
     }
-    
-    private function _get(){
+
+    private function _get()
+    {
         $_stored = [];
-        if ($this->_storageID){
+        if ($this->_storageID) {
             $_stored = DataStorage::findOne(['pointer' => $this->_storageID]);
-            if ($_stored){
+            if ($_stored) {
                 $_stored = unserialize(base64_decode($_stored['data']));
             } else {
                 $_stored = ['emptyValue' => null];
@@ -88,11 +99,12 @@ class DbStorage implements StorageInterface {
         }
         return $_stored;
     }
-    
-    private function _save(){
-        if ($this->_storageID){
+
+    private function _save()
+    {
+        if ($this->_storageID) {
             $_stored = DataStorage::findOne(['pointer' => $this->_storageID]);
-            if (!$_stored){
+            if (!$_stored) {
                 $_stored = new DataStorage();
                 $_stored->pointer = $this->_storageID;
             }
@@ -101,26 +113,31 @@ class DbStorage implements StorageInterface {
             $_stored->save();
         }
     }
-    
-    public function has($name){
-        if (!$this->storedData){
-           $this->storedData = $this->_get();
+
+    public function has($name)
+    {
+        if (!$this->storedData) {
+            $this->storedData = $this->_get();
         }
         return isset($this->storedData[$name]);
     }
 
-    public function remove($name){        
-        if (isset($this->storedData[$name])){
+    public function remove($name)
+    {
+        if (isset($this->storedData[$name])) {
             unset($this->storedData[$name]);
             $this->_save();
         }
     }
-    
-    public function removeAll(){
+
+    public function removeAll()
+    {
         $this->storedData = [];
-        if ($this->_storageID){
+        if ($this->_storageID) {
             $_stored = DataStorage::findOne(['pointer' => $this->_storageID]);
-            if ($_stored) $_stored->delete();
+            if ($_stored) {
+                $_stored->delete();
+            }
         }
     }
 }

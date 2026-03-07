@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,12 +24,15 @@ class m230220_170623_fix_translation_en2 extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/printers',
+        $this->addTranslation(
+            'admin/printers',
             [
                 'ERROR_INVALID_DOCUMENT_ASSIGNMENT' => 'Invalid document assignment',
                 'TEXT_ACCEPTED_ALREADY' => 'Already accepted',
                 'TEXT_ACCEPTED_SUCCESSFULY' => 'Accepted successfully',
-            ], true);
+            ],
+            true
+        );
     }
 
     /**

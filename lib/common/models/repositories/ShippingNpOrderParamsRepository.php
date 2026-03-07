@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,22 +12,20 @@
  */
 declare(strict_types=1);
 
-
 namespace common\models\repositories;
-
 
 use common\models\ShippingNpOrderParams;
 
 class ShippingNpOrderParamsRepository
 {
-
     /**
      * @param int $order_id
      * @param string $type
      * @param bool $asArray
      * @return array|ShippingNpOrderParams|null
      */
-    public function getShippingData(int $order_id, string $type = '', bool $asArray = false){
+    public function getShippingData(int $order_id, string $type = '', bool $asArray = false)
+    {
         $orderParams = $this->findShippingData($order_id, $type, $asArray);
         if (!$orderParams) {
             throw new \DomainException('NovaPoshta details not found');
@@ -40,7 +39,8 @@ class ShippingNpOrderParamsRepository
      * @param bool $asArray
      * @return array|ShippingNpOrderParams|null
      */
-    public function findShippingData(int $orderId, string $type = '', bool $asArray = false){
+    public function findShippingData(int $orderId, string $type = '', bool $asArray = false)
+    {
         $orderParams = ShippingNpOrderParams::find()
             ->where(['orders_id' => $orderId, 'type' => $type])
             ->limit(1)

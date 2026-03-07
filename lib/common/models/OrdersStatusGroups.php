@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "orders_status_groups".
@@ -15,13 +15,13 @@ use Yii;
  */
 class OrdersStatusGroups extends \yii\db\ActiveRecord
 {
-    const NEW_GROUP = 1;
-    const PROCESSING_GROUP = 2;
-    const INCOMPLETE_GROUP = 3;
-    const COMPLETE_GROUP = 4;
-    const CANCELLED_GROUP = 5;
-    const SUBSCRIPTION_GROUP = 6;
-    const QUOTATION_GROUP = 7;
+    public const NEW_GROUP = 1;
+    public const PROCESSING_GROUP = 2;
+    public const INCOMPLETE_GROUP = 3;
+    public const COMPLETE_GROUP = 4;
+    public const CANCELLED_GROUP = 5;
+    public const SUBSCRIPTION_GROUP = 6;
+    public const QUOTATION_GROUP = 7;
 
     /**
      * @inheritdoc
@@ -31,12 +31,10 @@ class OrdersStatusGroups extends \yii\db\ActiveRecord
         return 'orders_status_groups';
     }
 
-
-    public function getStatuses(){
-	    $languages_id = \Yii::$app->settings->get('languages_id');
-	    return $this->hasMany(OrdersStatus::className(), ['orders_status_groups_id' => 'orders_status_groups_id'])->where([OrdersStatus::tableName() . '.language_id' => $languages_id]);
+    public function getStatuses()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
+        return $this->hasMany(OrdersStatus::className(), ['orders_status_groups_id' => 'orders_status_groups_id'])->where([OrdersStatus::tableName() . '.language_id' => $languages_id]);
     }
-
-
 
 }

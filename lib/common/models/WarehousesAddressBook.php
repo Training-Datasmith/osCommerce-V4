@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "warehouses_address_book".
@@ -45,7 +45,7 @@ class WarehousesAddressBook extends \yii\db\ActiveRecord
             [['entry_company', 'entry_suburb', 'entry_city', 'entry_state'], 'string', 'max' => 32],
             [['entry_company_vat', 'entry_company_reg_number'], 'string', 'max' => 128],
             [['entry_postcode'], 'string', 'max' => 10],
-            [['entry_street_address'], 'string', 'max' => 64]
+            [['entry_street_address'], 'string', 'max' => 64],
         ];
     }
 
@@ -73,7 +73,8 @@ class WarehousesAddressBook extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getCountry(){
+    public function getCountry()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
         return $this->hasOne(Countries::className(), ['countries_id' => 'entry_country_id'])
                 ->where([Countries::tableName().'.language_id' => (int)$languages_id]);

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\checkout;
 
-use Yii;
-use yii\base\Widget;
-use frontend\design\IncludeTpl;
 use frontend\design\Info;
+use yii\base\Widget;
 
 class ShippingByChoice extends Widget
-{    
+{
     public $manager;
     public $params;
 
@@ -28,26 +28,25 @@ class ShippingByChoice extends Widget
     }
 
     public function run()
-    {   
+    {
         $params = ['manager' => $this->manager ];
         if (false /* Info::themeSetting('checkout_view') == 1 && !$this->manager->is('\common\extensions\Samples\classes\SampleCart') */) {
-            if (true){
+            if (true) {
                 $params['page_name'] = 'index';
             } else {
                 $params['page_name'] = 'index_2';
             }
-            
+
             $response['page'] = [
                 'blocks' => [
                     'shipping-step' => \frontend\design\Block::widget(['name' => $this->getStepTemplate('checkout_delivery'), 'params' => ['type' => 'checkout', 'params' => $params]]),
                     'payment-step' => \frontend\design\Block::widget(['name' => $this->getStepTemplate('checkout_payment'), 'params' => ['type' => 'checkout', 'params' => $params]]),
-                    'products-totals' => \frontend\design\Block::widget(['name' => $this->getStepTemplate('checkout_step_bottom'), 'params' => ['type' => 'checkout', 'params' => $params]])
-                ] 
+                    'products-totals' => \frontend\design\Block::widget(['name' => $this->getStepTemplate('checkout_step_bottom'), 'params' => ['type' => 'checkout', 'params' => $params]]),
+                ],
             ];
         } else {
             $params['page_name'] = 'index';
             //$response['page'] = \frontend\design\Block::widget(['name' => $this->manager->getTemplate(), 'params' => ['type' => 'checkout', 'params' => $params]]);
-
 
             $response['page'] = [
                 'widgets' => [
@@ -57,7 +56,7 @@ class ShippingByChoice extends Widget
                     '.w-checkout-payment-method' => \frontend\design\boxes\checkout\PaymentMethod::widget(['params' => $params]),
                     '.w-checkout-billing-address' => \frontend\design\boxes\checkout\BillingAddress::widget(['params' => $params]),
                     '.w-checkout-shipping-choice' => \frontend\design\boxes\checkout\ShippingChoice::widget(['params' => $params]),
-                ]
+                ],
             ];
             if (\common\helpers\Acl::checkExtensionAllowed('DelayedDespatch', 'allowed')) {
                 $response['page']['widgets']['.w-delayed-despatch-checkout'] = \common\extensions\DelayedDespatch\widgets\Checkout\Checkout::widget(['params' => $params]);
@@ -68,13 +67,14 @@ class ShippingByChoice extends Widget
         }
         return $response;
     }
-    
-    private function getStepTemplate($name){
+
+    private function getStepTemplate($name)
+    {
         $_template = $this->manager->getTemplate();
-        if ($_template){
-            return preg_replace("/checkout/", $name, $_template);
+        if ($_template) {
+            return preg_replace('/checkout/', $name, $_template);
         }
         return $name;
     }
-    
+
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -22,7 +24,7 @@ class ItemList extends PayPalModel
      * List of items.
      *
      * @param \PayPal\Api\Item[] $items
-     * 
+     *
      * @return $this
      */
     public function setItems($items)
@@ -50,10 +52,10 @@ class ItemList extends PayPalModel
     public function addItem($item)
     {
         if (!$this->getItems()) {
-            return $this->setItems(array($item));
+            return $this->setItems([$item]);
         } else {
             return $this->setItems(
-                array_merge($this->getItems(), array($item))
+                array_merge($this->getItems(), [$item])
             );
         }
     }
@@ -67,7 +69,7 @@ class ItemList extends PayPalModel
     public function removeItem($item)
     {
         return $this->setItems(
-            array_diff($this->getItems(), array($item))
+            array_diff($this->getItems(), [$item])
         );
     }
 
@@ -75,7 +77,7 @@ class ItemList extends PayPalModel
      * Shipping address.
      *
      * @param \PayPal\Api\ShippingAddress $shipping_address
-     * 
+     *
      * @return $this
      */
     public function setShippingAddress($shipping_address)
@@ -98,7 +100,7 @@ class ItemList extends PayPalModel
      * Shipping method used for this payment like USPSParcel etc.
      *
      * @param string $shipping_method
-     * 
+     *
      * @return $this
      */
     public function setShippingMethod($shipping_method)
@@ -121,7 +123,7 @@ class ItemList extends PayPalModel
      * Allows merchant's to share payer’s contact number with PayPal for the current payment. Final contact number of payer associated with the transaction might be same as shipping_phone_number or different based on Payer’s action on PayPal. The phone number must be represented in its canonical international format, as defined by the E.164 numbering plan
      *
      * @param string $shipping_phone_number
-     * 
+     *
      * @return $this
      */
     public function setShippingPhoneNumber($shipping_phone_number)

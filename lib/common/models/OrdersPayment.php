@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "orders_payment".
@@ -87,7 +87,8 @@ class OrdersPayment extends \yii\db\ActiveRecord
         ];
     }
 
-    public function getOrder() {
-      return $this->hasOne(Orders::class, ['orders_id' => 'orders_payment_order_id']);
+    public function getOrder()
+    {
+        return $this->hasOne(Orders::class, ['orders_id' => 'orders_payment_order_id']);
     }
 }

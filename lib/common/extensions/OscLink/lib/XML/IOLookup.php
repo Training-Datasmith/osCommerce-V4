@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace OscLink\XML;
 
-
 use backend\models\EP\Tools;
 
 class IOLookup
@@ -24,9 +25,9 @@ class IOLookup
         $this->tools = new Tools();
     }
 
-
-    public function lookupOrderStatus($statusName, $createMissing=false)
+    public function lookupOrderStatus($statusName, $createMissing = false)
     {
-        return $this->tools->lookupOrderStatus($statusName, true);;
+        return $this->tools->lookupOrderStatus($statusName, true);
+        ;
     }
 }

@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -17,46 +19,46 @@ namespace app\components;
  *
  * @author yuri
  */
-class MetaCannonical 
+class MetaCannonical
 {
     /**
-     * @var string 
+     * @var string
      */
-    static public $cannonicalPageUri = '';
+    public static $cannonicalPageUri = '';
 
     /**
      * @var integer
-     */    
-    static public $status = 200;
-    
-    /**
-     * @var obj 
      */
-    static public $instance = NULL;
-    
+    public static $status = 200;
+
+    /**
+     * @var obj
+     */
+    public static $instance = null;
+
     /**
      * @param string $path
      * @return self
      */
-    static public function instance($path = '')
+    public static function instance($path = '')
     {
-        if (is_null(self::$instance))
-        {
-                self::$instance = new self($path);
+        if (is_null(self::$instance)) {
+            self::$instance = new self($path);
         }
 
         return self::$instance;
     }
-    
+
     /**
      * @param string $path
      */
-    public function __construct($path) {
+    public function __construct($path)
+    {
         $this->getCannonical($path);
     }
 
     /**
-     * 
+     *
      * @param string $path
      * @return $this
      */
@@ -66,9 +68,9 @@ class MetaCannonical
         $this->setCannonical($cannonicalPageUri);
         return $this;
     }
-    
+
     /**
-     * 
+     *
      * @global type $request_type
      * @param string $cannonicalPageUri
      * @return $this
@@ -79,10 +81,10 @@ class MetaCannonical
 
         /*$base = (($request_type == 'SSL') ? HTTPS_SERVER : HTTP_SERVER) . DIR_WS_CATALOG;
         self::$cannonicalPageUri = $base . $cannonicalPageUri;*/
-        if ( is_string($cannonicalPageUri) && strpos($cannonicalPageUri, '://') !== false ) {
+        if (is_string($cannonicalPageUri) && strpos($cannonicalPageUri, '://') !== false) {
             self::$cannonicalPageUri = $cannonicalPageUri;
-        }else{
-            \Yii::$app->urlManager->setOverrideSettings(['seo_url_parts_currency'=>false]);
+        } else {
+            \Yii::$app->urlManager->setOverrideSettings(['seo_url_parts_currency' => false]);
             self::$cannonicalPageUri = \Yii::$app->urlManager->createAbsoluteUrl($cannonicalPageUri);
             \Yii::$app->urlManager->setOverrideSettings([]);
         }
@@ -99,26 +101,28 @@ class MetaCannonical
         self::$cannonicalPageUri = '';
         return $this;
     }
-    
+
     /**
      * echo meta tag
      */
-    static public function echoMetaTag()
+    public static function echoMetaTag()
     {
         $objLanguage = new \common\classes\language();
         if (self::$status == 200) {
             self::$cannonicalPageUri != '' && print("<link href='".\yii\helpers\Html::encode(strip_tags(self::$cannonicalPageUri))."' rel='canonical' hreflang='" . $objLanguage->get_code() . "' />");
         }
     }
-    
+
     /**
      * @param integer $status
      */
-    static public function setStatus($status) {
+    public static function setStatus($status)
+    {
         self::$status = $status;
     }
-    
-    static public function getStatus() {
+
+    public static function getStatus()
+    {
         return self::$status;
     }
 }

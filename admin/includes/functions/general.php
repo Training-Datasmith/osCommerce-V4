@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,21 +12,24 @@
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-function tep_redirect($url) {
+function tep_redirect($url)
+{
     global $logger;
     if ((strstr($url, "\n") != false) || (strstr($url, "\r") != false)) {
         tep_redirect(tep_href_link(FILENAME_DEFAULT, '', 'NONSSL', false));
     }
     header('Location: ' . $url);
     if (STORE_PAGE_PARSE_TIME == 'true') {
-        if (!is_object($logger))
-            $logger = new logger;
+        if (!is_object($logger)) {
+            $logger = new logger();
+        }
         $logger->timer_stop();
     }
     exit;
 }
 
-function tep_not_null($value) {
+function tep_not_null($value)
+{
     if (is_array($value)) {
         if (sizeof($value) > 0) {
             return true;
@@ -32,7 +37,7 @@ function tep_not_null($value) {
             return false;
         }
     } else {
-        if ((is_string($value) || is_int($value) || is_float($value) || is_bool($value) ) && ($value != '') && ($value != 'NULL') && (strlen(trim($value)) > 0)) {
+        if ((is_string($value) || is_int($value) || is_float($value) || is_bool($value)) && ($value != '') && ($value != 'NULL') && (strlen(trim($value)) > 0)) {
             return true;
         } else {
             return false;
@@ -40,14 +45,15 @@ function tep_not_null($value) {
     }
 }
 
-function tep_admin_check_login() {
+function tep_admin_check_login()
+{
     global $navigation, $login_id, $device_hash;
     if (!tep_session_is_registered('login_id')) {
-        if ( class_exists('\Yii') && \Yii::$app->request->isAjax ) {
+        if (class_exists('\Yii') && \Yii::$app->request->isAjax) {
             header('HTTP/1.1 401 Unauthorized');
             die;
         }
-        if (is_object($navigation) && method_exists($navigation, 'set_snapshot')){
+        if (is_object($navigation) && method_exists($navigation, 'set_snapshot')) {
             $navigation->set_snapshot();
         }
         tep_redirect(tep_href_link(FILENAME_LOGIN, '', 'SSL'));
@@ -65,7 +71,8 @@ function tep_admin_check_login() {
                     $adminLoginLogRecord->all_date = date('Y-m-d H:i:s');
                     try {
                         $adminLoginLogRecord->save();
-                    } catch (\Exception $exc) {}
+                    } catch (\Exception $exc) {
+                    }
                 }
                 tep_session_register('admin_multi_session_error', true);
                 tep_redirect(tep_href_link(FILENAME_LOGOFF));
@@ -77,15 +84,17 @@ function tep_admin_check_login() {
     }
 }
 
-function tep_call_function($function, $parameter, $object = '') {
+function tep_call_function($function, $parameter, $object = '')
+{
     if ($object == '') {
         return call_user_func($function, $parameter);
     } else {
-        return call_user_func(array($object, $function), $parameter);
+        return call_user_func([$object, $function], $parameter);
     }
 }
 
-function convert($input){
+function convert($input)
+{
     return \common\helpers\Seo::transliterate($input);
 }
 
@@ -96,21 +105,21 @@ function convert($input){
 // They can be moved to admin/includes/function/general.php if you like but don't forget
 // to remove them from this file in future updates or you will get an error in the admin
 // about re-declaring functions
-  function get_multioption_upsxml($values) {
+function get_multioption_upsxml($values)
+{
     if (tep_not_null($values)) {
-      $values_array = explode(',', $values);
-      foreach ($values_array as $key => $_method) {
-        if ($_method == '--none--') {
-          $method = $_method;
-        } else {
-          $method = constant('UPSXML_' . trim($_method));
+        $values_array = explode(',', $values);
+        foreach ($values_array as $key => $_method) {
+            if ($_method == '--none--') {
+                $method = $_method;
+            } else {
+                $method = constant('UPSXML_' . trim($_method));
+            }
+            $readable_values_array[] = $method;
         }
-        $readable_values_array[] = $method;
-      }
-      $readable_values = implode(', ', $readable_values_array);
-      return $readable_values;
+        $readable_values = implode(', ', $readable_values_array);
+        return $readable_values;
     } else {
-      return '';
+        return '';
     }
-  }
-
+}

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,14 @@
 
 namespace frontend\design\boxes;
 
+use common\classes\Images;
+use common\classes\StockIndication;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use common\classes\StockIndication;
-use common\classes\Images;
 
 class ProductElement extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -45,7 +46,6 @@ class ProductElement extends Widget
             ->loadProducts(['products_id' => $products_id])
             ->getProduct($products_id);
 
-
         if ($this->settings[0]['element'] == 'price') {
             $special_price = \common\helpers\Product::get_products_special_price($product['products_id']);
             if ($special_price) {
@@ -66,12 +66,12 @@ class ProductElement extends Widget
         }
 
         if ($this->settings[0]['element'] == 'stock') {
-            if (!$product->checkAttachedDetails($products::TYPE_STOCK)){
+            if (!$product->checkAttachedDetails($products::TYPE_STOCK)) {
                 $products_quantity = \common\helpers\Product::get_products_stock($products_id);
-                $product['stock'] = StockIndication::product_info(array(
+                $product['stock'] = StockIndication::product_info([
                     'products_id' => $products_id,
                     'products_quantity' => $products_quantity,
-                ));
+                ]);
             } else {
                 $product['stock'] = $product[$products::TYPE_STOCK];
             }
@@ -97,13 +97,13 @@ class ProductElement extends Widget
         if ($this->settings[0]['element'] == 'properties') {
             $product['properties'] = \frontend\design\Info::getProductProperties($products_id);
         }
-        
+
         return IncludeTpl::widget([
             'file' => 'boxes/product-element.tpl',
             'params' => [
                 'product' => $product,
-                'settings' => $this->settings[0]
-            ]
+                'settings' => $this->settings[0],
+            ],
         ]);
     }
 }

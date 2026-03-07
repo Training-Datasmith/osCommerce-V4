@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,7 +19,7 @@ return [
         'common\\api\\models\\AR\\Manufacturer' => [
             'xmlCollection' => 'Brands>Brand',
             'properties' => [
-                'manufacturers_image' => ['class'=>'IOAttachment', 'location'=>'@images'],
+                'manufacturers_image' => ['class' => 'IOAttachment', 'location' => '@images'],
             ],
             'withRelated' => [
                 'infos' => [
@@ -39,4 +41,3 @@ return [
     ],
     'covered_tables' => ['manufacturers','manufacturers_info',],
 ];
-

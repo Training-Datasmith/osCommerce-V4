@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -15,9 +17,9 @@ namespace common\api\Classes;
 
 class Stock extends AbstractClass
 {
-    public $stockRecordArray = array();
+    public $stockRecordArray = [];
 
-    private static $allowFieldList = array(
+    private static $allowFieldList = [
         'prid' => true,
         'products_id' => true,
         'products_status' => true,
@@ -32,8 +34,8 @@ class Stock extends AbstractClass
         'reorder_auto' => true,
         'without_inventory' => true,
         'attributeRecordArray' => true,
-        'warehouseRecordArray' => true
-    );
+        'warehouseRecordArray' => true,
+    ];
 
     private function loadInventory($uProductId = '')
     {
@@ -42,17 +44,17 @@ class Stock extends AbstractClass
             $inventoryRecord = \common\helpers\Inventory::getRecord($uProductId);
             if ($inventoryRecord instanceof \common\models\Inventory) {
                 if (!isset($this->stockRecordArray[trim($inventoryRecord->products_id)])) {
-                    $attributeRecordArray = array();
+                    $attributeRecordArray = [];
                     $languageId = \common\classes\language::defaultId();
                     $languageCode = \common\classes\language::get_code($languageId, true);
                     \common\helpers\Inventory::normalizeInventoryId($inventoryRecord->products_id, $attributeArray);
-                    $attributeArray = (is_array($attributeArray) ? $attributeArray : array());
+                    $attributeArray = (is_array($attributeArray) ? $attributeArray : []);
                     foreach ($attributeArray as $attributeId => $attributeValueId) {
                         $attributeRecord = \common\models\ProductsOptions2ProductsOptionsValues::find()->alias('atv')
                             ->leftJoin(\common\models\ProductsOptions::tableName() . ' a', 'a.products_options_id = atv.products_options_id')
                             ->leftJoin(\common\models\ProductsOptionsValues::tableName() . ' av', 'av.products_options_values_id = atv.products_options_values_id')
                             ->where(['atv.products_options_id' => $attributeId, 'atv.products_options_values_id' => $attributeValueId,
-                                'a.language_id' => $languageId, 'av.language_id' => $languageId
+                                'a.language_id' => $languageId, 'av.language_id' => $languageId,
                             ])->select('*')->asArray(true)->one();
                         if (!is_array($attributeRecord)) {
                             return false;
@@ -66,7 +68,7 @@ class Stock extends AbstractClass
                     unset($languageCode);
                     unset($attributeId);
                     unset($languageId);
-                    $this->stockRecordArray[trim($inventoryRecord->products_id)] = array(
+                    $this->stockRecordArray[trim($inventoryRecord->products_id)] = [
                         'inventory_id' => (int)$inventoryRecord->inventory_id,
                         'prid' => (int)$inventoryRecord->prid,
                         'products_id' => trim($inventoryRecord->products_id),
@@ -75,15 +77,16 @@ class Stock extends AbstractClass
                         'stock_delivery_terms_id' => (int)$inventoryRecord->stock_delivery_terms_id,
                         'stock_control' => (int)$inventoryRecord->stock_control,
                         'attributeRecordArray' => $attributeRecordArray,
-                        'warehouseRecordArray' => (\common\models\WarehousesProducts::find()->alias('p')
+                        'warehouseRecordArray' => (
+                            \common\models\WarehousesProducts::find()->alias('p')
                             ->leftJoin(\common\models\Warehouses::tableName() . ' w', 'w.warehouse_id = p.warehouse_id')
                             ->leftJoin(\common\models\Suppliers::tableName() . ' s', 's.suppliers_id = p.suppliers_id')
                             ->leftJoin(\common\models\Locations::tableName() . ' l', 'l.location_id = p.location_id')
                             ->leftJoin(\common\models\LocationBlocks::tableName() . ' lb', 'l.block_id = lb.block_id')
                             ->where(['prid' => (int)$inventoryRecord->prid, 'products_id' => trim($inventoryRecord->products_id)])
                             ->select(['p.*', 'w.warehouse_name', 's.suppliers_name', 'l.location_name', 'lb.block_name'])->asArray(true)->all()
-                        )
-                    );
+                        ),
+                    ];
                     unset($attributeRecordArray);
                 }
                 unset($inventoryRecord);
@@ -100,7 +103,7 @@ class Stock extends AbstractClass
         $productRecord = \common\helpers\Product::getRecord($productId);
         if ($productRecord instanceof \common\models\Products) {
             if (!isset($this->stockRecordArray[trim($productRecord->products_id)])) {
-                $this->stockRecordArray[trim($productRecord->products_id)] = array(
+                $this->stockRecordArray[trim($productRecord->products_id)] = [
                     'inventory_id' => 0,
                     'prid' => (int)$productRecord->products_id,
                     'products_id' => trim($productRecord->products_id),
@@ -116,15 +119,16 @@ class Stock extends AbstractClass
                     'products_id_stock' => (int)$productRecord->products_id_stock,
                     'reorder_auto' => (int)$productRecord->reorder_auto,
                     'without_inventory' => (int)$productRecord->without_inventory,
-                    'warehouseRecordArray' => (\common\models\WarehousesProducts::find()->alias('p')
+                    'warehouseRecordArray' => (
+                        \common\models\WarehousesProducts::find()->alias('p')
                         ->leftJoin(\common\models\Warehouses::tableName() . ' w', 'w.warehouse_id = p.warehouse_id')
                         ->leftJoin(\common\models\Suppliers::tableName() . ' s', 's.suppliers_id = p.suppliers_id')
                         ->leftJoin(\common\models\Locations::tableName() . ' l', 'l.location_id = p.location_id')
                         ->leftJoin(\common\models\LocationBlocks::tableName() . ' lb', 'l.block_id = lb.block_id')
                         ->where(['prid' => (int)$productRecord->products_id, 'products_id' => trim((int)$productRecord->products_id)])
                         ->select(['p.*', 'w.warehouse_name', 's.suppliers_name', 'l.location_name', 'lb.block_name'])->asArray(true)->all()
-                    )
-                );
+                    ),
+                ];
             }
             $childArray = \common\helpers\Product::getChildArray($productId);
             if (count($childArray) > 0) {
@@ -150,14 +154,14 @@ class Stock extends AbstractClass
         return false;
     }
 
-    public function load($uProductIdArray = array())
+    public function load($uProductIdArray = [])
     {
         $this->clear();
         if (!is_array($uProductIdArray)) {
             $uProductIdArray = \common\models\Products::find()->select('products_id')->asArray(true)->column();
         }
         foreach ($uProductIdArray as $uProductId) {
-            if ((trim((int)$uProductId) == trim($uProductId)) OR !\common\helpers\Extensions::isAllowed('Inventory')) {
+            if ((trim((int)$uProductId) == trim($uProductId)) or !\common\helpers\Extensions::isAllowed('Inventory')) {
                 $this->loadProduct($uProductId);
             }
             $this->loadInventory($uProductId);
@@ -197,11 +201,13 @@ class Stock extends AbstractClass
         unset($locationBlockRecord);*/
         foreach ($this->stockRecordArray as $key => &$stockRecord) {
             $stockRecord['products_model'] = trim(isset($stockRecord['products_model']) ? $stockRecord['products_model'] : '');
-            $stockRecord['attributeRecordArray'] = ((isset($stockRecord['attributeRecordArray']) AND is_array($stockRecord['attributeRecordArray']))
-                ? $stockRecord['attributeRecordArray'] : array()
+            $stockRecord['attributeRecordArray'] = (
+                (isset($stockRecord['attributeRecordArray']) and is_array($stockRecord['attributeRecordArray']))
+                ? $stockRecord['attributeRecordArray'] : []
             );
-            $stockRecord['warehouseRecordArray'] = ((isset($stockRecord['warehouseRecordArray']) AND is_array($stockRecord['warehouseRecordArray']))
-                ? $stockRecord['warehouseRecordArray'] : array()
+            $stockRecord['warehouseRecordArray'] = (
+                (isset($stockRecord['warehouseRecordArray']) and is_array($stockRecord['warehouseRecordArray']))
+                ? $stockRecord['warehouseRecordArray'] : []
             );
             if ($stockRecord['products_model'] != '') {
                 /*if ((count($stockRecord['attributeRecordArray']) > 0) == true) {}*/
@@ -210,10 +216,10 @@ class Stock extends AbstractClass
                     $searchRecord = \common\models\Products::find()->where(['products_model' => $stockRecord['products_model']])->asArray(true)->all();
                 }
                 $uProductId = trim(isset($stockRecord['products_id']) ? $stockRecord['products_id'] : '');
-                if (($uProductId != '') AND (count($searchRecord) > 1)) {
+                if (($uProductId != '') and (count($searchRecord) > 1)) {
                     foreach ($searchRecord as $exactRecord) {
                         if ($uProductId === trim($exactRecord['products_id'])) {
-                            $searchRecord = array($exactRecord);
+                            $searchRecord = [$exactRecord];
                             break;
                         }
                     }
@@ -231,7 +237,7 @@ class Stock extends AbstractClass
             }
             $stockRecord['products_id'] = trim(isset($stockRecord['products_id']) ? $stockRecord['products_id'] : '0');
             $stockRecord['prid'] = (int)(isset($stockRecord['prid']) ? $stockRecord['prid'] : $stockRecord['products_id']);
-            if (($stockRecord['prid'] <= 0) OR ($stockRecord['prid'] != (int)$stockRecord['products_id'])) {
+            if (($stockRecord['prid'] <= 0) or ($stockRecord['prid'] != (int)$stockRecord['products_id'])) {
                 unset($this->stockRecordArray[$key]);
                 continue;
             }
@@ -248,10 +254,10 @@ class Stock extends AbstractClass
                 if (isset($warehouseRecord['products_model'])) {
                     $warehouseRecord['products_model'] = trim($warehouseRecord['products_model']);
                 }
-                if (isset($warehouseRecord['warehouse_name']) AND (trim($warehouseRecord['warehouse_name']) != '')) {
+                if (isset($warehouseRecord['warehouse_name']) and (trim($warehouseRecord['warehouse_name']) != '')) {
                     $warehouseRecord['warehouse_id'] = (int)array_search($warehouseRecord['warehouse_name'], $warehouseNameList);
                 }
-                if (isset($warehouseRecord['suppliers_name']) AND (trim($warehouseRecord['suppliers_name']) != '')) {
+                if (isset($warehouseRecord['suppliers_name']) and (trim($warehouseRecord['suppliers_name']) != '')) {
                     $warehouseRecord['suppliers_id'] = (int)array_search($warehouseRecord['suppliers_name'], $supplierNameList);
                 }
                 if (isset($warehouseRecord['location_name'])) {
@@ -295,7 +301,7 @@ class Stock extends AbstractClass
         if (!$this->validate()) {
             return $return;
         }
-        $doCacheList = array();
+        $doCacheList = [];
         foreach ($this->stockRecordArray as $key => &$stockRecord) {
             $isSave = false;
             try {
@@ -314,7 +320,7 @@ class Stock extends AbstractClass
                                 $warehouseClass = \common\models\WarehousesProducts::find()
                                 ->where(['prid' => $warehouseRecord['prid'], 'products_id' => $warehouseRecord['products_id'],
                                     'warehouse_id' => $warehouseRecord['warehouse_id'], 'suppliers_id' => $warehouseRecord['suppliers_id'],
-                                    'location_id' => $warehouseRecord['location_id']
+                                    'location_id' => $warehouseRecord['location_id'],
                                 ])->asArray(false)->one();
                                 if (!($warehouseClass instanceof \common\models\WarehousesProducts)) {
                                     $warehouseClass = new \common\models\WarehousesProducts();
@@ -371,7 +377,7 @@ class Stock extends AbstractClass
         unset($key);
         $return = true;
         foreach ($doCacheList as $productId) {
-            $return = (\common\helpers\Product::doCache($productId) AND $return);
+            $return = (\common\helpers\Product::doCache($productId) and $return);
         }
         unset($doCacheList);
         unset($productId);

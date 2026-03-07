@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,13 +24,15 @@ class m230302_111052_fix_translation_en4 extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/main',
+        $this->addTranslation(
+            'admin/main',
             [
                 'TEXT_PROMPT_DELETE' => 'Are you sure you want to delete this transaction (locally)?',
                 'TEXT_PROMPT_VOID' => 'Are you sure you want to void this transaction?',
                 'TEXT_REINDEX_GROUPPED' => 'Place grouped products together',
             ],
-            true);
+            true
+        );
     }
 
     /**

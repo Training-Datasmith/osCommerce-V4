@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -23,7 +25,7 @@ class CarrierAccount extends PayPalModel
      * The ID of the carrier account of the payer. Use in subsequent REST API calls. For example, to make payments.
      *
      * @param string $id
-     * 
+     *
      * @return $this
      */
     public function setId($id)
@@ -46,7 +48,7 @@ class CarrierAccount extends PayPalModel
      * The phone number of the payer, in E.164 format.
      *
      * @param string $phone_number
-     * 
+     *
      * @return $this
      */
     public function setPhoneNumber($phone_number)
@@ -69,7 +71,7 @@ class CarrierAccount extends PayPalModel
      * The ID of the customer, as created by the merchant.
      *
      * @param string $external_customer_id
-     * 
+     *
      * @return $this
      */
     public function setExternalCustomerId($external_customer_id)
@@ -93,7 +95,7 @@ class CarrierAccount extends PayPalModel
      * Valid Values: ["READ_FROM_DEVICE", "USER_PROVIDED"]
      *
      * @param string $phone_source
-     * 
+     *
      * @return $this
      */
     public function setPhoneSource($phone_source)
@@ -116,7 +118,7 @@ class CarrierAccount extends PayPalModel
      * The ISO 3166-1 alpha-2 country code where the phone number is registered.
      *
      * @param \PayPal\Api\CountryCode $country_code
-     * 
+     *
      * @return $this
      */
     public function setCountryCode($country_code)

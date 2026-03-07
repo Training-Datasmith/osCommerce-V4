@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,30 +15,30 @@
 
 namespace frontend\design\boxes\product;
 
-use frontend\design\Info;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
-class Configurator extends Widget {
-
+class Configurator extends Widget
+{
     public $file;
     public $params;
     public $settings;
 
-    public function init() {
+    public function init()
+    {
         parent::init();
     }
 
-    public function run() {
+    public function run()
+    {
         $params = Yii::$app->request->get();
 
-        if ($params['products_id'] && Yii::$app->controller instanceof \frontend\controllers\CatalogController ) {
-          $action = Yii::$app->controller->createAction('product-configurator');
-          return $action->runWithParams($params);
-          //return Yii::$app->runAction('catalog/product-configurator', $params);
+        if ($params['products_id'] && Yii::$app->controller instanceof \frontend\controllers\CatalogController) {
+            $action = Yii::$app->controller->createAction('product-configurator');
+            return $action->runWithParams($params);
+            //return Yii::$app->runAction('catalog/product-configurator', $params);
         } else {
-          return '';
+            return '';
         }
     }
 

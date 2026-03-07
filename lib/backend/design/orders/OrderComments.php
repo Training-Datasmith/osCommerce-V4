@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,42 +14,44 @@
 
 namespace backend\design\orders;
 
-
-use Yii;
-use yii\base\Widget;
 use common\models\Admin;
+use yii\base\Widget;
 
-class OrderComments extends Widget {
-
+class OrderComments extends Widget
+{
     public $manager;
     public $order;
 
-    public function init(){
+    public function init()
+    {
         parent::init();
     }
 
-    public function run(){
+    public function run()
+    {
         global $login_id;
 
         $admin = Admin::findOne(['admin_id' => $login_id]);
-        $groups = \common\models\AccessLevels::find()->select(['access_levels_id', 'access_levels_name'])->with(['admins' => function(\yii\db\ActiveQuery $query){ return $query->orderBy('admin_firstname, admin_lastname'); }])->asArray()->all();
+        $groups = \common\models\AccessLevels::find()->select(['access_levels_id', 'access_levels_name'])->with(['admins' => function (\yii\db\ActiveQuery $query) {
+            return $query->orderBy('admin_firstname, admin_lastname');
+        }])->asArray()->all();
 
         $comments = \common\models\OrdersComments::find()->where(['orders_id' => $this->order->order_id, 'for_invoice' => 0])->orderBy('date_added desc')->with('admin')->all();
-        if ($comments){
-            foreach ($comments as $_key => $comment){
+        if ($comments) {
+            foreach ($comments as $_key => $comment) {
                 if ((int)$comment->admin_id == (int)$login_id) {
                     continue;
                 }
                 $data = json_decode($comment->visible, true);
-                if ($data){
-                    if (key($data) == 'm'){
-                        if ($data['m'] != $login_id){
+                if ($data) {
+                    if (key($data) == 'm') {
+                        if ($data['m'] != $login_id) {
                             unset($comments[$_key]);
                         }
-                    } else if (key($data) == 'g'){
-                        if ($admin){
+                    } elseif (key($data) == 'g') {
+                        if ($admin) {
                             $al = $admin->getAccesslevel()->one();
-                            if ($al && $al->access_levels_id != $data['g']){
+                            if ($al && $al->access_levels_id != $data['g']) {
                                 unset($comments[$_key]);
                             }
                         }

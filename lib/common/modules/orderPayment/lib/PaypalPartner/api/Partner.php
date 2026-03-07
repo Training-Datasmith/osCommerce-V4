@@ -1,5 +1,7 @@
 <?php
- /**
+
+declare(strict_types=1);
+/**
  * Transactional Middle Ware for Paypal modules
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,33 +12,36 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+
 namespace common\modules\orderPayment\lib\PaypalPartner\api;
 
 use PayPal\Common\PayPalResourceModel;
-use PayPal\Validation\ArgumentValidator;
 use PayPal\Rest\ApiContext;
+use PayPal\Validation\ArgumentValidator;
 
-
-class Partner extends PayPalResourceModel {
+class Partner extends PayPalResourceModel
+{
     /**
      * sets     "products": ["PPCP" ], "legal_consents": [ { "type": "SHARE_DATA_CONSENT", "granted": true } ]
      * @param type $data
      */
-    public function __construct($data = null){
-        
+    public function __construct($data = null)
+    {
+
         parent::__construct($data);
         $this->setProducts();
         $this->setConsents();
         $this->setPartnerConfigOverride(new PartnerConfigOverride());
     }
-    
-    public function setProducts($data = []){
-        if (empty($data) || !array($data)) {
+
+    public function setProducts($data = [])
+    {
+        if (empty($data) || ![$data]) {
             $this->products = [PartnerConstants::PRODUCT];
         } else {
             $prods = [];
             foreach ($data as $p) {
-                if ( in_array($p, [ 'EXPRESS_CHECKOUT', 'PPPLUS', 'WEBSITE_PAYMENT_PRO', 'PPCP'])) {
+                if (in_array($p, [ 'EXPRESS_CHECKOUT', 'PPPLUS', 'WEBSITE_PAYMENT_PRO', 'PPCP'])) {
                     $prods[] = $p;
                 }
             }
@@ -46,11 +51,12 @@ class Partner extends PayPalResourceModel {
             $this->products = $prods;
         }
     }
-    
-    public function setConsents(){
+
+    public function setConsents()
+    {
         $this->legal_consents = [new Legal()];
     }
-    
+
     public function setIndividualOwners($data)
     {
         $this->individual_owners = [$data];
@@ -66,7 +72,7 @@ class Partner extends PayPalResourceModel {
     {
         return $this->individual_owners;
     }
-    
+
     public function setBusinessEntity($data)
     {
         $this->business_entity = $data;
@@ -82,7 +88,7 @@ class Partner extends PayPalResourceModel {
     {
         return $this->business_entity;
     }
-    
+
     public function setEmail($email)
     {
         $this->email = $email;
@@ -98,7 +104,7 @@ class Partner extends PayPalResourceModel {
     {
         return $this->email;
     }
-    
+
     public function setPreferredLanguageCode($code)
     {
         $this->preferred_language_code = $code;
@@ -114,7 +120,7 @@ class Partner extends PayPalResourceModel {
     {
         return $this->preferred_language_code;
     }
-    
+
     public function setTrackingId($trackingId)
     {
         $this->tracking_id = $trackingId;
@@ -130,7 +136,7 @@ class Partner extends PayPalResourceModel {
     {
         return $this->tracking_id;
     }
-    
+
     public function setPartnerConfigOverride($config)
     {
         $this->partner_config_override = $config;
@@ -146,7 +152,7 @@ class Partner extends PayPalResourceModel {
 
         return $this->partner_config_override;
     }
-    
+
     public function setOperations($data)
     {
         $this->operations = [$data];
@@ -162,7 +168,7 @@ class Partner extends PayPalResourceModel {
     {
         return $this->operations;
     }
-    
+
     /**
      * Get Approval Link
      *
@@ -172,19 +178,19 @@ class Partner extends PayPalResourceModel {
     {
         return $this->getLink(PartnerConstants::APPROVAL_URL);
     }
-	
-	/**
+
+    /**
      * Get token from Approval Link
      *
      * @return null|string
      */
-	public function getToken()
-	{
-		$parameter_name = "token";
-		parse_str(parse_url($this->getApprovalLink(), PHP_URL_QUERY), $query);
-		return !isset($query[$parameter_name]) ? null : $query[$parameter_name];
-	}
-	
+    public function getToken()
+    {
+        $parameter_name = 'token';
+        parse_str(parse_url($this->getApprovalLink(), PHP_URL_QUERY), $query);
+        return !isset($query[$parameter_name]) ? null : $query[$parameter_name];
+    }
+
     /**
      * Creates and processes a payment. In the JSON request body, include a `payment` object with the intent, payer, and transactions. For PayPal payments, include redirect URLs in the `payment` object.
      *
@@ -196,8 +202,8 @@ class Partner extends PayPalResourceModel {
     {
         $payLoad = $this->toJSON();
         $json = self::executeCall(
-            "/v2/customer/partner-referrals",
-            "POST",
+            '/v2/customer/partner-referrals',
+            'POST',
             $payLoad,
             null,
             $apiContext,
@@ -218,10 +224,10 @@ class Partner extends PayPalResourceModel {
     public static function get($paymentId, $apiContext = null, $restCall = null)
     {
         ArgumentValidator::validate($paymentId, 'paymentId');
-        $payLoad = "";
+        $payLoad = '';
         $json = self::executeCall(
             "/v1/payments/payment/$paymentId",
-            "GET",
+            'GET',
             $payLoad,
             null,
             $apiContext,

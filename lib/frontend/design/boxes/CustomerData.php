@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,11 +14,8 @@
 
 namespace frontend\design\boxes;
 
-use common\models\Customers;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use frontend\forms\registration\CustomerRegistration;
 
 class CustomerData extends Widget
 {
@@ -54,7 +53,7 @@ class CustomerData extends Widget
                 $data = $groups->groups_name;
                 break;
         }
-        
+
         return $data;
     }
 }

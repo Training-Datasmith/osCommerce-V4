@@ -1,10 +1,10 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalResourceModel;
-use PayPal\Validation\ArgumentValidator;
-use PayPal\Api\VerifyWebhookSignatureResponse;
 use PayPal\Rest\ApiContext;
 use PayPal\Validation\UrlValidator;
 
@@ -57,7 +57,7 @@ class VerifyWebhookSignature extends PayPalResourceModel
      */
     public function setCertUrl($cert_url)
     {
-        UrlValidator::validate($cert_url, "CertUrl");
+        UrlValidator::validate($cert_url, 'CertUrl');
         $this->cert_url = $cert_url;
         return $this;
     }
@@ -222,8 +222,8 @@ class VerifyWebhookSignature extends PayPalResourceModel
         $payLoad = $this->toJSON();
 
         $json = self::executeCall(
-            "/v1/notifications/verify-webhook-signature",
-            "POST",
+            '/v1/notifications/verify-webhook-signature',
+            'POST',
             $payLoad,
             null,
             $apiContext,
@@ -241,12 +241,12 @@ class VerifyWebhookSignature extends PayPalResourceModel
             unset($valuesToEncode['webhook_event']);
             unset($valuesToEncode['request_body']);
 
-            $payLoad = "{";
+            $payLoad = '{';
             foreach ($valuesToEncode as $field => $value) {
                 $payLoad .= "\"$field\": \"$value\",";
             }
             $payLoad .= "\"webhook_event\": $this->request_body";
-            $payLoad .= "}";
+            $payLoad .= '}';
             return $payLoad;
         } else {
             $payLoad = parent::toJSON($options);

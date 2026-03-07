@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,27 +25,29 @@ class TwoStepAuthorizationIntervalController extends Sceleton
 
     public function actionIndex()
     {
-        $this->selectedMenu = array('settings', 'configuration', 'two-step-authorization-interval');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('two-step-authorization-interval/index'), 'title' => HEADING_TITLE);
+        $this->selectedMenu = ['settings', 'configuration', 'two-step-authorization-interval'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('two-step-authorization-interval/index'), 'title' => HEADING_TITLE];
 
         $this->view->headingTitle = HEADING_TITLE;
         $this->topButtons[] = '<a href="#" class="create_item" onclick="return tsaiEdit(0);">'.TEXT_TSAI_BUTTON_NEW.'</a>';
 
-        $this->view->tsaiTable = array(
-            array(
+        $this->view->tsaiTable = [
+            [
                 'title' => TEXT_TSAI_TABLE_HEADING,
                 'not_important' => 0,
-            ),
-            array(
+            ],
+            [
                 'title' => TEXT_SORT_ORDER,
                 'not_important' => 0,
-            )
-        );
+            ],
+        ];
 
-        $messages = $_SESSION['messages']??null;
+        $messages = $_SESSION['messages'] ?? null;
         unset($_SESSION['messages']);
-        if (!is_array($messages)) $messages = [];
-        return $this->render('index', array('messages' => $messages));
+        if (!is_array($messages)) {
+            $messages = [];
+        }
+        return $this->render('index', ['messages' => $messages]);
     }
 
     public function actionList()
@@ -53,18 +57,18 @@ class TwoStepAuthorizationIntervalController extends Sceleton
         $start = Yii::$app->request->get('start', 0);
         $length = Yii::$app->request->get('length', 10);
         $orderBy = true;
-        $responseList = array();
+        $responseList = [];
         $select = \common\models\AdminLoginExpire::find()->where(['ale_language_id' => $languages_id])->offset($start)->limit($length);
         if (isset($_GET['order'][0]['column']) && $_GET['order'][0]['dir']) {
             switch ($_GET['order'][0]['column']) {
                 case 0:
                     $select->orderBy(['ale_title' => ((strtoupper(trim($_GET['order'][0]['dir'])) == 'ASC') ? SORT_ASC : SORT_DESC)]);
                     $orderBy = false;
-                break;
+                    break;
                 case 1:
                     $select->orderBy(['ale_order' => ((strtoupper(trim($_GET['order'][0]['dir'])) == 'ASC') ? SORT_ASC : SORT_DESC)]);
                     $orderBy = false;
-                break;
+                    break;
             }
         }
         if (isset($_GET['search']['value']) && tep_not_null($_GET['search']['value'])) {
@@ -75,17 +79,17 @@ class TwoStepAuthorizationIntervalController extends Sceleton
         }
         $count = $select->count();
         foreach ($select->asArray(true)->all() as $row) {
-            $responseList[] = array(
+            $responseList[] = [
                 $row['ale_title'] . tep_draw_hidden_field('id', $row['ale_id'], 'class="cell_identify"'),
-                $row['ale_order']
-            );
+                $row['ale_order'],
+            ];
         }
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $count,
             'recordsFiltered' => $count,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         echo json_encode($response);
     }
 
@@ -133,7 +137,7 @@ class TwoStepAuthorizationIntervalController extends Sceleton
         }
         $inputs_string = '';
         $languages = \common\helpers\Language::get_languages();
-        for ($i=0, $n=sizeof($languages); $i<$n; $i++) {
+        for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
             $title = '';
             $aleRecord = \common\models\AdminLoginExpire::findOne(['ale_id' => (int)$oInfo->ale_id, 'ale_language_id' => (int)$languages[$i]['id']]);
             if ($aleRecord instanceof \common\models\AdminLoginExpire) {
@@ -155,8 +159,8 @@ class TwoStepAuthorizationIntervalController extends Sceleton
     {
         \common\helpers\Translation::init('admin/two-step-authorization-interval');
         $ale_id = (int)Yii::$app->request->get('ale_id', 0);
-        $ale_title = Yii::$app->request->post('ale_title', array());
-        $ale_title = (is_array($ale_title) ? $ale_title : array());
+        $ale_title = Yii::$app->request->post('ale_title', []);
+        $ale_title = (is_array($ale_title) ? $ale_title : []);
         $ale_expire_minutes = (int)Yii::$app->request->post('ale_expire_minutes', 0);
         $ale_expire_minutes = (($ale_expire_minutes < 0) ? 0 : $ale_expire_minutes);
         $ale_order = (int)Yii::$app->request->post('ale_order', 0);
@@ -171,7 +175,7 @@ class TwoStepAuthorizationIntervalController extends Sceleton
             }
         }
         $languages = \common\helpers\Language::get_languages();
-        for ($i=0, $n=sizeof($languages); $i<$n; $i++) {
+        for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
             $language_id = (int)$languages[$i]['id'];
             $aleRecord = \common\models\AdminLoginExpire::findOne(['ale_id' => $ale_id, 'ale_language_id' => $language_id]);
             if (!($aleRecord instanceof \common\models\AdminLoginExpire)) {
@@ -184,7 +188,7 @@ class TwoStepAuthorizationIntervalController extends Sceleton
             $aleRecord->ale_order = $ale_order;
             $aleRecord->save();
         }
-        echo json_encode(array('message' => 'Authorization interval ' . $action, 'messageType' => 'alert-success'));
+        echo json_encode(['message' => 'Authorization interval ' . $action, 'messageType' => 'alert-success']);
     }
 
     public function actionDelete()

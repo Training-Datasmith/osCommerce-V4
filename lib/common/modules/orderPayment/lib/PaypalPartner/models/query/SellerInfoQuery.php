@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * Transactional Midle Ware for Paypal modules
  * This file is part of osCommerce ecommerce platform.
@@ -10,8 +12,9 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+
 namespace common\modules\orderPayment\lib\PaypalPartner\models\query;
 
-class SellerInfoQuery extends \yii\db\ActiveQuery {
-    
+class SellerInfoQuery extends \yii\db\ActiveQuery
+{
 }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -70,7 +72,6 @@ class BillingManager
             return self::getInternalErrorResult();
         }
     }
-
 
     public static function doOperationFinished(string $operation, string $domainKey, string $appKey, $extraParams = null)
     {

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\classes;
 
-
 class ApiDepartment
 {
     protected $currentResponseProductId = 0;
@@ -25,7 +26,9 @@ class ApiDepartment
     public static function get()
     {
         static $instance;
-        if ( !is_object($instance) ) $instance = new self();
+        if (!is_object($instance)) {
+            $instance = new self();
+        }
         return $instance;
     }
 
@@ -45,21 +48,21 @@ class ApiDepartment
         $this->currentResponseProductId = $currentResponseProductId;
     }
 
-    public static function getCategoryFormulaData($departmentId, $categoryId, $onlyParents=false)
+    public static function getCategoryFormulaData($departmentId, $categoryId, $onlyParents = false)
     {
         $formula_data = false;
         $get_category_formula_with_parentage_r = tep_db_query(
-            "SELECT dpf.formula, dpf.discount, dpf.surcharge, dpf.margin ".
-            "FROM ".TABLE_CATEGORIES." node, ".TABLE_CATEGORIES." parent ".
+            'SELECT dpf.formula, dpf.discount, dpf.surcharge, dpf.margin '.
+            'FROM '.TABLE_CATEGORIES.' node, '.TABLE_CATEGORIES.' parent '.
             " LEFT JOIN departments_categories_price_formula dpf ON dpf.departments_id='".(int)$departmentId."' AND parent.categories_id=dpf.categories_id ".
-            "WHERE node.categories_left BETWEEN parent.categories_left AND parent.categories_right ".
+            'WHERE node.categories_left BETWEEN parent.categories_left AND parent.categories_right '.
             "  AND node.categories_id = '".(int)$categoryId."' ".
-            ($onlyParents?" AND parent.categories_id != '".(int)$categoryId."' ":'').
-            "  AND dpf.categories_id IS NOT NULL ".
-            "ORDER BY parent.categories_right ".
-            "LIMIT 1"
+            ($onlyParents ? " AND parent.categories_id != '".(int)$categoryId."' " : '').
+            '  AND dpf.categories_id IS NOT NULL '.
+            'ORDER BY parent.categories_right '.
+            'LIMIT 1'
         );
-        if ( tep_db_num_rows($get_category_formula_with_parentage_r)>0 ) {
+        if (tep_db_num_rows($get_category_formula_with_parentage_r) > 0) {
             $formula_data = tep_db_fetch_array($get_category_formula_with_parentage_r);
         }
         return $formula_data;
@@ -68,21 +71,21 @@ class ApiDepartment
     public function getCurrentResponseProductPriceFormulaData()
     {
         $_formula = false;
-        static $_last_call = array();
-        if ( $this->currentResponseProductId && \Yii::$app->get('department')->getActiveDepartmentId()>0 ) {
+        static $_last_call = [];
+        if ($this->currentResponseProductId && \Yii::$app->get('department')->getActiveDepartmentId() > 0) {
             $_key = intval($this->currentResponseProductId) .'&'. intval(\Yii::$app->get('department')->getActiveDepartmentId());
 
-            if ( !isset($_last_call[$_key]) ) {
+            if (!isset($_last_call[$_key])) {
                 $get_formula_r = tep_db_query(
-                    "SELECT dpf.formula, dpf.discount, dpf.surcharge, dpf.margin ".
-                    "FROM ".TABLE_CATEGORIES." node, ".TABLE_PRODUCTS_TO_CATEGORIES." p2c, ".TABLE_CATEGORIES." parent ".
+                    'SELECT dpf.formula, dpf.discount, dpf.surcharge, dpf.margin '.
+                    'FROM '.TABLE_CATEGORIES.' node, '.TABLE_PRODUCTS_TO_CATEGORIES.' p2c, '.TABLE_CATEGORIES.' parent '.
                     " LEFT JOIN departments_categories_price_formula dpf ON dpf.departments_id='".intval(\Yii::$app->get('department')->getActiveDepartmentId())."' AND parent.categories_id=dpf.categories_id ".
-                    "WHERE node.categories_left BETWEEN parent.categories_left AND parent.categories_right ".
-                    "  AND node.categories_id = p2c.categories_id ".
+                    'WHERE node.categories_left BETWEEN parent.categories_left AND parent.categories_right '.
+                    '  AND node.categories_id = p2c.categories_id '.
                     "  AND p2c.products_id='".intval($this->currentResponseProductId)."' ".
-                    "  AND dpf.categories_id IS NOT NULL ".
-                    "ORDER BY parent.categories_right ".
-                    "LIMIT 1"
+                    '  AND dpf.categories_id IS NOT NULL '.
+                    'ORDER BY parent.categories_right '.
+                    'LIMIT 1'
                 );
                 /*
                 $get_formula_r = tep_db_query(
@@ -97,10 +100,12 @@ class ApiDepartment
                     $_formula = tep_db_fetch_array($get_formula_r);
                     if (!empty($_formula['formula'])) {
                         $_formula['formula'] = json_decode($_formula['formula'], true);
-                        if (!is_array($_formula['formula'])) $_formula = false;
+                        if (!is_array($_formula['formula'])) {
+                            $_formula = false;
+                        }
                     }
                 }
-                $_last_call = array($_key => $_formula);
+                $_last_call = [$_key => $_formula];
             }
             $_formula = $_last_call[$_key];
 

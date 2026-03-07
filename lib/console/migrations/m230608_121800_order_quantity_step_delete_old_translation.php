@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,10 +25,9 @@ class m230608_121800_order_quantity_step_delete_old_translation extends Migratio
     public function safeUp()
     {
         if (method_exists($this, 'isOldExtension')) {
-            if (!$this->isOldExtension('OrderQuantityStep'))
-            {
+            if (!$this->isOldExtension('OrderQuantityStep')) {
                 $this->removeTranslation('admin/main', [
-                    'TEXT_PRODUCTS_ITEM_IN_VIRTUAL_ITEM_QTY', 
+                    'TEXT_PRODUCTS_ITEM_IN_VIRTUAL_ITEM_QTY',
                     'TEXT_PRODUCTS_ITEM_IN_VIRTUAL_ITEM_STEP',
                 ]);
                 $this->removeTranslation('admin/categories', ['TEXT_PRODUCTS_ORDER_QUANTITY_STEP']);
@@ -41,7 +42,7 @@ class m230608_121800_order_quantity_step_delete_old_translation extends Migratio
     {
         $this->addTranslation('admin/main', [
             'TEXT_PRODUCTS_ITEM_IN_VIRTUAL_ITEM_QTY' => 'Items to Virtual item',
-            'TEXT_PRODUCTS_ITEM_IN_VIRTUAL_ITEM_STEP' => 'Virtual item steps (in Items)'
+            'TEXT_PRODUCTS_ITEM_IN_VIRTUAL_ITEM_STEP' => 'Virtual item steps (in Items)',
         ]);
         $this->addTranslation('admin/categories', [
             'TEXT_PRODUCTS_ORDER_QUANTITY_STEP' => 'Order quantity step',

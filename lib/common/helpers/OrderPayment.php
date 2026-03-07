@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,23 +16,23 @@ namespace common\helpers;
 
 class OrderPayment
 {
-    CONST OPYS_PENDING = 0;
-    CONST OPYS_PROCESSING = 10;
-    CONST OPYS_SUCCESSFUL = 20;
-    CONST OPYS_REFUSED = 30;
-    CONST OPYS_REFUNDED = 40;
-    CONST OPYS_CANCELLED = 50;
-    CONST OPYS_DISCOUNTED = 100;
+    public const OPYS_PENDING = 0;
+    public const OPYS_PROCESSING = 10;
+    public const OPYS_SUCCESSFUL = 20;
+    public const OPYS_REFUSED = 30;
+    public const OPYS_REFUNDED = 40;
+    public const OPYS_CANCELLED = 50;
+    public const OPYS_DISCOUNTED = 100;
 
-/**
- * add new payment record from order AND transaction info
- * @global int $login_id admin id
- * @param \common\classes\Order $orderInstance
- * @param float|bool $orderPaymentAmount order total amount
- * @param int $ordersPaymentStatus payment status code
- * @param array $transactionInformationArray ['id' => , 'status' 'commentary' 'date', 'parent_id', 'fulljson']
- * @return \common\models\OrdersPayment|boolean
- */
+    /**
+     * add new payment record from order AND transaction info
+     * @global int $login_id admin id
+     * @param \common\classes\Order $orderInstance
+     * @param float|bool $orderPaymentAmount order total amount
+     * @param int $ordersPaymentStatus payment status code
+     * @param array $transactionInformationArray ['id' => , 'status' 'commentary' 'date', 'parent_id', 'fulljson']
+     * @return \common\models\OrdersPayment|boolean
+     */
     public static function createDebitFromOrder($orderInstance = null, $orderPaymentAmount = false, $ordersPaymentStatus = false, $transactionInformationArray = [], $deferred = 0)
     {
         $return = false;
@@ -49,9 +51,9 @@ class OrderPayment
             $transactionInformationArray = (is_array($transactionInformationArray) ? $transactionInformationArray : []);
 
             if (empty($orderInstance->order_id) && !empty($orderInstance->parent_id)) {
-              $order_id = (int)$orderInstance->parent_id;
+                $order_id = (int)$orderInstance->parent_id;
             } else {
-              $order_id = (int)$orderInstance->order_id;
+                $order_id = (int)$orderInstance->order_id;
             }
             $paymentClass = (!empty($transactionInformationArray['payment_class']) ? $transactionInformationArray['payment_class'] : $orderInstance->info['payment_class']);
             $paymentMethod = (!empty($transactionInformationArray['payment_method']) ? $transactionInformationArray['payment_method'] : $orderInstance->info['payment_method']);
@@ -73,7 +75,7 @@ class OrderPayment
             $orderPaymentRecord->orders_payment_transaction_commentary = trim(isset($transactionInformationArray['commentary']) ? $transactionInformationArray['commentary'] : '');
             $orderPaymentRecord->orders_payment_transaction_date = trim(isset($transactionInformationArray['date']) ? $transactionInformationArray['date'] : '0000-00-00 00:00:00');
             if (!empty($transactionInformationArray['fulljson'])) {
-              $orderPaymentRecord->orders_payment_transaction_full = trim($transactionInformationArray['fulljson']);
+                $orderPaymentRecord->orders_payment_transaction_full = trim($transactionInformationArray['fulljson']);
             }
             global $login_id;
             $orderPaymentRecord->orders_payment_admin_create = (int)$login_id;
@@ -84,11 +86,11 @@ class OrderPayment
                     $return = $orderPaymentRecord;
                 }
             } catch (\Exception $exc) {
-              \Yii::warning($exc->getMessage());
+                \Yii::warning($exc->getMessage());
             }
             unset($orderPaymentRecord);
         } else {
-          \Yii::warning('createDebitFromOrder - not order: ' . get_class($orderInstance));
+            \Yii::warning('createDebitFromOrder - not order: ' . get_class($orderInstance));
         }
         unset($transactionInformationArray);
         unset($ordersPaymentStatus);
@@ -97,18 +99,18 @@ class OrderPayment
         return $return;
     }
 
-/**
- *
- * @global int $login_id
- * @param string $orderPaymentModule
- * @param string $orderPaymentTransactionId
- * @return \common\models\OrdersPayment|boolean
- */
+    /**
+     *
+     * @global int $login_id
+     * @param string $orderPaymentModule
+     * @param string $orderPaymentTransactionId
+     * @return \common\models\OrdersPayment|boolean
+     */
     public static function searchRecord($orderPaymentModule = '', $orderPaymentTransactionId = '')
     {
         $orderPaymentModule = trim($orderPaymentModule);
         $orderPaymentTransactionId = trim($orderPaymentTransactionId);
-        if ($orderPaymentModule == '' OR $orderPaymentTransactionId == '') {
+        if ($orderPaymentModule == '' or $orderPaymentTransactionId == '') {
             return false;
         }
         $orderPaymentRecord = \common\models\OrdersPayment::find()
@@ -134,8 +136,7 @@ class OrderPayment
         foreach ((\common\models\OrdersPayment::find()
             ->where(['orders_payment_order_id' => (int)$orderId])
             ->orderBy(['orders_payment_date_create' => SORT_ASC])
-            ->asArray($asArray)->all())
-                as $orderPaymentRecord
+            ->asArray($asArray)->all()) as $orderPaymentRecord
         ) {
             $return[] = $orderPaymentRecord;
         }
@@ -149,8 +150,7 @@ class OrderPayment
         foreach ((\common\models\OrdersPayment::find()
             ->where(['orders_payment_order_id' => (int)$orderId])
             ->andWhere(['orders_payment_id_parent' => 0])
-            ->asArray($asArray)->all())
-                as $orderPaymentRecord
+            ->asArray($asArray)->all()) as $orderPaymentRecord
         ) {
             $return[] = $orderPaymentRecord;
         }
@@ -163,8 +163,7 @@ class OrderPayment
         $return = [];
         foreach ((\common\models\OrdersPayment::find()
             ->where(['orders_payment_id_parent' => (int)$orderPaymentIdParent])
-            ->asArray($asArray)->all())
-                as $orderPaymentRecord
+            ->asArray($asArray)->all()) as $orderPaymentRecord
         ) {
             $return[] = $orderPaymentRecord;
         }
@@ -188,10 +187,12 @@ class OrderPayment
         $credit = 0;
         $discount = 0;
         foreach (self::getArrayParentByOrderId($orderId) as $orderPaymentParentRecord) {
-            $orderPaymentParentRecord['orders_payment_amount'] = (float)(((float)$orderPaymentParentRecord['orders_payment_amount'] <= 0)
+            $orderPaymentParentRecord['orders_payment_amount'] = (float)(
+                ((float)$orderPaymentParentRecord['orders_payment_amount'] <= 0)
                 ? 0 : $orderPaymentParentRecord['orders_payment_amount']
             );
-            $orderPaymentParentRecord['orders_payment_currency_rate'] = (float)(((float)$orderPaymentParentRecord['orders_payment_currency_rate'] <= 0)
+            $orderPaymentParentRecord['orders_payment_currency_rate'] = (float)(
+                ((float)$orderPaymentParentRecord['orders_payment_currency_rate'] <= 0)
                 ? 1 : $orderPaymentParentRecord['orders_payment_currency_rate']
             );
             if (in_array((int)$orderPaymentParentRecord['orders_payment_status'], [self::OPYS_SUCCESSFUL, self::OPYS_REFUNDED, self::OPYS_DISCOUNTED])) {
@@ -204,10 +205,12 @@ class OrderPayment
                 }
                 foreach (self::getArrayChildByParentId($orderPaymentParentRecord['orders_payment_id']) as $orderPaymentChildRecord) {
                     if (in_array((int)$orderPaymentChildRecord['orders_payment_status'], [self::OPYS_REFUNDED, self::OPYS_DISCOUNTED])) {
-                        $orderPaymentChildRecord['orders_payment_amount'] = (float)(((float)$orderPaymentChildRecord['orders_payment_amount'] <= 0)
+                        $orderPaymentChildRecord['orders_payment_amount'] = (float)(
+                            ((float)$orderPaymentChildRecord['orders_payment_amount'] <= 0)
                             ? 0 : $orderPaymentChildRecord['orders_payment_amount']
                         );
-                        $orderPaymentChildRecord['orders_payment_currency_rate'] = (float)((float)$orderPaymentChildRecord['orders_payment_currency_rate'] <= 0
+                        $orderPaymentChildRecord['orders_payment_currency_rate'] = (float)(
+                            (float)$orderPaymentChildRecord['orders_payment_currency_rate'] <= 0
                             ? 1 : $orderPaymentChildRecord['orders_payment_currency_rate']
                         );
                         if ((int)$orderPaymentParentRecord['orders_payment_status'] == self::OPYS_SUCCESSFUL) {
@@ -241,7 +244,7 @@ class OrderPayment
             'discount' => $discount,
             'paid' => 0,
             'due' => 0,
-            'over' => 0
+            'over' => 0,
         ];
         $return['paid'] = (($return['debit'] + $return['discount']) - $return['credit']);
         $return['due'] = ($return['total'] - $return['paid']);
@@ -283,10 +286,12 @@ class OrderPayment
             ->where(['orders_payment_order_id' => (int)$orderId])
             ->asArray();
         foreach ($q->all() as $orderPaymentParentRecord) {
-            $orderPaymentParentRecord['orders_payment_amount'] = (float)(((float)$orderPaymentParentRecord['orders_payment_amount'] <= 0)
+            $orderPaymentParentRecord['orders_payment_amount'] = (float)(
+                ((float)$orderPaymentParentRecord['orders_payment_amount'] <= 0)
                 ? 0 : $orderPaymentParentRecord['orders_payment_amount']
             );
-            $orderPaymentParentRecord['orders_payment_currency_rate'] = (float)(((float)$orderPaymentParentRecord['orders_payment_currency_rate'] <= 0)
+            $orderPaymentParentRecord['orders_payment_currency_rate'] = (float)(
+                ((float)$orderPaymentParentRecord['orders_payment_currency_rate'] <= 0)
                 ? 1 : $orderPaymentParentRecord['orders_payment_currency_rate']
             );
             if (in_array((int)$orderPaymentParentRecord['orders_payment_status'], [self::OPYS_SUCCESSFUL, self::OPYS_REFUNDED, self::OPYS_DISCOUNTED])) {
@@ -312,7 +317,7 @@ class OrderPayment
             'discount' => $discount,
             'paid' => 0,
             'due' => 0,
-            'over' => 0
+            'over' => 0,
         ];
         $return['paid'] = (($return['debit'] + $return['discount']) - $return['credit']);
         $return['due'] = ($return['total'] - $return['paid']);
@@ -338,7 +343,7 @@ class OrderPayment
                 foreach (self::getArrayChildByParentId($orderPaymentRecord->orders_payment_id) as $paymentChildRecord) {
                     if (in_array($paymentChildRecord['orders_payment_status'], [
                         self::OPYS_REFUNDED,
-                        self::OPYS_DISCOUNTED
+                        self::OPYS_DISCOUNTED,
                     ])) {
                         $return -= (float)$paymentChildRecord['orders_payment_amount'];
                     }
@@ -373,7 +378,7 @@ class OrderPayment
             self::OPYS_REFUSED => TEXT_STATUS_OPYS_REFUSED,
             self::OPYS_REFUNDED => TEXT_STATUS_OPYS_REFUNDED,
             self::OPYS_CANCELLED => TEXT_STATUS_OPYS_CANCELLED,
-            self::OPYS_DISCOUNTED => TEXT_STATUS_OPYS_DISCOUNTED
+            self::OPYS_DISCOUNTED => TEXT_STATUS_OPYS_DISCOUNTED,
         ];
         $isCredit = ((int)$isCredit > 0 ? true : false);
         if ($forStatus !== false) {
@@ -382,12 +387,12 @@ class OrderPayment
                     unset($return[self::OPYS_REFUSED]);
                     unset($return[self::OPYS_REFUNDED]);
                     unset($return[self::OPYS_DISCOUNTED]);
-                break;
+                    break;
                 case self::OPYS_PROCESSING:
                     unset($return[self::OPYS_REFUNDED]);
                     unset($return[self::OPYS_CANCELLED]);
                     unset($return[self::OPYS_DISCOUNTED]);
-                break;
+                    break;
                 case self::OPYS_SUCCESSFUL:
                     //unset($return[self::OPYS_PENDING]);
                     //unset($return[self::OPYS_PROCESSING]);
@@ -395,28 +400,28 @@ class OrderPayment
                     unset($return[self::OPYS_REFUNDED]);
                     unset($return[self::OPYS_CANCELLED]);
                     unset($return[self::OPYS_DISCOUNTED]);
-                break;
+                    break;
                 case self::OPYS_REFUSED:
                     unset($return[self::OPYS_PROCESSING]);
                     unset($return[self::OPYS_SUCCESSFUL]);
                     unset($return[self::OPYS_REFUNDED]);
                     unset($return[self::OPYS_CANCELLED]);
                     unset($return[self::OPYS_DISCOUNTED]);
-                break;
+                    break;
                 case self::OPYS_REFUNDED:
                     unset($return[self::OPYS_PENDING]);
                     unset($return[self::OPYS_PROCESSING]);
                     unset($return[self::OPYS_SUCCESSFUL]);
                     unset($return[self::OPYS_REFUSED]);
                     unset($return[self::OPYS_CANCELLED]);
-                break;
+                    break;
                 case self::OPYS_CANCELLED:
                     unset($return[self::OPYS_PROCESSING]);
                     unset($return[self::OPYS_SUCCESSFUL]);
                     unset($return[self::OPYS_REFUSED]);
                     unset($return[self::OPYS_REFUNDED]);
                     unset($return[self::OPYS_DISCOUNTED]);
-                break;
+                    break;
                 case self::OPYS_DISCOUNTED:
                     unset($return[self::OPYS_PENDING]);
                     unset($return[self::OPYS_PROCESSING]);
@@ -424,7 +429,7 @@ class OrderPayment
                     unset($return[self::OPYS_REFUSED]);
                     //unset($return[self::OPYS_REFUNDED]);
                     unset($return[self::OPYS_CANCELLED]);
-                break;
+                    break;
             }
         }
         return $return;
@@ -437,44 +442,44 @@ class OrderPayment
             'total' => [
                 'subtotal' => [
                     'price_exc' => 0,
-                    'price_inc' => 0
+                    'price_inc' => 0,
                 ],
                 'shipping' => [
                     'module' => '',
                     'price_exc' => 0,
-                    'price_inc' => 0
+                    'price_inc' => 0,
                 ],
                 'tax' => [
                     'price_exc' => 0,
-                    'price_inc' => 0
+                    'price_inc' => 0,
                 ],
                 'discount' => [
                     'price_exc' => 0,
-                    'price_inc' => 0
+                    'price_inc' => 0,
                 ],
                 'coupon' => [
                     'id' => 0,
                     'type' => '',
                     'price_exc' => 0,
-                    'price_inc' => 0
+                    'price_inc' => 0,
                 ],
                 'total' => [
                     'price_exc' => 0,
-                    'price_inc' => 0
+                    'price_inc' => 0,
                 ],
                 'paid' => [
                     'price_exc' => 0,
-                    'price_inc' => 0
+                    'price_inc' => 0,
                 ],
                 'due' => [
                     'price_exc' => 0,
-                    'price_inc' => 0
+                    'price_inc' => 0,
                 ],
                 'refund' => [
                     'price_exc' => 0,
-                    'price_inc' => 0
-                ]
-            ]
+                    'price_inc' => 0,
+                ],
+            ],
         ];
         if ($orderInstance instanceof \common\classes\Order) {
             foreach ($orderInstance->products as $orderProduct) {
@@ -489,7 +494,7 @@ class OrderPayment
                     'qty_cnld' => (int)($orderProduct['qty_cnld'] ?? 0),
                     'qty_rcvd' => (int)($orderProduct['qty_rcvd'] ?? 0),
                     'qty_dspd' => (int)($orderProduct['qty_dspd'] ?? 0),
-                    'qty_dlvd' => (int)($orderProduct['qty_dlvd'] ?? 0)
+                    'qty_dlvd' => (int)($orderProduct['qty_dlvd'] ?? 0),
                 ];
                 $orderProductArray['price_inc'] = round((float)$orderProductArray['price_exc'] * (1 + $orderProductArray['tax_rate'] / 100), 2);
                 $return['product'][] = $orderProductArray;
@@ -505,7 +510,7 @@ class OrderPayment
                     case 'total':
                         $orderTotalArray = [
                             'price_exc' => (float)$orderTotal['value_exc_vat'],
-                            'price_inc' => (float)$orderTotal['value_inc_tax']
+                            'price_inc' => (float)$orderTotal['value_inc_tax'],
                         ];
                         if ($code == 'shipping') {
                             $orderTotalArray['module'] = trim($orderInstance->info['shipping_class']);
@@ -515,17 +520,17 @@ class OrderPayment
                         }
                         $return['total'][$code] = $orderTotalArray;
                         unset($orderTotalArray);
-                    break;
+                        break;
                     case 'paid':
                     case 'due':
                     case 'refund':
                         $orderTotalArray = [
                             'price_exc' => (float)$orderTotal['value_inc_tax'],
-                            'price_inc' => (float)$orderTotal['value_inc_tax']
+                            'price_inc' => (float)$orderTotal['value_inc_tax'],
                         ];
                         $return['total'][$code] = $orderTotalArray;
                         unset($orderTotalArray);
-                    break;
+                        break;
                 }
             }
             unset($orderTotal);
@@ -533,101 +538,102 @@ class OrderPayment
         return $return;
     }
 
-/**
- * update transaction details, order paid/due/refunded totals, <order status, and send notification>.
- * payment class getTransactionDetails and parseTransactionDetails are called
- * init payment class according appropriate platform details.
- * @param array|common\models\OrdersPayment $data
- * @param \common\classes\modules\TransactionalInterface $class
- * @param \common\services\OrderManager $orderManager
- * @param bool $updateStatusAndNotify
- * @return true|string true or error message
- */
-    public static function updateTransactionDetails($data, &$class, &$orderManager, $updateStatusAndNotify = true) {
-      $rs = true;
+    /**
+     * update transaction details, order paid/due/refunded totals, <order status, and send notification>.
+     * payment class getTransactionDetails and parseTransactionDetails are called
+     * init payment class according appropriate platform details.
+     * @param array|common\models\OrdersPayment $data
+     * @param \common\classes\modules\TransactionalInterface $class
+     * @param \common\services\OrderManager $orderManager
+     * @param bool $updateStatusAndNotify
+     * @return true|string true or error message
+     */
+    public static function updateTransactionDetails($data, &$class, &$orderManager, $updateStatusAndNotify = true)
+    {
+        $rs = true;
 
-      if ($data instanceof \common\models\OrdersPayment) {
-        $data = $data->attributes;
-      }
-      
-      if (is_object($class)
-        && $class instanceof \common\classes\modules\TransactionalInterface
-        && method_exists($class, 'parseTransactionDetails') ) {
-        try {
-
-          $details = $class->getTransactionDetails($data['orders_payment_transaction_id']);
-          /** @var \common\services\PaymentTransactionManager $tManager */
-          $tManager = $orderManager->getTransactionManager($class);
-
-          $response = $class->parseTransactionDetails($details);
-          
-          /** @var \common\classes\Order $order */
-          $order = $orderManager->getOrderInstanceWithId('\common\classes\Order', $data['orders_payment_order_id']);
-
-          $ret = $tManager->updatePaymentTransaction($response['transaction_id'], array_merge($data, $response));
-          if ($ret) { //updated transaction - update totals, order status and notify customer if required
-            $updated = false;
-            if ($order) {
-              $updated = $order->updatePaidTotals();
-            }
-            if ($updated) { //update order status and notify customer if required
-              $status = '';
-              if (isset($updated['paid']) && $updated['details']['debit']>0) {
-                //if ($updated['details']['status']>0) {// has due
-                if (abs(
-                    round($updated['details']['total'], 2)-
-                    round($updated['details']['debit'], 2)
-                    ) < 0.01) {
-                  $status = $class->paidOrderStatus();
-                } else {
-                  $status = $class->partlyPaidOrderStatus();
-                }
-              } elseif (isset($updated['refund']) && ($updated['details']['credit']>0 || $updated['details']['due']>0)) {
-                  $tmp = (($updated['details']['credit']??0)>0 ? $updated['details']['credit'] : $updated['details']['due']);
-                if (abs(
-                    round($updated['details']['total'], 2) - 
-                    round($tmp, 2)
-                    //round($updated['details']['credit'], 2)
-                    ) < 0.01) {
-                  $status = $class->refundOrderStatus();
-                } else {
-                  $status = $class->partialRefundOrderStatus();
-                }
-              }
-              if ($updateStatusAndNotify && !empty($status) && $status != $order->info['order_status']) {
-                $order->update_status_and_notify($status);
-              }
-
-            }
-          } elseif (is_null($ret)) {
-            \Yii::warning(" #### " .print_r($response, 1), 'TLDEBUG');
-            $rs = $data['orders_payment_transaction_id'] . ' - ' . $class->code . ' - ' .  TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION;
-          }
-
-        } catch (Exception $ex) {
-          \Yii::warning(" #### " .print_r($ex->getMessage(), 1), 'TLDEBUG');
-          $rs = $data['orders_payment_transaction_id'] . ' - ' . $class->code . ' - ' .  $ex->getMessage();
+        if ($data instanceof \common\models\OrdersPayment) {
+            $data = $data->attributes;
         }
-      } else {
-        //backward compatibility
-        /** @var \common\services\PaymentTransactionManager $tManager */
-        $tManager = $orderManager->getTransactionManager($class);
 
-        $details = $class->getTransactionDetails($data['orders_payment_transaction_id'], $tManager);
+        if (is_object($class)
+          && $class instanceof \common\classes\modules\TransactionalInterface
+          && method_exists($class, 'parseTransactionDetails')) {
+            try {
 
-      }
-      return $rs;
+                $details = $class->getTransactionDetails($data['orders_payment_transaction_id']);
+                /** @var \common\services\PaymentTransactionManager $tManager */
+                $tManager = $orderManager->getTransactionManager($class);
+
+                $response = $class->parseTransactionDetails($details);
+
+                /** @var \common\classes\Order $order */
+                $order = $orderManager->getOrderInstanceWithId('\common\classes\Order', $data['orders_payment_order_id']);
+
+                $ret = $tManager->updatePaymentTransaction($response['transaction_id'], array_merge($data, $response));
+                if ($ret) { //updated transaction - update totals, order status and notify customer if required
+                    $updated = false;
+                    if ($order) {
+                        $updated = $order->updatePaidTotals();
+                    }
+                    if ($updated) { //update order status and notify customer if required
+                        $status = '';
+                        if (isset($updated['paid']) && $updated['details']['debit'] > 0) {
+                            //if ($updated['details']['status']>0) {// has due
+                            if (abs(
+                                round($updated['details']['total'], 2) -
+                                round($updated['details']['debit'], 2)
+                            ) < 0.01) {
+                                $status = $class->paidOrderStatus();
+                            } else {
+                                $status = $class->partlyPaidOrderStatus();
+                            }
+                        } elseif (isset($updated['refund']) && ($updated['details']['credit'] > 0 || $updated['details']['due'] > 0)) {
+                            $tmp = (($updated['details']['credit'] ?? 0) > 0 ? $updated['details']['credit'] : $updated['details']['due']);
+                            if (abs(
+                                round($updated['details']['total'], 2) -
+                                round($tmp, 2)
+                                //round($updated['details']['credit'], 2)
+                            ) < 0.01) {
+                                $status = $class->refundOrderStatus();
+                            } else {
+                                $status = $class->partialRefundOrderStatus();
+                            }
+                        }
+                        if ($updateStatusAndNotify && !empty($status) && $status != $order->info['order_status']) {
+                            $order->update_status_and_notify($status);
+                        }
+
+                    }
+                } elseif (is_null($ret)) {
+                    \Yii::warning(' #### ' .print_r($response, 1), 'TLDEBUG');
+                    $rs = $data['orders_payment_transaction_id'] . ' - ' . $class->code . ' - ' .  TEXT_MESSAGE_ERROR_INCORRECT_TRANSACTION;
+                }
+
+            } catch (Exception $ex) {
+                \Yii::warning(' #### ' .print_r($ex->getMessage(), 1), 'TLDEBUG');
+                $rs = $data['orders_payment_transaction_id'] . ' - ' . $class->code . ' - ' .  $ex->getMessage();
+            }
+        } else {
+            //backward compatibility
+            /** @var \common\services\PaymentTransactionManager $tManager */
+            $tManager = $orderManager->getTransactionManager($class);
+
+            $details = $class->getTransactionDetails($data['orders_payment_transaction_id'], $tManager);
+
+        }
+        return $rs;
     }
 
     /**
      *
      * @param int $id
-     * @return int 
+     * @return int
      */
-    public static function hasChildren($id) {
-      $q = \common\models\OrdersPayment::find()->andWhere(['orders_payment_id_parent' => (int)$id]);
-      return $q->count();
+    public static function hasChildren($id)
+    {
+        $q = \common\models\OrdersPayment::find()->andWhere(['orders_payment_id_parent' => (int)$id]);
+        return $q->count();
     }
-
 
 }

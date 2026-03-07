@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,10 +14,8 @@
 
 namespace common\models;
 
-
 class ShippingZoneTableCheckoutNote extends \yii\db\ActiveRecord
 {
-
     /**
      * @inheritdoc
      */
@@ -23,6 +23,5 @@ class ShippingZoneTableCheckoutNote extends \yii\db\ActiveRecord
     {
         return 'zone_table_checkout_note';
     }
-
 
 }

@@ -1,9 +1,8 @@
 <?php
+
 declare (strict_types=1);
 
-
 namespace common\models\repositories;
-
 
 use common\models\OrdersLabelToOrdersProducts;
 
@@ -32,7 +31,7 @@ class OrdersLabelToOrdersProductsRepository
         $product = OrdersLabelToOrdersProducts::find()->where(['orders_label_id' => $ordersLabelId])->asArray($asArray);
         return $product->all();
     }
-    
+
     /**
      * @param OrdersLabelToOrdersProducts $ordersLabelProduct
      * @param array $params
@@ -63,9 +62,10 @@ class OrdersLabelToOrdersProductsRepository
      * @throws \yii\db\StaleObjectException
      * @throws \RuntimeException
      */
-    public function remove(OrdersLabelToOrdersProducts $ordersLabelProduct) {
+    public function remove(OrdersLabelToOrdersProducts $ordersLabelProduct)
+    {
         if ($ordersLabelProduct->delete() === false) {
-            throw new \RuntimeException( 'Orders Label remove error.' );
+            throw new \RuntimeException('Orders Label remove error.');
         }
         return true;
     }
@@ -76,9 +76,10 @@ class OrdersLabelToOrdersProductsRepository
      * @return bool
      * @throws \RuntimeException
      */
-    public function save(OrdersLabelToOrdersProducts $ordersLabelProduct, bool $validation = false) {
+    public function save(OrdersLabelToOrdersProducts $ordersLabelProduct, bool $validation = false)
+    {
         if ($ordersLabelProduct->save($validation) === false) {
-            throw new \RuntimeException( 'Orders Label save error.' );
+            throw new \RuntimeException('Orders Label save error.');
         }
         return true;
     }
@@ -89,12 +90,12 @@ class OrdersLabelToOrdersProductsRepository
      * @param bool $asArray
      * @return array|OrdersLabelToOrdersProducts|null
      */
-    public function findLabelByOrder(int $orderId, $productsId, bool $asArray=false)
+    public function findLabelByOrder(int $orderId, $productsId, bool $asArray = false)
     {
         $orderLabelProduct = OrdersLabelToOrdersProducts::find()
             ->where([
                 'orders_products_id' => $productsId,
-                'orders_id' => $orderId
+                'orders_id' => $orderId,
             ])
             ->limit(1)
             ->asArray($asArray)

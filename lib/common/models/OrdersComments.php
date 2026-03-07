@@ -1,9 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
-use yii\db\ActiveRecord;
 use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
 
 class OrdersComments extends ActiveRecord
 {
@@ -11,12 +13,14 @@ class OrdersComments extends ActiveRecord
     {
         return 'orders_comments';
     }
-    
-    public static function primaryKey(){
+
+    public static function primaryKey()
+    {
         return ['orders_comments_id'];
     }
-    
-    public function behaviors() {
+
+    public function behaviors()
+    {
         return [
             [
                 'class' => TimestampBehavior::className(),
@@ -27,8 +31,9 @@ class OrdersComments extends ActiveRecord
             ],
         ];
     }
-    
-    public function getAdmin(){
+
+    public function getAdmin()
+    {
         return $this->hasOne(Admin::className(), ['admin_id' => 'admin_id']);
     }
 
@@ -38,28 +43,31 @@ class OrdersComments extends ActiveRecord
      * @param type $admin_id
      * @param type $order_comment
      * @param type $toInvoice
-     * @param type $visible - array('owner' => '') 
+     * @param type $visible - array('owner' => '')
      * @return \self
      */
-    public static function create($order_id, $admin_id, $order_comment, $toInvoice = false, $visible = array()){
+    public static function create($order_id, $admin_id, $order_comment, $toInvoice = false, $visible = [])
+    {
         $comment = null;
-        if ($toInvoice){
+        if ($toInvoice) {
             $comment = self::find()->where(['orders_id' => $order_id, 'for_invoice' => 1])->one();
         }
-        if (!$comment)
+        if (!$comment) {
             $comment = new self();
+        }
         $comment->setAttributes([
             'orders_id' => (int)$order_id,
             'comments' => strval($order_comment),
             'admin_id' => $admin_id,
             'for_invoice' => (int)$toInvoice,
-            'visible' => json_encode($visible)
+            'visible' => json_encode($visible),
         ], false);
         $comment->save(false);
         return $comment;
     }
-    
-    public static function findInvoiceComment($order_id){
+
+    public static function findInvoiceComment($order_id)
+    {
         return self::find()->where(['orders_id' => $order_id, 'for_invoice' => 1])->one();
     }
 }

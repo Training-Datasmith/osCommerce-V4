@@ -1,8 +1,10 @@
 <?php
 
-namespace common\services;
-use common\models\repositories\LanguagesRepository;
+declare(strict_types=1);
 
+namespace common\services;
+
+use common\models\repositories\LanguagesRepository;
 
 final class LanguagesService
 {

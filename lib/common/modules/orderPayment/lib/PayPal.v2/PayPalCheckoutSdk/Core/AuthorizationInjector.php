@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPalCheckoutSdk\Core;
 
+use PayPalHttp\HttpClient;
 use PayPalHttp\HttpRequest;
 use PayPalHttp\Injector;
-use PayPalHttp\HttpClient;
 
 class AuthorizationInjector implements Injector
 {
@@ -13,7 +15,7 @@ class AuthorizationInjector implements Injector
     private $refreshToken;
     /** @var AccessToken */
     public $accessToken;
-    
+
     /**
      * Instance of cipher used to encrypt/decrypt data while storing in cache.
      *
@@ -22,33 +24,30 @@ class AuthorizationInjector implements Injector
     private $cipher;
     private $clientId;
 
-
     public function __construct(HttpClient $client, PayPalEnvironment $environment, $refreshToken)
     {
         $this->client = $client;
         $this->environment = $environment;
         $this->refreshToken = $refreshToken;
-// TL cache add
+        // TL cache add
         $this->cipher = new \PayPal\Security\Cipher($this->environment->getClientSecret());
         $this->clientId = $this->environment->getClientId();
-// TL cache add end
+        // TL cache add end
     }
 
     public function inject($request)
     {
-        if (!$this->hasAuthHeader($request) && !$this->isAuthRequest($request))
-        {
+        if (!$this->hasAuthHeader($request) && !$this->isAuthRequest($request)) {
             // TL cache add
             $config = \PayPal\Core\PayPalConfigManager::getInstance();
             $token = \PayPal\Cache\AuthorizationCache::pull($config, $this->environment->getClientId());
             if ($token) {
-            // We found it in cache
-                $this->accessToken = new AccessToken($this->cipher->decrypt($token['accessTokenEncrypted']), $token['tokenType']??'Bearer', $token['tokenExpiresIn'], $token['tokenCreateTime']);
+                // We found it in cache
+                $this->accessToken = new AccessToken($this->cipher->decrypt($token['accessTokenEncrypted']), $token['tokenType'] ?? 'Bearer', $token['tokenExpiresIn'], $token['tokenCreateTime']);
             }
             // TL cache add end
 
-            if (is_null($this->accessToken) || $this->accessToken->isExpired())
-            {
+            if (is_null($this->accessToken) || $this->accessToken->isExpired()) {
                 $this->accessToken = $this->fetchAccessToken();
                 // TL cache add
                 \PayPal\Cache\AuthorizationCache::push($config, $this->clientId, $this->cipher->encrypt($this->accessToken->token), $this->accessToken->getCreateDate(), $this->accessToken->expiresIn);
@@ -72,6 +71,6 @@ class AuthorizationInjector implements Injector
 
     private function hasAuthHeader(HttpRequest $request)
     {
-        return array_key_exists("Authorization", $request->headers);
+        return array_key_exists('Authorization', $request->headers);
     }
 }

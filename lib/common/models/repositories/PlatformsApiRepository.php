@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace common\models\repositories;
 
-
 use common\extensions\PlatformSoapServer\models\PlatformsApi;
 
 class PlatformsApiRepository
 {
-
     /**
      * @param $apiKey
      * @return bool|PlatformsApi
@@ -25,7 +25,7 @@ class PlatformsApiRepository
     public static function findPlatformApiByKey($apiKey)
     {
         $apiKey = trim($apiKey);
-        if ( !empty($apiKey) ) {
+        if (!empty($apiKey)) {
             return PlatformsApi::findOne(['api_key' => $apiKey]);
         }
         return false;
@@ -33,7 +33,7 @@ class PlatformsApiRepository
 
     public static function findPlatformByApiKey($apiKey)
     {
-        if ($platformApi = static::findPlatformApiByKey($apiKey)){
+        if ($platformApi = static::findPlatformApiByKey($apiKey)) {
             return $platformApi->platform;
         }
         return false;

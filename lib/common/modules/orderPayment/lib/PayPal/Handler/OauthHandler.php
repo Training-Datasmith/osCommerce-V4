@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * API handler for OAuth Token Request REST API calls
  */
@@ -52,11 +54,11 @@ class OauthHandler implements IPayPalHandler
             (isset($options['path']) ? $options['path'] : '')
         );
 
-        $headers = array(
-            "User-Agent"    => PayPalUserAgent::getValue(PayPalConstants::SDK_NAME, PayPalConstants::SDK_VERSION),
-            "Authorization" => "Basic " . base64_encode($options['clientId'] . ":" . $options['clientSecret']),
-            "Accept"        => "*/*"
-        );
+        $headers = [
+            'User-Agent'    => PayPalUserAgent::getValue(PayPalConstants::SDK_NAME, PayPalConstants::SDK_VERSION),
+            'Authorization' => 'Basic ' . base64_encode($options['clientId'] . ':' . $options['clientSecret']),
+            'Accept'        => '*/*',
+        ];
         $httpConfig->setHeaders($headers);
 
         // Add any additional Headers that they may have provided
@@ -96,7 +98,7 @@ class OauthHandler implements IPayPalHandler
             $baseEndpoint = PayPalConstants::REST_SANDBOX_ENDPOINT;
         }
 
-        $baseEndpoint = rtrim(trim($baseEndpoint), '/') . "/v1/oauth2/token";
+        $baseEndpoint = rtrim(trim($baseEndpoint), '/') . '/v1/oauth2/token';
 
         return $baseEndpoint;
     }

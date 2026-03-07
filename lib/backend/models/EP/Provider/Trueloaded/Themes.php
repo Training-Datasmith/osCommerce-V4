@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +13,6 @@
  */
 
 namespace backend\models\EP\Provider\Trueloaded;
-
 
 use common\api\models\XML\IOCore;
 
@@ -28,9 +29,9 @@ class Themes extends XmlBase
     public function prepareExport($useColumns, $filter)
     {
         //hideProperties
-        if ( is_array($filter) ) {
-            $this->withImages = ( isset($filter['with_images']) && $filter['with_images']);
-            if ( !$this->withImages ) {
+        if (is_array($filter)) {
+            $this->withImages = (isset($filter['with_images']) && $filter['with_images']);
+            if (!$this->withImages) {
                 $keyData = key($this->ConfigureMap['Data']);
                 $this->ConfigureMap['Data'][$keyData]['properties']['themeBackup'] = false;
                 parent::init();
@@ -39,6 +40,5 @@ class Themes extends XmlBase
 
         parent::prepareExport($useColumns, $filter);
     }
-
 
 }

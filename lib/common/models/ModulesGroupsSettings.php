@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "modules_groups_settings".
@@ -31,7 +31,7 @@ class ModulesGroupsSettings extends \yii\db\ActiveRecord
             [['platform_id', 'group_list'], 'required'],
             [['platform_id'], 'integer'],
             [['group_list'], 'string'],
-            [['code'], 'string', 'max' => 64]
+            [['code'], 'string', 'max' => 64],
         ];
     }
 

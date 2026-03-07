@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Validation;
 
 /**
@@ -9,7 +11,6 @@ namespace PayPal\Validation;
  */
 class UrlValidator
 {
-
     /**
      * Helper method for validating URLs that will be used by this API in any requests.
      *

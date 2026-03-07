@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -29,7 +31,7 @@ class m240313_143541_remove_catalog_pages extends Migration
         $this->dropTables([
             'catalog_pages_to_information',
             'catalog_pages',
-            'catalog_pages_description'
+            'catalog_pages_description',
         ]);
 
         $this->removeTranslation('admin/catalog-pages');
@@ -38,7 +40,7 @@ class m240313_143541_remove_catalog_pages extends Migration
             'BOX_HEADING_CATALOG_PAGES',
             'TEXT_CREATE_NEW_CATALOG_PAGE',
             'TEXT_COUNT_ON_PAGE',
-            'TEXT_SELECT_CATEGORY_PAGE'
+            'TEXT_SELECT_CATEGORY_PAGE',
         ]);
 
         $this->removeTranslation('main', [
@@ -47,7 +49,7 @@ class m240313_143541_remove_catalog_pages extends Migration
             'TEXT_WIDGET_CATEGORY_PAGE_LAST_LIST_BY_CATALOG',
             'TEXT_WIDGET_CATEGORY_PAGE_LAST_LIST_BLOCK',
             'TEXT_WIDGET_CATEGORY_PAGE_LAST_LIST_BY_CATALOG_BLOCK',
-            'LAST_EVENTS'
+            'LAST_EVENTS',
         ]);
 
     }
@@ -117,7 +119,7 @@ class m240313_143541_remove_catalog_pages extends Migration
             )")->execute();
         }
         if (!$this->isTableExists('catalog_pages_to_information')) {
-            $this->db->createCommand("CREATE TABLE `catalog_pages_to_information` (
+            $this->db->createCommand('CREATE TABLE `catalog_pages_to_information` (
                 `catalog_pages_id` INT(11) NOT NULL,
                 `information_id` INT(11) NOT NULL,
                 PRIMARY KEY (`catalog_pages_id`, `information_id`),
@@ -125,19 +127,19 @@ class m240313_143541_remove_catalog_pages extends Migration
                 INDEX `information_id` (`information_id`),
                 CONSTRAINT `FK_catalog_pages_to_information_catalog_pages` FOREIGN KEY (`catalog_pages_id`) REFERENCES `catalog_pages` (`catalog_pages_id`) ON UPDATE NO ACTION ON DELETE NO ACTION,
                 CONSTRAINT `FK_catalog_pages_to_information_information` FOREIGN KEY (`information_id`) REFERENCES `information` (`information_id`) ON UPDATE NO ACTION ON DELETE NO ACTION
-            )")->execute();
+            )')->execute();
         }
 
         $this->addTranslation('admin/catalog-pages', [
             'TITLE_CREATE_EDIT_CATALOG_PAGE' => 'Edit Catalog Page',
-            'TITLE_CREATE_NEW_CATALOG_PAGE' => 'Create New Catalog Page'
+            'TITLE_CREATE_NEW_CATALOG_PAGE' => 'Create New Catalog Page',
         ]);
 
         $this->addTranslation('admin/main', [
             'BOX_HEADING_CATALOG_PAGES' => 'Catalog Pages',
             'TEXT_CREATE_NEW_CATALOG_PAGE' => 'Create Catalog Page',
             'TEXT_COUNT_ON_PAGE' => 'Count On Page',
-            'TEXT_SELECT_CATEGORY_PAGE' => 'Select Category Pages'
+            'TEXT_SELECT_CATEGORY_PAGE' => 'Select Category Pages',
         ]);
 
         $this->addTranslation('main', [
@@ -146,7 +148,7 @@ class m240313_143541_remove_catalog_pages extends Migration
             'TEXT_WIDGET_CATEGORY_PAGE_LAST_LIST_BY_CATALOG' => 'Catalog Pages Last List By Catalog',
             'TEXT_WIDGET_CATEGORY_PAGE_LAST_LIST_BLOCK' => 'Catalog Pages Block Last List',
             'TEXT_WIDGET_CATEGORY_PAGE_LAST_LIST_BY_CATALOG_BLOCK' => 'Catalog Pages Block Last List By Catalog',
-            'LAST_EVENTS' => 'Last Events'
+            'LAST_EVENTS' => 'Last Events',
         ]);
 
     }

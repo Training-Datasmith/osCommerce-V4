@@ -1,35 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2005 Holbi Group Ltd
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\helpers;
 
-class Export {
-
+class Export
+{
     private static $xlsLib = 'spout';
     private static $toFile;
     private static $toBrowser;
     private static $sheet;
-  
-  /**
-   * create and init default export writer object
-   * 2do config default file type per front/back, frontend, preferable by customer/admin
-   * $writer= getWriter('filename without extension'); $writer->addRow($header); .... $writer->close();
-   * @param string $filename
-   * @param bool $toBrowser
-   * @param int $customer_id
-   * @param string $fileType
-   * @return object|null
-   */
+
+    /**
+     * create and init default export writer object
+     * 2do config default file type per front/back, frontend, preferable by customer/admin
+     * $writer= getWriter('filename without extension'); $writer->addRow($header); .... $writer->close();
+     * @param string $filename
+     * @param bool $toBrowser
+     * @param int $customer_id
+     * @param string $fileType
+     * @return object|null
+     */
     public static function getWriter($filename, $toBrowser = true, $customer_id = 0, $fileType = '')
     {
         $writer = null;
@@ -43,7 +45,7 @@ class Export {
         switch ($fileType) {
             case 'CSV':
                 $filename .= '.csv';
-                $writer = new \backend\models\EP\Formatter\CSV('write', array(), $filename);
+                $writer = new \backend\models\EP\Formatter\CSV('write', [], $filename);
                 break;
             case 'XLSX':
             default:
@@ -61,12 +63,13 @@ class Export {
                         } else {
                             $writer->openToFile($filename);
                         }
+                        // no break
                     case 'phpoffice':
-                    {
-                        self::$sheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
-                        $writer = self::$sheet->getActiveSheet();
-                        break;
-                    }
+                        {
+                            self::$sheet = new \PhpOffice\PhpSpreadsheet\Spreadsheet();
+                            $writer = self::$sheet->getActiveSheet();
+                            break;
+                        }
                 }
                 break;
         }
@@ -76,24 +79,22 @@ class Export {
     public static function addRowToWriter($writer, $rowArray)
     {
         static $line = 1;
-        switch (self::getWriterType($writer))
-        {
+        switch (self::getWriterType($writer)) {
             case 'csv':
                 $writer->addRow($rowArray);
                 break;
             case 'spout':
-                $writer->addRow( \Box\Spout\Writer\Common\Creator\WriterEntityFactory::createRowFromArray($rowArray) );
+                $writer->addRow(\Box\Spout\Writer\Common\Creator\WriterEntityFactory::createRowFromArray($rowArray));
                 break;
             case 'phpoffice':
-                $writer->fromArray([$rowArray], NULL, 'A' . $line++);
+                $writer->fromArray([$rowArray], null, 'A' . $line++);
                 break;
         }
     }
 
     public static function finishWriter($writer)
     {
-        switch (self::getWriterType($writer))
-        {
+        switch (self::getWriterType($writer)) {
             case 'csv':
                 $writer->close();
                 break;
@@ -127,7 +128,5 @@ class Export {
             return self::$xlsLib;
         }
     }
-
-
 
 }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,30 +14,32 @@
 
 namespace backend\design\editor;
 
-
 use Yii;
 use yii\base\Widget;
 
-class ExtraCharge extends Widget {
-
+class ExtraCharge extends Widget
+{
     public $manager;
     public $product;
     public $edit = true;
 
-    public function init(){
+    public function init()
+    {
         parent::init();
-        if (!$this->product) throw new \Exception('Product is not defined');
+        if (!$this->product) {
+            throw new \Exception('Product is not defined');
+        }
     }
 
     public function run()
     {
         $predefined = null;
-        if (isset($this->product['overwritten']) && !empty($this->product['overwritten'])){
+        if (isset($this->product['overwritten']) && !empty($this->product['overwritten'])) {
             $predefined = $this->product['overwritten']['final_price_formula_data'][1]['vars'] ?? null;
         }
 
         $isOverwitten = (bool)$predefined;
-        if (!$predefined){
+        if (!$predefined) {
             $predefined = [
                 'init_value' => 0,
                 'percent_action' => '-',

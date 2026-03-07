@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,8 +14,8 @@
 
 namespace common\classes\modules;
 
-trait SceletonExtensionsTrait {
-
+trait SceletonExtensionsTrait
+{
     private $extensionDir;
     private $extensionClass;
     private $viewDir;
@@ -26,7 +28,7 @@ trait SceletonExtensionsTrait {
         $this->controllerShortClass = $ref->getShortName();
         $baseDir = dirname($ref->getFileName(), 2); // backend or frontend
         $this->extensionDir = dirname($baseDir);
-        \common\helpers\Assert::assert( basename(dirname($this->extensionDir)) == 'extensions', "Unexpected controller path");
+        \common\helpers\Assert::assert(basename(dirname($this->extensionDir)) == 'extensions', 'Unexpected controller path');
 
         $this->viewDir = $baseDir . '/views/';
         $this->extensionClass = basename($this->extensionDir);
@@ -37,11 +39,11 @@ trait SceletonExtensionsTrait {
         return $this->viewDir . DIRECTORY_SEPARATOR . $this->id;
     }
 
-    private function _getAcl(string $actionName, string $controller, bool $default )
+    private function _getAcl(string $actionName, string $controller, bool $default)
     {
         $res = $this->ext::getAcl($actionName, $controller, false);
         if (empty($res)) {
-            if ($pos=strpos($actionName, '-')) {
+            if ($pos = strpos($actionName, '-')) {
                 $res = $this->ext::getAcl(substr($actionName, 0, $pos), $controller, $default);
             } elseif ($default) {
                 $res = $this->ext::getAcl($actionName, $controller, true);
@@ -50,7 +52,7 @@ trait SceletonExtensionsTrait {
         return $res;
     }
 
-    protected function getAcl(string $actionName = '' )
+    protected function getAcl(string $actionName = '')
     {
         $res = $this->_getAcl($actionName, $this->id, false);
         if (empty($res)) {
@@ -68,5 +70,5 @@ trait SceletonExtensionsTrait {
         }
         $this->ext::initTranslation('init_controller');
     }
-   
+
 }

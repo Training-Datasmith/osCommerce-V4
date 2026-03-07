@@ -1,8 +1,15 @@
-<?php 
+<?php
+
+declare(strict_types=1);
+
 namespace common\modules\email\Mandrill;
+
 use common\modules\email\Mandrill;
-class Metadata {
-    public function __construct(Mandrill $master) {
+
+class Metadata
+{
+    public function __construct(Mandrill $master)
+    {
         $this->master = $master;
     }
 
@@ -14,8 +21,9 @@ class Metadata {
      *         - state string the current state of the metadata field, one of "active", "delete", or "index"
      *         - view_template string Mustache template to control how the metadata is rendered in your activity log
      */
-    public function getList() {
-        $_params = array();
+    public function getList()
+    {
+        $_params = [];
         return $this->master->call('metadata/list', $_params);
     }
 
@@ -28,8 +36,9 @@ class Metadata {
      *     - state string the current state of the metadata field, one of "active", "delete", or "index"
      *     - view_template string Mustache template to control how the metadata is rendered in your activity log
      */
-    public function add($name, $view_template=null) {
-        $_params = array("name" => $name, "view_template" => $view_template);
+    public function add($name, $view_template = null)
+    {
+        $_params = ['name' => $name, 'view_template' => $view_template];
         return $this->master->call('metadata/add', $_params);
     }
 
@@ -42,8 +51,9 @@ class Metadata {
      *     - state string the current state of the metadata field, one of "active", "delete", or "index"
      *     - view_template string Mustache template to control how the metadata is rendered in your activity log
      */
-    public function update($name, $view_template) {
-        $_params = array("name" => $name, "view_template" => $view_template);
+    public function update($name, $view_template)
+    {
+        $_params = ['name' => $name, 'view_template' => $view_template];
         return $this->master->call('metadata/update', $_params);
     }
 
@@ -55,11 +65,10 @@ class Metadata {
      *     - state string the current state of the metadata field, one of "active", "delete", or "index"
      *     - view_template string Mustache template to control how the metadata is rendered in your activity log
      */
-    public function delete($name) {
-        $_params = array("name" => $name);
+    public function delete($name)
+    {
+        $_params = ['name' => $name];
         return $this->master->call('metadata/delete', $_params);
     }
 
 }
-
-

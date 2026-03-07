@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,18 +16,18 @@
 namespace backend\models\EP\Datasource;
 
 use backend\models\EP\DatasourceBase;
-use backend\models\EP\DataSources;
-use backend\models\EP\Directory;
 
-class OSCommerce extends DatasourceBase {
-
+class OSCommerce extends DatasourceBase
+{
     protected $remoteData = [];
 
-    public function getName() {
+    public function getName()
+    {
         return 'OSCommerce 2.2-2.3';
     }
 
-    public static function getProviderList() {
+    public static function getProviderList()
+    {
         return [
             'OSCommerce\\ImportBrands' => [
                 'group' => 'OSCommerce 2.2-2.3',
@@ -102,11 +104,13 @@ class OSCommerce extends DatasourceBase {
         ];
     }
 
-    public function getViewTemplate() {
+    public function getViewTemplate()
+    {
         return 'datasource/trueloaded.tpl';
     }
 
-    public function prepareConfigForView($configArray) {
+    public function prepareConfigForView($configArray)
+    {
         return parent::prepareConfigForView($configArray);
     }
 

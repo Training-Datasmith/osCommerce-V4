@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -24,10 +26,8 @@ use common\models\repositories\CustomersInfoRepository;
 use common\models\repositories\CustomersRepository;
 use common\models\repositories\OrderRepository;
 
-
 class CustomersService
 {
-
     /** @var CustomersRepository */
     private $customersRepository;
     /** @var CustomersInfoRepository */
@@ -45,8 +45,7 @@ class CustomersService
         TransactionManager $transactionManager,
         AddressBookRepository $addressBookRepository,
         OrderRepository $orderRepository
-    )
-    {
+    ) {
         $this->customersRepository = $customersRepository;
         $this->customersInfoRepository = $customersInfoRepository;
         $this->transactionManager = $transactionManager;
@@ -62,10 +61,10 @@ class CustomersService
      */
     public function setActive(Customers $customer)
     {
-        if($customer->customers_status){
+        if ($customer->customers_status) {
             return true;
         }
-        $this->customersRepository->edit($customer,['customers_status' => Customers::STATUS_ACTIVE]);
+        $this->customersRepository->edit($customer, ['customers_status' => Customers::STATUS_ACTIVE]);
     }
 
     /**
@@ -76,20 +75,20 @@ class CustomersService
      */
     public function setDisable(Customers $customer)
     {
-        if($customer->customers_status){
+        if ($customer->customers_status) {
             return true;
         }
-        $this->customersRepository->edit($customer,['customers_status' => Customers::STATUS_DISABLE]);
+        $this->customersRepository->edit($customer, ['customers_status' => Customers::STATUS_DISABLE]);
     }
 
-    public function getMutualSettlementList($start,$length,$platformId = false, $active = false, $isArray = false)
+    public function getMutualSettlementList($start, $length, $platformId = false, $active = false, $isArray = false)
     {
-        return $this->customersRepository->getMutualSettlementList($start,$length,$platformId,$active,$isArray);
+        return $this->customersRepository->getMutualSettlementList($start, $length, $platformId, $active, $isArray);
     }
 
     public function getMutualSettlementListTotal($platformId = false, $active = false)
     {
-        return $this->customersRepository->getMutualSettlementListTotal($platformId,$active);
+        return $this->customersRepository->getMutualSettlementListTotal($platformId, $active);
     }
 
     /**
@@ -134,7 +133,7 @@ class CustomersService
     {
         $token = $this->generateLoginToken();
         $customerInfo = $this->customersInfoRepository->getByCustomer($customer->customers_id);
-        $this->customersInfoRepository->edit($customerInfo,['token'=> $token,'time_long' => new \yii\db\Expression('NOW()')]);
+        $this->customersInfoRepository->edit($customerInfo, ['token' => $token,'time_long' => new \yii\db\Expression('NOW()')]);
         return $token;
     }
 
@@ -148,7 +147,7 @@ class CustomersService
      * @param string $index
      * @return array|Customers[]
      */
-    public function findAllByTermLimit(string $term = null, bool $active = true, int $limit = 20, int $offset = 0 ,  bool $asArray = false , array $fields = [], string $index = null)
+    public function findAllByTermLimit(string $term = null, bool $active = true, int $limit = 20, int $offset = 0, bool $asArray = false, array $fields = [], string $index = null)
     {
         return $this->customersRepository->findAllByTermLimit($term, $active, $limit, $offset, $asArray, $fields, $index);
     }
@@ -172,32 +171,32 @@ class CustomersService
      */
     public function mergeCustomers(int $mainCustomerId, int $mergeCustomerId)
     {
-        try{
-            $this->transactionManager->wrap(function() use ($mainCustomerId, $mergeCustomerId) {
+        try {
+            $this->transactionManager->wrap(function () use ($mainCustomerId, $mergeCustomerId) {
 
                 $originABs = $this->addressBookRepository->findByCustomer($mainCustomerId, true);
                 $mergeABs = $this->addressBookRepository->findByCustomer($mergeCustomerId, true);
 
-                if(count($originABs) !== 1 || count($mergeABs) !== 1) {
-                    $orders = Orders::updateAll(['customers_id' => $mainCustomerId],[
+                if (count($originABs) !== 1 || count($mergeABs) !== 1) {
+                    $orders = Orders::updateAll(['customers_id' => $mainCustomerId], [
                         'customers_id' => $mergeCustomerId,
                         'billing_address_book_id' => 0,
                         'delivery_address_book_id' => 0,
                     ]);
-                    if ($orders > 0 ) {
+                    if ($orders > 0) {
                         $this->deleteCustomerInfo($mergeCustomerId);
                         return true;
                     }
                     return false;
                 }
 
-                AddressBook::updateAll(['customers_id' => $mainCustomerId],['customers_id' => $mergeCustomerId]);
-                Orders::updateAll(['customers_id' => $mainCustomerId],['customers_id' => $mergeCustomerId]);
+                AddressBook::updateAll(['customers_id' => $mainCustomerId], ['customers_id' => $mergeCustomerId]);
+                Orders::updateAll(['customers_id' => $mainCustomerId], ['customers_id' => $mergeCustomerId]);
                 $this->deleteCustomerInfo($mergeCustomerId);
 
             });
-        }catch (\Exception $e) {
-            throw new \RuntimeException( $e->getMessage() );
+        } catch (\Exception $e) {
+            throw new \RuntimeException($e->getMessage());
         }
     }
 

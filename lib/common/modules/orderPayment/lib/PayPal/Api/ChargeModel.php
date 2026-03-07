@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -21,7 +23,7 @@ class ChargeModel extends PayPalModel
      * Identifier of the charge model. 128 characters max.
      *
      * @param string $id
-     * 
+     *
      * @return $this
      */
     public function setId($id)
@@ -44,7 +46,7 @@ class ChargeModel extends PayPalModel
      * Type of charge model. Allowed values: `SHIPPING`, `TAX`.
      *
      * @param string $type
-     * 
+     *
      * @return $this
      */
     public function setType($type)
@@ -67,7 +69,7 @@ class ChargeModel extends PayPalModel
      * Specific amount for this charge model.
      *
      * @param \PayPal\Api\Currency $amount
-     * 
+     *
      * @return $this
      */
     public function setAmount($amount)

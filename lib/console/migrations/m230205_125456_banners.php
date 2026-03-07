@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230205_125456_banners extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/banner_manager',[
+        $this->addTranslation('admin/banner_manager', [
             'BANNER_COPIED' => 'Banner copied',
             'BANNER_NOT_COPIED' => 'Banner not copied',
             'BANNERS_WITHOUT_PLATFORM' => 'Banners without sales channel',
@@ -41,7 +43,6 @@ class m230205_125456_banners extends Migration
             'SHOW_EMPTY_GROUPS' => 'Show empty groups',
         ]);
 
-
         if (!$this->isTableExists('banners_groups_sizes')) {
             $this->createTable('banners_groups_sizes', [
                 'id' => $this->primaryKey(),
@@ -53,10 +54,10 @@ class m230205_125456_banners extends Migration
                 'image_height' => $this->integer(11)->notNull()->defaultValue(0),
             ]);
 
-            $this->getDb()->createCommand("
+            $this->getDb()->createCommand('
                 INSERT INTO banners_groups_sizes (id, banners_group, width_from, width_to, image_width, image_height)  
                 SELECT id, banners_group, width_from, width_to, image_width, image_height 
-                FROM banners_groups")->execute();
+                FROM banners_groups')->execute();
 
             $groups = [];
             $bannersGroups = \common\models\BannersGroups::find()->select('banners_group')->distinct()->asArray()->all();
@@ -65,15 +66,14 @@ class m230205_125456_banners extends Migration
                     $groups[$bannersGroup['banners_group']] = $bannersGroup['banners_group'];
                 }
             }
-            $bannersGroups = $this->getDb()->createCommand("SELECT * FROM banners_new")->queryAll();
+            $bannersGroups = $this->getDb()->createCommand('SELECT * FROM banners_new')->queryAll();
             if (is_array($bannersGroups)) {
                 foreach ($bannersGroups as $bannersGroup) {
                     $groups[$bannersGroup['banners_group']] = $bannersGroup['banners_group'];
                 }
             }
 
-
-            $this->getDb()->createCommand("TRUNCATE TABLE banners_groups")->execute();
+            $this->getDb()->createCommand('TRUNCATE TABLE banners_groups')->execute();
 
             foreach ($groups as $group) {
                 if ($group) {
@@ -83,8 +83,7 @@ class m230205_125456_banners extends Migration
                 }
             }
 
-
-            $this->getDb()->createCommand("TRUNCATE TABLE banners")->execute();
+            $this->getDb()->createCommand('TRUNCATE TABLE banners')->execute();
             $this->dropColumn('banners', 'banners_title');
             $this->dropColumn('banners', 'banners_url');
             $this->dropColumn('banners', 'banners_image');
@@ -93,23 +92,26 @@ class m230205_125456_banners extends Migration
             $this->addColumn('banners', 'nofollow', $this->integer(1)->notNull()->defaultValue(0));
             $this->addColumn('banners', 'group_id', $this->integer(1)->notNull()->after('banners_group')->defaultValue(0));
             $this->alterColumn('banners', 'banners_group', $this->string(255)->notNull()->defaultValue(''));
-            $this->getDb()->createCommand("
+            $this->getDb()->createCommand('
                 INSERT INTO banners (banners_id, banners_group, expires_impressions, expires_date, date_scheduled, date_added, date_status_change, status, affiliate_id, sort_order, banner_type, nofollow) 
                 SELECT banners_id, banners_group, expires_impressions, expires_date, date_scheduled, date_added, date_status_change, status, affiliate_id, sort_order, banner_type, nofollow 
-                FROM banners_new")->execute();
+                FROM banners_new')->execute();
 
             $bannersGroups = \common\models\BannersGroups::find()->asArray()->all();
-            if (is_array($bannersGroups))
+            if (is_array($bannersGroups)) {
                 foreach ($bannersGroups as $bannersGroup) {
-                    $this->update('banners_groups_sizes',
+                    $this->update(
+                        'banners_groups_sizes',
                         ['group_id' => $bannersGroup['id']],
                         ['banners_group' => $bannersGroup['banners_group']]
                     );
-                    $this->update('banners',
+                    $this->update(
+                        'banners',
                         ['group_id' => $bannersGroup['id']],
                         ['banners_group' => $bannersGroup['banners_group']]
                     );
                 }
+            }
 
             $this->dropColumn('banners_groups', 'width_from');
             $this->dropColumn('banners_groups', 'width_to');

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -28,7 +30,7 @@ class Order
     // settings
     public $deleteStatusHistorybeforeCreation = false;
 
-    public function set($orderArray = array())
+    public function set($orderArray = [])
     {
         $this->orders_id = 0;
         $this->orders = [];
@@ -68,7 +70,8 @@ class Order
         return ['Unknown error in Order API!' => 'error'];
     }
 
-    public function load($orders_id) {
+    public function load($orders_id)
+    {
         $this->orders_id = $orders_id;
 
         $this->orders = \common\models\Orders::find()->where(['orders_id' => $orders_id])->asArray()->one();
@@ -77,7 +80,7 @@ class Order
         }
 
         $this->orders_history = \common\models\OrdersHistory::find()->where(['orders_id' => $orders_id])->orderBy('orders_history_id')->asArray()->all();
-        if(is_array($this->orders_history)) {
+        if (is_array($this->orders_history)) {
             foreach ($this->orders_history as $index => $value) {
                 /*if (isset($this->orders_history[$index]['orders_history_id'])) {
                     unset($this->orders_history[$index]['orders_history_id']);
@@ -89,7 +92,7 @@ class Order
         }
 
         $this->orders_status_history = \common\models\OrdersStatusHistory::find()->where(['orders_id' => $orders_id])->orderBy('orders_status_history_id')->asArray()->all();
-        if(is_array($this->orders_status_history)) {
+        if (is_array($this->orders_status_history)) {
             foreach ($this->orders_status_history as $index => $value) {
                 /*if (isset($this->orders_status_history[$index]['orders_status_history_id'])) {
                     unset($this->orders_status_history[$index]['orders_status_history_id']);
@@ -101,7 +104,7 @@ class Order
         }
 
         $this->orders_total = \common\models\OrdersTotal::find()->where(['orders_id' => $orders_id])->orderBy('sort_order')->asArray()->all();
-        if(is_array($this->orders_total)) {
+        if (is_array($this->orders_total)) {
             foreach ($this->orders_total as $index => $value) {
                 /*if (isset($this->orders_total[$index]['orders_total_id'])) {
                     unset($this->orders_total[$index]['orders_total_id']);
@@ -113,7 +116,7 @@ class Order
         }
 
         $this->orders_transactions = \common\models\OrdersTransactions::find()->where(['orders_id' => $orders_id])->orderBy('orders_transactions_id')->asArray()->all();
-        if(is_array($this->orders_transactions)) {
+        if (is_array($this->orders_transactions)) {
             foreach ($this->orders_transactions as $index => $value) {
                 if (isset($this->orders_transactions[$index]['orders_id'])) {
                     unset($this->orders_transactions[$index]['orders_id']);
@@ -122,7 +125,7 @@ class Order
         }
 
         $this->orders_payment = \common\models\OrdersPayment::find()->where(['orders_payment_order_id' => $orders_id])->orderBy('orders_payment_id')->asArray()->all();
-        if(is_array($this->orders_payment)) {
+        if (is_array($this->orders_payment)) {
             foreach ($this->orders_payment as $index => $value) {
                 if (isset($this->orders_payment[$index]['orders_payment_order_id'])) {
                     unset($this->orders_payment[$index]['orders_payment_order_id']);
@@ -131,7 +134,7 @@ class Order
         }
 
         $orders_products = \common\models\OrdersProducts::find()->where(['orders_id' => $orders_id])->orderBy(['sort_order' => SORT_ASC, 'orders_products_id' => SORT_ASC])->asArray()->all();
-        if(is_array($orders_products)) {
+        if (is_array($orders_products)) {
             foreach ($orders_products as $value) {
                 $orders_products_id = $value['orders_products_id'];
                 unset($value['orders_id']);
@@ -141,7 +144,7 @@ class Order
         }
 
         $orders_products_allocate = \common\models\OrdersProductsAllocate::find()->where(['orders_id' => $orders_id])->orderBy('orders_products_id')->asArray()->all();
-        if(is_array($orders_products_allocate)) {
+        if (is_array($orders_products_allocate)) {
             foreach ($orders_products_allocate as $value) {
                 $orders_products_id = $value['orders_products_id'];
                 unset($value['orders_id']);
@@ -153,7 +156,7 @@ class Order
         }
 
         $orders_products_attributes = \common\models\OrdersProductsAttributes::find()->where(['orders_id' => $orders_id])->orderBy('orders_products_id')->asArray()->all();
-        if(is_array($orders_products_attributes)) {
+        if (is_array($orders_products_attributes)) {
             foreach ($orders_products_attributes as $value) {
                 $orders_products_id = $value['orders_products_id'];
                 unset($value['orders_id']);
@@ -165,7 +168,7 @@ class Order
         }
 
         $orders_products_download = \common\models\OrdersProductsDownload::find()->where(['orders_id' => $orders_id])->orderBy('orders_products_id')->asArray()->all();
-        if(is_array($orders_products_download)) {
+        if (is_array($orders_products_download)) {
             foreach ($orders_products_download as $value) {
                 $orders_products_id = $value['orders_products_id'];
                 unset($value['orders_id']);
@@ -177,7 +180,7 @@ class Order
         }
 
         $orders_products_status_history = \common\models\OrdersProductsStatusHistory::find()->where(['orders_id' => $orders_id])->orderBy('orders_products_id')->asArray()->all();
-        if(is_array($orders_products_status_history)) {
+        if (is_array($orders_products_status_history)) {
             foreach ($orders_products_status_history as $value) {
                 $orders_products_id = $value['orders_products_id'];
                 unset($value['orders_id']);
@@ -193,18 +196,20 @@ class Order
             ->where(['orders_id' => $this->orders_id])->orderBy(['tracking_numbers_id' => SORT_ASC])->asArray()->all();
     }
 
-    public function create() {
+    public function create()
+    {
         $this->orders_id = 0;
         $this->save();
     }
 
-    public function save($isCreate = false) {
+    public function save($isCreate = false)
+    {
         $isCreate = (((int)$isCreate > 0) ? true : false);
         $orders_id = (int)(((int)$this->orders_id > 0) ? $this->orders_id : 0);
 
         if ($orders_id > 0) {
             $orders = \common\models\Orders::find()->where(['orders_id' => $orders_id])->one();
-            if (($isCreate == true) AND !($orders instanceof \common\models\Orders)) {
+            if (($isCreate == true) and !($orders instanceof \common\models\Orders)) {
                 $orders = new \common\models\Orders();
                 $orders->loadDefaultValues();
                 $orders->orders_id = $orders_id;
@@ -280,8 +285,8 @@ class Order
                             }
                         }
                         $orders_status_history->detachBehavior('date_added');
-                        if ((!isset($item['date_added']) AND $orders_status_history->isNewRecord)
-                            OR (isset($item['date_added']) AND ($item['date_added'] == ''))
+                        if ((!isset($item['date_added']) and $orders_status_history->isNewRecord)
+                            or (isset($item['date_added']) and ($item['date_added'] == ''))
                         ) {
                             $item['date_added'] = date('Y-m-d H:i:s');
                         }
@@ -335,7 +340,7 @@ class Order
                         if (!($orders_transactions instanceof \common\models\OrdersTransactions)) {
                             $orders_transactions = \common\models\OrdersTransactions::find()->where([
                                 'orders_id' => $orders->orders_id,
-                                'transaction_id' => $item['transaction_id']
+                                'transaction_id' => $item['transaction_id'],
                             ])->one();
                             if (!($orders_transactions instanceof \common\models\OrdersTransactions)) {
                                 $orders_transactions = new \common\models\OrdersTransactions();
@@ -367,7 +372,7 @@ class Order
                                 'orders_payment_order_id' => $orders->orders_id,
                                 'orders_payment_module' => $item['orders_payment_module'],
                                 'orders_payment_is_credit' => $item['orders_payment_is_credit'],
-                                'orders_payment_transaction_id' => $item['orders_payment_transaction_id']
+                                'orders_payment_transaction_id' => $item['orders_payment_transaction_id'],
                             ])->one();
                             if (!($orders_payment instanceof \common\models\OrdersPayment)) {
                                 $orders_payment = new \common\models\OrdersPayment();
@@ -447,7 +452,7 @@ class Order
                                         'orders_id' => $orders->orders_id,
                                         'orders_products_id' => $orders_products->orders_products_id,
                                         'products_options_id' => $data['products_options_id'],
-                                        'products_options_values_id' => $data['products_options_values_id']
+                                        'products_options_values_id' => $data['products_options_values_id'],
                                     ])->one();
                                     if (!($orders_products_attributes instanceof \common\models\OrdersProductsAttributes)) {
                                         $orders_products_attributes = new \common\models\OrdersProductsAttributes();
@@ -473,20 +478,20 @@ class Order
             }
         }
 
-        $this->trackingNumberRecordArray = (is_array($this->trackingNumberRecordArray) ? $this->trackingNumberRecordArray : array());
+        $this->trackingNumberRecordArray = (is_array($this->trackingNumberRecordArray) ? $this->trackingNumberRecordArray : []);
         foreach ($this->trackingNumberRecordArray as $keyTn => &$trackingNumberRecord) {
             $trackingNumberId = (int)(isset($trackingNumberRecord['tracking_numbers_id']) ? $trackingNumberRecord['tracking_numbers_id'] : 0);
             unset($trackingNumberRecord['orders_id']);
             unset($trackingNumberRecord['tracking_numbers_id']);
             $trackingNumberRecord['tracking_number'] = trim(isset($trackingNumberRecord['tracking_number']) ? $trackingNumberRecord['tracking_number'] : '');
             $trackingNumberRecord['tracking_carriers_id'] = (int)(isset($trackingNumberRecord['tracking_carriers_id']) ? $trackingNumberRecord['tracking_carriers_id'] : 0);
-            if (($trackingNumberRecord['tracking_number'] == '') OR ($trackingNumberRecord['tracking_carriers_id'] <= 0)) {
+            if (($trackingNumberRecord['tracking_number'] == '') or ($trackingNumberRecord['tracking_carriers_id'] <= 0)) {
                 continue;
             }
             $tnRecord = \common\models\TrackingNumbers::find()->where([
                 'orders_id' => $orders->orders_id,
                 'tracking_carriers_id' => $trackingNumberRecord['tracking_carriers_id'],
-                'tracking_number' => $trackingNumberRecord['tracking_number']
+                'tracking_number' => $trackingNumberRecord['tracking_number'],
             ])->one();
             if ($tnRecord instanceof \common\models\TrackingNumbers) {
                 $trackingNumberRecord = $tnRecord->getAttributes();

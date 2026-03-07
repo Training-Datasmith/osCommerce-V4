@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,10 @@
 
 namespace frontend\design\boxes\email;
 
-use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class OrderProducts extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -31,7 +30,7 @@ class OrderProducts extends Widget
     public function run()
     {
 
-        if (defined("THEME_NAME")) {
+        if (defined('THEME_NAME')) {
             $theme_name = THEME_NAME;
         } elseif ($this->params['platform_id']) {
             $theme = tep_db_fetch_array(tep_db_query("select t.theme_name from platforms_to_themes p2t, themes t where p2t.theme_id = t.id  and p2t.platform_id = '" . $this->params['platform_id'] . "'"));
@@ -57,16 +56,16 @@ class OrderProducts extends Widget
         $qty = false;
         foreach ($this->params['products'] as $item) {
             $item['orders_products_id'] = 0;
-            if (isset($this->params['order']) AND ($this->params['order'] instanceof \common\classes\Order)) {
+            if (isset($this->params['order']) and ($this->params['order'] instanceof \common\classes\Order)) {
                 $item['orders_products_id'] = (int)$this->params['order']->searchOrderProduct($item);
             }
             \common\helpers\Php8::nullArrProps($item, ['link', 'tpl_price', 'tpl_attributes', 'qty', 'model', 'name']);
             $rows .= '
           <tr class="product-row" style="' . ($attributesText['.product-row'] ?? '') . '">
-            ' . ( ($attributesArray['.image']['display'] ?? '') != 'none' ? '
-            <td class="image" style="' . ($attributesText['.image'] ?? '') . (($item['parent_product']??false) ? ($attributesText['.subitem'] ?? '') : '') . '">
+            ' . (($attributesArray['.image']['display'] ?? '') != 'none' ? '
+            <td class="image" style="' . ($attributesText['.image'] ?? '') . (($item['parent_product'] ?? false) ? ($attributesText['.subitem'] ?? '') : '') . '">
                 ' . ($item['link'] ? '<a href="' . $item['link'] . '">' : '') . '
-              <img src="' . \common\classes\Images::getImageUrl($item['id'], 'Thumbnail', -1, 0, false, (defined('USE_WEBP_IN_EMAILS') && USE_WEBP_IN_EMAILS=='True')) . '" alt="" style="' . ($attributesText['img'] ?? '') . '">
+              <img src="' . \common\classes\Images::getImageUrl($item['id'], 'Thumbnail', -1, 0, false, (defined('USE_WEBP_IN_EMAILS') && USE_WEBP_IN_EMAILS == 'True')) . '" alt="" style="' . ($attributesText['img'] ?? '') . '">
                 ' . ($item['link'] ? '</a>' : '') . '
             </td>
             ' : '') . '
@@ -75,7 +74,7 @@ class OrderProducts extends Widget
                     ($item['link'] ? '<a href="' . $item['link'] . '" style="' . ($attributesText['.name-link'] ?? '') . '">' : '').
                         '<span style="display:block; padding-bottom:5px;">' . $item['name'] . '</span>' .
                     ($item['link'] ? '</a>' : '') .
-                    $item['tpl_attributes'] . " ". ($showAssets? $showAssets::renderOrderProductAsset($item['orders_products_id'], true):'') . '</td>
+                    $item['tpl_attributes'] . ' '. ($showAssets ? $showAssets::renderOrderProductAsset($item['orders_products_id'], true) : '') . '</td>
             ' : '') . '
             ' . (($attributesArray['.model']['display'] ?? '') != 'none' ? '
             <td class="model" style="' . ($attributesText['.model'] ?? '') . '">' . $item['model'] . '</td>

@@ -1,30 +1,29 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\helpers;
 
-use Yii;
-
 class AdminBox
 {
-
     public static function buildNavigation($lastElement = '')
     {
         $path = [];
-        $queryResponse = \common\models\AdminBoxes::findOne(['title' => $lastElement]); 
+        $queryResponse = \common\models\AdminBoxes::findOne(['title' => $lastElement]);
         if (is_object($queryResponse)) {
             $box_id = $queryResponse->box_id;
             do {
-                $queryResponse = \common\models\AdminBoxes::findOne(['box_id' => $box_id]); 
+                $queryResponse = \common\models\AdminBoxes::findOne(['box_id' => $box_id]);
                 if (is_object($queryResponse)) {
                     $path[] = $queryResponse->title;
                     $box_id = $queryResponse->parent_id;
@@ -32,8 +31,7 @@ class AdminBox
                     $box_id = 0;
                 }
             } while ($box_id > 0);
-            
-            
+
         }
         $path = array_reverse($path);
         return $path;

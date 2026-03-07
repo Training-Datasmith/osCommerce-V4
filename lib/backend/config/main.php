@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 $params = array_merge(
     require(__DIR__ . '/../../common/config/params.php'),
     require(__DIR__ . '/../../common/config/params-local.php'),
@@ -11,16 +13,16 @@ return [
     'basePath' => dirname(__DIR__),
     'bootstrap' => [],
     'controllerNamespace' => 'backend\controllers',
-    
+
     'name' => 'Backend',
     'defaultRoute' => 'index/index',
-    
+
     'modules' => [],
     'components' => [
         'assetManager' => [
             'bundles' => [
                 'yii\web\JqueryAsset' => [
-                    'js'=>[]
+                    'js' => [],
                 ],
             ],
         ],
@@ -31,8 +33,8 @@ return [
             'showScriptName' => false,
             'rules' => [
 //                ['class' => 'yii\web\UrlRule'],
-                '403' => 'index/error-403'
-            ]
+                '403' => 'index/error-403',
+            ],
 /*
             'rules' => [
                 ['class' => 'yii\rest\UrlRule', 'controller' => 'site'],
@@ -40,7 +42,7 @@ return [
 */
         ],
         'storage' => [
-            'class' => '\common\services\storages\DbStorage'
+            'class' => '\common\services\storages\DbStorage',
         ],
         'view' => [
             'class' => 'yii\web\View',
@@ -60,7 +62,7 @@ return [
                 'basePath' => '@app/themes/basic',
                 'baseUrl' => '@web/themes/basic',
                 'pathMap' => [
-                
+
     '@app/views' => [
         '@app/themes/basic',
         '@app/themes/basic',
@@ -72,7 +74,7 @@ return [
             ],
 
         ],
-        
+
         'user' => [
             'identityClass' => 'common\components\Customer',
             'enableAutoLogin' => true,

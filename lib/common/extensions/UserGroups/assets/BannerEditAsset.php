@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,7 +18,7 @@ class BannerEditAsset extends \yii\web\AssetBundle
 {
     public $sourcePath = '@common/extensions/UserGroups/assets';
     public $js = [
-        'banner-edit.js'
+        'banner-edit.js',
     ];
     public $css = [
     ];

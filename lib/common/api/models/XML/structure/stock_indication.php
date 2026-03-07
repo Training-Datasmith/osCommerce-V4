@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -18,9 +20,9 @@ return [
             'withRelated' => [
                 'productsStockIndicationText' => [
                     'xmlCollection' => 'StockIndicationTexts>StockIndicationText',
-                    'properties'=>[
+                    'properties' => [
                         'language_id' => ['class' => 'IOLanguageMap'],
-                    ]
+                    ],
                 ],
             ],
         ],

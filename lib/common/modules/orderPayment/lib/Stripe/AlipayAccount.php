@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Stripe;
 
 /**
@@ -10,10 +12,9 @@ namespace Stripe;
  */
 class AlipayAccount extends ApiResource
 {
-    const OBJECT_NAME = 'alipay_account';
-
     use ApiOperations\Delete;
     use ApiOperations\Update;
+    public const OBJECT_NAME = 'alipay_account';
 
     /**
      * @return string The instance URL for this resource. It needs to be special

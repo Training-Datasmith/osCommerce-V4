@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace backend\design\boxes\catalog;
 
-use Yii;
 use yii\base\Widget;
 
 class Paging extends Widget
 {
-
     public $id;
     public $params;
     public $settings;

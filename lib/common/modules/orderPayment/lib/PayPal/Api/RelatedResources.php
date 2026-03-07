@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -23,7 +25,7 @@ class RelatedResources extends PayPalModel
      * Sale transaction
      *
      * @param \PayPal\Api\Sale $sale
-     * 
+     *
      * @return $this
      */
     public function setSale($sale)
@@ -46,7 +48,7 @@ class RelatedResources extends PayPalModel
      * Authorization transaction
      *
      * @param \PayPal\Api\Authorization $authorization
-     * 
+     *
      * @return $this
      */
     public function setAuthorization($authorization)
@@ -69,7 +71,7 @@ class RelatedResources extends PayPalModel
      * Order transaction
      *
      * @param \PayPal\Api\Order $order
-     * 
+     *
      * @return $this
      */
     public function setOrder($order)
@@ -92,7 +94,7 @@ class RelatedResources extends PayPalModel
      * Capture transaction
      *
      * @param \PayPal\Api\Capture $capture
-     * 
+     *
      * @return $this
      */
     public function setCapture($capture)
@@ -115,7 +117,7 @@ class RelatedResources extends PayPalModel
      * Refund transaction
      *
      * @param \PayPal\Api\Refund $refund
-     * 
+     *
      * @return $this
      */
     public function setRefund($refund)

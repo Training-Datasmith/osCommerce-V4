@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of True Loaded.
  *
@@ -53,9 +55,9 @@ class m221117_115255_pos_restricted_ips extends Migration
      */
     public function safeDown()
     {
-//        echo "m221117_115255_pos_restricted_ips cannot be reverted.\n";
+        //        echo "m221117_115255_pos_restricted_ips cannot be reverted.\n";
 
-  //      return false;
+        //      return false;
     }
 
     /*

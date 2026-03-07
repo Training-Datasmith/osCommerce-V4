@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,12 @@
 
 namespace frontend\design\boxes\account;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use frontend\design\SplitPageResults;
-use common\helpers\Date as DateHelper;
 
 class OrderCancelAndReorder extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -39,7 +38,7 @@ class OrderCancelAndReorder extends Widget
         $orderModel = \common\models\Orders::find()->where(['orders_id' => $order_id])->joinWith(['ordersStatusGroup sg'])
             ->where(['in', 'sg.orders_status_groups_id', [1,5]])->andWhere(['orders_id' => $order_id])->one();
 
-        if (!$orderModel){
+        if (!$orderModel) {
             return '';
         }
         $cancel_and_restart = Yii::$app->urlManager->createUrl(['checkout/restart', 'order_id' => $order_id]);

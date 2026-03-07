@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 class SuppliersProductsOptionsValues extends ActiveRecord
@@ -25,5 +26,5 @@ class SuppliersProductsOptionsValues extends ActiveRecord
     {
         return 'suppliers_products_options_values';
     }
-    
+
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -20,7 +22,7 @@ class CustomAmount extends PayPalModel
      * The custom amount label. Maximum length is 25 characters.
      *
      * @param string $label
-     * 
+     *
      * @return $this
      */
     public function setLabel($label)
@@ -43,7 +45,7 @@ class CustomAmount extends PayPalModel
      * The custom amount value. Valid range is from -999999.99 to 999999.99.
      *
      * @param \PayPal\Api\Currency $amount
-     * 
+     *
      * @return $this
      */
     public function setAmount($amount)

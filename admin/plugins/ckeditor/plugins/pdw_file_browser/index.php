@@ -24,23 +24,23 @@ LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
 OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
 THE SOFTWARE.
 */
-ob_start( 'ob_gzhandler' );
+ob_start('ob_gzhandler');
 
 define('MINIFY_CACHE_DIR', dirname(__FILE__) . '/cache');
 
 require_once('functions.php');
 require_once('minify.php');
 
-if(!empty($_COOKIE["pdw-view"])):
-	$viewLayout = $_COOKIE["pdw-view"];
-elseif(isset($_REQUEST['pdw-view'])):
-	$viewLayout = $_REQUEST['pdw-view'];
+if (!empty($_COOKIE['pdw-view'])):
+    $viewLayout = $_COOKIE['pdw-view'];
+elseif (isset($_REQUEST['pdw-view'])):
+    $viewLayout = $_REQUEST['pdw-view'];
 endif;
 
-if(!empty($_REQUEST['skin'])) {
+if (!empty($_REQUEST['skin'])) {
     $skin = $_REQUEST['skin'];
-} elseif(isset($_GET["skin"])){
-	$skin = $_GET["skin"];
+} elseif (isset($_GET['skin'])) {
+    $skin = $_GET['skin'];
 } elseif (isset($defaultSkin)) {
     $skin = $defaultSkin;
 } else {
@@ -73,32 +73,32 @@ $minifyCSS = new Minify(TYPE_CSS);
 $minifyJS = new Minify(TYPE_JS);
 
 // Specify the files to be minified.
-$cssFiles = array('css/mediabrowser.css');
+$cssFiles = ['css/mediabrowser.css'];
 
 // Only load skin if $_GET["skin"] or $defaultSkin is set.
-if ($skin != ""):
-	$cssFiles[count($cssFiles)] = 'skins/'.$skin.'/skin.css';
+if ($skin != ''):
+    $cssFiles[count($cssFiles)] = 'skins/'.$skin.'/skin.css';
 endif;
 
 $minifyCSS->addFile($cssFiles);
 
-$jsFiles = array(
+$jsFiles = [
     'js/jquery.js',
     'js/jquery.mediabrowser.js',
     'js/jquery.plugins.js',
     'swfupload/swfupload.min.js',
     'swfupload/plugins/swfupload.queue.js',
     'swfupload/fileprogress.js',
-    'swfupload/handlers.js'
-);
+    'swfupload/handlers.js',
+];
 
 //If editor is TinyMCE then add javascript file
-if ($editor == "tinymce"):
+if ($editor == 'tinymce'):
     $jsFiles[count($jsFiles)] = 'js/tiny_mce_popup.js';
 endif;
 
 $minifyJS->addFile($jsFiles);
- 
+
 // JAVASCRIPT
 echo '<script type="text/javascript">';
 echo '//<![CDATA[';
@@ -108,7 +108,7 @@ echo '</script>';
 
 // CSS
 echo '<style type="text/css">';
-echo $minifyCSS->combine(); 
+echo $minifyCSS->combine();
 echo '</style>';
 ?>
 
@@ -158,49 +158,49 @@ $(document).ready(function() {
 
     //Context menus
     foldercmenu = [
-        {'<?php echo translate("Open");?>':{
+        {'<?php echo translate('Open');?>':{
             onclick: function(menuItem,menu) { $.MediaBrowser.loadFolder($(this).attr('href')); },
             icon:'img/contextmenu/open.png'
             }
         }
-		<?php if($allowedActions['copy_paste'] === TRUE || $allowedActions['cut_paste'] === TRUE): ?>
+		<?php if ($allowedActions['copy_paste'] === true || $allowedActions['cut_paste'] === true): ?>
         ,$.contextMenu.separator
 		<?php endif; ?>
-		<?php if($allowedActions['copy_paste'] === TRUE): ?>
-        ,{'<?php echo translate("Copy");?>':{
+		<?php if ($allowedActions['copy_paste'] === true): ?>
+        ,{'<?php echo translate('Copy');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.copy(); },
             icon:'img/contextmenu/copy.gif'
             }
         }
 		<?php endif; ?>
-		<?php if($allowedActions['cut_paste'] === TRUE): ?>
-        ,{'<?php echo translate("Cut");?>':{
+		<?php if ($allowedActions['cut_paste'] === true): ?>
+        ,{'<?php echo translate('Cut');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.cut(); },
             icon:'img/contextmenu/cut.gif'
             }
         }
 		<?php endif; ?>
-		<?php if($allowedActions['copy_paste'] === TRUE || $allowedActions['cut_paste'] === TRUE): ?>
-        ,{'<?php echo translate("Paste");?>':{
+		<?php if ($allowedActions['copy_paste'] === true || $allowedActions['cut_paste'] === true): ?>
+        ,{'<?php echo translate('Paste');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.paste(); },
             icon:'img/contextmenu/paste.gif',
             disabled:true
             }
         }
 		<?php endif; ?>
-		<?php if($allowedActions['rename'] === TRUE): ?>
+		<?php if ($allowedActions['rename'] === true): ?>
         ,$.contextMenu.separator,
-        {'<?php echo translate("Rename");?>':{
+        {'<?php echo translate('Rename');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.rename($(this).attr('href'), 'folder'); },
             icon:'img/contextmenu/rename.png'
             }
         }
 		<?php endif; ?>         
-		<?php if($allowedActions['delete'] === TRUE): ?>  		
+		<?php if ($allowedActions['delete'] === true): ?>  		
 		,$.contextMenu.separator,
-		{'<?php echo translate("Delete");?>':{
+		{'<?php echo translate('Delete');?>':{
             onclick:function(menuItem,menu) { 
-                if(confirm('<?php echo translate("Do you really want to delete this folder and its contents?");?>')){
+                if(confirm('<?php echo translate('Do you really want to delete this folder and its contents?');?>')){
                     $.MediaBrowser.delete_all();
                 } 
             },
@@ -212,49 +212,49 @@ $(document).ready(function() {
     ];
 
     filecmenu = [
-        {'<?php echo translate("Insert");?>':{
+        {'<?php echo translate('Insert');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.insertFile(); },
             icon:'img/contextmenu/insert.png'
             }
         }
-		<?php if($allowedActions['copy_paste'] === TRUE || $allowedActions['cut_paste'] === TRUE): ?>
+		<?php if ($allowedActions['copy_paste'] === true || $allowedActions['cut_paste'] === true): ?>
         ,$.contextMenu.separator
 		<?php endif; ?>
-		<?php if($allowedActions['copy_paste'] === TRUE): ?>
-        ,{'<?php echo translate("Copy");?>':{
+		<?php if ($allowedActions['copy_paste'] === true): ?>
+        ,{'<?php echo translate('Copy');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.copy(); },
             icon:'img/contextmenu/copy.gif'
             }
         }
 		<?php endif; ?>
-		<?php if($allowedActions['cut_paste'] === TRUE): ?>
-        ,{'<?php echo translate("Cut");?>':{
+		<?php if ($allowedActions['cut_paste'] === true): ?>
+        ,{'<?php echo translate('Cut');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.cut(); },
             icon:'img/contextmenu/cut.gif'
             }
         }
 		<?php endif; ?>
-		<?php if($allowedActions['copy_paste'] === TRUE || $allowedActions['cut_paste'] === TRUE): ?>
-        ,{'<?php echo translate("Paste");?>':{
+		<?php if ($allowedActions['copy_paste'] === true || $allowedActions['cut_paste'] === true): ?>
+        ,{'<?php echo translate('Paste');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.paste(); },
             icon:'img/contextmenu/paste.gif',
             disabled:true
             }
         }
         <?php endif; ?>
-		<?php if($allowedActions['rename'] === TRUE): ?>
+		<?php if ($allowedActions['rename'] === true): ?>
 		,$.contextMenu.separator,
-        {'<?php echo translate("Rename");?>':{
+        {'<?php echo translate('Rename');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.rename($(this).attr('href'), 'file'); },
             icon:'img/contextmenu/rename.png'
             }
         }
 		<?php endif; ?>
-        <?php if($allowedActions['delete'] === TRUE): ?>
+        <?php if ($allowedActions['delete'] === true): ?>
 		,$.contextMenu.separator,
-        {'<?php echo translate("Delete");?>':{
+        {'<?php echo translate('Delete');?>':{
             onclick:function(menuItem,menu) {
-                if(confirm('<?php echo translate("Do you really want to delete this file?");?>')){
+                if(confirm('<?php echo translate('Do you really want to delete this file?');?>')){
                     $.MediaBrowser.delete_all();
                 } 
             },
@@ -266,49 +266,49 @@ $(document).ready(function() {
     ];
 
     imagecmenu = [
-        {'<?php echo translate("Insert");?>':{
+        {'<?php echo translate('Insert');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.insertFile(); },
             icon:'img/contextmenu/insert.png'
             }
         }
-		<?php if($allowedActions['copy_paste'] === TRUE || $allowedActions['cut_paste'] === TRUE): ?>
+		<?php if ($allowedActions['copy_paste'] === true || $allowedActions['cut_paste'] === true): ?>
 		,$.contextMenu.separator
 		<?php endif; ?>
-		<?php if($allowedActions['copy_paste'] === TRUE): ?>
-        ,{'<?php echo translate("Copy");?>':{
+		<?php if ($allowedActions['copy_paste'] === true): ?>
+        ,{'<?php echo translate('Copy');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.copy(); },
             icon:'img/contextmenu/copy.gif'
             }
         }
 		<?php endif; ?>
-		<?php if($allowedActions['cut_paste'] === TRUE): ?>
-		,{'<?php echo translate("Cut");?>':{
+		<?php if ($allowedActions['cut_paste'] === true): ?>
+		,{'<?php echo translate('Cut');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.cut(); },
             icon:'img/contextmenu/cut.gif'
             }
         }
 		<?php endif; ?>
-		<?php if($allowedActions['copy_paste'] === TRUE || $allowedActions['cut_paste'] === TRUE): ?>
-		,{'<?php echo translate("Paste");?>':{
+		<?php if ($allowedActions['copy_paste'] === true || $allowedActions['cut_paste'] === true): ?>
+		,{'<?php echo translate('Paste');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.paste(); },
             icon:'img/contextmenu/paste.gif',
             disabled:true
             }
         }
 		<?php endif; ?>
-		<?php if($allowedActions['rename'] === TRUE): ?>
+		<?php if ($allowedActions['rename'] === true): ?>
 		,$.contextMenu.separator,
-        {'<?php echo translate("Rename");?>':{
+        {'<?php echo translate('Rename');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.rename($(this).attr('href'), 'file'); },
             icon:'img/contextmenu/rename.png'
             }
         }
 		<?php endif; ?>
-		<?php if($allowedActions['delete'] === TRUE): ?>
+		<?php if ($allowedActions['delete'] === true): ?>
 		,$.contextMenu.separator,
-        {'<?php echo translate("Delete");?>':{
+        {'<?php echo translate('Delete');?>':{
             onclick:function(menuItem,menu) {
-                if(confirm('<?php echo translate("Do you really want to delete this image?");?>')){
+                if(confirm('<?php echo translate('Do you really want to delete this image?');?>')){
                     $.MediaBrowser.delete_all();
                 } 
             },
@@ -320,47 +320,47 @@ $(document).ready(function() {
     ];
 
     cmenu = [
-        {'<?php echo translate("Large images");?>':{
+        {'<?php echo translate('Large images');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.changeview('large_images'); },
             icon:'img/contextmenu/view_images_large.png'
             }
         },
-        {'<?php echo translate("Small images");?>':{
+        {'<?php echo translate('Small images');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.changeview('small_images'); },
             icon:'img/contextmenu/view_images_small.png'
             }
         },
-        {'<?php echo translate("List");?>':{
+        {'<?php echo translate('List');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.changeview('list'); },
             icon:'img/contextmenu/view_list.png'
             }
         },
-        {'<?php echo translate("Details");?>':{
+        {'<?php echo translate('Details');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.changeview('details'); },
             icon:'img/contextmenu/view_details.png'
             }
         },
-        {'<?php echo translate("Tiles");?>':{
+        {'<?php echo translate('Tiles');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.changeview('tiles'); },
             icon:'img/contextmenu/view_tiles.png'
             }
         },
-        {'<?php echo translate("Content");?>':{
+        {'<?php echo translate('Content');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.changeview('content'); },
             icon:'img/contextmenu/view_content.png'
             }
         }
-		<?php if($allowedActions['create_folder'] === TRUE): ?>
+		<?php if ($allowedActions['create_folder'] === true): ?>
         ,$.contextMenu.separator,
-        {'<?php echo translate("New folder");?>':{
+        {'<?php echo translate('New folder');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.showLayer('newfolder'); },
             icon:'img/contextmenu/open.png'
             }
         }
 		<?php endif; ?>
-		<?php if($allowedActions['copy_paste'] === TRUE || $allowedActions['cut_paste'] === TRUE): ?>
+		<?php if ($allowedActions['copy_paste'] === true || $allowedActions['cut_paste'] === true): ?>
         ,$.contextMenu.separator,
-        {'<?php echo translate("Paste");?>':{
+        {'<?php echo translate('Paste');?>':{
             onclick:function(menuItem,menu) { $.MediaBrowser.paste(); },
             icon:'img/contextmenu/paste.gif',
             disabled:true
@@ -377,7 +377,7 @@ $(document).ready(function() {
     $.MediaBrowser.contextmenu();
 
 
-    <?php if($allowedActions['upload'] === TRUE): ?>
+    <?php if ($allowedActions['upload'] === true): ?>
     // *** SWFUpload ***//
     // Upload configuration
     var settings = {
@@ -387,7 +387,7 @@ $(document).ready(function() {
                 "PHPSESSID": "<?php echo session_id(); ?>",
                 "uploadpath": "<?php echo rawurlencode($uploadpath); ?>"
             },
-            file_size_limit: "<?php echo $max_file_size_in_bytes/(1024*1024); ?> MB",
+            file_size_limit: "<?php echo $max_file_size_in_bytes / (1024 * 1024); ?> MB",
             file_types: "<?php echo '*.' . str_replace(';', ';*.', str_replace(',', ';', str_replace(' ', '', $extension_whitelist))); ?>",
             file_types_description: "All Files",
             file_upload_limit: 100,
@@ -403,7 +403,7 @@ $(document).ready(function() {
             button_height: "20",
             button_window_mode: "transparent",
             button_placeholder_id: "spanButtonPlaceHolder",
-            button_text: '<span class="browseButton"><?php echo translate("Browse..."); ?></span>',
+            button_text: '<span class="browseButton"><?php echo translate('Browse...'); ?></span>',
             button_text_style: ".browseButton {font-family:sans-serif; color:#000000; font-size:14px; font-weight: bold;}",
             button_cursor: SWFUpload.CURSOR.HAND,
             button_text_top_padding: 1,
@@ -443,9 +443,9 @@ $(document).ready(function() {
 +     Address Bar & Search      +
 +++++++++++++++++++++++++++++++++
 -->
-<?php 
-$rootname_var = explode("/", trim($uploadpath,"/")); 
-$rootname = array_pop($rootname_var); 
+<?php
+$rootname_var = explode('/', trim($uploadpath, '/'));
+$rootname = array_pop($rootname_var);
 ?>
 <div id="addressbar" class="ab">
   <ol>
@@ -467,22 +467,22 @@ $rootname = array_pop($rootname_var);
 -->
 <div id="navbar" class="nb">
     <ul class="left">
-        <?php if($allowedActions['create_folder'] === TRUE): ?><li><a href="#" onclick="return $.MediaBrowser.showLayer('newfolder');" title="<?php echo translate('New folder');?>"><span><?php echo translate("New folder");?></span></a></li><?php endif; ?>
-        <?php if($allowedActions['upload'] === TRUE): ?><li><a href="#" onclick="return $.MediaBrowser.showLayer('upload');" title="<?php echo translate('Upload');?>"><span><?php echo translate("Upload");?></span></a></li><?php endif; ?>
-        <li class="label"><a href="#" onclick="return $.MediaBrowser.printClipboard();" title="<?php echo translate('Clipboard');?>"><span><?php echo translate("Clipboard");?>&nbsp;(&nbsp;<div id="cbItems">0</div>&nbsp;<?php echo translate("items");?>&nbsp;)</span></a></li>
+        <?php if ($allowedActions['create_folder'] === true): ?><li><a href="#" onclick="return $.MediaBrowser.showLayer('newfolder');" title="<?php echo translate('New folder');?>"><span><?php echo translate('New folder');?></span></a></li><?php endif; ?>
+        <?php if ($allowedActions['upload'] === true): ?><li><a href="#" onclick="return $.MediaBrowser.showLayer('upload');" title="<?php echo translate('Upload');?>"><span><?php echo translate('Upload');?></span></a></li><?php endif; ?>
+        <li class="label"><a href="#" onclick="return $.MediaBrowser.printClipboard();" title="<?php echo translate('Clipboard');?>"><span><?php echo translate('Clipboard');?>&nbsp;(&nbsp;<div id="cbItems">0</div>&nbsp;<?php echo translate('items');?>&nbsp;)</span></a></li>
     </ul>
     <ul class="right">
-        <li><a href="#" title="<?php echo translate("Change view");?>"><span><?php echo translate("View");?></span></a>
+        <li><a href="#" title="<?php echo translate('Change view');?>"><span><?php echo translate('View');?></span></a>
             <ul>
-                <li><a href="#" onclick="return $.MediaBrowser.changeview('large_images');" title="<?php echo translate('Large images');?>"><span class="icon large"></span><?php echo translate("Large images");?></a></li>
-                <li><a href="#" onclick="return $.MediaBrowser.changeview('small_images');" title="<?php echo translate('Small images');?>"><span class="icon small"></span><?php echo translate("Small images");?></a></li>
-                <li><a href="#" onclick="return $.MediaBrowser.changeview('list');" title="<?php echo translate('List');?>"><span class="icon list"></span><?php echo translate("List");?></a></li>
-                <li><a href="#" onclick="return $.MediaBrowser.changeview('details');" title="<?php echo translate('Details');?>"><span class="icon details"></span><?php echo translate("Details");?></a></li>
-                <li><a href="#" onclick="return $.MediaBrowser.changeview('tiles');" title="<?php echo translate('Tiles');?>"><span class="icon tiles"></span><?php echo translate("Tiles");?></a></li>
-                <li><a href="#" onclick="return $.MediaBrowser.changeview('content');" title="<?php echo translate('Content');?>"><span class="icon content"></span><?php echo translate("Content");?></a></li>                
+                <li><a href="#" onclick="return $.MediaBrowser.changeview('large_images');" title="<?php echo translate('Large images');?>"><span class="icon large"></span><?php echo translate('Large images');?></a></li>
+                <li><a href="#" onclick="return $.MediaBrowser.changeview('small_images');" title="<?php echo translate('Small images');?>"><span class="icon small"></span><?php echo translate('Small images');?></a></li>
+                <li><a href="#" onclick="return $.MediaBrowser.changeview('list');" title="<?php echo translate('List');?>"><span class="icon list"></span><?php echo translate('List');?></a></li>
+                <li><a href="#" onclick="return $.MediaBrowser.changeview('details');" title="<?php echo translate('Details');?>"><span class="icon details"></span><?php echo translate('Details');?></a></li>
+                <li><a href="#" onclick="return $.MediaBrowser.changeview('tiles');" title="<?php echo translate('Tiles');?>"><span class="icon tiles"></span><?php echo translate('Tiles');?></a></li>
+                <li><a href="#" onclick="return $.MediaBrowser.changeview('content');" title="<?php echo translate('Content');?>"><span class="icon content"></span><?php echo translate('Content');?></a></li>                
             </ul>
         </li>
-        <?php if($allowedActions['settings'] === TRUE): ?><li><a href="#" onclick="return $.MediaBrowser.showLayer('settings');" class="settings" title="<?php echo translate('Settings');?>"><span><img src="img/gear.png" alt="<?php echo translate('Settings');?>" /></span></a></li><?php endif; ?>
+        <?php if ($allowedActions['settings'] === true): ?><li><a href="#" onclick="return $.MediaBrowser.showLayer('settings');" class="settings" title="<?php echo translate('Settings');?>"><span><img src="img/gear.png" alt="<?php echo translate('Settings');?>" /></span></a></li><?php endif; ?>
 		<li><a href="#" onclick="return $.MediaBrowser.showLayer('help');" class="help" title="<?php echo translate('Help');?>"><span><img src="img/help.png" alt="<?php echo translate('Help');?>" /></span></a></li>
     </ul>
 </div>
@@ -498,8 +498,8 @@ $rootname = array_pop($rootname_var);
     -->
     <div id="tree">
         <?php
-            require_once("treeview.php");
-        ?>
+            require_once('treeview.php');
+?>
     </div>
 
     <div id="vertical-resize-handler" class="resize-grip"></div>
@@ -515,45 +515,45 @@ $rootname = array_pop($rootname_var);
         <div id="filelist" class="layer">
             <h2><?php echo $rootname?></h2>
             <select id="filters">
-                <option value=""><?php echo translate("All files");?> (*.*)&nbsp;</option>
-                <option<?php echo (isset($_GET["filter"]) && $_GET["filter"] == "flash" ? ' selected="selected"' : '');?> value=".swf|.flv|.fla">Flash&nbsp;</option>
-                <option<?php echo (isset($_GET["filter"]) && $_GET["filter"] == "image" ? ' selected="selected"' : '');?> value=".bmp|.gif|.jpg|.jpeg|.png">Images&nbsp;</option>
-                <option<?php echo (isset($_GET["filter"]) && $_GET["filter"] == "media" ? ' selected="selected"' : '');?> value=".avi|.flv|.mov|.mp3|.mp4|.mpeg|.mpg|.ogg|.wav|.wma|.wmv">Media&nbsp;</option>
+                <option value=""><?php echo translate('All files');?> (*.*)&nbsp;</option>
+                <option<?php echo(isset($_GET['filter']) && $_GET['filter'] == 'flash' ? ' selected="selected"' : '');?> value=".swf|.flv|.fla">Flash&nbsp;</option>
+                <option<?php echo(isset($_GET['filter']) && $_GET['filter'] == 'image' ? ' selected="selected"' : '');?> value=".bmp|.gif|.jpg|.jpeg|.png">Images&nbsp;</option>
+                <option<?php echo(isset($_GET['filter']) && $_GET['filter'] == 'media' ? ' selected="selected"' : '');?> value=".avi|.flv|.mov|.mp3|.mp4|.mpeg|.mpg|.ogg|.wav|.wma|.wmv">Media&nbsp;</option>
                 <?php
-				    if(isset($customFilters)):
-				    	foreach($customFilters as $key => $value){
-				    		echo '<option value="'.$value.'">'.$key.'&nbsp;</option>'."\n";				
-				    	}
-				    endif;
-				?>
+            if (isset($customFilters)):
+                foreach ($customFilters as $key => $value) {
+                    echo '<option value="'.$value.'">'.$key.'&nbsp;</option>'."\n";
+                }
+            endif;
+?>
 			</select>
             <hr />
             <div id="files">
                 <?php
-                    // Get all folders in root upload folder but don't iterate
-                    $dirs = getDirTree(STARTINGPATH, true, false);
-                    
-                    switch($viewLayout){
-                        case 'large_images': 
-                            require_once("view_images_large.php");
-                            break;
-                        case 'small_images': 
-                            require_once("view_images_small.php");
-                            break;
-                        case 'list': 
-                            require_once("view_list.php");
-                            break;
-                        case 'details': 
-                            require_once("view_details.php");
-                            break;
-                        case 'tiles':
-                            require_once("view_tiles.php");
-                            break;
-                        default: //Content
-                            require_once("view_content.php");
-                            break;
-                    }
-                ?>
+    // Get all folders in root upload folder but don't iterate
+    $dirs = getDirTree(STARTINGPATH, true, false);
+
+switch ($viewLayout) {
+    case 'large_images':
+        require_once('view_images_large.php');
+        break;
+    case 'small_images':
+        require_once('view_images_small.php');
+        break;
+    case 'list':
+        require_once('view_list.php');
+        break;
+    case 'details':
+        require_once('view_details.php');
+        break;
+    case 'tiles':
+        require_once('view_tiles.php');
+        break;
+    default: //Content
+        require_once('view_content.php');
+        break;
+}
+?>
             </div>
         </div>
 
@@ -563,23 +563,23 @@ $rootname = array_pop($rootname_var);
         +      Create a new folder      +
         +++++++++++++++++++++++++++++++++
         -->
-		<?php if($allowedActions['create_folder'] === TRUE): ?>
+		<?php if ($allowedActions['create_folder'] === true): ?>
         <div id="newfolder" class="layer">
-            <h2><?php echo translate("Add a new folder")?></h2>
+            <h2><?php echo translate('Add a new folder')?></h2>
             <a href="#" class="close" onclick="$.MediaBrowser.hideLayer(); $.MediaBrowser.loadFolder($.MediaBrowser.currentFolder); return false;">X</a>
             <hr />
             <div class="window">
 				<form id="newfolderform" name="newfolderform" onsubmit="$.MediaBrowser.newFolder(); return false;">
 	            <div class="padding10">	
 	                <div class="height20">
-	                	<label for="folderpath"><?php echo translate("New folder is created in");?>: <input class="path" type="text" name="folderpath" id="folderpath" readonly="readonly"/></label>
+	                	<label for="folderpath"><?php echo translate('New folder is created in');?>: <input class="path" type="text" name="folderpath" id="folderpath" readonly="readonly"/></label>
 	                </div>
 	                <div class="paddingtop10 height20 marginbottom5">
-	                    <label for="newfoldername"><?php echo translate("Name of the new folder");?>: <input class="path border" type="text" name="foldername" id="foldername" /></label>
+	                    <label for="newfoldername"><?php echo translate('Name of the new folder');?>: <input class="path border" type="text" name="foldername" id="foldername" /></label>
 	                </div>
 	                <div class="paddingtop10 height20 marginbottom5">
-	                    <button type="submit"><?php echo translate("Create folder");?></button>
-	                    <button type="button" onclick="$.MediaBrowser.hideLayer(); $.MediaBrowser.loadFolder($.MediaBrowser.currentFolder); return false;"><?php echo translate("Close");?></button>
+	                    <button type="submit"><?php echo translate('Create folder');?></button>
+	                    <button type="button" onclick="$.MediaBrowser.hideLayer(); $.MediaBrowser.loadFolder($.MediaBrowser.currentFolder); return false;"><?php echo translate('Close');?></button>
 	                </div>
 	            </div>
 	            </form>
@@ -593,22 +593,22 @@ $rootname = array_pop($rootname_var);
         +      Upload a new file        +
         +++++++++++++++++++++++++++++++++
         -->
-		<?php if($allowedActions['upload'] === TRUE): ?>
+		<?php if ($allowedActions['upload'] === true): ?>
         <div id="upload" class="layer">
-            <h2><?php echo translate("Upload a new file")?></h2>
+            <h2><?php echo translate('Upload a new file')?></h2>
             <a href="#" class="close" onclick="$.MediaBrowser.hideLayer(); $.MediaBrowser.loadFolder($.MediaBrowser.currentFolder); return false;">X</a>
             <hr />
             <div class="window">
 				<form id="form1" action="index.php" method="post" enctype="multipart/form-data">
 	                <div class="paddingtop10 paddingleft10 height20">
-	                    <label for="uploadpath"><?php echo translate("Currently uploading in folder");?>: <input class="path" type="text" name="uploadpath" id="uploadpath" readonly="readonly" /></label>
+	                    <label for="uploadpath"><?php echo translate('Currently uploading in folder');?>: <input class="path" type="text" name="uploadpath" id="uploadpath" readonly="readonly" /></label>
 	                </div>
 	                <div class="paddingtop10 paddingleft10 height20">
-	                    <?php echo translate("Select your file");?>: &nbsp;&nbsp;<span id="spanButtonPlaceHolder"></span>
+	                    <?php echo translate('Select your file');?>: &nbsp;&nbsp;<span id="spanButtonPlaceHolder"></span>
 	                </div>
-	                <div class="padding10 height20"><?php echo sprintf(translate("Upload limited to %d MB!"), ($max_file_size_in_bytes/(1024*1024)));?></div>	                
+	                <div class="padding10 height20"><?php echo sprintf(translate('Upload limited to %d MB!'), ($max_file_size_in_bytes / (1024 * 1024)));?></div>	                
 					<div class="fieldset flash" id="fsUploadProgress">
-	                    <span class="legend"><?php echo translate("Upload queue");?></span>
+	                    <span class="legend"><?php echo translate('Upload queue');?></span>
 	                </div>
 	                <div class="paddingleft10">
 	                	<button id="btnCancel" type="button"><?php echo translate('Cancel all uploads');?></button>
@@ -635,46 +635,46 @@ $rootname = array_pop($rootname_var);
         +            Settings           +
         +++++++++++++++++++++++++++++++++
         -->
-		<?php if($allowedActions['settings'] === TRUE): ?>
+		<?php if ($allowedActions['settings'] === true): ?>
         <div id="settings" class="layer" style="display:none;">
-            <h2><?php echo translate("Settings"); ?></h2>
-            <a href="#" class="close" onclick="$.MediaBrowser.hideLayer(); return false;" title="<?php echo translate('Close')?>"><?php echo translate("Close")?></a>
+            <h2><?php echo translate('Settings'); ?></h2>
+            <a href="#" class="close" onclick="$.MediaBrowser.hideLayer(); return false;" title="<?php echo translate('Close')?>"><?php echo translate('Close')?></a>
             <hr />
             <div class="window">
             	<div class="padding10">
                     <dl>
-                        <dt><?php echo translate("Language");?></dt>
+                        <dt><?php echo translate('Language');?></dt>
                             <dd>
                                 <select id="settings_language">
                                     <?php
-                                       require_once('lang/languages.php');
-                                       
-                                       foreach($languages as $key => $value){
-                                           printf('<option%s value="%s">%s</option>',($language == $value ? ' selected="selected"' : '') , $value, $key);
-                                       }
-                                    ?>
+                       require_once('lang/languages.php');
+
+		    foreach ($languages as $key => $value) {
+		        printf('<option%s value="%s">%s</option>', ($language == $value ? ' selected="selected"' : ''), $value, $key);
+		    }
+		    ?>
                                 </select>
                             </dd>
-                        <dt><?php echo translate("Theme");?></dt>
+                        <dt><?php echo translate('Theme');?></dt>
                             <dd>
                             	<select id="settings_skin">
 									<?php
-									   require_once('skins/skins.php');
-									   
-									   $skins["Redmond"] = "";
-									   asort($skins);
-									   
-									   foreach($skins as $key => $value){
-									       printf('<option%s value="%s">%s</option>', ($skin == $value ? ' selected="selected"' : ''), $value, $key);
-									   }
-									?>
+		       require_once('skins/skins.php');
+
+		    $skins['Redmond'] = '';
+		    asort($skins);
+
+		    foreach ($skins as $key => $value) {
+		        printf('<option%s value="%s">%s</option>', ($skin == $value ? ' selected="selected"' : ''), $value, $key);
+		    }
+		    ?>
                             	</select>
                             </dd>
                     </dl>
-					<p><?php echo translate("Cookies need to be enabled to save your settings!");?></p>
+					<p><?php echo translate('Cookies need to be enabled to save your settings!');?></p>
 					<hr />
-					<button type="button" onclick="$.MediaBrowser.saveSettings(); return false;"><?php echo translate("Save settings");?></button>
-					<button type="button" onclick="$.MediaBrowser.hideLayer(); return false;"><?php echo translate("Close");?></button>
+					<button type="button" onclick="$.MediaBrowser.saveSettings(); return false;"><?php echo translate('Save settings');?></button>
+					<button type="button" onclick="$.MediaBrowser.hideLayer(); return false;"><?php echo translate('Close');?></button>
 				</div>
             </div> 
         </div>
@@ -688,7 +688,7 @@ $rootname = array_pop($rootname_var);
         -->
         <div id="help" class="layer" style="display:none;">
             <h2>PDW File Browser v1.3 beta</h2>
-            <a href="#" class="close" onclick="$.MediaBrowser.hideLayer(); return false;" title="<?php echo translate("Close")?>"><?php echo translate("Close")?></a>
+            <a href="#" class="close" onclick="$.MediaBrowser.hideLayer(); return false;" title="<?php echo translate('Close')?>"><?php echo translate('Close')?></a>
             <hr />
             <div class="window">
 				<div class="padding10">
@@ -721,7 +721,7 @@ $rootname = array_pop($rootname_var);
 	                    <li>Javascript function printf - Dav Glass extension for the Yahoo UI Library</li>
 						<li>Modified version of Slimbox 2 - Christophe Beyls (http://www.digitalia.be)</li>
 	                </ul>
-	                <p><button type="button" onclick="$.MediaBrowser.hideLayer(); return false;"><?php echo translate("Close");?></button></p>
+	                <p><button type="button" onclick="$.MediaBrowser.hideLayer(); return false;"><?php echo translate('Close');?></button></p>
 	            </div>
 			</div> 
         </div>
@@ -737,18 +737,18 @@ $rootname = array_pop($rootname_var);
 <div id="file-specs">
     <div id="info">
     <?php
-        require_once("file_specs.php");
-    ?>
+        require_once('file_specs.php');
+?>
     </div>
     <form id="fileform" name="fileform" onsubmit="$.MediaBrowser.insertFile(); return false;">
-        <label for="file"><?php echo translate("File");?></label>
+        <label for="file"><?php echo translate('File');?></label>
         <input type="text" name="file" id="file" readonly="readonly" value="" />
-        <button type="submit"><?php echo translate("Insert");?></button>
+        <button type="submit"><?php echo translate('Insert');?></button>
 		<div>
-            <?php 
-                $checked = isset($_COOKIE["absoluteURL"]) ? $_COOKIE["absoluteURL"] : $absolute_url;
-            ?>
-			<label for="absolute_url"><input class="checkbox" type="checkbox" id="absolute_url" <?php echo $absolute_url_disabled ? 'disabled="disabled" ' : '';?><?php echo $checked ? 'checked="checked" ' : '';?>/><?php echo translate("Absolute URL with hostname");?></label>
+            <?php
+            $checked = isset($_COOKIE['absoluteURL']) ? $_COOKIE['absoluteURL'] : $absolute_url;
+?>
+			<label for="absolute_url"><input class="checkbox" type="checkbox" id="absolute_url" <?php echo $absolute_url_disabled ? 'disabled="disabled" ' : '';?><?php echo $checked ? 'checked="checked" ' : '';?>/><?php echo translate('Absolute URL with hostname');?></label>
 		</div>
     </form>
 </div>

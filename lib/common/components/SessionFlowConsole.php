@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,12 @@
 
 namespace common\components;
 
-
 use yii\base\BootstrapInterface;
 
 class SessionFlowConsole implements BootstrapInterface
 {
-    public function preload(){
+    public function preload()
+    {
         \Yii::$container->setSingleton('products', '\common\components\ProductsContainer');
         \Yii::$container->setSingleton('currencies', '\common\classes\Currencies');
         //\Yii::$container->setSingleton('message_stack', '\common\classes\MessageStack');

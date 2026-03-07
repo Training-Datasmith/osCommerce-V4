@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -24,7 +26,7 @@ class m230801_110343_featured_add_translate extends Migration
     {
         $this->addTranslation('admin/featured', [
             'TEXT_SAVE_SORT' => 'Save as current sort',
-            'TEXT_LOAD_SORT' => 'Load current sort'
+            'TEXT_LOAD_SORT' => 'Load current sort',
         ]);
     }
 
@@ -35,7 +37,7 @@ class m230801_110343_featured_add_translate extends Migration
     {
         $this->removeTranslation('admin/featured', [
             'TEXT_SAVE_SORT',
-            'TEXT_LOAD_SORT'
+            'TEXT_LOAD_SORT',
         ]);
     }
 

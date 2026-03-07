@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // This class was generated on Wed, 01 Aug 2018 16:35:39 PDT by version 0.1.0-dev+0ee05a-dirty of Braintree SDK Generator
 // OrdersValidateRequest.php
 // @version 0.1.0-dev+0ee05a-dirty
@@ -13,17 +15,16 @@ use PayPalHttp\HttpRequest;
 
 class OrdersValidateRequest extends HttpRequest
 {
-    function __construct($orderId)
+    public function __construct($orderId)
     {
-        parent::__construct("/v2/checkout/orders/{order_id}/validate-payment-method?", "POST");
+        parent::__construct('/v2/checkout/orders/{order_id}/validate-payment-method?', 'POST');
 
-        $this->path = str_replace("{order_id}", urlencode($orderId), $this->path);
-        $this->headers["Content-Type"] = "application/json";
+        $this->path = str_replace('{order_id}', urlencode($orderId), $this->path);
+        $this->headers['Content-Type'] = 'application/json';
     }
-
 
     public function payPalClientMetadataId($payPalClientMetadataId)
     {
-        $this->headers["PayPal-Client-Metadata-Id"] = $payPalClientMetadataId;
+        $this->headers['PayPal-Client-Metadata-Id'] = $payPalClientMetadataId;
     }
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "modules".
@@ -23,7 +23,6 @@ class Modules extends \yii\db\ActiveRecord
     public const STATE_UNINSTALLED = 0;
     public const STATE_INSTALLED = 1;
     public const STATE_ENABLED = 2;
-
 
     /**
      * {@inheritdoc}
@@ -70,21 +69,21 @@ class Modules extends \yii\db\ActiveRecord
 
     public function beforeSave($insert)
     {
-        if (!parent::beforeSave($insert)){
+        if (!parent::beforeSave($insert)) {
             return false;
         }
-        if ( $insert ){
+        if ($insert) {
             if (is_null($this->installed_admin_id)) {
-                $this->installed_admin_id = (int)($_SESSION['login_id']??0);
+                $this->installed_admin_id = (int)($_SESSION['login_id'] ?? 0);
             }
-            if ( empty($this->installed_time) ) {
+            if (empty($this->installed_time)) {
                 $this->installed_time = new \yii\db\Expression('NOW()');
             }
         } else {
             if (is_null($this->changed_admin_id)) {
-                $this->changed_admin_id = (int)($_SESSION['login_id']??0);
+                $this->changed_admin_id = (int)($_SESSION['login_id'] ?? 0);
             }
-            if ( empty($thischanged_time) ) {
+            if (empty($thischanged_time)) {
                 $this->changed_time = new \yii\db\Expression('NOW()');
             }
         }

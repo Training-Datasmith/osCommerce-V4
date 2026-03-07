@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -26,7 +28,7 @@ class PaymentDefinition extends PayPalModel
      * Identifier of the payment_definition. 128 characters max.
      *
      * @param string $id
-     * 
+     *
      * @return $this
      */
     public function setId($id)
@@ -49,7 +51,7 @@ class PaymentDefinition extends PayPalModel
      * Name of the payment definition. 128 characters max.
      *
      * @param string $name
-     * 
+     *
      * @return $this
      */
     public function setName($name)
@@ -72,7 +74,7 @@ class PaymentDefinition extends PayPalModel
      * Type of the payment definition. Allowed values: `TRIAL`, `REGULAR`.
      *
      * @param string $type
-     * 
+     *
      * @return $this
      */
     public function setType($type)
@@ -95,7 +97,7 @@ class PaymentDefinition extends PayPalModel
      * How frequently the customer should be charged.
      *
      * @param string $frequency_interval
-     * 
+     *
      * @return $this
      */
     public function setFrequencyInterval($frequency_interval)
@@ -118,7 +120,7 @@ class PaymentDefinition extends PayPalModel
      * Frequency of the payment definition offered. Allowed values: `WEEK`, `DAY`, `YEAR`, `MONTH`.
      *
      * @param string $frequency
-     * 
+     *
      * @return $this
      */
     public function setFrequency($frequency)
@@ -141,7 +143,7 @@ class PaymentDefinition extends PayPalModel
      * Number of cycles in this payment definition.
      *
      * @param string $cycles
-     * 
+     *
      * @return $this
      */
     public function setCycles($cycles)
@@ -164,7 +166,7 @@ class PaymentDefinition extends PayPalModel
      * Amount that will be charged at the end of each cycle for this payment definition.
      *
      * @param \PayPal\Api\Currency $amount
-     * 
+     *
      * @return $this
      */
     public function setAmount($amount)
@@ -187,7 +189,7 @@ class PaymentDefinition extends PayPalModel
      * Array of charge_models for this payment definition.
      *
      * @param \PayPal\Api\ChargeModel[] $charge_models
-     * 
+     *
      * @return $this
      */
     public function setChargeModels($charge_models)
@@ -215,10 +217,10 @@ class PaymentDefinition extends PayPalModel
     public function addChargeModel($chargeModel)
     {
         if (!$this->getChargeModels()) {
-            return $this->setChargeModels(array($chargeModel));
+            return $this->setChargeModels([$chargeModel]);
         } else {
             return $this->setChargeModels(
-                array_merge($this->getChargeModels(), array($chargeModel))
+                array_merge($this->getChargeModels(), [$chargeModel])
             );
         }
     }
@@ -232,7 +234,7 @@ class PaymentDefinition extends PayPalModel
     public function removeChargeModel($chargeModel)
     {
         return $this->setChargeModels(
-            array_diff($this->getChargeModels(), array($chargeModel))
+            array_diff($this->getChargeModels(), [$chargeModel])
         );
     }
 

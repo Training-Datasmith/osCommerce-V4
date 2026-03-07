@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230129_211109_remove_cron_menu_acl extends Migration
      */
     public function safeUp()
     {
-        if(method_exists($this, 'isOldExtension')) {
+        if (method_exists($this, 'isOldExtension')) {
             if (!$this->isOldExtension('CronScheduler')) {
                 if (!\common\helpers\Extensions::isInstalled('CronScheduler')) {
                     $this->removeAdminMenu('BOX_HEADING_CRON_MANAGER');

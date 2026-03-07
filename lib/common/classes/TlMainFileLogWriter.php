@@ -1,20 +1,21 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\classes;
 
 class TlMainFileLogWriter extends \yii\log\FileTarget
 {
-
     protected function getContextMessage()
     {
         $sysInfo = \common\helpers\System::getSysInfo();
         $s = "\n";
-        foreach($sysInfo as $key => $info) {
+        foreach ($sysInfo as $key => $info) {
             if (!empty($info) && $info != 'unknown') {
                 $s .= "$key: $info\n";
             }
         }
-        
+
         $msg = parent::getContextMessage();
         $msg = preg_replace_callback(
             "/'email_address' => '(.*)'/",
@@ -44,8 +45,7 @@ class TlMainFileLogWriter extends \yii\log\FileTarget
             },
             $msg
         );
-        
-        
+
         return $s . $msg;
     }
 

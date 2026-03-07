@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,72 +13,84 @@
  */
 
 namespace common\services\storages;
+
 use Yii;
 
-class SessionStorage implements StorageInterface {
-    
+class SessionStorage implements StorageInterface
+{
     protected $_pointer = null;
-    
+
     private $_storageName = '_tlStorageId';
     private $_storageID;
-    
+
     public $session;
-    
-    public function __construct() {
+
+    public function __construct()
+    {
         $this->session = \common\helpers\Session::getSession(); //Yii::$app->getSession();
-        if ($this->session->has($this->_storageName)){
+        if ($this->session->has($this->_storageName)) {
             $this->_storageID = $this->session->get($this->_storageName);
         } else {
             $this->_storageID = Yii::$app->security->generateRandomString();
             $this->session->set($this->_storageName, $this->_storageID);
         }
     }
-    
-    public function setPointer(string $pointer){
+
+    public function setPointer(string $pointer)
+    {
         $this->_storageID = $pointer;
         $this->session->set($this->_storageName, $this->_storageID);
     }
-    
-    public function getPointer(){
+
+    public function getPointer()
+    {
         return $this->_storageID;
     }
-    
-    public function pointerShifted(){
+
+    public function pointerShifted()
+    {
         return false;
     }
 
-    public function get($name){
-        $var = $this->_get();        
+    public function get($name)
+    {
+        $var = $this->_get();
         return $var[$name] ?? null;
     }
-    
-    public function getAll(){
+
+    public function getAll()
+    {
         return $this->_get();
     }
 
-    public function set($name, $value){
+    public function set($name, $value)
+    {
         $var = $this->_get();
-        $var[$name] = $value;        
+        $var[$name] = $value;
         $this->session->set($this->_storageID, $var);
     }
-    
-    private function _get(){
+
+    private function _get()
+    {
         return $this->session->get($this->_storageID) ?? [];
     }
-    
-    public function has($name){
+
+    public function has($name)
+    {
         return !is_null($this->get($name));
     }
-    
-    public function remove($name){
-        if ($this->has($name)){
+
+    public function remove($name)
+    {
+        if ($this->has($name)) {
             $var = $this->_get();
             unset($var[$name]);
             $this->session->set($this->_storageID, $var);
-        }        
+        }
     }
-    
-    public function removeAll(){
+
+    public function removeAll()
+    {
         $this->session->set($this->_storageID, []);
     }
 }

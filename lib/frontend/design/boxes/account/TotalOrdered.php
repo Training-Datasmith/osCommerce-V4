@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\account;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class TotalOrdered extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -30,9 +30,9 @@ class TotalOrdered extends Widget
 
     public function run()
     {
-      if (defined('GROUPS_IS_SHOW_PRICE') && GROUPS_IS_SHOW_PRICE == false) {
-        return '';
-      }
+        if (defined('GROUPS_IS_SHOW_PRICE') && GROUPS_IS_SHOW_PRICE == false) {
+            return '';
+        }
         return IncludeTpl::widget(['file' => 'boxes/account/total-ordered.tpl', 'params' => [
             'mainData' => $this->params['mainData'],
 

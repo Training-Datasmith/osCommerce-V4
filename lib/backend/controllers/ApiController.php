@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,7 +16,6 @@ namespace backend\controllers;
 
 class ApiController extends Sceleton
 {
-
     public function actionGenerateKey()
     {
         $this->layout = false;

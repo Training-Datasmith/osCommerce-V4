@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -15,5 +17,5 @@ namespace Stripe;
  */
 class BitcoinTransaction extends ApiResource
 {
-    const OBJECT_NAME = 'bitcoin_transaction';
+    public const OBJECT_NAME = 'bitcoin_transaction';
 }

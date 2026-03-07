@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,13 @@
 
 namespace frontend\design\boxes\account;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
 use frontend\forms\registration\CustomerRegistration;
+use Yii;
+use yii\base\Widget;
 
 class AccountEdit extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -32,17 +33,17 @@ class AccountEdit extends Widget
 
     public function run()
     {
-        
+
         \common\helpers\Translation::init('js');
         \common\helpers\Translation::init('account/edit');
 
         $customer = Yii::$app->user->getIdentity();
-        
-        if (is_null($this->editModel)){
+
+        if (is_null($this->editModel)) {
             $this->editModel = new CustomerRegistration(['scenario' => CustomerRegistration::SCENARIO_EDIT, 'shortName' => CustomerRegistration::SCENARIO_EDIT]);
         }
-        
-        if (!\Yii::$app->request->isPost){
+
+        if (!\Yii::$app->request->isPost) {
             $this->editModel->preloadCustomersData($customer);
         }
 
@@ -50,7 +51,7 @@ class AccountEdit extends Widget
             'settings' => $this->settings,
             'id' => $this->id,
             'editModel' => $this->editModel,
-            'action' => ['account/edit', 'action'=>'process'],
+            'action' => ['account/edit', 'action' => 'process'],
         ]]);
     }
 }

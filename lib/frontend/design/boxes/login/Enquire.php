@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,11 @@
 
 namespace frontend\design\boxes\login;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
-use frontend\forms\registration\CustomerRegistration;
+use yii\base\Widget;
 
 class Enquire extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -35,7 +34,7 @@ class Enquire extends Widget
         return IncludeTpl::widget(['file' => 'boxes/login/enquire.tpl', 'params' => array_merge($this->params, [
             'settings' => $this->settings,
             'id' => $this->id,
-            'enquireModel' => $this->params['enterModels']['enquire']
+            'enquireModel' => $this->params['enterModels']['enquire'],
         ])]);
     }
 }

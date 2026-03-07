@@ -1,8 +1,15 @@
-<?php 
+<?php
+
+declare(strict_types=1);
+
 namespace common\modules\email\Mandrill;
+
 use common\modules\email\Mandrill;
-class Inbound {
-    public function __construct(Mandrill $master) {
+
+class Inbound
+{
+    public function __construct(Mandrill $master)
+    {
         $this->master = $master;
     }
 
@@ -14,8 +21,9 @@ class Inbound {
      *         - created_at string the date and time that the inbound domain was added as a UTC string in YYYY-MM-DD HH:MM:SS format
      *         - valid_mx boolean true if this inbound domain has successfully set up an MX record to deliver mail to the Mandrill servers
      */
-    public function domains() {
-        $_params = array();
+    public function domains()
+    {
+        $_params = [];
         return $this->master->call('inbound/domains', $_params);
     }
 
@@ -27,8 +35,9 @@ class Inbound {
      *     - created_at string the date and time that the inbound domain was added as a UTC string in YYYY-MM-DD HH:MM:SS format
      *     - valid_mx boolean true if this inbound domain has successfully set up an MX record to deliver mail to the Mandrill servers
      */
-    public function addDomain($domain) {
-        $_params = array("domain" => $domain);
+    public function addDomain($domain)
+    {
+        $_params = ['domain' => $domain];
         return $this->master->call('inbound/add-domain', $_params);
     }
 
@@ -40,8 +49,9 @@ class Inbound {
      *     - created_at string the date and time that the inbound domain was added as a UTC string in YYYY-MM-DD HH:MM:SS format
      *     - valid_mx boolean true if this inbound domain has successfully set up an MX record to deliver mail to the Mandrill servers
      */
-    public function checkDomain($domain) {
-        $_params = array("domain" => $domain);
+    public function checkDomain($domain)
+    {
+        $_params = ['domain' => $domain];
         return $this->master->call('inbound/check-domain', $_params);
     }
 
@@ -53,8 +63,9 @@ class Inbound {
      *     - created_at string the date and time that the inbound domain was added as a UTC string in YYYY-MM-DD HH:MM:SS format
      *     - valid_mx boolean true if this inbound domain has successfully set up an MX record to deliver mail to the Mandrill servers
      */
-    public function deleteDomain($domain) {
-        $_params = array("domain" => $domain);
+    public function deleteDomain($domain)
+    {
+        $_params = ['domain' => $domain];
         return $this->master->call('inbound/delete-domain', $_params);
     }
 
@@ -67,8 +78,9 @@ class Inbound {
      *         - pattern string the search pattern that the mailbox name should match
      *         - url string the webhook URL where inbound messages will be published
      */
-    public function routes($domain) {
-        $_params = array("domain" => $domain);
+    public function routes($domain)
+    {
+        $_params = ['domain' => $domain];
         return $this->master->call('inbound/routes', $_params);
     }
 
@@ -82,8 +94,9 @@ class Inbound {
      *     - pattern string the search pattern that the mailbox name should match
      *     - url string the webhook URL where inbound messages will be published
      */
-    public function addRoute($domain, $pattern, $url) {
-        $_params = array("domain" => $domain, "pattern" => $pattern, "url" => $url);
+    public function addRoute($domain, $pattern, $url)
+    {
+        $_params = ['domain' => $domain, 'pattern' => $pattern, 'url' => $url];
         return $this->master->call('inbound/add-route', $_params);
     }
 
@@ -97,8 +110,9 @@ class Inbound {
      *     - pattern string the search pattern that the mailbox name should match
      *     - url string the webhook URL where inbound messages will be published
      */
-    public function updateRoute($id, $pattern=null, $url=null) {
-        $_params = array("id" => $id, "pattern" => $pattern, "url" => $url);
+    public function updateRoute($id, $pattern = null, $url = null)
+    {
+        $_params = ['id' => $id, 'pattern' => $pattern, 'url' => $url];
         return $this->master->call('inbound/update-route', $_params);
     }
 
@@ -110,8 +124,9 @@ class Inbound {
      *     - pattern string the search pattern that the mailbox name should match
      *     - url string the webhook URL where inbound messages will be published
      */
-    public function deleteRoute($id) {
-        $_params = array("id" => $id);
+    public function deleteRoute($id)
+    {
+        $_params = ['id' => $id];
         return $this->master->call('inbound/delete-route', $_params);
     }
 
@@ -129,11 +144,10 @@ class Inbound {
      *         - pattern string the mailbox route pattern that the recipient matched
      *         - url string the webhook URL that the message was posted to
      */
-    public function sendRaw($raw_message, $to=null, $mail_from=null, $helo=null, $client_address=null) {
-        $_params = array("raw_message" => $raw_message, "to" => $to, "mail_from" => $mail_from, "helo" => $helo, "client_address" => $client_address);
+    public function sendRaw($raw_message, $to = null, $mail_from = null, $helo = null, $client_address = null)
+    {
+        $_params = ['raw_message' => $raw_message, 'to' => $to, 'mail_from' => $mail_from, 'helo' => $helo, 'client_address' => $client_address];
         return $this->master->call('inbound/send-raw', $_params);
     }
 
 }
-
-

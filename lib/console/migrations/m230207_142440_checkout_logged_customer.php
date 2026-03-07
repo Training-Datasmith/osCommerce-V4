@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -27,7 +29,7 @@ class m230207_142440_checkout_logged_customer extends Migration
         }
 
         $this->addTranslation('admin/platforms', [
-            'CHECKOUT_ONLY_FOR_LOGGED_CUSTOMERS' => 'Checkout only for logged customers'
+            'CHECKOUT_ONLY_FOR_LOGGED_CUSTOMERS' => 'Checkout only for logged customers',
         ]);
     }
 

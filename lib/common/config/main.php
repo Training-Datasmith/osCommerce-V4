@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 return [
     'timeZone' => date_default_timezone_get(),
     'vendorPath' => dirname(dirname(__DIR__)) . '/vendor',
@@ -7,7 +9,7 @@ return [
     'components' => [
       'cache' => [
           'class' => 'yii\caching\FileCache',
-          'cachePath' => '@frontend/runtime/cache'
+          'cachePath' => '@frontend/runtime/cache',
           /*
           'class' => 'yii\redis\Cache',
           'keyPrefix' => '<YOURSITE CODE>_', // change prefix!!! a unique key prefix required
@@ -29,28 +31,28 @@ return [
         'enableLogging' => false,
         'enableProfiling' => false,
         'attributes' => (
-            ( defined('DB_SSL_CERT') && DB_SSL_CERT!='' && is_file(DB_SSL_CERT) )?
+            (defined('DB_SSL_CERT') && DB_SSL_CERT != '' && is_file(DB_SSL_CERT)) ?
                 [
-                    \PDO::MYSQL_ATTR_SSL_KEY =>DB_SSL_CERT,
+                    \PDO::MYSQL_ATTR_SSL_KEY => DB_SSL_CERT,
                     \PDO::MYSQL_ATTR_SSL_VERIFY_SERVER_CERT => false,
 
-                ]:
+                ] :
                 []
         ),
-        'on afterOpen' => function($event) {
-          /*
-          *hot fix for mysql mode. remove when active record complete
-          */
-          $event->sender->createCommand("SET SESSION sql_mode = '';")->execute();
-          /*
-          *end of hot fix
-          */
-          $event->sender->createCommand("SET SESSION time_zone = '".date('P')."'")->execute();
+        'on afterOpen' => function ($event) {
+            /*
+            *hot fix for mysql mode. remove when active record complete
+            */
+            $event->sender->createCommand("SET SESSION sql_mode = '';")->execute();
+            /*
+            *end of hot fix
+            */
+            $event->sender->createCommand("SET SESSION time_zone = '".date('P')."'")->execute();
         },
       ],
         'mutex' => [
             'class' => 'yii\mutex\FileMutex',
-        ], 
+        ],
         /*'cache' => [
             'class' => 'yii\caching\FileCache',
         ],*/
@@ -86,8 +88,8 @@ return [
             ],*/
             'clients' => [],
         ],
-        'PropsHelper'=>[
-            'class' => '\common\helpers\Props'
+        'PropsHelper' => [
+            'class' => '\common\helpers\Props',
         ],
         'log' => [
             'flushInterval' => YII_DEBUG ? 1 : 100,
@@ -147,11 +149,11 @@ return [
           'class' => 'common\classes\MediaManager',
       ],
       'settings' => [
-          'class' => 'common\components\Settings', 
+          'class' => 'common\components\Settings',
           'sessionKey' => 'primary-settings',
       ],
     ],
     'modules' => [
-        
-    ]
+
+    ],
 ];

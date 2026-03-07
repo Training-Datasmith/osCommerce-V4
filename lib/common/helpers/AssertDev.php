@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,10 @@
 
 namespace common\helpers;
 
-class AssertDev extends Assert {
-
-    public static function error(string $message) {
+class AssertDev extends Assert
+{
+    public static function error(string $message)
+    {
         \common\helpers\Php::throwOrLog($message);
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // This class was generated on Wed, 01 Aug 2018 16:35:39 PDT by version 0.1.0-dev+0ee05a-dirty of Braintree SDK Generator
 // OrdersPatchRequest.php
 // @version 0.1.0-dev+0ee05a-dirty
@@ -13,14 +15,12 @@ use PayPalHttp\HttpRequest;
 
 class OrdersPatchRequest extends HttpRequest
 {
-    function __construct($orderId)
+    public function __construct($orderId)
     {
-        parent::__construct("/v2/checkout/orders/{order_id}?", "PATCH");
+        parent::__construct('/v2/checkout/orders/{order_id}?', 'PATCH');
 
-        $this->path = str_replace("{order_id}", urlencode($orderId), $this->path);
-        $this->headers["Content-Type"] = "application/json";
+        $this->path = str_replace('{order_id}', urlencode($orderId), $this->path);
+        $this->headers['Content-Type'] = 'application/json';
     }
-
-
 
 }

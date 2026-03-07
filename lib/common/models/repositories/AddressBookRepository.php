@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,9 +15,7 @@
 
 namespace common\models\repositories;
 
-
 use common\models\AddressBook;
-use common\models\Zones;
 
 /**
  * Class AddressBookRepository
@@ -118,7 +118,7 @@ class AddressBookRepository
      */
     public function addFromArray(array $params = [], bool $validation = false, bool $safeOnly = false)
     {
-        $addressBook = new AddressBook;
+        $addressBook = new AddressBook();
         foreach ($params as $attribute => $param) {
             if (!$addressBook->hasAttribute($attribute)) {
                 unset($params[$attribute]);

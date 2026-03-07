@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of True Loaded.
  *
@@ -14,13 +16,13 @@ use Yii;
 
 class DbgNull
 {
-    public static function __callStatic($name, $arguments) {}
+    public static function __callStatic($name, $arguments)
+    {
+    }
 }
-
 
 class Dbg
 {
-
     public static function defineConsts()
     {
         //$s= \common\models\Configuration::findOne(['configuration_key' => 'DEFINE_DBG_CONST'])->configuration_value ?? '';
@@ -32,7 +34,6 @@ class Dbg
             }
         }
     }
-
 
     /**
      * @param $debugConst - part of debug constant
@@ -77,7 +78,7 @@ class Dbg
         if (class_exists('\Yii')) {
             $tmp = \Yii::$app->log->traceLevel;
             \Yii::$app->log->traceLevel = 0;
-            \Yii::info(self::getPrefix() . $msg, empty(self::$logEntity)? 'dbg/log' : end(self::$logEntity));
+            \Yii::info(self::getPrefix() . $msg, empty(self::$logEntity) ? 'dbg/log' : end(self::$logEntity));
             \Yii::$app->log->traceLevel = $tmp;
         }
     }
@@ -114,7 +115,7 @@ class Dbg
     public static function echo($msg)
     {
         if (!class_exists('\common\helpers\System') || \common\helpers\System::isDevelopment() || \common\helpers\System::isConsole()) {
-            echo "<pre>" . self::getPrefix() . $msg . '</pre>';
+            echo '<pre>' . self::getPrefix() . $msg . '</pre>';
         }
         self::log($msg);
     }
@@ -186,7 +187,7 @@ class Dbg
 
     public static function saveJson($var, $fn = 'var')
     {
-        $content = json_encode($var,  JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES );
+        $content = json_encode($var, JSON_PRETTY_PRINT |  JSON_UNESCAPED_SLASHES);
         self::saveText($content, $fn, '.json');
     }
 
@@ -202,7 +203,7 @@ class Dbg
     {
         $res = file_get_contents(Yii::getAlias('@app/runtime/logs/') . $fn . $ext);
         if (false === $res) {
-            \Yii::warning('Error in file_get_contents: '  . (error_get_last()['message']??'Unknown'), 'debug/save');
+            \Yii::warning('Error in file_get_contents: '  . (error_get_last()['message'] ?? 'Unknown'), 'debug/save');
         }
         return $res;
     }
@@ -225,14 +226,14 @@ class Dbg
     public static function getStack($full = false)
     {
         ob_start();
-        debug_print_backtrace($full? 0 : DEBUG_BACKTRACE_IGNORE_ARGS);
+        debug_print_backtrace($full ? 0 : DEBUG_BACKTRACE_IGNORE_ARGS);
         $ret = ob_get_contents();
         ob_end_clean();
         return $ret;
     }
 
-    static $timeFirst = null;
-    static $time = null;
+    public static $timeFirst = null;
+    public static $time = null;
 
     private static function timeStart($msg)
     {
@@ -249,15 +250,15 @@ class Dbg
             return 0;
         } else {
             $cur = microtime(true);
-            $msg = empty($msg)? '' : ($msg . '. ');
-            $elapsed = $cur-self::$time;
-            self::log( sprintf('%sElapsed: %.3f (since start %.3f)', $msg, $elapsed, $cur-self::$timeFirst) );
+            $msg = empty($msg) ? '' : ($msg . '. ');
+            $elapsed = $cur - self::$time;
+            self::log(sprintf('%sElapsed: %.3f (since start %.3f)', $msg, $elapsed, $cur - self::$timeFirst));
             self::$time = microtime(true);
             return $elapsed;
         }
     }
 
-    static $timeLoop = [];
+    public static $timeLoop = [];
     private const LOOP_GLOBAL =  '__loop-global__';
 
     public static function timeLoopStart($loopName = 'loop1')
@@ -273,8 +274,8 @@ class Dbg
             $curInterval = 0;
             self::log("Interval for $loopName/$msg can't be calculated. Use ::timeLoopStart() befoe ::timeLoop()");
         }
-        self::$timeLoop[$loopName][$msg]['time'] = (self::$timeLoop[$loopName][$msg]['time']??0) + $curInterval;
-        self::$timeLoop[$loopName][$msg]['count'] = (self::$timeLoop[$loopName][$msg]['count']??0) + 1;
+        self::$timeLoop[$loopName][$msg]['time'] = (self::$timeLoop[$loopName][$msg]['time'] ?? 0) + $curInterval;
+        self::$timeLoop[$loopName][$msg]['count'] = (self::$timeLoop[$loopName][$msg]['count'] ?? 0) + 1;
         self::$timeLoop[$loopName][self::LOOP_GLOBAL]['cur_time'] = microtime(true);
         return $curInterval;
     }
@@ -283,7 +284,7 @@ class Dbg
     {
         if (is_array(self::$timeLoop[$loopName] ?? null)) {
             $s = "Loop $loopName:\n";
-            foreach(self::$timeLoop[$loopName] as $name => $val) {
+            foreach (self::$timeLoop[$loopName] as $name => $val) {
                 if ($name != self::LOOP_GLOBAL) {
                     $s .= sprintf("%s=%.3f (%d times)\n", $name, $val['time'], $val['count']);
                 }
@@ -313,9 +314,11 @@ class Dbg
             self::$mem = $new;
         } else {
             if ($force || $newReal != self::$memReal || $new != self::$mem) {
-                if (!empty($msg)) $msg .= ': ';
-                $realStr = $force? '=' . memory_get_usage(true) : '';
-                self::out( sprintf('%sMax=%d (+%d) Real%s+%d Count=%d', $msg, $new, $new-self::$mem, $realStr, $newReal-self::$memReal, self::$memCount), $dest);
+                if (!empty($msg)) {
+                    $msg .= ': ';
+                }
+                $realStr = $force ? '=' . memory_get_usage(true) : '';
+                self::out(sprintf('%sMax=%d (+%d) Real%s+%d Count=%d', $msg, $new, $new - self::$mem, $realStr, $newReal - self::$memReal, self::$memCount), $dest);
                 self::$memCount = 0;
                 self::$mem = $new;
                 self::$memReal = $newReal;
@@ -339,7 +342,7 @@ class Dbg
     {
         if (is_bool($entity)) {
             if ($entity && !empty(self::$lastDbgConst)) {
-                self::$logEntity[] = "dbg/" . self::$lastDbgConst;
+                self::$logEntity[] = 'dbg/' . self::$lastDbgConst;
             }
         } elseif (is_string($entity) && !empty($entity)) {
             self::$logEntity[] = "dbg/$entity";
@@ -381,7 +384,7 @@ class Dbg
 
     public static function getPrefix()
     {
-        return empty(self::$logPrefix)? '' : (implode('::', self::$logPrefix) . ' ');
+        return empty(self::$logPrefix) ? '' : (implode('::', self::$logPrefix) . ' ');
     }
 
 }

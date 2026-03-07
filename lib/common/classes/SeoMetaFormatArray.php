@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,10 +14,8 @@
 
 namespace common\classes;
 
-
 class SeoMetaFormatArray implements SeoMetaFormatInterface
 {
-
     protected $keys = [];
 
     public function __construct()
@@ -24,7 +24,7 @@ class SeoMetaFormatArray implements SeoMetaFormatInterface
 
     public function ownMetaTitle()
     {
-        return isset($this->keys['META_TITLE'])?$this->keys['META_TITLE']:'';
+        return isset($this->keys['META_TITLE']) ? $this->keys['META_TITLE'] : '';
     }
 
     public function ownMetaDescription()
@@ -34,7 +34,7 @@ class SeoMetaFormatArray implements SeoMetaFormatInterface
 
     public function getMetaFormatKey($key)
     {
-        return isset($this->keys[$key])?$this->keys[$key]:'';
+        return isset($this->keys[$key]) ? $this->keys[$key] : '';
     }
 
 }

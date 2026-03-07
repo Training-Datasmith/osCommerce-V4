@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "locations".
@@ -27,7 +27,7 @@ class Locations extends \yii\db\ActiveRecord
 
     public function getLocationBlock()
     {
-        return $this->hasOne(LocationBlocks::className(),['block_id'=>'block_id']);
+        return $this->hasOne(LocationBlocks::className(), ['block_id' => 'block_id']);
     }
 
     /**
@@ -37,7 +37,7 @@ class Locations extends \yii\db\ActiveRecord
     {
         return [
             [['block_id', 'parrent_id', 'is_final', 'warehouse_id', 'sort_order'], 'integer'],
-            [['location_name'], 'string', 'max' => 32]
+            [['location_name'], 'string', 'max' => 32],
         ];
     }
 

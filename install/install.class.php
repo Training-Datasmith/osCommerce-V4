@@ -1,32 +1,37 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-class Log {
-
-    private static function getFileName() {
+class Log
+{
+    private static function getFileName()
+    {
         return __DIR__ . DIRECTORY_SEPARATOR . 'install.log';
     }
 
-    private static function getPrefix($type) {
+    private static function getPrefix($type)
+    {
         return sprintf('%s [%s] ', date('Y-m-d H-i-s'), $type);
     }
 
-    private static function getSuffix($details) {
+    private static function getSuffix($details)
+    {
         if (empty($details)) {
             return '';
         }
         if (is_array($details)) {
             $res = '';
-            foreach ($details as $key=>$value) {
+            foreach ($details as $key => $value) {
                 $res .= "$key=$value\n";
             }
             return $res;
@@ -34,25 +39,29 @@ class Log {
         return $details . "\n";
     }
 
-    public static function write($message, $type = 'info', $details = null) {
-        if (in_array($type, ['info', 'install_success'])) return;
+    public static function write($message, $type = 'info', $details = null)
+    {
+        if (in_array($type, ['info', 'install_success'])) {
+            return;
+        }
         file_put_contents(self::getFileName(), self::getPrefix($type) . "$message\n" . self::getSuffix($details), FILE_APPEND);
     }
 }
 
-class install {
-
+class install
+{
     public $log = [];
     private $current_step = 'start';
     private $previous = 'start';
-    private $steps = array();
-    private $order = array();
-    private $done = array();
+    private $steps = [];
+    private $order = [];
+    private $done = [];
     private $retry_step = false;
-    public $data = array();
+    public $data = [];
     public $langcode = 'english';
 
-    public function log($type, $message, $details = null) {
+    public function log($type, $message, $details = null)
+    {
         $this->log[] = [
             'type' => $type,
             'message' => $message,
@@ -61,7 +70,8 @@ class install {
         Log::write($message, $type, $details);
     }
 
-    public function init() {
+    public function init()
+    {
         $this->current_step = $_POST['current_step'] ?? '';
         if (empty($this->current_step)) {
             $this->current_step = 'start';
@@ -93,11 +103,12 @@ class install {
             }
         }
 
-        $this->data = isset($_POST['step_data']) ? unserialize(base64_decode($_POST['step_data'])) : array();
-        if (isset($_POST['next']) && $this->current_step == 'end')
+        $this->data = isset($_POST['step_data']) ? unserialize(base64_decode($_POST['step_data'])) : [];
+        if (isset($_POST['next']) && $this->current_step == 'end') {
             $this->parse_end();
+        }
         if (isset($_POST['install_done'])) {
-            $this->done = (strpos($_POST['install_done'], ',') !== false) ? explode(',', $_POST['install_done']) : (($_POST['install_done'] != '') ? array($_POST['install_done']) : array());
+            $this->done = (strpos($_POST['install_done'], ',') !== false) ? explode(',', $_POST['install_done']) : (($_POST['install_done'] != '') ? [$_POST['install_done']] : []);
         }
 
         $this->init_language();
@@ -108,30 +119,33 @@ class install {
         if (isset($_POST['select'])) {
             $this->current_step = $_POST['select'];
         } elseif (isset($_POST['next']) || isset($_POST['prev']) || $this->current_step == 'start' || isset($_POST['skip'])) {
-            if ($this->current_step == 'start' || isset($_POST['skip']) || ($this->current_step != 'end' && $this->parse_step() && isset($_POST['next'])))
+            if ($this->current_step == 'start' || isset($_POST['skip']) || ($this->current_step != 'end' && $this->parse_step() && isset($_POST['next']))) {
                 $this->next_step();
-            if (isset($_POST['prev']) && !$this->retry_step)
+            }
+            if (isset($_POST['prev']) && !$this->retry_step) {
                 $this->current_step = $_POST['prev'];
+            }
         }
         $this->show();
     }
 
-    private function init_language() {
+    private function init_language()
+    {
         if (!isset($_POST['inst_lang'])) {
-            $usersprache = explode(",", $_SERVER["HTTP_ACCEPT_LANGUAGE"]);
-            $usersprache = explode(";", $usersprache[0]);
+            $usersprache = explode(',', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+            $usersprache = explode(';', $usersprache[0]);
 
-            if (strlen($usersprache[0]) == "5") {
+            if (strlen($usersprache[0]) == '5') {
                 $code = substr($usersprache[0], 3, 2);
-            } elseif (strlen($usersprache[0]) == "2") {
+            } elseif (strlen($usersprache[0]) == '2') {
                 $code = $usersprache[0];
             } else {
-                $code = "";
+                $code = '';
             }
             $code = strtolower($code);
             $language = $this->translate_iso_langcode($code);
             if (!is_file($this->root_path . 'language/' . $language . '/lang_install.php')) {
-                $language = "english";
+                $language = 'english';
             }
         } else {
             $language = $_POST['inst_lang'];
@@ -143,33 +157,37 @@ class install {
         $this->lang = $lang;
     }
 
-    private function scan_steps() {
+    private function scan_steps()
+    {
         $steps = scandir($this->root_path . 'install/install_steps');
         foreach ($steps as $file) {
-            if (substr($file, -10) != '.class.php')
+            if (substr($file, -10) != '.class.php') {
                 continue;
+            }
             $step = substr($file, 0, -10);
             include_once($this->root_path . 'install/install_steps/' . $file);
             if (!class_exists($step)) {
                 $this->log('install_error', 'invalid step-file');
             }
             if (empty($this->data[$step])) {
-                $this->data[$step] = array();
+                $this->data[$step] = [];
             }
             $this->steps[] = $step;
-            $this->order[call_user_func(array($step, 'before'))] = $step;
-            $ajax = call_user_func(array($step, 'ajax'));
+            $this->order[call_user_func([$step, 'before'])] = $step;
+            $ajax = call_user_func([$step, 'ajax']);
             if ($ajax && isset($_POST[$ajax])) {
                 $_step = new $step();
-                if (method_exists($_step, 'ajax_out'))
+                if (method_exists($_step, 'ajax_out')) {
                     $_step->ajax_out();
+                }
             }
         }
         $this->order = $this->sort_steps();
     }
 
-    private function sort_steps() {
-        $arrOut = array();
+    private function sort_steps()
+    {
+        $arrOut = [];
         $current = 'start';
         for ($i = 0; $i < count($this->order); $i++) {
             $arrOut[$current] = $this->order[$current];
@@ -178,13 +196,15 @@ class install {
         return $arrOut;
     }
 
-    private function parse_step() {
+    private function parse_step()
+    {
         $step = end($this->order);
         while ($step != $this->current_step) {
             if (in_array($step, $this->done, true)) {
                 $_step = new $step();
-                if (method_exists($_step, 'undo'))
+                if (method_exists($_step, 'undo')) {
                     $_step->undo();
+                }
                 unset($this->done[array_search($step, $this->done)]);
             }
             $step = array_search($step, $this->order);
@@ -200,7 +220,7 @@ class install {
         if ($back && !in_array($this->current_step, $this->done)) {
             $this->done[] = $this->current_step;
         }
-        if (!$back && in_array($this->current_step, $this->done)){
+        if (!$back && in_array($this->current_step, $this->done)) {
             unset($this->done[array_search($this->current_step, $this->done)]);
         }
         if ($back && isset($_POST['prev']) && $_POST['prev'] != '') {
@@ -213,35 +233,41 @@ class install {
         return $back;
     }
 
-    private function next_step() {
+    private function next_step()
+    {
         $old_current = $this->current_step;
         foreach ($this->steps as $step) {
-            if (call_user_func(array($step, 'before')) == $this->current_step) {
+            if (call_user_func([$step, 'before']) == $this->current_step) {
                 $this->current_step = $step;
                 break;
             }
         }
-        if ($old_current == $this->current_step)
+        if ($old_current == $this->current_step) {
             $this->current_step = 'end';
+        }
     }
 
-    private function next_button() {
-        if ($this->current_step == 'end')
+    private function next_button()
+    {
+        if ($this->current_step == 'end') {
             return $this->lang['inst_finish'];
-        if ($this->retry_step)
+        }
+        if ($this->retry_step) {
             return $this->lang['retry'];
+        }
         $step = $this->current_step;
         $_step = new $step();
         return $this->lang[$_step->next_button];
     }
 
-    private function end() {
+    private function end()
+    {
         $config = file_get_contents($this->root_path . 'includes/local/configure.php');
         $config .= 'define(\'TL_INSTALLED\', true);' . "\n\n";
         error_clear_last();
         $response = file_put_contents($this->root_path . 'includes/local/configure.php', $config);
         if ($response === false) {
-            $this->log('install_error', 'Cant save config file.', error_get_last()['message']??null);
+            $this->log('install_error', 'Cant save config file.', error_get_last()['message'] ?? null);
             return false;
         }
         @chmod($this->root_path . 'includes/configure.php', 0444);
@@ -251,7 +277,8 @@ class install {
         return $this->lang['install_end_text'];
     }
 
-    private function parse_end() {
+    private function parse_end()
+    {
         include_once $this->root_path . 'includes/local/configure.php';
         if (defined('TL_INSTALLED') && TL_INSTALLED) {
             $path = dirname($_SERVER['SCRIPT_FILENAME']);
@@ -261,42 +288,50 @@ class install {
         exit;
     }
 
-    private function get_content() {
+    private function get_content()
+    {
         $this->previous = array_search($this->current_step, $this->order);
-        if ($this->current_step == 'end')
+        if ($this->current_step == 'end') {
             return $this->end();
+        }
         $step = $this->current_step;
         $_step = new $step();
-        if (in_array($this->current_step, $this->done))
+        if (in_array($this->current_step, $this->done)) {
             $content = $_step->get_filled_output();
-        else
+        } else {
             $content = $_step->get_output();
+        }
         $this->data[$this->current_step] = $_step->data;
         return $content;
     }
 
-    private function gen_menu() {
+    private function gen_menu()
+    {
         $menu = '';
         $count_step = '1';
         foreach ($this->order as $step) {
             $class = (in_array($step, $this->done)) ? 'done' : 'notactive';
-            if (in_array(array_search($step, $this->order), $this->done))
+            if (in_array(array_search($step, $this->order), $this->done)) {
                 $class .= ' done2';
-            if ($step == $this->current_step)
+            }
+            if ($step == $this->current_step) {
                 $class = 'now';
+            }
             $menu .= "\n\t\t\t\t\t" . '<li class="' . $class . '" id="' . $step . '"><span class="countStep">' . $count_step . '</span><span>' . $this->lang[$step] . '<input type="hidden" name="select" id="back_' . $step . '" disabled="disabled" value="' . $step . '" /></span></li>';
             $count_step++;
         }
         return $menu;
     }
 
-    private function lang_drop() {
+    private function lang_drop()
+    {
         $drop = '<select name="inst_lang" id="language_drop">';
-        $options = array();
+        $options = [];
         $files = scandir($this->root_path . '/install/language');
         foreach ($files as $file) {
-            if (file_exists($this->root_path . '/install/language/' . $file . '/install.php'))
+            if (file_exists($this->root_path . '/install/language/' . $file . '/install.php')) {
                 $options[] = $file;
+            }
         }
         sort($options);
         foreach ($options as $option) {
@@ -306,7 +341,8 @@ class install {
         return $drop . '</select>';
     }
 
-    private function show() {
+    private function show()
+    {
         if (class_exists($this->current_step)) {
             $step = $this->current_step;
             $_step = new $step();
@@ -371,7 +407,7 @@ class install {
 				<div id="content">
 					';
         if (count($this->log) > 0) {
-            $error = "<br />";
+            $error = '<br />';
             foreach ($this->log as $log) {
                 $type = $log['type'];
                 $error .= $this->$type($log['message'], $log['details'] ?? null);
@@ -391,13 +427,15 @@ class install {
             }*/
         }
 
-        if ($this->previous != 'start' && $this->current_step != 'end' && $this->current_step != 'admin_user')
+        if ($this->previous != 'start' && $this->current_step != 'end' && $this->current_step != 'admin_user') {
             $content .= '
 						<button type="button" id="previous_step" class="prevstep">' . $this->lang['back'] . '</button>
 						<input type="hidden" name="prev" value="' . $this->previous . '" id="back_previous_step" disabled="disabled" />';
-        if (($_step->skippable ?? false))
+        }
+        if (($_step->skippable ?? false)) {
             $content .= '
 						<input type="submit" name="' . (($_step->parseskip ?? false) ? 'next' : 'skip') . '" value="' . $this->lang['skip'] . '" class="' . (($_step->parseskip) ? 'nextstep' : 'skipstep') . '" />';
+        }
         $content .= '
 						<button type="submit" name="next" class="blue-btn" />' . $this->next_button() . '</button>
 						<input type="hidden" name="current_step" value="' . $this->current_step . '" />
@@ -425,7 +463,7 @@ class install {
         }
         if (is_array($details)) {
             $tooltip = '';
-            foreach ($details as $key=>$value) {
+            foreach ($details as $key => $value) {
                 $tooltip = "$key = $value\n";
             }
         } else {
@@ -434,72 +472,81 @@ class install {
         return '<span title="'. $tooltip .'" style="cursor: help; font-family: Segoe UI, Segoe UI Emoji">&#x2139</span>';
     }
 
-    public function install_error($log, $details = null) {
+    public function install_error($log, $details = null)
+    {
         return '<div class="infobox infobox-large infobox-red clearfix">
 		<i class="fa fa-exclamation-triangle fa-4x pull-left"></i><span>' . $this->lang['error'] . '. ' . $log . $this->htmlFromErrDetails($details) .'</span>
 	</div>';
     }
 
-    public function install_warning($log, $details = null) {
+    public function install_warning($log, $details = null)
+    {
         return '<div class="infobox infobox-large infobox-red clearfix">
 			<i class="fa fa-exclamation-triangle fa-4x pull-left"></i><span>' . $this->lang['warning'] . '. ' . $log . $this->htmlFromErrDetails($details) . '</span>
 		</div>';
     }
 
-    public function install_success($log) {
+    public function install_success($log)
+    {
         return '<div class="infobox infobox-large infobox-green clearfix">
 		<i class="fa fa-check-circle" aria-hidden="true"></i><span>' . $this->lang['success'] . '. ' . $log . '</span>
 	</div>';
     }
 
-    public function translate_iso_langcode($isoCode) {
-        $language_codes = array(
+    public function translate_iso_langcode($isoCode)
+    {
+        $language_codes = [
             'en' => 'English',
-        );
+        ];
         if (isset($language_codes[$isoCode])) {
-            return mb_strtolower($str,  mb_detect_encoding($str));
-//            return utf8_strtolower($language_codes[$isoCode]);
+            return mb_strtolower($str, mb_detect_encoding($str));
+            //            return utf8_strtolower($language_codes[$isoCode]);
         } else {
-            return "english";
+            return 'english';
         }
     }
 
 }
 
-abstract class install_generic {
-
+abstract class install_generic
+{
     public static $before = 'start';
     public static $ajax = false;
     public $head_js = '';
     public $next_button = 'continue';
     public $skippable = false;
     public $parseskip = false;
-    public $data = array();
+    public $data = [];
 
-    public function __construct() {
+    public function __construct()
+    {
         global $install;
         $this->lang = $install->lang;
         $this->data = $install->data[get_class($this)];
         $this->root_path = $install->root_path;
     }
 
-    public static function before() {
+    public static function before()
+    {
         return self::$before;
     }
 
-    public static function ajax() {
+    public static function ajax()
+    {
         return self::$ajax;
     }
 
-    public function log($type, $message, $details = null) {
+    public function log($type, $message, $details = null)
+    {
         global $install;
         $install->log($type, $message, $details);
     }
 
-    public function prepare_input($string) {
+    public function prepare_input($string)
+    {
         $string = stripslashes($string);
         $string = preg_replace('/ +/', ' ', trim($string));
-        $string = preg_replace("/[<>]/", '_', $string);
+        $string = preg_replace('/[<>]/', '_', $string);
         return addslashes($string);
     }
 

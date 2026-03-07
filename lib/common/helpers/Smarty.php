@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\helpers;
 
 class Smarty
 {
-
     public static function renderStr($strTemplate, $params = [])
     {
         $smarty = new \Smarty();

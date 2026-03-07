@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\checkout;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class ContinueBtn extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -32,9 +32,9 @@ class ContinueBtn extends Widget
     {
         $initialize_checkout_methods = '';
         //if (defined('EXPRESS_PAYMENTS_AT_CHECKOUT') && EXPRESS_PAYMENTS_AT_CHECKOUT == 'True') {
-            global $cart;
-            $payment_modules = \common\services\OrderManager::loadManager($cart)->getPaymentCollection();
-            $initialize_checkout_methods = $payment_modules->checkout_initialization_method();
+        global $cart;
+        $payment_modules = \common\services\OrderManager::loadManager($cart)->getPaymentCollection();
+        $initialize_checkout_methods = $payment_modules->checkout_initialization_method();
         //}
         $this->params['link'] = tep_href_link('index');
         $this->params['inline'] = $initialize_checkout_methods;

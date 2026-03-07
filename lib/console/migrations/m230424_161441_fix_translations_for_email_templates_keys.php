@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -27,7 +29,7 @@ class m230424_161441_fix_translations_for_email_templates_keys extends Migration
             '##SECURITY_KEY##'          => 'Security key',
             '##TRACKING_NUMBER##'       => 'Tracking number',
             '##TRACKING_NUMBER_URL##'   => 'Tracking number url',
-        ] );
+        ]);
     }
 
     /**

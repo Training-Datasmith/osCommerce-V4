@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,10 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class StoreName extends Widget
 {
-
     public $file;
     public $params;
     public $settings;

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,17 +14,14 @@
 
 namespace common\api\models\AR\Warehouses;
 
-
 use common\api\models\AR\EPMap;
-use yii\db\Expression;
 
 class Info extends EPMap
 {
-
     protected $hideFields = [
         'warehouse_id',
         'time_long',
-        'token'
+        'token',
     ];
 
     protected $parentObject;

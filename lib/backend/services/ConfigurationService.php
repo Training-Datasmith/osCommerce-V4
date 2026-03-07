@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +13,6 @@
  */
 
 namespace backend\services;
-
 
 use common\models\repositories\ConfigurationRepository;
 use common\services\PlatformsConfigurationService;
@@ -26,8 +27,7 @@ final class ConfigurationService
     public function __construct(
         ConfigurationRepository $configurationRepository,
         PlatformsConfigurationService $platformsConfigurationService
-    )
-    {
+    ) {
         $this->configurationRepository = $configurationRepository;
         $this->platformsConfigurationService = $platformsConfigurationService;
     }

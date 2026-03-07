@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,18 +12,15 @@
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-
 namespace frontend\design\boxes;
 
-
-use Yii;
 use common\classes\design;
 use frontend\design\IncludeTpl;
 use frontend\design\Info;
+use Yii;
 
 class ProductBundleListing extends ProductListing
 {
-
     public function run()
     {
         $productList = [];
@@ -32,7 +31,7 @@ class ProductBundleListing extends ProductListing
 
         $cssClass = 'products-listing product-listing';
 
-        if ($this->settings[0]['col_in_row'] && Info::get_gl() == 'grid'){
+        if ($this->settings[0]['col_in_row'] && Info::get_gl() == 'grid') {
             $cssClass .= ' cols-' . $this->settings[0]['col_in_row'];
         } else {
             $cssClass .= ' cols-1';
@@ -46,23 +45,23 @@ class ProductBundleListing extends ProductListing
 
         $html = '';
         $itmsArrey = [];
-        foreach ($this->products as $product){
+        foreach ($this->products as $product) {
             $productList[$product['products_id']] = [
-                'products_id' => $product['products_id']
+                'products_id' => $product['products_id'],
             ];
             $item = '';
-            $item .= '<div class="bundleComboItem" data-id="' . $product['products_id'] . '" data-name="' . $product['products_id'] . '"'.(isset($product['batchSelected']) && $product['batchSelected']?' data-batch-selected="1"':'').'>';
+            $item .= '<div class="bundleComboItem" data-id="' . $product['products_id'] . '" data-name="' . $product['products_id'] . '"'.(isset($product['batchSelected']) && $product['batchSelected'] ? ' data-batch-selected="1"' : '').'>';
 
             $item .= static::createElementHtml([
                 'name' => 'name',
-                'class' => ''
+                'class' => '',
             ], $product, $this->settings);
 
             $item .= static::createItem($itemStructure, $product, $this->settings);
 
             $item .= static::createElementHtml([
                 'name' => 'price',
-                'class' => ''
+                'class' => '',
             ], $product, $this->settings);
 
             $item .= '</div>';
@@ -71,7 +70,7 @@ class ProductBundleListing extends ProductListing
             if (!$product['stock_indicator']['flags'] && $product['stock_indicator']) {
                 $product['stock_indicator']['flags'] = $product['stock_indicator'];
             }
-            if ( !isset(Info::$jsGlobalData['products']) || !isset(Info::$jsGlobalData['products'][$product['products_id']]) ) {
+            if (!isset(Info::$jsGlobalData['products']) || !isset(Info::$jsGlobalData['products'][$product['products_id']])) {
                 Info::addJsData(['products' => [
                     $product['products_id'] => [
                         'products_id' => $product['products_id'],
@@ -96,15 +95,15 @@ class ProductBundleListing extends ProductListing
                             'special' => $product['price_special'],
                             'old' => $product['price_old'],
                         ],
-                    ]
+                    ],
                 ]]);
             }
 
             if ($product['in_wish_list']) {
                 Info::addJsData(['productListings' => [
                     'wishList' => ['products' => [
-                        $product['products_id'] => '1'
-                    ]]
+                        $product['products_id'] => '1',
+                    ]],
                 ]]);
             }
         }
@@ -112,13 +111,13 @@ class ProductBundleListing extends ProductListing
         Info::addJsData(['productListings' => [
             $this->settings['listing_type'] => [
                 'productListing' => $productList,
-                'itemElements' => static::itemElements($itemStructure)
+                'itemElements' => static::itemElements($itemStructure),
             ],
         ]]);
 
         if ($this->settings['mainListing']) {
             Info::addJsData(['productListings' => [
-                'mainListing' => $this->id
+                'mainListing' => $this->id,
             ]]);
         }
         Info::addJsData(['widgets' => [
@@ -150,7 +149,7 @@ class ProductBundleListing extends ProductListing
             $returnData = [
                 'entryData' => Info::$jsGlobalData,
                 'html' => $html,
-                'css' => self::getStyles()
+                'css' => self::getStyles(),
             ];
             return json_encode($returnData);
         } elseif ($this->settings['productsInArray']) {
@@ -158,11 +157,11 @@ class ProductBundleListing extends ProductListing
         } else {
             return
                 '<div class="' . $cssClass . '" data-listing-name="' . $this->settings['listing_type'] . '" data-listing-type="' . self::$listType . '" '.
-                (!empty($this->settings[0]['listing_param'])?' data-listing-param="'.$this->settings[0]['listing_param'].'"':'').
-                (!empty($this->settings[0]['listing_callback'])?' data-listing-callback="'.$this->settings[0]['listing_callback'].'"':'').
+                (!empty($this->settings[0]['listing_param']) ? ' data-listing-param="'.$this->settings[0]['listing_param'].'"' : '').
+                (!empty($this->settings[0]['listing_callback']) ? ' data-listing-callback="'.$this->settings[0]['listing_callback'].'"' : '').
                 '>' . $html . '</div>'.
-                (!empty($this->settings[0]['listing_callback_js'])?$this->settings[0]['listing_callback_js']:'')
-                ;
+                (!empty($this->settings[0]['listing_callback_js']) ? $this->settings[0]['listing_callback_js'] : '')
+            ;
         }
     }
 
@@ -175,26 +174,26 @@ class ProductBundleListing extends ProductListing
             ],
             'settings' => $settings,
         ]);
-/*
-        $html = '';
-        foreach ($itemStructure as $element) {
-            if ($element['name'] == 'BlockBox') {
-                $html .= '<div class="type-' . $element['type'] . ' BlockBox ' . $element['class'] . '">';
-                foreach ($element['children'] as $col) {
-                    if ($element['type'] != 1) $html .= '<div class="col">';
-                    $html .= static::createItem($col, $product, $settings);
-                    if ($element['type'] != 1) $html .= '</div>';
+        /*
+                $html = '';
+                foreach ($itemStructure as $element) {
+                    if ($element['name'] == 'BlockBox') {
+                        $html .= '<div class="type-' . $element['type'] . ' BlockBox ' . $element['class'] . '">';
+                        foreach ($element['children'] as $col) {
+                            if ($element['type'] != 1) $html .= '<div class="col">';
+                            $html .= static::createItem($col, $product, $settings);
+                            if ($element['type'] != 1) $html .= '</div>';
+                        }
+                        $html .= '</div>';
+                    } else {
+        //                if (static::isSwitchOff($element['name'], $settings)) {
+        //                    continue;
+        //                }
+                        $html .= static::createElementHtml($element, $product, $settings);
+                    }
                 }
-                $html .= '</div>';
-            } else {
-//                if (static::isSwitchOff($element['name'], $settings)) {
-//                    continue;
-//                }
-                $html .= static::createElementHtml($element, $product, $settings);
-            }
-        }
-        return $html;
-*/
+                return $html;
+        */
     }
 
     protected function createElementHtml($element, $product, $settings)
@@ -207,7 +206,7 @@ class ProductBundleListing extends ProductListing
                 'settings' => $settings,
                 'product' => $product,
                 'element' => $element,
-            ]
+            ],
         ]);
         $html .= '</div>';
         return $html;

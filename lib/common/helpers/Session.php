@@ -1,17 +1,20 @@
 <?php
 
+declare(strict_types=1);
+
 /*
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2005 Holbi Group Ltd
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\helpers;
+
 use Yii;
 
 /**
@@ -19,13 +22,15 @@ use Yii;
  *
  * @author vlad
  */
-class Session {
-
-    public static function get($key) {
+class Session
+{
+    public static function get($key)
+    {
         return static::getSession()->get($key);
     }
 
-    public static function getSession() {
+    public static function getSession()
+    {
         if (method_exists(Yii::$app, 'getSession')) {
             return Yii::$app->getSession();
         } else {
@@ -38,7 +43,7 @@ class Session {
             }
         }
     }
-    
+
     public static function deleteCustomerSessions($customer_id, $excludeSID = '')
     {
         $whosRows = \common\models\WhosOnline::find()

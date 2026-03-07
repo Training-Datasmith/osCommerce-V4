@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "themes_settings".
@@ -31,7 +31,7 @@ class ThemesSettings extends \yii\db\ActiveRecord
         return [
             [['theme_name'], 'string', 'max' => 128],
             [['setting_group', 'setting_name'], 'string', 'max' => 255],
-            [['setting_value'], 'string']
+            [['setting_value'], 'string'],
         ];
     }
 

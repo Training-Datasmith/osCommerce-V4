@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,12 @@
 
 namespace frontend\design\boxes\product;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use frontend\design\Info;
 
 class ButtonsQuote extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -31,14 +31,16 @@ class ButtonsQuote extends Widget
 
     public function run()
     {
-        if (!\common\helpers\Extensions::isAllowed('Quotations')) return '';
+        if (!\common\helpers\Extensions::isAllowed('Quotations')) {
+            return '';
+        }
 
         $params = Yii::$app->request->get();
 
         if (!$params['products_id'] || GROUPS_DISABLE_CART) {
             return '';
         }
-        
+
         if (Yii::$app->user->isGuest && \common\helpers\PlatformConfig::getFieldValue('platform_please_login')) {
             return '';
         }

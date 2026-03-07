@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,11 @@
 
 namespace frontend\design\boxes\email;
 
-use Yii;
 use yii\base\Widget;
 use yii\helpers\ArrayHelper;
-use frontend\design\IncludeTpl;
 
 class OrderTotals extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -33,7 +32,7 @@ class OrderTotals extends Widget
     {
         $theme_name = false;
 
-        if (defined("THEME_NAME")) {
+        if (defined('THEME_NAME')) {
             $theme_name = THEME_NAME;
         } elseif ($this->params['platform_id']) {
             $theme = tep_db_fetch_array(tep_db_query("select t.theme_name from platforms_to_themes p2t, themes t where p2t.theme_id = t.id  and p2t.platform_id = '" . $this->params['platform_id'] . "'"));
@@ -58,7 +57,7 @@ class OrderTotals extends Widget
                 (ArrayHelper::getValue($item, 'show_line') ? ($attributesText['.totals-line'] ?? '') : ''). '">
             <td class="totals-title" style="' . ($attributesText['.totals-title'] ?? '') . ($attributesText['.' . $item['code'] . ' .totals-title'] ?? '') . '">' . strip_tags($item['title']) . '</td>
 
-            <td class="totals-value" style="' . ($attributesText['.totals-value'] ?? '') . ($attributesText['.' . $item['code'] . ' .totals-value'] ?? '') . '">' . strip_tags((defined('GROUPS_IS_SHOW_PRICE') && GROUPS_IS_SHOW_PRICE==false) ? '':$item['text']) . '</td>
+            <td class="totals-value" style="' . ($attributesText['.totals-value'] ?? '') . ($attributesText['.' . $item['code'] . ' .totals-value'] ?? '') . '">' . strip_tags((defined('GROUPS_IS_SHOW_PRICE') && GROUPS_IS_SHOW_PRICE == false) ? '' : $item['text']) . '</td>
         </tr>';
         }
         $html .= '</table>';

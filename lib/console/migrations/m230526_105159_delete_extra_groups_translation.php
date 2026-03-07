@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,10 +24,8 @@ class m230526_105159_delete_extra_groups_translation extends Migration
      */
     public function safeUp()
     {
-        if (method_exists($this, 'isOldExtension'))
-        {
-            if (!$this->isOldExtension($code))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension($code)) {
                 $this->removeTranslation('admin/main', [
                     'TEXT_DEFAULT_GROUP_TITLE',
                     'TEXT_GROUPS_TYPE',
@@ -33,7 +33,7 @@ class m230526_105159_delete_extra_groups_translation extends Migration
                     'TEXT_GROUPS_TYPE_NAME',
                     'TEXT_GROUPS_TYPE_ADD',
                     'TEXT_GROUPS_TYPE_ADD_SAVED',
-                    'TEXT_GROUPS_TYPE_CONFIRM_DELETE'
+                    'TEXT_GROUPS_TYPE_CONFIRM_DELETE',
                 ]);
             }
         }

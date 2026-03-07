@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Sale extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -38,7 +39,7 @@ class Sale extends Widget
             return '';
         }
         $currencies = \Yii::$container->get('currencies');
-        $product = tep_db_fetch_array(tep_db_query("
+        $product = tep_db_fetch_array(tep_db_query('
                   select
                     p.products_id,
                     p.products_price,
@@ -46,11 +47,11 @@ class Sale extends Widget
                     pd.products_description_short,
                     s.expires_date
                   from
-                    " . TABLE_PRODUCTS . " p
-                        left join  " . TABLE_PRODUCTS_DESCRIPTION . " pd
+                    ' . TABLE_PRODUCTS . ' p
+                        left join  ' . TABLE_PRODUCTS_DESCRIPTION . ' pd
                             on
                             pd.products_id = p.products_id and
-                            pd.language_id = " . (int)$languages_id . " and
+                            pd.language_id = ' . (int)$languages_id . " and
                             pd.platform_id = '" . Yii::$app->get('platform')->config(PLATFORM_ID)->getPlatformToDescription(). "'
                         left join  " . TABLE_SPECIALS . " s
                             on
@@ -66,7 +67,7 @@ class Sale extends Widget
         $expiresDate = 0;
 
         if (strtotime($product['expires_date'])) {
-            $lastTime = strtotime($product['expires_date']) - date("U");
+            $lastTime = strtotime($product['expires_date']) - date('U');
 
             if ($lastTime < 0) {
                 return '';
@@ -74,7 +75,7 @@ class Sale extends Widget
 
             $days = floor($lastTime / (3600 * 24));
             $lastTime = $lastTime - $days * (3600 * 24);
-            $hours = floor($lastTime / 3600 );
+            $hours = floor($lastTime / 3600);
             $lastTime = $lastTime - $hours * 3600;
             $minutes = floor($lastTime / 60);
             $lastTime = $lastTime - $minutes * 60;
@@ -98,7 +99,7 @@ class Sale extends Widget
         $imageUrl = \common\classes\Images::getImageUrl($product['products_id'], 'Medium');
 
         $link = Yii::$app->urlManager->createAbsoluteUrl(['catalog/product', 'products_id' => $product['products_id']]);
-        
+
         return IncludeTpl::widget(['file' => 'boxes/sale.tpl', 'params' => [
             'product' => $product,
             'expiresDate' => $expiresDate,

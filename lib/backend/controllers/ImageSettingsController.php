@@ -1,28 +1,24 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace backend\controllers;
 
-use common\models\BannersGroupsImages;
-use Yii;
-use yii\helpers\Html;
-use yii\helpers\Url;
-use common\models\BannersLanguages;
-use common\models\BannersGroups;
 use common\models\ImageTypes;
+use Yii;
 
 class ImageSettingsController extends Sceleton
 {
-
     public $acl = ['TEXT_SETTINGS', 'BOX_IMAGE_SETTINGS'];
     public $banner_extension;
     public $dir_ok = false;
@@ -38,11 +34,11 @@ class ImageSettingsController extends Sceleton
 
     public function actionIndex()
     {
-        $this->selectedMenu = array('marketing', 'banner_manager');
+        $this->selectedMenu = ['marketing', 'banner_manager'];
 
         $this->navigation[] = [
             'link' => Yii::$app->urlManager->createUrl('image-settings'),
-            'title' => BOX_IMAGE_SETTINGS
+            'title' => BOX_IMAGE_SETTINGS,
         ];
 
         $this->view->headingTitle = BOX_IMAGE_SETTINGS;
@@ -70,7 +66,7 @@ class ImageSettingsController extends Sceleton
             ->where(['or',
                 ['like', 'image_types_name', $search['value']],
                 ['like', 'image_types_x', $search['value']],
-                ['like', 'image_types_y', $search['value']]
+                ['like', 'image_types_y', $search['value']],
             ])
             ->andWhere(['parent_id' => 0])
             ->limit($length)
@@ -92,13 +88,13 @@ class ImageSettingsController extends Sceleton
             ->select('image_types_name')
             ->count();
 
-        $response = array(
+        $response = [
             'draw'            => $draw,
             'recordsTotal'    => $countTypes,
             'recordsFiltered' => $countTypes,
-            'data'            => $responseList
-        );
-        echo json_encode( $response );
+            'data'            => $responseList,
+        ];
+        echo json_encode($response);
     }
 
     public function actionEdit()
@@ -110,11 +106,11 @@ class ImageSettingsController extends Sceleton
             ->asArray()
             ->one();
 
-        $this->selectedMenu = array('marketing', 'banner_manager');
+        $this->selectedMenu = ['marketing', 'banner_manager'];
         $this->topButtons[] = '<span class="btn btn-confirm save-type">' . IMAGE_SAVE . '</span>';
         $this->navigation[] = [
             'link' => Yii::$app->urlManager->createUrl('image-settings'),
-            'title' => 'Image type: ' . $type['image_types_name']
+            'title' => 'Image type: ' . $type['image_types_name'],
         ];
         $this->view->headingTitle = 'Image type: ' . $type['image_types_name'];
 
@@ -123,7 +119,7 @@ class ImageSettingsController extends Sceleton
             $typeSizes = ImageTypes::find()
                 ->where(['or',
                     ['image_types_id' => $typeId],
-                    ['parent_id' => $typeId]
+                    ['parent_id' => $typeId],
                 ])
                 ->asArray()
                 ->all();
@@ -136,7 +132,7 @@ class ImageSettingsController extends Sceleton
         return $this->render('edit.tpl', [
             'typeId' => $typeId,
             'image_types_name' => $type['image_types_name'],
-            'typeSizes' => $typeSizes
+            'typeSizes' => $typeSizes,
         ]);
     }
 

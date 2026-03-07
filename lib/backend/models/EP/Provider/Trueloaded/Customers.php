@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace backend\models\EP\Provider\Trueloaded;
 
-use Yii;
 use common\api\models\XML\IOCore;
 
 class Customers extends XmlBase
@@ -27,7 +28,7 @@ class Customers extends XmlBase
 
     public function prepareExport($useColumns, $filter)
     {
-        if ( is_array($filter) ) {
+        if (is_array($filter)) {
             if (isset($filter['platform_id']) && !empty($filter['platform_id'])) {
                 $this->activeQuery->andWhere(['=', 'platform_id', (int)$filter['platform_id']]);
             }
@@ -39,22 +40,20 @@ class Customers extends XmlBase
     {
         \common\helpers\Customer::trunk_customers();
 
-        tep_db_query("TRUNCATE TABLE " . TABLE_PRODUCTS_NOTIFY);
-        tep_db_query("TRUNCATE TABLE " . TABLE_VIRTUAL_GIFT_CARD_BASKET);
+        tep_db_query('TRUNCATE TABLE ' . TABLE_PRODUCTS_NOTIFY);
+        tep_db_query('TRUNCATE TABLE ' . TABLE_VIRTUAL_GIFT_CARD_BASKET);
 
+        tep_db_query('TRUNCATE TABLE wedding_registry');
+        tep_db_query('TRUNCATE TABLE wedding_registry_inviting');
+        tep_db_query('TRUNCATE TABLE wedding_registry_products');
 
-        tep_db_query("TRUNCATE TABLE wedding_registry");
-        tep_db_query("TRUNCATE TABLE wedding_registry_inviting");
-        tep_db_query("TRUNCATE TABLE wedding_registry_products");
+        tep_db_query('TRUNCATE TABLE ep_holbi_soap_link_customers');
+        tep_db_query('TRUNCATE TABLE ep_holbi_soap_kv_storage');
 
+        tep_db_query('TRUNCATE TABLE gdpr_check');
+        tep_db_query('TRUNCATE TABLE guest_check');
 
-        tep_db_query("TRUNCATE TABLE ep_holbi_soap_link_customers");
-        tep_db_query("TRUNCATE TABLE ep_holbi_soap_kv_storage");
-
-        tep_db_query("TRUNCATE TABLE gdpr_check");
-        tep_db_query("TRUNCATE TABLE guest_check");
-
-        tep_db_query("TRUNCATE TABLE personal_catalog");
+        tep_db_query('TRUNCATE TABLE personal_catalog');
 
     }
 

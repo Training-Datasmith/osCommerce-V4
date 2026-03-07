@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -26,7 +28,7 @@ class RedirectUrls extends PayPalModel
      */
     public function setReturnUrl($return_url)
     {
-        UrlValidator::validate($return_url, "ReturnUrl");
+        UrlValidator::validate($return_url, 'ReturnUrl');
         $this->return_url = $return_url;
         return $this;
     }
@@ -50,7 +52,7 @@ class RedirectUrls extends PayPalModel
      */
     public function setCancelUrl($cancel_url)
     {
-        UrlValidator::validate($cancel_url, "CancelUrl");
+        UrlValidator::validate($cancel_url, 'CancelUrl');
         $this->cancel_url = $cancel_url;
         return $this;
     }

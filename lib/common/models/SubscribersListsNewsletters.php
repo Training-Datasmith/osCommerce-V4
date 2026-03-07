@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * internal "subscribers lists" to external newsletter lists (mailchimp tags).
@@ -56,7 +56,8 @@ class SubscribersListsNewsletters extends \yii\db\ActiveRecord
      *
      * @return type
      */
-    public function getSubscribersLists() {
-      return $this->hasMany(SubscribersLists::class, ['subscribers_lists_id' => 'subscribers_lists_id']);
+    public function getSubscribersLists()
+    {
+        return $this->hasMany(SubscribersLists::class, ['subscribers_lists_id' => 'subscribers_lists_id']);
     }
 }

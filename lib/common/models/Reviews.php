@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
 use yii\db\ActiveRecord;
@@ -20,10 +22,10 @@ use yii\db\ActiveRecord;
  */
 class Reviews extends ActiveRecord
 {
-  public $average_rating=0;
-  /**
-     * @inheritdoc
-     */
+    public $average_rating = 0;
+    /**
+       * @inheritdoc
+       */
     public static function tableName()
     {
         return '{{reviews}}';
@@ -33,7 +35,8 @@ class Reviews extends ActiveRecord
      * one-to-one
      * @return object
      */
-    public function getProduct() {
+    public function getProduct()
+    {
         return $this->hasOne(Products::className(), ['products_id' => 'products_id']);
     }
 
@@ -41,7 +44,8 @@ class Reviews extends ActiveRecord
      * one-to-one
      * @return object
      */
-    public function getDescriptions() {
+    public function getDescriptions()
+    {
         return $this->hasMany(ReviewsDescription::className(), ['reviews_id' => 'reviews_id']);
     }
 
@@ -52,7 +56,7 @@ class Reviews extends ActiveRecord
         }
 
         $changed = $this->getDirtyAttributes(['status', 'new']);
-        if ( !isset($changed['new']) && isset($changed['status']) && (int)$changed['status']!=intval($this->getOldAttribute('status')) ){
+        if (!isset($changed['new']) && isset($changed['status']) && (int)$changed['status'] != intval($this->getOldAttribute('status'))) {
             $this->new = 0;
         }
 
@@ -65,11 +69,10 @@ class Reviews extends ActiveRecord
             return false;
         }
 
-        foreach ($this->descriptions as $description){
+        foreach ($this->descriptions as $description) {
             $description->delete();
         }
         return true;
     }
-
 
 }

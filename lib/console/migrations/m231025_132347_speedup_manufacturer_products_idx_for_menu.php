@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -31,9 +33,9 @@ class m231025_132347_speedup_manufacturer_products_idx_for_menu extends Migratio
      */
     public function safeDown()
     {
-//        echo "m231025_132347_speedup_manufacturer_products_idx_for_menu cannot be reverted.\n";
+        //        echo "m231025_132347_speedup_manufacturer_products_idx_for_menu cannot be reverted.\n";
 
-//        return false;
+        //        return false;
     }
 
     /*

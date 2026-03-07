@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m221019_103845_departments extends Migration
      */
     public function safeUp()
     {
-        if ( $this->isTableExists('departments') ) {
+        if ($this->isTableExists('departments')) {
             if (!$this->isFieldExists('keep_alive', 'departments')) {
                 $this->addColumn('departments', 'keep_alive', $this->integer(1)->notNull()->defaultValue(0));
             }

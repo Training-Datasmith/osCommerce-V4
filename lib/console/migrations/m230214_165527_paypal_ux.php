@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -32,10 +34,8 @@ class m230214_165527_paypal_ux extends Migration
           'MODULE_PAYMENT_PAYPAL_PARTNER_API_FAIL_DATA' => 'Test connect Failed (incorrect )',
         ]);
 
-
         $this->db->createCommand(
             "update translation set translation_value='Are you sure you want to connect different PayPal account?' where translation_key in ('TEXT_PAYPAL_PARTNER_UNLINK_PROMPT') and translation_entity='admin/main'"
-
         )->execute();
 
         if (\common\models\PlatformsConfiguration::find()->andWhere(['like', 'configuration_key', 'MODULE_PAYMENT_PAYPAL_PRO_HS_%', false])->count() == 0) {
@@ -47,7 +47,6 @@ class m230214_165527_paypal_ux extends Migration
             common\modules\orderPayment\lib\PaypalPartner\models\SellerInfo::updateAll(['status' => 1]);
         }
 
-
     }
 
     /**
@@ -55,9 +54,9 @@ class m230214_165527_paypal_ux extends Migration
      */
     public function safeDown()
     {
-//        echo "m230214_165527_paypal_ux cannot be reverted.\n";
+        //        echo "m230214_165527_paypal_ux cannot be reverted.\n";
 
-  //      return false;
+        //      return false;
     }
 
     /*

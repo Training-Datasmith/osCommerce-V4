@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -21,9 +23,11 @@ class Php
 
     public static function array_key_first($arr)
     {
-        if (empty($arr) || !is_array($arr)) return null;
+        if (empty($arr) || !is_array($arr)) {
+            return null;
+        }
         if (!function_exists('array_key_first')) { // PHP < 7.3
-            foreach($arr as $key => $unused) {
+            foreach ($arr as $key => $unused) {
                 return $key;
             }
         } else {
@@ -76,7 +80,7 @@ class Php
     {
         try {
             $res = vsprintf($msg, $args);
-        } catch(\Throwable $e) {
+        } catch (\Throwable $e) {
             $res = sprintf("Error: %s for msg=%s, args=\n%s", $e->getMessage(), $msg, \yii\helpers\VarDumper::export($args));
         }
         return $res;
@@ -84,7 +88,7 @@ class Php
 
     public static function logError($exception, $prefix = null, $entity = 'application')
     {
-        $prefix = empty($prefix)? '' : "$prefix: ";
+        $prefix = empty($prefix) ? '' : "$prefix: ";
         \Yii::warning($prefix . $exception->getMessage() . "\n" . $exception->getTraceAsString(), $entity);
     }
 
@@ -122,8 +126,12 @@ class Php
 
     public static function isClassImplementsInterface($className, $interface)
     {
-        if (!class_exists($className)) return false;
-        if (!is_string($interface)) return false;
+        if (!class_exists($className)) {
+            return false;
+        }
+        if (!is_string($interface)) {
+            return false;
+        }
         $interfaces = class_implements($className);
         return isset($interfaces[$interface]);
     }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,11 @@
 
 namespace backend\models\ProductEdit;
 
-use yii;
 use common\models\Products;
+use yii;
 
 class SaveMainDetails
 {
-
     protected $product;
 
     public function __construct(Products $product)
@@ -29,21 +30,23 @@ class SaveMainDetails
     {
         $sql_data_array = [];
 
-        if (Yii::$app->request->post('without_inventory', false)!==false){
-            $sql_data_array['without_inventory'] = (int) Yii::$app->request->post('without_inventory',0);
+        if (Yii::$app->request->post('without_inventory', false) !== false) {
+            $sql_data_array['without_inventory'] = (int) Yii::$app->request->post('without_inventory', 0);
         } elseif (!\common\helpers\Extensions::isAllowed('Inventory')) {
             $sql_data_array['without_inventory'] = 1;
         }
 
-        if (Yii::$app->request->post('listing_switch_present')){
-            $sql_data_array['is_listing_product'] = (int) Yii::$app->request->post('is_listing_product',0);
+        if (Yii::$app->request->post('listing_switch_present')) {
+            $sql_data_array['is_listing_product'] = (int) Yii::$app->request->post('is_listing_product', 0);
         }
         $sql_data_array['products_status'] = (int) Yii::$app->request->post('products_status');
         //$sql_data_array['products_status_bundle'] = (int) Yii::$app->request->post('products_status_bundle');
         /** @var \common\extensions\AutomaticallyStatus\AutomaticallyStatus $ext */
         if ($ext = \common\helpers\Extensions::isAllowed('AutomaticallyStatus')) {
             $_sql_data = $ext::onProductSave();
-            if ( is_array($_sql_data) ) $sql_data_array = array_merge($sql_data_array,$_sql_data);
+            if (is_array($_sql_data)) {
+                $sql_data_array = array_merge($sql_data_array, $_sql_data);
+            }
         }
         //TODO: ???? separate prepare - ACL collision
         // Moved to SeoRedirectsNamed
@@ -54,7 +57,7 @@ class SaveMainDetails
         if (empty($brandName)) {
             $sql_data_array['manufacturers_id'] = 0;
         } else {
-            $brands_query = tep_db_query("select manufacturers_id from " . TABLE_MANUFACTURERS . " where manufacturers_name = '" . tep_db_input($brandName) . "'");
+            $brands_query = tep_db_query('select manufacturers_id from ' . TABLE_MANUFACTURERS . " where manufacturers_name = '" . tep_db_input($brandName) . "'");
             $brands = tep_db_fetch_array($brands_query);
             if (isset($brands['manufacturers_id'])) {
                 $sql_data_array['manufacturers_id'] = (int) $brands['manufacturers_id'];
@@ -62,7 +65,7 @@ class SaveMainDetails
         }
         $sql_data_array['stock_indication_id'] = (int)Yii::$app->request->post('stock_indication_id', 0);
 
-        $sql_data_array['stock_delivery_terms_id'] = (int)Yii::$app->request->post('stock_delivery_terms_id',0);
+        $sql_data_array['stock_delivery_terms_id'] = (int)Yii::$app->request->post('stock_delivery_terms_id', 0);
 
         $sql_data_array['products_model'] = Yii::$app->request->post('products_model');
         $sql_data_array['products_ean'] = Yii::$app->request->post('products_ean');

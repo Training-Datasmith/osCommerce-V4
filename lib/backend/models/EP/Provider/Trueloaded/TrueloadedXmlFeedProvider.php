@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,10 +14,8 @@
 
 namespace backend\models\EP\Provider\Trueloaded;
 
-
 class TrueloadedXmlFeedProvider
 {
-
     public static function getProviderList()
     {
 
@@ -24,7 +24,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Platforms',
                 'class' => 'Provider\\Trueloaded\\Platforms',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                     'filters' => ['with-images'],
                 ],
@@ -33,7 +33,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Customers',
                 'class' => 'Provider\\Trueloaded\\Customers',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                     'filters' => ['platform'],
                 ],
@@ -42,7 +42,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Orders',
                 'class' => 'Provider\\Trueloaded\\Orders',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                     'filters' => ['platform', 'orders-date-range'],
                 ],
@@ -51,7 +51,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Quotations',
                 'class' => 'Provider\\Trueloaded\\Quotes',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                     'filters' => ['platform', 'orders-date-range'],
                 ],
@@ -60,7 +60,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Order Statuses Groups',
                 'class' => 'Provider\\Trueloaded\\OrdersStatusGroups',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                 ],
             ],
@@ -68,7 +68,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Order Statuses',
                 'class' => 'Provider\\Trueloaded\\OrdersStatuses',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                 ],
             ],
@@ -76,7 +76,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Brands',
                 'class' => 'Provider\\Trueloaded\\Brands',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                     'filters' => ['with-images'],
                 ],
@@ -85,7 +85,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Countries',
                 'class' => 'Provider\\Trueloaded\\Countries',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                 ],
             ],
@@ -93,7 +93,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Tax',
                 'class' => 'Provider\\Trueloaded\\Tax',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                 ],
             ],
@@ -101,7 +101,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Tax Zones',
                 'class' => 'Provider\\Trueloaded\\TaxZones',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                 ],
             ],
@@ -109,7 +109,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Currencies',
                 'class' => 'Provider\\Trueloaded\\Currencies',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                 ],
             ],
@@ -117,7 +117,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Groups',
                 'class' => 'Provider\\Trueloaded\\Groups',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                     'filters' => ['with-images'],
                 ],
@@ -126,7 +126,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Languages',
                 'class' => 'Provider\\Trueloaded\\Languages',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                 ],
             ],
@@ -134,7 +134,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Categories',
                 'class' => 'Provider\\Trueloaded\\Categories',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                     'filters' => ['with-images'],
                 ],
@@ -143,7 +143,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Products',
                 'class' => 'Provider\\Trueloaded\\Products',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                     'filters' => ['with-images'],
                 ],
@@ -152,7 +152,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Warehouses',
                 'class' => 'Provider\\Trueloaded\\Warehouses',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                 ],
             ],
@@ -160,7 +160,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Suppliers',
                 'class' => 'Provider\\Trueloaded\\Suppliers',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                 ],
             ],
@@ -168,7 +168,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Products Stock Indication',
                 'class' => 'Provider\\Trueloaded\\ProductsStockIndication',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                 ],
             ],
@@ -176,7 +176,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Products Stock Delivery Terms',
                 'class' => 'Provider\\Trueloaded\\ProductsStockDeliveryTerms',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                 ],
             ],
@@ -184,7 +184,7 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Products Options',
                 'class' => 'Provider\\Trueloaded\\ProductsOptions',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                     'filters' => ['with-images'],
                 ],
@@ -193,29 +193,29 @@ class TrueloadedXmlFeedProvider
                 'group' => 'Trueloaded',
                 'name' => 'Themes',
                 'class' => 'Provider\\Trueloaded\\Themes',
-                'export' =>[
+                'export' => [
                     'allow_format' => ['XML', 'XML-ZIP'],
                     'filters' => ['with-images'],
                 ],
             ],
         ];
-        foreach ($feeds as $key=>$val){
-            if ( isset($feeds[$key]['export']) && is_array($feeds[$key]['export']) ) {
-                if ( is_array($feeds[$key]['export']['filters'] ?? null) ) {
+        foreach ($feeds as $key => $val) {
+            if (isset($feeds[$key]['export']) && is_array($feeds[$key]['export'])) {
+                if (is_array($feeds[$key]['export']['filters'] ?? null)) {
                     $feeds[$key]['export']['filters'][] = 'project';
                 }
-                if ( !isset($feeds[$key]['export']['disableSelectFields']) ) {
+                if (!isset($feeds[$key]['export']['disableSelectFields'])) {
                     $feeds[$key]['export']['disableSelectFields'] = true;
                 }
             }
-            if ( isset($feeds[$key]['import']) && is_array($feeds[$key]['import']) ) {
-                $feeds[$key]['import'] = array_merge($feeds[$key]['import'],[
+            if (isset($feeds[$key]['import']) && is_array($feeds[$key]['import'])) {
+                $feeds[$key]['import'] = array_merge($feeds[$key]['import'], [
                     'format' => 'XML',
                 ]);
-            }else{
+            } else {
                 $feeds[$key]['import'] = [
                     'format' => 'XML',
-                ]; 
+                ];
             }
         }
         return $feeds;

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,14 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
 use frontend\design\Info;
+use Yii;
+use yii\base\Widget;
 use yii\helpers\ArrayHelper;
 
 class Logo extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -36,19 +37,19 @@ class Logo extends Widget
 
         $image = false;
         $theme_name = '';
-        if (defined("THEME_NAME")) {
+        if (defined('THEME_NAME')) {
             $theme_name = THEME_NAME;
-        } elseif (!defined("THEME_NAME") && isset ($this->params['theme_name'])) {
+        } elseif (!defined('THEME_NAME') && isset($this->params['theme_name'])) {
             $theme_name = $this->params['theme_name'];
         }
 
-        if (isset($this->params['language_id']) && $this->params['language_id']>0 && isset($this->settings[0]['pdf']) && $this->settings[0]['pdf']) {
+        if (isset($this->params['language_id']) && $this->params['language_id'] > 0 && isset($this->settings[0]['pdf']) && $this->settings[0]['pdf']) {
             $lang_id = $this->params['language_id'];
-        }else {
+        } else {
             $lang_id = $languages_id;
         }
 
-        $this->settings[0]['logo_from'] = $this->settings[0]['logo_from']??null;
+        $this->settings[0]['logo_from'] = $this->settings[0]['logo_from'] ?? null;
         if ($this->settings[0]['logo_from'] == 'platform') {
             $platform = \common\models\Platforms::find()
                 ->select('logo')
@@ -73,16 +74,16 @@ class Logo extends Widget
             );
         }
 
-        if ((!$image || isset($image) && is_string($image) && strpos($image, '/na.png')) && defined("THEME_NAME")) {
+        if ((!$image || isset($image) && is_string($image) && strpos($image, '/na.png')) && defined('THEME_NAME')) {
             $logo = Info::widgetSettings('Logo', false, 'header');
             if ($logo[$lang_id]['logo'] ?? null) {
                 $image = Info::themeImage($logo[$lang_id]['logo']);
             }
         }
 
-        if (isset($this->settings[0]['pdf']) && $this->settings[0]['pdf']){
+        if (isset($this->settings[0]['pdf']) && $this->settings[0]['pdf']) {
 
-            if ( is_file(DIR_FS_CATALOG . $image) ) {
+            if (is_file(DIR_FS_CATALOG . $image)) {
                 return '<img src="@' . base64_encode(file_get_contents(DIR_FS_CATALOG . $image)) . '">';
             } elseif (is_file(DIR_FS_CATALOG . $this->settings[$languages_id]['logo'])) {
                 return '<img src="@' . base64_encode(file_get_contents(DIR_FS_CATALOG . $this->settings[$languages_id]['logo'])) . '">';
@@ -97,15 +98,15 @@ class Logo extends Widget
                 $url = tep_href_link('/');
             }
 
-            if (Yii::$app->id == 'app-console' || (empty(Yii::$app->request->baseUrl) && defined('DIR_WS_HTTPS_CATALOG')) ) {
+            if (Yii::$app->id == 'app-console' || (empty(Yii::$app->request->baseUrl) && defined('DIR_WS_HTTPS_CATALOG'))) {
                 $imageUrl =  DIR_WS_HTTPS_CATALOG . $image;
-            }else{
+            } else {
                 $imageUrl =  Yii::$app->request->baseUrl . '/' . $image;
             }
             $width = 0;
             $height = 0;
             if (isset($this->params['absoluteUrl']) && $this->params['absoluteUrl']) {
-                if (Yii::$app->id == 'app-console'){
+                if (Yii::$app->id == 'app-console') {
                     $ssl = true;
                 } else {
                     $ssl = Yii::$app->request->getIsSecureConnection();
@@ -115,7 +116,7 @@ class Logo extends Widget
                 $height = ArrayHelper::getValue($this->settings, [0,'height'], 0);
             }
 
-            if (Yii::$app->id == 'app-console'){
+            if (Yii::$app->id == 'app-console') {
                 return '<a href="' . $url . '"><img src="' . $image . '" style="border: none;"></a>';
             }
 
@@ -126,7 +127,7 @@ class Logo extends Widget
                     'url' => $url,
                     'image' => $imageUrl,
                     'width' => $width,
-                    'height' => $height
+                    'height' => $height,
                 ],
             ]);
         }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -29,5 +31,5 @@ namespace Stripe;
  */
 class InvoiceLineItem extends ApiResource
 {
-    const OBJECT_NAME = 'line_item';
+    public const OBJECT_NAME = 'line_item';
 }

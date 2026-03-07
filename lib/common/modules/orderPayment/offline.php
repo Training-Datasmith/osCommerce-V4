@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,22 +12,26 @@
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-  namespace common\modules\orderPayment;
+namespace common\modules\orderPayment;
 
-  use common\classes\modules\ModulePayment;
-  use common\classes\modules\ModuleStatus;
-  use common\classes\modules\ModuleSortOrder;
+use common\classes\modules\ModulePayment;
+use common\classes\modules\ModuleSortOrder;
+use common\classes\modules\ModuleStatus;
 
-
-class offline extends ModulePayment {
-    var $code, $title, $description, $enabled;
+class offline extends ModulePayment
+{
+    public $code;
+    public $title;
+    public $description;
+    public $enabled;
 
     protected $defaultTranslationArray = [
         'MODULE_PAYMENT_OFFLINE_TEXT_TITLE' => 'Offline payments',
-        'MODULE_PAYMENT_OFFLINE_TEXT_DESCRIPTION' => 'Available payments'
+        'MODULE_PAYMENT_OFFLINE_TEXT_DESCRIPTION' => 'Available payments',
     ];
 
-    function __construct() {
+    public function __construct()
+    {
         parent::__construct();
 
         $this->code = 'offline';
@@ -39,40 +45,42 @@ class offline extends ModulePayment {
         $this->enabled = ((MODULE_PAYMENT_OFFLINE_STATUS == 'True') ? true : false);
 
         if ((int)MODULE_PAYMENT_OFFLINE_ORDER_STATUS_ID > 0) {
-          $this->order_status = MODULE_PAYMENT_OFFLINE_ORDER_STATUS_ID;
+            $this->order_status = MODULE_PAYMENT_OFFLINE_ORDER_STATUS_ID;
         }
 
         $this->update_status();
     }
 
-    function update_status() {
+    public function update_status()
+    {
 
-      if ( ($this->enabled == true) && ((int)MODULE_PAYMENT_OFFLINE_ZONE > 0) ) {
-        $check_flag = false;
-        $check_query = tep_db_query("select zone_id from " . TABLE_ZONES_TO_GEO_ZONES . " where geo_zone_id = '" . MODULE_PAYMENT_OFFLINE_ZONE . "' and zone_country_id = '" . $this->delivery['country']['id'] . "' order by zone_id");
-        while ($check = tep_db_fetch_array($check_query)) {
-          if ($check['zone_id'] < 1) {
-            $check_flag = true;
-            break;
-          } elseif ($check['zone_id'] == $this->delivery['zone_id']) {
-            $check_flag = true;
-            break;
-          }
+        if (($this->enabled == true) && ((int)MODULE_PAYMENT_OFFLINE_ZONE > 0)) {
+            $check_flag = false;
+            $check_query = tep_db_query('select zone_id from ' . TABLE_ZONES_TO_GEO_ZONES . " where geo_zone_id = '" . MODULE_PAYMENT_OFFLINE_ZONE . "' and zone_country_id = '" . $this->delivery['country']['id'] . "' order by zone_id");
+            while ($check = tep_db_fetch_array($check_query)) {
+                if ($check['zone_id'] < 1) {
+                    $check_flag = true;
+                    break;
+                } elseif ($check['zone_id'] == $this->delivery['zone_id']) {
+                    $check_flag = true;
+                    break;
+                }
+            }
+
+            if ($check_flag == false) {
+                $this->enabled = false;
+            }
         }
 
-        if ($check_flag == false) {
-          $this->enabled = false;
+        if ($this->enabled == true) {
+            if ($this->manager) {
+                $this->enabled = $this->manager->isShippingNeeded() ? true : false;
+            }
         }
-      }
-
-      if ($this->enabled == true) {
-          if ($this->manager ){
-            $this->enabled = $this->manager->isShippingNeeded() ? true : false;
-          }
-      }
     }
 
-    private function _getPlatformId(){
+    private function _getPlatformId()
+    {
         $platform_id = (int)$this->manager->getPlatformId();
         if ($platform_id == 0 && defined('PLATFORM_ID')) {
             $platform_id = PLATFORM_ID;
@@ -80,12 +88,13 @@ class offline extends ModulePayment {
         return $platform_id;
     }
 
-    public function getTitle($method = '') {
+    public function getTitle($method = '')
+    {
         global $languages_id;
         $code = explode('_', $method);
         if (isset($code[1])) {
             $platform_id = $this->_getPlatformId();
-            $methods_query = tep_db_query("select * from payment_offline where " . ($platform_id? "platform_id='".$platform_id."'" : " 1 ") . " and language_id='" . $languages_id . "' and payment_offline_id='" . (int)$code[1] . "' order by sort_order");
+            $methods_query = tep_db_query('select * from payment_offline where ' . ($platform_id ? "platform_id='".$platform_id."'" : ' 1 ') . " and language_id='" . $languages_id . "' and payment_offline_id='" . (int)$code[1] . "' order by sort_order");
             while ($methods_fetch = tep_db_fetch_array($methods_query)) {
                 return $methods_fetch['payment_offline_title'];
             }
@@ -93,7 +102,8 @@ class offline extends ModulePayment {
         return $this->title;
     }
 
-    function selection() {
+    public function selection()
+    {
         global $languages_id;
         $platform_id = $this->_getPlatformId();
         $methods = [];
@@ -104,14 +114,15 @@ class offline extends ModulePayment {
                 'module' => $methods_fetch['payment_offline_title'],
             ];
         }
-        return array(
+        return [
         'id' => $this->code,
         'module' => $this->description,
         'methods' => $methods,
-        );
+        ];
     }
 
-    public function install($platform_id) {
+    public function install($platform_id)
+    {
         tep_db_query("CREATE TABLE IF NOT EXISTS `payment_offline` (
   `payment_offline_id` int(11) NOT NULL DEFAULT '0',
   `platform_id` int(11) NOT NULL DEFAULT '0',
@@ -125,7 +136,8 @@ class offline extends ModulePayment {
         return parent::install($platform_id);
     }
 
-    function confirmation() {
+    public function confirmation()
+    {
         global $languages_id;
 
         $description = '';
@@ -139,7 +151,6 @@ class offline extends ModulePayment {
             }
         }
 
-
         $confirmation = [
             'title' => $description,
         ];
@@ -147,51 +158,53 @@ class offline extends ModulePayment {
         return $confirmation;
     }
 
-    public function configure_keys(){
-      return array(
-        'MODULE_PAYMENT_OFFLINE_STATUS' => array (
-          'title' => 'OFFLINE Enable Module',
-          'value' => 'True',
-          'description' => 'Do you want to accept OFFLINE payments?',
-          'sort_order' => '1',
-          'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), ',
-        ),
-        'MODULE_PAYMENT_OFFLINE_ZONE' => array(
-          'title' => 'OFFLINE Payment Zone',
-          'value' => '0',
-          'description' => 'If a zone is selected, only enable this payment method for that zone.',
-          'sort_order' => '2',
-          'use_function' => '\\common\\helpers\\Zones::get_zone_class_title',
-          'set_function' => 'tep_cfg_pull_down_zone_classes(',
-        ),
-        'MODULE_PAYMENT_OFFLINE_ORDER_STATUS_ID' => array (
-          'title' => 'OFFLINE Order Status',
-          'value' => '0',
-          'description' => 'Set the status of orders made with this payment module to this value',
-          'sort_order' => '0',
-          'set_function' => 'tep_cfg_pull_down_order_statuses(',
-          'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-        ),
-        'MODULE_PAYMENT_OFFLINE_SORT_ORDER' => array (
-          'title' => 'OFFLINE Sort order of display.',
-          'value' => '0',
-          'description' => 'Sort order of OFFLINE display. Lowest is displayed first.',
-          'sort_order' => '0',
-        ),
-      );
-  }
+    public function configure_keys()
+    {
+        return [
+          'MODULE_PAYMENT_OFFLINE_STATUS' =>  [
+            'title' => 'OFFLINE Enable Module',
+            'value' => 'True',
+            'description' => 'Do you want to accept OFFLINE payments?',
+            'sort_order' => '1',
+            'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), ',
+          ],
+          'MODULE_PAYMENT_OFFLINE_ZONE' => [
+            'title' => 'OFFLINE Payment Zone',
+            'value' => '0',
+            'description' => 'If a zone is selected, only enable this payment method for that zone.',
+            'sort_order' => '2',
+            'use_function' => '\\common\\helpers\\Zones::get_zone_class_title',
+            'set_function' => 'tep_cfg_pull_down_zone_classes(',
+          ],
+          'MODULE_PAYMENT_OFFLINE_ORDER_STATUS_ID' =>  [
+            'title' => 'OFFLINE Order Status',
+            'value' => '0',
+            'description' => 'Set the status of orders made with this payment module to this value',
+            'sort_order' => '0',
+            'set_function' => 'tep_cfg_pull_down_order_statuses(',
+            'use_function' => '\\common\\helpers\\Order::get_order_status_name',
+          ],
+          'MODULE_PAYMENT_OFFLINE_SORT_ORDER' =>  [
+            'title' => 'OFFLINE Sort order of display.',
+            'value' => '0',
+            'description' => 'Sort order of OFFLINE display. Lowest is displayed first.',
+            'sort_order' => '0',
+          ],
+        ];
+    }
 
-  public function describe_status_key()
-  {
-    return new ModuleStatus('MODULE_PAYMENT_OFFLINE_STATUS', 'True', 'False');
-  }
+    public function describe_status_key()
+    {
+        return new ModuleStatus('MODULE_PAYMENT_OFFLINE_STATUS', 'True', 'False');
+    }
 
-  public function describe_sort_key()
-  {
-    return new ModuleSortOrder('MODULE_PAYMENT_OFFLINE_SORT_ORDER');
-  }
+    public function describe_sort_key()
+    {
+        return new ModuleSortOrder('MODULE_PAYMENT_OFFLINE_SORT_ORDER');
+    }
 
-    function get_extra_params($platform_id) {
+    public function get_extra_params($platform_id)
+    {
         $response = [];
         foreach ((new \yii\db\Query())
                 ->from('payment_offline')
@@ -203,23 +216,25 @@ class offline extends ModulePayment {
         }
         return $response;
     }
-    
-    function set_extra_params($platform_id, $data) {
+
+    public function set_extra_params($platform_id, $data)
+    {
         \Yii::$app->db->createCommand('DELETE FROM payment_offline WHERE platform_id='. $platform_id)->execute();
         if (isset($data['payment_offline']) && is_array($data['payment_offline'])) {
             foreach ($data['payment_offline'] as $value) {
                 $attr = (array)$value;
                 $attr['platform_id'] = (int)$platform_id;
-                $next_id_query = tep_db_query("select max(payment_offline_id) as payment_offline_id from payment_offline");
+                $next_id_query = tep_db_query('select max(payment_offline_id) as payment_offline_id from payment_offline');
                 $next_id = tep_db_fetch_array($next_id_query);
                 $new_id = $next_id['payment_offline_id'] + 1;
                 $attr['payment_offline_id'] = $new_id;
-                \Yii::$app->getDb()->createCommand()->insert('payment_offline', $attr )->execute();
+                \Yii::$app->getDb()->createCommand()->insert('payment_offline', $attr)->execute();
             }
         }
     }
-    
-    public function extra_params() {
+
+    public function extra_params()
+    {
 
         global $languages_id;
         $languages = \common\helpers\Language::get_languages();
@@ -234,11 +249,11 @@ class offline extends ModulePayment {
         if (!empty($method_action)) {
             switch ($method_action) {
                 case 'add':
-                    $next_id_query = tep_db_query("select max(payment_offline_id) as payment_offline_id from payment_offline");
+                    $next_id_query = tep_db_query('select max(payment_offline_id) as payment_offline_id from payment_offline');
                     $next_id = tep_db_fetch_array($next_id_query);
                     $payment_offline_id = $next_id['payment_offline_id'] + 1;
-                    for ($i=0, $n=sizeof($languages); $i<$n; $i++) {
-                        $sql_data_array = array(
+                    for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
+                        $sql_data_array = [
                             'payment_offline_id' => $payment_offline_id,
                             'platform_id' => $platform_id,
                             'language_id' => $languages[$i]['id'],
@@ -246,7 +261,7 @@ class offline extends ModulePayment {
                             'payment_offline_description' => '',
                             'sort_order' => $payment_offline_id,
                             'status' => 0,
-                        );
+                        ];
                         tep_db_perform('payment_offline', $sql_data_array);
                     }
                     break;
@@ -283,7 +298,6 @@ class offline extends ModulePayment {
             $html .= '<div id="modules_extra_params">';
         }
 
-
         $html .= '<table width="100%" class="selected-methods">';
         $html .= '<tr><th width="10%">'.TABLE_HEADING_ACTION.'</th><th width="10%">'.TABLE_HEADING_STATUS.'</th><th width="20%">'.TABLE_HEADING_TITLE.'</th><th width="60%">'.IMAGE_DETAILS.'</th><th width="10%">' . TEXT_SORT_ORDER . '</th></tr>';
         $options_query = tep_db_query("select * from payment_offline where language_id = '" . (int)$languages_id . "' and platform_id='" . $platform_id . "' order by sort_order,payment_offline_id");
@@ -291,9 +305,9 @@ class offline extends ModulePayment {
             $html .= '<tr><td><span class="delMethod" onclick="delPayMethod(\'' . $options['payment_offline_id'] . '\')"></span></td><td>';
             $html .= '<input type="checkbox" class="uniform" name="status[' . $options['payment_offline_id'] . ']" value="1" ' . ($options['status'] == 1 ? 'checked' : '') . '></td><td>';
             for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
-              $options_value_query = tep_db_query("select payment_offline_title from payment_offline where payment_offline_id = '" . $options['payment_offline_id'] . "' and language_id = '" . (int)$languages[$i]['id'] . "' and platform_id='" . $platform_id . "'");
-              $options_value = tep_db_fetch_array($options_value_query);
-              $html .= $languages[$i]['image'] . '&nbsp;<input type="text" name="payment_offline_title[' . $options['payment_offline_id'] . '][' . $languages[$i]['id'] . ']" value="' . $options_value['payment_offline_title'] . '">' . '<br><br>';
+                $options_value_query = tep_db_query("select payment_offline_title from payment_offline where payment_offline_id = '" . $options['payment_offline_id'] . "' and language_id = '" . (int)$languages[$i]['id'] . "' and platform_id='" . $platform_id . "'");
+                $options_value = tep_db_fetch_array($options_value_query);
+                $html .= $languages[$i]['image'] . '&nbsp;<input type="text" name="payment_offline_title[' . $options['payment_offline_id'] . '][' . $languages[$i]['id'] . ']" value="' . $options_value['payment_offline_title'] . '">' . '<br><br>';
             }
             $html .= '</td><td>';
             for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
@@ -307,7 +321,6 @@ class offline extends ModulePayment {
         }
         $html .= '<tr><td><span class="addMethod" onclick="return addPayMethod();"></span></td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td><td>&nbsp;</td></tr>';
         $html .= '</table><br><br>';
-
 
         if (!\Yii::$app->request->isAjax) {
             $html .= '</div>';
@@ -336,6 +349,6 @@ function addPayMethod() {
 </script>';
         }
         return $html;
-  }
+    }
 
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "zone_table".
@@ -27,8 +27,9 @@ class ShippingZonesTable extends \yii\db\ActiveRecord
     {
         return 'zone_table';
     }
-    
-    public static function primaryKey() {
+
+    public static function primaryKey()
+    {
         return ['ship_zone_id', 'ship_options_id', 'enabled', 'platform_id', 'type'];
     }
 
@@ -46,12 +47,14 @@ class ShippingZonesTable extends \yii\db\ActiveRecord
             [['platform_id', 'mode', 'handling_price', 'per_kg_price', 'enabled'], 'default', 'value' => 0],
         ];
     }
-    
-    public static function getMax($platform_id){
+
+    public static function getMax($platform_id)
+    {
         return static::find()->where(['platform_id' => (int)$platform_id,])->max('zone_table_id');
     }
-    
-    public static function create(int $shipZoneId, int $shipOptionId, int $platformId, int $enabled = 0, $type = 'order'){
+
+    public static function create(int $shipZoneId, int $shipOptionId, int $platformId, int $enabled = 0, $type = 'order')
+    {
         $zTable = new static([
             'ship_zone_id' => $shipZoneId,
             'ship_options_id' => $shipOptionId,
@@ -61,8 +64,9 @@ class ShippingZonesTable extends \yii\db\ActiveRecord
         ]);
         return $zTable;
     }
-    
-    public static function getType($type){
+
+    public static function getType($type)
+    {
         return (in_array($type, ['order', 'quote', 'sample']) ? $type : 'order');
     }
 
@@ -72,7 +76,7 @@ class ShippingZonesTable extends \yii\db\ActiveRecord
             return false;
         }
 
-        \common\models\ShippingZoneTableCheckoutNote::deleteAll(['zone_table_id'=>$this->zone_table_id]);
+        \common\models\ShippingZoneTableCheckoutNote::deleteAll(['zone_table_id' => $this->zone_table_id]);
 
         return true;
 

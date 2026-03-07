@@ -1,8 +1,15 @@
-<?php 
+<?php
+
+declare(strict_types=1);
+
 namespace common\modules\email\Mandrill;
+
 use common\modules\email\Mandrill;
-class Webhooks {
-    public function __construct(Mandrill $master) {
+
+class Webhooks
+{
+    public function __construct(Mandrill $master)
+    {
         $this->master = $master;
     }
 
@@ -22,8 +29,9 @@ class Webhooks {
      *         - events_sent integer the total number of events that have ever been sent to this webhook
      *         - last_error string if we've ever gotten an error trying to post to this webhook, the last error that we've seen
      */
-    public function getList() {
-        $_params = array();
+    public function getList()
+    {
+        $_params = [];
         return $this->master->call('webhooks/list', $_params);
     }
 
@@ -46,8 +54,9 @@ class Webhooks {
      *     - events_sent integer the total number of events that have ever been sent to this webhook
      *     - last_error string if we've ever gotten an error trying to post to this webhook, the last error that we've seen
      */
-    public function add($url, $description=null, $events=array()) {
-        $_params = array("url" => $url, "description" => $description, "events" => $events);
+    public function add($url, $description = null, $events = [])
+    {
+        $_params = ['url' => $url, 'description' => $description, 'events' => $events];
         return $this->master->call('webhooks/add', $_params);
     }
 
@@ -67,8 +76,9 @@ class Webhooks {
      *     - events_sent integer the total number of events that have ever been sent to this webhook
      *     - last_error string if we've ever gotten an error trying to post to this webhook, the last error that we've seen
      */
-    public function info($id) {
-        $_params = array("id" => $id);
+    public function info($id)
+    {
+        $_params = ['id' => $id];
         return $this->master->call('webhooks/info', $_params);
     }
 
@@ -92,8 +102,9 @@ class Webhooks {
      *     - events_sent integer the total number of events that have ever been sent to this webhook
      *     - last_error string if we've ever gotten an error trying to post to this webhook, the last error that we've seen
      */
-    public function update($id, $url, $description=null, $events=array()) {
-        $_params = array("id" => $id, "url" => $url, "description" => $description, "events" => $events);
+    public function update($id, $url, $description = null, $events = [])
+    {
+        $_params = ['id' => $id, 'url' => $url, 'description' => $description, 'events' => $events];
         return $this->master->call('webhooks/update', $_params);
     }
 
@@ -113,11 +124,10 @@ class Webhooks {
      *     - events_sent integer the total number of events that have ever been sent to this webhook
      *     - last_error string if we've ever gotten an error trying to post to this webhook, the last error that we've seen
      */
-    public function delete($id) {
-        $_params = array("id" => $id);
+    public function delete($id)
+    {
+        $_params = ['id' => $id];
         return $this->master->call('webhooks/delete', $_params);
     }
 
 }
-
-

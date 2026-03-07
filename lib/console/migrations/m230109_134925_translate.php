@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,8 @@ class m230109_134925_translate extends Migration
      */
     public function safeUp()
     {
-        $this->update('translation',
+        $this->update(
+            'translation',
             ['translation_entity' => 'admin/main'],
             ['translation_key' => 'TEXT_PRODUCT_NOT_SELECTED', 'translation_entity' => 'admin/orders']
         );

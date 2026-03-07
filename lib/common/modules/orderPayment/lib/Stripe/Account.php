@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -36,35 +38,34 @@ namespace Stripe;
  */
 class Account extends ApiResource
 {
-    const OBJECT_NAME = 'account';
-
     use ApiOperations\All;
     use ApiOperations\Create;
     use ApiOperations\Delete;
     use ApiOperations\NestedResource;
     use ApiOperations\Update;
 
-    const BUSINESS_TYPE_COMPANY = 'company';
-    const BUSINESS_TYPE_GOVERNMENT_ENTITY = 'government_entity';
-    const BUSINESS_TYPE_INDIVIDUAL = 'individual';
-    const BUSINESS_TYPE_NON_PROFIT = 'non_profit';
-
-    const CAPABILITY_CARD_PAYMENTS = 'card_payments';
-    const CAPABILITY_LEGACY_PAYMENTS = 'legacy_payments';
-    const CAPABILITY_PLATFORM_PAYMENTS = 'platform_payments';
-    const CAPABILITY_TRANSFERS = 'transfers';
-
-    const CAPABILITY_STATUS_ACTIVE = 'active';
-    const CAPABILITY_STATUS_INACTIVE = 'inactive';
-    const CAPABILITY_STATUS_PENDING = 'pending';
-
-    const TYPE_CUSTOM = 'custom';
-    const TYPE_EXPRESS = 'express';
-    const TYPE_STANDARD = 'standard';
-
     use ApiOperations\Retrieve {
         retrieve as protected _retrieve;
     }
+    public const OBJECT_NAME = 'account';
+
+    public const BUSINESS_TYPE_COMPANY = 'company';
+    public const BUSINESS_TYPE_GOVERNMENT_ENTITY = 'government_entity';
+    public const BUSINESS_TYPE_INDIVIDUAL = 'individual';
+    public const BUSINESS_TYPE_NON_PROFIT = 'non_profit';
+
+    public const CAPABILITY_CARD_PAYMENTS = 'card_payments';
+    public const CAPABILITY_LEGACY_PAYMENTS = 'legacy_payments';
+    public const CAPABILITY_PLATFORM_PAYMENTS = 'platform_payments';
+    public const CAPABILITY_TRANSFERS = 'transfers';
+
+    public const CAPABILITY_STATUS_ACTIVE = 'active';
+    public const CAPABILITY_STATUS_INACTIVE = 'inactive';
+    public const CAPABILITY_STATUS_PENDING = 'pending';
+
+    public const TYPE_CUSTOM = 'custom';
+    public const TYPE_EXPRESS = 'express';
+    public const TYPE_STANDARD = 'standard';
 
     public static function getSavedNestedResources()
     {
@@ -217,7 +218,7 @@ class Account extends ApiResource
      * capabilities property which is a hash and not the sub-list of capabilities.
      */
 
-    const PATH_CAPABILITIES = '/capabilities';
+    public const PATH_CAPABILITIES = '/capabilities';
 
     /**
      * @param string $id the ID of the account on which to retrieve the capabilities
@@ -263,7 +264,7 @@ class Account extends ApiResource
         return self::_updateNestedResource($id, static::PATH_CAPABILITIES, $capabilityId, $params, $opts);
     }
 
-    const PATH_EXTERNAL_ACCOUNTS = '/external_accounts';
+    public const PATH_EXTERNAL_ACCOUNTS = '/external_accounts';
 
     /**
      * @param string $id the ID of the account on which to retrieve the external accounts
@@ -338,7 +339,7 @@ class Account extends ApiResource
         return self::_updateNestedResource($id, static::PATH_EXTERNAL_ACCOUNTS, $externalAccountId, $params, $opts);
     }
 
-    const PATH_LOGIN_LINKS = '/login_links';
+    public const PATH_LOGIN_LINKS = '/login_links';
 
     /**
      * @param string $id the ID of the account on which to create the login link
@@ -354,7 +355,7 @@ class Account extends ApiResource
         return self::_createNestedResource($id, static::PATH_LOGIN_LINKS, $params, $opts);
     }
 
-    const PATH_PERSONS = '/persons';
+    public const PATH_PERSONS = '/persons';
 
     /**
      * @param string $id the ID of the account on which to retrieve the persons

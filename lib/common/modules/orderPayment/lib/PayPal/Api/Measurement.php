@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -20,7 +22,7 @@ class Measurement extends PayPalModel
      * Value this measurement represents.
      *
      * @param string $value
-     * 
+     *
      * @return $this
      */
     public function setValue($value)
@@ -43,7 +45,7 @@ class Measurement extends PayPalModel
      * Unit in which the value is represented.
      *
      * @param string $unit
-     * 
+     *
      * @return $this
      */
     public function setUnit($unit)

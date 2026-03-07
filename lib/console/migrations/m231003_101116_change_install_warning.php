@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,7 +25,7 @@ class m231003_101116_change_install_warning extends Migration
     public function safeUp()
     {
         $this->addTranslation('admin/easypopulate', [
-            'MESSAGE_KEY_DOMAIN_WANING' => 'Warning: Security keys were generated for a different domain! Update required. Please change \'security store key\' to the actual value: %s.'
+            'MESSAGE_KEY_DOMAIN_WANING' => 'Warning: Security keys were generated for a different domain! Update required. Please change \'security store key\' to the actual value: %s.',
         ], true);
     }
 

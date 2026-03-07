@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -57,28 +59,28 @@ class OrderRepository
         return $order->limit(1)->one();
     }
 
-//    used in UpSell extension only
-//    public function getCrossUpSellingProductsForDelivery()
-//    {
-//        $orders = Orders::find()
-//            ->crossUpEmailSend(false)
-//            ->joinWith("ordersProducts.upsell us")
-//            ->joinWith("ordersProducts.xsell xs")
-//            ->joinWith("customer c")
-//            ->select([
-//                'orders.customers_id',
-//                'orders.customers_firstname',
-//                'orders.customers_lastname',
-//                'orders.customers_email_address',
-//                'GROUP_CONCAT(DISTINCT orders.orders_id) as orders_ids',
-//                'GROUP_CONCAT(DISTINCT xs.xsell_id) as xsells',
-//                'GROUP_CONCAT(DISTINCT us.upsell_id) as upsells'
-//            ])
-//            ->groupBy('orders.customers_id')
-//            ->asArray()
-//            ->all();
-//        return $orders;
-//    }
+    //    used in UpSell extension only
+    //    public function getCrossUpSellingProductsForDelivery()
+    //    {
+    //        $orders = Orders::find()
+    //            ->crossUpEmailSend(false)
+    //            ->joinWith("ordersProducts.upsell us")
+    //            ->joinWith("ordersProducts.xsell xs")
+    //            ->joinWith("customer c")
+    //            ->select([
+    //                'orders.customers_id',
+    //                'orders.customers_firstname',
+    //                'orders.customers_lastname',
+    //                'orders.customers_email_address',
+    //                'GROUP_CONCAT(DISTINCT orders.orders_id) as orders_ids',
+    //                'GROUP_CONCAT(DISTINCT xs.xsell_id) as xsells',
+    //                'GROUP_CONCAT(DISTINCT us.upsell_id) as upsells'
+    //            ])
+    //            ->groupBy('orders.customers_id')
+    //            ->asArray()
+    //            ->all();
+    //        return $orders;
+    //    }
 
     /**
      * @param Orders $order

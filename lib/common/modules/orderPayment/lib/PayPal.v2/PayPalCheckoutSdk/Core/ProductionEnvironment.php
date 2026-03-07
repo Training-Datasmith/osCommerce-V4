@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPalCheckoutSdk\Core;
 
 class ProductionEnvironment extends PayPalEnvironment
@@ -11,6 +13,6 @@ class ProductionEnvironment extends PayPalEnvironment
 
     public function baseUrl()
     {
-        return "https://api.paypal.com";
+        return 'https://api.paypal.com';
     }
 }

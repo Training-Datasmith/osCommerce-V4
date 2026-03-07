@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "countries".
@@ -40,26 +40,30 @@ class Countries extends \yii\db\ActiveRecord
         $match = [];
         if (preg_match('/^(.+\d+)\|(\d+)$/', $this->dialling_prefix, $match)) {
             $baseLength = ((int)$match[2] - strlen($match[1]));
-            if (($baseLength > 0) AND ($baseLength <= strlen($phoneString))) {
+            if (($baseLength > 0) and ($baseLength <= strlen($phoneString))) {
                 $return = ($match[1] . substr($phoneString, -$baseLength));
             }
         }
         return $return;
     }
 
-    public function getPlatforms() {
+    public function getPlatforms()
+    {
         return $this->hasMany(PlatformsCountries::class, ['countries_id' => 'countries_id']);
     }
 
-    public function getGeoZones() {
+    public function getGeoZones()
+    {
         return $this->hasMany(ZonesToGeoZones::class, ['zone_country_id' => 'countries_id']);
     }
 
-    public function getShipGeoZones() {
+    public function getShipGeoZones()
+    {
         return $this->hasMany(GeoZones::class, ['geo_zone_id' => 'geo_zone_id'])->andOnCondition('shipping_status=1')->via('geoZones');
     }
 
-    public function getShipZonePlatforms() {
+    public function getShipZonePlatforms()
+    {
         return $this->hasMany(PlatformsGeoZones::class, ['geo_zone_id' => 'geo_zone_id'])->via('shipGeoZones');
     }
 

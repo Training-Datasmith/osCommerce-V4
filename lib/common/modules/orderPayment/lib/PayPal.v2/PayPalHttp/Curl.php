@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPalHttp;
 
 /**
@@ -13,11 +15,10 @@ class Curl
 {
     protected $curl;
 
-    public function __construct($curl = NULL)
+    public function __construct($curl = null)
     {
 
-        if (is_null($curl))
-        {
+        if (is_null($curl)) {
             $curl = curl_init();
         }
         $this->curl = $curl;

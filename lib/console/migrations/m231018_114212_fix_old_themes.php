@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -32,7 +34,7 @@ class m231018_114212_fix_old_themes extends Migration
                     'font-color-1' => '#1DA1F2',
                     'background-color-1' => '#EEEEEE',
                     'background-color-3' => '#FFFFFF',
-                ]
+                ],
             ],
             'watch-mobile' => [
                 'font' => [
@@ -47,7 +49,7 @@ class m231018_114212_fix_old_themes extends Migration
                     'background-color-1' => '#EEEEEE',
                     'background-color-3' => '#FFFFFF',
                     'font-color-reverse' => '#FFFFFF',
-                ]
+                ],
             ],
             'furniture' => [
                 'colors' => [
@@ -58,7 +60,7 @@ class m231018_114212_fix_old_themes extends Migration
                     'font-color-5' => '#FF6D00',
                     'background-color-7' => '#FFFFFF',
                     'background-color-3' => '#E6E6ED',
-                ]
+                ],
             ],
             'furniture-mobile' => [
                 'colors' => [
@@ -68,7 +70,7 @@ class m231018_114212_fix_old_themes extends Migration
                     'warning-color' => '#FF6D00',
                     'background-color-7' => '#FFFFFF',
                     'background-color-3' => '#E6E6ED',
-                ]
+                ],
             ],
             'printshop' => [
                 'font' => [
@@ -82,7 +84,7 @@ class m231018_114212_fix_old_themes extends Migration
                     'warning-color' => '#EEB32C',
                     'background-color-1' => '#EEEEEE',
                     'background-color-6' => '#FFFFFF',
-                ]
+                ],
             ],
             'deals' => [
                 'colors' => [
@@ -92,17 +94,17 @@ class m231018_114212_fix_old_themes extends Migration
                     'warning-color' => '#FF6D00',
                     'background-color-3' => '#FFFFFF',
                     'background-color-2' => '#EEEEEE',
-                ]
+                ],
             ],
         ];
 
-        foreach ($themesVars as $theme_name => $typesVars ) {
+        foreach ($themesVars as $theme_name => $typesVars) {
             if (!\common\models\ThemesStyles::findOne(['theme_name' => $theme_name])) {
                 continue;
             }
             foreach ($typesVars as $type => $vars) {
                 foreach ($vars as $name => $value) {
-                    if (!\common\models\ThemesStylesMain::findOne(['theme_name' => $theme_name, 'name' => $name])){
+                    if (!\common\models\ThemesStylesMain::findOne(['theme_name' => $theme_name, 'name' => $name])) {
                         $themesStylesMain = new \common\models\ThemesStylesMain();
                         $themesStylesMain->theme_name = $theme_name;
                         $themesStylesMain->name = $name;

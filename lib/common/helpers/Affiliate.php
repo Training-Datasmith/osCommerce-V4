@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,11 @@
 
 namespace common\helpers;
 
-
-class Affiliate {
-
+class Affiliate
+{
     public static function isLogged()
     {
-        return tep_session_is_registered("login_affiliate") && \common\helpers\Acl::checkExtensionAllowed('Affiliate');
+        return tep_session_is_registered('login_affiliate') && \common\helpers\Acl::checkExtensionAllowed('Affiliate');
     }
 
     public static function id()
@@ -27,13 +28,15 @@ class Affiliate {
 
     public static function where($aliasTable = '', $insertStrBefore = ' ')
     {
-        if (!empty($alias)) $alias .= '.';
+        if (!empty($alias)) {
+            $alias .= '.';
+        }
         return $insertStrBefore . $aliasTable . 'affiliate_id = ' . self::id();
     }
 
     public static function whereIfExists($aliasTable = '', $insertStrBefore = ' ')
     {
-        return self::isLogged()? self::where($aliasTable, $insertStrBefore) : '';
+        return self::isLogged() ? self::where($aliasTable, $insertStrBefore) : '';
     }
 
 }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,8 +14,8 @@
 
 namespace OscLink;
 
-use \common\helpers\Assert;
-use \common\helpers\Php8;
+use common\helpers\Assert;
+use common\helpers\Php8;
 
 class Downloader
 {
@@ -36,7 +38,6 @@ class Downloader
         $this->apiUrlBase = rtrim($this->apiUrlBase, '/');
         $this->apiUrl = $this->apiUrlBase . '/index.php';
 
-
         $this->apiMethod = trim($configurationArray['api_method']['cmc_value'] ?? 'bearer');
         $this->apiKey = trim($configurationArray['api_key']['cmc_value'] ?? '');
     }
@@ -46,7 +47,7 @@ class Downloader
         Assert::assert(is_dir($this->workingDir), 'Temp dir does not exists');
 
         Assert::assertNotEmpty($this->apiUrl, 'Url is empty');
-        Assert::assert(in_array( substr($this->apiUrl, 0, 7), ['http://', 'https:/']), 'Url is invalid');
+        Assert::assert(in_array(substr($this->apiUrl, 0, 7), ['http://', 'https:/']), 'Url is invalid');
 
         Assert::assertNotEmpty($this->apiKey, 'Secure key is empty');
     }
@@ -75,12 +76,11 @@ class Downloader
             default:
                 throw new \Exception('Secure method is invalid: ' . $this->apiMethod);
         }
-//        if (YII_ENV=='dev') { // disable checking self-signed cert
-            $stream_context_params['ssl'] = ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true];
-//        }
+        //        if (YII_ENV=='dev') { // disable checking self-signed cert
+        $stream_context_params['ssl'] = ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true];
+        //        }
         return stream_context_create($stream_context_params);
     }
-
 
     private function internal_download($params)
     {
@@ -88,7 +88,7 @@ class Downloader
         Assert::assert(is_array($params));
 
         $url = $this->apiUrl . '?';
-        foreach($params as $name => $value) {
+        foreach ($params as $name => $value) {
             $url .=  $name . '=' . urlencode($value) . '&';
         }
         if ($this->apiMethod == 'get') {
@@ -101,13 +101,13 @@ class Downloader
             $filename = $this->workingDir . urlencode($feed) . $suffix . '.xml';
             // download XML feed to working folder
             Assert::assert(
-                    copy($url, $filename, $this->getStreamContext()),
-                    error_get_last()['message'] ?? ''
+                copy($url, $filename, $this->getStreamContext()),
+                error_get_last()['message'] ?? ''
             );
             return $filename;
         } else {
             $result = @file_get_contents($url, false, $this->getStreamContext());
-            Assert::assert(false !== $result, error_get_last()['message'] ?? '' );
+            Assert::assert(false !== $result, error_get_last()['message'] ?? '');
             return json_decode($result, true);
         }
     }
@@ -120,7 +120,7 @@ class Downloader
             'feed' => $feed,
         ]);
         $count = $result['count'] ?? -1;
-        $errorMsg = $count >= 0? '' : $result['error'] ?? 'Unknown error';
+        $errorMsg = $count >= 0 ? '' : $result['error'] ?? 'Unknown error';
         return $result['count'];
     }
 
@@ -135,13 +135,13 @@ class Downloader
     {
         $required_ver = '1.56';  // oscb/compat/configure.php
         $required_msg = sprintf(Php8::getConst('EXTENSION_OSCLINK_TEXT_ERROR_OLD_VERSION'), $required_ver);
-        
+
         // check access and auth
         $this->internal_download([]);
 
         try {
             $status = $this->getStatus();
-        } catch( \Exception $e) {
+        } catch (\Exception $e) {
             if (false !== strpos($e->getMessage(), '404 Not Found')) {
                 throw new \Exception($required_msg);
             } else {
@@ -150,9 +150,8 @@ class Downloader
         }
         Assert::assert(isset($status['version']), Php8::getConst('EXTENSION_OSCLINK_TEXT_ERROR_NOT_FOUND'));
         $required_msg .= ' (' . sprintf(Php8::getConst('EXTENSION_OSCLINK_TEXT_ERROR_OLD_VER_FOUND'), $status['version']) . ')';
-        Assert::assert(version_compare($status['version'], $required_ver) >= 0 , $required_msg);
+        Assert::assert(version_compare($status['version'], $required_ver) >= 0, $required_msg);
     }
-
 
     public function getFeed($feed, $offset = null, $limit = null)
     {

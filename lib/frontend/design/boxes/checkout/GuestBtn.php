@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\checkout;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class GuestBtn extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -35,7 +36,7 @@ class GuestBtn extends Widget
         }
         return IncludeTpl::widget(['file' => 'boxes/checkout/create-btn.tpl', 'params' => [
             'link' => Yii::$app->urlManager->createUrl([Yii::$app->controller->id, 'guest' => 1]),
-            'text' => CONTINUE_AS_GUEST
+            'text' => CONTINUE_AS_GUEST,
         ]]);
     }
 }

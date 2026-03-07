@@ -1,5 +1,7 @@
 <?php
- /**
+
+declare(strict_types=1);
+/**
  * Transactional Midle Ware for Paypal modules
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,16 +12,15 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+
 namespace common\modules\orderPayment\lib\PaypalPartner\api;
 
 use PayPal\Common\PayPalResourceModel;
-use PayPal\Validation\ArgumentValidator;
-use PayPal\Rest\ApiContext;
 
-
-class BusinessType extends PayPalResourceModel {
-
-    public function __construct($data = null){
+class BusinessType extends PayPalResourceModel
+{
+    public function __construct($data = null)
+    {
         parent::__construct($data);
         $this->type = PartnerConstants::BUSINESS_TYPE;
         $this->subtype = PartnerConstants::BUSINESS_SUBTYPE;

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -18,9 +20,9 @@ return [
             'withRelated' => [
                 'productsStockDeliveryTermsText' => [
                     'xmlCollection' => 'StockDeliveryTermTexts>StockDeliveryTermText',
-                    'properties'=>[
+                    'properties' => [
                         'language_id' => ['class' => 'IOLanguageMap'],
-                    ]
+                    ],
                 ],
             ],
         ],

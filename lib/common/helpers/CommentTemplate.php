@@ -12,46 +12,42 @@
 
 namespace common\helpers;
 
-
 use common\classes\extended\OrderAbstract;
 use common\classes\platform_config;
 use common\models\OrdersCommentTemplate;
-use common\models\OrdersCommentTemplateText;
 use common\models\OrdersStatus;
 use yii\db\Expression;
 
 class CommentTemplate
 {
-
     public static function getVisibilityVariants()
     {
         $res = [
             'order' => BOX_CUSTOMERS_ORDERS,
             'subscription' => BOX_CUSTOMERS_SUBSCRIPTION,
         ];
-        foreach (\common\helpers\Hooks::getList('comment-template/visibility-variants') as $file)
-        {
+        foreach (\common\helpers\Hooks::getList('comment-template/visibility-variants') as $file) {
             include($file);
         }
         return $res;
     }
 
-    public static function getActiveVariants($includeId=0)
+    public static function getActiveVariants($includeId = 0)
     {
         $fallbackLanguages = [];
         $fallbackLanguages[] = \common\helpers\Language::get_default_language_id();
 
         $list = [];
         $Templates = OrdersCommentTemplate::find()
-            ->where(['OR', ['status'=>1],[OrdersCommentTemplate::tableName().'.comment_template_id'=>$includeId]])
-            ->orderBy(['sort_order'=>SORT_ASC])
+            ->where(['OR', ['status' => 1],[OrdersCommentTemplate::tableName().'.comment_template_id' => $includeId]])
+            ->orderBy(['sort_order' => SORT_ASC])
             ->all();
         foreach ($Templates as $Template) {
             $textModel = $Template->getTexts()
-                ->where(['language_id'=>\Yii::$app->settings->get('languages_id')])
+                ->where(['language_id' => \Yii::$app->settings->get('languages_id')])
                 ->andWhere(['!=','comment_template',''])
                 ->one();
-            if ( !$textModel ) {
+            if (!$textModel) {
                 $textModel = $Template->getTexts()
                     ->where(['IN', 'language_id', $fallbackLanguages])
                     ->andWhere(['!=','comment_template',''])
@@ -61,7 +57,7 @@ class CommentTemplate
             $list[] = [
                 'id' => $Template->comment_template_id,
                 'text' => $textModel->name,
-                'visibility' => preg_split('/,/',$Template->visibility,-1,PREG_SPLIT_NO_EMPTY),
+                'visibility' => preg_split('/,/', $Template->visibility, -1, PREG_SPLIT_NO_EMPTY),
             ];
         }
 
@@ -78,7 +74,7 @@ class CommentTemplate
             'STORE_OWNER_EMAIL_ADDRESS' => '',
             'STORE_ADDRESS' => '',
         ];
-        if ( is_object($order) && $order instanceof OrderAbstract){
+        if (is_object($order) && $order instanceof OrderAbstract) {
             $template_vars['CUSTOMER_NAME'] = $order->customer['name'];
 
             $platform_config = new platform_config($order->info['platform_id']);
@@ -88,33 +84,35 @@ class CommentTemplate
             $template_vars['STORE_OWNER_EMAIL_ADDRESS'] = $platform_config->const_value('STORE_OWNER_EMAIL_ADDRESS');
             $template_vars['STORE_ADDRESS'] = $platform_config->const_value('STORE_ADDRESS');
         }
-        $patterns = array();
-        $replace = array();
+        $patterns = [];
+        $replace = [];
         foreach ($template_vars as $k => $v) {
-            $patterns[] = "(##" . preg_quote($k) . "##)";
+            $patterns[] = '(##' . preg_quote($k) . '##)';
             $replace[] = str_replace('$', '/$/', $v);
         }
 
         $fallbackLanguages = [];
         $fallbackLanguages[] = \common\classes\language::get_id($platform_config->getDefaultLanguage());
         $fallbackLanguages[] = \common\helpers\Language::get_default_language_id();
-        if ( $fallbackLanguages[1]==$fallbackLanguages[0] ) unset($fallbackLanguages[1]);
+        if ($fallbackLanguages[1] == $fallbackLanguages[0]) {
+            unset($fallbackLanguages[1]);
+        }
 
         $list = [];
         $Templates = OrdersCommentTemplate::find()
             ->where(['LIKE','visibility',",{$type},"])
-            ->andWhere(['NOT LIKE','hide_for_platforms',",".intval($order->info['platform_id']).","])
-            ->andWhere(['NOT LIKE','hide_from_admin',",".(int)$_SESSION['login_id'].","])
+            ->andWhere(['NOT LIKE','hide_for_platforms',','.intval($order->info['platform_id']).','])
+            ->andWhere(['NOT LIKE','hide_from_admin',','.(int)$_SESSION['login_id'].','])
             ->andWhere(['OR',['LIKE','show_for_admin_group',',*,'],['LIKE','show_for_admin_group',','.(int)$_SESSION['access_levels_id'].',']])
-            ->andWhere(['status'=>1])
-            ->orderBy(['sort_order'=>SORT_ASC])
+            ->andWhere(['status' => 1])
+            ->orderBy(['sort_order' => SORT_ASC])
             ->all();
-        foreach ($Templates as $Template){
+        foreach ($Templates as $Template) {
             $textModel = $Template->getTexts()
-                ->where(['language_id'=>$order->info['language_id']])
+                ->where(['language_id' => $order->info['language_id']])
                 ->andWhere(['!=','comment_template',''])
                 ->one();
-            if ( !$textModel ) {
+            if (!$textModel) {
                 $textModel = $Template->getTexts()
                     ->where(['IN', 'language_id', $fallbackLanguages])
                     ->andWhere(['!=','comment_template',''])
@@ -124,7 +122,7 @@ class CommentTemplate
 
             $comment = $textModel->comment_template;
             // {{
-            if ( count($patterns)>0 ) {
+            if (count($patterns) > 0) {
                 $comment = str_replace('/$/', '$', preg_replace($patterns, $replace, $textModel->comment_template));
             }
             // }}
@@ -140,10 +138,14 @@ class CommentTemplate
 
     public static function renderFor($type, $order)
     {
-        if ( defined('COMMENT_TEMPLATE_STATUS') && COMMENT_TEMPLATE_STATUS=='False' ) return '';
+        if (defined('COMMENT_TEMPLATE_STATUS') && COMMENT_TEMPLATE_STATUS == 'False') {
+            return '';
+        }
 
         $variants = static::getCommentTemplateVariants($type, $order);
-        if ( count($variants)==0 ) return '';
+        if (count($variants) == 0) {
+            return '';
+        }
 
         $mapArray = [];
         $mapped_statuses = OrdersStatus::find()
@@ -152,13 +154,13 @@ class CommentTemplate
             ->where(['!=','comment_template_id','0'])
             ->asArray()
             ->all();
-        foreach ($mapped_statuses as $mapped_status){
+        foreach ($mapped_statuses as $mapped_status) {
             $mapArray[$mapped_status['orders_status_id']] = $mapped_status['comment_template_id'];
         }
 
-        $items = [''=>''];
+        $items = ['' => ''];
         $items_options = [];
-        foreach ( $variants as $variant ) {
+        foreach ($variants as $variant) {
             $items[$variant['id']] = $variant['name'];
             $items_options[$variant['id']]['comment'] = $variant['comment'];
         }
@@ -168,14 +170,14 @@ class CommentTemplate
                 <label><?php echo TEXT_COMMENT_TEMPLATE_LABEL; ?>:</label>
             </div>
             <div class="f_td">
-                <?php echo Html::dropDownList('','', $items, ['data-templates'=>$items_options, 'class'=>'form-control', 'id'=>'commentTemplateSel']); ?>
+                <?php echo Html::dropDownList('', '', $items, ['data-templates' => $items_options, 'class' => 'form-control', 'id' => 'commentTemplateSel']); ?>
             </div>
         </div>
         <script type="text/javascript">
             $(document).ready(function(){
                 var $templateSelector = $('#commentTemplateSel');
                 if ( $templateSelector.length==0 ) return;
-                <?php if (count($mapArray)>0){ ?>
+                <?php if (count($mapArray) > 0) { ?>
 
                 var mapArray = <?php echo json_encode($mapArray); ?>;
                 $($templateSelector.get(0).form).find('select[name="status"]').on('change',function(){

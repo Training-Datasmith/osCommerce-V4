@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace OscLink\XML;
 
-
 class IOMap extends Complex
 {
     public $internalId;
@@ -20,13 +21,13 @@ class IOMap extends Complex
 
     public function serializeTo(\SimpleXMLElement $parent)
     {
-        if ( IOCore::get()->isLocalProject() ) {
+        if (IOCore::get()->isLocalProject()) {
             $parent->addAttribute('internalId', $this->value);
             $externalId = IOCore::get()->getAttributeMapper()->externalId($this);
             if (is_numeric($externalId)) {
                 $parent->addAttribute('externalId', $externalId);
             }
-        }else{
+        } else {
             $parent->addAttribute('externalId', $this->value);
             $externalId = IOCore::get()->getAttributeMapper()->externalId($this);
             if (is_numeric($externalId)) {
@@ -35,31 +36,31 @@ class IOMap extends Complex
         }
     }
 
-    static public function restoreFrom(\SimpleXMLElement $node, $obj)
+    public static function restoreFrom(\SimpleXMLElement $node, $obj)
     {
-        if ( !is_object($obj) || !($obj instanceof Complex) ) {
+        if (!is_object($obj) || !($obj instanceof Complex)) {
             $obj = new self();
         }
         $objProperties = \Yii::getObjectVars($obj);
-        foreach ($node->attributes() as $attrName=>$attrValue){
-            if ( array_key_exists($attrName,$objProperties) ) {
+        foreach ($node->attributes() as $attrName => $attrValue) {
+            if (array_key_exists($attrName, $objProperties)) {
                 $obj->{$attrName} = strval($attrValue);
             }
         }
 
-        if ( empty($obj->internalId) && empty($obj->externalId) && trim($node)!='' ) {
+        if (empty($obj->internalId) && empty($obj->externalId) && trim($node) != '') {
             // imported XML without type : <tag>value</tag>
             $obj->internalId = trim($node);
         }
 
-        if ( $obj->internalId ){
+        if ($obj->internalId) {
             $obj->internalId = intval($obj->internalId);
         }
-        if ( $obj->externalId ){
+        if ($obj->externalId) {
             $obj->externalId = intval($obj->externalId);
         }
 
-        if ( !IOCore::get()->isLocalProject() ) {
+        if (!IOCore::get()->isLocalProject()) {
             $externalId = $obj->externalId;
             $obj->externalId = $obj->internalId;
             $obj->internalId = $externalId;
@@ -79,9 +80,9 @@ class IOMap extends Complex
 
     public function toImportModel()
     {
-        if ( !IOCore::get()->isLocalProject() && empty($this->internalId) && !empty($this->externalId) ) {
+        if (!IOCore::get()->isLocalProject() && empty($this->internalId) && !empty($this->externalId)) {
             $mappedId = IOCore::get()->getAttributeMapper()->internalId($this);
-            if ( $mappedId ) {
+            if ($mappedId) {
                 $this->internalId = $mappedId;
                 $this->value = $mappedId;
             }
@@ -91,7 +92,7 @@ class IOMap extends Complex
 
     public function afterImportModel($value)
     {
-        if ( !empty($this->externalId) && !IOCore::get()->isLocalProject() ) {
+        if (!empty($this->externalId) && !IOCore::get()->isLocalProject()) {
             IOCore::get()->getAttributeMapper()->mapIds($this, $value, $this->externalId);
         }
         //echo '<pre>afterImportModel '; var_dump($this->table, $this->attribute, $value); echo '</pre>';

@@ -1,10 +1,11 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\helpers;
 
 class Cron
 {
-
     private const DEFAULTS = [
 //        'code' => will be set as array key
         'description' => '',
@@ -40,19 +41,19 @@ class Cron
             'group' => 'Import/Export',
             'name' => 'Automatic export',
             'schedule' => '* * * * *',
-            'arguments' => ["yii.php","events/export"],
+            'arguments' => ['yii.php','events/export'],
         ],
         'ep_import' => [
             'group' => 'Import/Export',
             'name' => 'Automatic import',
             'schedule' => '* * * * *',
-            'arguments' => ["yii.php","events/import"],
+            'arguments' => ['yii.php','events/import'],
         ],
         'ep_datasource' => [
             'group' => 'Import/Export',
             'name' => 'Automatic run datasource',
             'schedule' => '* * * * *',
-            'arguments' => ["yii.php","events/datasource"],
+            'arguments' => ['yii.php','events/datasource'],
         ],
 
         /** products */
@@ -62,7 +63,7 @@ class Cron
             'name' => 'Calculate products prices',
             'description' => 'Automatic calculation of product prices based on the suppliers prices and formula',
             'schedule' => '*/5 * * * *',
-            'arguments' => ["yii.php","events/auto-calc-product-price-by-supplier", "1000", "3000"],
+            'arguments' => ['yii.php','events/auto-calc-product-price-by-supplier', '1000', '3000'],
             'options' => [
                 'arguments' => [
                     2 => [
@@ -72,7 +73,7 @@ class Cron
                     3 => [
                         'label' => 'Time limit in milliseconds (0 - no limit)',
                         'editable' => true,
-                    ]
+                    ],
                 ],
             ],
         ],
@@ -82,7 +83,7 @@ class Cron
             'description' => 'Sends back-in-stock emails to the customers',
             'schedule' => '* */1 * * *',
             'command' => '##WGET##',
-            'arguments' => ["##SITE_URL##/cron/notify-back-in-stock"],
+            'arguments' => ['##SITE_URL##/cron/notify-back-in-stock'],
         ],
         'check_guest_accounts' => [
             'group' => 'Customers',
@@ -90,7 +91,7 @@ class Cron
             'description' => 'If account created 3 months ago and over then delete. If account created 2 weeks ago then notify',
             'schedule' => '* */1 * * *',
             'command' => '##WGET##',
-            'arguments' => ["##SITE_URL##/cron/check-guest-accounts"],
+            'arguments' => ['##SITE_URL##/cron/check-guest-accounts'],
         ],
         'delete_old_accounts' => [
             'group' => 'Customers',
@@ -98,7 +99,7 @@ class Cron
             'description' => 'Delete accounts when not used over 7 years',
             'schedule' => '* */1 * * *',
             'command' => '##WGET##',
-            'arguments' => ["##SITE_URL##/cron/check-old-accounts"],
+            'arguments' => ['##SITE_URL##/cron/check-old-accounts'],
         ],
         'check_regular_offers' => [
             'group' => 'Customers',
@@ -106,7 +107,7 @@ class Cron
             'description' => 'Sends regular offers email to the customers',
             'schedule' => '* */1 * * *',
             'command' => '##WGET##',
-            'arguments' => ["##SITE_URL##/cron/check-regular-offers"],
+            'arguments' => ['##SITE_URL##/cron/check-regular-offers'],
         ],
 //        'reminder' => [
 //            'group' => 'Customers',
@@ -124,7 +125,7 @@ class Cron
             'name' => 'Updates status of specials and featured products',
             'description' => '',
             'schedule' => '* * * * *',
-            'arguments' => ["yii.php","events/marketing-status"],
+            'arguments' => ['yii.php','events/marketing-status'],
             'active' => 1,
         ],
         'sproducts_update_status' => [
@@ -132,14 +133,14 @@ class Cron
             'name' => 'Updates status of specials products',
             'description' => '',
             'schedule' => '* * * * *',
-            'arguments' => ["yii.php","events/specials-status"],
+            'arguments' => ['yii.php','events/specials-status'],
         ],
         'fproducts_update_status' => [
             'group' => 'Specials and featured products',
             'name' => 'Updates status of featured products',
             'description' => '',
             'schedule' => '* * * * *',
-            'arguments' => ["yii.php","events/featured-status"],
+            'arguments' => ['yii.php','events/featured-status'],
         ],
         // clean up
         'sfproducts_clean_up' => [
@@ -147,7 +148,7 @@ class Cron
             'name' => 'Clean up specials and featured products',
             'description' => '',
             'schedule' => '*/15 * * * *',
-            'arguments' => ["yii.php","events/marketing-cleanup"],
+            'arguments' => ['yii.php','events/marketing-cleanup'],
             'active' => 1,
         ],
         'sproducts_clean_up' => [
@@ -155,14 +156,14 @@ class Cron
             'name' => 'Clean up only specials products',
             'description' => '',
             'schedule' => '*/15 * * * *',
-            'arguments' => ["yii.php","events/specials-cleanup"],
+            'arguments' => ['yii.php','events/specials-cleanup'],
         ],
         'fproducts_clean_up' => [
             'group' => 'Specials and featured products',
             'name' => 'Clean up only featured products',
             'description' => '',
             'schedule' => '*/15 * * * *',
-            'arguments' => ["yii.php","events/featured-cleanup"],
+            'arguments' => ['yii.php','events/featured-cleanup'],
         ],
     ];
 
@@ -183,10 +184,10 @@ class Cron
     // <editor-fold defaultstate="collapsed" desc="private functions">
     private static function normalizeJobs(array &$jobs)
     {
-        foreach($jobs as $code => &$job) {
+        foreach ($jobs as $code => &$job) {
             $job['code'] ??= $code;
 
-            foreach (self::DEFAULTS as $key=>$value) {
+            foreach (self::DEFAULTS as $key => $value) {
                 $job[$key] ??= $value;
             }
         }
@@ -210,12 +211,12 @@ class Cron
     private static function getAllExtensionsJobs($className = null)
     {
         $res = [];
-        foreach(new \DirectoryIterator(\Yii::getAlias('@common/extensions')) as $extDir){
+        foreach (new \DirectoryIterator(\Yii::getAlias('@common/extensions')) as $extDir) {
             $jobs = self::getExtensionJobsInternal($extDir->getFilename());
             $res = array_merge($res, $jobs);
         }
         return $res;
     }
-// </editor-fold>
+    // </editor-fold>
 
 }

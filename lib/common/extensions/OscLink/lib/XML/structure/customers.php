@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -20,10 +22,10 @@ return [
         'common\\models\\Customers' => [
             'xmlCollection' => 'Customers>Customer',
             'properties' => [
-                'customers_default_address_id' => ['class'=>'IOMap', 'table'=>'address_book','attribute'=>'address_book_id'],
-                'groups_id' => ['class'=>'IOMap', 'table'=>'groups','attribute'=>'groups_id'],
+                'customers_default_address_id' => ['class' => 'IOMap', 'table' => 'address_book','attribute' => 'address_book_id'],
+                'groups_id' => ['class' => 'IOMap', 'table' => 'groups','attribute' => 'groups_id'],
                 'customers_currency_id' => ['class' => 'IOCurrencyMap'],
-                'platform_id' => ['class' => 'IOPlatformMap']
+                'platform_id' => ['class' => 'IOPlatformMap'],
             ],
             'withRelated' => [
                 'addressBooks' => [
@@ -43,10 +45,10 @@ return [
                     'xmlCollection' => 'CustomersInfo>Data',
                 ],
             ],
-            'beforeDelete' => function($model, $id){
+            'beforeDelete' => function ($model, $id) {
                 \common\helpers\Customer::deleteCustomer($id, false);
                 return 'deleted';
-            }
+            },
 
         ],
     ],

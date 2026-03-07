@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -20,7 +22,7 @@ class PaymentOptions extends PayPalModel
      * Valid Values: ["UNRESTRICTED", "INSTANT_FUNDING_SOURCE", "IMMEDIATE_PAY"]
      *
      * @param string $allowed_payment_method
-     * 
+     *
      * @return $this
      */
     public function setAllowedPaymentMethod($allowed_payment_method)
@@ -43,7 +45,7 @@ class PaymentOptions extends PayPalModel
      * Indicator if this payment request is a recurring payment. Only supported when the `payment_method` is set to `credit_card`
      * @deprecated Not publicly available
      * @param bool $recurring_flag
-     * 
+     *
      * @return $this
      */
     public function setRecurringFlag($recurring_flag)
@@ -66,7 +68,7 @@ class PaymentOptions extends PayPalModel
      * Indicator if fraud management filters (fmf) should be skipped for this transaction. Only supported when the `payment_method` is set to `credit_card`
      * @deprecated Not publicly available
      * @param bool $skip_fmf
-     * 
+     *
      * @return $this
      */
     public function setSkipFmf($skip_fmf)

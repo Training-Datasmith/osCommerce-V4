@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,8 @@
 
 namespace backend\models\EP\Provider\Trueloaded;
 
-class ImportOrders extends ImportXmlBase {
+class ImportOrders extends ImportXmlBase
+{
     protected $feed = 'orders';
     protected $providerClass = 'backend\\models\\EP\\Provider\\Trueloaded\\Orders';
 }

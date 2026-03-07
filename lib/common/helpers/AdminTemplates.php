@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -32,18 +34,20 @@ class AdminTemplates
             $themesSettings = \common\models\ThemesSettings::find()->where([
                 'theme_name' => \common\classes\design::pageName(BACKEND_THEME_NAME),
                 'setting_group' => 'added_page',
-                'setting_name' => $page
+                'setting_name' => $page,
             ])->asArray()->all();
 
             $templates = ['' => TEXT_DEFAULT];
-            if (is_array($themesSettings)) foreach ($themesSettings as $setting) {
-                $templates[\common\classes\design::pageName($setting['setting_value'])] = $setting['setting_value'];
+            if (is_array($themesSettings)) {
+                foreach ($themesSettings as $setting) {
+                    $templates[\common\classes\design::pageName($setting['setting_value'])] = $setting['setting_value'];
+                }
             }
             $templatesList[] = [
                 'name' => $page,
                 'title' => $title,
                 'selectedTemplate' => $adminTemplates[$page] ?? null,
-                'templates' => $templates
+                'templates' => $templates,
             ];
         }
 
@@ -52,18 +56,18 @@ class AdminTemplates
 
     public static function save($pages, $accessLevelsId)
     {
-        if (is_array($pages))
-        foreach ($pages as $page => $template) {
-            $pageTemplate = \common\models\AdminTemplates::findOne(['page' => $page, 'access_levels_id' => $accessLevelsId]);
-            if (!$pageTemplate) {
-                $pageTemplate = new \common\models\AdminTemplates();
-                $pageTemplate->access_levels_id = $accessLevelsId;
-                $pageTemplate->page = $page;
+        if (is_array($pages)) {
+            foreach ($pages as $page => $template) {
+                $pageTemplate = \common\models\AdminTemplates::findOne(['page' => $page, 'access_levels_id' => $accessLevelsId]);
+                if (!$pageTemplate) {
+                    $pageTemplate = new \common\models\AdminTemplates();
+                    $pageTemplate->access_levels_id = $accessLevelsId;
+                    $pageTemplate->page = $page;
+                }
+                $pageTemplate->template = $template;
+                $pageTemplate->save();
             }
-            $pageTemplate->template = $template;
-            $pageTemplate->save();
         }
     }
-
 
 }

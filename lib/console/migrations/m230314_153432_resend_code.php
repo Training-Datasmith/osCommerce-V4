@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230314_153432_resend_code extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/main',[
+        $this->addTranslation('admin/main', [
             'RESEND_CODE' => 'Resend code',
         ]);
     }

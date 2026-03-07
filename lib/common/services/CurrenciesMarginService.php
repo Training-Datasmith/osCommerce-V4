@@ -1,24 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\services;
 
 use common\models\PlatformsCurrenciesMargin;
 use common\models\repositories\CurrenciesMarginRepositoty;
 
-class CurrenciesMarginService 
+class CurrenciesMarginService
 {
     private $currenciesMarginRepositoty;
-    
-    public function __construct(CurrenciesMarginRepositoty $currenciesMarginRepositoty) 
+
+    public function __construct(CurrenciesMarginRepositoty $currenciesMarginRepositoty)
     {
         $this->currenciesMarginRepositoty = $currenciesMarginRepositoty;
     }
-    
+
     public function deleteCurrenciesMargin(int $platformId)
     {
         $this->currenciesMarginRepositoty->deleteCurrencies($platformId);
     }
-    
+
     public function saveCurrenciesMargin(array $currency_margin, int $platformId)
     {
         foreach ($currency_margin as $currencyId => $marginData) {

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,19 +24,16 @@ class m221228_220552_exact_and_neighbour extends Migration
      */
     public function safeUp()
     {
-        if(method_exists($this, 'isOldExtension'))
-        {
+        if (method_exists($this, 'isOldExtension')) {
             // Removing unused data for ExactOnline
-            if(!$this->isOldExtension('ExactOnline'))
-            {
+            if (!$this->isOldExtension('ExactOnline')) {
                 // Removing translation
                 $this->removeTranslation('admin/exact_online');
                 $this->removeTranslation('admin/main', 'BOX_HEADING_EXACT_ONLINE');
                 // Removing config keys
                 $this->removeConfigurationKeysInGroup('BOX_CONFIGURATION_EXACT');
 
-                if(!\common\helpers\Extensions::isInstalled('ExactOnline'))
-                {
+                if (!\common\helpers\Extensions::isInstalled('ExactOnline')) {
                     // Removing unused columns
                     $this->dropColumnIfExists('tax_rates', 'tax_type');
                     $this->dropColumnIfExists('products', 'exact_id');
@@ -47,8 +46,7 @@ class m221228_220552_exact_and_neighbour extends Migration
                 }
             }
 
-            if(!$this->isOldExtension('Neighbour'))
-            {
+            if (!$this->isOldExtension('Neighbour')) {
                 // Removing translation
                 $this->removeTranslation('admin/orders', [
                     'TEXT_NEIGHBOUR_COMMENT',
@@ -56,8 +54,7 @@ class m221228_220552_exact_and_neighbour extends Migration
                 ]);
                 $this->removeTranslation('main', ['WOULD_LIKE_LEAVE_NEIGHBOUR']);
 
-                if(!\common\helpers\Extensions::isInstalled('Neighbour'))
-                {
+                if (!\common\helpers\Extensions::isInstalled('Neighbour')) {
                     // Removing datatable
                     $this->dropTableIfExists('orders_to_neighbour');
                 }

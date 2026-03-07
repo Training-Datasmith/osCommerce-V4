@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,7 +19,6 @@ use yii\debug\Panel;
 
 class OldDbPanel extends yii\debug\panels\DbPanel
 {
-
     /**
      * {@inheritdoc}
      */

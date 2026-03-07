@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,7 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
-
 
 class OrdersProducts extends ActiveRecord
 {
@@ -26,9 +26,10 @@ class OrdersProducts extends ActiveRecord
     {
         return 'orders_products';
     }
-    
-    public function beforeDelete() {
-        if ($this->orders_products_id){
+
+    public function beforeDelete()
+    {
+        if ($this->orders_products_id) {
             OrdersProductsAttributes::deleteAll(['orders_products_id' => $this->orders_products_id]);
             OrdersProductsDownload::deleteAll(['orders_products_id' => $this->orders_products_id]);
         }
@@ -37,7 +38,7 @@ class OrdersProducts extends ActiveRecord
 
     public function getOrdersProductsAttributes()
     {
-        return $this->hasMany(OrdersProductsAttributes::className(), ['orders_products_id' => 'orders_products_id', 'orders_id'=>'orders_id']);
+        return $this->hasMany(OrdersProductsAttributes::className(), ['orders_products_id' => 'orders_products_id', 'orders_id' => 'orders_id']);
     }
 
     /*
@@ -75,25 +76,25 @@ class OrdersProducts extends ActiveRecord
     {
         return $this->hasOne(SuppliersProducts::className(), ['uprid' => 'uprid']);
     }
-//      moved to UpSell extension. relation is used nowhere in osc and extensions but maybe somethere in old projects?
-//    public function getUpsell(){
-//		return $this->hasMany(ProductsUpsell::className(),['products_id' => 'products_id']);
-//    }
-//
-//    public function getXsell(){
-//	    return $this->hasMany(ProductsXsell::className(),['products_id' => 'products_id']);
-//    }
+    //      moved to UpSell extension. relation is used nowhere in osc and extensions but maybe somethere in old projects?
+    //    public function getUpsell(){
+    //		return $this->hasMany(ProductsUpsell::className(),['products_id' => 'products_id']);
+    //    }
+    //
+    //    public function getXsell(){
+    //	    return $this->hasMany(ProductsXsell::className(),['products_id' => 'products_id']);
+    //    }
 
     public function stockUpdateExtraParams()
     {
         $extraStockUpdateParams = [];
-        if ( !empty($this->relation_type) ){
+        if (!empty($this->relation_type)) {
             $extraStockUpdateParams['relation_type'] = $this->relation_type;
         }
-        if ( !empty($this->parent_product) ) {
+        if (!empty($this->parent_product)) {
             $parent_data = static::find()
-                ->where(['orders_id'=>$this->orders_id,'products_id'=>(int)$this->parent_product])
-                ->andWhere(['template_uprid'=>$this->parent_product])
+                ->where(['orders_id' => $this->orders_id,'products_id' => (int)$this->parent_product])
+                ->andWhere(['template_uprid' => $this->parent_product])
                 ->asArray()
                 ->one();
             if (is_array($parent_data)) {
@@ -106,14 +107,15 @@ class OrdersProducts extends ActiveRecord
         return $extraStockUpdateParams;
     }
 
-    public function getBackendDescription() {
-      $languages_id = \Yii::$app->settings->get('languages_id');
+    public function getBackendDescription()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
 
-      return $this->hasOne(\common\models\ProductsDescription::class, ['products_id' => 'products_id'])->via('product')->addSelect(['platform_id', 'products_id', 'language_id'])
-                ->andOnCondition([\common\models\ProductsDescription::tableName() . '.language_id' => (int)$languages_id,
-                         \common\models\ProductsDescription::tableName() . '.platform_id' => intval(\common\classes\platform::defaultId())
-                  ])
-          ;
+        return $this->hasOne(\common\models\ProductsDescription::class, ['products_id' => 'products_id'])->via('product')->addSelect(['platform_id', 'products_id', 'language_id'])
+                  ->andOnCondition([\common\models\ProductsDescription::tableName() . '.language_id' => (int)$languages_id,
+                           \common\models\ProductsDescription::tableName() . '.platform_id' => intval(\common\classes\platform::defaultId()),
+                    ])
+        ;
     }
 
 }

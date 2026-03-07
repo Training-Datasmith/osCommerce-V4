@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,24 +16,23 @@
 namespace frontend\controllers;
 
 use common\classes\platform;
+use common\components\Customer;
+use common\components\Socials;
 use common\models\repositories\OrderRepository;
 use frontend\design\Info;
 use Yii;
-use yii\helpers\ArrayHelper;
-use yii\web\NotFoundHttpException;
 use yii\web\Session;
-use common\components\Customer;
-use common\components\Socials;
 
 /**
  * Site controller
  * @property \common\services\OrderManager $manager
  */
-class CheckoutController extends \frontend\classes\AbstractCheckoutController {
-
+class CheckoutController extends \frontend\classes\AbstractCheckoutController
+{
     private $orderRepository;
 
-    public function actionIndex() {
+    public function actionIndex()
+    {
 
         global $breadcrumb;
         global $session_started, $cart;
@@ -42,7 +43,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
 
         $messageStack = \Yii::$container->get('message_stack');
         $currencies = \Yii::$container->get('currencies');
-// redirect the customer to a friendly cookie-must-be-enabled page if cookies are disabled (or the session has not started)
+        // redirect the customer to a friendly cookie-must-be-enabled page if cookies are disabled (or the session has not started)
         if ($session_started == false && !Info::isAdmin()) {
             tep_redirect(tep_href_link(FILENAME_COOKIE_USAGE));
         }
@@ -59,18 +60,18 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
 
         $breadcrumb->add(NAVBAR_TITLE_CHECKOUT);
 
-        $this->manager->remove("credit_covers");
+        $this->manager->remove('credit_covers');
 
         $cart->order_id = 0;
 
         $needLogged = \Yii::$app->get('platform')->getConfig(platform::currentId())->checkNeedLogged();
 
-        if (Yii::$app->request->get('guest') && !$needLogged){
+        if (Yii::$app->request->get('guest') && !$needLogged) {
             $this->manager->set('guest', true);
             $this->manager->remove('account');
         }
 
-        if (Yii::$app->request->get('account')){
+        if (Yii::$app->request->get('account')) {
             $this->manager->set('account', true);
             $this->manager->remove('guest');
         }
@@ -105,10 +106,10 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         }
 
         if (Yii::$app->request->isPost) {
-            
+
             $this->manager->collectPostData();
 
-            if(!$this->manager->validateShipping(\Yii::$app->request->post())) {
+            if (!$this->manager->validateShipping(\Yii::$app->request->post())) {
                 $error = true;
             }
 
@@ -129,7 +130,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
 
             if (!$error) {
                 if (Yii::$app->user->isGuest) {
-                    $this->manager->registerCustomerAccount($this->manager->has('guest')? 1:0);
+                    $this->manager->registerCustomerAccount($this->manager->has('guest') ? 1 : 0);
                 }
             }
 
@@ -142,7 +143,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             if (!$error) {
                 $this->manager->set('cartID', $cart->cartID);
                 foreach ($_POST as $key => $value) {
-                    if (is_scalar($value)){
+                    if (is_scalar($value)) {
                         $this->manager->set('one_page_checkout_' . $key, $value);
                     }
                 }
@@ -153,7 +154,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
                     if ($_p_modules->directPayment()) { //do confirmation validation also (it redirects in case of error)
                         //$tmp = Yii::$app->runAction(FILENAME_CHECKOUT_CONFIRMATION, ['ajax_check' => 1]);
                         $tmp = $this->actionConfirmation(1);
-                        if (!empty($tmp['check']) && $tmp['check'] == 'ok'){
+                        if (!empty($tmp['check']) && $tmp['check'] == 'ok') {
                             $data = [
                                 'payment_error' => '',
                                 'formCheck' => 'OK',
@@ -171,7 +172,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
                     }
 
                 } else {
-                  tep_redirect(tep_href_link(FILENAME_CHECKOUT_CONFIRMATION, '', 'SSL'));
+                    tep_redirect(tep_href_link(FILENAME_CHECKOUT_CONFIRMATION, '', 'SSL'));
                 }
             }
         }
@@ -237,8 +238,9 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
 
         if (
             (
-            Info::themeSetting('checkout_view') == 1
-            || Yii::$app->request->isAjax )
+                Info::themeSetting('checkout_view') == 1
+            || Yii::$app->request->isAjax
+            )
             &&
                 $error == true && Yii::$app->request->isPost
         ) {
@@ -255,7 +257,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             $tpl = 'index.tpl';
         }
 
-        $render_data['page_name'] = $page_name ? $page_name :$this->manager->getTemplate();
+        $render_data['page_name'] = $page_name ? $page_name : $this->manager->getTemplate();
 
         $render_data = array_merge($render_data, [
             'params' => $render_data,
@@ -269,7 +271,8 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         return $this->render($tpl, $render_data);
     }
 
-    public function actionWorker($subaction) {
+    public function actionWorker($subaction)
+    {
         global $cart;
 
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
@@ -291,7 +294,8 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         return parent::actionWorker($subaction);
     }
 
-    public function actionLogin() {
+    public function actionLogin()
+    {
         global $cart;
 
         \common\helpers\Translation::init('js');
@@ -327,9 +331,9 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
                 $messageStack = \Yii::$container->get('message_stack');
                 foreach ($authContainer->getErrors($scenario) as $error) {
                     if (Yii::$app->request->isAjax) {
-                        $messageStack->add_session((is_array($error) ? implode("<br>", $error) : $error), $scenario);
+                        $messageStack->add_session((is_array($error) ? implode('<br>', $error) : $error), $scenario);
                     } else {
-                        $messageStack->add((is_array($error) ? implode("<br>", $error) : $error), $scenario);
+                        $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), $scenario);
                     }
                 }
                 $messages = '';
@@ -343,12 +347,11 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             }
         }
 
-
         $page_name = Yii::$app->request->get('page_name');
         if (Info::themeSetting('checkout_view') || $page_name == 'login_2') {
             $tpl = 'login_2.tpl';
         } else {
-            $check = tep_db_fetch_array(tep_db_query("select id from " . TABLE_DESIGN_BOXES . " where block_name = 'login_checkout' and theme_name = '" . THEME_NAME . "'"));
+            $check = tep_db_fetch_array(tep_db_query('select id from ' . TABLE_DESIGN_BOXES . " where block_name = 'login_checkout' and theme_name = '" . THEME_NAME . "'"));
             if ($check['id'] || Info::isAdmin()) {
                 $tpl = 'login-widgets.tpl';
             } else {
@@ -364,35 +367,39 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         return $this->render($tpl, ['params' => $params, 'settings' => ['tabsManually' => true]]);
     }
 
-    public function actionPayment() {
+    public function actionPayment()
+    {
 
         return $this->render('payment.tpl', ['products' => '']);
     }
 
-    public function actionPaymentAddress() {
+    public function actionPaymentAddress()
+    {
 
         return $this->render('payment-address.tpl', ['products' => '']);
     }
 
-    public function actionShipping() {
+    public function actionShipping()
+    {
 
         return $this->render('shipping.tpl', ['products' => '']);
     }
 
-    public function actionShippingAddress() {
+    public function actionShippingAddress()
+    {
 
         return $this->render('shipping-address.tpl', ['products' => '']);
     }
 
-    public function actionConfirmation($ajax_check = false) {
+    public function actionConfirmation($ajax_check = false)
+    {
         global $navigation, $cart;
         $customer_groups_id = (int) \Yii::$app->storage->get('customer_groups_id');
 
         if (Yii::$app->user->isGuest && !Info::isAdmin()) {
-            $navigation->set_snapshot(array('mode' => 'SSL', 'page' => FILENAME_CHECKOUT_PAYMENT));
+            $navigation->set_snapshot(['mode' => 'SSL', 'page' => FILENAME_CHECKOUT_PAYMENT]);
             tep_redirect(tep_href_link(FILENAME_LOGIN, '', 'SSL'));
         }
-
 
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('BusinessToBusiness', 'allowed')) {
             $ext::checkDisableCheckout($customer_groups_id); // shit - incorrect extension
@@ -409,12 +416,12 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
                 tep_redirect(tep_href_link('checkout/restart', 'order_id=' . $cart->order_id, 'SSL'));
             }
         }
-// if there is nothing in the customers cart, redirect them to the shopping cart page
+        // if there is nothing in the customers cart, redirect them to the shopping cart page
         if (($cart->count_contents() < 1 || $cart->hasBlockedProducts()) && !Info::isAdmin()) {
             tep_redirect(tep_href_link(FILENAME_SHOPPING_CART));
         }
 
-// avoid hack attempts during the checkout procedure by checking the internal cartID
+        // avoid hack attempts during the checkout procedure by checking the internal cartID
         if ($cart->cartID !== $this->manager->get('cartID') && !Info::isAdmin()) {
             tep_redirect(tep_href_link(FILENAME_CHECKOUT_SHIPPING, 'cartChanged', 'SSL'));
         }
@@ -427,7 +434,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             tep_redirect(tep_href_link(FILENAME_CHECKOUT_SHIPPING, 'billing', 'SSL'));
         }
 
-// if no shipping method has been selected, redirect the customer to the shipping method selection page
+        // if no shipping method has been selected, redirect the customer to the shipping method selection page
 
         if ($this->manager->isShippingNeeded() && $this->manager->get('shipping_choice') && !$this->manager->has('shipping') && !Info::isAdmin()) {
             tep_redirect(tep_href_link(FILENAME_CHECKOUT_SHIPPING, 'error_message=' . urlencode(ERROR_NO_SHIPPING_METHOD), 'SSL'));
@@ -440,18 +447,18 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         }
 
         foreach ($this->manager->getAll() as $key => $value) {
-            if (is_scalar($value) && strpos($key, 'one_page_checkout_') === 0){
+            if (is_scalar($value) && strpos($key, 'one_page_checkout_') === 0) {
                 $_POST[str_replace('one_page_checkout_', '', $key)] = $value;
             }
         }
-        
+
         $this->manager->collectPostData();
 
         //global PO
         if (!empty($_POST['purchase_order'] ?? '')) {
-          $_SESSION['purchase_order'] = tep_db_prepare_input($_POST['purchase_order']);
+            $_SESSION['purchase_order'] = tep_db_prepare_input($_POST['purchase_order']);
         } else {
-          $_SESSION['purchase_order'] = '';
+            $_SESSION['purchase_order'] = '';
         }
 
         $this->manager->setSelectedPaymentModule($this->manager->getPayment());
@@ -465,9 +472,9 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             tep_redirect(tep_href_link(FILENAME_CHECKOUT_SHIPPING, 'error_message=' . urlencode(ERROR_NO_SHIPPING_METHOD), 'SSL'));
         }
 
-//ICW ADDED FOR CREDIT CLASS SYSTEM
+        //ICW ADDED FOR CREDIT CLASS SYSTEM
         $this->manager->totalCollectPosts();
-//ICW ADDED FOR CREDIT CLASS SYSTEM
+        //ICW ADDED FOR CREDIT CLASS SYSTEM
         $this->manager->totalProcess();
 
         if ($ccExt = \common\helpers\Acl::checkExtensionAllowed('CustomerCredit', 'allowed')) {
@@ -476,7 +483,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
 
         $this->manager->totalPreConfirmationCheck();
 
-// ICW CREDIT CLASS Amended Line
+        // ICW CREDIT CLASS Amended Line
 
         $paymentCollection = $this->manager->getPaymentCollection();
         $withoutPayment = count($paymentCollection->getEnabledModules()) == 0;
@@ -492,7 +499,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             }
         }
 
-// Stock Check
+        // Stock Check
         if (!$order->stockAllowCheckout() && !Info::isAdmin()) {
             // Out of Stock
             tep_redirect(tep_href_link(FILENAME_SHOPPING_CART));
@@ -508,7 +515,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         $breadcrumb->add(NAVBAR_TITLE_CHECKOUT);
         $breadcrumb->add(NAVBAR_TITLE);
 
-        if (Yii::$app->request->isAjax && (Yii::$app->request->get('check', false) === 'only' || !empty($ajax_check)) ) {
+        if (Yii::$app->request->isAjax && (Yii::$app->request->get('check', false) === 'only' || !empty($ajax_check))) {
             if (!empty($ajax_check)) {
                 return ['check' => 'ok'];
             } else {
@@ -537,16 +544,16 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         $billingAddress = \common\helpers\Address::address_format($order->billing['format_id'], $order->billing, 1, ' ', '<br>');
         $billingAddress = (!empty($billingAddress) ? $billingAddress : 'Without billing addreess');
 
-        if ($form_action_url != tep_href_link(FILENAME_CHECKOUT_PROCESS, '', 'SSL') ) {
-          $skipCsrf = true;
+        if ($form_action_url != tep_href_link(FILENAME_CHECKOUT_PROCESS, '', 'SSL')) {
+            $skipCsrf = true;
         } else {
-          $skipCsrf = false;
+            $skipCsrf = false;
         }
         $forceConfirmationPage = false;
         if (
             ($this->manager->has('force_confirmation_page') && $this->manager->get('force_confirmation_page'))
             || ($this->manager->has('ppartner_total_check') && $this->manager->get('ppartner_total_check'))
-            ) {
+        ) {
             $forceConfirmationPage = true;
         }
 
@@ -554,48 +561,47 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             $possible = true;
             $checkout_post = [];
             if (!empty($payment_process_button_hidden)) {
-              $tmp = $this->manager->getPaymentButtonPost();
-              if (is_array($tmp)) {
-                $checkout_post = $tmp;
-              } else {
-                $possible = false;
-              }
+                $tmp = $this->manager->getPaymentButtonPost();
+                if (is_array($tmp)) {
+                    $checkout_post = $tmp;
+                } else {
+                    $possible = false;
+                }
             }
-            if ($form_action_url != tep_href_link(FILENAME_CHECKOUT_PROCESS, '', 'SSL') ) {
+            if ($form_action_url != tep_href_link(FILENAME_CHECKOUT_PROCESS, '', 'SSL')) {
 
-              if ($this->manager->getPayment() && $this->manager->getPaymentCollection()->confirmationCurlAllowed() && !empty($checkout_post)) {
-                $ch = curl_init($form_action_url);
+                if ($this->manager->getPayment() && $this->manager->getPaymentCollection()->confirmationCurlAllowed() && !empty($checkout_post)) {
+                    $ch = curl_init($form_action_url);
 
-                // set URL and other appropriate options
-                curl_setopt($ch, CURLOPT_CUSTOMREQUEST, "POST");
-                curl_setopt($ch, CURLOPT_POSTFIELDS, $checkout_post);
-                curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
-                curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
-                curl_setopt($ch, CURLOPT_HTTPHEADER, array('Content-Length: 0'));
+                    // set URL and other appropriate options
+                    curl_setopt($ch, CURLOPT_CUSTOMREQUEST, 'POST');
+                    curl_setopt($ch, CURLOPT_POSTFIELDS, $checkout_post);
+                    curl_setopt($ch, CURLOPT_RETURNTRANSFER, false);
+                    curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+                    curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Length: 0']);
 
-                // grab URL and pass it to the browser
-                $response = curl_exec($ch);
+                    // grab URL and pass it to the browser
+                    $response = curl_exec($ch);
 
-                // close cURL resource, and free up system resources
-                curl_close($ch);
-                return;
-              }
-              elseif ($this->manager->getPayment() && $this->manager->getPaymentCollection()->confirmationAutosubmit()) {
-              //small HTML with autosubmit by JS ("click here if page is not redirected properly")
-                return '<html><body style="text-align:center"><form action="' . $form_action_url . '" method="post">' . $payment_process_button_hidden .
-                    '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==">' .
-                    '<script>document.forms[0].submit();</script>'.
-                    '<a href="javascript:document.forms[0].submit();">Click here if form is not redirected automatically.</a>' .
-                    '</form></body></html>';
-              }
-              $possible = false;
-              $skipCsrf = true; // posted to another server and csrf is not a part of signature, but could be added by beginForm method.
+                    // close cURL resource, and free up system resources
+                    curl_close($ch);
+                    return;
+                } elseif ($this->manager->getPayment() && $this->manager->getPaymentCollection()->confirmationAutosubmit()) {
+                    //small HTML with autosubmit by JS ("click here if page is not redirected properly")
+                    return '<html><body style="text-align:center"><form action="' . $form_action_url . '" method="post">' . $payment_process_button_hidden .
+                        '<img src="data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+P+/HgAFhAJ/wlseKgAAAABJRU5ErkJggg==">' .
+                        '<script>document.forms[0].submit();</script>'.
+                        '<a href="javascript:document.forms[0].submit();">Click here if form is not redirected automatically.</a>' .
+                        '</form></body></html>';
+                }
+                $possible = false;
+                $skipCsrf = true; // posted to another server and csrf is not a part of signature, but could be added by beginForm method.
 
             }
 
             if ($possible) {
-              \Yii::$app->settings->set('checkout_post', $checkout_post);
-              tep_redirect(tep_href_link('checkout/process', 'skip=1', 'SSL'));
+                \Yii::$app->settings->set('checkout_post', $checkout_post);
+                tep_redirect(tep_href_link('checkout/process', 'skip=1', 'SSL'));
             }
         } else {
             \common\components\google\widgets\GoogleTagmanger::setEvent('orderStep3');
@@ -637,7 +643,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
 
         $render_data = array_merge($render_data, [
             'params' => $render_data,
-            'widgets' => $designCheckout > 0 || Info::isAdmin() ? true : false
+            'widgets' => $designCheckout > 0 || Info::isAdmin() ? true : false,
         ]);
 
         foreach (\common\helpers\Hooks::getList('frontend/checkout/confirmation/before-render', '') as $filename) {
@@ -647,7 +653,8 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         return $this->render($tpl, $render_data);
     }
 
-    public function actionSuccess() {
+    public function actionSuccess()
+    {
         global $breadcrumb, $platform_code, $cart;
 
         if (!$this->manager->isCustomerAssigned() && !Info::isAdmin()) {
@@ -671,39 +678,39 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
 
         if ($order_id) {
             $order_info = tep_db_fetch_array(tep_db_query(
-                            "SELECT orders_id, orders_status " .
-                            "FROM " . TABLE_ORDERS . " " .
+                'SELECT orders_id, orders_status ' .
+                            'FROM ' . TABLE_ORDERS . ' ' .
                             "WHERE orders_id='" . (int) $order_id . "' AND customers_id = '" . (int) $customer_id . "'"
             ));
         }
         if (!is_array($order_info)) {
             $orders_query = tep_db_query(
-                    "select orders_id, orders_status " .
-                    "from " . TABLE_ORDERS . " " .
+                'select orders_id, orders_status ' .
+                    'from ' . TABLE_ORDERS . ' ' .
                     "where customers_id = '" . (int) $customer_id . "' " .
-                    "order by /*date_purchased*/ orders_id desc limit 1"
+                    'order by /*date_purchased*/ orders_id desc limit 1'
             );
             if (tep_db_num_rows($orders_query)) {
                 $order_info = tep_db_fetch_array($orders_query);
             }
         }
-        $order_info_data = array(
+        $order_info_data = [
             'order_id' => 0,
             'print_order_href' => (Info::isAdmin() ? '1111' : ''),
             'order' => false,
-        );
+        ];
         if (is_array($order_info)) {
             $order = $this->manager->getOrderInstanceWithId('\common\classes\Order', $order_info['orders_id']);
 
             \common\components\google\widgets\GoogleTagmanger::setEvent('checkout');
 
             $order->info['order_id'] = $order_info['orders_id'];
-            $order_info_data = array(
+            $order_info_data = [
                 'order_id' => $order_info['orders_id'],
-                'print_order_href' => tep_href_link('account/invoice', \common\helpers\Output::get_all_get_params(array('order_id')) . 'orders_id=' . $order_info['orders_id'], 'SSL'),
+                'print_order_href' => tep_href_link('account/invoice', \common\helpers\Output::get_all_get_params(['order_id']) . 'orders_id=' . $order_info['orders_id'], 'SSL'),
                 'order' => $order,
                 'manager' => $this->manager,
-            );
+            ];
         }
 
         \common\components\google\widgets\GoogleTagmanger::setEvent('orderSuccess');
@@ -715,7 +722,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             include($filename);
         }
 
-        if (defined('AUTO_LOGOFF_GUEST_ON_SUCCESS') && AUTO_LOGOFF_GUEST_ON_SUCCESS=='True' && !\Yii::$app->user->isGuest) {
+        if (defined('AUTO_LOGOFF_GUEST_ON_SUCCESS') && AUTO_LOGOFF_GUEST_ON_SUCCESS == 'True' && !\Yii::$app->user->isGuest) {
             $customer = \Yii::$app->user->getIdentity();
             if ($customer->opc_temp_account == 1) {
                 \Yii::$app->settings->clear(['languages_id']);
@@ -741,11 +748,12 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         $lastStatus = $this->orderRepository->getLastHistoryStatus($order_id);
         return $this->render('fail.tpl', [
                     'continue_href' => tep_href_link(FILENAME_DEFAULT, '', 'NONSSL'),
-                    'message' => $lastStatus ? $lastStatus->comments : "Somthing wrong"
+                    'message' => $lastStatus ? $lastStatus->comments : 'Somthing wrong',
                 ]);
     }
 
-    public function actionProcess() {
+    public function actionProcess()
+    {
         $skip = (int)\Yii::$app->settings->get('skip');
         if (defined('SKIP_CHECKOUT') && SKIP_CHECKOUT == 'True' && $skip == 1) {
             $checkout_post = \Yii::$app->settings->get('checkout_post');
@@ -758,7 +766,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         global $navigation, $cart;
         // if the customer is not logged on, redirect them to the login page
         if (Yii::$app->user->isGuest) {
-            $navigation->set_snapshot(array('mode' => 'SSL', 'page' => FILENAME_CHECKOUT_PAYMENT));
+            $navigation->set_snapshot(['mode' => 'SSL', 'page' => FILENAME_CHECKOUT_PAYMENT]);
             tep_redirect(tep_href_link(FILENAME_LOGIN, '', 'SSL'));
         }
 
@@ -771,7 +779,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         $payment_modules = $this->manager->getPaymentCollection();
         $withoutPayment = count($payment_modules->getEnabledModules()) ? false : true;
 
-        if (!$withoutPayment){
+        if (!$withoutPayment) {
             if ((tep_not_null(MODULE_PAYMENT_INSTALLED)) && (!$this->manager->has('payment'))) {
                 tep_redirect(tep_href_link(FILENAME_CHECKOUT_PAYMENT, '', 'SSL'));
             }
@@ -781,7 +789,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             }
         }
 
-// avoid hack attempts during the checkout procedure by checking the internal cartID
+        // avoid hack attempts during the checkout procedure by checking the internal cartID
         if (isset($cart->cartID) && $this->manager->has('cartID')) {
             if ($cart->cartID != (string) $this->manager->get('cartID')) {
                 tep_redirect(tep_href_link(FILENAME_CHECKOUT_SHIPPING, '', 'SSL'));
@@ -791,7 +799,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         foreach (\common\helpers\Hooks::getList('frontend/checkout/process/cart-loaded') as $filename) {
             include($filename);
         }
-// load selected payment module
+        // load selected payment module
 
         $payment = $this->manager->getPayment();
 
@@ -800,12 +808,12 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             $this->manager->remove('payment');
         }
 
-        if ($payment){
+        if ($payment) {
             $payment_modules = $this->manager->setSelectedPaymentModule($payment);
         }
 
         $this->manager->getShippingCollection($this->manager->getShipping());
-/** @var \common\classes\Order $order */
+        /** @var \common\classes\Order $order */
         $order = $this->manager->createOrderInstance('\common\classes\Order');
         $this->manager->checkoutOrderWithAddresses();
 
@@ -814,16 +822,16 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         }
 
         if (!$withoutPayment) {
-            if (defined('ONE_PAGE_POST_PAYMENT') && preg_match("/" . preg_quote(FILENAME_CHECKOUT_CONFIRMATION, "/") . "/", $_SERVER['HTTP_REFERER'])) {
+            if (defined('ONE_PAGE_POST_PAYMENT') && preg_match('/' . preg_quote(FILENAME_CHECKOUT_CONFIRMATION, '/') . '/', $_SERVER['HTTP_REFERER'])) {
                 $this->manager->paymentPreConfirmationCheck();
             }
         }
-// load the selected shipping module
+        // load the selected shipping module
 
         if ($this->manager->get('credit_covers')) {
             if (defined('MODULE_ORDER_TOTAL_GV_ORDER_STATUS_ID_COVERS')) {
                 $order->info['order_status'] = MODULE_ORDER_TOTAL_GV_ORDER_STATUS_ID_COVERS;
-            } else if (defined('MODULE_ORDER_TOTAL_BONUS_POINTS_ORDER_STATUS_ID_COVERS')) {
+            } elseif (defined('MODULE_ORDER_TOTAL_BONUS_POINTS_ORDER_STATUS_ID_COVERS')) {
                 $order->info['order_status'] = MODULE_ORDER_TOTAL_BONUS_POINTS_ORDER_STATUS_ID_COVERS;
             }
         }
@@ -838,7 +846,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             $ccExt::onCheckout($this->manager);
         }
 
-// load the before_process function from the payment modules
+        // load the before_process function from the payment modules
 
         if (!$withoutPayment) {
             $payment_modules->before_process();
@@ -906,14 +914,15 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         tep_redirect(tep_href_link(FILENAME_CHECKOUT_SUCCESS, 'order_id=' . $order->order_id, 'SSL'));
     }
 
-    public function actionReorder() {
+    public function actionReorder()
+    {
         global $navigation, $cart;
 
         $messageStack = \Yii::$container->get('message_stack');
         $currencies = \Yii::$container->get('currencies');
 
         if (Yii::$app->user->isGuest) {
-            $navigation->set_snapshot(array('mode' => 'SSL', 'page' => 'checkout/reorder', 'get' => 'order_id=' . (int) (isset($_GET['order_id']) ? $_GET['order_id'] : 0)));
+            $navigation->set_snapshot(['mode' => 'SSL', 'page' => 'checkout/reorder', 'get' => 'order_id=' . (int) (isset($_GET['order_id']) ? $_GET['order_id'] : 0)]);
             tep_redirect(tep_href_link(FILENAME_LOGIN, '', 'SSL'));
         }
 
@@ -921,8 +930,8 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         $customer_id = Yii::$app->user->getId();
 
         $get_order_info_r = tep_db_query(
-                "SELECT orders_id, shipping_class, payment_class " .
-                "FROM " . TABLE_ORDERS . " " .
+            'SELECT orders_id, shipping_class, payment_class ' .
+                'FROM ' . TABLE_ORDERS . ' ' .
                 "WHERE orders_id='" . (int) $oID . "' AND customers_id='" . (int) $customer_id . "' "
         );
 
@@ -933,10 +942,10 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         $_order_info = tep_db_fetch_array($get_order_info_r);
 
         $get_products_r = tep_db_query(
-                "SELECT * " .
-                "FROM " . TABLE_ORDERS_PRODUCTS . " " .
+            'SELECT * ' .
+                'FROM ' . TABLE_ORDERS_PRODUCTS . ' ' .
                 "WHERE orders_id='{$_order_info['orders_id']}' " .
-                "ORDER BY is_giveaway, orders_products_id"
+                'ORDER BY is_giveaway, orders_products_id'
         );
         while ($get_product = tep_db_fetch_array($get_products_r)) {
             if (!$get_product['is_giveaway'] && !\common\helpers\Product::check_product((int) $get_product['uprid'])) {
@@ -950,7 +959,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
 
             $attr = '';
             if (strpos($get_product['uprid'], '{') !== false && preg_match_all('/{(\d+)}(\d+)/', $get_product['uprid'], $attr_parts)) {
-                $attr = array();
+                $attr = [];
                 foreach ($attr_parts[1] as $_idx => $opt) {
                     $attr[$opt] = $attr_parts[2][$_idx];
                 }
@@ -979,7 +988,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             $this->manager->set('billto', Yii::$app->user->getIdentity()->customers_default_address_id);
             unset($order_billto);
         }
-        if (is_numeric($order_sendto) || (is_array($order_sendto) && $order_sendto['country_id']) ) {
+        if (is_numeric($order_sendto) || (is_array($order_sendto) && $order_sendto['country_id'])) {
             $this->manager->set('sendto', $order_sendto);
         } else {
             $this->manager->set('sendto', Yii::$app->user->getIdentity()->customers_default_address_id);
@@ -1006,14 +1015,15 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         } else {
             tep_redirect(tep_href_link(FILENAME_CHECKOUT_SHIPPING, '', 'SSL'));
         }
-        if ( defined('SKIP_CHECKOUT') && SKIP_CHECKOUT == 'True') {
+        if (defined('SKIP_CHECKOUT') && SKIP_CHECKOUT == 'True') {
             tep_redirect(tep_href_link(FILENAME_CHECKOUT_CONFIRMATION, '', 'SSL'));
         } else {
             tep_redirect(tep_href_link(FILENAME_CHECKOUT_PAYMENT, '', 'SSL'));
         }
     }
 
-    public function __construct($id, $module, OrderRepository $orderRepository, $config = []) {
+    public function __construct($id, $module, OrderRepository $orderRepository, $config = [])
+    {
         \common\helpers\Translation::init('checkout');
         \common\helpers\Translation::init('checkout/login');
 
@@ -1042,7 +1052,8 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         }
     }
 
-    public function actionAmazonlogin() {
+    public function actionAmazonlogin()
+    {
         ///kostyli for now (oAuth - not all required detail).
 
         $debug = false;
@@ -1052,8 +1063,8 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         }
         \common\helpers\Translation::init('checkout/login');
 
-        $login_results = array();
-        $errors = array();
+        $login_results = [];
+        $errors = [];
         $logged = false;
 
         if (isset($_COOKIE['amazon_Login_state_cache'])) {
@@ -1092,7 +1103,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
                 if (isset($d['aud']) && $d['aud'] == $amazon_payment::getClientId()) {
 
                     $c = curl_init($amazon_payment::getProfileUrl());
-                    curl_setopt($c, CURLOPT_HTTPHEADER, array('Authorization: bearer ' . $login_state['access_token']));
+                    curl_setopt($c, CURLOPT_HTTPHEADER, ['Authorization: bearer ' . $login_state['access_token']]);
                     curl_setopt($c, CURLOPT_RETURNTRANSFER, true);
 
                     $r = curl_exec($c);
@@ -1139,7 +1150,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
                     if (ENABLE_CUSTOMER_GROUP_CHOOSE == 'True') {
                         $model->group = 0; //ToDo, ask customer for group
                     } else {
-                        if (!defined("DEFAULT_USER_LOGIN_GROUP")) {
+                        if (!defined('DEFAULT_USER_LOGIN_GROUP')) {
                             $model->group = 0;
                         } else {
                             $model->group = DEFAULT_USER_LOGIN_GROUP;
@@ -1203,7 +1214,8 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         tep_redirect(tep_href_link(FILENAME_SHOPPING_CART));
     }
 
-    public function actionAmazonaddress() {
+    public function actionAmazonaddress()
+    {
         //TL session could expire befoore amazon's
         ///VL2check 2do (somethiong not OK
 
@@ -1223,7 +1235,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         $ref = Yii::$app->request->post('amazon_order_reference');
         $_SESSION['amazon_eu_login']['orderRef'] = $ref;
         $oData = $amazon_payment->getOrderReferenceDetails($ref);
-        $destination = isset($oData['GetOrderReferenceDetailsResult']['OrderReferenceDetails']['Destination']['PhysicalDestination']) ? $oData ['GetOrderReferenceDetailsResult']['OrderReferenceDetails']['Destination']['PhysicalDestination'] : array();
+        $destination = isset($oData['GetOrderReferenceDetailsResult']['OrderReferenceDetails']['Destination']['PhysicalDestination']) ? $oData ['GetOrderReferenceDetailsResult']['OrderReferenceDetails']['Destination']['PhysicalDestination'] : [];
         $adr = [];
         if (isset($destination['CountryCode'])) {
             if (isset($destination['CountryCode'])) {
@@ -1241,7 +1253,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
             $adr['state'] = (isset($destination['StateOrRegion']) ? $destination['StateOrRegion'] : '');
         }
 
-        $address = tep_db_query("select address_book_id from " . TABLE_ADDRESS_BOOK .
+        $address = tep_db_query('select address_book_id from ' . TABLE_ADDRESS_BOOK .
                 " where customers_id='" . $customer->customers_id . "' and TRIM(entry_street_address)='' "
                 . "and entry_postcode in ('', '" . tep_db_input($adr['postcode']) . "') and entry_city in ('', '" . tep_db_input($adr['city']) . "')");
 
@@ -1262,7 +1274,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
                     $qZones = \common\models\Zones::find()->where(['zone_country_id' => $country])
                                     ->andWhere(['or',
                                         ['zone_code' => $state],
-                                        ['zone_name' => $state]
+                                        ['zone_name' => $state],
                                     ])->all();
                     if (count($qZones)) {
                         $zone_id = $qZones[0]->zone_id;
@@ -1308,12 +1320,12 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
 
         $order_total_output = $this->manager->getTotalOutput(true, 'TEXT_CHECKOUT');
 
-        $response = array(
-            'replace' => array(
+        $response = [
+            'replace' => [
                 'shipping_method' => \frontend\design\boxes\checkout\Shipping::widget(['params' => $this->manager]),
                 'order_totals' => \frontend\design\boxes\checkout\Totals::widget(['params' => $this->manager]),
-            ),
-        );
+            ],
+        ];
 
         echo json_encode($response);
 
@@ -1379,8 +1391,6 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
               list($company_vat_status, $customer_company_vat_status) = $ext::update_vat_status($order);
               $order->customer['company_vat_status'] = $company_vat_status;
               } */
-
-
 
             /**
              * @var $cart \shoppingCart
@@ -1511,7 +1521,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
               if (count($jspayments) == 0)
               $jspayments[] = 'none';
              */
-//ICW ADDED FOR CREDIT CLASS SYSTEM
+            //ICW ADDED FOR CREDIT CLASS SYSTEM
             //global $opc_coupon_pool;
             //$opc_coupon_pool = array();
             //$this->manager->totalCollectPosts($_POST);
@@ -1568,10 +1578,12 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         }
     }
 
-    public function actionRestart($order_id) {
+    public function actionRestart($order_id)
+    {
         global $navigation, $cart;
-        if (!$order_id)
+        if (!$order_id) {
             $this->goHome();
+        }
 
         if (Yii::$app->user->isGuest) {
             $navigation->set_snapshot();
@@ -1592,7 +1604,7 @@ class CheckoutController extends \frontend\classes\AbstractCheckoutController {
         $cart = new \common\classes\shopping_cart($order_id);
         if ($multiCart = \common\helpers\Extensions::isAllowed('MultiCart')) {
             $key = $multiCart::getCurrentCartKey();
-            if ($key){
+            if ($key) {
                 $cart->setBasketID($key);
             }
         }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,22 +12,25 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+
 namespace common\modules\orderTotal;
 
-use common\classes\modules\ModuleTotal;
-use common\classes\modules\ModuleStatus;
 use common\classes\modules\ModuleSortOrder;
+use common\classes\modules\ModuleStatus;
+use common\classes\modules\ModuleTotal;
 
-class ot_subtax extends ModuleTotal {
-
-    var $title, $output;
+class ot_subtax extends ModuleTotal
+{
+    public $title;
+    public $output;
 
     protected $defaultTranslationArray = [
         'MODULE_ORDER_TOTAL_SUBTAX_TITLE' => 'Subtotal for taxation',
-        'MODULE_ORDER_TOTAL_SUBTAX_DESCRIPTION' => 'Subtotal for taxation'
+        'MODULE_ORDER_TOTAL_SUBTAX_DESCRIPTION' => 'Subtotal for taxation',
     ];
 
-    function __construct() {
+    public function __construct()
+    {
         parent::__construct();
 
         $this->code = 'ot_subtax';
@@ -38,13 +43,14 @@ class ot_subtax extends ModuleTotal {
         $this->enabled = ((MODULE_ORDER_TOTAL_SUBTAX_STATUS == 'true') ? true : false);
         $this->sort_order = MODULE_ORDER_TOTAL_SUBTAX_SORT_ORDER;
 
-        $this->output = array();
+        $this->output = [];
     }
 
-    function process() {
+    public function process()
+    {
         $order = $this->manager->getOrderInstance();
         $currencies = \Yii::$container->get('currencies');
-        $this->output[] = array('title' => $this->title . ':',
+        $this->output[] = ['title' => $this->title . ':',
             'text' => $currencies->format($order->info['total_exc_tax'], true, $order->info['currency'], $order->info['currency_value']),
             'value' => $order->info['total_exc_tax'],
             'text_exc_tax' => $currencies->format($order->info['total_exc_tax'], true, $order->info['currency'], $order->info['currency_value']),
@@ -54,35 +60,38 @@ class ot_subtax extends ModuleTotal {
             'value_exc_vat' => $order->info['total_exc_tax'],
             'value_inc_tax' => $order->info['total_inc_tax'],
 // }}
-        );
+        ];
     }
 
-    public function describe_status_key() {
+    public function describe_status_key()
+    {
         return new ModuleStatus('MODULE_ORDER_TOTAL_SUBTAX_STATUS', 'true', 'false');
     }
 
-    public function describe_sort_key() {
+    public function describe_sort_key()
+    {
         return new ModuleSortOrder('MODULE_ORDER_TOTAL_SUBTAX_SORT_ORDER');
     }
 
-    public function configure_keys() {
-        return array(
+    public function configure_keys()
+    {
+        return [
             'MODULE_ORDER_TOTAL_SUBTAX_STATUS' =>
-            array(
+            [
                 'title' => 'Display Subtotal for taxation',
                 'value' => 'true',
                 'description' => 'Do you want to display the subtotal for taxation value?',
                 'sort_order' => '1',
                 'set_function' => 'tep_cfg_select_option(array(\'true\', \'false\'), ',
-            ),
+            ],
             'MODULE_ORDER_TOTAL_SUBTAX_SORT_ORDER' =>
-            array(
+            [
                 'title' => 'Sort Order',
                 'value' => '2',
                 'description' => 'Sort order of display.',
                 'sort_order' => '2',
-            ),
-        );
+            ],
+        ];
     }
 
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,14 +18,14 @@ namespace common\api\Classes;
 class Property extends AbstractClass
 {
     public $propertyId = 0;
-    public $propertyRecord = array();
-    public $descriptionRecordArray = array();
-    public $valueRecordArray = array();
-    public $productRecordArray = array();
+    public $propertyRecord = [];
+    public $descriptionRecordArray = [];
+    public $valueRecordArray = [];
+    public $productRecordArray = [];
 
     private static $valueDescriptionRecordFieldList = [
         'language_id' => true,
-        'values_text' => true
+        'values_text' => true,
     ];
 
     public function getId()
@@ -69,10 +71,10 @@ class Property extends AbstractClass
             ) {
                 $valueRecord['values_text'] = trim($valueRecord['values_text']);
                 $valueRecord['descriptionRecordArray'] = (isset($this->valueRecordArray[$valueRecord['values_id']]['descriptionRecordArray'])
-                    ? $this->valueRecordArray[$valueRecord['values_id']]['descriptionRecordArray'] : array());
+                    ? $this->valueRecordArray[$valueRecord['values_id']]['descriptionRecordArray'] : []);
                 if (!isset($this->valueRecordArray[$valueRecord['values_id']])
-                    OR ($this->valueRecordArray[$valueRecord['values_id']]['values_text'] == '')
-                    OR (($valueRecord['language_id'] == \common\classes\language::defaultId()) AND ($valueRecord['values_text'] != ''))
+                    or ($this->valueRecordArray[$valueRecord['values_id']]['values_text'] == '')
+                    or (($valueRecord['language_id'] == \common\classes\language::defaultId()) and ($valueRecord['values_text'] != ''))
                 ) {
                     $this->valueRecordArray[$valueRecord['values_id']] = $valueRecord;
                 }
@@ -115,14 +117,15 @@ class Property extends AbstractClass
         }
         $defaultName = '';
         // DESCRIPTION
-        $this->descriptionRecordArray = (is_array($this->descriptionRecordArray) ? $this->descriptionRecordArray : array());
+        $this->descriptionRecordArray = (is_array($this->descriptionRecordArray) ? $this->descriptionRecordArray : []);
         foreach ($this->descriptionRecordArray as $keyD => &$descriptionRecord) {
             $descriptionRecord['language_id'] = (int)(isset($descriptionRecord['language_id']) ? $descriptionRecord['language_id'] : 0);
             if (isset($descriptionRecord['language_code'])) {
                 $descriptionRecord['language_id'] = $this->getLanguageIdByCode($descriptionRecord['language_code'], $descriptionRecord['language_id']);
             }
             if ($descriptionRecord['language_id'] > 0) {
-                $descriptionRecord['properties_name'] = trim(isset($descriptionRecord['properties_name'])
+                $descriptionRecord['properties_name'] = trim(
+                    isset($descriptionRecord['properties_name'])
                     ? $descriptionRecord['properties_name'] : ''
                 );
                 $defaultName = (($defaultName == '') ? $descriptionRecord['properties_name'] : $defaultName);
@@ -133,7 +136,7 @@ class Property extends AbstractClass
         unset($descriptionRecord);
         unset($keyD);
         // EOF DESCRIPTION
-        if (($defaultName == '') OR (count($this->descriptionRecordArray) == 0)) {
+        if (($defaultName == '') or (count($this->descriptionRecordArray) == 0)) {
             $this->messageAdd('Property Description is invalid!');
             return false;
         }
@@ -141,13 +144,14 @@ class Property extends AbstractClass
         $this->propertyRecord['properties_name_default'] = $defaultName;
         unset($defaultName);
         // VALUE
-        $this->valueRecordArray = (is_array($this->valueRecordArray) ? $this->valueRecordArray : array());
+        $this->valueRecordArray = (is_array($this->valueRecordArray) ? $this->valueRecordArray : []);
         foreach ($this->valueRecordArray as $keyV => &$valueRecord) {
             unset($valueRecord['properties_id']);
             $defaultValueName = trim(isset($valueRecord['values_text']) ? $valueRecord['values_text'] : '');
             // VALUE DESCRIPTION
-            $valueRecord['descriptionRecordArray'] = ((isset($valueRecord['descriptionRecordArray']) AND is_array($valueRecord['descriptionRecordArray']))
-                ? $valueRecord['descriptionRecordArray'] : array()
+            $valueRecord['descriptionRecordArray'] = (
+                (isset($valueRecord['descriptionRecordArray']) and is_array($valueRecord['descriptionRecordArray']))
+                ? $valueRecord['descriptionRecordArray'] : []
             );
             foreach ($valueRecord['descriptionRecordArray'] as $keyVD => &$descriptionRecord) {
                 $descriptionRecord['language_id'] = (int)(isset($descriptionRecord['language_id']) ? $descriptionRecord['language_id'] : 0);
@@ -155,7 +159,8 @@ class Property extends AbstractClass
                     $descriptionRecord['language_id'] = $this->getLanguageIdByCode($descriptionRecord['language_code'], $descriptionRecord['language_id']);
                 }
                 if ($descriptionRecord['language_id'] > 0) {
-                    $descriptionRecord['values_text'] = trim(isset($descriptionRecord['values_text'])
+                    $descriptionRecord['values_text'] = trim(
+                        isset($descriptionRecord['values_text'])
                         ? $descriptionRecord['values_text'] : ''
                     );
                     $defaultValueName = (($defaultValueName == '') ? $descriptionRecord['values_text'] : $defaultValueName);
@@ -173,7 +178,7 @@ class Property extends AbstractClass
             unset($descriptionRecord);
             unset($keyVD);
             // EOF VALUE DESCRIPTION
-            if (($defaultValueName != '') AND (count($valueRecord['descriptionRecordArray']) > 0)) {
+            if (($defaultValueName != '') and (count($valueRecord['descriptionRecordArray']) > 0)) {
                 $valueRecord['values_text_default'] = $defaultValueName;
                 foreach ($valueRecord as $field => $null) {
                     if (isset(self::$valueDescriptionRecordFieldList[$field])) {
@@ -190,7 +195,7 @@ class Property extends AbstractClass
         unset($valueRecord);
         unset($keyV);
         // VALUE
-        $this->productRecordArray = (is_array($this->productRecordArray) ? $this->productRecordArray : array());
+        $this->productRecordArray = (is_array($this->productRecordArray) ? $this->productRecordArray : []);
         return true;
     }
 
@@ -314,7 +319,7 @@ class Property extends AbstractClass
                     unset($valueDescriptionRecord);
                     unset($keyVD);
                     // EOF VALUE DESCRIPTION
-                    if (($propertyValueId > 0) AND (count($valueRecord['descriptionRecordArray']) > 0)) {
+                    if (($propertyValueId > 0) and (count($valueRecord['descriptionRecordArray']) > 0)) {
                         $valueRecord['descriptionRecordArray'] = array_values($valueRecord['descriptionRecordArray']);
                         $valueRecord = ($valueRecord + $valueRecord['descriptionRecordArray'][0]);
                     } else {

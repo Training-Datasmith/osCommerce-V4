@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Common;
 
 /**
@@ -10,7 +12,6 @@ namespace PayPal\Common;
  */
 class PayPalUserAgent
 {
-
     /**
      * Returns the value of the User-Agent header
      * Add environment values and php version numbers
@@ -21,12 +22,12 @@ class PayPalUserAgent
      */
     public static function getValue($sdkName, $sdkVersion)
     {
-        $featureList = array(
+        $featureList = [
             'platform-ver=' . PHP_VERSION,
             'bit=' . self::_getPHPBit(),
             'os=' . str_replace(' ', '_', php_uname('s') . ' ' . php_uname('r')),
-            'machine=' . php_uname('m')
-        );
+            'machine=' . php_uname('m'),
+        ];
         if (defined('OPENSSL_VERSION_TEXT')) {
             $opensslVersion = explode(' ', OPENSSL_VERSION_TEXT);
             $featureList[] = 'crypto-lib-ver=' . $opensslVersion[1];
@@ -35,7 +36,7 @@ class PayPalUserAgent
             $curlVersion = curl_version();
             $featureList[] = 'curl=' . $curlVersion['version'];
         }
-        return sprintf("PayPalSDK/%s %s (%s)", $sdkName, $sdkVersion, implode('; ', $featureList));
+        return sprintf('PayPalSDK/%s %s (%s)', $sdkName, $sdkVersion, implode('; ', $featureList));
     }
 
     /**

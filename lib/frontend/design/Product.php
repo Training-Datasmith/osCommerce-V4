@@ -1,44 +1,45 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace frontend\design;
 
-use Yii;
 use common\classes\design;
+use Yii;
 
 class Product
 {
-
     public static function pageName($products_id, $cPath_array = [])
     {
-        $template_query = tep_db_fetch_array(tep_db_query("
-            select template_name from " . TABLE_PRODUCT_TO_TEMPLATE . " where
+        $template_query = tep_db_fetch_array(tep_db_query('
+            select template_name from ' . TABLE_PRODUCT_TO_TEMPLATE . " where
                 products_id = '" . (int)$products_id . "' and
                 platform_id = '" . \common\classes\platform::currentId() . "' and
                 theme_name in( '" . tep_db_input(THEME_NAME) . "', '" . str_replace('-mobile', '', tep_db_input(THEME_NAME)) . "')"));
 
         $categories_template_name = '';
         if (is_array($cPath_array)) {
-          foreach ($cPath_array as $categories_id) {
-            $template_cat_query = tep_db_fetch_array(tep_db_query("
-                select template_name from " . TABLE_CATEGORIES_PRODUCT_TO_TEMPLATE . " where
+            foreach ($cPath_array as $categories_id) {
+                $template_cat_query = tep_db_fetch_array(tep_db_query('
+                select template_name from ' . TABLE_CATEGORIES_PRODUCT_TO_TEMPLATE . " where
                     categories_id = '" . (int)$categories_id . "' and
                     platform_id = '" . \common\classes\platform::currentId() . "' and
                     theme_name in( '" . tep_db_input(THEME_NAME) . "', '" . str_replace('-mobile', '', tep_db_input(THEME_NAME)) . "')"));
-            if (isset($template_cat_query['template_name']) && !empty($template_cat_query['template_name'])) {
-                $categories_template_name = $template_cat_query['template_name'];
+                if (isset($template_cat_query['template_name']) && !empty($template_cat_query['template_name'])) {
+                    $categories_template_name = $template_cat_query['template_name'];
+                }
             }
-          }
         }
 
         if (isset($template_query['template_name']) && !empty($template_query['template_name'])) {
@@ -59,9 +60,9 @@ class Product
 
         $get = Yii::$app->request->get();
 
-        $query = tep_db_query("
+        $query = tep_db_query('
 select aps.setting_value as rule, ap.setting_value as page_title
-from " . TABLE_THEMES_SETTINGS . " ap left join " . TABLE_THEMES_SETTINGS . " aps on ap.setting_value = aps.setting_name
+from ' . TABLE_THEMES_SETTINGS . ' ap left join ' . TABLE_THEMES_SETTINGS . " aps on ap.setting_value = aps.setting_name
 where
     ap.theme_name = '" . tep_db_input(THEME_NAME) . "' and
     aps.theme_name = '" . tep_db_input(THEME_NAME) . "' and
@@ -69,11 +70,11 @@ where
     aps.setting_group = 'added_page_settings' and
     ap.setting_name = 'product'");
 
-        $pages = array();
+        $pages = [];
         while ($page = tep_db_fetch_array($query)) {
             $pages[$page['page_title']][] = $page['rule'];
         }
-        $selected = array();
+        $selected = [];
         foreach ($pages as $page => $rules) {
             $selected[$page] = 1;
             foreach ($rules as $rule) {
@@ -82,16 +83,16 @@ where
 
                         case 'has_attributes':
                             if (\common\helpers\Attributes::has_product_attributes((int)$products_id)) {
-                                $selected[$page] ++;
+                                $selected[$page]++;
                             } else {
                                 $selected[$page] = false;
                             }
                             break;
 
                         case 'is_bundle':
-                            $bundle = tep_db_fetch_array(tep_db_query("select count(*) as total from " . TABLE_SETS_PRODUCTS . " where sets_id = '" . (int)$products_id . "'"));
+                            $bundle = tep_db_fetch_array(tep_db_query('select count(*) as total from ' . TABLE_SETS_PRODUCTS . " where sets_id = '" . (int)$products_id . "'"));
                             if ($bundle['total'] > 0) {
-                                $selected[$page] ++;
+                                $selected[$page]++;
                             } else {
                                 $selected[$page] = false;
                             }
@@ -99,7 +100,7 @@ where
 
                         case 'popup_product':
                             if (Yii::$app->request->isAjax) {
-                                $selected[$page] ++;
+                                $selected[$page]++;
                             } else {
                                 $selected[$page] = false;
                             }

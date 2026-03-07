@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,23 +24,20 @@ class m230109_102127_max_and_minimum_order_qty extends Migration
      */
     public function safeUp()
     {
-        if (method_exists($this, 'isOldExtension'))
-        {
-            if (!$this->isOldExtension('MaxOrderQty'))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension('MaxOrderQty')) {
                 $this->removeTranslation('admin/categories', ['TEXT_PRODUCTS_ORDER_QUANTITY_MAX']);
             }
 
-            if (!$this->isOldExtension('MinimumOrderQty'))
-            {
-                $this->removeTranslation('admin/categories',[
+            if (!$this->isOldExtension('MinimumOrderQty')) {
+                $this->removeTranslation('admin/categories', [
                     'TEXT_PRODUCTS_ORDER_QUANTITY_MINIMAL',
                     'TEXT_PRODUCTS_ORDER_QUANTITY_MAX',
                 ]);
-                $this->removeTranslation('main',[
+                $this->removeTranslation('main', [
                     'TEXT_MIN_QTY_TO_PURCHASE',
                     'TEXT_QTY_STEP_TO_PURCHASE',
-                    'TEXT_MAX_QTY_TO_PURCHASE'
+                    'TEXT_MAX_QTY_TO_PURCHASE',
                 ]);
             }
         }

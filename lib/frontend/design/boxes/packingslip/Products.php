@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,29 +14,28 @@
 
 namespace frontend\design\boxes\packingslip;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
 use frontend\design\Info;
+use yii\base\Widget;
 
 class Products extends Widget
 {
+    public $id;
+    public $file;
+    public $params;
+    public $settings;
 
-  public $id;
-  public $file;
-  public $params;
-  public $settings;
+    public function init()
+    {
+        parent::init();
+    }
 
-  public function init()
-  {
-    parent::init();
-  }
+    public function run()
+    {
 
-  public function run() {
-
-    if ($this->settings[0]['pdf']){
-      $width = Info::blockWidth($this->id);
-      $html = '
+        if ($this->settings[0]['pdf']) {
+            $width = Info::blockWidth($this->id);
+            $html = '
       <table class="invoice-products" style="width: 100%" cellpadding="5">
   <tr class="invoice-products-headings">
     <td style="padding-left: 0; width: 5%; background-color: #eee; ">' . QTY . '</td>
@@ -42,47 +43,44 @@ class Products extends Widget
     <td style="width:30%; background-color: #eee; ">' . TEXT_MODEL . '</td>
   </tr>';
 
-      $order = $this->params['order'];
+            $order = $this->params['order'];
 
-        $counter = 0;
-        \common\helpers\Php8::nullArrProps($this->params, ['from', 'to']);
-      foreach ($order->getOrderedProducts('packing_slip') as $product) {
-          if ((!$this->params['from'] && !$this->params['to']) || ($counter >= $this->params['from'] && $counter < $this->params['to'])) {
-              $html .= '
+            $counter = 0;
+            \common\helpers\Php8::nullArrProps($this->params, ['from', 'to']);
+            foreach ($order->getOrderedProducts('packing_slip') as $product) {
+                if ((!$this->params['from'] && !$this->params['to']) || ($counter >= $this->params['from'] && $counter < $this->params['to'])) {
+                    $html .= '
       <tr>
         <td style=" border-top: 1px solid #ccc">' . \common\helpers\Product::getVirtualItemQuantity($product['id'], $product['qty']) . '</td>
         <td style=" border-top: 1px solid #ccc">' . $product['name'];
 
-              if (!empty($product['attributes']) && is_array($product['attributes'])) {
-                  foreach ($product['attributes'] as $attribut) {
-                      $html .= '
-              <div><small>&nbsp;<i> - ' . str_replace(array('&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;'), array('&nbsp;', '<b>', '</b>', '<br>'), htmlspecialchars($attribut['option'])) . ': ' . $attribut['value'] . '</i></small></div>';
-                  }
-              }
-              $html .= '
+                    if (!empty($product['attributes']) && is_array($product['attributes'])) {
+                        foreach ($product['attributes'] as $attribut) {
+                            $html .= '
+              <div><small>&nbsp;<i> - ' . str_replace(['&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;'], ['&nbsp;', '<b>', '</b>', '<br>'], htmlspecialchars($attribut['option'])) . ': ' . $attribut['value'] . '</i></small></div>';
+                        }
+                    }
+                    $html .= '
         </td>
 
         <td style=" border-top: 1px solid #ccc">' . $product['model'] . '</td>
       </tr>
 ';
-          }
-          $counter++;
-      }
-      $html .= '
+                }
+                $counter++;
+            }
+            $html .= '
 </table>
 ';
 
-
-
-
-      return $html;
-    } else {
-      return IncludeTpl::widget(['file' => 'boxes/packingslip/products.tpl', 'params' => [
-        'order' => $this->params['order'],
-        'currencies' => $this->params['currencies'],
-        'to_pdf' => ($_GET['to_pdf'] ? 1 : 0),
-        'width' => Info::blockWidth($this->id)
-      ]]);
+            return $html;
+        } else {
+            return IncludeTpl::widget(['file' => 'boxes/packingslip/products.tpl', 'params' => [
+              'order' => $this->params['order'],
+              'currencies' => $this->params['currencies'],
+              'to_pdf' => ($_GET['to_pdf'] ? 1 : 0),
+              'width' => Info::blockWidth($this->id),
+            ]]);
+        }
     }
-  }
 }

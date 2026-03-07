@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
 * This file is part of osCommerce ecommerce platform.
 * osCommerce the ecommerce
@@ -32,7 +34,7 @@ class Setup extends \common\classes\modules\SetupExtensions
     {
         return [
             'extensions/user-groups' => [
-                'USER_GROUPS' => 'User Groups'
+                'USER_GROUPS' => 'User Groups',
             ],
         ];
     }
@@ -48,9 +50,11 @@ class Setup extends \common\classes\modules\SetupExtensions
 
     public static function install($platform_id, $migrate)
     {
-        if ( $migrate->isTableExists('banners_to_platform') &&
-            !$migrate->isFieldExists('user_groups', 'banners_to_platform'
-        )) {
+        if ($migrate->isTableExists('banners_to_platform') &&
+            !$migrate->isFieldExists(
+                'user_groups',
+                'banners_to_platform'
+            )) {
             $migrate->addColumn('banners_to_platform', 'user_groups', $migrate->string(255)->notNull()->defaultValue('#0#'));
         }
     }
@@ -65,7 +69,8 @@ class Setup extends \common\classes\modules\SetupExtensions
         }
     }
 
-    public static function getDropDatabasesArray() {
+    public static function getDropDatabasesArray()
+    {
         return [];
     }
 

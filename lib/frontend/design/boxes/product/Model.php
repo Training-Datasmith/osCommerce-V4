@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,13 @@
 
 namespace frontend\design\boxes\product;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
 use yii\helpers\ArrayHelper;
-use frontend\design\IncludeTpl;
 
 class Model extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -42,28 +43,28 @@ class Model extends Widget
 
         if ($data['model'] && ArrayHelper::getValue($this->settings, [0,'show_model']) != 'no') {
             \frontend\design\JsonLd::addData(['Product' => [
-                'sku' => $data['model']
+                'sku' => $data['model'],
             ]], ['Product', 'sku']);
         }
         if ($data['ean'] && ArrayHelper::getValue($this->settings, [0,'show_ean']) != 'no') {
             \frontend\design\JsonLd::addData(['Product' => [
-                'gtin13' => $data['ean']
+                'gtin13' => $data['ean'],
             ]], ['Product', 'gtin13']);
         }
         if ($data['isbn'] && ArrayHelper::getValue($this->settings, [0,'show_isbn']) != 'no') {
             \frontend\design\JsonLd::addData(['Product' => [
-                'isbn' => $data['isbn']
+                'isbn' => $data['isbn'],
             ]], ['Product', 'isbn']);
         }
         if ($data['upc'] && ArrayHelper::getValue($this->settings, [0,'show_upc']) != 'no') {
             \frontend\design\JsonLd::addData(['Product' => [
-                'upc' => $data['upc']
+                'upc' => $data['upc'],
             ]], ['Product', 'upc']);
         }
 
         return IncludeTpl::widget(['file' => 'boxes/product/model.tpl', 'params' => [
             'data' => $data,
-            'settings' => $this->settings[0]
+            'settings' => $this->settings[0],
         ]]);
 
     }

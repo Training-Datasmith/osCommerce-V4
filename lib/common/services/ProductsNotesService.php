@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\services;
 
 use backend\models\forms\ProductsNotesForm;
@@ -8,7 +10,6 @@ use common\models\repositories\ProductsNotesRepository;
 
 final class ProductsNotesService
 {
-
     /** @var ProductsNotesRepository */
     private $productsNotesRepository;
 

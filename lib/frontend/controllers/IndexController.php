@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,14 +15,10 @@
 namespace frontend\controllers;
 
 use common\classes\platform;
+use frontend\design\Info;
 use Yii;
-use yii\helpers\Url;
 use yii\web\Controller;
 use yii\web\Response;
-use frontend\design\Info;
-use yii\web\Session;
-use common\classes\opc;
-use common\components\Customer;
 
 /**
  * Site controller
@@ -101,7 +99,7 @@ class IndexController extends Sceleton
         $get = Yii::$app->request->get();
 
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('BusinessToBusiness', 'allowed')) {
-            if ($ext::checkNeedLogin()){
+            if ($ext::checkNeedLogin()) {
                 \common\helpers\Translation::init('js');
 
                 $params = [
@@ -113,13 +111,13 @@ class IndexController extends Sceleton
                 $params['enterModels'] = $authContainer->getForms('index/auth');
                 $params['showAddress'] = $authContainer->isShowAddress();
 
-                if (Yii::$app->request->isPost){
+                if (Yii::$app->request->isPost) {
                     $scenario = Yii::$app->request->post('scenario');
 
                     $authContainer->loadScenario($scenario);
-                    if (!$authContainer->hasErrors()){
+                    if (!$authContainer->hasErrors()) {
                         if (sizeof($navigation->snapshot) > 0) {
-                            $origin_href = tep_href_link($navigation->snapshot['page'], \common\helpers\Output::array_to_string($navigation->snapshot['get'], array(tep_session_name())), $navigation->snapshot['mode']);
+                            $origin_href = tep_href_link($navigation->snapshot['page'], \common\helpers\Output::array_to_string($navigation->snapshot['get'], [tep_session_name()]), $navigation->snapshot['mode']);
                             $navigation->clear_snapshot();
                             tep_redirect($origin_href);
                         } else {
@@ -127,13 +125,13 @@ class IndexController extends Sceleton
                         }
                     } else {
                         $messageStack = \Yii::$container->get('message_stack');
-                        if ($authContainer->hasErrors($scenario)){
-                            foreach ($authContainer->getErrors($scenario) as $error){
-                                $messageStack->add((is_array($error)? implode("<br>", $error): $error), $scenario);
+                        if ($authContainer->hasErrors($scenario)) {
+                            foreach ($authContainer->getErrors($scenario) as $error) {
+                                $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), $scenario);
                             }
                         }
                         $messages = '';
-                        if ($messageStack->size($scenario) > 0){
+                        if ($messageStack->size($scenario) > 0) {
                             $messages = $messageStack->output($scenario);
                         }
                         $params['messages_'.$scenario] = $messages;
@@ -177,7 +175,6 @@ class IndexController extends Sceleton
             }
         }
 
-
         if (Yii::$app->request->isAjax && !Info::isAdmin()) {
             $this->layout = 'ajax.tpl';
         }
@@ -205,9 +202,9 @@ class IndexController extends Sceleton
             ->select('logo')
             ->where(['platform_id' => platform::currentId()])
             ->scalar();
-        \Yii::$app->getView()->registerMetaTag(['property' => 'og:type', 'content' => 'website' ],'og:type');
-        \Yii::$app->getView()->registerMetaTag(['property' => 'og:url', 'content' => tep_href_link('index/index')],'og:url');
-        \Yii::$app->getView()->registerMetaTag(['property' => 'og:title', 'content' => $title],'og:title');
+        \Yii::$app->getView()->registerMetaTag(['property' => 'og:type', 'content' => 'website' ], 'og:type');
+        \Yii::$app->getView()->registerMetaTag(['property' => 'og:url', 'content' => tep_href_link('index/index')], 'og:url');
+        \Yii::$app->getView()->registerMetaTag(['property' => 'og:title', 'content' => $title], 'og:title');
         if (!empty($imageFile)) {
             \Yii::$app->getView()->registerMetaTag(['property' => 'og:image', 'content' => Yii::$app->urlManager->createAbsoluteUrl(\common\classes\Images::getWSCatalogImagesPath().$imageFile)], 'og:image');
         }
@@ -221,7 +218,7 @@ class IndexController extends Sceleton
         /** @var \common\extensions\UserGroups\UserGroups $ugExt */
         if ($ugExt = \common\helpers\Acl::checkExtensionAllowed('UserGroups', 'allowed')) {
             $tmp = $ugExt::getLandingPage();
-            if (!empty($tmp) && !in_array($tmp, ['index', 'index/index']) ) {
+            if (!empty($tmp) && !in_array($tmp, ['index', 'index/index'])) {
                 return Yii::$app->runAction($tmp);
             }
         }
@@ -298,123 +295,134 @@ class IndexController extends Sceleton
             if ($statusCode == 403) {
                 header('HTTP/1.0 403 Forbidden');
                 \app\components\MetaCannonical::setStatus(403);
-                $check = tep_db_fetch_array(tep_db_query("select id from " . TABLE_DESIGN_BOXES . " where block_name = '403' and theme_name = '" . THEME_NAME . "'"));
+                $check = tep_db_fetch_array(tep_db_query('select id from ' . TABLE_DESIGN_BOXES . " where block_name = '403' and theme_name = '" . THEME_NAME . "'"));
                 return $this->render('403', [
-                    'hasTemplate' => (is_array($check)?$check['id']:false)/* || Info::isAdmin() ? true : false*/
+                    'hasTemplate' => (is_array($check) ? $check['id'] : false),/* || Info::isAdmin() ? true : false*/
                 ]);
             }
             if ($statusCode == 404) {
                 header('HTTP/1.0 404 Not Found');
                 \app\components\MetaCannonical::setStatus(404);
-                $check = tep_db_fetch_array(tep_db_query("select id from " . TABLE_DESIGN_BOXES . " where block_name = '404' and theme_name = '" . THEME_NAME . "'"));
+                $check = tep_db_fetch_array(tep_db_query('select id from ' . TABLE_DESIGN_BOXES . " where block_name = '404' and theme_name = '" . THEME_NAME . "'"));
                 return $this->render('404', [
-                    'hasTemplate' => ($check['id']??null) || Info::isAdmin() ? true : false
+                    'hasTemplate' => ($check['id'] ?? null) || Info::isAdmin() ? true : false,
                 ]);
             }
             if ($exception instanceof \yii\web\BadRequestHttpException && $exception->getMessage() == 'Unable to verify your data submission.') {
                 $this->layout = false;
-                return \common\helpers\Translation::getValue('FORM_EXPIRED_ERROR_MESSAGE', 'main',"The form is expired. Please go back and refresh the page");
+                return \common\helpers\Translation::getValue('FORM_EXPIRED_ERROR_MESSAGE', 'main', 'The form is expired. Please go back and refresh the page');
             } else {
                 $this->layout = false;
-                return (defined('CONTACT_US_ERROR_MESSAGE')?CONTACT_US_ERROR_MESSAGE:"please contact us if you see this page");
+                return (defined('CONTACT_US_ERROR_MESSAGE') ? CONTACT_US_ERROR_MESSAGE : 'please contact us if you see this page');
             }
         }
     }
 
-    public function actionRobotsTxt(){
-      $this->layout = false;
-      if (is_file(DIR_FS_CATALOG.'/.robots.txt')) {
+    public function actionRobotsTxt()
+    {
+        $this->layout = false;
+        if (is_file(DIR_FS_CATALOG.'/.robots.txt')) {
 
-        \Yii::$app->response->format = Response::FORMAT_RAW;
-        \Yii::$app->response->headers->set('Content-Type','text/plain');
+            \Yii::$app->response->format = Response::FORMAT_RAW;
+            \Yii::$app->response->headers->set('Content-Type', 'text/plain');
 
-        $robots = file_get_contents(DIR_FS_CATALOG.'/.robots.txt');
-        if ( strpos($robots,'#SITE_PREFIX#')!==false ) {
-            $urlParams = [];
-            $urlManager = Yii::$app->getUrlManager();
-            if (method_exists($urlManager, 'getSettings')) {
-                $urlSettings = $urlManager->getSettings();
-                if ($urlSettings['search_engine_friendly_urls'] && $urlSettings['search_engine_unhide']) {
-                    if ($urlSettings['seo_url_parts_language']) {
-                        $objLanguage = new \common\classes\language();
-                        if ( is_array($objLanguage->paltform_languages) && count($objLanguage->paltform_languages)>0 ) {
-                            $paltform_languages = array_unique(array_merge([ $objLanguage->dp_language ],$objLanguage->paltform_languages));
+            $robots = file_get_contents(DIR_FS_CATALOG.'/.robots.txt');
+            if (strpos($robots, '#SITE_PREFIX#') !== false) {
+                $urlParams = [];
+                $urlManager = Yii::$app->getUrlManager();
+                if (method_exists($urlManager, 'getSettings')) {
+                    $urlSettings = $urlManager->getSettings();
+                    if ($urlSettings['search_engine_friendly_urls'] && $urlSettings['search_engine_unhide']) {
+                        if ($urlSettings['seo_url_parts_language']) {
+                            $objLanguage = new \common\classes\language();
+                            if (is_array($objLanguage->paltform_languages) && count($objLanguage->paltform_languages) > 0) {
+                                $paltform_languages = array_unique(array_merge([ $objLanguage->dp_language ], $objLanguage->paltform_languages));
 
+                                $_urlParams = $urlParams;
+                                $urlParams = [];
+                                foreach ($paltform_languages as $feedLanguageCode) {
+                                    $copyParams = [];
+                                    if (count($_urlParams) == 0) {
+                                        $_urlParams = [[]];
+                                    }
+                                    foreach ($_urlParams as $existingParams) {
+                                        $existingParams['language'] = $feedLanguageCode;
+                                        $copyParams[] = $existingParams;
+                                    }
+                                    $urlParams = array_merge($urlParams, $copyParams);
+                                }
+                            }
+                        }
+                        if ($urlSettings['seo_url_parts_currency']) {
+                            $currencies = \Yii::$container->get('currencies');
                             $_urlParams = $urlParams;
                             $urlParams = [];
-                            foreach ($paltform_languages as $feedLanguageCode ) {
+                            $platform_currencies = array_unique(array_merge([ $currencies->dp_currency ], $currencies->platform_currencies));
+                            foreach ($platform_currencies as $currencyCode) {
                                 $copyParams = [];
-                                if ( count($_urlParams)==0 ) $_urlParams = [[]];
-                                foreach ( $_urlParams as $existingParams ) {
-                                    $existingParams['language'] = $feedLanguageCode;
+                                if (count($_urlParams) == 0) {
+                                    $_urlParams = [[]];
+                                }
+                                foreach ($_urlParams as $existingParams) {
+                                    $existingParams['currency'] = $currencyCode;
                                     $copyParams[] = $existingParams;
                                 }
                                 $urlParams = array_merge($urlParams, $copyParams);
                             }
                         }
                     }
-                    if ($urlSettings['seo_url_parts_currency']) {
-                        $currencies = \Yii::$container->get('currencies');
-                        $_urlParams = $urlParams;
-                        $urlParams = [];
-                        $platform_currencies = array_unique(array_merge([ $currencies->dp_currency ],$currencies->platform_currencies));
-                        foreach($platform_currencies as $currencyCode){
-                            $copyParams = [];
-                            if ( count($_urlParams)==0 ) $_urlParams = [[]];
-                            foreach ( $_urlParams as $existingParams ) {
-                                $existingParams['currency'] = $currencyCode;
-                                $copyParams[] = $existingParams;
-                            }
-                            $urlParams = array_merge($urlParams, $copyParams);
-                        }
+                }
+
+                if (count($urlParams) == 0) {
+                    $urlParams[] = [];
+                }
+                $sitePrefix = [];
+                foreach ($urlParams as $urlParam) {
+                    $urlParam[0] = '/';
+                    $_url = Yii::$app->urlManager->createAbsoluteUrl($urlParam);
+                    $urlPath = parse_url($_url, PHP_URL_PATH);
+                    if (empty($urlPath)) {
+                        $urlPath = '/';
+                    }
+                    if (substr($urlPath, -1) != '/') {
+                        $urlPath .= '/';
+                    }
+                    $sitePrefix[$urlPath] = $urlPath;
+                }
+
+                $robots_array = [];
+                foreach (explode("\n", $robots) as $robotsLine) {
+                    if (strpos($robotsLine, '#SITE_PREFIX#') === false) {
+                        $robots_array[] = $robotsLine;
+                        continue;
+                    }
+                    foreach ($sitePrefix as $sitePrefixItem) {
+                        $robots_array[] = preg_replace('/#SITE_PREFIX#\/?/', $sitePrefixItem, $robotsLine);
                     }
                 }
+                $robots = implode("\n", $robots_array);
+
+                $robots = preg_replace('/#SITE_PREFIX#\/?/', '/', $robots);
             }
 
-            if ( count($urlParams)==0 ) $urlParams[] = [];
-            $sitePrefix = [];
-            foreach ( $urlParams as $urlParam ) {
-                $urlParam[0] = '/';
-                $_url = Yii::$app->urlManager->createAbsoluteUrl($urlParam);
-                $urlPath = parse_url($_url,PHP_URL_PATH);
-                if ( empty($urlPath) ) $urlPath = '/';
-                if ( substr($urlPath,-1)!='/' ) $urlPath.='/';
-                $sitePrefix[$urlPath] = $urlPath;
+            if ((defined('PLATFORM_NEED_LOGIN') && PLATFORM_NEED_LOGIN) || (defined('SUPERADMIN_ENABLED') && SUPERADMIN_ENABLED)) {
+                $robots = str_replace('#SITEMAP#', '', $robots);
+            } else {
+                $robots = str_replace('#SITEMAP#', 'Sitemap: ' . Yii::$app->urlManager->createAbsoluteUrl('sitemap.xml', true), $robots);
             }
-
-            $robots_array = [];
-            foreach (explode("\n",$robots) as $robotsLine){
-                if ( strpos($robotsLine,'#SITE_PREFIX#')===false ) {
-                    $robots_array[] = $robotsLine;
-                    continue;
-                }
-                foreach ( $sitePrefix as $sitePrefixItem ) {
-                    $robots_array[] = preg_replace('/#SITE_PREFIX#\/?/', $sitePrefixItem, $robotsLine);
-                }
-            }
-            $robots = implode("\n",$robots_array);
-
-            $robots = preg_replace('/#SITE_PREFIX#\/?/', '/', $robots);
+            return $robots;
+        } else {
+            throw new \yii\web\NotFoundHttpException();
         }
-
-        if ( (defined('PLATFORM_NEED_LOGIN') && PLATFORM_NEED_LOGIN) || (defined('SUPERADMIN_ENABLED') && SUPERADMIN_ENABLED) ) {
-            $robots = str_replace('#SITEMAP#',"", $robots);
-        }else {
-            $robots = str_replace('#SITEMAP#', "Sitemap: " . Yii::$app->urlManager->createAbsoluteUrl('sitemap.xml', true), $robots);
-        }
-        return $robots;
-      }else{
-        throw new \yii\web\NotFoundHttpException();
-      }
     }
 
-    public function actionLoadLanguagesJs(){
-	  //header('X-Content-Type-Options: nosniff');
-      $list = \common\helpers\Translation::loadJS('js');
+    public function actionLoadLanguagesJs()
+    {
+        //header('X-Content-Type-Options: nosniff');
+        $list = \common\helpers\Translation::loadJS('js');
 
-      return \common\widgets\JSLanguage::widget(['list' => $list]);
+        return \common\widgets\JSLanguage::widget(['list' => $list]);
     }
-
 
     public function actionDesign()
     {
@@ -477,7 +485,7 @@ class IndexController extends Sceleton
         }
     }
 
-/// platform by shipping country
+    /// platform by shipping country
     public function actionSelectCountry()
     {
         $this->layout = false;
@@ -522,7 +530,6 @@ class IndexController extends Sceleton
             $result = ['status' => 'ok'];
         }
 
-
         if (Yii::$app->request->method == 'POST') {
             Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
             Yii::$app->response->data = $result;
@@ -530,6 +537,5 @@ class IndexController extends Sceleton
             return $this->redirect(tep_href_link('/'));
         }
     }
-
 
 }

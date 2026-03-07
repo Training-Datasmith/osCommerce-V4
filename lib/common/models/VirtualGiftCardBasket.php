@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
 use yii\db\ActiveRecord;
@@ -30,11 +32,12 @@ class VirtualGiftCardBasket extends ActiveRecord
     {
         return '{{%virtual_gift_card_basket}}';
     }
-    
-    public function activate(){
+
+    public function activate()
+    {
         $this->activated = 1;
-        if ($this->save(false)){
-            if ($this->coupon){
+        if ($this->save(false)) {
+            if ($this->coupon) {
                 $this->coupon->coupon_active = Coupons::STATUS_ACTIVE;
                 $this->coupon->save();
             }
@@ -42,12 +45,14 @@ class VirtualGiftCardBasket extends ActiveRecord
         }
         return false;
     }
-    
-    public function getProduct(){
+
+    public function getProduct()
+    {
         return $this->hasOne(Products::class, ['products_id' => 'products_id']);
     }
-    
-    public function getCoupon(){
+
+    public function getCoupon()
+    {
         return $this->hasOne(Coupons::class, ['coupon_code' => 'virtual_gift_card_code']);
     }
 }

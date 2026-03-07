@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -9,13 +10,12 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-declare(strict_types = 1);
+declare(strict_types=1);
 
 namespace common\models\repositories;
 
 use common\models\Information;
 use common\models\queries\InformationQuery;
-
 
 /**
  * Class InformationRepository
@@ -43,7 +43,7 @@ class InformationRepository
         $information = Information::find()->where(['AND',
             ['information_id' => $id],
             ['platform_id' => $platformId],
-            ['languages_id' => $languageId]
+            ['languages_id' => $languageId],
         ]);
         if (is_array($id)) {
             return $information->indexBy('platform_id')->orderBy('date_added')->asArray($isArray)->all();
@@ -58,7 +58,7 @@ class InformationRepository
      * @param bool $isArray
      * @return array|Information|Information[]|null
      */
-    function get($id, int $platformId, int $languageId, bool $isArray = false)
+    public function get($id, int $platformId, int $languageId, bool $isArray = false)
     {
         if (!$information = $this->findById($id, $platformId, $languageId, $isArray)) {
             throw new NotFoundException('Information is not found.');

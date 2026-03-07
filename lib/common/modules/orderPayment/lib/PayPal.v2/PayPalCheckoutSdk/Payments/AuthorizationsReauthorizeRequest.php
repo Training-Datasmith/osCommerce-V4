@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // This class was generated on Wed, 01 Aug 2018 16:35:04 PDT by version 0.1.0-dev+0ee05a-dirty of Braintree SDK Generator
 // AuthorizationsReauthorizeRequest.php
 // @version 0.1.0-dev+0ee05a-dirty
@@ -13,21 +15,20 @@ use PayPalHttp\HttpRequest;
 
 class AuthorizationsReauthorizeRequest extends HttpRequest
 {
-    function __construct($authorizationId)
+    public function __construct($authorizationId)
     {
-        parent::__construct("/v2/payments/authorizations/{authorization_id}/reauthorize?", "POST");
+        parent::__construct('/v2/payments/authorizations/{authorization_id}/reauthorize?', 'POST');
 
-        $this->path = str_replace("{authorization_id}", urlencode($authorizationId), $this->path);
-        $this->headers["Content-Type"] = "application/json";
+        $this->path = str_replace('{authorization_id}', urlencode($authorizationId), $this->path);
+        $this->headers['Content-Type'] = 'application/json';
     }
-
 
     public function payPalRequestId($payPalRequestId)
     {
-        $this->headers["PayPal-Request-Id"] = $payPalRequestId;
+        $this->headers['PayPal-Request-Id'] = $payPalRequestId;
     }
     public function prefer($prefer)
     {
-        $this->headers["Prefer"] = $prefer;
+        $this->headers['Prefer'] = $prefer;
     }
 }

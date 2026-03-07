@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,22 +14,22 @@
 
 namespace backend\design\orders;
 
-
-use Yii;
 use yii\base\Widget;
 
-class ProductAssets extends Widget {
-
+class ProductAssets extends Widget
+{
     public $product;
     public $manager;
 
-    public function init(){
+    public function init()
+    {
         parent::init();
     }
 
-    public function run(){
-        if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductAssets' ,'allowed')){
-            if ($this->manager->isInstance()){
+    public function run()
+    {
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductAssets', 'allowed')) {
+            if ($this->manager->isInstance()) {
                 return $ext::renderOrderProductAsset($this->product['orders_products_id']);
             }
         }

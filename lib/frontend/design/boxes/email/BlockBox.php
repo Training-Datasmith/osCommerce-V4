@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,11 @@
 
 namespace frontend\design\boxes\email;
 
-use Yii;
-use yii\base\Widget;
-use frontend\design\IncludeTpl;
 use frontend\design\Block;
+use yii\base\Widget;
 
 class BlockBox extends Widget
 {
-
     public $settings;
     public $params;
     public $id;
@@ -33,15 +32,15 @@ class BlockBox extends Widget
     {
         $type = (int)$settings[0]['block_type'];
         $block_id = 'block-' . $id;
-        if (in_array($type, [2, 4, 5, 6, 7, 9, 10, 11, 12])){
+        if (in_array($type, [2, 4, 5, 6, 7, 9, 10, 11, 12])) {
             return [$block_id, $block_id . '-2'];
-        } elseif (in_array($type, [3, 8, 13])){
+        } elseif (in_array($type, [3, 8, 13])) {
             return [$block_id, $block_id . '-2', $block_id . '-3'];
-        } elseif ($type === 14){
+        } elseif ($type === 14) {
             return [$block_id, $block_id . '-2', $block_id . '-3', $block_id . '-4'];
-        } elseif ($type === 15){
+        } elseif ($type === 15) {
             return [$block_id, $block_id . '-2', $block_id . '-3', $block_id . '-4', $block_id . '-5'];
-        } elseif ($type === 1){
+        } elseif ($type === 1) {
             return [$block_id];
         } else {
             return [];
@@ -55,21 +54,36 @@ class BlockBox extends Widget
         $widthArr = [100];
 
         switch ($type) {
-            case 1: $widthArr = [100]; break;
-            case 2: $widthArr = [50, 50]; break;
-            case 3: $widthArr = [33, 33, 33]; break;
-            case 4: $widthArr = [66, 33]; break;
-            case 5: $widthArr = [33, 66]; break;
-            case 6: $widthArr = [25, 75]; break;
-            case 7: $widthArr = [75, 25]; break;
-            case 8: $widthArr = [25, 50, 25]; break;
-            case 9: $widthArr = [20, 80]; break;
-            case 10: $widthArr = [80, 20]; break;
-            case 11: $widthArr = [40, 60]; break;
-            case 12: $widthArr = [60, 40]; break;
-            case 13: $widthArr = [20, 60, 20]; break;
-            case 14: $widthArr = [25, 25, 25, 25]; break;
-            case 15: $widthArr = [20, 20, 20, 20, 20]; break;
+            case 1: $widthArr = [100];
+                break;
+            case 2: $widthArr = [50, 50];
+                break;
+            case 3: $widthArr = [33, 33, 33];
+                break;
+            case 4: $widthArr = [66, 33];
+                break;
+            case 5: $widthArr = [33, 66];
+                break;
+            case 6: $widthArr = [25, 75];
+                break;
+            case 7: $widthArr = [75, 25];
+                break;
+            case 8: $widthArr = [25, 50, 25];
+                break;
+            case 9: $widthArr = [20, 80];
+                break;
+            case 10: $widthArr = [80, 20];
+                break;
+            case 11: $widthArr = [40, 60];
+                break;
+            case 12: $widthArr = [60, 40];
+                break;
+            case 13: $widthArr = [20, 60, 20];
+                break;
+            case 14: $widthArr = [25, 25, 25, 25];
+                break;
+            case 15: $widthArr = [20, 20, 20, 20, 20];
+                break;
         }
 
         if (!isset($this->params['blockTreeData']) || !is_array($this->params['blockTreeData'])) {

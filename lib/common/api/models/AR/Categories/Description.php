@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -18,7 +20,6 @@ use common\helpers\Seo;
 
 class Description extends EPMap
 {
-
     protected $hideFields = [
         'categories_id',
         'language_id',
@@ -44,7 +45,7 @@ class Description extends EPMap
     public static function getAllKeyCodes()
     {
         $keyCodes = [];
-        foreach (\common\classes\language::get_all() as $lang){
+        foreach (\common\classes\language::get_all() as $lang) {
             $keyCode = $lang['code'].'_0';
             $keyCodes[$keyCode] = [
                 'categories_id' => null,
@@ -57,16 +58,16 @@ class Description extends EPMap
 
     public function beforeSave($insert)
     {
-        if ( empty($this->categories_seo_page_name) ) {
+        if (empty($this->categories_seo_page_name)) {
             $this->categories_seo_page_name = Seo::makeSlug($this->categories_name);
-            if ( $this->categories_id && $this->categories_seo_page_name) {
+            if ($this->categories_id && $this->categories_seo_page_name) {
                 $check_unique_seo_name = tep_db_fetch_array(tep_db_query(
-                    "SELECT COUNT(*) AS check_double ".
-                    "FROM ".TABLE_CATEGORIES_DESCRIPTION." ".
+                    'SELECT COUNT(*) AS check_double '.
+                    'FROM '.TABLE_CATEGORIES_DESCRIPTION.' '.
                     "WHERE categories_id!='".intval($this->categories_id)."' ".
                     " AND categories_seo_page_name='".tep_db_input($this->categories_seo_page_name)."'"
                 ));
-                if ( $check_unique_seo_name['check_double']>0 ) {
+                if ($check_unique_seo_name['check_double'] > 0) {
                     $this->categories_seo_page_name .= '-'.intval($this->categories_id);
                 }
             }

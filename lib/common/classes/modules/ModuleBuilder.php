@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,32 +15,36 @@
 
 namespace common\classes\modules;
 
-class ModuleBuilder {
-    
+class ModuleBuilder
+{
     public $manager;
-    
-    public function __construct(\common\services\OrderManager $manager = null) {
+
+    public function __construct(\common\services\OrderManager $manager = null)
+    {
         $this->manager = $manager;
     }
 
-    public function __invoke($args) {
-        if (!isset($args['class'])) throw new \Exception ('class name is not defined');
-        
+    public function __invoke($args)
+    {
+        if (!isset($args['class'])) {
+            throw new \Exception('class name is not defined');
+        }
+
         $class = new \ReflectionClass($args['class']);
         $object = $class->newInstanceWithoutConstructor();
         $object->manager = $this->manager;
-        if (is_object($this->manager)){
-            if ($_delivery = $this->manager->getDeliveryAddress()){
+        if (is_object($this->manager)) {
+            if ($_delivery = $this->manager->getDeliveryAddress()) {
                 $object->setDelivery($_delivery);
             }
 
-            if ($_billing = $this->manager->getBillingAddress()){
+            if ($_billing = $this->manager->getBillingAddress()) {
                 $object->setBilling($_billing);
             }
         }
-        
+
         $object->__construct();
         return $object;
     }
-    
+
 }

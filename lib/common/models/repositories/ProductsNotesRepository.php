@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,9 +12,10 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-namespace common\models\repositories;
-use common\models\Product\ProductsNotes;
 
+namespace common\models\repositories;
+
+use common\models\Product\ProductsNotes;
 
 /**
  * Class ProductsNotesRepository
@@ -25,7 +28,7 @@ final class ProductsNotesRepository
      * @param bool $asArray
      * @return array|ProductsNotes|\yii\db\ActiveRecord|null
      */
-    public function findById($id,  bool $asArray = false)
+    public function findById($id, bool $asArray = false)
     {
         $productsNotes = ProductsNotes::find()
             ->where(['products_notes_id' => $id])->asArray($asArray);
@@ -43,7 +46,7 @@ final class ProductsNotesRepository
     public function getById($id, bool $asArray = false)
     {
         $productsNotes = $this->findById($id, $asArray);
-        if(!$productsNotes){
+        if (!$productsNotes) {
             throw new NotFoundException('Products Notes not found');
         }
         return $productsNotes;
@@ -87,13 +90,13 @@ final class ProductsNotesRepository
      */
     public function edit(ProductsNotes $productsNotes, array $params = [], bool $validation = false, bool $safeOnly = false)
     {
-        foreach ($params as $attribute => $param){
-            if(!$productsNotes->hasAttribute($attribute)){
+        foreach ($params as $attribute => $param) {
+            if (!$productsNotes->hasAttribute($attribute)) {
                 unset($params[$attribute]);
             }
         }
         $productsNotes->setAttributes($params, $safeOnly);
-        if($productsNotes->update($validation, array_keys($params)) === false){
+        if ($productsNotes->update($validation, array_keys($params)) === false) {
             return $productsNotes->getErrors();
         }
         return true;

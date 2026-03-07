@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,7 +19,6 @@ use yii\base\Widget;
 
 class Categories extends Widget
 {
-
     public $id;
     public $params;
     public $settings;

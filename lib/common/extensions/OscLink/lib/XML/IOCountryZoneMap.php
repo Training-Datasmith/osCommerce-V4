@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,10 +14,8 @@
 
 namespace OscLink\XML;
 
-
 class IOCountryZoneMap extends IOMap
 {
-
     protected $name = '@country_zone';
 
     public function serializeTo(\SimpleXMLElement $parent)
@@ -23,22 +23,22 @@ class IOCountryZoneMap extends IOMap
         parent::serializeTo($parent);
 
         static $zoneInfo = [];
-        if ( $this->value && !isset($zoneInfo[$this->value]) ) {
+        if ($this->value && !isset($zoneInfo[$this->value])) {
             $zoneInfo[$this->value] = false;
             $zone_query = tep_db_query(
-                "select zone_code as code, zone_name as name ".
-                "from " . TABLE_ZONES . " ".
+                'select zone_code as code, zone_name as name '.
+                'from ' . TABLE_ZONES . ' '.
                 "where zone_id = '" . (int)$this->value . "'"
             );
-            if ( tep_db_num_rows($zone_query)>0 ) {
+            if (tep_db_num_rows($zone_query) > 0) {
                 $zoneInfo[$this->value] = tep_db_fetch_array($zone_query);
             }
         }
-        if ( $zoneInfo[$this->value] ) {
-            if ( $zoneInfo[$this->value]['code'] ) {
+        if ($zoneInfo[$this->value]) {
+            if ($zoneInfo[$this->value]['code']) {
                 $parent->addAttribute('code', $zoneInfo[$this->value]['code']);
             }
-            if ( $zoneInfo[$this->value]['name'] ) {
+            if ($zoneInfo[$this->value]['name']) {
                 $parent->addAttribute('name', $zoneInfo[$this->value]['name']);
             }
         }

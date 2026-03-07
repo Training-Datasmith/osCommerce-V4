@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,12 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
 use frontend\design\Info;
+use yii\base\Widget;
 
 class Brands extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -55,49 +55,48 @@ class Brands extends Widget
         $prevChar = '';
         $_lng = '0-9';
 
-
         if (!empty($manufacturers)) {
-          foreach($manufacturers as $k => $m) {
-            $manufacturers[$k]['link'] = \Yii::$app->urlManager->createUrl(['catalog', 'manufacturers_id' => $m['manufacturers_id']]);
-            $manufacturers[$k]['h2'] = $m['manufacturers_h2_tag'];
-            $manufacturers[$k]['img'] = \common\classes\Images::getImageSet(
-                  $m['manufacturers_image'],
-                  'Brand gallery',
-                  [],
-                  Info::themeSetting('na_category', 'hide')
-              );
+            foreach ($manufacturers as $k => $m) {
+                $manufacturers[$k]['link'] = \Yii::$app->urlManager->createUrl(['catalog', 'manufacturers_id' => $m['manufacturers_id']]);
+                $manufacturers[$k]['h2'] = $m['manufacturers_h2_tag'];
+                $manufacturers[$k]['img'] = \common\classes\Images::getImageSet(
+                    $m['manufacturers_image'],
+                    'Brand gallery',
+                    [],
+                    Info::themeSetting('na_category', 'hide')
+                );
 
-            if (!empty($this->settings[0]['show_abc']) && $prevChar != $m['f_letter']) {
-              $prevChar = $m['f_letter'];
-              if (preg_match('/\d+/', $prevChar)){
-                if (!isset($alphabets['0-9'])) {
-                  $alphabets[$_lng]['letters'] = ['0-9'];//range(0, 9);
-                  $alphabets[$_lng]['active'][] = '0-9';//$prevChar;
+                if (!empty($this->settings[0]['show_abc']) && $prevChar != $m['f_letter']) {
+                    $prevChar = $m['f_letter'];
+                    if (preg_match('/\d+/', $prevChar)) {
+                        if (!isset($alphabets['0-9'])) {
+                            $alphabets[$_lng]['letters'] = ['0-9'];//range(0, 9);
+                            $alphabets[$_lng]['active'][] = '0-9';//$prevChar;
+                        }
+                        $manufacturers[$k]['f_letter'] = '0-9';
+                    } elseif (preg_match('/\pL/', $prevChar)) {
+                        if (!isset($alphabet[$prevChar])) {
+                            $tmp = \common\helpers\Language::getPossibleLanguage($prevChar);
+                            if (!empty($tmp) && !isset($alphabets[$tmp]['letters'])) {
+                                $_lng = $tmp;
+                                $alphabets[$_lng]['letters'] = \common\helpers\Language::alphabets([$_lng]);
+                                $alphabet += array_flip($alphabets[$_lng]['letters']);
+                            } elseif (!in_array($prevChar, $alphabets[$_lng]['letters'])) {
+                                $alphabets[$_lng]['letters'][] = $prevChar;
+                                $alphabet[$prevChar] = $_lng;
+                            }
+                        }
+                        if (!is_array($alphabets[$_lng]['active']) || !in_array($prevChar, $alphabets[$_lng]['active'])) {
+                            $alphabets[$_lng]['active'][] = $prevChar;
+                        }
+                    }
                 }
-                $manufacturers[$k]['f_letter'] = '0-9';
-              } elseif (preg_match('/\pL/', $prevChar) ) {
-                if (!isset($alphabet[$prevChar])) {
-                  $tmp = \common\helpers\Language::getPossibleLanguage($prevChar);
-                  if (!empty($tmp) && !isset($alphabets[$tmp]['letters'])) {
-                    $_lng = $tmp;
-                    $alphabets[$_lng]['letters'] = \common\helpers\Language::alphabets([$_lng]);
-                    $alphabet += array_flip($alphabets[$_lng]['letters']);
-                  } elseif (!in_array($prevChar, $alphabets[$_lng]['letters'])) {
-                    $alphabets[$_lng]['letters'][] = $prevChar;
-                    $alphabet[$prevChar] = $_lng;
-                  }
-                }
-                if (!is_array($alphabets[$_lng]['active']) || !in_array($prevChar, $alphabets[$_lng]['active'])) {
-                  $alphabets[$_lng]['active'][] = $prevChar;
-                }
-              }
+
             }
-
-          }
 
             return IncludeTpl::widget([
                 'file' => 'boxes/brands.tpl',
-                'params' => ['brands' => $manufacturers, 'alphabets' => $alphabets]
+                'params' => ['brands' => $manufacturers, 'alphabets' => $alphabets],
             ]);
 
         }

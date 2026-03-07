@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "module_tokens".
@@ -52,6 +52,5 @@ class ModuleTokens extends \yii\db\ActiveRecord
             'admin_id' => 'Admin ID',
         ];
     }
-
 
 }

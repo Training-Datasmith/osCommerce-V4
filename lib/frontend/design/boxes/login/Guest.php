@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\login;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class Guest extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -33,7 +33,7 @@ class Guest extends Widget
         return IncludeTpl::widget(['file' => 'boxes/login/guest.tpl', 'params' => array_merge($this->params, [
             'settings' => $this->settings,
             'id' => $this->id,
-            'guestModel' => $this->params['enterModels']['guest']
+            'guestModel' => $this->params['enterModels']['guest'],
         ])]);
     }
 }

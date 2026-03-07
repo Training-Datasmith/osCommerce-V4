@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,11 @@
 
 namespace backend\models\ProductEdit;
 
-use yii;
 use common\models\Products;
+use yii;
 
 class SaveAttributesAndInventory
 {
-
     protected $product;
 
     public function __construct(Products $product)
@@ -45,7 +46,7 @@ class SaveAttributesAndInventory
         $_def_curr_id = $currencies->currencies[DEFAULT_CURRENCY]['id'];
 
         if (USE_MARKET_PRICES == 'True') {
-            foreach ($currencies->currencies as $key => $value)  {
+            foreach ($currencies->currencies as $key => $value) {
                 $currencies_ids[$currencies->currencies[$key]['id']] = $currencies->currencies[$key]['id'];
             }
         } else {
@@ -55,8 +56,8 @@ class SaveAttributesAndInventory
         //no such field $products_price = (float) Yii::$app->request->post('products_price');
         $products_price_full = Yii::$app->request->post('products_price_full');
         ///already tep_db_query("update " . TABLE_PRODUCTS . " set products_price_full = '" . (int) $products_price_full . "' where products_id = '" . (int) $products_id . "'");
-///products_option_values_sort_order[33]
-//products_attributes_id[34][175]
+        ///products_option_values_sort_order[33]
+        //products_attributes_id[34][175]
         $all_inventory_ids_array = $all_inventory_uprids_array = $options = $attributes_array = [];
         $products_attributes_id = Yii::$app->request->post('products_attributes_id');
         $products_option_values_sort_order = Yii::$app->request->post('products_option_values_sort_order');
@@ -89,7 +90,7 @@ class SaveAttributesAndInventory
                 }
             }
 
-///vl2do          save attributes and inventory
+            ///vl2do          save attributes and inventory
             // add file to attribute (fill in).
 
             /* ??discontinued?? (in inventory a different functionality)
@@ -107,10 +108,10 @@ class SaveAttributesAndInventory
                 $value_id = $val[1];
                 $__attr_order_array = $_attr_order_array[$option_id];
                 $sql_data_array = [
-                    'price_prefix' => self::getFromPostArrays(['post' => 'inventorypriceprefix_' . $old_products_id . '-'. $option_id . '-' . $value_id, 'dbdef'=>'+'], (int)$_def_curr_id),
-                    'options_values_price' => self::getFromPostArrays(['post' => 'products_group_price_' . $old_products_id . '-'. $option_id . '-' . $value_id, 'dbdef'=>'0'], (int)$_def_curr_id), //(USE_MARKET_PRICES == 'True'?xxxx:0)
-                    'products_attributes_weight_prefix' => tep_db_prepare_input(isset($products_attributes_weight_prefix[$option_id][$value_id])?$products_attributes_weight_prefix[$option_id][$value_id]:'+'),
-                    'default_option_value' => isset($default_option_values[$option_id][$value_id])?1:0,
+                    'price_prefix' => self::getFromPostArrays(['post' => 'inventorypriceprefix_' . $old_products_id . '-'. $option_id . '-' . $value_id, 'dbdef' => '+'], (int)$_def_curr_id),
+                    'options_values_price' => self::getFromPostArrays(['post' => 'products_group_price_' . $old_products_id . '-'. $option_id . '-' . $value_id, 'dbdef' => '0'], (int)$_def_curr_id), //(USE_MARKET_PRICES == 'True'?xxxx:0)
+                    'products_attributes_weight_prefix' => tep_db_prepare_input(isset($products_attributes_weight_prefix[$option_id][$value_id]) ? $products_attributes_weight_prefix[$option_id][$value_id] : '+'),
+                    'default_option_value' => isset($default_option_values[$option_id][$value_id]) ? 1 : 0,
                 ];
                 if (isset($__attr_order_array[$value_id])) { // for new def value in DB, for old - only if sort order changed.
                     $sql_data_array['products_options_sort_order'] = (int) $__attr_order_array[$value_id];
@@ -118,7 +119,9 @@ class SaveAttributesAndInventory
 
                 if ($ext = \common\helpers\Extensions::isAllowed('TypicalOperatingTemp')) {
                     $_ext_data = $ext::saveProductAttribute($option_id, $value_id);
-                    if ( is_array($_ext_data) ) $sql_data_array = array_merge($sql_data_array, $_ext_data);
+                    if (is_array($_ext_data)) {
+                        $sql_data_array = array_merge($sql_data_array, $_ext_data);
+                    }
                 }
 
                 /*
@@ -132,7 +135,7 @@ class SaveAttributesAndInventory
                     //virtual
                     //delete old file
                     if (isset($delete_attr_file[$option_id][$value_id]) &&  $delete_attr_file[$option_id][$value_id] == 'yes'  &&
-                        isset($attr_previous_file[$option_id][$value_id]) &&  tep_not_null($attr_previous_file[$option_id][$value_id]) ) {
+                        isset($attr_previous_file[$option_id][$value_id]) &&  tep_not_null($attr_previous_file[$option_id][$value_id])) {
                         @unlink(DIR_FS_DOWNLOAD . $attr_previous_file[$option_id][$value_id]);
                         $sql_data_array = array_merge($sql_data_array, [
                             'products_attributes_filename' => '',
@@ -140,7 +143,7 @@ class SaveAttributesAndInventory
                             'products_attributes_maxcount' => 0]);
                     }
                     //save new
-                    if (isset($attr_file[$option_id][$value_id]) &&  tep_not_null($attr_file[$option_id][$value_id])  && $attr_file[$option_id][$value_id]!= 'none') {
+                    if (isset($attr_file[$option_id][$value_id]) &&  tep_not_null($attr_file[$option_id][$value_id])  && $attr_file[$option_id][$value_id] != 'none') {
                         $tmp_name = \Yii::getAlias('@webroot');
                         $tmp_name .= DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
                         $tmp_name .= $attr_file[$option_id][$value_id];
@@ -150,19 +153,19 @@ class SaveAttributesAndInventory
                         $sql_data_array = array_merge($sql_data_array, [
                             'products_attributes_weight' => 0,
                             'products_attributes_filename' => tep_db_prepare_input($attr_file[$option_id][$value_id]),
-                            'products_attributes_maxdays' => (isset($products_attributes_maxdays[$option_id][$value_id]) && (int)$products_attributes_maxdays[$option_id][$value_id]>0 ? (int)$products_attributes_maxdays[$option_id][$value_id]:0),
-                            'products_attributes_maxcount' => (isset($products_attributes_maxcount[$option_id][$value_id]) && (int)$products_attributes_maxcount[$option_id][$value_id]>0? (int)$products_attributes_maxcount[$option_id][$value_id]:0)
+                            'products_attributes_maxdays' => (isset($products_attributes_maxdays[$option_id][$value_id]) && (int)$products_attributes_maxdays[$option_id][$value_id] > 0 ? (int)$products_attributes_maxdays[$option_id][$value_id] : 0),
+                            'products_attributes_maxcount' => (isset($products_attributes_maxcount[$option_id][$value_id]) && (int)$products_attributes_maxcount[$option_id][$value_id] > 0 ? (int)$products_attributes_maxcount[$option_id][$value_id] : 0),
                         ]);
                     } else {
                         $sql_data_array = array_merge($sql_data_array, [
-                            'products_attributes_maxdays' => (isset($products_attributes_maxdays[$option_id][$value_id]) && (int)$products_attributes_maxdays[$option_id][$value_id]>0 ? (int)$products_attributes_maxdays[$option_id][$value_id]:0),
-                            'products_attributes_maxcount' => (isset($products_attributes_maxcount[$option_id][$value_id]) && (int)$products_attributes_maxcount[$option_id][$value_id]>0? (int)$products_attributes_maxcount[$option_id][$value_id]:0)
+                            'products_attributes_maxdays' => (isset($products_attributes_maxdays[$option_id][$value_id]) && (int)$products_attributes_maxdays[$option_id][$value_id] > 0 ? (int)$products_attributes_maxdays[$option_id][$value_id] : 0),
+                            'products_attributes_maxcount' => (isset($products_attributes_maxcount[$option_id][$value_id]) && (int)$products_attributes_maxcount[$option_id][$value_id] > 0 ? (int)$products_attributes_maxcount[$option_id][$value_id] : 0),
                         ]);
                     }
 
                 } else {
                     $sql_data_array = array_merge($sql_data_array, [
-                        'products_attributes_weight' => tep_db_prepare_input(isset($products_attributes_weight[$option_id][$value_id])?$products_attributes_weight[$option_id][$value_id]:0),
+                        'products_attributes_weight' => tep_db_prepare_input(isset($products_attributes_weight[$option_id][$value_id]) ? $products_attributes_weight[$option_id][$value_id] : 0),
                         'products_attributes_filename' => '',
                         'products_attributes_maxdays' => 0,
                         'products_attributes_maxcount' => 0]);
@@ -170,7 +173,7 @@ class SaveAttributesAndInventory
 
                 //if (is_array($sql_data_array['options_values_price'])) { $sql_data_array['options_values_price'] = $sql_data_array['options_values_price'][0]; } // Kostyl'
 
-                $check = tep_db_query("select products_attributes_id from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $products_id . "' and options_id = '" . (int) $option_id . "' and options_values_id = '" . (int) $value_id . "'");
+                $check = tep_db_query('select products_attributes_id from ' . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $products_id . "' and options_id = '" . (int) $option_id . "' and options_values_id = '" . (int) $value_id . "'");
                 if (tep_db_num_rows($check)) {
                     $Qdata = tep_db_fetch_array($check);
                     $products_attributes_id = $Qdata['products_attributes_id'];
@@ -185,19 +188,20 @@ class SaveAttributesAndInventory
 
                 ///group prices
                 if ($without_inventory || \common\helpers\Extensions::isAllowed('Inventory') || \common\helpers\Attributes::is_virtual_option($option_id)) {
-                    tep_db_query("delete from " . TABLE_PRODUCTS_ATTRIBUTES_PRICES . " where products_attributes_id = '" . (int) $products_attributes_id . "'");
+                    tep_db_query('delete from ' . TABLE_PRODUCTS_ATTRIBUTES_PRICES . " where products_attributes_id = '" . (int) $products_attributes_id . "'");
                     ///['db' => 'products_group_price_packaging', 'dbdef' => -2, 'post' => 'products_group_price_packaging', 'f' => ['self', 'defGroupPrice']],
                     if (USE_MARKET_PRICES == 'True' || \common\helpers\Extensions::isCustomerGroupsAllowed()) {
                         foreach ($currencies_ids as $post_currencies_id => $currencies_id) {
                             foreach ($groups as $groups_id => $non) {
                                 $sql_data_array = [
                                     'attributes_group_price' => tep_db_prepare_input(self::getFromPostArrays(
-                                        ['db' => 'attributes_group_price', 'dbdef' => ($groups_id==0?0:-2), 'post' => 'products_group_price_' . $old_products_id . '-'. $option_id . '-' . $value_id, 'f' => ['self', 'defGroupPrice']]
-                                        , $post_currencies_id, $groups_id
+                                        ['db' => 'attributes_group_price', 'dbdef' => ($groups_id == 0 ? 0 : -2), 'post' => 'products_group_price_' . $old_products_id . '-'. $option_id . '-' . $value_id, 'f' => ['self', 'defGroupPrice']],
+                                        $post_currencies_id,
+                                        $groups_id
                                     )),
                                     'groups_id' => tep_db_prepare_input($groups_id),
                                     'products_attributes_id' => tep_db_prepare_input($products_attributes_id),
-                                    'currencies_id' => (USE_MARKET_PRICES == 'True'?tep_db_prepare_input($post_currencies_id):0),
+                                    'currencies_id' => (USE_MARKET_PRICES == 'True' ? tep_db_prepare_input($post_currencies_id) : 0),
                                     //'attributes_group_discount_price' =>
                                 ];
                                 tep_db_perform(TABLE_PRODUCTS_ATTRIBUTES_PRICES, $sql_data_array);
@@ -245,7 +249,7 @@ class SaveAttributesAndInventory
                     $tmp = Yii::$app->request->post('products_name');
                     $label = $tmp[$languages_id] ?? null;
                     if (count($oids) > 0) {
-                        $query = tep_db_query("SELECT products_options_values_name AS name FROM " . TABLE_PRODUCTS_OPTIONS_VALUES . " WHERE products_options_values_id  IN ('" . implode("','", $oids) . "') AND language_id  = '" . (int)$languages_id . "' ORDER BY products_options_values_sort_order, products_options_values_id");
+                        $query = tep_db_query('SELECT products_options_values_name AS name FROM ' . TABLE_PRODUCTS_OPTIONS_VALUES . " WHERE products_options_values_id  IN ('" . implode("','", $oids) . "') AND language_id  = '" . (int)$languages_id . "' ORDER BY products_options_values_sort_order, products_options_values_id");
                         while ($options_values_name_data = tep_db_fetch_array($query)) {
                             $label .= ' ' . $options_values_name_data['name'];
                         }
@@ -282,7 +286,6 @@ class SaveAttributesAndInventory
                         }
                     }
 
-
                     $sql_data_array['supplier_price_manual'] = self::getFromPostArrays(['dbdef' => 'null', 'post' => 'supplier_auto_price_' . $post_uprid], (int)$_def_curr_id, 0);
                     // posted auto, make manual
                     $sql_data_array['supplier_price_manual'] = $sql_data_array['supplier_price_manual'] == '1' ? 0 : 1;
@@ -293,9 +296,11 @@ class SaveAttributesAndInventory
 
                     $sql_data_array['inventory_tax_class_id'] = 'null';
                     $inventory_tax_class_id = Yii::$app->request->post('inventory_tax_class_id_' . $post_uprid, null);
-                    if (!is_null($inventory_tax_class_id)) $sql_data_array['inventory_tax_class_id'] = (int)$inventory_tax_class_id;
+                    if (!is_null($inventory_tax_class_id)) {
+                        $sql_data_array['inventory_tax_class_id'] = (int)$inventory_tax_class_id;
+                    }
 
-                    $check_data = tep_db_fetch_array(tep_db_query("SELECT inventory_id FROM " . TABLE_INVENTORY . " WHERE products_id = '" . tep_db_input($db_uprid) . "'"));
+                    $check_data = tep_db_fetch_array(tep_db_query('SELECT inventory_id FROM ' . TABLE_INVENTORY . " WHERE products_id = '" . tep_db_input($db_uprid) . "'"));
                     if ($check_data) {
                         $inventory_id = $check_data['inventory_id'];
                         tep_db_perform(TABLE_INVENTORY, $sql_data_array, 'update', "inventory_id = '" . (int)$inventory_id . "'");
@@ -307,12 +312,12 @@ class SaveAttributesAndInventory
                     }
 
                     ///group prices
-                    tep_db_query("DELETE FROM " . TABLE_INVENTORY_PRICES . " WHERE inventory_id = '" . (int)$inventory_id . "'");
+                    tep_db_query('DELETE FROM ' . TABLE_INVENTORY_PRICES . " WHERE inventory_id = '" . (int)$inventory_id . "'");
 
                     ///['db' => 'products_group_price_packaging', 'dbdef' => -2, 'post' => 'products_group_price_packaging', 'f' => ['self', 'defGroupPrice']],
                     if (USE_MARKET_PRICES == 'True' || \common\helpers\Extensions::isCustomerGroupsAllowed()) {
                         foreach ($currencies_ids as $post_currencies_id => $currencies_id) {
-//in tpl currency_id should be always correct, so w/o market price: $post_currencies_id (15) => $currencies_id (0)
+                            //in tpl currency_id should be always correct, so w/o market price: $post_currencies_id (15) => $currencies_id (0)
                             foreach ($groups as $groups_id => $non) {
                                 $sql_data_array = [
                                     'inventory_id' => tep_db_prepare_input($inventory_id),
@@ -407,60 +412,61 @@ class SaveAttributesAndInventory
                     $platformProductsStockFlags::deleteAll(['AND', ['prid' => (int)$products_id], ['NOT IN', 'products_id', $all_inventory_uprids_array]]);
                 }
 
-            }elseif (\common\helpers\Extensions::isAllowed('Inventory') && $without_inventory) {
-                \common\models\Inventory::deleteAll( ['prid' => (int) $products_id] );
-                \common\models\InventoryPrices::deleteAll( ['prid' => (int) $products_id] );
-                \common\models\WarehousesProducts::deleteAll( ['AND', ['prid' => (int) $products_id], ['!=', 'products_id', trim((int) $products_id)]] );
+            } elseif (\common\helpers\Extensions::isAllowed('Inventory') && $without_inventory) {
+                \common\models\Inventory::deleteAll(['prid' => (int) $products_id]);
+                \common\models\InventoryPrices::deleteAll(['prid' => (int) $products_id]);
+                \common\models\WarehousesProducts::deleteAll(['AND', ['prid' => (int) $products_id], ['!=', 'products_id', trim((int) $products_id)]]);
             }
-
 
             if (\common\helpers\Extensions::isAllowed('Inventory')) {
                 $inventory_quantity = tep_db_fetch_array(tep_db_query(
-                    "SELECT SUM(products_quantity) AS left_quantity " .
-                    "FROM " . TABLE_INVENTORY . " " .
+                    'SELECT SUM(products_quantity) AS left_quantity ' .
+                    'FROM ' . TABLE_INVENTORY . ' ' .
                     "WHERE prid = '" . (int) $products_id . "' AND IFNULL(non_existent,0)=0 " .
-                    " AND products_quantity>0"
+                    ' AND products_quantity>0'
                 ));
-                tep_db_query("update " . TABLE_PRODUCTS . " set products_quantity = '" . (int) $inventory_quantity['left_quantity'] . "' where products_id = '" . (int) $products_id . "'");
+                tep_db_query('update ' . TABLE_PRODUCTS . " set products_quantity = '" . (int) $inventory_quantity['left_quantity'] . "' where products_id = '" . (int) $products_id . "'");
                 \common\helpers\Warehouses::update_sum_of_inventory_quantity($products_id);
             }
         } else {
             /// no attributes / all attributes has been deleted
 
             if (\common\helpers\Extensions::isAllowed('Inventory')) {
-                \common\models\Inventory::deleteAll( ['prid' => (int) $products_id] );
-                \common\models\InventoryPrices::deleteAll( ['prid' => (int) $products_id] );
-                \common\models\WarehousesProducts::deleteAll( ['AND', ['prid' => (int) $products_id], ['!=', 'products_id', trim((int) $products_id)]] );
+                \common\models\Inventory::deleteAll(['prid' => (int) $products_id]);
+                \common\models\InventoryPrices::deleteAll(['prid' => (int) $products_id]);
+                \common\models\WarehousesProducts::deleteAll(['AND', ['prid' => (int) $products_id], ['!=', 'products_id', trim((int) $products_id)]]);
             }
         }
 
         ///clean-up product attributes and prices
-        $Qcheck = tep_db_query("select products_attributes_id, products_attributes_filename from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $products_id . "' and concat(options_id, '-', options_values_id) not in ('" . implode("', '", array_keys($attributes_array) ) . "')");
+        $Qcheck = tep_db_query('select products_attributes_id, products_attributes_filename from ' . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $products_id . "' and concat(options_id, '-', options_values_id) not in ('" . implode("', '", array_keys($attributes_array)) . "')");
         if (tep_db_num_rows($Qcheck)) {
             while ($data = tep_db_fetch_array($Qcheck)) {
-                tep_db_query("delete from " . TABLE_PRODUCTS_ATTRIBUTES_PRICES . " where products_attributes_id = '" . (int) $data['products_attributes_id'] . "'");
+                tep_db_query('delete from ' . TABLE_PRODUCTS_ATTRIBUTES_PRICES . " where products_attributes_id = '" . (int) $data['products_attributes_id'] . "'");
                 if (DOWNLOAD_ENABLED == true || $data['products_attributes_filename'] != '') {
                     @unlink(DIR_FS_DOWNLOAD . $data['products_attributes_filename']);
                 }
-                tep_db_query("delete from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_attributes_id = '" . (int) $data['products_attributes_id'] . "'");
+                tep_db_query('delete from ' . TABLE_PRODUCTS_ATTRIBUTES . " where products_attributes_id = '" . (int) $data['products_attributes_id'] . "'");
             }
         }
 
         $switch_off_stock_ids = \common\classes\StockIndication::productDisableByStockIds();
         if (!empty($switch_off_stock_ids)) {
             tep_db_query(
-                "update " . TABLE_PRODUCTS . " " .
-                "set products_status = 0 " .
+                'update ' . TABLE_PRODUCTS . ' ' .
+                'set products_status = 0 ' .
                 "where products_id = '" . (int) $products_id . "' " .
-                " AND products_quantity<=0 " .
+                ' AND products_quantity<=0 ' .
                 " AND stock_indication_id IN ('" . implode("','", $switch_off_stock_ids) . "')"
             );
         }
 
         $settings = \common\helpers\Product::getSettings($products_id);
-        if ($settings){
+        if ($settings) {
             $saq = Yii::$app->request->post('show_attributes_quantity', 0);
-            if ((int)Yii::$app->request->post('is_bundle') || !\common\helpers\Attributes::has_product_attributes($products_id)) $saq = 0;
+            if ((int)Yii::$app->request->post('is_bundle') || !\common\helpers\Attributes::has_product_attributes($products_id)) {
+                $saq = 0;
+            }
             $settings->saveSettings($products_id, ['show_attributes_quantity' => $saq]);
         }
         return $all_inventory_uprids_array;
@@ -474,7 +480,8 @@ class SaveAttributesAndInventory
      * 'flag' => 'qty_discount_status_pack_unit', POST switcher flag (1 - on!!! someone use yes o_O )
      * 'f' => ['self', 'formatDiscountString']] - validator - callback
      */
-    private static function getFromPostArrays($field, $curr_id, $group_id=0) {
+    private static function getFromPostArrays($field, $curr_id, $group_id = 0)
+    {
         return \backend\models\ProductEdit\PostArrayHelper::getFromPostArrays($field, $curr_id, $group_id);
     }
 }

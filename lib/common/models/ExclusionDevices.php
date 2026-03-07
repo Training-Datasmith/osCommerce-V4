@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "exclusion_devices".
@@ -43,9 +43,10 @@ class ExclusionDevices extends \yii\db\ActiveRecord
             'date_add' => 'Date Add',
         ];
     }
-    
-    public static function cleanupDevices() {
+
+    public static function cleanupDevices()
+    {
         //self::deleteAll('date_add <= :date_add', [':date_add' => date("Y-m-d") . " 00:00:01"]);// until the end of the day
-        self::deleteAll('date_add <= :date_add', [':date_add' => date("Y-m-d H:i:s", strtotime('- 1 hour'))]);
+        self::deleteAll('date_add <= :date_add', [':date_add' => date('Y-m-d H:i:s', strtotime('- 1 hour'))]);
     }
 }

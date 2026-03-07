@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "banners_languages".
@@ -40,7 +40,7 @@ class BannersLanguages extends \yii\db\ActiveRecord
             [['banners_id', 'platform_id', 'language_id', 'target', 'banner_display', 'text_position'], 'integer'],
             [['banners_html_text', 'svg'], 'string'],
             [['banners_title', 'banners_image'], 'string', 'max' => 255],
-            [['banners_url'], 'string', 'max' => 255]
+            [['banners_url'], 'string', 'max' => 255],
         ];
     }
 

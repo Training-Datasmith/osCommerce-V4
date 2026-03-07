@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace common\models;
 
-
 use yii\db\ActiveRecord;
 
 class OrdersCommentTemplate extends ActiveRecord
 {
-
     /**
      * @inheritdoc
      */
@@ -28,29 +28,29 @@ class OrdersCommentTemplate extends ActiveRecord
 
     public function getVisibilityArray()
     {
-        return preg_split('/,/',$this->visibility,-1,PREG_SPLIT_NO_EMPTY);
+        return preg_split('/,/', $this->visibility, -1, PREG_SPLIT_NO_EMPTY);
     }
 
     public function getHideForPlatformsArray()
     {
-        return preg_split('/,/',$this->hide_for_platforms,-1,PREG_SPLIT_NO_EMPTY);
+        return preg_split('/,/', $this->hide_for_platforms, -1, PREG_SPLIT_NO_EMPTY);
     }
 
     public function getHideFromAdminArray()
     {
-        return preg_split('/,/',$this->hide_from_admin,-1,PREG_SPLIT_NO_EMPTY);
+        return preg_split('/,/', $this->hide_from_admin, -1, PREG_SPLIT_NO_EMPTY);
     }
 
     public function getShowForAdminGroupsArray()
     {
-        if ( strpos($this->show_for_admin_group,',*,')!==false ) {
+        if (strpos($this->show_for_admin_group, ',*,') !== false) {
             $AdminGroupsArray = [];
-            foreach (AccessLevels::find()->select(['access_levels_id'])->asArray(true)->all() as $item){
+            foreach (AccessLevels::find()->select(['access_levels_id'])->asArray(true)->all() as $item) {
                 $AdminGroupsArray[] = $item['access_levels_id'];
             }
             return $AdminGroupsArray;
         }
-        return preg_split('/,/',$this->show_for_admin_group,-1,PREG_SPLIT_NO_EMPTY);
+        return preg_split('/,/', $this->show_for_admin_group, -1, PREG_SPLIT_NO_EMPTY);
     }
 
     public function getTexts()
@@ -64,21 +64,22 @@ class OrdersCommentTemplate extends ActiveRecord
             return false;
         }
 
-        if ( strpos($this->show_for_admin_group,',*,')===false ) {
+        if (strpos($this->show_for_admin_group, ',*,') === false) {
             $AllAdminGroupsArray = [];
-            foreach (AccessLevels::find()->select(['access_levels_id'])->asArray(true)->all() as $item){
+            foreach (AccessLevels::find()->select(['access_levels_id'])->asArray(true)->all() as $item) {
                 $AllAdminGroupsArray[$item['access_levels_id']] = $item['access_levels_id'];
             }
-            foreach ( preg_split('/,/', $this->show_for_admin_group, -1, PREG_SPLIT_NO_EMPTY) as $saveId ){
-                if ( isset($AllAdminGroupsArray[$saveId]) ) unset($AllAdminGroupsArray[$saveId]);
+            foreach (preg_split('/,/', $this->show_for_admin_group, -1, PREG_SPLIT_NO_EMPTY) as $saveId) {
+                if (isset($AllAdminGroupsArray[$saveId])) {
+                    unset($AllAdminGroupsArray[$saveId]);
+                }
             }
-            if( count($AllAdminGroupsArray)==0 ) {
+            if (count($AllAdminGroupsArray) == 0) {
                 $this->show_for_admin_group = ',*,';
             }
         }
         return true;
     }
-
 
     public function beforeDelete()
     {
@@ -86,10 +87,9 @@ class OrdersCommentTemplate extends ActiveRecord
             return false;
         }
 
-        OrdersCommentTemplateText::deleteAll(['comment_template_id'=>$this->comment_template_id]);
+        OrdersCommentTemplateText::deleteAll(['comment_template_id' => $this->comment_template_id]);
 
         return true;
     }
-
 
 }

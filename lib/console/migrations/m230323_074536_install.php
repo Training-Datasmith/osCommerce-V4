@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -39,9 +41,9 @@ After registration, wait for confirmation by %3$s. If this approuve take a lot, 
      */
     public function safeDown()
     {
-      //  echo "m230323_074536_install cannot be reverted.\n";
+        //  echo "m230323_074536_install cannot be reverted.\n";
 
-       // return false;
+        // return false;
     }
 
     /*

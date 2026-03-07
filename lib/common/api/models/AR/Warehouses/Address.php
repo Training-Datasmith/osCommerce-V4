@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace common\api\models\AR\Warehouses;
 
-
 use backend\models\EP\Tools;
 use common\api\models\AR\EPMap;
 
 class Address extends EPMap
 {
-
     public $is_default;
     public $save_lookup = false;
 
@@ -43,8 +43,9 @@ class Address extends EPMap
     {
         return ['is_default'];
     }*/
-    
-    public function rules() {
+
+    public function rules()
+    {
         return array_merge(
             parent::rules(),
             [
@@ -62,7 +63,7 @@ class Address extends EPMap
 
     public function matchIndexedValue(EPMap $importedObject)
     {
-        if ( !is_null($importedObject->warehouses_address_book_id) && !is_null($this->warehouses_address_book_id) && $importedObject->warehouses_address_book_id==$this->warehouses_address_book_id ){
+        if (!is_null($importedObject->warehouses_address_book_id) && !is_null($this->warehouses_address_book_id) && $importedObject->warehouses_address_book_id == $this->warehouses_address_book_id) {
             $this->pendingRemoval = false;
             return true;
         }
@@ -80,63 +81,63 @@ class Address extends EPMap
             'entry_zone_id',
         ];
         $match = true;
-        foreach ($compareFields as $compareField){
-            if ( !$this->hasAttribute($compareField) ) continue;
-            if ( in_array($compareField,['entry_country_id','entry_zone_id'] ) ) {
+        foreach ($compareFields as $compareField) {
+            if (!$this->hasAttribute($compareField)) {
+                continue;
+            }
+            if (in_array($compareField, ['entry_country_id','entry_zone_id'])) {
                 // integer fields
-                if ( intval($importedObject->$compareField)!==intval($this->$compareField) ){
+                if (intval($importedObject->$compareField) !== intval($this->$compareField)) {
                     $match = false;
                     break;
                 }
-            }else
-            if ( strval($importedObject->$compareField)!==strval($this->$compareField) ){
+            } elseif (strval($importedObject->$compareField) !== strval($this->$compareField)) {
                 $match = false;
                 break;
             }
         }
-        if ( $match ) {
+        if ($match) {
             $this->pendingRemoval = false;
         }
         return $match;
     }
 
-
     public function exportArray(array $fields = [])
     {
         $data = parent::exportArray($fields);
-        if ( array_key_exists('entry_country_id', $data) ) {
+        if (array_key_exists('entry_country_id', $data)) {
             $tools = new Tools();
             $countryInfo = $tools->getCountryInfo($data['entry_country_id']);
             $data['entry_country_iso2'] = $countryInfo['countries_iso_code_2'];
         }
-        if ( array_key_exists('entry_state', $data) && is_numeric($this->entry_zone_id)) {
-            $data['entry_state'] = \common\helpers\Zones::get_zone_name($data['entry_country_id'],$this->entry_zone_id,$this->entry_state);
+        if (array_key_exists('entry_state', $data) && is_numeric($this->entry_zone_id)) {
+            $data['entry_state'] = \common\helpers\Zones::get_zone_name($data['entry_country_id'], $this->entry_zone_id, $this->entry_state);
         }
         return $data;
     }
 
     public function importArray($data)
     {
-        if ( isset($data['entry_country_iso2']) ) {
+        if (isset($data['entry_country_iso2'])) {
             $tools = new Tools();
             $data['entry_country_id'] = $tools->getCountryId($data['entry_country_iso2']);
         }
-        if ( isset($data['entry_state']) ) {
-            $data['entry_zone_id'] = \common\helpers\Zones::get_zone_id($data['entry_country_id'],$data['entry_state']);
-            if ( $data['entry_zone_id'] ) {
+        if (isset($data['entry_state'])) {
+            $data['entry_zone_id'] = \common\helpers\Zones::get_zone_id($data['entry_country_id'], $data['entry_state']);
+            if ($data['entry_zone_id']) {
                 $data['entry_state'] = '';
             }
         }
 
         $importResult = parent::importArray($data);
-        if ( array_key_exists('is_default', $data) ) {
+        if (array_key_exists('is_default', $data)) {
             $this->is_default = !!$data['is_default'];
         }
-        
-        if (array_key_exists('save_lookup', $data)){
+
+        if (array_key_exists('save_lookup', $data)) {
             $this->save_lookup = $data['save_lookup'];
         }
         return $importResult;
     }
-    
+
 }

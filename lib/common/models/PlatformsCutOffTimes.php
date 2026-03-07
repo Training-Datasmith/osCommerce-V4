@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,7 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
-use common\extensions\ProductDesigner\models as ProductDesignerORM;
 
 class PlatformsCutOffTimes extends ActiveRecord
 {

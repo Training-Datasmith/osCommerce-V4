@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,20 +12,20 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+
 namespace backend\models\EP\Provider\Magento\helpers;
 
-use Yii;
-
-class SoapClient {
-    
+class SoapClient
+{
     private $config;
     private $client;
-    
-    public function __construct($config) {
+
+    public function __construct($config)
+    {
         $this->config = $config;
         try {
             $this->client = new \SoapClient(
-                $this->config['location'] . "/api/soap/?wsdl",
+                $this->config['location'] . '/api/soap/?wsdl',
                 [
                     'trace' => 1,
                     //'proxy_host'     => "localhost",
@@ -34,7 +36,7 @@ class SoapClient {
                     'stream_context' => stream_context_create([
                         'http' => [
                             //'header'  => "APIToken: $api_token\r\n",
-                        ]
+                        ],
                     ]),
                 ]
             );
@@ -42,22 +44,24 @@ class SoapClient {
             $auth->api_key = $this->config['api_key'];
             $soapHeaders = new \SoapHeader('http://schemas.xmlsoap.org/ws/2002/07/utility', 'auth', $auth, false);
             $this->client->__setSoapHeaders($soapHeaders);
-        }catch (\Exception $ex) {
+        } catch (\Exception $ex) {
             throw new Exception('Configuration error');
         }
     }
-    
-    public function getClient(){
-        return $this->client; 
+
+    public function getClient()
+    {
+        return $this->client;
     }
-    
-    public function loginClient(){
-        try{
-            $session = $this->client->login($this->config['api_user'], $this->config['api_key']);    
+
+    public function loginClient()
+    {
+        try {
+            $session = $this->client->login($this->config['api_user'], $this->config['api_key']);
         } catch (\Exception $ex) {
             throw new \Exception('Authentication error');
-        }        
-        
+        }
+
         return $session;
     }
 }

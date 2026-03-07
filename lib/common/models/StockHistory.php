@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,8 @@
 
 namespace common\models;
 
-use Yii;
-use yii\db\ActiveRecord;
 use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "stock_history".
@@ -24,7 +25,7 @@ use yii\behaviors\TimestampBehavior;
  * @property int $prid
  * @property string $products_model
  * @property int $products_quantity_before
- * @property int $warehouse_quantity_before 
+ * @property int $warehouse_quantity_before
  * @property string $products_quantity_update_prefix
  * @property int $products_quantity_update
  * @property string $comments
@@ -43,8 +44,9 @@ class StockHistory extends ActiveRecord
     {
         return 'stock_history';
     }
-    
-    public function behaviors() {
+
+    public function behaviors()
+    {
         return [
             [
                 'class' => TimestampBehavior::className(),
@@ -55,17 +57,18 @@ class StockHistory extends ActiveRecord
             ],
         ];
     }
-    
+
     /*params = array*/
-    public function saveHistory($params){
-        if (is_array($params)){
-            foreach($params as $name => $value){
-                if ($this->hasAttribute($name)){
+    public function saveHistory($params)
+    {
+        if (is_array($params)) {
+            foreach ($params as $name => $value) {
+                if ($this->hasAttribute($name)) {
                     $this->{$name} = $value;
                 }
             }
         }
-        
+
         return $this->save(false);
     }
 }

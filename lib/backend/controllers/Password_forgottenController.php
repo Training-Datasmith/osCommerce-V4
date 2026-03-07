@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace backend\controllers;
 
 use Yii;
@@ -8,8 +10,8 @@ use yii\web\Controller;
 /**
  * Password forgotten controller to handle user requests.
  */
-class Password_forgottenController extends Controller {
-
+class Password_forgottenController extends Controller
+{
     /**
      * Disable layout for the controller view
      */
@@ -20,17 +22,18 @@ class Password_forgottenController extends Controller {
     /**
      * Index action is the default action in a controller.
      */
-    public function actionIndex() {
+    public function actionIndex()
+    {
         $_GET['login'] = '';
         if (isset($_GET['action']) && ($_GET['action'] == 'process')) {
             $loginModel = new \backend\forms\Login(['captha_enabled' => true]);
             if ($loginModel->load(Yii::$app->request->post()) && $loginModel->validate()) {
                 if ($loginModel->hasErrors()) {
                     $errorMessage = '';
-                    foreach($loginModel->getErrors() as $error) {
+                    foreach ($loginModel->getErrors() as $error) {
                         if (is_array($error)) {
-                            $errorMessage .= implode(", ", $error);
-                        } else if (is_string($error)) {
+                            $errorMessage .= implode(', ', $error);
+                        } elseif (is_string($error)) {
                             $errorMessage .= $error;
                         }
                     }
@@ -39,10 +42,10 @@ class Password_forgottenController extends Controller {
             } else {
                 if ($loginModel->hasErrors()) {
                     $errorMessage = '';
-                    foreach($loginModel->getErrors() as $error) {
+                    foreach ($loginModel->getErrors() as $error) {
                         if (is_array($error)) {
-                            $errorMessage .= implode(", ", $error);
-                        } else if (is_string($error)) {
+                            $errorMessage .= implode(', ', $error);
+                        } elseif (is_string($error)) {
                             $errorMessage .= $error;
                         }
                     }
@@ -63,7 +66,7 @@ class Password_forgottenController extends Controller {
                     tep_session_register('password_forgotten');
                 }
                 // Check if email exists
-                $check_admin_query = tep_db_query("select admin_id as check_id, admin_firstname as check_firstname, admin_lastname as check_lastname, admin_phone_number as check_phone_number, admin_email_address as check_email_address, admin_email_token as check_email_token, admin_username from " . TABLE_ADMIN . " where admin_email_address = '" . tep_db_input($email_address) . "'");
+                $check_admin_query = tep_db_query('select admin_id as check_id, admin_firstname as check_firstname, admin_lastname as check_lastname, admin_phone_number as check_phone_number, admin_email_address as check_email_address, admin_email_token as check_email_token, admin_username from ' . TABLE_ADMIN . " where admin_email_address = '" . tep_db_input($email_address) . "'");
                 if (!tep_db_num_rows($check_admin_query)) {
                     $_GET['login'] = 'fail';
                 } else {
@@ -71,7 +74,7 @@ class Password_forgottenController extends Controller {
 
                     $passwordResetFileds = ['firstname'];
                     if (defined('RESET_PASSWORD_FIELDS')) {
-                        $passwordResetFileds = explode(", ", RESET_PASSWORD_FIELDS);
+                        $passwordResetFileds = explode(', ', RESET_PASSWORD_FIELDS);
                     }
 
                     $loginFail = false;
@@ -123,7 +126,7 @@ class Password_forgottenController extends Controller {
                         $STORE_OWNER_EMAIL_ADDRESS = $platform_config->const_value('STORE_OWNER_EMAIL_ADDRESS');
                         $STORE_OWNER = $platform_config->const_value('STORE_OWNER');
 
-                        $email_params = array();
+                        $email_params = [];
 
                         if (defined('ADMIN_PASSWORD_FORGOTTEN_MODE') && ADMIN_PASSWORD_FORGOTTEN_MODE == 'invite') {
                             $adminInfo = \common\models\Admin::findOne($check_admin['check_id']);
@@ -139,7 +142,7 @@ class Password_forgottenController extends Controller {
                         } else {
                             $makePassword = \common\helpers\Password::randomize();
                             $email_params['NEW_PASSWORD'] = $makePassword;
-                            tep_db_query("update " . TABLE_ADMIN . " set admin_password = '" . tep_db_input(\common\helpers\Password::encrypt_password($makePassword, 'backend')) . "', reset_ip='" . tep_db_input(\common\helpers\System::get_ip_address()) . "', reset_date = now(), password_last_update = now() where admin_id = '" . $check_admin['check_id'] . "'");
+                            tep_db_query('update ' . TABLE_ADMIN . " set admin_password = '" . tep_db_input(\common\helpers\Password::encrypt_password($makePassword, 'backend')) . "', reset_ip='" . tep_db_input(\common\helpers\System::get_ip_address()) . "', reset_date = now(), password_last_update = now() where admin_id = '" . $check_admin['check_id'] . "'");
                         }
 
                         $email_params['STORE_NAME'] = $STORE_NAME;
@@ -149,7 +152,7 @@ class Password_forgottenController extends Controller {
                         $email_params['STORE_OWNER_EMAIL_ADDRESS'] = $STORE_OWNER_EMAIL_ADDRESS;
                         list($email_subject, $email_text) = \common\helpers\Mail::get_parsed_email_template('Admin Password Forgotten', $email_params);
                         //}}
-                        \common\helpers\Mail::send($check_admin['check_firstname'] . ' ' . ($check_admin['admin_lastname']??null), $check_admin['check_email_address'], $email_subject, $email_text, $STORE_OWNER, $STORE_OWNER_EMAIL_ADDRESS, $email_params);
+                        \common\helpers\Mail::send($check_admin['check_firstname'] . ' ' . ($check_admin['admin_lastname'] ?? null), $check_admin['check_email_address'], $email_subject, $email_text, $STORE_OWNER, $STORE_OWNER_EMAIL_ADDRESS, $email_params);
                     }
                 }
             }

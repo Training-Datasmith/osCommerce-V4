@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,34 +15,32 @@
 namespace common\modules\orderPayment;
 
 $dir = dirname(dirname(dirname(dirname(dirname(__FILE__)))));
-require_once($dir . "/mspcheckout/include/MultiSafepay.combined.php");
+require_once($dir . '/mspcheckout/include/MultiSafepay.combined.php');
 
 use common\classes\extended\OrderAbstract;
-use Yii;
 use common\classes\modules\ModulePayment;
-use common\classes\modules\ModuleStatus;
 use common\classes\modules\ModuleSortOrder;
-use common\classes\order_total;
-use \MultiSafepayAPI;
+use common\classes\modules\ModuleStatus;
+use MultiSafepayAPI;
 
 if (!class_exists('multisafepay')) {
 
-    class multisafepay extends ModulePayment {
-
-        var $code;
-        var $title;
-        var $description;
-        var $enabled;
-        var $sort_order;
-        var $plugin_name;
-        var $icon = "msp.gif";
-        var $api_url;
-        var $order_id;
-        var $public_title;
-        var $status;
-        var $shipping_methods = array();
-        var $taxes = array();
-        var $msp;
+    class multisafepay extends ModulePayment
+    {
+        public $code;
+        public $title;
+        public $description;
+        public $enabled;
+        public $sort_order;
+        public $plugin_name;
+        public $icon = 'msp.gif';
+        public $api_url;
+        public $order_id;
+        public $public_title;
+        public $status;
+        public $shipping_methods = [];
+        public $taxes = [];
+        public $msp;
 
         /*
          * Constructor
@@ -85,10 +85,11 @@ if (!class_exists('multisafepay')) {
             'MODULE_PAYMENT_MULTISAFEPAY_TEXT_ERROR_DECLINED' => 'Transaction is declined',
             'MODULE_PAYMENT_MULTISAFEPAY_TEXT_ERROR_REVERSED' => 'Transaction is reversed',
             'MODULE_PAYMENT_MULTISAFEPAY_TEXT_ERROR_REFUNDED' => 'Transaction is refunded',
-            'MODULE_PAYMENT_MULTISAFEPAY_TEXT_ERROR_EXPIRED' => 'Transaction is expired'
+            'MODULE_PAYMENT_MULTISAFEPAY_TEXT_ERROR_EXPIRED' => 'Transaction is expired',
         ];
 
-        function __construct($order_id = -1) {
+        public function __construct($order_id = -1)
+        {
             parent::__construct();
 
             $this->code = 'multisafepay';
@@ -120,11 +121,12 @@ if (!class_exists('multisafepay')) {
          * Check whether this payment module is available
          */
 
-        function update_status() {
+        public function update_status()
+        {
 
             if (($this->enabled == true) && ((int) MODULE_PAYMENT_MULTISAFEPAY_ZONE > 0)) {
                 $check_flag = false;
-                $check_query = tep_db_query("select zone_id from " . TABLE_ZONES_TO_GEO_ZONES . " where geo_zone_id = '" . MODULE_PAYMENT_MULTISAFEPAY_ZONE . "' and zone_country_id = '" . $this->billing['country']['id'] . "' order by zone_id");
+                $check_query = tep_db_query('select zone_id from ' . TABLE_ZONES_TO_GEO_ZONES . " where geo_zone_id = '" . MODULE_PAYMENT_MULTISAFEPAY_ZONE . "' and zone_country_id = '" . $this->billing['country']['id'] . "' order by zone_id");
                 while ($check = tep_db_fetch_array($check_query)) {
                     if ($check['zone_id'] < 1) {
                         $check_flag = true;
@@ -171,7 +173,8 @@ if (!class_exists('multisafepay')) {
          * Client side javascript that will verify any input fields you use in the
          * payment method selection page
          */
-        function javascript_validation() {
+        public function javascript_validation()
+        {
             return false;
         }
 
@@ -179,10 +182,11 @@ if (!class_exists('multisafepay')) {
          * Outputs the payment method title/text and if required, the input fields
          */
 
-        function selection() {
-            $selection = array('id' => $this->code,
+        public function selection()
+        {
+            $selection = ['id' => $this->code,
                 'module' => $this->public_title,
-                'fields' => array());
+                'fields' => []];
             return $selection;
         }
 
@@ -190,7 +194,8 @@ if (!class_exists('multisafepay')) {
          * Any checks of any conditions after payment method has been selected
          */
 
-        function pre_confirmation_check() {
+        public function pre_confirmation_check()
+        {
             if (defined('MODULE_PAYMENT_MULTISAFEPAY_GATEWAY_SELECTION') && MODULE_PAYMENT_MULTISAFEPAY_GATEWAY_SELECTION == 'True') {
                 $gatewaytest = $_POST['multisafepay_gateway_selection'];
                 if (!$gatewaytest) {
@@ -210,7 +215,8 @@ if (!class_exists('multisafepay')) {
          * Any checks or processing on the order information before proceeding to
          * payment confirmation
          */
-        function confirmation() {
+        public function confirmation()
+        {
             return false;
         }
 
@@ -219,7 +225,8 @@ if (!class_exists('multisafepay')) {
          * gateway
          */
 
-        function process_button() {
+        public function process_button()
+        {
             if (defined('MODULE_PAYMENT_MULTISAFEPAY_GATEWAY_SELECTION') && MODULE_PAYMENT_MULTISAFEPAY_GATEWAY_SELECTION == 'True') {
                 $fields = tep_draw_hidden_field('multisafepay_gateway_selection', $_POST['multisafepay_gateway_selection']);
                 return $fields;
@@ -233,7 +240,8 @@ if (!class_exists('multisafepay')) {
         /*
          * Payment verification
          */
-        function before_process() {
+        public function before_process()
+        {
             $this->_save_order();
             tep_redirect($this->_start_transaction());
         }
@@ -242,7 +250,8 @@ if (!class_exists('multisafepay')) {
          * Post-processing of the payment/order after the order has been finalised
          */
 
-        function after_process() {
+        public function after_process()
+        {
             return false;
         }
 
@@ -251,15 +260,17 @@ if (!class_exists('multisafepay')) {
         /*
          * Advanced error handling
          */
-        function output_error() {
+        public function output_error()
+        {
             return false;
         }
 
-        function get_error() {
-            $error = array(
+        public function get_error()
+        {
+            $error = [
                 'title' => MODULE_PAYMENT_MULTISAFEPAY_TEXT_ERROR,
-                'error' => $this->_get_error_message($_GET['error'])
-            );
+                'error' => $this->_get_error_message($_GET['error']),
+            ];
 
             return $error;
         }
@@ -269,7 +280,8 @@ if (!class_exists('multisafepay')) {
         /*
          * Starts a new transaction and returns the redirect URL
          */
-        function _start_transaction() {
+        public function _start_transaction()
+        {
 
             /** @var \common\classes\Currencies $currencies */
             $currencies = \Yii::$container->get('currencies');
@@ -281,7 +293,7 @@ if (!class_exists('multisafepay')) {
             // generate items list
             $items = "<ul>\n";
             foreach ($order->products as $product) {
-                $items .= "<li>" . $product['name'] . "</li>\n";
+                $items .= '<li>' . $product['name'] . "</li>\n";
             }
             $items .= "</ul>\n";
 
@@ -295,16 +307,15 @@ if (!class_exists('multisafepay')) {
             $this->msp->merchant['notification_url'] = tep_href_link('callback/multisafe', 'action=multi-notify&type=initial', 'SSL');
             $this->msp->merchant['cancel_url'] = tep_href_link('callback/multisafe', 'action=cancel', 'SSL');
 
-
             if ($_POST['msp_paymentmethod']) {
                 $this->msp->transaction['gateway'] = $_POST['msp_paymentmethod'];
             }
 
-            if ($_POST["msp_issuer"]) {
-                $this->msp->extravars = $_POST["msp_issuer"];
+            if ($_POST['msp_issuer']) {
+                $this->msp->extravars = $_POST['msp_issuer'];
             }
 
-            if (MODULE_PAYMENT_MULTISAFEPAY_AUTO_REDIRECT == "True") {
+            if (MODULE_PAYMENT_MULTISAFEPAY_AUTO_REDIRECT == 'True') {
                 $this->msp->merchant['redirect_url'] = tep_href_link('callback/multisafe', 'action=success', 'SSL');
             }
 
@@ -324,27 +335,26 @@ if (!class_exists('multisafepay')) {
             $this->msp->transaction['description'] = 'Order #' . $this->order_id . ' at ' . STORE_NAME;
             $this->msp->transaction['items'] = $items;
 
-
-            if ($_POST["msp_issuer"]) {
-                $this->msp->extravars = $_POST["msp_issuer"];
+            if ($_POST['msp_issuer']) {
+                $this->msp->extravars = $_POST['msp_issuer'];
                 $url = $this->msp->startDirectXMLTransaction();
             } else {
                 $url = $this->msp->startTransaction();
             }
 
-
             if ($this->msp->error) {
                 if ($order->getOrderId()) {
                     \common\helpers\Order::doCancel((int)$order->getOrderId());
                 }
-                $this->_error_redirect($this->msp->error_code . ": " . $this->msp->error);
+                $this->_error_redirect($this->msp->error_code . ': ' . $this->msp->error);
                 exit();
             }
 
             return $url;
         }
 
-        function check_transaction() {
+        public function check_transaction()
+        {
             $this->msp = new MultiSafepayAPI();
             $this->msp->plugin_name = $this->plugin_name;
             $this->msp->test = (MODULE_PAYMENT_MULTISAFEPAY_API_SERVER != 'Live' && MODULE_PAYMENT_MULTISAFEPAY_API_SERVER != 'Live account');
@@ -358,11 +368,11 @@ if (!class_exists('multisafepay')) {
                 return $this->msp->error_code;
             }
 
-
             return $status;
         }
 
-        function cancel() {
+        public function cancel()
+        {
 
         }
 
@@ -370,16 +380,18 @@ if (!class_exists('multisafepay')) {
          * Checks current order status and updates the database
          */
 
-        private function updateQty(){
+        private function updateQty()
+        {
             //rewrite to new warehouse way
-            $order_query = tep_db_query("select products_id, products_quantity from " . TABLE_ORDERS_PRODUCTS . " where orders_id = '" . $this->order_id . "'");
+            $order_query = tep_db_query('select products_id, products_quantity from ' . TABLE_ORDERS_PRODUCTS . " where orders_id = '" . $this->order_id . "'");
 
             while ($order = tep_db_fetch_array($order_query)) {
-                tep_db_query("update " . TABLE_PRODUCTS . " set products_quantity = products_quantity + " . $order['products_quantity'] . ", products_ordered = products_ordered - " . $order['products_quantity'] . " where products_id = '" . (int) $order['products_id'] . "'");
+                tep_db_query('update ' . TABLE_PRODUCTS . ' set products_quantity = products_quantity + ' . $order['products_quantity'] . ', products_ordered = products_ordered - ' . $order['products_quantity'] . " where products_id = '" . (int) $order['products_id'] . "'");
             }
         }
 
-        function checkout_notify($order) {
+        public function checkout_notify($order)
+        {
             $this->msp = new MultiSafepayAPI();
             $this->msp->plugin_name = 'Plugin 2.0.2 (' . PROJECT_VERSION . ')';
             $this->msp->test = (MODULE_PAYMENT_MULTISAFEPAY_API_SERVER != 'Live' && MODULE_PAYMENT_MULTISAFEPAY_API_SERVER != 'Live account');
@@ -397,19 +409,19 @@ if (!class_exists('multisafepay')) {
             $reset_cart = false;
             $notify_customer = false;
 
-            $current_order = tep_db_query("SELECT orders_status FROM " . TABLE_ORDERS . " WHERE orders_id = " . $this->order_id);
+            $current_order = tep_db_query('SELECT orders_status FROM ' . TABLE_ORDERS . ' WHERE orders_id = ' . $this->order_id);
             $current_order = tep_db_fetch_array($current_order);
             $old_order_status = $current_order['orders_status'];
             $new_stat = $old_order_status;
 
             switch ($status) {
-                case "initialized":
+                case 'initialized':
                     $order->info['order_status'] = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_INITIALIZED;
                     $new_stat = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_INITIALIZED;
                     $reset_cart = true;
                     break;
-                case "completed":
-                    if (in_array($old_order_status, array(MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_INITIALIZED, DEFAULT_ORDERS_STATUS_ID, MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_UNCLEARED))) {
+                case 'completed':
+                    if (in_array($old_order_status, [MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_INITIALIZED, DEFAULT_ORDERS_STATUS_ID, MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_UNCLEARED])) {
                         $order->info['order_status'] = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_COMPLETED;
                         $reset_cart = true;
                         if ($old_order_status != $order->info['order_status']) {
@@ -418,29 +430,29 @@ if (!class_exists('multisafepay')) {
                         $new_stat = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_COMPLETED;
                     }
                     break;
-                case "uncleared":
+                case 'uncleared':
                     $order->info['order_status'] = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_UNCLEARED;
                     $new_stat = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_UNCLEARED;
                     break;
-                case "reserved":
+                case 'reserved':
                     $order->info['order_status'] = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_RESERVED;
                     $new_stat = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_RESERVED;
                     break;
-                case "void":
+                case 'void':
                     $order->info['order_status'] = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_VOID;
                     $new_stat = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_VOID;
                     if ($old_order_status != MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_VOID) {
                         // $this->updateQty();
                     }
                     break;
-                case "cancelled":
+                case 'cancelled':
                     $order->info['order_status'] = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_VOID;
                     $new_stat = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_VOID;
                     if ($old_order_status != MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_VOID) {
                         // $this->updateQty();
                     }
                     break;
-                case "declined":
+                case 'declined':
 
                     $order->info['order_status'] = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_DECLINED;
                     $new_stat = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_DECLINED;
@@ -448,19 +460,19 @@ if (!class_exists('multisafepay')) {
                         // $this->updateQty();
                     }
                     break;
-                case "reversed":
+                case 'reversed':
                     $order->info['order_status'] = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REVERSED;
                     $new_stat = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REVERSED;
                     break;
-                case "refunded":
+                case 'refunded':
                     $order->info['order_status'] = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REFUNDED;
                     $new_stat = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REFUNDED;
                     break;
-                case "partial_refunded":
+                case 'partial_refunded':
                     $order->info['order_status'] = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_PARTIAL_REFUNDED;
                     $new_stat = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_PARTIAL_REFUNDED;
                     break;
-                case "expired":
+                case 'expired':
                     $order->info['order_status'] = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_EXPIRED;
                     $new_stat = MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_EXPIRED;
                     if ($old_order_status != MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_EXPIRED) {
@@ -476,11 +488,11 @@ if (!class_exists('multisafepay')) {
             // tep_db_query("UPDATE " . TABLE_ORDERS . " SET orders_status = " . $new_stat . " WHERE orders_id = " . $this->order_id);
 
             $comment = [
-                (isset($this->msp->details['ewallet']['status']) ? "Status: {$this->msp->details['ewallet']['status']}":''),
-                (isset($this->msp->details['transaction']['amount']) ? "Amount: {$this->msp->details['transaction']['amount']}":''),
-                (isset($this->msp->details['transaction']['currency']) ? "Currency: {$this->msp->details['transaction']['currency']}":''),
-                (isset($this->msp->details['transaction']['cost']) ? "Cost: {$this->msp->details['transaction']['cost']}":''),
-                (isset($this->msp->details['ewallet']['reason']) ? "Reason: {$this->msp->details['ewallet']['reason']}":''),
+                (isset($this->msp->details['ewallet']['status']) ? "Status: {$this->msp->details['ewallet']['status']}" : ''),
+                (isset($this->msp->details['transaction']['amount']) ? "Amount: {$this->msp->details['transaction']['amount']}" : ''),
+                (isset($this->msp->details['transaction']['currency']) ? "Currency: {$this->msp->details['transaction']['currency']}" : ''),
+                (isset($this->msp->details['transaction']['cost']) ? "Cost: {$this->msp->details['transaction']['cost']}" : ''),
+                (isset($this->msp->details['ewallet']['reason']) ? "Reason: {$this->msp->details['ewallet']['reason']}" : ''),
             ];
 
             // }
@@ -498,22 +510,23 @@ if (!class_exists('multisafepay')) {
 
             // reset cart
             if ($reset_cart) {
-                tep_db_query("DELETE FROM " . TABLE_CUSTOMERS_BASKET . " WHERE customers_id = '" . (int) $order->customer['id'] . "'");
-                tep_db_query("DELETE FROM " . TABLE_CUSTOMERS_BASKET_ATTRIBUTES . " WHERE customers_id = '" . (int) $order->customer['id'] . "'");
+                tep_db_query('DELETE FROM ' . TABLE_CUSTOMERS_BASKET . " WHERE customers_id = '" . (int) $order->customer['id'] . "'");
+                tep_db_query('DELETE FROM ' . TABLE_CUSTOMERS_BASKET_ATTRIBUTES . " WHERE customers_id = '" . (int) $order->customer['id'] . "'");
             }
 
             return $status;
         }
 
-        function _get_error_message($code) {
+        public function _get_error_message($code)
+        {
             if (is_numeric($code)) {
-                $message = constant(sprintf("MODULE_PAYMENT_MULTISAFEPAY_TEXT_ERROR_%04d", $code));
+                $message = constant(sprintf('MODULE_PAYMENT_MULTISAFEPAY_TEXT_ERROR_%04d', $code));
 
                 if (!$message) {
                     $message = MODULE_PAYMENT_MULTISAFEPAY_TEXT_ERROR_UNKNOWN;
                 }
             } else {
-                $const = sprintf("MODULE_PAYMENT_MULTISAFEPAY_TEXT_ERROR_%s", strtoupper($code));
+                $const = sprintf('MODULE_PAYMENT_MULTISAFEPAY_TEXT_ERROR_%s', strtoupper($code));
                 if (defined($const)) {
                     $message = constant($const);
                 } else {
@@ -523,9 +536,13 @@ if (!class_exists('multisafepay')) {
             return $message;
         }
 
-        function _error_redirect($error) {
+        public function _error_redirect($error)
+        {
             tep_redirect(tep_href_link(
-                FILENAME_CHECKOUT_PAYMENT, 'payment_error=' . $this->code . '&error=' . $error, 'NONSSL', true
+                FILENAME_CHECKOUT_PAYMENT,
+                'payment_error=' . $this->code . '&error=' . $error,
+                'NONSSL',
+                true
             ));
         }
 
@@ -534,7 +551,8 @@ if (!class_exists('multisafepay')) {
         /*
          * Store the order in the database, and set $this->order_id
          */
-        function _save_order() {
+        public function _save_order()
+        {
             global $languages_id;
 
             if (!empty($this->order_id) && $this->order_id > 0) {
@@ -554,7 +572,8 @@ if (!class_exists('multisafepay')) {
             $this->order_id = $order->order_id;
         }
 
-        function _notify_customer($new_order_status = null) {
+        public function _notify_customer($new_order_status = null)
+        {
 
             $order = $this->manager->getOrderInstance();
 
@@ -563,24 +582,26 @@ if (!class_exists('multisafepay')) {
             $order->notify_customer($products_ordered);
         }
 
-
-        function _output_string($string, $translate = false, $protected = false) {
+        public function _output_string($string, $translate = false, $protected = false)
+        {
             if ($protected == true) {
                 return htmlspecialchars($string);
             } else {
                 if ($translate == false) {
-                    return $this->_parse_input_field_data($string, array('"' => '&quot;'));
+                    return $this->_parse_input_field_data($string, ['"' => '&quot;']);
                 } else {
                     return $this->_parse_input_field_data($string, $translate);
                 }
             }
         }
 
-        function _output_string_protected($string) {
+        public function _output_string_protected($string)
+        {
             return $this->_output_string($string, false, true);
         }
 
-        function _parse_input_field_data($data, $parse) {
+        public function _parse_input_field_data($data, $parse)
+        {
             return strtr(trim($data), $parse);
         }
 
@@ -599,159 +620,157 @@ if (!class_exists('multisafepay')) {
             $status_id_ex = defined('MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_EXPIRED') ? MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_EXPIRED : $this->getDefaultOrderStatusId();
             $status_id_pref = defined('MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_PARTIAL_REFUNDED') ? MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_PARTIAL_REFUNDED : $this->getDefaultOrderStatusId();
 
-
-            return array(
-                'MODULE_PAYMENT_MULTISAFEPAY_STATUS' => array(
+            return [
+                'MODULE_PAYMENT_MULTISAFEPAY_STATUS' => [
                     'title' => 'MultiSafepay enabled',
                     'value' => 'True',
                     'description' => 'Enable MultiSafepay payments for this website',
                     'sort_order' => '20',
                     'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), ',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_API_SERVER' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_API_SERVER' => [
                     'title' => 'Type account',
                     'value' => 'Live account',
                     'description' => '<a href="http://www.multisafepay.com/nl/klantenservice-zakelijk/open-een-testaccount.html" target="_blank" style="text-decoration:underline;font-weight:bold;color:#696916;">Sign up for a free test account!</a>',
                     'sort_order' => '21',
                     'set_function' => 'tep_cfg_select_option(array(\'Live account\', \'Test account\'), ',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_ACCOUNT_ID' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_ACCOUNT_ID' => [
                     'title' => 'Account ID',
                     'value' => '',
                     'description' => 'Your merchant account ID',
                     'sort_order' => '22',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_SITE_ID' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_SITE_ID' => [
                     'title' => 'Site ID',
                     'value' => '',
                     'description' => 'ID of this site',
                     'sort_order' => '23',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_SITE_SECURE_CODE' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_SITE_SECURE_CODE' => [
                     'title' => 'Site Code',
                     'value' => '',
                     'description' => 'Site code for this site',
                     'sort_order' => '24',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_AUTO_REDIRECT' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_AUTO_REDIRECT' => [
                     'title' => 'Auto Redirect',
                     'value' => 'True',
                     'description' => 'Enable auto redirect after payment',
                     'sort_order' => '20',
                     'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), ',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_ZONE' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_ZONE' => [
                     'title' => 'Payment Zone',
                     'value' => '0',
                     'description' => 'If a zone is selected, only enable this payment method for that zone.',
                     'sort_order' => '25',
                     'use_function' => '\\common\\helpers\\Zones::get_zone_class_title',
                     'set_function' => 'tep_cfg_pull_down_zone_classes(',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_SORT_ORDER' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_SORT_ORDER' => [
                     'title' => 'Sort order of display.',
                     'value' => '0',
                     'description' => 'Sort order of display. Lowest is displayed first.',
                     'sort_order' => '0',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_INITIALIZED' => array (
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_INITIALIZED' =>  [
                     'title' => 'Set Initialized Order Status',
                     'value' => $status_id,
                     'description' => 'In progress',
                     'sort_order' => '0',
                     'set_function' => 'tep_cfg_pull_down_order_statuses(',
                     'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-                ),
+                ],
 
-                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_COMPLETED' => array(
+                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_COMPLETED' => [
                     'title' => 'Set Completed Order Status',
                     'value' => $status_id_compl,
                     'description' => 'Completed successfully',
                     'sort_order' => '0',
                     'set_function' => 'tep_cfg_pull_down_order_statuses(',
                     'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_UNCLEARED' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_UNCLEARED' => [
                     'title' => 'Set Uncleared Order Status',
                     'value' => $status_id_un,
                     'description' => 'Not yet cleared',
                     'sort_order' => '0',
                     'set_function' => 'tep_cfg_pull_down_order_statuses(',
                     'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_RESERVED' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_RESERVED' => [
                     'title' => 'Set Reserved Order Status',
                     'value' => $status_id_res,
                     'description' => 'Reserved',
                     'sort_order' => '0',
                     'set_function' => 'tep_cfg_pull_down_order_statuses(',
                     'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_VOID' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_VOID' => [
                     'title' => 'Set Voided Order Status',
                     'value' => $status_id_void,
                     'description' => 'Cancelled',
                     'sort_order' => '0',
                     'set_function' => 'tep_cfg_pull_down_order_statuses(',
                     'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_DECLINED' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_DECLINED' => [
                     'title' => 'Set Declined Order Status',
                     'value' => $status_id_dec,
                     'description' => 'Declined (e.g. fraud, not enough balance)',
                     'sort_order' => '0',
                     'set_function' => 'tep_cfg_pull_down_order_statuses(',
                     'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REVERSED' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REVERSED' => [
                     'title' => 'Set Reversed Order Status',
                     'value' => $status_id_res1,
                     'description' => 'Undone',
                     'sort_order' => '0',
                     'set_function' => 'tep_cfg_pull_down_order_statuses(',
                     'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REFUNDED' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_REFUNDED' => [
                     'title' => 'Set Refunded Order Status',
                     'value' => $status_id_ref,
                     'description' => 'refunded',
                     'sort_order' => '0',
                     'set_function' => 'tep_cfg_pull_down_order_statuses(',
                     'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_EXPIRED' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_EXPIRED' => [
                     'title' => 'Set Expired Order Status',
                     'value' => $status_id_ex,
                     'description' => 'Expired',
                     'sort_order' => '0',
                     'set_function' => 'tep_cfg_pull_down_order_statuses(',
                     'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_PARTIAL_REFUNDED' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_ORDER_STATUS_ID_PARTIAL_REFUNDED' => [
                     'title' => 'Set Partial refunded Order Status',
                     'value' => $status_id_pref,
                     'description' => 'Partial Refunded',
                     'sort_order' => '0',
                     'set_function' => 'tep_cfg_pull_down_order_statuses(',
                     'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ENABLER' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ENABLER' => [
                     'title' => 'Enable gateway titles in checkout',
                     'value' => 'True',
                     'description' => 'Enable the gateway title in checkout',
                     'sort_order' => '20',
                     'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), ',
-                ),
-                'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ICON_DISABLED' => array(
+                ],
+                'MODULE_PAYMENT_MULTISAFEPAY_TITLES_ICON_DISABLED' => [
                     'title' => 'Enable icons in gateway titles. If disabled it will overrule option above.',
                     'value' => 'True',
                     'description' => 'Enable the icon in the checkout title for the gateway',
                     'sort_order' => '20',
                     'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), ',
-                ),
-            );
+                ],
+            ];
         }
-
 
         public function describe_status_key()
         {
@@ -763,7 +782,8 @@ if (!class_exists('multisafepay')) {
             return new ModuleSortOrder('MODULE_PAYMENT_MULTISAFEPAY_SORT_ORDER');
         }
 
-        function getScriptName() {
+        public function getScriptName()
+        {
 
             global $PHP_SELF;
 
@@ -774,16 +794,17 @@ if (!class_exists('multisafepay')) {
             }
         }
 
-        function getTitle($admin = 'title') {
+        public function getTitle($admin = 'title')
+        {
 
             if (defined('MODULE_PAYMENT_MULTISAFEPAY_TITLES_ICON_DISABLED') && MODULE_PAYMENT_MULTISAFEPAY_TITLES_ICON_DISABLED != 'False') {
-                $title = ($this->checkView() == "checkout") ? $this->generateIcon($this->getIcon()) . " " : "";
+                $title = ($this->checkView() == 'checkout') ? $this->generateIcon($this->getIcon()) . ' ' : '';
             } else {
-                $title = "";
+                $title = '';
             }
 
-//            $title .= ($this->checkView() == "admin") ? "MultiSafepay - " : "";
-            if ($admin && $this->checkView() == "admin") {
+            //            $title .= ($this->checkView() == "admin") ? "MultiSafepay - " : "";
+            if ($admin && $this->checkView() == 'admin') {
                 $title .= $admin;
             } else {
                 $title .= $this->getLangStr($admin);
@@ -791,54 +812,55 @@ if (!class_exists('multisafepay')) {
             return $title;
         }
 
-        function getLangStr($str) {
-            if (MODULE_PAYMENT_MULTISAFEPAY_TITLES_ENABLER == "True" || MODULE_PAYMENT_MULTISAFEPAY_TITLES_ICON_DISABLED == 'False') {
+        public function getLangStr($str)
+        {
+            if (MODULE_PAYMENT_MULTISAFEPAY_TITLES_ENABLER == 'True' || MODULE_PAYMENT_MULTISAFEPAY_TITLES_ICON_DISABLED == 'False') {
                 switch ($str) {
-                    case "title":
+                    case 'title':
                         return MODULE_PAYMENT_MULTISAFEPAY_TEXT_TITLE;
-                    case "iDEAL":
+                    case 'iDEAL':
                         return MODULE_PAYMENT_MSP_IDEAL_TEXT_TITLE;
-                    case "Bank transfer":
+                    case 'Bank transfer':
                         return MODULE_PAYMENT_MSP_BANKTRANS_TEXT_TITLE;
-                    case "GiroPay":
+                    case 'GiroPay':
                         return MODULE_PAYMENT_MSP_GIROPAY_TEXT_TITLE;
-                    case "VISA":
+                    case 'VISA':
                         return MODULE_PAYMENT_MSP_VISA_TEXT_TITLE;
-                    case "AMEX":
+                    case 'AMEX':
                         return MODULE_PAYMENT_MSP_AMEX_TEXT_TITLE;
-                    case "DirectDebit":
+                    case 'DirectDebit':
                         return MODULE_PAYMENT_MSP_DIRDEB_TEXT_TITLE;
-                    case "Bancontact/Mistercash":
+                    case 'Bancontact/Mistercash':
                         return MODULE_PAYMENT_MSP_MISTERCASH_TEXT_TITLE;
-                    case "MasterCard":
+                    case 'MasterCard':
                         return MODULE_PAYMENT_MSP_MASTERCARD_TEXT_TITLE;
-                    case "PAYPAL":
+                    case 'PAYPAL':
                         return MODULE_PAYMENT_MSP_PAYPAL_TEXT_TITLE;
-                    case "Maestro":
+                    case 'Maestro':
                         return MODULE_PAYMENT_MSP_MAESTRO_TEXT_TITLE;
-                    case "SOFORT Banking":
+                    case 'SOFORT Banking':
                         return MODULE_PAYMENT_MSP_DIRECTBANK_TEXT_TITLE;
-                    case "BABYGIFTCARD":
+                    case 'BABYGIFTCARD':
                         return MODULE_PAYMENT_MSP_BABYGIFTCARD_TEXT_TITLE;
-                    case "BOEKENBON":
+                    case 'BOEKENBON':
                         return MODULE_PAYMENT_MSP_BOEKENBON_TEXT_TITLE;
-                    case "DEGROTESPEELGOEDWINKEL":
+                    case 'DEGROTESPEELGOEDWINKEL':
                         return MODULE_PAYMENT_MSP_DEGROTESPEELGOEDWINKEL_TEXT_TITLE;
-                    case "EBON":
+                    case 'EBON':
                         return MODULE_PAYMENT_MSP_EBON_TEXT_TITLE;
-                    case "EROTIEKBON":
+                    case 'EROTIEKBON':
                         return MODULE_PAYMENT_MSP_EROTIEKBON_TEXT_TITLE;
-                    case "LIEF":
+                    case 'LIEF':
                         return MODULE_PAYMENT_MSP_LIEF_TEXT_TITLE;
-                    case "WEBSHOPGIFTCARD":
+                    case 'WEBSHOPGIFTCARD':
                         return MODULE_PAYMENT_MSP_WEBSHOPGIFTCARD_TEXT_TITLE;
-                    case "PARFUMNL":
+                    case 'PARFUMNL':
                         return MODULE_PAYMENT_MSP_PARFUMNL_TEXT_TITLE;
-                    case "PARFUMCADEAUKAART":
+                    case 'PARFUMCADEAUKAART':
                         return MODULE_PAYMENT_MSP_PARFUMCADEAUKAART_TEXT_TITLE;
-                    case "GEZONDHEIDSBON":
+                    case 'GEZONDHEIDSBON':
                         return MODULE_PAYMENT_MSP_GEZONDHEIDSBON_TEXT_TITLE;
-                    case "FASHIONCHEQUE":
+                    case 'FASHIONCHEQUE':
                         return MODULE_PAYMENT_MSP_FASHIONCHEQUE_TEXT_TITLE;
                     default:
                         return MODULE_PAYMENT_MULTISAFEPAY_TEXT_TITLE;
@@ -847,62 +869,67 @@ if (!class_exists('multisafepay')) {
             }
         }
 
-        function checkView() {
-            $view = "admin";
+        public function checkView()
+        {
+            $view = 'admin';
 
             if (tep_session_name() != 'tlAdminID') {
                 if ($this->getScriptName() == 'checkout' /* FILENAME_CHECKOUT_PAYMENT */) {
-                    $view = "checkout";
+                    $view = 'checkout';
                 } else {
-                    $view = "frontend";
+                    $view = 'frontend';
                 }
             }
             return $view;
         }
 
-        function generateIcon($icon) {
+        public function generateIcon($icon)
+        {
             return tep_image($icon);
         }
 
-        function getIcon() {
-            $icon = DIR_WS_IMAGES . "multisafepay/en/" . $this->icon;
+        public function getIcon()
+        {
+            $icon = DIR_WS_IMAGES . 'multisafepay/en/' . $this->icon;
 
-            if (file_exists(DIR_WS_IMAGES . "multisafepay/" . strtolower($this->getUserLanguage("DETECT")) . "/" . $this->icon)) {
-                $icon = DIR_WS_IMAGES . "multisafepay/" . strtolower($this->getUserLanguage("DETECT")) . "/" . $this->icon;
+            if (file_exists(DIR_WS_IMAGES . 'multisafepay/' . strtolower($this->getUserLanguage('DETECT')) . '/' . $this->icon)) {
+                $icon = DIR_WS_IMAGES . 'multisafepay/' . strtolower($this->getUserLanguage('DETECT')) . '/' . $this->icon;
             }
             return $icon;
         }
 
-        function getUserLanguage($savedSetting) {
-            if ($savedSetting != "DETECT") {
+        public function getUserLanguage($savedSetting)
+        {
+            if ($savedSetting != 'DETECT') {
                 return $savedSetting;
             }
 
             global $languages_id;
 
-            $query = tep_db_query("select languages_id, name, code, image from " . TABLE_LANGUAGES . " where languages_id = " . (int) $languages_id . " limit 1");
+            $query = tep_db_query('select languages_id, name, code, image from ' . TABLE_LANGUAGES . ' where languages_id = ' . (int) $languages_id . ' limit 1');
             if ($languages = tep_db_fetch_array($query)) {
                 return strtoupper($languages['code']);
             }
 
-            return "EN";
+            return 'EN';
         }
 
-        function getlocale($lang) {
+        public function getlocale($lang)
+        {
             switch ($lang) {
-                case "dutch":
+                case 'dutch':
                     $lang = 'nl_NL';
                     break;
-                case "spanish":
+                case 'spanish':
                     $lang = 'es_ES';
                     break;
-                case "french":
+                case 'french':
                     $lang = 'fr_FR';
                     break;
-                case "german":
+                case 'german':
                     $lang = 'de_DE';
                     break;
-                case "english":
+                case 'english':
                     $lang = 'en_EN';
                     break;
                 default:
@@ -912,17 +939,19 @@ if (!class_exists('multisafepay')) {
             return $lang;
         }
 
-        function getcountry($country) {
+        public function getcountry($country)
+        {
             if (empty($country)) {
-                $langcode = explode(";", $_SERVER['HTTP_ACCEPT_LANGUAGE']);
-                $langcode = explode(",", $langcode['0']);
+                $langcode = explode(';', $_SERVER['HTTP_ACCEPT_LANGUAGE']);
+                $langcode = explode(',', $langcode['0']);
                 return strtoupper($langcode['1']);
             } else {
                 return strtoupper($country);
             }
         }
 
-        public function isOnline() {
+        public function isOnline()
+        {
             return true;
         }
     }

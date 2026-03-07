@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,8 +24,8 @@ class m230228_075030_fix_banners_upd_files extends Migration
      */
     public function Up()
     {
-		$this->updateTheme('furniture', 'lib/console/migrations/themes/furniture/desktop/migration-furniture-1677570329117.json');
-		$this->updateTheme('furniture-mobile', 'lib/console/migrations/themes/furniture/mobile/migration-furniture-mobile-1677570375059.json');
+        $this->updateTheme('furniture', 'lib/console/migrations/themes/furniture/desktop/migration-furniture-1677570329117.json');
+        $this->updateTheme('furniture-mobile', 'lib/console/migrations/themes/furniture/mobile/migration-furniture-mobile-1677570375059.json');
     }
 
     /**

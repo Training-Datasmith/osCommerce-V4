@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 /**
@@ -18,7 +20,7 @@ class Address extends BaseAddress
      * Phone number in E.123 format. 50 characters max.
      *
      * @param string $phone
-     * 
+     *
      * @return $this
      */
     public function setPhone($phone)

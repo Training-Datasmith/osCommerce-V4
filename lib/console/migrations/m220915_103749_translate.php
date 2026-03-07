@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m220915_103749_translate extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/categories',[
+        $this->addTranslation('admin/categories', [
             'TEXT_THIS_IS_SWITCH_TO' => 'This is <b>%s</b>.<br>Switch to <b>%s</b>.',
         ]);
     }
@@ -32,7 +34,7 @@ class m220915_103749_translate extends Migration
      */
     public function safeDown()
     {
-        $this->removeTranslation('admin/categories',[
+        $this->removeTranslation('admin/categories', [
             'TEXT_THIS_IS_SWITCH_TO',
         ]);
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,21 +19,21 @@ namespace common\modules\orderPayment;
 require_once('lib/stripe.php');
 
 use common\classes\modules\ModulePayment;
-use common\classes\modules\ModuleStatus;
 use common\classes\modules\ModuleSortOrder;
-use lib\Stripe\Stripe;
-use lib\Stripe\Error\InvalidRequest;
-use common\helpers\Output;
-use common\helpers\Zones;
-use common\classes\modules\TransactionalInterface;
+use common\classes\modules\ModuleStatus;
 use common\classes\modules\PaymentTokensInterface;
+use common\classes\modules\TransactionalInterface;
 use common\helpers\OrderPayment as OrderPaymentHelper;
-use common\helpers\Html;
+use lib\Stripe\Stripe;
 
-class stripe_checkout extends ModulePayment implements TransactionalInterface {
-//2do PaymentTokensInterface, \common\classes\modules\TransactionSearchInterface
-    var $code, $title, $description, $enabled;
-    var $paid_status;
+class stripe_checkout extends ModulePayment implements TransactionalInterface
+{
+    //2do PaymentTokensInterface, \common\classes\modules\TransactionSearchInterface
+    public $code;
+    public $title;
+    public $description;
+    public $enabled;
+    public $paid_status;
     private $debug = true;
 
     protected $encrypted_keys = ['MODULE_PAYMENT_STRIPE_CHECKOUT_SECRET_KEY'];
@@ -52,10 +54,11 @@ class stripe_checkout extends ModulePayment implements TransactionalInterface {
         'MODULE_PAYMENT_STRIPE_CHECKOUT_DIALOG_CONNECTION_TIME' => 'Connection Time:',
         'MODULE_PAYMENT_STRIPE_CHECKOUT_DIALOG_CONNECTION_SUCCESS' => 'Success!',
         'MODULE_PAYMENT_STRIPE_CHECKOUT_DIALOG_CONNECTION_FAILED' => 'Failed! Please review the Verify SSL Certificate settings and try again.',
-        'MODULE_PAYMENT_STRIPE_CHECKOUT_DIALOG_CONNECTION_ERROR' => 'An error occurred. Please refresh the page, review your settings, and try again.'
+        'MODULE_PAYMENT_STRIPE_CHECKOUT_DIALOG_CONNECTION_ERROR' => 'An error occurred. Please refresh the page, review your settings, and try again.',
     ];
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
 
         $this->signature = 'stripe|stripe|7.71|3.3';
@@ -93,10 +96,11 @@ class stripe_checkout extends ModulePayment implements TransactionalInterface {
         $this->dont_send_email = true;
     }
 
-    function update_status() {
+    public function update_status()
+    {
         if (($this->enabled == true) && ((int) MODULE_PAYMENT_STRIPE_CHECKOUT_ZONE > 0)) {
             $check_flag = false;
-            $check_query = tep_db_query("select zone_id from " . TABLE_ZONES_TO_GEO_ZONES . " where geo_zone_id = '" . MODULE_PAYMENT_STRIPE_CHECKOUT_ZONE . "' and zone_country_id = '" . $this->billing['country']['id'] . "' order by zone_id");
+            $check_query = tep_db_query('select zone_id from ' . TABLE_ZONES_TO_GEO_ZONES . " where geo_zone_id = '" . MODULE_PAYMENT_STRIPE_CHECKOUT_ZONE . "' and zone_country_id = '" . $this->billing['country']['id'] . "' order by zone_id");
             while ($check = tep_db_fetch_array($check_query)) {
                 if ($check['zone_id'] < 1) {
                     $check_flag = true;
@@ -137,44 +141,51 @@ class stripe_checkout extends ModulePayment implements TransactionalInterface {
         return false;
     }
 
-    function javascript_validation() {
+    public function javascript_validation()
+    {
         return false;
     }
 
-    function selection() {
+    public function selection()
+    {
         $this->manager->remove('stripe_checkout_session');
         $this->checkWebhook();
         if ($this->isWithoutConfirmation()) {
             \Yii::$app->getView()->registerJs($this->getSubmitCheckoutJavascript());
         }
-        return array('id' => $this->code,
+        return ['id' => $this->code,
             'module' => $this->public_title,
-        );
+        ];
     }
 
-    function pre_confirmation_check() {
+    public function pre_confirmation_check()
+    {
 
     }
 
-    function confirmation() {
+    public function confirmation()
+    {
         if (!$this->isWithoutConfirmation()) {
             \Yii::$app->getView()->registerJs($this->getSubmitCheckoutJavascript());
         }
-        $confirmation = array(
-            'fields' => array(array('title' => $this->title,)
-        ));
+        $confirmation = [
+            'fields' => [['title' => $this->title,],
+        ]];
         return $confirmation;
     }
 
-    function process_button() {
+    public function process_button()
+    {
         //return \yii\helpers\Html::hiddenInput('skip', false);
     }
 
-    public function popUpMode() {
+    public function popUpMode()
+    {
         return true;
     }
 
-    function before_process() {
+    public function before_process()
+    {
         $this->manager->remove('stripe_checkout_session');
         $order = $this->manager->getOrderInstance();
         if ((int) MODULE_PAYMENT_STRIPE_CHECKOUT_ORDER_STATUS_ID > 0) {
@@ -191,10 +202,11 @@ class stripe_checkout extends ModulePayment implements TransactionalInterface {
         }
     }
 
-    function after_process() {
+    public function after_process()
+    {
         $order = $this->manager->getOrderInstance();
 
-        $stripe_checkout_session = array();
+        $stripe_checkout_session = [];
         if ($this->isPartlyPaid()) {
             $invoice = $this->manager->getOrderSplitter()->getInvoiceInstance();
             if ($invoice) {
@@ -217,13 +229,13 @@ class stripe_checkout extends ModulePayment implements TransactionalInterface {
             //theme name and logo filename could have whitespaces. Stripe library doesn't encode them but through exception.
             $site_logo = \frontend\design\Info::themeSetting('logo', 'hide');
             if (!empty($site_logo)) {
-              $parts = explode('/', $site_logo);
-              if (is_array($parts)) {
-                foreach ($parts as $i => $part) {
-                  $parts[$i] = rawurlencode($part);
+                $parts = explode('/', $site_logo);
+                if (is_array($parts)) {
+                    foreach ($parts as $i => $part) {
+                        $parts[$i] = rawurlencode($part);
+                    }
+                    $site_logo = implode('/', $parts);
                 }
-                $site_logo = implode('/', $parts);
-              }
             }
 
             $checkout_session = \Stripe\Checkout\Session::create([
@@ -242,7 +254,7 @@ class stripe_checkout extends ModulePayment implements TransactionalInterface {
                 'mode' => 'payment',
                 'metadata' => [
                     'order_id' => $orders_id,
-                    'store' => (defined('STORE_NAME') ? STORE_NAME : '')
+                    'store' => (defined('STORE_NAME') ? STORE_NAME : ''),
                 ],
                 'customer_email' => $order->customer['email_address'],
                 'success_url' => tep_href_link('callback/webhooks.payment.' . $this->code, 'action=success&orders_id=' . $orders_id, 'SSL'),
@@ -261,18 +273,20 @@ class stripe_checkout extends ModulePayment implements TransactionalInterface {
             echo json_encode(['id' => $checkout_session->id]);
         } catch (\Exception $e) {
             $this->sendDebugEmail($e);
-            \Yii::warning(" #### " .print_r($e, true), 'TLDEBUG');
+            \Yii::warning(' #### ' .print_r($e, true), 'TLDEBUG');
             echo json_encode(['error' => $e->getMessage()]);
         }
         exit();
     }
 
-    public function isPartlyPaid() {
+    public function isPartlyPaid()
+    {
         $stripe_checkout_session = $this->manager->get('stripe_checkout_session');
         return (parent::isPartlyPaid() || $stripe_checkout_session['pay_order_id'] > 0);
     }
 
-    public function getCheckoutUrl(array $params, int $checkoutPage = 0) {
+    public function getCheckoutUrl(array $params, int $checkoutPage = 0)
+    {
         $stripe_checkout_session = $this->manager->get('stripe_checkout_session');
         if (!isset($params['order_id']) && $stripe_checkout_session['pay_order_id'] > 0) {
             $params['order_id'] = $stripe_checkout_session['pay_order_id'];
@@ -280,7 +294,8 @@ class stripe_checkout extends ModulePayment implements TransactionalInterface {
         return parent::getCheckoutUrl($params, $checkoutPage);
     }
 
-    function get_error() {
+    public function get_error()
+    {
         global $stripe_error;
 
         $message = MODULE_PAYMENT_STRIPE_CHECKOUT_ERROR_GENERAL;
@@ -299,74 +314,78 @@ class stripe_checkout extends ModulePayment implements TransactionalInterface {
             }
         }
 
-        $error = array('title' => MODULE_PAYMENT_STRIPE_CHECKOUT_ERROR_TITLE,
-            'error' => $message);
+        $error = ['title' => MODULE_PAYMENT_STRIPE_CHECKOUT_ERROR_TITLE,
+            'error' => $message];
 
         return $error;
     }
 
-    public function describe_status_key() {
+    public function describe_status_key()
+    {
         return new ModuleStatus('MODULE_PAYMENT_STRIPE_CHECKOUT_STATUS', 'True', 'False');
     }
 
-    public function describe_sort_key() {
+    public function describe_sort_key()
+    {
         return new ModuleSortOrder('MODULE_PAYMENT_STRIPE_CHECKOUT_SORT_ORDER');
     }
 
-    public function configure_keys() {
+    public function configure_keys()
+    {
         $status_id_b = defined('MODULE_PAYMENT_STRIPE_CHECKOUT_ORDER_STATUS_ID') ? MODULE_PAYMENT_STRIPE_CHECKOUT_ORDER_STATUS_ID : $this->getDefaultOrderStatusId();
         $status_id_s = defined('MODULE_PAYMENT_STRIPE_CHECKOUT_COMPLETED_ORDER_STATUS_ID') ? MODULE_PAYMENT_STRIPE_CHECKOUT_COMPLETED_ORDER_STATUS_ID : $this->getDefaultOrderStatusId();
         $status_id_c = defined('MODULE_PAYMENT_STRIPE_CHECKOUT_CANCELLED_ORDER_STATUS_ID') ? MODULE_PAYMENT_STRIPE_CHECKOUT_CANCELLED_ORDER_STATUS_ID : $this->getDefaultOrderStatusId();
-        $params = array('MODULE_PAYMENT_STRIPE_CHECKOUT_STATUS' => array('title' => 'Enable Stripe Module',
+        $params = ['MODULE_PAYMENT_STRIPE_CHECKOUT_STATUS' => ['title' => 'Enable Stripe Module',
                 'description' => 'Do you want to accept Stripe payments?',
                 'value' => 'True',
-                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), '),
-            'MODULE_PAYMENT_STRIPE_CHECKOUT_PUBLISHABLE_KEY' => array('title' => 'Publishable API Key',
+                'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), '],
+            'MODULE_PAYMENT_STRIPE_CHECKOUT_PUBLISHABLE_KEY' => ['title' => 'Publishable API Key',
                 'description' => 'The Stripe account publishable API key to use.',
-                'value' => ''),
-            'MODULE_PAYMENT_STRIPE_CHECKOUT_SECRET_KEY' => array('title' => 'Secret API Key',
+                'value' => ''],
+            'MODULE_PAYMENT_STRIPE_CHECKOUT_SECRET_KEY' => ['title' => 'Secret API Key',
                 'description' => 'The Stripe account secret API key to use with the publishable key.',
-                'set_function' => "setConf(",
+                'set_function' => 'setConf(',
                 'use_function' => '\\common\\modules\\orderPayment\\sage_pay_server::useConf',
-                'value' => ''),
-            'MODULE_PAYMENT_STRIPE_CHECKOUT_WEBHOOK_SECRET' => array('title' => 'Webhook Secret',
+                'value' => ''],
+            'MODULE_PAYMENT_STRIPE_CHECKOUT_WEBHOOK_SECRET' => ['title' => 'Webhook Secret',
                 'description' => 'The Stripe account webhook signing secret.',
-                'value' => ''),
-            'MODULE_PAYMENT_STRIPE_CHECKOUT_ORDER_STATUS_ID' => array('title' => 'Set Order Status Before Payment',
+                'value' => ''],
+            'MODULE_PAYMENT_STRIPE_CHECKOUT_ORDER_STATUS_ID' => ['title' => 'Set Order Status Before Payment',
                 'description' => 'Set the status of orders before redirect to Gateway',
                 'value' => $status_id_b,
                 'use_function' => '\\common\\helpers\\Order::get_order_status_name',
-                'set_function' => 'tep_cfg_pull_down_order_statuses('),
-            'MODULE_PAYMENT_STRIPE_CHECKOUT_COMPLETED_ORDER_STATUS_ID' => array('title' => 'Set Order Status Completed Payment',
+                'set_function' => 'tep_cfg_pull_down_order_statuses('],
+            'MODULE_PAYMENT_STRIPE_CHECKOUT_COMPLETED_ORDER_STATUS_ID' => ['title' => 'Set Order Status Completed Payment',
                 'description' => 'Set the status of orders completed successfully',
                 'value' => $status_id_s,
                 'set_function' => 'tep_cfg_pull_down_order_statuses(',
-                'use_function' => '\\common\\helpers\\Order::get_order_status_name'),
-            'MODULE_PAYMENT_STRIPE_CHECKOUT_CANCELLED_ORDER_STATUS_ID' => array('title' => 'Set Order Status Cancelled Payment',
+                'use_function' => '\\common\\helpers\\Order::get_order_status_name'],
+            'MODULE_PAYMENT_STRIPE_CHECKOUT_CANCELLED_ORDER_STATUS_ID' => ['title' => 'Set Order Status Cancelled Payment',
                 'description' => 'Set the status of orders cancelled',
                 'value' => $status_id_c,
                 'set_function' => 'tep_cfg_pull_down_order_statuses(',
-                'use_function' => '\\common\\helpers\\Order::get_order_status_name'),
-            'MODULE_PAYMENT_STRIPE_CHECKOUT_UPDATE_STOCK_BEFORE_PAYMENT' => array('title' => 'Update Stock Before Payment',
+                'use_function' => '\\common\\helpers\\Order::get_order_status_name'],
+            'MODULE_PAYMENT_STRIPE_CHECKOUT_UPDATE_STOCK_BEFORE_PAYMENT' => ['title' => 'Update Stock Before Payment',
                 'value' => 'False',
                 'description' => 'Should Products Stock be updated even when the payment is not yet COMPLETED?',
                 'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), ',
-            ),
-            'MODULE_PAYMENT_STRIPE_CHECKOUT_ZONE' => array('title' => 'Payment Zone',
+            ],
+            'MODULE_PAYMENT_STRIPE_CHECKOUT_ZONE' => ['title' => 'Payment Zone',
                 'description' => 'If a zone is selected, only enable this payment method for that zone.',
                 'value' => '0',
                 'use_function' => '\\common\\helpers\\Zones::get_zone_class_title',
-                'set_function' => 'tep_cfg_pull_down_zone_classes('),
-            'MODULE_PAYMENT_STRIPE_CHECKOUT_DEBUG_EMAIL' => array('title' => 'Debug E-Mail Address',
-                'description' => 'All parameters of an invalid transaction will be sent to this email address.'),
-            'MODULE_PAYMENT_STRIPE_CHECKOUT_SORT_ORDER' => array('title' => 'Sort order of display.',
+                'set_function' => 'tep_cfg_pull_down_zone_classes('],
+            'MODULE_PAYMENT_STRIPE_CHECKOUT_DEBUG_EMAIL' => ['title' => 'Debug E-Mail Address',
+                'description' => 'All parameters of an invalid transaction will be sent to this email address.'],
+            'MODULE_PAYMENT_STRIPE_CHECKOUT_SORT_ORDER' => ['title' => 'Sort order of display.',
                 'description' => 'Sort order of display. Lowest is displayed first.',
-                'value' => '0'));
+                'value' => '0']];
 
         return $params;
     }
 
-    function format_raw($number, $currency_code = '', $currency_value = '') {
+    public function format_raw($number, $currency_code = '', $currency_value = '')
+    {
         $currencies = \Yii::$container->get('currencies');
 
         if (empty($currency_code) || !$currencies->is_set($currency_code)) {
@@ -380,12 +399,13 @@ class stripe_checkout extends ModulePayment implements TransactionalInterface {
         return number_format(self::round($number * $currency_value, $currencies->currencies[$currency_code]['decimal_places']), $currencies->currencies[$currency_code]['decimal_places'], '', '');
     }
 
-    function getSubmitCheckoutJavascript() {
+    public function getSubmitCheckoutJavascript()
+    {
         $order = $this->manager->getOrderInstance();
         $stripe_publishable_key = MODULE_PAYMENT_STRIPE_CHECKOUT_PUBLISHABLE_KEY;
 
-        \Yii::$app->getView()->registerJsFile("https://js.stripe.com/v3/");
-        $this->registerCallback("stripeCheckoutCallback");
+        \Yii::$app->getView()->registerJsFile('https://js.stripe.com/v3/');
+        $this->registerCallback('stripeCheckoutCallback');
         $checkoutURL = $this->getCheckoutUrl([], self::PROCESS_PAGE);
 
         $js = <<<EOD
@@ -430,7 +450,8 @@ EOD;
         return $js;
     }
 
-    function checkWebhook() {
+    public function checkWebhook()
+    {
         if (tep_not_null(MODULE_PAYMENT_STRIPE_CHECKOUT_PUBLISHABLE_KEY) && tep_not_null($this->getAPISecret())) {
             try {
                 $configurationKey = \common\models\PlatformsConfiguration::findOne(['configuration_key' => 'MODULE_PAYMENT_STRIPE_CHECKOUT_WEBHOOK_SECRET', 'platform_id' => intval($this->getPlatformId())]);
@@ -460,7 +481,8 @@ EOD;
         }
     }
 
-    function sendDebugEmail($response = array()) {
+    public function sendDebugEmail($response = [])
+    {
         global $_POST, $_GET;
 
         if (tep_not_null(MODULE_PAYMENT_STRIPE_CHECKOUT_DEBUG_EMAIL)) {
@@ -484,39 +506,48 @@ EOD;
         }
     }
 
-    function isOnline() {
+    public function isOnline()
+    {
         return true;
     }
 
-    public function canVoid($transaction_id) {
+    public function canVoid($transaction_id)
+    {
         return false;
     }
 
-    public function void($transaction_id) {
+    public function void($transaction_id)
+    {
         return false;
     }
 
-    public function canCapture($transaction_id) {
+    public function canCapture($transaction_id)
+    {
         return false;
     }
 
-    public function capture($transaction_id, $amount = 0) {
+    public function capture($transaction_id, $amount = 0)
+    {
         return false;
     }
 
-    public function canReauthorize($transaction_id) {
+    public function canReauthorize($transaction_id)
+    {
         return false;
     }
 
-    public function reauthorize($transaction_id, $amount = 0) {
+    public function reauthorize($transaction_id, $amount = 0)
+    {
         return false;
     }
 
-    protected function getAPISecret() {
+    protected function getAPISecret()
+    {
         return $this->decryptConst('MODULE_PAYMENT_STRIPE_CHECKOUT_SECRET_KEY');
     }
 
-    protected function getEncryptionKey() {
+    protected function getEncryptionKey()
+    {
         $key = parent::getEncryptionKey();
         if (!$key) {
             $key = 'qhs8R4.!^kdvJ,Er].HUC=#G}v.9qEeE';
@@ -529,14 +560,14 @@ EOD;
      * @param array $transactionDetails
      * @return int one of OrderPaymentHelper constants
      */
-    public function getStatusCode($transactionDetails) {
+    public function getStatusCode($transactionDetails)
+    {
         $statusCode = OrderPaymentHelper::OPYS_PENDING;
         if (is_array($transactionDetails)) {
             if ($transactionDetails['object'] == 'checkout.session' && $transactionDetails['status'] == 'complete' && $transactionDetails['mode'] == 'payment') {
                 $statusCode = OrderPaymentHelper::OPYS_SUCCESSFUL;
             }
-        } else
-        if ($transactionDetails->object == 'charge' && $transactionDetails->status == 'succeeded') {
+        } elseif ($transactionDetails->object == 'charge' && $transactionDetails->status == 'succeeded') {
             if ($transactionDetails->captured) {
                 $statusCode = OrderPaymentHelper::OPYS_SUCCESSFUL;
             } else {
@@ -547,7 +578,8 @@ EOD;
         return $statusCode;
     }
 
-    public function canRefund($transaction_id) {
+    public function canRefund($transaction_id)
+    {
 
         $ret = false;
         $orderPayment = $this->searchRecord($transaction_id);
@@ -561,7 +593,8 @@ EOD;
         return $ret;
     }
 
-    public function refund($transaction_id, $amount = 0) {
+    public function refund($transaction_id, $amount = 0)
+    {
         $ret = false;
 
         $transaction = $this->getTransactionDetails($transaction_id);
@@ -592,13 +625,12 @@ EOD;
                 $response = \json_decode(\json_encode($response), true);
             } catch (\Exception $e) {
                 $ret = $e->getMessage();
-                \Yii::warning(" #### " . $e->getMessage() . ' ' . print_r($params, true), 'STRIPE_REFUND_ERROR');
+                \Yii::warning(' #### ' . $e->getMessage() . ' ' . print_r($params, true), 'STRIPE_REFUND_ERROR');
             }
 
             if ($this->debug) {
                 \Yii::warning(print_r($response, 1), 'STRIPE_REFUND');
             }
-
 
             if (!empty($response['status']) && $response['status'] == 'succeeded') {
                 $tm = $this->manager->getTransactionManager($this);
@@ -614,7 +646,7 @@ EOD;
                     'payment_class' => $this->code,
                     'payment_method' => $this->title,
                     'parent_transaction_id' => $transaction_id,
-                    'orders_id' => 0
+                    'orders_id' => 0,
                 ]);
                 if ($res) {
                     $ret = true;
@@ -630,7 +662,8 @@ EOD;
     /**
      * @inheritdoc
      */
-    public function getTransactionDetails($op_transaction_id, \common\services\PaymentTransactionManager $tManager = null) {
+    public function getTransactionDetails($op_transaction_id, \common\services\PaymentTransactionManager $tManager = null)
+    {
         $res = $ret = false;
         if (empty($this->_transactionDetails) || $op_transaction_id != $this->_transactionDetails['id']) {
             $orderPayment = $this->searchRecord($op_transaction_id);
@@ -685,28 +718,28 @@ EOD;
 
                     if (!empty($ret)) {
                         $res = \json_decode(\json_encode($ret), true);
-/*                        if (is_null($tManager)) {
-                            $tManager = $this->manager->getTransactionManager($this);
-                        }
-                        $statusCode = [];
-                        if ($type == 'checkout.session' && $ret['status'] == 'complete') {
-                            $statusCode = ['status_code' => OrderPaymentHelper::OPYS_SUCCESSFUL];
-                        }
+                        /*                        if (is_null($tManager)) {
+                                                    $tManager = $this->manager->getTransactionManager($this);
+                                                }
+                                                $statusCode = [];
+                                                if ($type == 'checkout.session' && $ret['status'] == 'complete') {
+                                                    $statusCode = ['status_code' => OrderPaymentHelper::OPYS_SUCCESSFUL];
+                                                }
 
-                        $tManager->updatePaymentTransaction($ret['id'],
-                            $statusCode +
-                            [
-                            'status' => $ret['status'],
-                            'comments' => self::getComment($ret),
-                            'last_updated' => date('Y-m-d H:i:s'),
-                            'payment_class' => $this->code,
-                            'payment_method' => $this->title,
-                                //'parent_transaction_id' => $transaction_id,
-                        ]);
-*/
+                                                $tManager->updatePaymentTransaction($ret['id'],
+                                                    $statusCode +
+                                                    [
+                                                    'status' => $ret['status'],
+                                                    'comments' => self::getComment($ret),
+                                                    'last_updated' => date('Y-m-d H:i:s'),
+                                                    'payment_class' => $this->code,
+                                                    'payment_method' => $this->title,
+                                                        //'parent_transaction_id' => $transaction_id,
+                                                ]);
+                        */
                     }
                 } catch (\Exception $e) {
-                    \Yii::error(" #### " . print_r($e->getMessage(), true), 'STRIPE_GETCHARGEDETAILS_EXCEPTION');
+                    \Yii::error(' #### ' . print_r($e->getMessage(), true), 'STRIPE_GETCHARGEDETAILS_EXCEPTION');
                 }
                 if ($this->debug) {
                     \Yii::warning(print_r($ret, true), 'STRIPE_RESPONSE_DETAILS');
@@ -722,13 +755,14 @@ EOD;
         return $this->_transactionDetails;
     }
 
-    public function parseTransactionDetails($transactionDetails) {
+    public function parseTransactionDetails($transactionDetails)
+    {
         $this->transactionInfo = [];
         if (is_array($transactionDetails)) {
             $this->transactionInfo['status'] = $transactionDetails['status'];
             $this->transactionInfo['status_code'] = $this->getStatusCode($transactionDetails);
             $this->transactionInfo['transaction_id'] = $transactionDetails['id'];
-            $this->transactionInfo['amount'] = $this->formatRaw($transactionDetails['amount_total']/100);
+            $this->transactionInfo['amount'] = $this->formatRaw($transactionDetails['amount_total'] / 100);
             $this->transactionInfo['fulljson'] = json_encode($transactionDetails);
             $this->transactionInfo['comments'] = self::getComment($transactionDetails);
         }
@@ -736,8 +770,8 @@ EOD;
         return $this->transactionInfo;
     }
 
-
-    public static function getComment($source) {
+    public static function getComment($source)
+    {
         $comment = '';
         foreach (array_unique([
             'object', 'amount', 'amount_captured', 'amount_refunded',
@@ -746,14 +780,14 @@ EOD;
             'failure_code', 'failure_message', 'livemode', 'paid',
             'payment_method', 'receipt_email', 'receipt_number', 'refunded',
             'status'
-            , "amount", "amount_total", "balance_transaction", "charge", "created", "currency",
-            "metadata", "payment_intent", "payment_status", "reason", "receipt_number",
-            "source_transfer_reversal", "transfer_reversal"
+            , 'amount', 'amount_total', 'balance_transaction', 'charge', 'created', 'currency',
+            'metadata', 'payment_intent', 'payment_status', 'reason', 'receipt_number',
+            'source_transfer_reversal', 'transfer_reversal',
                 //, 'source->card'
         ]) as $k) {
             if (!empty($source[$k])) {
                 if (is_array($source[$k])) {
-                    $comment .= "$k: " . implode(' ' , $source[$k]) . "; \n";
+                    $comment .= "$k: " . implode(' ', $source[$k]) . "; \n";
                 } else {
                     $comment .= "$k: {$source[$k]}; \n";
                 }
@@ -763,7 +797,8 @@ EOD;
         return $comment;
     }
 
-    public function call_webhooks() {
+    public function call_webhooks()
+    {
         $action = \Yii::$app->request->get('action', '');
         $orders_id = \Yii::$app->request->get('orders_id', 0);
         if (!empty($action) && $orders_id > 0) {
@@ -812,20 +847,22 @@ EOD;
 
         try {
             $event = \Stripe\Webhook::constructEvent(
-                $payload, $sig_header, $endpoint_secret
+                $payload,
+                $sig_header,
+                $endpoint_secret
             );
         } catch (\UnexpectedValueException $e) {
             // Invalid payload
-            \Yii::warning(" #### " .print_r($e->getMessage(), true), 'TLDEBUG');
+            \Yii::warning(' #### ' .print_r($e->getMessage(), true), 'TLDEBUG');
             http_response_code(400);
             exit();
         } catch (\Stripe\Exception\SignatureVerificationException $e) {
             // Invalid signature
-            \Yii::warning(" #### " .print_r($e->getMessage(), true), 'TLDEBUG');
+            \Yii::warning(' #### ' .print_r($e->getMessage(), true), 'TLDEBUG');
             http_response_code(400);
             exit();
         } catch (\Exception $e) {
-            \Yii::warning(" #### " .print_r($e->getMessage(), true), 'TLDEBUG_' . $this->code);
+            \Yii::warning(' #### ' .print_r($e->getMessage(), true), 'TLDEBUG_' . $this->code);
             http_response_code(400);
             exit();
         }
@@ -843,7 +880,7 @@ EOD;
                 if ($order->order_id > 0 /*&& $order->info['platform_id'] == \common\classes\platform::currentId()*/) {
                     $stock_updated = false;
                     if (MODULE_PAYMENT_STRIPE_CHECKOUT_UPDATE_STOCK_BEFORE_PAYMENT == 'False' && !\common\helpers\Order::is_stock_updated((int) $order->order_id)) {
-                        for ($i = 0, $n = sizeof($order->products); $i < $n; $i ++) {
+                        for ($i = 0, $n = sizeof($order->products); $i < $n; $i++) {
                             // Stock Update - Joao Correia
                             if (STOCK_LIMITED == 'true') {
                                 \common\helpers\Warehouses::update_stock_of_order($order->order_id, (strlen($order->products[$i]['template_uprid']) > 0 ? $order->products[$i]['template_uprid'] : $order->products[$i]['id']), $order->products[$i]['qty'], 0, 0, $order->info['platform_id']);
@@ -858,7 +895,7 @@ EOD;
                         tep_db_perform(TABLE_ORDERS, $sql_data_array, 'update', 'orders_id=' . $order->order_id);
                     }
 
-                    $status_comment = array('Transaction ID: ' . $session->id);
+                    $status_comment = ['Transaction ID: ' . $session->id];
                     $response['id'] = $session->id;
                     $status_comment[] = 'Status: ' . $session->payment_status;
                     $status_comment[] = 'Transaction Amount: ' . $currencies->format(($session->amount_total / 100), false, $order->info['currency'], $order->info['currency_value']);
@@ -917,7 +954,7 @@ EOD;
                         //'date' => date('Y-m-d H:i:s', strtotime($response['started'])),
                         'date' => date('Y-m-d H:i:s'),
                         'suborder_id' => $invoice_id,
-                        'orders_id' => $order->order_id
+                        'orders_id' => $order->order_id,
                     ]);
                 }
             }

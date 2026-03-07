@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -29,7 +31,7 @@ class m230119_154528_banners extends Migration
             $this->addColumn('banners_groups_images', 'position', $this->string(32)->notNull()->defaultValue(''));
         }
 
-        $this->addTranslation('admin/main',[
+        $this->addTranslation('admin/main', [
             'ADD_TO_DESCRIPTION' => 'Add to description',
             'SHOW_COLUMNS' => 'Show columns',
             'IMAGE_FIT' => 'Image fit',

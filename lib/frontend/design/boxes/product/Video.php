@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\product;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Video extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -37,7 +38,7 @@ class Video extends Widget
 
         $video = [];
         foreach ($productsVideos as $item) {
-            if ($this->settings[0]['by_language'] && $item['language_id'] != $languageId ) {
+            if ($this->settings[0]['by_language'] && $item['language_id'] != $languageId) {
                 continue;
             }
             if ($item['type'] == 1) {
@@ -54,7 +55,7 @@ class Video extends Widget
                 } elseif (strrpos($item['video'], 'youtube.com')) {
                     preg_match_all("/\/([^\/^?^\"]+)[\"\?]/", $item['video'], $arr);
                     $item['code'] = $arr[1][0];
-                } elseif (preg_match("/^[a-zA-z0-9]+$/", $item['video'])) {
+                } elseif (preg_match('/^[a-zA-z0-9]+$/', $item['video'])) {
                     $item['code'] = $item['video'];
                 }
                 if ($item['code']) {
@@ -69,7 +70,7 @@ class Video extends Widget
 
         return IncludeTpl::widget(['file' => 'boxes/product/video.tpl', 'params' => [
             'video' => $video,
-            'settings' => $this->settings
+            'settings' => $this->settings,
         ]]);
     }
 }

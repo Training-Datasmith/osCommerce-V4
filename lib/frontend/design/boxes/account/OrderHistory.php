@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,13 @@
 
 namespace frontend\design\boxes\account;
 
+use common\helpers\Date as DateHelper;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use frontend\design\SplitPageResults;
-use common\helpers\Date as DateHelper;
 
 class OrderHistory extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -35,8 +35,8 @@ class OrderHistory extends Widget
         $languages_id = \Yii::$app->settings->get('languages_id');
         $order_id = (int)Yii::$app->request->get('order_id');
 
-        $statuses_query = tep_db_query("select os.orders_status_name, osh.date_added, osh.comments from " . TABLE_ORDERS_STATUS . " os, " . TABLE_ORDERS_STATUS_HISTORY . " osh where osh.orders_id = '" . (int)$order_id . "' and osh.orders_status_id = os.orders_status_id and os.language_id = '" . (int) $languages_id . "' order by osh.date_added");
-        $order_statusses = array();
+        $statuses_query = tep_db_query('select os.orders_status_name, osh.date_added, osh.comments from ' . TABLE_ORDERS_STATUS . ' os, ' . TABLE_ORDERS_STATUS_HISTORY . " osh where osh.orders_id = '" . (int)$order_id . "' and osh.orders_status_id = os.orders_status_id and os.language_id = '" . (int) $languages_id . "' order by osh.date_added");
+        $order_statusses = [];
         while ($statuses = tep_db_fetch_array($statuses_query)) {
             $statuses['date'] = DateHelper::date_short($statuses['date_added']);
             $statuses['status_name'] = $statuses['orders_status_name'];

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace common\api\models\XML;
 
-
 class Helper
 {
-
     public static function getClassShortName($className)
     {
-        $splited = explode('\\',$className);
+        $splited = explode('\\', $className);
         return array_pop($splited);
     }
 }

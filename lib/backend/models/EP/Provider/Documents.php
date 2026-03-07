@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,22 +14,21 @@
 
 namespace backend\models\EP\Provider;
 
-
 use backend\models\EP\ArrayTransform;
 use backend\models\EP\Exception;
 use backend\models\EP\Messages;
 
 class Documents extends ProviderAbstract implements ImportInterface, ExportInterface
 {
-    protected $product_data = array();
-    protected $data = array();
-    protected $rows_data = array();
+    protected $product_data = [];
+    protected $data = [];
+    protected $rows_data = [];
     protected $entry_counter = 0;
 
     protected $export_query;
     protected $withFiles = false;
 
-    function init()
+    public function init()
     {
         parent::init();
         $this->initFields();
@@ -35,18 +36,18 @@ class Documents extends ProviderAbstract implements ImportInterface, ExportInter
 
     protected function initFields()
     {
-        $this->fields = array();
-        $this->fields[] = array('name' => 'products_model', 'calculated' => true, 'value' => 'Products Model', 'is_key' => true,);
+        $this->fields = [];
+        $this->fields[] = ['name' => 'products_model', 'calculated' => true, 'value' => 'Products Model', 'is_key' => true,];
 
-        $this->fields[] = array('name' => 'document.document_types_name', 'calculated' => true, 'value' => 'Document Group Name',);
-        $this->fields[] = array('name' => 'document.filename', 'calculated' => true, 'value' => 'Document Filename',);
-        $this->fields[] = array('name' => 'document.is_link', 'calculated' => true, 'value' => 'Is Document External Link?',);
-        $this->fields[] = array('name' => 'document.sort_order', 'calculated' => true, 'value' => 'Sort Order',);
-        foreach( \common\helpers\Language::get_languages() as $_lang ) {
-            $this->fields[] = array('name' => 'document.titles.'.$_lang['code'].'.title', 'calculated' => true, 'value' => 'Document title '.$_lang['code'],);
+        $this->fields[] = ['name' => 'document.document_types_name', 'calculated' => true, 'value' => 'Document Group Name',];
+        $this->fields[] = ['name' => 'document.filename', 'calculated' => true, 'value' => 'Document Filename',];
+        $this->fields[] = ['name' => 'document.is_link', 'calculated' => true, 'value' => 'Is Document External Link?',];
+        $this->fields[] = ['name' => 'document.sort_order', 'calculated' => true, 'value' => 'Sort Order',];
+        foreach (\common\helpers\Language::get_languages() as $_lang) {
+            $this->fields[] = ['name' => 'document.titles.'.$_lang['code'].'.title', 'calculated' => true, 'value' => 'Document title '.$_lang['code'],];
         }
-//'',
-//'document_url',
+        //'',
+        //'document_url',
 
     }
 
@@ -57,40 +58,42 @@ class Documents extends ProviderAbstract implements ImportInterface, ExportInter
         $main_source = $this->main_source;
 
         $filter_sql = '';
-        if ( is_array($filter) ) {
-            $this->withFiles = ( isset($filter['with_images']) && $filter['with_images']);
-            if ( isset($filter['products_id']) && is_array($filter['products_id']) && count($filter['products_id'])>0 ) {
-                $filter_sql .= "AND p.products_id IN ('".implode("','", array_map('intval',$filter['products_id']))."') ";
+        if (is_array($filter)) {
+            $this->withFiles = (isset($filter['with_images']) && $filter['with_images']);
+            if (isset($filter['products_id']) && is_array($filter['products_id']) && count($filter['products_id']) > 0) {
+                $filter_sql .= "AND p.products_id IN ('".implode("','", array_map('intval', $filter['products_id']))."') ";
             }
-            if ( isset($filter['category_id']) && $filter['category_id']>0 ) {
-                $categories = array((int)$filter['category_id']);
+            if (isset($filter['category_id']) && $filter['category_id'] > 0) {
+                $categories = [(int)$filter['category_id']];
                 \common\helpers\Categories::get_subcategories($categories, $categories[0]);
-                $filter_sql .= "AND p.products_id IN(SELECT products_id FROM ".TABLE_PRODUCTS_TO_CATEGORIES." WHERE categories_id IN('".implode("','",$categories)."')) ";
+                $filter_sql .= 'AND p.products_id IN(SELECT products_id FROM '.TABLE_PRODUCTS_TO_CATEGORIES." WHERE categories_id IN('".implode("','", $categories)."')) ";
             }
         }
         $main_sql =
             "SELECT {$main_source['select']} p.products_id ".
-            "FROM ".TABLE_PRODUCTS." p ".
-            "  INNER JOIN ".TABLE_PRODUCTS_DOCUMENTS." pd ON pd.products_id=p.products_id ".
+            'FROM '.TABLE_PRODUCTS.' p '.
+            '  INNER JOIN '.TABLE_PRODUCTS_DOCUMENTS.' pd ON pd.products_id=p.products_id '.
             "WHERE 1 {$filter_sql} ".
-            "GROUP BY p.products_id ".
-            "/*LIMIT 3*/";
+            'GROUP BY p.products_id '.
+            '/*LIMIT 3*/';
 
-        $this->export_query = tep_db_query( $main_sql );
+        $this->export_query = tep_db_query($main_sql);
     }
 
     public function exportRow()
     {
         $this->data = current($this->rows_data);
-        if ( !$this->data ) {
+        if (!$this->data) {
             $this->product_data = tep_db_fetch_array($this->export_query);
-            if (!is_array($this->product_data)) return $this->product_data;
+            if (!is_array($this->product_data)) {
+                return $this->product_data;
+            }
 
             $this->rows_data = [];
             $product = \common\api\models\AR\Products::findOne($this->product_data['products_id']);
-            $product_documents = $product->exportArray(['documents'=>['*'=>['*']]]);
-            foreach ( $product_documents['documents'] as $product_document ){
-                $document_row = ArrayTransform::convertMultiDimensionalToFlat(['document'=>$product_document]);
+            $product_documents = $product->exportArray(['documents' => ['*' => ['*']]]);
+            foreach ($product_documents['documents'] as $product_document) {
+                $document_row = ArrayTransform::convertMultiDimensionalToFlat(['document' => $product_document]);
                 $document_row['products_model'] = $product_documents['products_model'];
                 $this->rows_data[] = $document_row;
             }
@@ -100,23 +103,23 @@ class Documents extends ProviderAbstract implements ImportInterface, ExportInter
 
         $export_columns = $this->export_columns;
 
-        foreach( $export_columns as $db_key=>$export ) {
-            if( isset( $export['get'] ) && method_exists($this, $export['get']) ) {
-                $this->data[$db_key] = call_user_func_array(array($this, $export['get']), array($export, $this->data['products_images_id']));
+        foreach ($export_columns as $db_key => $export) {
+            if (isset($export['get']) && method_exists($this, $export['get'])) {
+                $this->data[$db_key] = call_user_func_array([$this, $export['get']], [$export, $this->data['products_images_id']]);
             }
         }
 
-        if( $this->withFiles ) {
+        if ($this->withFiles) {
             $filesAdd = [];
-            $documentFilename = rtrim(DIR_FS_CATALOG,'/').'/'.'documents/'.$this->data['document.filename'];
-            if ( !$this->data['document.is_link'] && !empty($this->data['document.filename']) && is_file($documentFilename) ){
+            $documentFilename = rtrim(DIR_FS_CATALOG, '/').'/'.'documents/'.$this->data['document.filename'];
+            if (!$this->data['document.is_link'] && !empty($this->data['document.filename']) && is_file($documentFilename)) {
                 $filesAdd[] = [
                     'filename' => $documentFilename,
                     'localname' => 'documents/'.$this->data['document.filename'],
                 ];
             }
 
-            if ( count($filesAdd)>0 ) {
+            if (count($filesAdd) > 0) {
                 return [
                     ':feed_data' => $this->data,
                     ':attachments' => $filesAdd,
@@ -151,7 +154,7 @@ class Documents extends ProviderAbstract implements ImportInterface, ExportInter
                 'documents' => [],
             ];
             $matchedProducts = \common\api\models\AR\Products::find()
-                ->where([$file_primary_column=>$file_primary_value])
+                ->where([$file_primary_column => $file_primary_value])
                 ->all();
             if (count($matchedProducts) != 1) {
                 // error data not unique
@@ -161,19 +164,21 @@ class Documents extends ProviderAbstract implements ImportInterface, ExportInter
                 $this->rows_data[$file_primary_value]['model'] = $matchedProducts[0];
             }
         }
-        if ( !is_object($this->rows_data[$file_primary_value]['model']) ) return false;
+        if (!is_object($this->rows_data[$file_primary_value]['model'])) {
+            return false;
+        }
 
         $doc_data = ArrayTransform::convertFlatToMultiDimensional($this->data);
-        if ( !isset($doc_data['document']) || !is_array($doc_data['document']) ){
+        if (!isset($doc_data['document']) || !is_array($doc_data['document'])) {
 
             return false;
         }
 
-        if ( isset($doc_data['document']['filename']) && !empty($doc_data['document']['filename']) ) {
-            if (!preg_match('/^[a-z]{3,4}:\/\//i', $doc_data['document']['filename']) ) {
+        if (isset($doc_data['document']['filename']) && !empty($doc_data['document']['filename'])) {
+            if (!preg_match('/^[a-z]{3,4}:\/\//i', $doc_data['document']['filename'])) {
                 if (is_file($this->directoryObj->filesRoot() . 'documents/' . $doc_data['document']['filename'])) {
                     $doc_data['document']['document_url'] = $this->directoryObj->filesRoot() . 'documents/' . $doc_data['document']['filename'];
-                }elseif (is_file($this->directoryObj->filesRoot() . $doc_data['document']['filename'])) {
+                } elseif (is_file($this->directoryObj->filesRoot() . $doc_data['document']['filename'])) {
                     $doc_data['document']['document_url'] = $this->directoryObj->filesRoot() . $doc_data['document']['filename'];
                 }
             }
@@ -185,10 +190,12 @@ class Documents extends ProviderAbstract implements ImportInterface, ExportInter
 
     protected function processCollectedData()
     {
-        if ( is_array($this->rows_data) && count($this->rows_data)>0 ) {
-            foreach ($this->rows_data as $model=>$data){
-                if ( !is_object($data['model']) ) continue;
-                $data['model']->importArray(['documents'=>$data['documents']]);
+        if (is_array($this->rows_data) && count($this->rows_data) > 0) {
+            foreach ($this->rows_data as $model => $data) {
+                if (!is_object($data['model'])) {
+                    continue;
+                }
+                $data['model']->importArray(['documents' => $data['documents']]);
                 $data['model']->save();
                 $this->entry_counter++;
             }
@@ -204,6 +211,5 @@ class Documents extends ProviderAbstract implements ImportInterface, ExportInter
         $message->info('Done.');
 
     }
-
 
 }

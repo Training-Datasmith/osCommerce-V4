@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\classes;
 
 abstract class PropsWorkerAbstract
@@ -10,7 +12,8 @@ abstract class PropsWorkerAbstract
      * @param $productId
      * @return array
      */
-    public static function paramsToXml($params = array(), $productId = false) {
+    public static function paramsToXml($params = [], $productId = false)
+    {
         return [];
     }
 
@@ -19,7 +22,8 @@ abstract class PropsWorkerAbstract
      * @param type $uprid
      * @return type
      */
-    public static function normalize_id($uprid) {
+    public static function normalize_id($uprid)
+    {
         return $uprid;
     }
 
@@ -29,11 +33,13 @@ abstract class PropsWorkerAbstract
      * @params $propsData array
      * @return mixed modified product id
      */
-    public static function cartUprid($productId, array $propsData) {
+    public static function cartUprid($productId, array $propsData)
+    {
         return $productId;
     }
 
-    public static function onCartAdd($propsData) {
+    public static function onCartAdd($propsData)
+    {
         return $propsData;
     }
 

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,8 +15,6 @@
 namespace common\models;
 
 use common\classes\Images;
-use Yii;
-use yii\db\ActiveQuery;
 use yii\db\ActiveRecord;
 
 class ProductsImages extends ActiveRecord
@@ -79,15 +79,17 @@ class ProductsImages extends ActiveRecord
      */
     public function getImageListDescription()
     {
-      $languages_id = \Yii::$app->settings->get('languages_id');
+        $languages_id = \Yii::$app->settings->get('languages_id');
         return $this->hasMany(
-            ProductsImagesDescription::className(), ['products_images_id' => 'products_images_id'])
+            ProductsImagesDescription::className(),
+            ['products_images_id' => 'products_images_id']
+        )
             //->select('*')
             //->leftJoin(TABLE_PRODUCTS_IMAGES_EXTERNAL_URL, '')
             ->where(['and', "(file_name !='' or alt_file_name!='')",  ['language_id' => [(int)$languages_id, 0]] ])
             ->orderBy(['language_id' => SORT_DESC])
 
-            ;
+        ;
 
     }
 

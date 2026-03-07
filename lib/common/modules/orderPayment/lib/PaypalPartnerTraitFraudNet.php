@@ -1,13 +1,17 @@
 <?php
+
+declare(strict_types=1);
+
 namespace common\modules\orderPayment\lib;
 
-trait PaypalPartnerTraitFraudNet {
-
-/**
- * random 32 string
- * @return string
- */
-    public function getPayPalOrderAPIRequestId() {
+trait PaypalPartnerTraitFraudNet
+{
+    /**
+     * random 32 string
+     * @return string
+     */
+    public function getPayPalOrderAPIRequestId()
+    {
         /*global $paypal_partner_requestid;
 
         if (!tep_session_is_registered('paypal_partner_requestid') || empty($paypal_partner_requestid)) {
@@ -19,11 +23,12 @@ trait PaypalPartnerTraitFraudNet {
         return $paypal_partner_requestid;
     }
 
-    public static function fraudnetInit() {
+    public static function fraudnetInit()
+    {
 
         if (self::getFraudnetSI()) {
 
-            $sandbox = self::getMode()=='Sandbox'?'true':'false';
+            $sandbox = self::getMode() == 'Sandbox' ? 'true' : 'false';
             $s = self::getFraudNetRSCId(); // according manual - getFraudNetFlowId(); according SDD - always FRAUDNET_SI
             //$s = self::getFraudNetFlowId(); // according manual - getFraudNetFlowId(); according SDD - always FRAUDNET_SI
             $f = self::getFraudNetSessionId();
@@ -39,31 +44,34 @@ trait PaypalPartnerTraitFraudNet {
 <script type="text/javascript" src="https://c.paypal.com/da/r/fb.js"></script>
 ';
             });
-            \Yii::$app->getView()->on(\common\components\View::EVENT_END_BODY, function () use ($s, $f)  {
+            \Yii::$app->getView()->on(\common\components\View::EVENT_END_BODY, function () use ($s, $f) {
                 echo '<noscript><img src="https://c.paypal.com/v1/r/d/b/ns?f=' . $f . '&s=' . $s . '&js=0&r=1"</noscript>';
             });
 
         }
     }
 
-    public static function resetFraudNetSessionId() {
+    public static function resetFraudNetSessionId()
+    {
         global $paypal_partner_fnsid;
         $paypal_partner_fnsid = '';
     }
 
-    public static function getFraudNetSessionId() {
+    public static function getFraudNetSessionId()
+    {
         global $paypal_partner_fnsid;
 
         if (!tep_session_is_registered('paypal_partner_fnsid') || empty($paypal_partner_fnsid)) {
             $paypal_partner_fnsid = \common\helpers\Password::create_random_value(28);
         }
-        if (!tep_session_is_registered('paypal_partner_fnsid') ) {
+        if (!tep_session_is_registered('paypal_partner_fnsid')) {
             tep_session_register('paypal_partner_fnsid');
         }
         return $paypal_partner_fnsid;
     }
 
-    public static function getFraudNetRSCId() {
+    public static function getFraudNetRSCId()
+    {
         $ret = self::getFraudnetSI();
         /*if (defined('MODULE_PAYMENT_PAYPAL_PARTNER_FRAUDNET_SI') && !empty(MODULE_PAYMENT_PAYPAL_PARTNER_FRAUDNET_SI)) {
             $ret = MODULE_PAYMENT_PAYPAL_PARTNER_FRAUDNET_SI;
@@ -71,7 +79,8 @@ trait PaypalPartnerTraitFraudNet {
         return $ret;
     }
 
-    public static function getFraudnetSI() {
+    public static function getFraudnetSI()
+    {
         $partnerId = self::getPartnerId(false); // depends on sandbox/live mode
         $seller = PaypalPartner\models\SellerInfo::find()
             ->where(['platform_id' => \common\classes\platform::currentId(), 'partner_id' => $partnerId, 'status' => 1])
@@ -83,7 +92,8 @@ trait PaypalPartnerTraitFraudNet {
 
     }
 
-    public static function getFraudNetFlowId() {
+    public static function getFraudNetFlowId()
+    {
 
         $page_id = 'category-page';
         switch (\Yii::$app->controller->id) {

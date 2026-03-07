@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "categories_description".
@@ -48,7 +48,7 @@ class CategoriesDescription extends \yii\db\ActiveRecord
             [['categories_name', 'categories_heading_title'], 'string', 'max' => 255],
             [['categories_head_title_tag'], 'string', 'max' => 125],
             [['categories_seo_page_name', 'categories_h1_tag', 'categories_image_alt_tag_mask', 'categories_image_title_tag_mask'], 'string', 'max' => 255],
-            [['rel_canonical'], 'string', 'max' => 255]
+            [['rel_canonical'], 'string', 'max' => 255],
         ];
     }
 

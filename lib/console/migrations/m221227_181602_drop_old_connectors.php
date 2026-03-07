@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,13 +24,11 @@ class m221227_181602_drop_old_connectors extends Migration
      */
     public function safeUp()
     {
-        if(method_exists($this, 'isOldExtension'))
-        {
+        if (method_exists($this, 'isOldExtension')) {
             // Start WooLink43
-            if(!$this->isOldExtension('Woolink43'))
-            {
+            if (!$this->isOldExtension('Woolink43')) {
                 // Removing tables if extension not installed
-                if(!\common\helpers\Extensions::isInstalled('Woolink43')) {
+                if (!\common\helpers\Extensions::isInstalled('Woolink43')) {
                     $tables = [
                         'connector_woolink43_configuration',
                         'connector_woolink43_map_attribute',
@@ -51,11 +51,9 @@ class m221227_181602_drop_old_connectors extends Migration
             // End WooLink47
 
             // Start MageLink23
-            if(!$this->isOldExtension('MageLink23'))
-            {
+            if (!$this->isOldExtension('MageLink23')) {
                 // Removing tables if extension not installed
-                if(!\common\helpers\Extensions::isInstalled('MageLink23'))
-                {
+                if (!\common\helpers\Extensions::isInstalled('MageLink23')) {
                     $mageTables = [
                         'connector_magelink23_configuration',
                         'connector_magelink23_map_manufacturer',
@@ -71,7 +69,7 @@ class m221227_181602_drop_old_connectors extends Migration
                         'connector_magelink23_map_product',
                         'connector_magelink23_map_tax_class',
                         'connector_magelink23_map_inventory',
-                        'connector_magelink23_map_shipment'
+                        'connector_magelink23_map_shipment',
                     ];
                     $this->dropTables($mageTables);
                 }
@@ -79,17 +77,15 @@ class m221227_181602_drop_old_connectors extends Migration
             // End MageLink23
 
             // Start PrestaLink17
-            if(!$this->isOldExtension('PrestaLink17'))
-            {
+            if (!$this->isOldExtension('PrestaLink17')) {
                 // Removing tables if extension not installed
-                if(!\common\helpers\Extensions::isInstalled('PrestaLink17'))
-                {
+                if (!\common\helpers\Extensions::isInstalled('PrestaLink17')) {
                     $prestaTables = [
                         'connector_prestalink17_configuration',
                         'connector_prestalink17_map_customer',
                         'connector_prestalink17_map_customer_address',
                         'connector_prestalink17_map_order',
-                        'connector_prestalink17_map_order_product'
+                        'connector_prestalink17_map_order_product',
                     ];
                     $this->dropTables($prestaTables);
                 }

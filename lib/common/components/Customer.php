@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,19 +15,18 @@
 
 namespace common\components;
 
-use Yii;
 use common\classes\opc;
-use common\components\Socials;
+use common\helpers\Date as DateHelper;
 use common\models;
 use frontend\forms\registration\CustomerRegistration;
-use common\helpers\Date as DateHelper;
+use Yii;
 
-class Customer  extends \common\models\Customers implements \yii\web\IdentityInterface {
-
-    const LOGIN_STANDALONE = 1;
-    const LOGIN_RECOVERY = 2;
-    const LOGIN_SOCIALS = 3;
-    const LOGIN_WITHOUT_CHECK = 4;
+class Customer extends \common\models\Customers implements \yii\web\IdentityInterface
+{
+    public const LOGIN_STANDALONE = 1;
+    public const LOGIN_RECOVERY = 2;
+    public const LOGIN_SOCIALS = 3;
+    public const LOGIN_WITHOUT_CHECK = 4;
 
     private $loginType;
     private $isMulti = 0;
@@ -36,12 +37,14 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
     //protected $auth_key; there must be the field in DB => model\Customers
     public $rememberMe = false;
 
-    public function __construct($type = 0) {
+    public function __construct($type = 0)
+    {
         $this->setLoginType($type);
         $this->storage = Yii::$app->get('storage');
     }
 
-    public function setLoginType($type){
+    public function setLoginType($type)
+    {
         $this->loginType = $type;
     }
 
@@ -50,33 +53,36 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
      * @param string $checkParam
      * @return boolean|0
      */
-    public function validateCustomer($checkParam){
+    public function validateCustomer($checkParam)
+    {
         $success = true;
         $checkGdpr = true;
         switch ($this->loginType) {
-            case static::LOGIN_STANDALONE :
-                    $success = \common\helpers\Password::validate_password($checkParam, $this->customers_password, 'frontend');
+            case static::LOGIN_STANDALONE:
+                $success = \common\helpers\Password::validate_password($checkParam, $this->customers_password, 'frontend');
                 break;
-            case static::LOGIN_RECOVERY :
-                if (!$this->checkValidToken($this->customers_id, $checkParam))
+            case static::LOGIN_RECOVERY:
+                if (!$this->checkValidToken($this->customers_id, $checkParam)) {
                     $success = false;
+                }
                 break;
-            case static::LOGIN_SOCIALS :
-                if ($checkParam != Socials::HASHCODE)
+            case static::LOGIN_SOCIALS:
+                if ($checkParam != Socials::HASHCODE) {
                     $success = false;
+                }
                 break;
-            case static::LOGIN_WITHOUT_CHECK :
+            case static::LOGIN_WITHOUT_CHECK:
                 if ($this->customers_id != $checkParam) {
                     $success = false;
                 }
                 $checkGdpr = false;
                 break;
-            default :
+            default:
                 $success = false;
                 break;
         }
 
-        if ($success && $checkGdpr){
+        if ($success && $checkGdpr) {
             $this->checkGdpr();
         }
 
@@ -88,7 +94,8 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         return $this->customers_id;
     }
 
-    public function loginCustomerById($cId) {
+    public function loginCustomerById($cId)
+    {
         if ($this->loginType != static::LOGIN_WITHOUT_CHECK) {
             return false;
         }
@@ -104,16 +111,18 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         return $success;
     }
 
-    public function loginCustomer($email_address, $checkParam) {
+    public function loginCustomer($email_address, $checkParam)
+    {
 
-        if ( !$this->loginType || !$email_address ) {
+        if (!$this->loginType || !$email_address) {
             return false;
         }
 
         $success = true;
 
-        if (!Yii::$app->user->isGuest)
+        if (!Yii::$app->user->isGuest) {
             return $success;
+        }
 
         $this->isMulti = 0;
         /** @var self $_user */
@@ -141,7 +150,7 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
 
             if ($this->rememberMe) {
                 $duration = \Yii::$app->user->autoLoginDuration;
-                if (defined('RememberMe_EXTENSION_DURATION') && intval(RememberMe_EXTENSION_DURATION)>0) {
+                if (defined('RememberMe_EXTENSION_DURATION') && intval(RememberMe_EXTENSION_DURATION) > 0) {
                     $duration = intval(RememberMe_EXTENSION_DURATION);
                 }
                 \Yii::$app->user->login($_user, $duration);
@@ -158,13 +167,15 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         return $success;
     }
 
-    private function _afterAuth(){
+    private function _afterAuth()
+    {
         global $cart, $quote, $sample;
 
-        if ($this->customers_id){
+        if ($this->customers_id) {
 
-            if ( is_object($cart) ) $cart->before_restore();
-
+            if (is_object($cart)) {
+                $cart->before_restore();
+            }
 
             if (is_object($cart)) {
                 $cart->before_restore();
@@ -178,7 +189,7 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
             Yii::$app->user->login($this);
 
             $this->setCustomersData();
-            
+
             if ($this->customers_id) {
                 $addressBook = $this->getDefaultAddress()->one();
                 if (\common\helpers\Acl::checkExtensionAllowed('SplitCustomerAddresses', 'allowed')) {
@@ -186,7 +197,7 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
                 } else {
                     $shippingAddressBook = $addressBook;
                 }
-                if ( \common\helpers\Acl::checkExtensionAllowed('DealersMultiCustomers', 'allowed')) {
+                if (\common\helpers\Acl::checkExtensionAllowed('DealersMultiCustomers', 'allowed')) {
                     $multi_customer_id = $this->data['multi_customer_id'] ?? 0;
                     if ($multi_customer_id > 0) {
                         $user = \common\extensions\DealersMultiCustomers\models\Users::find()->where(['user_id' => $multi_customer_id])->one();
@@ -198,7 +209,7 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
                 }
                 Yii::$app->get('storage')->set('billto', $addressBook->address_book_id ?? null);
                 Yii::$app->get('storage')->set('sendto', $shippingAddressBook->address_book_id ?? null);
-            }else{
+            } else {
                 Yii::$app->get('storage')->remove('billto');
                 Yii::$app->get('storage')->remove('sendto');
             }
@@ -223,7 +234,8 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         }
     }
 
-    public function logoffCustomer(){
+    public function logoffCustomer()
+    {
         Yii::$app->user->logout(false);
         $this->clearAllParams();
         foreach (\common\helpers\Hooks::getList('customers/logoff') as $filename) {
@@ -231,23 +243,26 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         }
     }
 
-    public function updateAccess(){
-        if ($this->customers_id){
+    public function updateAccess()
+    {
+        if ($this->customers_id) {
             $info = models\CustomersInfo::findOne(['customers_info_id' => $this->customers_id]);
-            if ($info){
-                $info->customers_info_date_of_last_logon = date("Y-m-d");
+            if ($info) {
+                $info->customers_info_date_of_last_logon = date('Y-m-d');
                 $info->customers_info_number_of_logons++;
                 $info->update();
             }
         }
     }
 
-    public function checkGdpr(){
+    public function checkGdpr()
+    {
         $gdpr = new Gdpr($this);
         return $gdpr->processGdprChecking();
     }
 
-    public function getAddressBooks($toArray = false, $woDropShip = false, $type = '') {
+    public function getAddressBooks($toArray = false, $woDropShip = false, $type = '')
+    {
         $ab = parent::getAddressBooks();
         if ($woDropShip) {
             $ab->andWhere(['drop_ship' => 0]);
@@ -289,9 +304,10 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         return $ab->all();
     }
 
-    public function getAddressBook($abId, $toArray = false){
-        if ($this->customers_id){
-            if ($toArray){
+    public function getAddressBook($abId, $toArray = false)
+    {
+        if ($this->customers_id) {
+            if ($toArray) {
                 return parent::getAddressBook($abId)->asArray()->one();
             } else {
                 return parent::getAddressBook($abId)->one();
@@ -300,8 +316,9 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         return null;
     }
 
-    private function checkValidToken($cid, $token) {
-        $query_token = tep_db_fetch_array(tep_db_query("select token from " . TABLE_CUSTOMERS_INFO . " where customers_info_id = '" . (int) $cid . "'"));
+    private function checkValidToken($cid, $token)
+    {
+        $query_token = tep_db_fetch_array(tep_db_query('select token from ' . TABLE_CUSTOMERS_INFO . " where customers_info_id = '" . (int) $cid . "'"));
         if ($query_token) {
             return $query_token['token'] == $token;
         }
@@ -310,8 +327,9 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
 
     protected $storage;
 
-    private function setCustomersData(){
-        if ($this->customers_id){
+    private function setCustomersData()
+    {
+        if ($this->customers_id) {
             $this->data['customer_id'] = $this->customers_id;
             $this->data['customer_default_address_id'] = $this->customers_default_address_id;
             $this->data['customer_first_name'] = $this->customers_firstname;
@@ -325,14 +343,14 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
             $this->data['customer_country_id'] = $addressBook->entry_country_id ?? null;
             $this->data['customer_zone_id'] = $addressBook->entry_zone_id ?? null;
             if (($addressBook->entry_company_vat_status ?? null) > 1) {
-              $this->data['customers_company_vat'] = $addressBook->entry_company_vat;
-              $this->data['customers_company_vat_status'] = $addressBook->entry_company_vat_status;
-              $this->data['customers_company_vat_date'] = $addressBook->entry_company_vat_date;
+                $this->data['customers_company_vat'] = $addressBook->entry_company_vat;
+                $this->data['customers_company_vat_status'] = $addressBook->entry_company_vat_status;
+                $this->data['customers_company_vat_date'] = $addressBook->entry_company_vat_date;
             }
-            if (($addressBook->entry_customs_number_status ?? null)> 0) {
-              $this->data['customers_customs_number'] = $addressBook->entry_customs_number;
-              $this->data['customers_customs_number_status'] = $addressBook->entry_customs_number_status;
-              $this->data['customers_customs_number_date'] = $addressBook->entry_customs_number_date;
+            if (($addressBook->entry_customs_number_status ?? null) > 0) {
+                $this->data['customers_customs_number'] = $addressBook->entry_customs_number;
+                $this->data['customers_customs_number_status'] = $addressBook->entry_customs_number_status;
+                $this->data['customers_customs_number_date'] = $addressBook->entry_customs_number_date;
             }
 
             if (\common\helpers\Extensions::isCustomerGroupsAllowed()) {
@@ -343,11 +361,12 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         }
     }
 
-    public function loadCustomer($customer_id) {
+    public function loadCustomer($customer_id)
+    {
 
-        if (!$this->customers_id){
+        if (!$this->customers_id) {
             $_user = $this->findIdentity($customer_id);
-            if ($_user){
+            if ($_user) {
                 $this->setAttributes($_user->getAttributes(), false);
             }
         }
@@ -360,34 +379,40 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         return $this;
     }
 
-    public function get($name){
+    public function get($name)
+    {
         $this->data[$name] = $this->data[$name] ?? $this->storage->get($name);
         return $this->data[$name];
     }
 
-    public function getAll(){
+    public function getAll()
+    {
         return $this->data;
     }
 
-    public function set($name, $value, $enableSession = false) {
+    public function set($name, $value, $enableSession = false)
+    {
         $this->data[$name] = $value;
-        if ($enableSession){
+        if ($enableSession) {
             $this->storage->set($name, $value);
         }
     }
 
-    public function clearParam($name) {
+    public function clearParam($name)
+    {
         unset($this->data[$name]);
         unset($this->temporary[$name]);
     }
 
-    public function clearAllParams() {
+    public function clearAllParams()
+    {
         $this->data = [];
         $this->temporary = [];
         $this->storage->removeAll();
     }
 
-    public function convertToSession() {
+    public function convertToSession()
+    {
         if (is_array($this->data) && count($this->data)) {
             foreach ($this->data as $key => $value) {
                 $this->set($key, $value, true);
@@ -395,7 +420,8 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         }
     }
     /*depricated*/
-    public function convertBackSession() {
+    public function convertBackSession()
+    {
         /*
         if (is_array($this->temporary) && count($this->temporary)) {
             $this->data = [];
@@ -418,7 +444,8 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         }*/
     }
 
-    public function createCustomerQo($qoModel){
+    public function createCustomerQo($qoModel)
+    {
 
         $firstname = $qoModel->firstname;
         $telephone = $qoModel->telephone;
@@ -432,50 +459,51 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
                 $customer->addEmail($email_address);
             }
         } else {/**/
-            $login = \common\helpers\Customer::check_need_login($qoModel->group);
-            $customer = new self();
-            $customer->setAttributes([
-                'opc_temp_account' =>1,
-                'customers_firstname' => strval($firstname),
-                'customers_email_address' => strval($email_address),
-                'customers_telephone' => strval($telephone),
-                'groups_id' => $qoModel->group,
-                'customers_status' => ($login ? 1 : 0),
-                'customers_password' => \common\helpers\Password::encrypt_password(\common\helpers\Password::create_random_value(ENTRY_PASSWORD_MIN_LENGTH), 'frontend'),
-                'platform_id' => \common\classes\platform::currentId(),
-                ], false);
-            if($customer->save(false)){
-                if (!empty($telephone)){
-                    (new models\CustomersPhones(['customers_phone' => $telephone]))->link('customer', $customer);
-                }
-                if (!empty($email_address)){
-                    (new models\CustomersEmails(['customers_email' => $email_address]))->link('customer', $customer);
-                }
-                $customer->addCustomersInfo();
-                $address = $customer->getAddressFromModel($qoModel);
-                $customer->addDefaultAddress($address);
-                
-                if (\common\helpers\Acl::checkExtensionAllowed('SplitCustomerAddresses', 'allowed')) {
-                    $address['entry_type'] = \common\forms\AddressForm::SHIPPING_ADDRESS;
-                    $_address = $customer->addAddress($address);
-                    if ($_address) {
-                        $customer->customers_shipping_address_id = $_address->address_book_id;
-                        $customer->save();
-                    }
+        $login = \common\helpers\Customer::check_need_login($qoModel->group);
+        $customer = new self();
+        $customer->setAttributes([
+            'opc_temp_account' => 1,
+            'customers_firstname' => strval($firstname),
+            'customers_email_address' => strval($email_address),
+            'customers_telephone' => strval($telephone),
+            'groups_id' => $qoModel->group,
+            'customers_status' => ($login ? 1 : 0),
+            'customers_password' => \common\helpers\Password::encrypt_password(\common\helpers\Password::create_random_value(ENTRY_PASSWORD_MIN_LENGTH), 'frontend'),
+            'platform_id' => \common\classes\platform::currentId(),
+            ], false);
+        if ($customer->save(false)) {
+            if (!empty($telephone)) {
+                (new models\CustomersPhones(['customers_phone' => $telephone]))->link('customer', $customer);
+            }
+            if (!empty($email_address)) {
+                (new models\CustomersEmails(['customers_email' => $email_address]))->link('customer', $customer);
+            }
+            $customer->addCustomersInfo();
+            $address = $customer->getAddressFromModel($qoModel);
+            $customer->addDefaultAddress($address);
+
+            if (\common\helpers\Acl::checkExtensionAllowed('SplitCustomerAddresses', 'allowed')) {
+                $address['entry_type'] = \common\forms\AddressForm::SHIPPING_ADDRESS;
+                $_address = $customer->addAddress($address);
+                if ($_address) {
+                    $customer->customers_shipping_address_id = $_address->address_book_id;
+                    $customer->save();
                 }
             }
+        }
         /*}/**/
 
-        if ($login){
+        if ($login) {
             $customer->_afterAuth();
         }
 
         return $customer;
     }
 
-    public function increaseCreditAmount(\common\models\Coupons $gv){
+    public function increaseCreditAmount(\common\models\Coupons $gv)
+    {
 
-        if ($this->customers_id){
+        if ($this->customers_id) {
 
             $currencies = Yii::$container->get('currencies');
 
@@ -495,45 +523,52 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
     /*
     * type = 0 if credit amount, type = 1 if bonus amount
     */
-    public function saveCreditHistory($customers_id, $amount, $prefix = '+', $currency = '', $currency_value = '', $comment = '', $type = 0, $customer_notified = 0){
-        if (!$customers_id) $customers_id = $this->customers_id;
+    public function saveCreditHistory($customers_id, $amount, $prefix = '+', $currency = '', $currency_value = '', $comment = '', $type = 0, $customer_notified = 0)
+    {
+        if (!$customers_id) {
+            $customers_id = $this->customers_id;
+        }
         models\CustomersCreditHistory::saveCreditHistory((int)$customers_id, $amount, $prefix, $currency, $currency_value, $comment, $type, $customer_notified);
         return $this;
     }
 
     /*return customers model*/
-    public function getUserByToken($token){
-        if ($token){
+    public function getUserByToken($token)
+    {
+        if ($token) {
             $cInfo = models\CustomersInfo::find()->where(['token' => $token])->one();
-            if ($cInfo){
+            if ($cInfo) {
                 return self::findOne($cInfo->customers_info_id);
             }
         }
         return false;
     }
 
-    public function updateUserToken($customers_id = null){
+    public function updateUserToken($customers_id = null)
+    {
         $customers_id = ($customers_id ? $customers_id : $this->customers_id);
-        if ($customers_id){
+        if ($customers_id) {
             $cInfo = $this->getCustomersInfo($customers_id);
         }
-        if ($cInfo){
+        if ($cInfo) {
             $cInfo->updateToken();
         }
         return false;
     }
 
-    public function getCustomersInfo($customers_id = null){
+    public function getCustomersInfo($customers_id = null)
+    {
         $_cid = $this->customers_id ?? $customers_id;
-        if ($_cid){
-            if (is_null($this->_customersInfo)){
+        if ($_cid) {
+            if (is_null($this->_customersInfo)) {
                 $this->_customersInfo = models\CustomersInfo::findOne(['customers_info_id' => $_cid]);
             }
         }
         return $this->_customersInfo;
     }
 
-    public function fillCustomerFields($model){
+    public function fillCustomerFields($model)
+    {
         if (!empty($model->email_address)) {
             $this->customers_email_address = $model->email_address;
         }
@@ -544,7 +579,7 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
             $this->customers_firstname = $model->firstname;
         }
         if (!empty($model->lastname)) {
-             $this->customers_lastname = $model->lastname;
+            $this->customers_lastname = $model->lastname;
         }
         if (!empty($model->dob)) {
             $this->customers_dob = DateHelper::date_raw($model->dob);
@@ -564,9 +599,9 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         //$this->customers_company_vat = '';
     }
 
-
-    public function registerCustomer(CustomerRegistration $model = null, $withLogin = true, \common\forms\AddressForm $addressModel = null) {
-        if ($model){
+    public function registerCustomer(CustomerRegistration $model = null, $withLogin = true, \common\forms\AddressForm $addressModel = null)
+    {
+        if ($model) {
             $login = \common\helpers\Customer::check_need_login($model->group);
 
             $this->setAttributes([
@@ -587,7 +622,7 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
             }
             $this->language_id = $model->language_id ?? $languageId;
 
-            if (!is_null($addressModel)){
+            if (!is_null($addressModel)) {
                 $this->fillCustomerFields($addressModel);
             }
             $this->fillCustomerFields($model);
@@ -599,13 +634,13 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
             $this->insert(false);
             $this->addCustomersInfo();
 
-            if (!is_null($addressModel)){
+            if (!is_null($addressModel)) {
                 $address = $this->getAddressFromModel($addressModel);
             } else {
                 $address = $this->getAddressFromModel($model);
             }
             $this->addDefaultAddress($address);
-            
+
             if (\common\helpers\Acl::checkExtensionAllowed('SplitCustomerAddresses', 'allowed')) {
                 $address['entry_type'] = \common\forms\AddressForm::SHIPPING_ADDRESS;
                 $_address = $this->addAddress($address);
@@ -617,11 +652,11 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
 
             if ($ext = \common\helpers\Acl::checkExtensionAllowed('PlatformRestrictLogin', 'enabled')) {
                 $loginStatus = $ext::customerRegister($this);
-                if ( is_bool($loginStatus) && $loginStatus===false ){
+                if (is_bool($loginStatus) && $loginStatus === false) {
                     $withLogin = false;
                 }
             }
-            if ($this->customers_status && $withLogin){
+            if ($this->customers_status && $withLogin) {
                 $this->_afterAuth();
             }
 
@@ -629,13 +664,13 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
                 include($filename);
             }
 
-            if (property_exists(Yii::$app->controller, 'promoActionsObs') && is_object(Yii::$app->controller->promoActionsObs)){
+            if (property_exists(Yii::$app->controller, 'promoActionsObs') && is_object(Yii::$app->controller->promoActionsObs)) {
                 Yii::$app->controller->promoActionsObs->triggerAction('create_account');
                 if ($model->newsletter && is_object(Yii::$app->controller->promoActionsObs)) {
                     Yii::$app->controller->promoActionsObs->triggerAction('signing_newsletter');
                 }
             }
-            if ($withLogin){
+            if ($withLogin) {
                 $this->sendCongratulation($login);
             }
 
@@ -644,14 +679,14 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         return null;
     }
 
-    /**/
-    public function registerGuestCustomer(CustomerRegistration $customerModel, \common\forms\AddressForm $addressModel){
+    public function registerGuestCustomer(CustomerRegistration $customerModel, \common\forms\AddressForm $addressModel)
+    {
         $this->opc_temp_account = 1;
-        foreach($customerModel->getAttributesByScenario() as $name => $value){
-            if ($this->hasAttribute('customers_'.$name)){
+        foreach ($customerModel->getAttributesByScenario() as $name => $value) {
+            if ($this->hasAttribute('customers_'.$name)) {
                 $this->{'customers_'.$name} = $value;
             }
-            if ($this->hasAttribute($name)){
+            if ($this->hasAttribute($name)) {
                 $this->{$name} = $value;
             }
         }
@@ -662,7 +697,7 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
             }
         }*/
 
-        if (empty($customerModel->password)){
+        if (empty($customerModel->password)) {
             $customerModel->password = \common\helpers\Password::create_random_value(ENTRY_PASSWORD_MIN_LENGTH);
         }
         $this->customers_password = \common\helpers\Password::encrypt_password($customerModel->password, 'frontend');
@@ -673,9 +708,9 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         $this->addCustomersInfo();
 
         $book = $this->getAddressFromModel($addressModel);
-        if ($book){
+        if ($book) {
             $newBook = $this->addDefaultAddress($book);
-            
+
             if (\common\helpers\Acl::checkExtensionAllowed('SplitCustomerAddresses', 'allowed')) {
                 $book['entry_type'] = \common\forms\AddressForm::SHIPPING_ADDRESS;
                 $_address = $this->addAddress($book);
@@ -689,13 +724,14 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         $this->_afterAuth();
     }
 
-    public function removeDuplicateGuestsAccounts(){
-        if (!empty($this->customers_email_address) && $this->customers_id){
+    public function removeDuplicateGuestsAccounts()
+    {
+        if (!empty($this->customers_email_address) && $this->customers_id) {
 
             $guests = models\Customers::find()->where(['customers_email_address' => $this->customers_email_address, 'opc_temp_account' => 1])
                     ->andWhere(['<>', 'customers_id', $this->customers_id])->all();
-            if ($guests){
-                foreach($guests as $guest){
+            if ($guests) {
+                foreach ($guests as $guest) {
                     if (opc::is_temp_customer($guest->customers_id)) {
                         opc::remove_temp_customer($guest->customers_id, $this->customers_id);
                     }
@@ -704,30 +740,33 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         }
     }
 
-    public function getAddressFromArray(array $array_data){
+    public function getAddressFromArray(array $array_data)
+    {
         //to do
     }
 
-    public function updateCustomer($array_data){
-//        if ($this->customers_id){
-            if (is_array($array_data)){
-                foreach ($array_data as $keyField => $value){
-                    if ($this->hasAttribute($keyField)){
-                        $this->$keyField = $value;
-                    } else if ($this->hasAttribute('customers_'.$keyField)){
-                        $this->{'customers_'.$keyField} = $value;
-                    }
-                    if ($keyField == 'group'){
-                        $this->groups_id = (int)$value;
-                    }
+    public function updateCustomer($array_data)
+    {
+        //        if ($this->customers_id){
+        if (is_array($array_data)) {
+            foreach ($array_data as $keyField => $value) {
+                if ($this->hasAttribute($keyField)) {
+                    $this->$keyField = $value;
+                } elseif ($this->hasAttribute('customers_'.$keyField)) {
+                    $this->{'customers_'.$keyField} = $value;
                 }
-                $this->save(false);
+                if ($keyField == 'group') {
+                    $this->groups_id = (int)$value;
+                }
             }
-//        }
+            $this->save(false);
+        }
+        //        }
     }
 
-    public function saveRegularOffers(CustomerRegistration $model){
-        if ($model->newsletter && $model->regular_offers){
+    public function saveRegularOffers(CustomerRegistration $model)
+    {
+        if ($model->newsletter && $model->regular_offers) {
             $rOffer = new \common\models\RegularOffers();
             $rOffer->setAttributes([
                 'customers_id' => $this->customers_id,
@@ -738,126 +777,130 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         }
     }
 
-    public function getAddressFromModel($model){
+    public function getAddressFromModel($model)
+    {
         $addressDetails = [];
-        if ($model){
+        if ($model) {
             $addressDetails = [
                 'customers_id' => $this->customers_id,
                 'entry_country_id' => $model->country,
             ];
 
-            if (!empty($model->gender)){
+            if (!empty($model->gender)) {
                 $addressDetails['entry_gender'] = $model->gender;
             }
 
-            if (!empty($model->firstname)){
+            if (!empty($model->firstname)) {
                 $addressDetails['entry_firstname'] = $model->firstname;
             }
 
-            if (!empty($model->lastname)){
+            if (!empty($model->lastname)) {
                 $addressDetails['entry_lastname'] = $model->lastname;
             }
 
-            if (!empty($model->lastname)){
+            if (!empty($model->lastname)) {
                 $addressDetails['entry_lastname'] = $model->lastname;
             }
 
-            if (!empty($model->postcode)){
+            if (!empty($model->postcode)) {
                 $addressDetails['entry_postcode'] = $model->postcode;
             }
 
-            if (!empty($model->street_address)){
+            if (!empty($model->street_address)) {
                 $addressDetails['entry_street_address'] = $model->street_address;
             }
 
-            if (isset($model->suburb)){
+            if (isset($model->suburb)) {
                 $addressDetails['entry_suburb'] = $model->suburb;
             }
 
-            if (!empty($model->city)){
+            if (!empty($model->city)) {
                 $addressDetails['entry_city'] = $model->city;
             }
 
-            if (isset($model->company)){
+            if (isset($model->company)) {
                 $addressDetails['entry_company'] = $model->company;
             }
 
-            if (isset($model->company_vat)){
+            if (isset($model->company_vat)) {
                 $addressDetails['entry_company_vat'] = $model->company_vat;
             }
 
-            if (isset($model->customs_number)){
+            if (isset($model->customs_number)) {
                 $addressDetails['entry_customs_number'] = $model->customs_number;
             }
 
-            if ($model->zone_id){
+            if ($model->zone_id) {
                 $addressDetails['entry_zone_id'] = $model->zone_id;
                 $addressDetails['entry_state'] = '';
             } else {
                 $addressDetails['entry_zone_id'] = 0;
                 $addressDetails['entry_state'] = $model->state ?? '';
             }
-            if (isset($model->telephone)){
+            if (isset($model->telephone)) {
                 $addressDetails['entry_telephone'] = $model->telephone;
             }
-            if (isset($model->email_address)){
+            if (isset($model->email_address)) {
                 $addressDetails['entry_email_address'] = $model->email_address;
             }
-            if (isset($model->drop_ship)){
+            if (isset($model->drop_ship)) {
                 $addressDetails['drop_ship'] = ($model->drop_ship && 1);
             }
-            if (!empty($model->type)){
+            if (!empty($model->type)) {
                 $addressDetails['entry_type'] = $model->type;
             }
         }
         return $addressDetails;
     }
 
-    public function addDefaultAddress($address){
-        if ($address){
-            if (!$this->customers_default_address_id){
+    public function addDefaultAddress($address)
+    {
+        if ($address) {
+            if (!$this->customers_default_address_id) {
                 $_address = $this->addAddress($address);
-                if ($_address){
+                if ($_address) {
                     $this->customers_default_address_id = $_address->address_book_id;
                     $this->save();
                 }
             } else {
                 $_address = $this->getDefaultAddress();
-                if ( !empty($_address) && is_object($_address) && $_address instanceof \yii\db\ActiveQuery){
+                if (!empty($_address) && is_object($_address) && $_address instanceof \yii\db\ActiveQuery) {
                     $_address = $_address->one();
                 }
-                if ($_address){
+                if ($_address) {
                     $this->updateAddress($_address->address_book_id, $address);
                 }
             }
         }
     }
 
-    public function addAddress($attributes){
+    public function addAddress($attributes)
+    {
         $aBook = \common\models\AddressBook::create($attributes);
         if (!$aBook->customers_id) {
             $aBook->customers_id = $this->customers_id;
         }
-        if ($aBook){
+        if ($aBook) {
             $aBook->save(false);
         }
         /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
         if ($VatOnOrder = \common\helpers\Acl::checkExtensionAllowed('VatOnOrder', 'allowed')) {
-          try {
-            $attributes['address_book_id'] = $aBook->address_book_id;
-            $check = $VatOnOrder::check_vat_status($attributes); // updates entry_company_vat_status
-            if ($check>1) {
-              $aBook->entry_company_vat_status = $check;
+            try {
+                $attributes['address_book_id'] = $aBook->address_book_id;
+                $check = $VatOnOrder::check_vat_status($attributes); // updates entry_company_vat_status
+                if ($check > 1) {
+                    $aBook->entry_company_vat_status = $check;
+                }
+            } catch (\Exception $ex) {
+                \Yii::error($ex->getMessage());
             }
-          } catch (\Exception $ex) {
-            \Yii::error($ex->getMessage());
-          }
         }
 
         return $aBook;
     }
 
-    public function updateAddress($abId, $attributes){
+    public function updateAddress($abId, $attributes)
+    {
         $aBook = \common\models\AddressBook::findOne(['address_book_id' => $abId]);
         foreach (\common\helpers\Hooks::getList('customers/update-address/before') as $filename) {
             $prevent_update = include($filename);
@@ -865,21 +908,21 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
                 return $aBook;
             }
         }
-        if ($aBook){
+        if ($aBook) {
             $attributes['entry_company_vat_status'] = 0;
             $aBook->edit($attributes);
             $aBook->save(false);
             /** @var \common\extensions\VatOnOrder\VatOnOrder $VatOnOrder */
             if ($VatOnOrder = \common\helpers\Acl::checkExtensionAllowed('VatOnOrder', 'allowed')) {
-              try {
-                $attributes['address_book_id'] = $aBook->address_book_id;
-                $check = $VatOnOrder::check_vat_status($attributes); // updates entry_company_vat_status
-                if ($check>1) {
-                  $aBook->entry_company_vat_status = $check;
+                try {
+                    $attributes['address_book_id'] = $aBook->address_book_id;
+                    $check = $VatOnOrder::check_vat_status($attributes); // updates entry_company_vat_status
+                    if ($check > 1) {
+                        $aBook->entry_company_vat_status = $check;
+                    }
+                } catch (\Exception $ex) {
+                    \Yii::error($ex->getMessage());
                 }
-              } catch (\Exception $ex) {
-                \Yii::error($ex->getMessage());
-              }
             }
         } else {
             return $this->addAddress($attributes);
@@ -888,25 +931,27 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         return $aBook;
     }
 
-    public function removeAddress($abId){
-        if ($this->customers_id){
-            $aBook = \common\models\AddressBook::findOne(['address_book_id' => $abId, 'customers_id' =>$this->customers_id]);
-            if ($aBook){
+    public function removeAddress($abId)
+    {
+        if ($this->customers_id) {
+            $aBook = \common\models\AddressBook::findOne(['address_book_id' => $abId, 'customers_id' => $this->customers_id]);
+            if ($aBook) {
                 $aBook->delete();
             }
         }
         return false;
     }
 
-    public function addCustomersInfo() {
+    public function addCustomersInfo()
+    {
         $cInfo = null;
-        if ($this->customers_id){
+        if ($this->customers_id) {
             $cInfo = models\CustomersInfo::findOne(['customers_info_id' => $this->customers_id]);
-            if (!$cInfo){
+            if (!$cInfo) {
                 $cInfo = new models\CustomersInfo();
                 $cInfo->setAttributes([
                     'customers_info_id' => $this->customers_id,
-                    'customers_info_number_of_logons' => 0
+                    'customers_info_number_of_logons' => 0,
                 ], false);
             }
             $cInfo->save(false);
@@ -914,19 +959,20 @@ class Customer  extends \common\models\Customers implements \yii\web\IdentityInt
         return $cInfo;
     }
 
-    public function sendCongratulation($login = false){
-        if ($this->customers_id){
+    public function sendCongratulation($login = false)
+    {
+        if ($this->customers_id) {
             $name = $this->customers_firstname . ' ' . $this->customers_lastname;
 
             if ($this->customers_gender == 'm') {
-                $user_greeting = sprintf(EMAIL_GREET_MR,  $this->customers_lastname);
+                $user_greeting = sprintf(EMAIL_GREET_MR, $this->customers_lastname);
             } elseif ($this->customers_gender == 'f' || $this->customers_gender == 's') {
-                $user_greeting = sprintf(EMAIL_GREET_MS,  $this->customers_lastname);
+                $user_greeting = sprintf(EMAIL_GREET_MS, $this->customers_lastname);
             } else {
                 $user_greeting = sprintf(EMAIL_GREET_NONE, $this->customers_firstname);
             }
 
-            $email_params = array();
+            $email_params = [];
             $email_params['STORE_NAME'] = STORE_NAME;
             $email_params['USER_GREETING'] = trim($user_greeting);
             $email_params['CUSTOMER_FIRSTNAME'] = $this->customers_firstname;

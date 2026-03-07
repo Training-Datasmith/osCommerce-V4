@@ -1,7 +1,8 @@
 <?php
 
-namespace PayPalCheckoutSdk\Core;
+declare(strict_types=1);
 
+namespace PayPalCheckoutSdk\Core;
 
 class AccessToken
 {
@@ -10,7 +11,7 @@ class AccessToken
     public $expiresIn;
     private $createDate;
 
-    public function __construct($token, $tokenType, $expiresIn, $tokenCreateTime=null)
+    public function __construct($token, $tokenType, $expiresIn, $tokenCreateTime = null)
     {
         $this->token = $token;
         $this->tokenType = $tokenType;
@@ -28,7 +29,8 @@ class AccessToken
         return time() >= $this->createDate + $this->expiresIn;
     }
 
-    public function getCreateDate() {
+    public function getCreateDate()
+    {
         return $this->createDate;
     }
 }

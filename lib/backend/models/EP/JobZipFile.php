@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,17 +14,14 @@
 
 namespace backend\models\EP;
 
-use Yii;
-use backend\models\EP\Providers;
 use yii\helpers\FileHelper;
 
 class JobZipFile extends JobFile
 {
-
     public function delete()
     {
         $file = $this->getFileSystemName();
-        $extractDir = dirname($file).'/'.pathinfo($this->file_name,PATHINFO_FILENAME).'/';
+        $extractDir = dirname($file).'/'.pathinfo($this->file_name, PATHINFO_FILENAME).'/';
         Directory::findById($this->directory_id);
         FileHelper::removeDirectory($extractDir);
 
@@ -43,20 +42,22 @@ class JobZipFile extends JobFile
     {
         $result = [];
         $fileSystemName = $this->getFileSystemName();
-        if ( preg_match('/\.zip$/i',$this->file_name ) ){
+        if (preg_match('/\.zip$/i', $this->file_name)) {
             $reader = new Reader\ZIP([
                 'filename' => $fileSystemName,
             ]);
 
-            while($fileInfo = $reader->read()){
-                if ( preg_match('/\.(csv|txt)$/i', $fileInfo['filename'] ) ){
+            while ($fileInfo = $reader->read()) {
+                if (preg_match('/\.(csv|txt)$/i', $fileInfo['filename'])) {
                     $fileSystemName = tempnam(sys_get_temp_dir(), 'ep_test_archived_feed');
-                    $writeStream = fopen($fileSystemName,'wb');
+                    $writeStream = fopen($fileSystemName, 'wb');
                     $limitExtractBlock = 16; // extract only 256k
-                    while( $data = fread($fileInfo['stream'],16*1024) ) {
+                    while ($data = fread($fileInfo['stream'], 16 * 1024)) {
                         fwrite($writeStream, $data);
                         $limitExtractBlock--;
-                        if ( $limitExtractBlock<=0 ) break;
+                        if ($limitExtractBlock <= 0) {
+                            break;
+                        }
                     }
                     fclose($writeStream);
 
@@ -69,16 +70,18 @@ class JobZipFile extends JobFile
                     $result[$fileInfo['filename']] = [
                         'columns' => $fileColumns,
                     ];
-                }elseif( preg_match('/\.(xml)$/i', $fileInfo['filename'] ) ){
+                } elseif (preg_match('/\.(xml)$/i', $fileInfo['filename'])) {
                     $fileSystemName = tempnam(sys_get_temp_dir(), 'ep_test_archived_feed');
                     //$writeStream = fopen($fileSystemName,'wb');
                     $headChunk = '';
                     $limitExtractBlock = 16; // extract only 256k
-                    while( $data = fread($fileInfo['stream'],16*1024) ) {
+                    while ($data = fread($fileInfo['stream'], 16 * 1024)) {
                         //fwrite($writeStream, $data);
                         $headChunk .= $data;
                         $limitExtractBlock--;
-                        if ( $limitExtractBlock<=0 ) break;
+                        if ($limitExtractBlock <= 0) {
+                            break;
+                        }
                     }
                     //fclose($writeStream);
                     $result[$fileInfo['filename']] = [
@@ -92,14 +95,14 @@ class JobZipFile extends JobFile
         return $result;
     }
 
-    public function tryAutoConfigure($selectedProvider='')
+    public function tryAutoConfigure($selectedProvider = '')
     {
         $detectedProviders = [];
-        if ( empty($this->job_provider) || $this->job_provider=='auto' ) {
+        if (empty($this->job_provider) || $this->job_provider == 'auto') {
             $providers = new Providers();
 
-            $possibleXml = $providers->getAvailableProviders('Import', function ($providerKey, $providerInfo) use($selectedProvider) {
-                if ((empty($selectedProvider) || $selectedProvider==$providerKey) && isset($providerInfo['export']) && isset($providerInfo['export']['allow_format'])) {
+            $possibleXml = $providers->getAvailableProviders('Import', function ($providerKey, $providerInfo) use ($selectedProvider) {
+                if ((empty($selectedProvider) || $selectedProvider == $providerKey) && isset($providerInfo['export']) && isset($providerInfo['export']['allow_format'])) {
                     return count(preg_grep('/xml/i', $providerInfo['export']['allow_format'])) > 0;
                 }
                 return false;
@@ -117,15 +120,15 @@ class JobZipFile extends JobFile
 
             $containerProviderType = [];
 
-            if ( isset($archivedFileColumns['process_sequence.csv']) ) {
+            if (isset($archivedFileColumns['process_sequence.csv'])) {
                 $reader = new Reader\ZIP([
                     'filename' => $this->getFileSystemName(),
                 ]);
-                while($fileInfo = $reader->read()){
-                    if ($fileInfo['filename']=='process_sequence.csv'){
+                while ($fileInfo = $reader->read()) {
+                    if ($fileInfo['filename'] == 'process_sequence.csv') {
                         $fileSystemName = tempnam(sys_get_temp_dir(), 'ep_test_archived_feed');
-                        $writeStream = fopen($fileSystemName,'wb');
-                        while( $data = fread($fileInfo['stream'],16*1024) ) {
+                        $writeStream = fopen($fileSystemName, 'wb');
+                        while ($data = fread($fileInfo['stream'], 16 * 1024)) {
                             fwrite($writeStream, $data);
                         }
                         fclose($writeStream);
@@ -133,8 +136,8 @@ class JobZipFile extends JobFile
                         $nestedReader = new Reader\CSV([
                             'filename' => $fileSystemName,
                         ]);
-                        while($feedData = $nestedReader->read()){
-                            if ( !empty($feedData['Feed Type']) ) {
+                        while ($feedData = $nestedReader->read()) {
+                            if (!empty($feedData['Feed Type'])) {
                                 $containerProviderType[$feedData['Feed Process Queue']] = $feedData['Feed Type'];
                             }
                         }
@@ -154,15 +157,15 @@ class JobZipFile extends JobFile
                         $possibleProviders = $providers->bestMatch($fileColumns);
                         reset($possibleProviders);
                         $__fileProviderList = array_keys($possibleProviders);
-                        if ( count($__fileProviderList)>0 ) {
-                            if ( $job_provider != 'product\catalog' ) {
+                        if (count($__fileProviderList) > 0) {
+                            if ($job_provider != 'product\catalog') {
                                 $job_provider = $__fileProviderList[0];
-                                if ( isset($containerProviderType[$archivedFile]) && !empty($containerProviderType[$archivedFile]) ) {
-                                    if ( array_search($containerProviderType[$archivedFile],$__fileProviderList)!==false ) {
+                                if (isset($containerProviderType[$archivedFile]) && !empty($containerProviderType[$archivedFile])) {
+                                    if (array_search($containerProviderType[$archivedFile], $__fileProviderList) !== false) {
                                         $job_provider = $containerProviderType[$archivedFile];
                                     }
                                 }
-                            }else{
+                            } else {
                                 continue;
                             }
                             $job_configure['containerFilesSetting'][$archivedFile] = [
@@ -179,7 +182,7 @@ class JobZipFile extends JobFile
                             $fullAutoConfigure = false;
                         }
                     }
-                }elseif ( preg_match('/\.(xml)$/i', $archivedFile) ) {
+                } elseif (preg_match('/\.(xml)$/i', $archivedFile)) {
                     $shCut = $fileInfo['headChunk'];
                     $header = false;
                     if ($shCut && ($h0 = stripos($shCut, '<header>')) !== false && ($h1 = stripos($shCut, '</header>')) !== false && $h1 > $h0) {
@@ -190,12 +193,14 @@ class JobZipFile extends JobFile
                     if (is_array($header) && count($header) > 0) {
                         foreach ($possibleXml as $possibleProviderInfo) {
                             $providerObj = $providers->getProviderInstance($possibleProviderInfo['key']);
-                            if (!method_exists($providerObj, 'exchangeXml')) continue;
+                            if (!method_exists($providerObj, 'exchangeXml')) {
+                                continue;
+                            }
                             $feedSettings = [];
                             foreach ($providerObj->exchangeXml() as $versionInfo) {
                                 if (isset($versionInfo['Header']) && $versionInfo['Header']['type'] == $header['type']) {
                                     $xmlReader = preg_grep('/xml/i', $possibleProviderInfo['export']['allow_format']);
-                                    if ( isset($header['projectCode']) ) {
+                                    if (isset($header['projectCode'])) {
                                         $versionInfo['projectCode'] = $header['projectCode'];
                                     }
                                     $feedSettings['job_configure'] = [];
@@ -205,7 +210,7 @@ class JobZipFile extends JobFile
                                     $feedSettings['job_provider'] = $possibleProviderInfo['key'];
                                     $detectedProviders[] = $feedSettings['job_provider'];
                                     break;
-                                }elseif (isset($versionInfo['header']) && $versionInfo['header'] == $header) {
+                                } elseif (isset($versionInfo['header']) && $versionInfo['header'] == $header) {
                                     $xmlReader = preg_grep('/xml/i', $possibleProviderInfo['export']['allow_format']);
                                     $feedSettings['job_configure'] = [];
                                     $feedSettings['job_configure']['import'] = $versionInfo;
@@ -216,12 +221,12 @@ class JobZipFile extends JobFile
                                     break;
                                 }
                             }
-                            if ( count($feedSettings)>0 ) {
+                            if (count($feedSettings) > 0) {
                                 $job_configure['containerFilesSetting'][$archivedFile] = $feedSettings;
                             }
                         }
                     }
-                    if ( count($detectedProviders)>0 ) {
+                    if (count($detectedProviders) > 0) {
                         $job_provider = current($detectedProviders);
                     }
                 }
@@ -233,7 +238,7 @@ class JobZipFile extends JobFile
                 $this->job_configure = $job_configure;
                 if ($this->job_id) {
                     tep_db_query(
-                        "UPDATE " . TABLE_EP_JOB . " " .
+                        'UPDATE ' . TABLE_EP_JOB . ' ' .
                         "SET job_state='" . tep_db_input($this->job_state) . "', job_provider='" . tep_db_input($this->job_provider) . "', " .
                         " job_configure='".tep_db_input(json_encode($this->job_configure))."' ".
                         "WHERE job_id='" . $this->job_id . "' "
@@ -244,7 +249,7 @@ class JobZipFile extends JobFile
         if ($this->job_state != self::STATE_CONFIGURED) {
             $this->job_state = self::STATE_CONFIGURED;
             tep_db_query(
-                "UPDATE " . TABLE_EP_JOB . " " .
+                'UPDATE ' . TABLE_EP_JOB . ' ' .
                 "SET job_state='" . tep_db_input($this->job_state) . "' " .
                 "WHERE job_id='" . $this->job_id . "' "
             );
@@ -262,9 +267,9 @@ class JobZipFile extends JobFile
     public function runZip(Messages $messages)
     {
         $file = $this->getFileSystemName();
-        $extractDir = dirname($file).'/'.pathinfo($this->file_name,PATHINFO_FILENAME).'/';
+        $extractDir = dirname($file).'/'.pathinfo($this->file_name, PATHINFO_FILENAME).'/';
 
-        FileHelper::createDirectory($extractDir,0777);
+        FileHelper::createDirectory($extractDir, 0777);
 
         $zip = new \ZipArchive();
         $zip->open($file);
@@ -273,13 +278,15 @@ class JobZipFile extends JobFile
             $filename = $zip->getNameIndex($i);
             $stream = $zip->getStream($filename);
             $extractFilename = $extractDir.$filename;
-            if ( !is_dir(dirname($extractFilename)) ) {
-                FileHelper::createDirectory(dirname($extractFilename),0777, true);
+            if (!is_dir(dirname($extractFilename))) {
+                FileHelper::createDirectory(dirname($extractFilename), 0777, true);
             }
-            if ( preg_match('#[/|\\\]$#',$filename) ) continue; // skip directory
+            if (preg_match('#[/|\\\]$#', $filename)) {
+                continue;
+            } // skip directory
 
-            $writeStream = fopen($extractFilename,'wb');
-            while( $data = fread($stream,16*1024) ) {
+            $writeStream = fopen($extractFilename, 'wb');
+            while ($data = fread($stream, 16 * 1024)) {
                 fwrite($writeStream, $data);
             }
             fclose($stream);
@@ -291,12 +298,12 @@ class JobZipFile extends JobFile
 
         $this->getDirectory()->synchronizeDirectories(false);
 
-        if ( $this->job_provider!='' && $this->job_provider!='auto' ) {
+        if ($this->job_provider != '' && $this->job_provider != 'auto') {
             /**
              * @var $processSubDir Directory
              */
             $processSubDir = false;
-            foreach( $this->getDirectory()->getSubdirectories(false) as $subDir ){
+            foreach ($this->getDirectory()->getSubdirectories(false) as $subDir) {
                 if ($subDir->directory == basename($extractDir)) {
                     $processSubDir = $subDir;
                     break;
@@ -305,22 +312,24 @@ class JobZipFile extends JobFile
 
             $providers = new \backend\models\EP\Providers();
 
-            if ( $processSubDir ) {
+            if ($processSubDir) {
                 $messages->setEpFileId($this->job_id);
                 $messages->command('start_import');
                 // {{ patch auto configured
-                if ( is_array($this->job_configure) && isset($this->job_configure['containerFilesSetting']) ) {
-                    foreach( $this->job_configure['containerFilesSetting'] as $subfilename=>$file_configure ) {
-                        if ( empty($file_configure['job_provider']) ) continue;
+                if (is_array($this->job_configure) && isset($this->job_configure['containerFilesSetting'])) {
+                    foreach ($this->job_configure['containerFilesSetting'] as $subfilename => $file_configure) {
+                        if (empty($file_configure['job_provider'])) {
+                            continue;
+                        }
                         $subJob_record = $processSubDir->findJobByFilename($subfilename);
-                        if ( $subJob_record ) {
+                        if ($subJob_record) {
                             $subJob_record->job_provider = $file_configure['job_provider'];
-                            if ( $file_configure['remap_columns'] ?? null) {
+                            if ($file_configure['remap_columns'] ?? null) {
                                 $subJob_record->job_configure['remap_columns'] = $file_configure['remap_columns'];
                             }
 
                             tep_db_query(
-                                "UPDATE ".TABLE_EP_JOB." ".
+                                'UPDATE '.TABLE_EP_JOB.' '.
                                 "SET job_provider='".tep_db_input($subJob_record->job_provider)."', ".
                                 " job_configure='".tep_db_input(json_encode($subJob_record->job_configure))."' ".
                                 "WHERE job_id='".$subJob_record->job_id."'"
@@ -333,22 +342,24 @@ class JobZipFile extends JobFile
                 $providerObj = $providers->getProviderInstance($this->job_provider);
 
                 $job_record = $processSubDir->findJobByFilename('process_sequence.csv');
-                if ( $job_record ) {
+                if ($job_record) {
                     $job_record->job_provider = 'product\catalog';
                     $messages->info('<b>Process "'.$job_record->file_name.'"</b>');
                     try {
                         $job_record->run($messages);
-                    }catch (\Exception $ex){
+                    } catch (\Exception $ex) {
                         $messages->info($ex->getMessage());
                         \Yii::error($ex->getMessage().(YII_DEBUG ? "\n".$ex->getTraceAsString() : ''));
                     }
-                }else{
+                } else {
                     foreach ($processSubDir->getJobs() as $directoryJob) {
-                        $messages->command('persist_messages',true);
+                        $messages->command('persist_messages', true);
                         /**
                          * @var $directoryJob Job
                          */
-                        if ( $directoryJob->job_provider=='' || $directoryJob->job_provider=='auto' ) continue;
+                        if ($directoryJob->job_provider == '' || $directoryJob->job_provider == 'auto') {
+                            continue;
+                        }
                         $messages->info('<b>Process "' . $directoryJob->file_name . '"</b>');
                         try {
                             $directoryJob->run($messages);
@@ -357,7 +368,7 @@ class JobZipFile extends JobFile
                             \Yii::error($ex->getMessage().(YII_DEBUG ? "\n".$ex->getTraceAsString() : ''));
                         }
                     }
-                    $messages->command('persist_messages',false);
+                    $messages->command('persist_messages', false);
                 }
 
                 FileHelper::removeDirectory($extractDir);

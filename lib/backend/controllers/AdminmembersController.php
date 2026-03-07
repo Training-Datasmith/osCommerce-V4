@@ -12,50 +12,52 @@
 
 namespace backend\controllers;
 
-class AdminmembersController extends Sceleton {
-
+class AdminmembersController extends Sceleton
+{
     public $acl = ['BOX_HEADING_ADMINISTRATOR', 'BOX_ADMINISTRATOR_MEMBERS'];
 
-    public function actionIndex() {
-        $this->selectedMenu = array('administrator', 'adminmembers');
-        $this->navigation[] = array('link' => \Yii::$app->urlManager->createUrl('adminmembers/index'), 'title' => HEADING_TITLE);
+    public function actionIndex()
+    {
+        $this->selectedMenu = ['administrator', 'adminmembers'];
+        $this->navigation[] = ['link' => \Yii::$app->urlManager->createUrl('adminmembers/index'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
         $this->topButtons[] = '<a href="' . \Yii::$app->urlManager->createUrl(['adminmembers/adminedit']) . '" class="btn btn-primary">' . IMAGE_INSERT . '</a>';
-        $this->view->adminTable = array(
-            array(
+        $this->view->adminTable = [
+            [
                 'title' => TABLE_HEADING_NAME,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => TABLE_HEADING_EMAIL,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => TABLE_HEADING_GROUPS,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => TABLE_HEADING_LOGNUM,
-                'not_important' => 1
-            ),
-        );
+                'not_important' => 1,
+            ],
+        ];
 
         $this->view->filters = new \stdClass();
         $this->view->filters->row = (int)\Yii::$app->request->get('row', 0);
 
         $access_array = [];
         $access_array[0] = TEXT_ALL;
-        $access_query = tep_db_query("select * from " . TABLE_ACCESS_LEVELS . " order by access_levels_id ");
+        $access_query = tep_db_query('select * from ' . TABLE_ACCESS_LEVELS . ' order by access_levels_id ');
         while ($access = tep_db_fetch_array($access_query)) {
             $access_array[$access['access_levels_id']] = $access['access_levels_name'];
         }
 
-        $this->view->filterStatusTypes = \yii\helpers\Html::dropDownList('aclID', (int)\Yii::$app->request->get('aclID', 0), $access_array, ['class'=>'form-control']);
+        $this->view->filterStatusTypes = \yii\helpers\Html::dropDownList('aclID', (int)\Yii::$app->request->get('aclID', 0), $access_array, ['class' => 'form-control']);
 
         return $this->render('index');
     }
 
-    public function actionMemberlist() {
+    public function actionMemberlist()
+    {
 
         \common\helpers\Translation::init('admin/adminmembers');
 
@@ -66,21 +68,21 @@ class AdminmembersController extends Sceleton {
         $search = '';
         if (isset($_GET['search']) && tep_not_null($_GET['search'])) {
             $keywords = tep_db_input(tep_db_prepare_input($_GET['search']['value']));
-            $search_keywords = explode(" ", $keywords);
+            $search_keywords = explode(' ', $keywords);
             if (is_array($search_keywords) && count($search_keywords) > 1) {
-                $search_condition = " where 1";
+                $search_condition = ' where 1';
                 foreach ($search_keywords as $key => $keyword) {
-                    $search_condition .= " and (";
+                    $search_condition .= ' and (';
                     $search_condition .= " a.admin_firstname like '%" . tep_db_input($keyword) . "%' ";
                     $search_condition .= " or a.admin_lastname like '%" . tep_db_input($keyword) . "%' ";
                     $search_condition .= " or a.admin_email_address like '%" . tep_db_input($keyword) . "%' ";
-                    $search_condition .= ") ";
+                    $search_condition .= ') ';
                 }
             } else {
                 $search_condition = " where (a.admin_firstname like '%" . $keywords . "%' or a.admin_lastname like '%" . $keywords . "%' or a.admin_email_address like '%" . $keywords . "%')";
             }
         } else {
-            $search_condition = " where 1 ";
+            $search_condition = ' where 1 ';
         }
 
         $formFilter = \Yii::$app->request->get('filter');
@@ -99,28 +101,28 @@ class AdminmembersController extends Sceleton {
         if (isset($_GET['order'][0]['column']) && $_GET['order'][0]['dir']) {
             switch ($_GET['order'][0]['column']) {
                 case 0:
-                    $orderBy = "a.admin_firstname " . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
+                    $orderBy = 'a.admin_firstname ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
                     break;
                 case 1:
-                    $orderBy = "a.admin_email_address " . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
+                    $orderBy = 'a.admin_email_address ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
                     break;
                 case 2:
-                    $orderBy = "al.access_levels_name " . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
+                    $orderBy = 'al.access_levels_name ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
                     break;
                 case 3:
-                    $orderBy = "a.admin_lognum " . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
+                    $orderBy = 'a.admin_lognum ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
                     break;
                 default:
-                    $orderBy = "a.admin_lastname, a.admin_firstname";
+                    $orderBy = 'a.admin_lastname, a.admin_firstname';
                     break;
             }
         } else {
-            $orderBy = "a.admin_firstname, a.admin_lastname";
+            $orderBy = 'a.admin_firstname, a.admin_lastname';
         }
 
-        $db_admin_query_raw = "select a.*, al.access_levels_name
-                            from " . TABLE_ADMIN . " a
-                            left join " . TABLE_ACCESS_LEVELS . " al ON a.access_levels_id = al.access_levels_id
+        $db_admin_query_raw = 'select a.*, al.access_levels_name
+                            from ' . TABLE_ADMIN . ' a
+                            left join ' . TABLE_ACCESS_LEVELS . " al ON a.access_levels_id = al.access_levels_id
                             $search_condition
                             order by $orderBy";
         $current_page_number = ($start / $length) + 1;
@@ -130,46 +132,47 @@ class AdminmembersController extends Sceleton {
         $db_admin_query = tep_db_query($db_admin_query_raw);
 
         $recordsTotal = $recordsFiltered = 0;
-        $responseList = array();
+        $responseList = [];
         while ($admin = tep_db_fetch_array($db_admin_query)) {
             $disabledAdmin = '';
             if ($admin['login_failture'] > 2) {
                 $disabledAdmin = 'dis_module';
             }
-            $responseList[] = array(
-                '<div class="' . $disabledAdmin . '">' . $admin['admin_firstname'] . " " . $admin['admin_lastname'] . '<input class="cell_identify" type="hidden" value="' . $admin['admin_id'] . '">' . '</div>',
+            $responseList[] = [
+                '<div class="' . $disabledAdmin . '">' . $admin['admin_firstname'] . ' ' . $admin['admin_lastname'] . '<input class="cell_identify" type="hidden" value="' . $admin['admin_id'] . '">' . '</div>',
                 '<div class="' . $disabledAdmin . '">' . $admin['admin_email_address'] . '</div>',
                 '<div class="' . $disabledAdmin . '">' . $admin['access_levels_name'] . (empty($admin['admin_persmissions']) ? '' : ' (' . TEXT_MANUALLY_UPDATED . ')') . '</div>',
                 '<div class="' . $disabledAdmin . '">' . $admin['admin_lognum'] . '</div>',
-            );
+            ];
         }
 
-        $_response = array(
+        $_response = [
             'draw' => $draw,
             'recordsTotal' => $db_admin_query_numrows,
             'recordsFiltered' => $db_admin_query_numrows,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         echo json_encode($_response, JSON_PARTIAL_OUTPUT_ON_ERROR);
     }
 
-    function actionAdminmembersactions() {
+    public function actionAdminmembersactions()
+    {
         \common\helpers\Translation::init('admin/adminmembers');
 
         $this->layout = false;
 
         $admin_id = \Yii::$app->request->post('admin_id');
 
-        $query = tep_db_query("
+        $query = tep_db_query('
           select distinct(a.admin_id), a.*, al.access_levels_name
-          from " . TABLE_ADMIN . " a
-          left join " . TABLE_ACCESS_LEVELS . " al ON a.access_levels_id = al.access_levels_id
+          from ' . TABLE_ADMIN . ' a
+          left join ' . TABLE_ACCESS_LEVELS . " al ON a.access_levels_id = al.access_levels_id
           where a.admin_id = '" . (int) $admin_id . "'");
 
         $admins = tep_db_fetch_array($query);
 
         if (!is_array($admins)) {
-            die("Wrong data.");
+            die('Wrong data.');
         }
 
         $mInfo = new \objectInfo($admins);
@@ -221,13 +224,12 @@ class AdminmembersController extends Sceleton {
         }
 
         echo '<a class="btn btn-primary btn-process-order" href="' . \Yii::$app->urlManager->createUrl(['adminmembers/admin-login-view', 'admin_id' => $mInfo->admin_id]) . '">' . TEXT_ADMIN_LOGIN_VIEW . '</a>';
-        echo '<a class="btn btn-danger btn-process-order active" href="' . \Yii::$app->urlManager->createUrl(['adminmembers/admin-login-view', 'type' => 'invalid', 'admin_id' => $mInfo->admin_id]) . '">' . (defined('TEXT_ADMIN_LOGIN_VIEW_INVALID')? TEXT_ADMIN_LOGIN_VIEW_INVALID : ''). '</a>';
+        echo '<a class="btn btn-danger btn-process-order active" href="' . \Yii::$app->urlManager->createUrl(['adminmembers/admin-login-view', 'type' => 'invalid', 'admin_id' => $mInfo->admin_id]) . '">' . (defined('TEXT_ADMIN_LOGIN_VIEW_INVALID') ? TEXT_ADMIN_LOGIN_VIEW_INVALID : ''). '</a>';
         echo '<a class="btn btn-primary btn-process-order" href="' . \Yii::$app->urlManager->createUrl(['adminmembers/admin-device-view', 'admin_id' => $mInfo->admin_id]) . '">' . TEXT_ADMIN_DEVICE_VIEW . '</a>';
         echo '<a class="btn btn-primary btn-process-order" href="' . \Yii::$app->urlManager->createUrl(['adminmembers/admin-session-view', 'admin_id' => $mInfo->admin_id]) . '">' . TEXT_ADMIN_SESSION_VIEW . '</a>';
         echo '<a class="btn btn-primary btn-process-order" href="' . \Yii::$app->urlManager->createUrl(['adminmembers/admin-login-session-view', 'admin_id' => $mInfo->admin_id]) . '">' . TEXT_ADMIN_LOGIN_SESSION_VIEW . '</a>';
         echo '</div>';
 
-       
         \common\helpers\Translation::init('admin/customers');
         $titleDataPattern = sprintf(ENTRY_PASSWORD_ERROR, ADMIN_PASSWORD_MIN_LENGTH);
         $passDataPattern = '.{' . ADMIN_PASSWORD_MIN_LENGTH . '}';
@@ -246,51 +248,55 @@ class AdminmembersController extends Sceleton {
                             $(document).ready(function() {
                             $("a.popup").popUp();
                             $(".btn-pass-cus").on("click", function(){
-                                alertMessage("<div class=\"popup-heading popup-heading-pass\">' . TEXT_UPDATE_PASSWORD_FOR. ' '.$mInfo->admin_firstname.'&nbsp;'.$mInfo->admin_lastname.'</div><div class=\"popup-content\"><form name=\"passw_form\" id=\"passw_form\" action=\"' . tep_href_link('adminmembers', \common\helpers\Output::get_all_get_params(array('admin_id', 'action')) . 'admin_id=' . $mInfo->admin_id . '&action=password') . '\" method=\"post\"><table cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"><tr><td class=\"dataTableContent\"><a href=\"#\" class=\"generate_password\">'.TEXT_GENERATE_PASSWORD.'</a></td></tr><tr><td class=\"dataTableContent\">'.T_NEW_PASS.':</td><td class=\"dataTableContent\"><input type=\"password\" data-required=\"'.$titleDataPattern.'\" data-pattern=\"'.$passDataPattern.'\" name=\"change_pass\" class=\"form-control\"></td></tr></table><div class=\"btn-bar\" style=\"padding-bottom: 0;\"><div class=\"btn-left\"><span class=\"btn btn-cancel\">' . IMAGE_CANCEL . '</span></div><div class=\"btn-right\"><input type=\"submit\" value=\"' . IMAGE_UPDATE. '\" class=\"btn btn-primary\"></div></div><input type=\"hidden\" name=\"admin_id\" value=\"'.$mInfo->admin_id.'\"></form></div>");
+                                alertMessage("<div class=\"popup-heading popup-heading-pass\">' . TEXT_UPDATE_PASSWORD_FOR. ' '.$mInfo->admin_firstname.'&nbsp;'.$mInfo->admin_lastname.'</div><div class=\"popup-content\"><form name=\"passw_form\" id=\"passw_form\" action=\"' . tep_href_link('adminmembers', \common\helpers\Output::get_all_get_params(['admin_id', 'action']) . 'admin_id=' . $mInfo->admin_id . '&action=password') . '\" method=\"post\"><table cellspacing=\"0\" cellpadding=\"0\" width=\"100%\"><tr><td class=\"dataTableContent\"><a href=\"#\" class=\"generate_password\">'.TEXT_GENERATE_PASSWORD.'</a></td></tr><tr><td class=\"dataTableContent\">'.T_NEW_PASS.':</td><td class=\"dataTableContent\"><input type=\"password\" data-required=\"'.$titleDataPattern.'\" data-pattern=\"'.$passDataPattern.'\" name=\"change_pass\" class=\"form-control\"></td></tr></table><div class=\"btn-bar\" style=\"padding-bottom: 0;\"><div class=\"btn-left\"><span class=\"btn btn-cancel\">' . IMAGE_CANCEL . '</span></div><div class=\"btn-right\"><input type=\"submit\" value=\"' . IMAGE_UPDATE. '\" class=\"btn btn-primary\"></div></div><input type=\"hidden\" name=\"admin_id\" value=\"'.$mInfo->admin_id.'\"></form></div>");
                                 passFormAfretShow();
                             });
                             });
                             </script>
                             </div>';
-        
+
     }
 
-    function actionAssignPlatforms() {
+    public function actionAssignPlatforms()
+    {
         \common\helpers\Translation::init('admin/adminmembers');
 
         $admin_id = (int)\Yii::$app->request->get('admin_id');
-        if ($admin_id==0) {
-          return $this->redirect(\Yii::$app->urlManager->createUrl(['adminmembers']));
+        if ($admin_id == 0) {
+            return $this->redirect(\Yii::$app->urlManager->createUrl(['adminmembers']));
         }
 
         $this->topButtons[] = '<span class="btn btn-confirm" onclick="$(\'#save_item_form\').trigger(\'submit\')">' . IMAGE_SAVE . '</span>';
 
         $assigned_platforms = \yii\helpers\ArrayHelper::map(
             \common\models\AdminPlatforms::find()->select(['platform_id'])->where(['admin_id' => $admin_id])->asArray()->all(),
-            'platform_id','platform_id'
+            'platform_id',
+            'platform_id'
         );
         return $this->render('assign-platforms', [
             'admin_id' => $admin_id,
             'assigned_platforms' => $assigned_platforms,
-            'platforms' => \common\classes\platform::getList(true,true),
+            'platforms' => \common\classes\platform::getList(true, true),
         ]);
 
     }
 
-    function actionAssignWarehouses() {
+    public function actionAssignWarehouses()
+    {
         \common\helpers\Translation::init('admin/adminmembers');
         $this->layout = false;
         $admin_id = (int)\Yii::$app->request->post('admin_id');
 
         $assigned_warehouses = \yii\helpers\ArrayHelper::map(
             \common\models\AdminWarehouses::find()->select(['warehouse_id'])->where(['admin_id' => $admin_id])->asArray()->all(),
-            'warehouse_id','warehouse_id'
+            'warehouse_id',
+            'warehouse_id'
         );
 
-        echo tep_draw_form('admin', 'adminmembers', \common\helpers\Output::get_all_get_params(array('action')) . 'action=update', 'post', 'id="admin_edit" onSubmit="return check_form();"');
+        echo tep_draw_form('admin', 'adminmembers', \common\helpers\Output::get_all_get_params(['action']) . 'action=update', 'post', 'id="admin_edit" onSubmit="return check_form();"');
         echo '<div class="or_box_head">' . BOX_CATALOG_WAREHOUSES . '</div>';
 
-        foreach (\common\helpers\Warehouses::get_warehouses(true) as $info){
+        foreach (\common\helpers\Warehouses::get_warehouses(true) as $info) {
             echo '<div class="row_fields">';
             echo tep_draw_checkbox_field('warehouse_id[]', $info['id'], isset($assigned_warehouses[$info['id']])) . '<span>' . $info['text'] . '</span>';
             echo '</div>';
@@ -306,20 +312,22 @@ class AdminmembersController extends Sceleton {
         echo '</form>';
     }
 
-    function actionAssignSuppliers() {
+    public function actionAssignSuppliers()
+    {
         \common\helpers\Translation::init('admin/adminmembers');
         $this->layout = false;
         $admin_id = (int)\Yii::$app->request->post('admin_id');
 
         $assigned_suppliers = \yii\helpers\ArrayHelper::map(
             \common\models\AdminSuppliers::find()->select(['suppliers_id'])->where(['admin_id' => $admin_id])->asArray()->all(),
-            'suppliers_id','suppliers_id'
+            'suppliers_id',
+            'suppliers_id'
         );
 
-        echo tep_draw_form('admin', 'adminmembers', \common\helpers\Output::get_all_get_params(array('action')) . 'action=update', 'post', 'id="admin_edit" onSubmit="return check_form();"');
+        echo tep_draw_form('admin', 'adminmembers', \common\helpers\Output::get_all_get_params(['action']) . 'action=update', 'post', 'id="admin_edit" onSubmit="return check_form();"');
         echo '<div class="or_box_head">' . BOX_CATALOG_SUPPIERS . '</div>';
 
-        foreach (\common\helpers\Suppliers::getSuppliers(true) as $info){
+        foreach (\common\helpers\Suppliers::getSuppliers(true) as $info) {
             echo '<div class="row_fields">';
             echo tep_draw_checkbox_field('suppliers_id[]', $info['suppliers_id'], isset($assigned_suppliers[$info['suppliers_id']])) . '<span>' . $info['suppliers_name'] . '</span>';
             echo '</div>';
@@ -335,7 +343,8 @@ class AdminmembersController extends Sceleton {
         echo '</form>';
     }
 
-    function actionAdminedit() {
+    public function actionAdminedit()
+    {
         \common\helpers\Translation::init('admin/adminmembers');
 
         //$this->layout = false;
@@ -344,14 +353,15 @@ class AdminmembersController extends Sceleton {
 
         $admin_id = (int)\Yii::$app->request->get('admin_id', 0);
 
-        $query = tep_db_query("select * from " . TABLE_ADMIN . " where admin_id = $admin_id; ");
-        if ($admin = tep_db_fetch_array($query))
+        $query = tep_db_query('select * from ' . TABLE_ADMIN . " where admin_id = $admin_id; ");
+        if ($admin = tep_db_fetch_array($query)) {
             $mInfo = new \objectInfo($admin);
+        }
 
         $this->topButtons[] = '<span class="btn btn-confirm" onclick="$(\'#admin_edit\').trigger(\'submit\')">' . IMAGE_UPDATE . '</span>';
 
         $access_array = [];
-        $access_query = tep_db_query("select * from " . TABLE_ACCESS_LEVELS . " order by sort_order, access_levels_name ");
+        $access_query = tep_db_query('select * from ' . TABLE_ACCESS_LEVELS . ' order by sort_order, access_levels_name ');
         while ($access = tep_db_fetch_array($access_query)) {
             $access_array[] = [
                 'id' => $access['access_levels_id'],
@@ -361,12 +371,12 @@ class AdminmembersController extends Sceleton {
         /*$access_array[] = array(
             array('id' => 0, 'text' => 'none')
         );*/
-        $adminTwoStepAuthArray = array(
-            array('id' => '', 'text' => TEXT_TWO_STEP_AUTH_DEFAULT),
-            array('id' => 'email', 'text' => TEXT_TWO_STEP_AUTH_EMAIL),
-            array('id' => 'sms', 'text' => TEXT_TWO_STEP_AUTH_SMS),
-            array('id' => 'disabled', 'text' => TEXT_DISABLED),
-        );
+        $adminTwoStepAuthArray = [
+            ['id' => '', 'text' => TEXT_TWO_STEP_AUTH_DEFAULT],
+            ['id' => 'email', 'text' => TEXT_TWO_STEP_AUTH_EMAIL],
+            ['id' => 'sms', 'text' => TEXT_TWO_STEP_AUTH_SMS],
+            ['id' => 'disabled', 'text' => TEXT_DISABLED],
+        ];
 
         \common\helpers\Translation::init('admin/texts');
 
@@ -374,11 +384,12 @@ class AdminmembersController extends Sceleton {
             'mInfo' => $mInfo ?? null,
             'access_array' => $access_array,
             'admin_id' => $admin_id,
-            'adminTwoStepAuthArray' => $adminTwoStepAuthArray
+            'adminTwoStepAuthArray' => $adminTwoStepAuthArray,
         ]);
     }
 
-    function actionConfirmadmindelete() {
+    public function actionConfirmadmindelete()
+    {
         \common\helpers\Translation::init('admin/adminmembers');
         \common\helpers\Translation::init('admin/faqdesk');
 
@@ -386,14 +397,15 @@ class AdminmembersController extends Sceleton {
 
         $admin_id = \Yii::$app->request->post('admin_id');
 
-        $query = tep_db_query("select * from " . TABLE_ADMIN . " where admin_id = $admin_id; ");
+        $query = tep_db_query('select * from ' . TABLE_ADMIN . " where admin_id = $admin_id; ");
 
-        if ($admin = tep_db_fetch_array($query))
+        if ($admin = tep_db_fetch_array($query)) {
             $mInfo = new \objectInfo($admin);
-        else
-            die("Wrong admin data.");
+        } else {
+            die('Wrong admin data.');
+        }
 
-        echo tep_draw_form('admin', FILENAME_ADMIN_ACCOUNT, \common\helpers\Output::get_all_get_params(array('action')) . 'action=update', 'post', 'id="admin_edit" onSubmit="return deleteAdmin();"');
+        echo tep_draw_form('admin', FILENAME_ADMIN_ACCOUNT, \common\helpers\Output::get_all_get_params(['action']) . 'action=update', 'post', 'id="admin_edit" onSubmit="return deleteAdmin();"');
         echo '<div class="or_box_head">' . TEXT_INFO_HEADING_DELETE_ITEM . '</div>';
         echo '<div class="col_desc">' . TEXT_DELETE_ITEM_INTRO . ' ' . $mInfo->admin_firstname . ' ' . $mInfo->admin_lastname . '</div>';
         ?>
@@ -404,33 +416,307 @@ class AdminmembersController extends Sceleton {
         </div>
         </form>
             <?php
+    }
+
+    public function actionAdmindelete()
+    {
+        $this->layout = false;
+
+        $admin_id = \Yii::$app->request->post('admin_id');
+        if ((int)$admin_id == (int)\Yii::$app->session->get('login_id')) {
+            die('Operation not permitted!');
         }
 
-        function actionAdmindelete() {
-            $this->layout = false;
+        if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
+            $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
+            (
+                $logUniversal
+                ->setRelation((int)$admin_id)
+                ->setType($logUniversal::ULT_ADMIN_DELETE)
+                ->setBeforeArray(
+                    \common\models\Admin::find()
+                    ->where(['admin_id' => $admin_id])
+                    ->asArray(true)->one()
+                )
+            );
+        }
 
-            $admin_id = \Yii::$app->request->post('admin_id');
-            if ((int)$admin_id == (int)\Yii::$app->session->get('login_id')) {
-                die('Operation not permitted!');
-            }
+        tep_db_query('delete from ' . TABLE_ADMIN . " where admin_id = '" . (int) $admin_id . "'");
 
-            if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
-                $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-                ($logUniversal
-                    ->setRelation((int)$admin_id)
-                    ->setType($logUniversal::ULT_ADMIN_DELETE)
-                    ->setBeforeArray(\common\models\Admin::find()
+        if (isset($logUniversal)) {
+            (
+                $logUniversal
+                ->setAfterArray(
+                    \common\models\Admin::find()
+                    ->where(['admin_id' => $admin_id])
+                    ->asArray(true)->one()
+                )
+                ->doSave(true)
+            );
+            unset($logUniversal);
+        }
+        try {
+            \common\models\AdminLoginSession::deleteAll(['als_admin_id' => (int)$admin_id]);
+            \common\models\AdminLogin::deleteAll(['al_admin_id' => (int)$admin_id]);
+        } catch (\Exception $exc) {
+            \Yii::warning($exc->getMessage() . ' ' . $exc->getTraceAsString(), 'ErrorDeleteAdminLogin');
+        }
+    }
+
+    public function actionAdminsubmit()
+    {
+        \common\helpers\Translation::init('admin/adminmembers');
+
+        //$this->layout = FALSE;
+        $error = false;
+        $message = '';
+
+        $messageType = 'success';
+
+        $admin_id = \Yii::$app->request->post('admin_id');
+
+        if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
+            $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
+            $logUniversal->setRelation((int)$admin_id);
+        }
+        $action = \Yii::$app->request->post('action');
+        if ($action == 'permissions') {
+            if (isset($logUniversal)) {
+                (
+                    $logUniversal
+                    ->setType($logUniversal::ULT_ADMIN_PLATFORM)
+                    ->setBeforeArray(
+                        \common\models\AdminPlatforms::find()
+                        ->select('platform_id')
                         ->where(['admin_id' => $admin_id])
-                        ->asArray(true)->one()
+                        ->indexBy('platform_id')->asArray(true)->column()
                     )
                 );
             }
-
-            tep_db_query("delete from " . TABLE_ADMIN . " where admin_id = '" . (int) $admin_id . "'");
-
+            $platform = \Yii::$app->request->post('platform_id');
+            \common\models\AdminPlatforms::deleteAll(['admin_id' => $admin_id]);
+            if (is_array($platform)) {
+                foreach ($platform as $value) {
+                    $object = new \common\models\AdminPlatforms();
+                    $object->platform_id = (int)$value;
+                    $object->admin_id = (int)$admin_id;
+                    $object->save();
+                }
+            }
             if (isset($logUniversal)) {
-                ($logUniversal
-                    ->setAfterArray(\common\models\Admin::find()
+                (
+                    $logUniversal
+                    ->setAfterArray(
+                        \common\models\AdminPlatforms::find()
+                        ->select('platform_id')
+                        ->where(['admin_id' => $admin_id])
+                        ->indexBy('platform_id')->asArray(true)->column()
+                    )
+                    ->doSave(true)
+                );
+                unset($logUniversal);
+            }
+            return 'ok';//$this->actionAdminmembersactions();
+        } elseif ($action == 'warehouses') {
+            if (isset($logUniversal)) {
+                (
+                    $logUniversal
+                    ->setType($logUniversal::ULT_ADMIN_WAREHOUSE)
+                    ->setBeforeArray(
+                        \common\models\AdminWarehouses::find()
+                        ->select('warehouse_id')
+                        ->where(['admin_id' => $admin_id])
+                        ->indexBy('warehouse_id')->asArray(true)->column()
+                    )
+                );
+            }
+            $warehouses = \Yii::$app->request->post('warehouse_id');
+            \common\models\AdminWarehouses::deleteAll(['admin_id' => $admin_id]);
+            if (is_array($warehouses)) {
+                foreach ($warehouses as $value) {
+                    $object = new \common\models\AdminWarehouses();
+                    $object->warehouse_id = (int)$value;
+                    $object->admin_id = (int)$admin_id;
+                    $object->save();
+                }
+            }
+            if (isset($logUniversal)) {
+                (
+                    $logUniversal
+                    ->setAfterArray(
+                        \common\models\AdminWarehouses::find()
+                        ->select('warehouse_id')
+                        ->where(['admin_id' => $admin_id])
+                        ->indexBy('warehouse_id')->asArray(true)->column()
+                    )
+                    ->doSave(true)
+                );
+                unset($logUniversal);
+            }
+            return $this->actionAdminmembersactions();
+        } elseif ($action == 'suppliers') {
+            if (isset($logUniversal)) {
+                (
+                    $logUniversal
+                    ->setType($logUniversal::ULT_ADMIN_SUPPLIER)
+                    ->setBeforeArray(
+                        \common\models\AdminSuppliers::find()
+                        ->select('suppliers_id')
+                        ->where(['admin_id' => $admin_id])
+                        ->indexBy('suppliers_id')->asArray(true)->column()
+                    )
+                );
+            }
+            $suppliers = \Yii::$app->request->post('suppliers_id');
+            \common\models\AdminSuppliers::deleteAll(['admin_id' => $admin_id]);
+            if (is_array($suppliers)) {
+                foreach ($suppliers as $value) {
+                    $object = new \common\models\AdminSuppliers();
+                    $object->suppliers_id = (int)$value;
+                    $object->admin_id = (int)$admin_id;
+                    $object->save();
+                }
+            }
+            if (isset($logUniversal)) {
+                (
+                    $logUniversal
+                    ->setAfterArray(
+                        \common\models\AdminSuppliers::find()
+                        ->select('suppliers_id')
+                        ->where(['admin_id' => $admin_id])
+                        ->indexBy('suppliers_id')->asArray(true)->column()
+                    )
+                    ->doSave(true)
+                );
+                unset($logUniversal);
+            }
+            return $this->actionAdminmembersactions();
+        }
+
+        if (isset($logUniversal)) {
+            $logUniversal->setBeforeArray(
+                \common\models\Admin::find()
+                ->where(['admin_id' => $admin_id])
+                ->asArray(true)->one()
+            );
+        }
+
+        $admin_firstname = tep_db_prepare_input($_POST['admin_firstname']);
+        $admin_lastname = tep_db_prepare_input($_POST['admin_lastname'] ?? null);
+        $admin_email_address = tep_db_prepare_input($_POST['admin_email_address']);
+        $admin_phone_number = tep_db_prepare_input($_POST['admin_phone_number']);
+        $admin_two_step_auth = tep_db_prepare_input($_POST['admin_two_step_auth']);
+        $admin_group_level = tep_db_prepare_input($_POST['access_levels_name']);
+        $frontend_translation = tep_db_prepare_input($_POST['frontend_translation'] ?? null);
+
+        $sql_data_array = [
+            'admin_id' => $admin_id,
+            'admin_firstname' => $admin_firstname,
+            'admin_lastname' => $admin_lastname,
+            'admin_email_address' => $admin_email_address,
+            'admin_phone_number' => $admin_phone_number,
+            'access_levels_id' => $admin_group_level,
+            'admin_two_step_auth' => $admin_two_step_auth,
+            'frontend_translation' => $frontend_translation ? 1 : 0,
+        ];
+
+        if (strlen($admin_firstname) < ENTRY_FIRST_NAME_MIN_LENGTH) {
+            $error = true;
+            $message .= TEXT_INFO_FIRSTNAME . ' ' . sprintf(ENTRY_FIRST_NAME_ERROR, ENTRY_FIRST_NAME_MIN_LENGTH) . '<br/>';
+        }
+        if (trim($admin_email_address) == '') {
+            $error = true;
+            $message .= ENTRY_EMAIL_ADDRESS_CHECK_ERROR . '<br/>';
+        } else {
+
+            $checkDup = \common\models\Admin::find()
+                ->andWhere(['like', 'admin_email_address', $admin_email_address, false])
+                ->andWhere(['<>', 'admin_id', $admin_id])
+                ->exists();
+
+            if ($checkDup) {
+                $error = true;
+                $message = ENTRY_EMAIL_ADDRESS_ERROR_EXISTS;
+            }
+        }
+
+        foreach (\common\helpers\Hooks::getList('adminmembers/before-save', '') as $filename) {
+            include($filename);
+        }
+
+        if ($error === false) {
+            $sql_data_array['admin_email_token'] = \common\helpers\Password::encrypt_password($sql_data_array['admin_email_address'], 'backend');
+            if ((int) $admin_id > 0) {
+                if (isset($logUniversal)) {
+                    $logUniversal->setType($logUniversal::ULT_ADMIN_UPDATE);
+                }
+                tep_db_perform(TABLE_ADMIN, $sql_data_array, 'update', "admin_id = '" . (int) $admin_id . "'");
+                tep_db_query('update ' . TABLE_ADMIN . " set admin_modified = now() where admin_id = '" . (int) $admin_id . "'");
+
+                $message = SUCCESS_ADMIN_UPDATED;
+            } else {
+                if (isset($logUniversal)) {
+                    $logUniversal->setType($logUniversal::ULT_ADMIN_CREATE);
+                }
+                $makePassword = \common\helpers\Password::randomize();
+                $sql_data_array['admin_password'] = \common\helpers\Password::encrypt_password($makePassword, 'backend');
+                $sql_data_array['password_last_update'] = 'now()';
+
+                tep_db_perform(TABLE_ADMIN, $sql_data_array);
+                $admin_id = tep_db_insert_id();
+                $_GET['mID'] = $admin_id; // FIXME: Why do we need this?
+                tep_db_query('update ' . TABLE_ADMIN . " set admin_created = now(), admin_modified = now() where admin_id = '" . (int) $admin_id . "'");
+
+                $message = SUCCESS_ADMIN_CREATED;
+
+                $currentPlatformId = \Yii::$app->get('platform')->config()->getId();
+                $platform_config = \Yii::$app->get('platform')->config($currentPlatformId);
+
+                $STORE_OWNER_EMAIL_ADDRESS = $platform_config->const_value('STORE_OWNER_EMAIL_ADDRESS');
+                $STORE_OWNER = $platform_config->const_value('STORE_OWNER');
+
+                $email_params = [];
+                $email_params['STORE_URL'] = \common\helpers\Output::get_clickable_link(tep_catalog_href_link('admin'));
+                $email_params['CUSTOMER_FIRSTNAME'] = $sql_data_array['admin_firstname'];
+                $email_params['CUSTOMER_LASTNAME'] = $sql_data_array['admin_lastname'];
+                $email_params['CUSTOMER_EMAIL'] = $sql_data_array['admin_email_address'];
+                $email_params['STORE_OWNER'] = STORE_OWNER;
+                $email_params['NEW_PASSWORD'] = $makePassword;
+
+                list($email_subject, $email_text) = \common\helpers\Mail::get_parsed_email_template('Admin create', $email_params);
+
+                \common\helpers\Mail::send(
+                    $sql_data_array['admin_firstname'] . ' ' . $sql_data_array['admin_lastname'],
+                    $sql_data_array['admin_email_address'],
+                    $email_subject,//ADMIN_EMAIL_SUBJECT,
+                    $email_text,//sprintf(ADMIN_EMAIL_TEXT, $sql_data_array['admin_firstname'], \common\helpers\Output::get_clickable_link($adminUrl), $sql_data_array['admin_email_address'], $makePassword, STORE_OWNER),
+                    STORE_OWNER,
+                    STORE_OWNER_EMAIL_ADDRESS,
+                    [],
+                    '',
+                    '',
+                    ['add_br' => 'no']
+                );
+            }
+
+            if ($ext = \common\helpers\Acl::checkExtensionAllowed('Communication')) {
+                $ext::adminActionAdminEditSave((int)$admin_id, \Yii::$app->request->post('communication_group_to_admin'));
+            }
+
+            if (false === \common\helpers\Acl::rule(['SUPERUSER'], 0, '', $admin_id)) {
+                // offer to assign admin to platforms
+                $check = \common\models\AdminPlatforms::find()->andWhere(['admin_id' => $admin_id])->exists();
+                if (!$check && count(\common\classes\platform::getList(true, true)) > 0) {
+                    $messageType = 'warning';
+                    $message .=  ' ' . sprintf(TEXT_ADMIN_ASSIGN_PLATFORMS, \Yii::$app->urlManager->createUrl(['adminmembers/assign-platforms', 'admin_id' => $admin_id]));
+                }
+            }
+            if (isset($logUniversal)) {
+                (
+                    $logUniversal
+                    ->setRelation((int)$admin_id)
+                    ->setAfterArray(
+                        \common\models\Admin::find()
                         ->where(['admin_id' => $admin_id])
                         ->asArray(true)->one()
                     )
@@ -438,305 +724,60 @@ class AdminmembersController extends Sceleton {
                 );
                 unset($logUniversal);
             }
-            try {
-                \common\models\AdminLoginSession::deleteAll(['als_admin_id' => (int)$admin_id]);
-                \common\models\AdminLogin::deleteAll(['al_admin_id' => (int)$admin_id]);
-            } catch (\Exception $exc) {
-                \Yii::warning($exc->getMessage() . ' ' . $exc->getTraceAsString(), 'ErrorDeleteAdminLogin');
-            }
         }
 
-        function actionAdminsubmit() {
-            \common\helpers\Translation::init('admin/adminmembers');
-
-            //$this->layout = FALSE;
-            $error = FALSE;
-            $message = '';
-
-            $messageType = 'success';
-
-            $admin_id = \Yii::$app->request->post('admin_id');
-
-            if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
-                $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-                $logUniversal->setRelation((int)$admin_id);
+        if ($error === true) {
+            $messageType = 'warning';
+            if ($message == '') {
+                $message = WARN_UNKNOWN_ERROR;
             }
-            $action = \Yii::$app->request->post('action');
-            if ($action == 'permissions') {
-                if (isset($logUniversal)) {
-                    ($logUniversal
-                        ->setType($logUniversal::ULT_ADMIN_PLATFORM)
-                        ->setBeforeArray(\common\models\AdminPlatforms::find()
-                            ->select('platform_id')
-                            ->where(['admin_id' => $admin_id])
-                            ->indexBy('platform_id')->asArray(true)->column()
-                        )
-                    );
-                }
-                $platform = \Yii::$app->request->post('platform_id');
-                \common\models\AdminPlatforms::deleteAll(['admin_id' => $admin_id]);
-                if (is_array($platform)) {
-                    foreach ($platform as $value) {
-                        $object = new \common\models\AdminPlatforms();
-                        $object->platform_id =(int)$value;
-                        $object->admin_id =(int)$admin_id;
-                        $object->save();
-                    }
-                }
-                if (isset($logUniversal)) {
-                    ($logUniversal
-                        ->setAfterArray(\common\models\AdminPlatforms::find()
-                            ->select('platform_id')
-                            ->where(['admin_id' => $admin_id])
-                            ->indexBy('platform_id')->asArray(true)->column()
-                        )
-                        ->doSave(true)
-                    );
-                    unset($logUniversal);
-                }
-                return 'ok';//$this->actionAdminmembersactions();
-            } elseif ($action == 'warehouses') {
-                if (isset($logUniversal)) {
-                    ($logUniversal
-                        ->setType($logUniversal::ULT_ADMIN_WAREHOUSE)
-                        ->setBeforeArray(\common\models\AdminWarehouses::find()
-                            ->select('warehouse_id')
-                            ->where(['admin_id' => $admin_id])
-                            ->indexBy('warehouse_id')->asArray(true)->column()
-                        )
-                    );
-                }
-                $warehouses = \Yii::$app->request->post('warehouse_id');
-                \common\models\AdminWarehouses::deleteAll(['admin_id' => $admin_id]);
-                if (is_array($warehouses)) {
-                    foreach ($warehouses as $value) {
-                        $object = new \common\models\AdminWarehouses();
-                        $object->warehouse_id =(int)$value;
-                        $object->admin_id =(int)$admin_id;
-                        $object->save();
-                    }
-                }
-                if (isset($logUniversal)) {
-                    ($logUniversal
-                        ->setAfterArray(\common\models\AdminWarehouses::find()
-                            ->select('warehouse_id')
-                            ->where(['admin_id' => $admin_id])
-                            ->indexBy('warehouse_id')->asArray(true)->column()
-                        )
-                        ->doSave(true)
-                    );
-                    unset($logUniversal);
-                }
-                return $this->actionAdminmembersactions();
-            } elseif ($action == 'suppliers') {
-                if (isset($logUniversal)) {
-                    ($logUniversal
-                        ->setType($logUniversal::ULT_ADMIN_SUPPLIER)
-                        ->setBeforeArray(\common\models\AdminSuppliers::find()
-                            ->select('suppliers_id')
-                            ->where(['admin_id' => $admin_id])
-                            ->indexBy('suppliers_id')->asArray(true)->column()
-                        )
-                    );
-                }
-                $suppliers = \Yii::$app->request->post('suppliers_id');
-                \common\models\AdminSuppliers::deleteAll(['admin_id' => $admin_id]);
-                if (is_array($suppliers)) {
-                    foreach ($suppliers as $value) {
-                        $object = new \common\models\AdminSuppliers();
-                        $object->suppliers_id =(int)$value;
-                        $object->admin_id =(int)$admin_id;
-                        $object->save();
-                    }
-                }
-                if (isset($logUniversal)) {
-                    ($logUniversal
-                        ->setAfterArray(\common\models\AdminSuppliers::find()
-                            ->select('suppliers_id')
-                            ->where(['admin_id' => $admin_id])
-                            ->indexBy('suppliers_id')->asArray(true)->column()
-                        )
-                        ->doSave(true)
-                    );
-                    unset($logUniversal);
-                }
-                return $this->actionAdminmembersactions();
-            }
-
-            if (isset($logUniversal)) {
-                $logUniversal->setBeforeArray(\common\models\Admin::find()
-                    ->where(['admin_id' => $admin_id])
-                    ->asArray(true)->one()
-                );
-            }
-
-            $admin_firstname = tep_db_prepare_input($_POST['admin_firstname']);
-            $admin_lastname = tep_db_prepare_input($_POST['admin_lastname'] ?? null);
-            $admin_email_address = tep_db_prepare_input($_POST['admin_email_address']);
-            $admin_phone_number = tep_db_prepare_input($_POST['admin_phone_number']);
-            $admin_two_step_auth = tep_db_prepare_input($_POST['admin_two_step_auth']);
-            $admin_group_level = tep_db_prepare_input($_POST['access_levels_name']);
-            $frontend_translation = tep_db_prepare_input($_POST['frontend_translation'] ?? null);
-
-            $sql_data_array = array(
-                'admin_id' => $admin_id,
-                'admin_firstname' => $admin_firstname,
-                'admin_lastname' => $admin_lastname,
-                'admin_email_address' => $admin_email_address,
-                'admin_phone_number' => $admin_phone_number,
-                'access_levels_id' => $admin_group_level,
-                'admin_two_step_auth' => $admin_two_step_auth,
-                'frontend_translation' => $frontend_translation ? 1 : 0,
-            );
-
-            if (strlen($admin_firstname) < ENTRY_FIRST_NAME_MIN_LENGTH) {
-                $error = TRUE;
-                $message .= TEXT_INFO_FIRSTNAME . ' ' . sprintf(ENTRY_FIRST_NAME_ERROR, ENTRY_FIRST_NAME_MIN_LENGTH) . '<br/>';
-            }
-            if (trim($admin_email_address) == '') {
-                $error = TRUE;
-                $message .= ENTRY_EMAIL_ADDRESS_CHECK_ERROR . '<br/>';
-            } else{
-
-              $checkDup = \common\models\Admin::find()
-                  ->andWhere(['like', 'admin_email_address', $admin_email_address, false])
-                  ->andWhere(['<>', 'admin_id', $admin_id])
-                  ->exists();
-
-              if ($checkDup) {
-                  $error = true;
-                  $message = ENTRY_EMAIL_ADDRESS_ERROR_EXISTS;
-              }
-            }
-
-            foreach (\common\helpers\Hooks::getList('adminmembers/before-save', '') as $filename) {
-                include($filename);
-            }
-
-            if ($error === false) {
-                $sql_data_array['admin_email_token'] = \common\helpers\Password::encrypt_password($sql_data_array['admin_email_address'], 'backend');
-                if ((int) $admin_id > 0) {
-                    if (isset($logUniversal)) {
-                        $logUniversal->setType($logUniversal::ULT_ADMIN_UPDATE);
-                    }
-                    tep_db_perform(TABLE_ADMIN, $sql_data_array, 'update', "admin_id = '" . (int) $admin_id . "'");
-                    tep_db_query("update " . TABLE_ADMIN . " set admin_modified = now() where admin_id = '" . (int) $admin_id . "'");
-
-                    $message = SUCCESS_ADMIN_UPDATED;
-                } else {
-                    if (isset($logUniversal)) {
-                        $logUniversal->setType($logUniversal::ULT_ADMIN_CREATE);
-                    }
-                    $makePassword = \common\helpers\Password::randomize();
-                    $sql_data_array['admin_password'] = \common\helpers\Password::encrypt_password($makePassword, 'backend');
-                    $sql_data_array['password_last_update'] = 'now()';
-
-                    tep_db_perform(TABLE_ADMIN, $sql_data_array);
-                    $admin_id = tep_db_insert_id();
-                    $_GET['mID'] = $admin_id; // FIXME: Why do we need this?
-                    tep_db_query("update " . TABLE_ADMIN . " set admin_created = now(), admin_modified = now() where admin_id = '" . (int) $admin_id . "'");
-
-                    $message = SUCCESS_ADMIN_CREATED;
-
-                    $currentPlatformId = \Yii::$app->get('platform')->config()->getId();
-                    $platform_config = \Yii::$app->get('platform')->config($currentPlatformId);
-
-                    $STORE_OWNER_EMAIL_ADDRESS = $platform_config->const_value('STORE_OWNER_EMAIL_ADDRESS');
-                    $STORE_OWNER = $platform_config->const_value('STORE_OWNER');
-
-                    $email_params = array();
-                    $email_params['STORE_URL'] = \common\helpers\Output::get_clickable_link(tep_catalog_href_link('admin'));
-                    $email_params['CUSTOMER_FIRSTNAME'] = $sql_data_array['admin_firstname'];
-                    $email_params['CUSTOMER_LASTNAME'] = $sql_data_array['admin_lastname'];
-                    $email_params['CUSTOMER_EMAIL'] = $sql_data_array['admin_email_address'];
-                    $email_params['STORE_OWNER'] = STORE_OWNER;
-                    $email_params['NEW_PASSWORD'] = $makePassword;
-
-                    list($email_subject, $email_text) = \common\helpers\Mail::get_parsed_email_template('Admin create', $email_params);
-
-                    \common\helpers\Mail::send(
-                        $sql_data_array['admin_firstname'] . ' ' . $sql_data_array['admin_lastname'],
-                        $sql_data_array['admin_email_address'],
-                        $email_subject,//ADMIN_EMAIL_SUBJECT,
-                        $email_text,//sprintf(ADMIN_EMAIL_TEXT, $sql_data_array['admin_firstname'], \common\helpers\Output::get_clickable_link($adminUrl), $sql_data_array['admin_email_address'], $makePassword, STORE_OWNER),
-                        STORE_OWNER,
-                        STORE_OWNER_EMAIL_ADDRESS, [], '', '', ['add_br' => 'no']);
-                }
-
-                if ($ext = \common\helpers\Acl::checkExtensionAllowed('Communication')) {
-                    $ext::adminActionAdminEditSave((int)$admin_id, \Yii::$app->request->post('communication_group_to_admin'));
-                }
-
-                if (false === \common\helpers\Acl::rule(['SUPERUSER'], 0, '', $admin_id)) {
-                  // offer to assign admin to platforms
-                  $check = \common\models\AdminPlatforms::find()->andWhere(['admin_id' => $admin_id])->exists();
-                  if (!$check && count(\common\classes\platform::getList(true,true))>0) {
-                    $messageType = 'warning';
-                    $message .=  ' ' . sprintf(TEXT_ADMIN_ASSIGN_PLATFORMS, \Yii::$app->urlManager->createUrl(['adminmembers/assign-platforms', 'admin_id' => $admin_id]) );
-                  }
-                }
-                if (isset($logUniversal)) {
-                    ($logUniversal
-                        ->setRelation((int)$admin_id)
-                        ->setAfterArray(\common\models\Admin::find()
-                            ->where(['admin_id' => $admin_id])
-                            ->asArray(true)->one()
-                        )
-                        ->doSave(true)
-                    );
-                    unset($logUniversal);
-                }
-            }
-
-            if ($error === true) {
-                $messageType = 'warning';
-                if ($message == '')
-                    $message = WARN_UNKNOWN_ERROR;
-            }
-            /** /
-            ?>
+        }
+        /** /
+        ?>
         <div class="alert alert-<?= $messageType ?> fade in">
-            <i data-dismiss="alert" class="icon-remove close"></i>
+        <i data-dismiss="alert" class="icon-remove close"></i>
         <?= $message ?>
         </div>
 
         <?php
 
-             /**/
-            $messageStack = \Yii::$container->get('message_stack');
-            if ($error === true) {
-              $messageStack->add($message, 'header', $messageType);
-              return $this->actionAdminedit(); exit;
-            } else {
-              $messageStack->add_session($message, 'header', $messageType);
+         /**/
+        $messageStack = \Yii::$container->get('message_stack');
+        if ($error === true) {
+            $messageStack->add($message, 'header', $messageType);
+            return $this->actionAdminedit();
+            exit;
+        } else {
+            $messageStack->add_session($message, 'header', $messageType);
 
-              echo '<script> window.location.replace("' . \Yii::$app->urlManager->createUrl(['adminmembers/adminedit', 'admin_id' => $admin_id]) . '");</script>';
-            }
+            echo '<script> window.location.replace("' . \Yii::$app->urlManager->createUrl(['adminmembers/adminedit', 'admin_id' => $admin_id]) . '");</script>';
+        }
     }
 
-    public function actionOverridePermissions() {
+    public function actionOverridePermissions()
+    {
         \common\helpers\Translation::init('admin/adminmembers');
 
-        $this->selectedMenu = array('administrator', 'adminmembers');
-        $this->navigation[] = array('link' => \Yii::$app->urlManager->createUrl('adminmembers/index'), 'title' => HEADING_TITLE);
+        $this->selectedMenu = ['administrator', 'adminmembers'];
+        $this->navigation[] = ['link' => \Yii::$app->urlManager->createUrl('adminmembers/index'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
 
         $this->topButtons[] = '<span class="btn btn-confirm" onclick="$(\'#save_item_form\').trigger(\'submit\')">' . IMAGE_SAVE . '</span>';
 
         $admin_id = (int) \Yii::$app->request->get('admin_id');
 
-        $query = tep_db_query("select * from " . TABLE_ADMIN . " where admin_id = '" . $admin_id . "'");
+        $query = tep_db_query('select * from ' . TABLE_ADMIN . " where admin_id = '" . $admin_id . "'");
         $admin = tep_db_fetch_array($query);
 
         if (!is_array($admin)) {
-            die("Wrong data.");
+            die('Wrong data.');
         }
 
-        $adminPersmissions = explode(",", $admin['admin_persmissions']);
+        $adminPersmissions = explode(',', $admin['admin_persmissions']);
 
-        $checkAccess = tep_db_query("select access_levels_persmissions from " . TABLE_ACCESS_LEVELS . " where access_levels_id = '" . (int) $admin['access_levels_id'] . "'");
+        $checkAccess = tep_db_query('select access_levels_persmissions from ' . TABLE_ACCESS_LEVELS . " where access_levels_id = '" . (int) $admin['access_levels_id'] . "'");
         $access = tep_db_fetch_array($checkAccess);
-        $selectedIds = explode(",", $access['access_levels_persmissions']);
+        $selectedIds = explode(',', $access['access_levels_persmissions']);
 
         $aclTree = \common\helpers\Acl::buildOverrideTree($selectedIds, $adminPersmissions);
 
@@ -746,22 +787,23 @@ class AdminmembersController extends Sceleton {
         ]);
     }
 
-    public function actionRecalcAcl() {
+    public function actionRecalcAcl()
+    {
         $this->layout = false;
 
         $admin_id = (int) \Yii::$app->request->post('admin_id');
         $persmissions = \Yii::$app->request->post('persmissions');
 
-        $query = tep_db_query("select * from " . TABLE_ADMIN . " where admin_id = '" . $admin_id . "'");
+        $query = tep_db_query('select * from ' . TABLE_ADMIN . " where admin_id = '" . $admin_id . "'");
         $admin = tep_db_fetch_array($query);
 
         if (!is_array($admin)) {
-            die("Wrong data.");
+            die('Wrong data.');
         }
 
-        $checkAccess = tep_db_query("select access_levels_persmissions from " . TABLE_ACCESS_LEVELS . " where access_levels_id = '" . (int) $admin['access_levels_id'] . "'");
+        $checkAccess = tep_db_query('select access_levels_persmissions from ' . TABLE_ACCESS_LEVELS . " where access_levels_id = '" . (int) $admin['access_levels_id'] . "'");
         $access = tep_db_fetch_array($checkAccess);
-        $selectedIds = explode(",", $access['access_levels_persmissions']);
+        $selectedIds = explode(',', $access['access_levels_persmissions']);
 
         $adminPersmissions = [];
         foreach ($persmissions as $persmission) {
@@ -782,28 +824,30 @@ class AdminmembersController extends Sceleton {
         ]);
     }
 
-    public function actionSubmitPermissions() {
+    public function actionSubmitPermissions()
+    {
 
         $admin_id = (int) \Yii::$app->request->post('admin_id');
-        $query = tep_db_query("select * from " . TABLE_ADMIN . " where admin_id = '" . $admin_id . "'");
+        $query = tep_db_query('select * from ' . TABLE_ADMIN . " where admin_id = '" . $admin_id . "'");
         $admin = tep_db_fetch_array($query);
 
         if (!is_array($admin)) {
-            die("Wrong data.");
+            die('Wrong data.');
         }
 
         if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
             $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-            ($logUniversal
+            (
+                $logUniversal
                 ->setRelation((int)$admin_id)
                 ->setType($logUniversal::ULT_ADMIN_PERMISSION)
                 ->setBeforeArray($admin)
             );
         }
 
-        $checkAccess = tep_db_query("select access_levels_persmissions from " . TABLE_ACCESS_LEVELS . " where access_levels_id = '" . (int) $admin['access_levels_id'] . "'");
+        $checkAccess = tep_db_query('select access_levels_persmissions from ' . TABLE_ACCESS_LEVELS . " where access_levels_id = '" . (int) $admin['access_levels_id'] . "'");
         $access = tep_db_fetch_array($checkAccess);
-        $selectedIds = explode(",", $access['access_levels_persmissions']);
+        $selectedIds = explode(',', $access['access_levels_persmissions']);
 
         $persmissions = \Yii::$app->request->post('persmissions');
         if (!is_array($persmissions)) {
@@ -822,7 +866,7 @@ class AdminmembersController extends Sceleton {
             }
         }
 
-        $admin_persmissions = implode(",", $adminPersmissions);
+        $admin_persmissions = implode(',', $adminPersmissions);
 
         $sql_data_array = [
             'admin_persmissions' => $admin_persmissions,
@@ -830,8 +874,10 @@ class AdminmembersController extends Sceleton {
         tep_db_perform(TABLE_ADMIN, $sql_data_array, 'update', "admin_id = '" . $admin_id . "'");
 
         if (isset($logUniversal)) {
-            ($logUniversal
-                ->setAfterArray(\common\models\Admin::find()
+            (
+                $logUniversal
+                ->setAfterArray(
+                    \common\models\Admin::find()
                     ->where(['admin_id' => $admin_id])
                     ->asArray(true)->one()
                 )
@@ -843,28 +889,33 @@ class AdminmembersController extends Sceleton {
         echo '<script> window.location.replace("' . \Yii::$app->urlManager->createUrl(['adminmembers/override-permissions', 'admin_id' => $admin_id]) . '");</script>';
     }
 
-    function actionEnableAdmin() {
+    public function actionEnableAdmin()
+    {
         $this->layout = false;
 
         $admin_id = \Yii::$app->request->post('admin_id');
 
         if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
             $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-            ($logUniversal
+            (
+                $logUniversal
                 ->setRelation((int)$admin_id)
                 ->setType($logUniversal::ULT_ADMIN_STATUS)
-                ->setBeforeArray(\common\models\Admin::find()
+                ->setBeforeArray(
+                    \common\models\Admin::find()
                     ->where(['admin_id' => $admin_id])
                     ->asArray(true)->one()
                 )
             );
         }
 
-        tep_db_query("update " . TABLE_ADMIN . " set login_failture = 0 where admin_id = '" . (int) $admin_id . "'");
+        tep_db_query('update ' . TABLE_ADMIN . " set login_failture = 0 where admin_id = '" . (int) $admin_id . "'");
 
         if (isset($logUniversal)) {
-            ($logUniversal
-                ->setAfterArray(\common\models\Admin::find()
+            (
+                $logUniversal
+                ->setAfterArray(
+                    \common\models\Admin::find()
                     ->where(['admin_id' => $admin_id])
                     ->asArray(true)->one()
                 )
@@ -874,7 +925,8 @@ class AdminmembersController extends Sceleton {
         }
     }
 
-    function actionDisableAdmin() {
+    public function actionDisableAdmin()
+    {
         $this->layout = false;
 
         $admin_id = \Yii::$app->request->post('admin_id');
@@ -884,21 +936,25 @@ class AdminmembersController extends Sceleton {
 
         if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
             $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-            ($logUniversal
+            (
+                $logUniversal
                 ->setRelation((int)$admin_id)
                 ->setType($logUniversal::ULT_ADMIN_STATUS)
-                ->setBeforeArray(\common\models\Admin::find()
+                ->setBeforeArray(
+                    \common\models\Admin::find()
                     ->where(['admin_id' => $admin_id])
                     ->asArray(true)->one()
                 )
             );
         }
 
-        tep_db_query("update " . TABLE_ADMIN . " set login_failture = 3 where admin_id = '" . (int) $admin_id . "'");
+        tep_db_query('update ' . TABLE_ADMIN . " set login_failture = 3 where admin_id = '" . (int) $admin_id . "'");
 
         if (isset($logUniversal)) {
-            ($logUniversal
-                ->setAfterArray(\common\models\Admin::find()
+            (
+                $logUniversal
+                ->setAfterArray(
+                    \common\models\Admin::find()
                     ->where(['admin_id' => $admin_id])
                     ->asArray(true)->one()
                 )
@@ -915,7 +971,8 @@ class AdminmembersController extends Sceleton {
         }
     }
 
-    function actionResetAdminGa() {
+    public function actionResetAdminGa()
+    {
         $this->layout = false;
         /**
          * @var $ext \common\extensions\GoogleAuthenticator\GoogleAuthenticator
@@ -926,7 +983,8 @@ class AdminmembersController extends Sceleton {
         }
     }
 
-    function actionGeneratepassword() {
+    public function actionGeneratepassword()
+    {
         $this->layout = false;
 
         \common\helpers\Translation::init('account/password');
@@ -955,7 +1013,8 @@ class AdminmembersController extends Sceleton {
         if ($save) {
             if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
                 $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-                ($logUniversal
+                (
+                    $logUniversal
                     ->setRelation((int)$admin_id)
                     ->setType($logUniversal::ULT_ADMIN_PASSWORD)
                     ->setBeforeArray($adminInfo->toArray())
@@ -1017,8 +1076,10 @@ class AdminmembersController extends Sceleton {
             $message_account_password = TEXT_PASSWORD_CHANGED;
 
             if (isset($logUniversal)) {
-                ($logUniversal
-                    ->setAfterArray(\common\models\Admin::find()
+                (
+                    $logUniversal
+                    ->setAfterArray(
+                        \common\models\Admin::find()
                         ->where(['admin_id' => $admin_id])
                         ->asArray(true)->one()
                     )
@@ -1034,7 +1095,7 @@ class AdminmembersController extends Sceleton {
             $STORE_OWNER_EMAIL_ADDRESS = $platform_config->const_value('STORE_OWNER_EMAIL_ADDRESS');
             $STORE_OWNER = $platform_config->const_value('STORE_OWNER');
 
-            $email_params = array();
+            $email_params = [];
             $email_params['STORE_NAME'] = $STORE_NAME;
             $email_params['NEW_PASSWORD'] = $admin_password;
             $email_params['CUSTOMER_FIRSTNAME'] = $adminInfo->admin_firstname;
@@ -1044,18 +1105,18 @@ class AdminmembersController extends Sceleton {
             list($email_subject, $email_text) = \common\helpers\Mail::get_parsed_email_template('Admin Password Forgotten', $email_params);
             \common\helpers\Mail::send($adminInfo->admin_firstname . ' ' . $adminInfo->admin_lastname, $adminInfo->admin_email_address, $email_subject, $email_text, $STORE_OWNER, $STORE_OWNER_EMAIL_ADDRESS, $email_params);
 
-            echo json_encode(array('message' => $message_account_password, 'messageType' => 'alert-success'));
+            echo json_encode(['message' => $message_account_password, 'messageType' => 'alert-success']);
         } else {
-            echo json_encode(array('message' => $message_account_password, 'messageType' => 'alert-danger'));
+            echo json_encode(['message' => $message_account_password, 'messageType' => 'alert-danger']);
         }
     }
 
-    function actionAdminLoginView()
+    public function actionAdminLoginView()
     {
         \common\helpers\Translation::init('admin/admin-login-view');
 
-        $this->selectedMenu = array('administrator', 'adminmembers');
-        $this->navigation[] = array('link' => \Yii::$app->urlManager->createUrl('adminmembers/index'), 'title' => HEADING_TITLE);
+        $this->selectedMenu = ['administrator', 'adminmembers'];
+        $this->navigation[] = ['link' => \Yii::$app->urlManager->createUrl('adminmembers/index'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
 
         $type = trim(\Yii::$app->request->get('type', ''));
@@ -1068,37 +1129,37 @@ class AdminmembersController extends Sceleton {
         }
         $adminRecord['type'] = $type;
 
-        $this->view->LogTable = array(
-            array(
+        $this->view->LogTable = [
+            [
                 'title' => TABLE_HEADING_EVENT,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => TABLE_HEADING_USER,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => TABLE_HEADING_DEVICE,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => TABLE_HEADING_IP,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => TABLE_HEADING_AGENT,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => TABLE_HEADING_DATE,
-                'not_important' => 0
-            )
-        );
+                'not_important' => 0,
+            ],
+        ];
 
         return $this->render('admin-login-view', ['adminRecord' => $adminRecord]);
     }
 
-    function actionAdminLoginViewList()
+    public function actionAdminLoginViewList()
     {
         \common\helpers\Translation::init('admin/admin-login-view');
 
@@ -1119,17 +1180,17 @@ class AdminmembersController extends Sceleton {
         if (isset($_GET['search']['value']) && tep_not_null($_GET['search']['value'])) {
             $logQuery->andWhere(['or',
                 ['like', 'all_user', tep_db_input(tep_db_prepare_input($_GET['search']['value']))],
-                ['all_event' => tep_db_input(tep_db_prepare_input($_GET['search']['value']))]
+                ['all_event' => tep_db_input(tep_db_prepare_input($_GET['search']['value']))],
             ]);
         }
         if (isset($_GET['order'][0]['column']) && $_GET['order'][0]['dir']) {
             switch ($_GET['order'][0]['column']) {
                 case 5:
                     $logQuery->orderBy('all_date ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])) . ', all_id ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 default:
                     $logQuery->orderBy('all_date DESC, all_id DESC');
-                break;
+                    break;
             }
         } else {
             $logQuery->orderBy('all_date DESC');
@@ -1147,102 +1208,103 @@ class AdminmembersController extends Sceleton {
             unset($event);
         }
         foreach ($logQuery as $logRecord) {
-            $responseList[] = array(
-                ((isset($eventList[$logRecord['all_event']]) ? $eventList[$logRecord['all_event']] : 'Unknown')
+            $responseList[] = [
+                (
+                    (isset($eventList[$logRecord['all_event']]) ? $eventList[$logRecord['all_event']] : 'Unknown')
                     . tep_draw_hidden_field('id', $logRecord['all_id'], 'class="cell_identify"')
                 ),
                 $logRecord['all_user'],
                 trim($logRecord['all_device_id']),
                 trim($logRecord['all_ip']),
                 trim($logRecord['all_agent']),
-                $logRecord['all_date']
-            );
+                $logRecord['all_date'],
+            ];
         }
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $numrows,
             'recordsFiltered' => $numrows,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         echo json_encode($response);
     }
 
-    function actionAdminDeviceView()
+    public function actionAdminDeviceView()
     {
         \common\helpers\Translation::init('admin/admin-device-view');
 
-        $this->selectedMenu = array('administrator', 'adminmembers');
-        $this->navigation[] = array('link' => \Yii::$app->urlManager->createUrl('adminmembers/index'), 'title' => HEADING_TITLE);
+        $this->selectedMenu = ['administrator', 'adminmembers'];
+        $this->navigation[] = ['link' => \Yii::$app->urlManager->createUrl('adminmembers/index'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
 
         $admin_id = (int)\Yii::$app->request->get('admin_id');
         $adminRecord = \common\models\Admin::findOne($admin_id);
         if ($adminRecord instanceof \common\models\Admin) {
             $adminRecord = $adminRecord->toArray();
-            $this->view->DeviceTable = array(
-                array(
+            $this->view->DeviceTable = [
+                [
                     'title' => TABLE_HEADING_DEVICE,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_LOGIN_DATE,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_LOGIN_COUNT,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_DATE_ADD,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_BLOCKED,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => '',
-                    'not_important' => 0
-                )
-            );
+                    'not_important' => 0,
+                ],
+            ];
         } else {
             $adminRecord = ['admin_id' => 0];
-            $this->view->DeviceTable = array(
-                array(
+            $this->view->DeviceTable = [
+                [
                     'title' => TABLE_HEADING_MEMBER,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_DEVICE,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_LOGIN_DATE,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_LOGIN_COUNT,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_DATE_ADD,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_BLOCKED,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => '',
-                    'not_important' => 0
-                )
-            );
+                    'not_important' => 0,
+                ],
+            ];
         }
 
         return $this->render('admin-device-view', ['adminRecord' => $adminRecord]);
     }
 
-    function actionAdminDeviceViewList()
+    public function actionAdminDeviceViewList()
     {
         \common\helpers\Translation::init('admin/admin-device-view');
 
@@ -1263,7 +1325,7 @@ class AdminmembersController extends Sceleton {
             } else {
                 $deviceQuery->andWhere(['OR',
                     ['like', 'ad.ad_device_id', tep_db_input(tep_db_prepare_input($_GET['search']['value']))],
-                    ['like', 'TRIM(CONCAT(TRIM(a.admin_firstname), " ", TRIM(a.admin_lastname)))', tep_db_input(tep_db_prepare_input($_GET['search']['value']))]
+                    ['like', 'TRIM(CONCAT(TRIM(a.admin_firstname), " ", TRIM(a.admin_lastname)))', tep_db_input(tep_db_prepare_input($_GET['search']['value']))],
                 ]);
             }
         }
@@ -1271,19 +1333,19 @@ class AdminmembersController extends Sceleton {
             switch ($_GET['order'][0]['column']) {
                 case 1:
                     $deviceQuery->orderBy('ad.ad_date_login ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 case 2:
                     $deviceQuery->orderBy('ad.ad_login_count ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 case 3:
                     $deviceQuery->orderBy('ad.ad_date_add ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 case 4:
                     $deviceQuery->orderBy('ad.ad_is_blocked ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 default:
                     $deviceQuery->orderBy('ad.ad_date_login DESC');
-                break;
+                    break;
             }
         } else {
             $deviceQuery->orderBy('ad.ad_date_login DESC');
@@ -1296,36 +1358,36 @@ class AdminmembersController extends Sceleton {
         $responseList = [];
         foreach ($deviceQuery as $deviceRecord) {
             if ($id > 0) {
-                $responseList[] = array(
+                $responseList[] = [
                     $deviceRecord['ad_device_id'],
                     $deviceRecord['ad_date_login'],
                     $deviceRecord['ad_login_count'],
                     $deviceRecord['ad_date_add'],
                     ($deviceRecord['ad_is_blocked'] == 0 ? TEXT_NO : TEXT_YES),
-                    '<a class="btn btn-primary" is_blocked="' . (int)$deviceRecord['ad_is_blocked'] . '" onclick="return doAdminDeviceBlockToggle(\'' . $deviceRecord['ad_device_id'] . '\', this);">' . ($deviceRecord['ad_is_blocked'] == 0 ? TEXT_BUTTON_BLOCK : TEXT_BUTTON_UNBLOCK) . '</a>'
-                );
+                    '<a class="btn btn-primary" is_blocked="' . (int)$deviceRecord['ad_is_blocked'] . '" onclick="return doAdminDeviceBlockToggle(\'' . $deviceRecord['ad_device_id'] . '\', this);">' . ($deviceRecord['ad_is_blocked'] == 0 ? TEXT_BUTTON_BLOCK : TEXT_BUTTON_UNBLOCK) . '</a>',
+                ];
             } else {
-                $responseList[] = array(
+                $responseList[] = [
                     $deviceRecord['admin_name'],
                     $deviceRecord['ad_device_id'],
                     $deviceRecord['ad_date_login'],
                     $deviceRecord['ad_login_count'],
                     $deviceRecord['ad_date_add'],
                     ($deviceRecord['ad_is_blocked'] == 0 ? TEXT_NO : TEXT_YES),
-                    '<a class="btn btn-primary" is_blocked="' . (int)$deviceRecord['ad_is_blocked'] . '" onclick="return doAdminDeviceBlockToggle(\'' . $deviceRecord['ad_device_id'] . '\', this, \'' . (int)$deviceRecord['ad_admin_id'] . '\');">' . ($deviceRecord['ad_is_blocked'] == 0 ? TEXT_BUTTON_BLOCK : TEXT_BUTTON_UNBLOCK) . '</a>'
-                );
+                    '<a class="btn btn-primary" is_blocked="' . (int)$deviceRecord['ad_is_blocked'] . '" onclick="return doAdminDeviceBlockToggle(\'' . $deviceRecord['ad_device_id'] . '\', this, \'' . (int)$deviceRecord['ad_admin_id'] . '\');">' . ($deviceRecord['ad_is_blocked'] == 0 ? TEXT_BUTTON_BLOCK : TEXT_BUTTON_UNBLOCK) . '</a>',
+                ];
             }
         }
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $numrows,
             'recordsFiltered' => $numrows,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         echo json_encode($response);
     }
 
-    function actionAdminDeviceBlockToggle()
+    public function actionAdminDeviceBlockToggle()
     {
         $this->layout = false;
         \common\helpers\Translation::init('admin/admin-device-view');
@@ -1345,51 +1407,52 @@ class AdminmembersController extends Sceleton {
                     'status' => 'ok',
                     'button' => ($deviceRecord->ad_is_blocked == 0 ? TEXT_BUTTON_BLOCK : TEXT_BUTTON_UNBLOCK),
                     'blocked' => ($deviceRecord->ad_is_blocked == 0 ? TEXT_NO : TEXT_YES),
-                    'is_blocked' => $deviceRecord->ad_is_blocked
+                    'is_blocked' => $deviceRecord->ad_is_blocked,
                 ];
-            } catch (\Exception $exc) {}
+            } catch (\Exception $exc) {
+            }
         }
         echo json_encode($return);
     }
 
-    function actionAdminSessionView()
+    public function actionAdminSessionView()
     {
         \common\helpers\Translation::init('admin/admin-session-view');
 
-        $this->selectedMenu = array('administrator', 'adminmembers');
-        $this->navigation[] = array('link' => \Yii::$app->urlManager->createUrl('adminmembers/index'), 'title' => HEADING_TITLE);
+        $this->selectedMenu = ['administrator', 'adminmembers'];
+        $this->navigation[] = ['link' => \Yii::$app->urlManager->createUrl('adminmembers/index'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
 
         $admin_id = (int)\Yii::$app->request->get('admin_id');
         $adminRecord = \common\models\Admin::findOne($admin_id);
         if (!($adminRecord instanceof \common\models\Admin)) {
-            die("Wrong data.");
+            die('Wrong data.');
         }
         $adminRecord = $adminRecord->toArray();
 
-        $this->view->SessionTable = array(
-            array(
+        $this->view->SessionTable = [
+            [
                 'title' => TABLE_HEADING_COMPUTER,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => TABLE_HEADING_DATE_EXPIRE,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => TABLE_HEADING_DATE_CREATE,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => '',
-                'not_important' => 0
-            )
-        );
+                'not_important' => 0,
+            ],
+        ];
 
         return $this->render('admin-session-view', ['adminRecord' => $adminRecord]);
     }
 
-    function actionAdminSessionViewList()
+    public function actionAdminSessionViewList()
     {
         \common\helpers\Translation::init('admin/admin-session-view');
 
@@ -1406,13 +1469,13 @@ class AdminmembersController extends Sceleton {
             switch ($_GET['order'][0]['column']) {
                 case 1:
                     $sessionQuery->orderBy('al_expire ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 case 2:
                     $sessionQuery->orderBy('al_create ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 default:
                     $sessionQuery->orderBy('al_expire DESC');
-                break;
+                    break;
             }
         } else {
             $sessionQuery->orderBy('al_expire DESC');
@@ -1424,23 +1487,23 @@ class AdminmembersController extends Sceleton {
         $sessionQuery = $sessionQuery->asArray(true)->all();
         $responseList = [];
         foreach ($sessionQuery as $sessionRecord) {
-            $responseList[] = array(
+            $responseList[] = [
                 $sessionRecord['al_computer_id'],
                 $sessionRecord['al_expire'],
                 $sessionRecord['al_create'],
-                '<a class="btn btn-primary" onclick="return doAdminSessionDelete(\'' . $sessionRecord['al_computer_id'] . '\', this);">' . TEXT_BUTTON_DELETE . '</a>'
-            );
+                '<a class="btn btn-primary" onclick="return doAdminSessionDelete(\'' . $sessionRecord['al_computer_id'] . '\', this);">' . TEXT_BUTTON_DELETE . '</a>',
+            ];
         }
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $numrows,
             'recordsFiltered' => $numrows,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         echo json_encode($response);
     }
 
-    function actionAdminSessionDelete()
+    public function actionAdminSessionDelete()
     {
         $this->layout = false;
         \common\helpers\Translation::init('admin/admin-session-view');
@@ -1453,71 +1516,72 @@ class AdminmembersController extends Sceleton {
             try {
                 $sessionRecord->delete();
                 $return = ['status' => 'ok'];
-            } catch (\Exception $exc) {}
+            } catch (\Exception $exc) {
+            }
         }
         echo json_encode($return);
     }
 
-    function actionAdminLoginSessionView()
+    public function actionAdminLoginSessionView()
     {
         \common\helpers\Translation::init('admin/admin-login-session-view');
 
-        $this->selectedMenu = array('administrator', 'adminmembers');
-        $this->navigation[] = array('link' => \Yii::$app->urlManager->createUrl('adminmembers/index'), 'title' => HEADING_TITLE);
+        $this->selectedMenu = ['administrator', 'adminmembers'];
+        $this->navigation[] = ['link' => \Yii::$app->urlManager->createUrl('adminmembers/index'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
 
         $admin_id = (int)\Yii::$app->request->get('admin_id');
         $adminRecord = \common\models\Admin::findOne($admin_id);
         if ($adminRecord instanceof \common\models\Admin) {
             $adminRecord = $adminRecord->toArray();
-            $this->view->LoginSessionTable = array(
-                array(
+            $this->view->LoginSessionTable = [
+                [
                     'title' => TABLE_HEADING_DEVICE,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_DATE_LOGIN,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_DATE_ACTIVITY,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => '',
-                    'not_important' => 0
-                )
-            );
+                    'not_important' => 0,
+                ],
+            ];
         } else {
             $adminRecord = ['admin_id' => 0];
-            $this->view->LoginSessionTable = array(
-                array(
+            $this->view->LoginSessionTable = [
+                [
                     'title' => TABLE_HEADING_MEMBER,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_DEVICE,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_DATE_LOGIN,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => TABLE_HEADING_DATE_ACTIVITY,
-                    'not_important' => 0
-                ),
-                array(
+                    'not_important' => 0,
+                ],
+                [
                     'title' => '',
-                    'not_important' => 0
-                )
-            );
+                    'not_important' => 0,
+                ],
+            ];
         }
 
         return $this->render('admin-login-session-view', ['adminRecord' => $adminRecord]);
     }
 
-    function actionAdminLoginSessionViewList()
+    public function actionAdminLoginSessionViewList()
     {
         \common\helpers\Translation::init('admin/admin-login-session-view');
 
@@ -1538,7 +1602,7 @@ class AdminmembersController extends Sceleton {
             } else {
                 $loginSessionQuery->andWhere(['OR',
                     ['like', 'als.als_device_id', tep_db_input(tep_db_prepare_input($_GET['search']['value']))],
-                    ['like', 'TRIM(CONCAT(TRIM(a.admin_firstname), " ", TRIM(a.admin_lastname)))', tep_db_input(tep_db_prepare_input($_GET['search']['value']))]
+                    ['like', 'TRIM(CONCAT(TRIM(a.admin_firstname), " ", TRIM(a.admin_lastname)))', tep_db_input(tep_db_prepare_input($_GET['search']['value']))],
                 ]);
             }
         }
@@ -1546,13 +1610,13 @@ class AdminmembersController extends Sceleton {
             switch ($_GET['order'][0]['column']) {
                 case 1:
                     $loginSessionQuery->orderBy('als.als_date_login ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 case 2:
                     $loginSessionQuery->orderBy('als.als_date_activity ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 default:
                     $loginSessionQuery->orderBy('als.als_date_activity DESC');
-                break;
+                    break;
             }
         } else {
             $loginSessionQuery->orderBy('als.als_date_activity DESC');
@@ -1565,32 +1629,32 @@ class AdminmembersController extends Sceleton {
         $responseList = [];
         foreach ($loginSessionQuery as $loginSessionRecord) {
             if ($id > 0) {
-                $responseList[] = array(
+                $responseList[] = [
                     $loginSessionRecord['als_device_id'],
                     $loginSessionRecord['als_date_login'],
                     $loginSessionRecord['als_date_activity'],
-                    '<a class="btn btn-primary" onclick="return doAdminLoginSessionDelete(\'' . $loginSessionRecord['als_device_id'] . '\', this);">' . TEXT_BUTTON_DELETE . '</a>'
-                );
+                    '<a class="btn btn-primary" onclick="return doAdminLoginSessionDelete(\'' . $loginSessionRecord['als_device_id'] . '\', this);">' . TEXT_BUTTON_DELETE . '</a>',
+                ];
             } else {
-                $responseList[] = array(
+                $responseList[] = [
                     $loginSessionRecord['admin_name'],
                     $loginSessionRecord['als_device_id'],
                     $loginSessionRecord['als_date_login'],
                     $loginSessionRecord['als_date_activity'],
-                    '<a class="btn btn-primary" onclick="return doAdminLoginSessionDelete(\'' . $loginSessionRecord['als_device_id'] . '\', this, \'' . (int)$loginSessionRecord['als_admin_id'] . '\');">' . TEXT_BUTTON_DELETE . '</a>'
-                );
+                    '<a class="btn btn-primary" onclick="return doAdminLoginSessionDelete(\'' . $loginSessionRecord['als_device_id'] . '\', this, \'' . (int)$loginSessionRecord['als_admin_id'] . '\');">' . TEXT_BUTTON_DELETE . '</a>',
+                ];
             }
         }
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $numrows,
             'recordsFiltered' => $numrows,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         echo json_encode($response);
     }
 
-    function actionAdminLoginSessionDelete()
+    public function actionAdminLoginSessionDelete()
     {
         $this->layout = false;
         \common\helpers\Translation::init('admin/admin-login-session-view');
@@ -1603,7 +1667,8 @@ class AdminmembersController extends Sceleton {
             try {
                 $loginSessionRecord->delete();
                 $return = ['status' => 'ok'];
-            } catch (\Exception $exc) {}
+            } catch (\Exception $exc) {
+            }
         }
         echo json_encode($return);
     }

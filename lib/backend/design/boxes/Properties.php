@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace backend\design\boxes;
 
-use Yii;
 use yii\base\Widget;
 
 class Properties extends Widget
 {
-
     public $id;
     public $params;
     public $settings;
@@ -33,9 +33,9 @@ class Properties extends Widget
 
         global $languages_id;
 
-        $product = tep_db_fetch_array(tep_db_query("
+        $product = tep_db_fetch_array(tep_db_query('
               select products_name
-              from " . TABLE_PRODUCTS_DESCRIPTION . "
+              from ' . TABLE_PRODUCTS_DESCRIPTION . "
               where products_id = '" . (int)$this->settings[0]['products_id'] . "' and language_id = '" . (int)$languages_id . "'"));
 
         $properties_tree = \common\helpers\Properties::get_properties_tree('0', '&nbsp;&nbsp;&nbsp;&nbsp;', '', false);

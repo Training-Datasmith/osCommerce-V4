@@ -1,37 +1,39 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace frontend\forms\registration;
- 
-use Yii;
-use yii\base\Model;
 
-class AuthContainer {
-    
+use Yii;
+
+class AuthContainer
+{
     private $_forms = [];
     private $_errors = [];
 
-    public function getForms($loadedScenarious) {
-        if (defined("CAPTCHA_ON_CREATE_ACCOUNT") && CAPTCHA_ON_CREATE_ACCOUNT == 'True') {
+    public function getForms($loadedScenarious)
+    {
+        if (defined('CAPTCHA_ON_CREATE_ACCOUNT') && CAPTCHA_ON_CREATE_ACCOUNT == 'True') {
             $registrationCaptcha = true;
         } else {
             $registrationCaptcha = false;
         }
-        if (defined("CAPTCHA_ON_CUSTOMER_LOGIN") && CAPTCHA_ON_CUSTOMER_LOGIN == 'True') {
+        if (defined('CAPTCHA_ON_CUSTOMER_LOGIN') && CAPTCHA_ON_CUSTOMER_LOGIN == 'True') {
             $loginCaptcha = true;
         } else {
             $loginCaptcha = \common\models\Fraud::verifyAddress();
         }
-        switch ($loadedScenarious ){
+        switch ($loadedScenarious) {
             case 'account/create':
                 $cLogin = CustomerRegistration::SCENARIO_LOGIN;
                 $cRegisrt = CustomerRegistration::SCENARIO_REGISTER;
@@ -70,7 +72,7 @@ class AuthContainer {
             case 'quote/sample':
                 $cFast = CustomerRegistration::SCENARIO_FAST_ORDER;
                 $cLogin = CustomerRegistration::SCENARIO_LOGIN;
-                $cRegisrt = CustomerRegistration::SCENARIO_REGISTER;                
+                $cRegisrt = CustomerRegistration::SCENARIO_REGISTER;
                 $this->_forms = [
                     'fast' => new CustomerRegistration(['scenario' => $cFast, 'shortName' => $cFast]),
                     'login' => new CustomerRegistration(['scenario' => $cLogin, 'shortName' => $cLogin, 'captha_enabled' => $loginCaptcha]),
@@ -80,56 +82,59 @@ class AuthContainer {
         }
         return $this->_forms;
     }
-    
-    public function loadScenario($scenario){
+
+    public function loadScenario($scenario)
+    {
         $response = null;
-        if (CustomerRegistration::hasScenario($scenario)){
-            if(isset($this->_forms[$scenario])){
+        if (CustomerRegistration::hasScenario($scenario)) {
+            if (isset($this->_forms[$scenario])) {
                 $model = $this->_forms[$scenario];
             } else {
                 $model = new CustomerRegistration(['scenario' => $scenario, 'shortName' => $scenario ]);
             }
             $this->_errors = [];
-            if ($model->load(Yii::$app->request->post()) && $model->validate()){
+            if ($model->load(Yii::$app->request->post()) && $model->validate()) {
                 $response = $model->processCustomerAuth();
-                if ($model->hasErrors()){
+                if ($model->hasErrors()) {
                     $this->_errors[$model->scenario] = $model->getErrors();
                 }
             } else {
-                if ($model->hasErrors()){
+                if ($model->hasErrors()) {
                     $this->_errors[$model->scenario] = $model->getErrors();
                 }
             }
-            if ($model->hasErrors()){
+            if ($model->hasErrors()) {
                 $model->cleanupSafeFields();
             }
         }
-        return $response;        
+        return $response;
     }
-    
-    public function isShowAddress(){
+
+    public function isShowAddress()
+    {
         $show = false;
-        if ($this->_forms){
-            foreach($this->_forms as $form){
+        if ($this->_forms) {
+            foreach ($this->_forms as $form) {
                 $show = $show || $form->isShowAddress();
             }
         }
         return $show;
     }
 
-
-    public function hasErrors($scenario = null){
-        if (!empty($scenario)){
+    public function hasErrors($scenario = null)
+    {
+        if (!empty($scenario)) {
             return count($this->_errors[$scenario]);
         }
         return count($this->_errors);
     }
-    
-    public function getErrors($scenario = null){
-        if (!empty($scenario)){
+
+    public function getErrors($scenario = null)
+    {
+        if (!empty($scenario)) {
             return $this->_errors[$scenario];
         }
         return $this->_errors;
     }
-    
+
 }

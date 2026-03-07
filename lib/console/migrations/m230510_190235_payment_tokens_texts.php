@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -33,8 +35,6 @@ class m230510_190235_payment_tokens_texts extends Migration
           'TEXT_CARD_CVV' => 'CVV',
         ]);
 
-
-
     }
 
     /**
@@ -42,9 +42,9 @@ class m230510_190235_payment_tokens_texts extends Migration
      */
     public function safeDown()
     {
-//        echo "m230510_190235_payment_tokens_texts cannot be reverted.\n";
+        //        echo "m230510_190235_payment_tokens_texts cannot be reverted.\n";
 
-//        return false;
+        //        return false;
     }
 
     /*

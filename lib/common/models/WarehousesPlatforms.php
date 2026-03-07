@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,15 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
+
 /**
  * This is the model class for table "warehouses_to_platforms".
  *
  * @property int $warehouse_id
  * @property int $platform_id
  * @property int $status
- * @property int $sort_order 
+ * @property int $sort_order
  */
 class WarehousesPlatforms extends ActiveRecord
 {
@@ -31,5 +33,5 @@ class WarehousesPlatforms extends ActiveRecord
     {
         return 'warehouses_to_platforms';
     }
-   
+
 }

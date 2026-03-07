@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,13 +24,11 @@ class m230306_153811_delivery_location_translate extends Migration
      */
     public function safeUp()
     {
-        if (method_exists($this, 'isOldExtension'))
-        {
-            if (!$this->isOldExtension('DeliveryLocation'))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension('DeliveryLocation')) {
                 $this->removeTranslation('admin/seo-delivery-location');
             }
-            
+
         }
     }
 

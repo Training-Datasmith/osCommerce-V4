@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "orders_products_allocate".
@@ -39,7 +39,7 @@ class OrdersProductsAllocate extends \yii\db\ActiveRecord
         return [
             [['orders_products_id', 'warehouse_id', 'suppliers_id', 'location_id', 'layers_id', 'batch_id', 'platform_id', 'orders_id', 'prid', 'products_id', 'allocate_received'], 'required'],
             [['orders_products_id', 'warehouse_id', 'suppliers_id', 'location_id', 'layers_id', 'batch_id', 'platform_id', 'orders_id', 'prid', 'allocate_received', 'allocate_dispatched', 'allocate_delivered'], 'integer'],
-            [['products_id'], 'string', 'max' => 255]
+            [['products_id'], 'string', 'max' => 255],
         ];
     }
 
@@ -64,23 +64,28 @@ class OrdersProductsAllocate extends \yii\db\ActiveRecord
             'allocate_delivered' => 'Allocate Delivered',
         ];
     }
-    
-    public function getOrdersProduct(){
+
+    public function getOrdersProduct()
+    {
         return $this->hasOne(OrdersProducts::className(), ['orders_products_id' => 'orders_products_id']);
     }
-    
-    public function getProduct(){
+
+    public function getProduct()
+    {
         return $this->hasOne(Products::className(), ['products_id' => 'prid']);
     }
-    
-    public function getInventory(){
+
+    public function getInventory()
+    {
         return $this->hasOne(Inventory::className(), ['products_id' => 'products_id']);
     }
 
     public function beforeSave($insert)
     {
-        if ( $insert ) {
-            if ( is_null($this->suppliers_price) ) $this->suppliers_price = 0;
+        if ($insert) {
+            if (is_null($this->suppliers_price)) {
+                $this->suppliers_price = 0;
+            }
         }
         if (!parent::beforeSave($insert)) {
             return false;

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -14,7 +17,6 @@ use PayPal\Common\PayPalModel;
  */
 class OpenIdError extends PayPalModel
 {
-
     /**
      * A single ASCII error code from the following enum.
      *
@@ -80,6 +82,5 @@ class OpenIdError extends PayPalModel
     {
         return $this->error_uri;
     }
-
 
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -33,28 +35,31 @@ use yii\db\Expression;
  * @property string $label_module_error
  *
  */
-class OrdersLabel extends ActiveRecord {
-
-    const LABEL_STATUS_ERROR = -1;
-    const LABEL_STATUS_ASYNC_READY = 2;
-    const LABEL_STATUS_DONE = 1;
+class OrdersLabel extends ActiveRecord
+{
+    public const LABEL_STATUS_ERROR = -1;
+    public const LABEL_STATUS_ASYNC_READY = 2;
+    public const LABEL_STATUS_DONE = 1;
 
     /**
      * set table name
      * @return string
      */
-    public static function tableName() {
+    public static function tableName()
+    {
         return 'orders_label';
     }
 
-    public function beforeDelete() {
+    public function beforeDelete()
+    {
         if ($this->orders_id && $this->orders_label_id) {
             Yii::$app->db->createCommand()->delete(TABLE_ORDERS_LABEL_TO_ORDERS_PRODUCTS, ['orders_id' => $this->orders_id, 'orders_label_id' => $this->orders_label_id])->execute();
         }
         return parent::beforeDelete();
     }
 
-    public function getOrdersLabelProducts() {
+    public function getOrdersLabelProducts()
+    {
         $selected_order_products = [];
         if ($this->orders_id && $this->orders_label_id) {
             foreach ((new \yii\db\Query())->select('orders_products_id, products_quantity')->from(TABLE_ORDERS_LABEL_TO_ORDERS_PRODUCTS)->where(['orders_id' => $this->orders_id, 'orders_label_id' => $this->orders_label_id])->all() as $selected_products) {
@@ -66,19 +71,18 @@ class OrdersLabel extends ActiveRecord {
 
     public function beforeSave($insert)
     {
-        if (!parent::beforeSave($insert)){
+        if (!parent::beforeSave($insert)) {
             return false;
         }
-        if ( $insert ){
-            if ( is_null($this->admin_id) && Info::isTotallyAdmin() && isset($_SESSION['login_id']) ){
+        if ($insert) {
+            if (is_null($this->admin_id) && Info::isTotallyAdmin() && isset($_SESSION['login_id'])) {
                 $this->admin_id = (int)$_SESSION['login_id'];
             }
-            if ( empty($this->date_created) ) {
+            if (empty($this->date_created)) {
                 $this->date_created = new Expression('NOW()');
             }
         }
         return true;
     }
-
 
 }

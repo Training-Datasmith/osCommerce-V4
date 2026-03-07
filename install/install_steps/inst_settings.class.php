@@ -1,17 +1,19 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-class inst_settings extends install_generic {
-
+class inst_settings extends install_generic
+{
     public static $before = 'db_access';
     public static $ajax = 'ajax';
     public $next_button = 'update_db';
@@ -38,263 +40,268 @@ class inst_settings extends install_generic {
     private $platform_country = 222;
     private $sample_orders = 1;
 
-    public function __construct() {
+    public function __construct()
+    {
         parent::__construct();
     }
 
-    public static function before() {
+    public static function before()
+    {
         return self::$before;
     }
 
-    public function get_output() {
-        if (!$this->def_lang)
+    public function get_output()
+    {
+        if (!$this->def_lang) {
             $this->def_lang = $_POST['inst_lang'];
-        if (!$this->platform_url)
+        }
+        if (!$this->platform_url) {
             $this->platform_url = rtrim($_SERVER['HTTP_HOST'] . '/' . trim(dirname(dirname($_SERVER['SCRIPT_NAME'])), '/\\'), '/\\');
+        }
         $cuntries = $this->get_cuntries();
         if (!is_array($cuntries)) {
             $cuntries = [
-                1 =>  "Afghanistan",
-                2 =>  "Albania",
-                3 =>  "Algeria",
-                4 =>  "American Samoa",
-                5 =>  "Andorra",
-                6 =>  "Angola",
-                7 =>  "Anguilla",
-                8 =>  "Antarctica",
-                9 =>  "Antigua and Barbuda",
-                10 =>  "Argentina",
-                11 =>  "Armenia",
-                12 =>  "Aruba",
-                13 =>  "Australia",
-                14 =>  "Austria",
-                15 =>  "Azerbaijan",
-                16 =>  "Bahamas",
-                17 =>  "Bahrain",
-                18 =>  "Bangladesh",
-                19 =>  "Barbados",
-                20 =>  "Belarus",
-                21 =>  "Belgium",
-                22 =>  "Belize",
-                23 =>  "Benin",
-                24 =>  "Bermuda",
-                25 =>  "Bhutan",
-                26 =>  "Bolivia",
-                27 =>  "Bosnia and Herzegowina",
-                28 =>  "Botswana",
-                29 =>  "Bouvet Island",
-                30 =>  "Brazil",
-                31 =>  "British Indian Ocean Territory",
-                32 =>  "Brunei Darussalam",
-                33 =>  "Bulgaria",
-                34 =>  "Burkina Faso",
-                35 =>  "Burundi",
-                36 =>  "Cambodia",
-                37 =>  "Cameroon",
-                38 =>  "Canada",
-                39 =>  "Cape Verde",
-                40 =>  "Cayman Islands",
-                41 =>  "Central African Republic",
-                42 =>  "Chad",
-                43 =>  "Chile",
-                44 =>  "China",
-                45 =>  "Christmas Island",
-                46 =>  "Cocos (Keeling) Islands",
-                47 =>  "Colombia",
-                48 =>  "Comoros",
-                49 =>  "Congo",
-                50 =>  "Cook Islands",
-                51 =>  "Costa Rica",
+                1 =>  'Afghanistan',
+                2 =>  'Albania',
+                3 =>  'Algeria',
+                4 =>  'American Samoa',
+                5 =>  'Andorra',
+                6 =>  'Angola',
+                7 =>  'Anguilla',
+                8 =>  'Antarctica',
+                9 =>  'Antigua and Barbuda',
+                10 =>  'Argentina',
+                11 =>  'Armenia',
+                12 =>  'Aruba',
+                13 =>  'Australia',
+                14 =>  'Austria',
+                15 =>  'Azerbaijan',
+                16 =>  'Bahamas',
+                17 =>  'Bahrain',
+                18 =>  'Bangladesh',
+                19 =>  'Barbados',
+                20 =>  'Belarus',
+                21 =>  'Belgium',
+                22 =>  'Belize',
+                23 =>  'Benin',
+                24 =>  'Bermuda',
+                25 =>  'Bhutan',
+                26 =>  'Bolivia',
+                27 =>  'Bosnia and Herzegowina',
+                28 =>  'Botswana',
+                29 =>  'Bouvet Island',
+                30 =>  'Brazil',
+                31 =>  'British Indian Ocean Territory',
+                32 =>  'Brunei Darussalam',
+                33 =>  'Bulgaria',
+                34 =>  'Burkina Faso',
+                35 =>  'Burundi',
+                36 =>  'Cambodia',
+                37 =>  'Cameroon',
+                38 =>  'Canada',
+                39 =>  'Cape Verde',
+                40 =>  'Cayman Islands',
+                41 =>  'Central African Republic',
+                42 =>  'Chad',
+                43 =>  'Chile',
+                44 =>  'China',
+                45 =>  'Christmas Island',
+                46 =>  'Cocos (Keeling) Islands',
+                47 =>  'Colombia',
+                48 =>  'Comoros',
+                49 =>  'Congo',
+                50 =>  'Cook Islands',
+                51 =>  'Costa Rica',
                 52 =>  "Cote D'Ivoire",
-                53 =>  "Croatia",
-                54 =>  "Cuba",
-                55 =>  "Cyprus",
-                56 =>  "Czech Republic",
-                57 =>  "Denmark",
-                58 =>  "Djibouti",
-                59 =>  "Dominica",
-                60 =>  "Dominican Republic",
-                61 =>  "East Timor",
-                62 =>  "Ecuador",
-                63 =>  "Egypt",
-                64 =>  "El Salvador",
-                65 =>  "Equatorial Guinea",
-                66 =>  "Eritrea",
-                67 =>  "Estonia",
-                68 =>  "Ethiopia",
-                69 =>  "Falkland Islands (Malvinas)",
-                70 =>  "Faroe Islands",
-                71 =>  "Fiji",
-                72 =>  "Finland",
-                73 =>  "France",
-                74 =>  "France, Metropolitan",
-                75 =>  "French Guiana",
-                76 =>  "French Polynesia",
-                77 =>  "French Southern Territories",
-                78 =>  "Gabon",
-                79 =>  "Gambia",
-                80 =>  "Georgia",
-                81 =>  "Germany",
-                82 =>  "Ghana",
-                83 =>  "Gibraltar",
-                84 =>  "Greece",
-                85 =>  "Greenland",
-                86 =>  "Grenada",
-                87 =>  "Guadeloupe",
-                88 =>  "Guam",
-                89 =>  "Guatemala",
-                241 =>  "Guernsey",
-                90 =>  "Guinea",
-                91 =>  "Guinea-bissau",
-                92 =>  "Guyana",
-                93 =>  "Haiti",
-                94 =>  "Heard and Mc Donald Islands",
-                95 =>  "Honduras",
-                96 =>  "Hong Kong",
-                97 =>  "Hungary",
-                98 =>  "Iceland",
-                99 =>  "India",
-                100 =>  "Indonesia",
-                101 =>  "Iran (Islamic Republic of)",
-                102 =>  "Iraq",
-                103 =>  "Ireland",
-                240 =>  "Isle of Man",
-                104 =>  "Israel",
-                105 =>  "Italy",
-                106 =>  "Jamaica",
-                107 =>  "Japan",
-                242 =>  "Jersey",
-                108 =>  "Jordan",
-                109 =>  "Kazakhstan",
-                110 =>  "Kenya",
-                111 =>  "Kiribati",
+                53 =>  'Croatia',
+                54 =>  'Cuba',
+                55 =>  'Cyprus',
+                56 =>  'Czech Republic',
+                57 =>  'Denmark',
+                58 =>  'Djibouti',
+                59 =>  'Dominica',
+                60 =>  'Dominican Republic',
+                61 =>  'East Timor',
+                62 =>  'Ecuador',
+                63 =>  'Egypt',
+                64 =>  'El Salvador',
+                65 =>  'Equatorial Guinea',
+                66 =>  'Eritrea',
+                67 =>  'Estonia',
+                68 =>  'Ethiopia',
+                69 =>  'Falkland Islands (Malvinas)',
+                70 =>  'Faroe Islands',
+                71 =>  'Fiji',
+                72 =>  'Finland',
+                73 =>  'France',
+                74 =>  'France, Metropolitan',
+                75 =>  'French Guiana',
+                76 =>  'French Polynesia',
+                77 =>  'French Southern Territories',
+                78 =>  'Gabon',
+                79 =>  'Gambia',
+                80 =>  'Georgia',
+                81 =>  'Germany',
+                82 =>  'Ghana',
+                83 =>  'Gibraltar',
+                84 =>  'Greece',
+                85 =>  'Greenland',
+                86 =>  'Grenada',
+                87 =>  'Guadeloupe',
+                88 =>  'Guam',
+                89 =>  'Guatemala',
+                241 =>  'Guernsey',
+                90 =>  'Guinea',
+                91 =>  'Guinea-bissau',
+                92 =>  'Guyana',
+                93 =>  'Haiti',
+                94 =>  'Heard and Mc Donald Islands',
+                95 =>  'Honduras',
+                96 =>  'Hong Kong',
+                97 =>  'Hungary',
+                98 =>  'Iceland',
+                99 =>  'India',
+                100 =>  'Indonesia',
+                101 =>  'Iran (Islamic Republic of)',
+                102 =>  'Iraq',
+                103 =>  'Ireland',
+                240 =>  'Isle of Man',
+                104 =>  'Israel',
+                105 =>  'Italy',
+                106 =>  'Jamaica',
+                107 =>  'Japan',
+                242 =>  'Jersey',
+                108 =>  'Jordan',
+                109 =>  'Kazakhstan',
+                110 =>  'Kenya',
+                111 =>  'Kiribati',
                 112 =>  "Korea, Democratic People's Republic of",
-                113 =>  "Korea, Republic of",
-                114 =>  "Kuwait",
-                115 =>  "Kyrgyzstan",
+                113 =>  'Korea, Republic of',
+                114 =>  'Kuwait',
+                115 =>  'Kyrgyzstan',
                 116 =>  "Lao People's Democratic Republic",
-                117 =>  "Latvia",
-                118 =>  "Lebanon",
-                119 =>  "Lesotho",
-                120 =>  "Liberia",
-                121 =>  "Libyan Arab Jamahiriya",
-                122 =>  "Liechtenstein",
-                123 =>  "Lithuania",
-                124 =>  "Luxembourg",
-                125 =>  "Macau",
-                126 =>  "Macedonia, The Former Yugoslav Republic of",
-                127 =>  "Madagascar",
-                128 =>  "Malawi",
-                129 =>  "Malaysia",
-                130 =>  "Maldives",
-                131 =>  "Mali",
-                132 =>  "Malta",
-                133 =>  "Marshall Islands",
-                134 =>  "Martinique",
-                135 =>  "Mauritania",
-                136 =>  "Mauritius",
-                137 =>  "Mayotte",
-                138 =>  "Mexico",
-                139 =>  "Micronesia, Federated States of",
-                140 =>  "Moldova, Republic of",
-                141 =>  "Monaco",
-                142 =>  "Mongolia",
-                143 =>  "Montserrat",
-                144 =>  "Morocco",
-                145 =>  "Mozambique",
-                146 =>  "Myanmar",
-                147 =>  "Namibia",
-                148 =>  "Nauru",
-                149 =>  "Nepal",
-                150 =>  "Netherlands",
-                151 =>  "Netherlands Antilles",
-                152 =>  "New Caledonia",
-                153 =>  "New Zealand",
-                154 =>  "Nicaragua",
-                155 =>  "Niger",
-                156 =>  "Nigeria",
-                157 =>  "Niue",
-                158 =>  "Norfolk Island",
-                159 =>  "Northern Mariana Islands",
-                160 =>  "Norway",
-                161 =>  "Oman",
-                162 =>  "Pakistan",
-                163 =>  "Palau",
-                164 =>  "Panama",
-                165 =>  "Papua New Guinea",
-                166 =>  "Paraguay",
-                167 =>  "Peru",
-                168 =>  "Philippines",
-                169 =>  "Pitcairn",
-                170 =>  "Poland",
-                171 =>  "Portugal",
-                172 =>  "Puerto Rico",
-                173 =>  "Qatar",
-                174 =>  "Reunion",
-                175 =>  "Romania",
-                176 =>  "Russian Federation",
-                177 =>  "Rwanda",
-                178 =>  "Saint Kitts and Nevis",
-                179 =>  "Saint Lucia",
-                180 =>  "Saint Vincent and the Grenadines",
-                181 =>  "Samoa",
-                182 =>  "San Marino",
-                183 =>  "Sao Tome and Principe",
-                184 =>  "Saudi Arabia",
-                185 =>  "Senegal",
-                186 =>  "Seychelles",
-                187 =>  "Sierra Leone",
-                188 =>  "Singapore",
-                189 =>  "Slovakia (Slovak Republic)",
-                190 =>  "Slovenia",
-                191 =>  "Solomon Islands",
-                192 =>  "Somalia",
-                193 =>  "South Africa",
-                194 =>  "South Georgia and the South Sandwich Islands",
-                195 =>  "Spain",
-                196 =>  "Sri Lanka",
-                197 =>  "St. Helena",
-                198 =>  "St. Pierre and Miquelon",
-                199 =>  "Sudan",
-                200 =>  "Suriname",
-                201 =>  "Svalbard and Jan Mayen Islands",
-                202 =>  "Swaziland",
-                203 =>  "Sweden",
-                204 =>  "Switzerland",
-                205 =>  "Syrian Arab Republic",
-                206 =>  "Taiwan",
-                207 =>  "Tajikistan",
-                208 =>  "Tanzania, United Republic of",
-                209 =>  "Thailand",
-                210 =>  "Togo",
-                211 =>  "Tokelau",
-                212 =>  "Tonga",
-                213 =>  "Trinidad and Tobago",
-                214 =>  "Tunisia",
-                215 =>  "Turkey",
-                216 =>  "Turkmenistan",
-                217 =>  "Turks and Caicos Islands",
-                218 =>  "Tuvalu",
-                219 =>  "Uganda",
-                220 =>  "Ukraine",
-                221 =>  "United Arab Emirates",
-                222 =>  "United Kingdom",
-                223 =>  "United States",
-                224 =>  "United States Minor Outlying Islands",
-                225 =>  "Uruguay",
-                226 =>  "Uzbekistan",
-                227 =>  "Vanuatu",
-                228 =>  "Vatican City State (Holy See)",
-                229 =>  "Venezuela",
-                230 =>  "Viet Nam",
-                231 =>  "Virgin Islands (British)",
-                232 =>  "Virgin Islands (U.S.)",
-                233 =>  "Wallis and Futuna Islands",
-                234 =>  "Western Sahara",
-                235 =>  "Yemen",
-                237 =>  "Zaire",
-                238 =>  "Zambia",
-                239 =>  "Zimbabwe",                                                  ];
+                117 =>  'Latvia',
+                118 =>  'Lebanon',
+                119 =>  'Lesotho',
+                120 =>  'Liberia',
+                121 =>  'Libyan Arab Jamahiriya',
+                122 =>  'Liechtenstein',
+                123 =>  'Lithuania',
+                124 =>  'Luxembourg',
+                125 =>  'Macau',
+                126 =>  'Macedonia, The Former Yugoslav Republic of',
+                127 =>  'Madagascar',
+                128 =>  'Malawi',
+                129 =>  'Malaysia',
+                130 =>  'Maldives',
+                131 =>  'Mali',
+                132 =>  'Malta',
+                133 =>  'Marshall Islands',
+                134 =>  'Martinique',
+                135 =>  'Mauritania',
+                136 =>  'Mauritius',
+                137 =>  'Mayotte',
+                138 =>  'Mexico',
+                139 =>  'Micronesia, Federated States of',
+                140 =>  'Moldova, Republic of',
+                141 =>  'Monaco',
+                142 =>  'Mongolia',
+                143 =>  'Montserrat',
+                144 =>  'Morocco',
+                145 =>  'Mozambique',
+                146 =>  'Myanmar',
+                147 =>  'Namibia',
+                148 =>  'Nauru',
+                149 =>  'Nepal',
+                150 =>  'Netherlands',
+                151 =>  'Netherlands Antilles',
+                152 =>  'New Caledonia',
+                153 =>  'New Zealand',
+                154 =>  'Nicaragua',
+                155 =>  'Niger',
+                156 =>  'Nigeria',
+                157 =>  'Niue',
+                158 =>  'Norfolk Island',
+                159 =>  'Northern Mariana Islands',
+                160 =>  'Norway',
+                161 =>  'Oman',
+                162 =>  'Pakistan',
+                163 =>  'Palau',
+                164 =>  'Panama',
+                165 =>  'Papua New Guinea',
+                166 =>  'Paraguay',
+                167 =>  'Peru',
+                168 =>  'Philippines',
+                169 =>  'Pitcairn',
+                170 =>  'Poland',
+                171 =>  'Portugal',
+                172 =>  'Puerto Rico',
+                173 =>  'Qatar',
+                174 =>  'Reunion',
+                175 =>  'Romania',
+                176 =>  'Russian Federation',
+                177 =>  'Rwanda',
+                178 =>  'Saint Kitts and Nevis',
+                179 =>  'Saint Lucia',
+                180 =>  'Saint Vincent and the Grenadines',
+                181 =>  'Samoa',
+                182 =>  'San Marino',
+                183 =>  'Sao Tome and Principe',
+                184 =>  'Saudi Arabia',
+                185 =>  'Senegal',
+                186 =>  'Seychelles',
+                187 =>  'Sierra Leone',
+                188 =>  'Singapore',
+                189 =>  'Slovakia (Slovak Republic)',
+                190 =>  'Slovenia',
+                191 =>  'Solomon Islands',
+                192 =>  'Somalia',
+                193 =>  'South Africa',
+                194 =>  'South Georgia and the South Sandwich Islands',
+                195 =>  'Spain',
+                196 =>  'Sri Lanka',
+                197 =>  'St. Helena',
+                198 =>  'St. Pierre and Miquelon',
+                199 =>  'Sudan',
+                200 =>  'Suriname',
+                201 =>  'Svalbard and Jan Mayen Islands',
+                202 =>  'Swaziland',
+                203 =>  'Sweden',
+                204 =>  'Switzerland',
+                205 =>  'Syrian Arab Republic',
+                206 =>  'Taiwan',
+                207 =>  'Tajikistan',
+                208 =>  'Tanzania, United Republic of',
+                209 =>  'Thailand',
+                210 =>  'Togo',
+                211 =>  'Tokelau',
+                212 =>  'Tonga',
+                213 =>  'Trinidad and Tobago',
+                214 =>  'Tunisia',
+                215 =>  'Turkey',
+                216 =>  'Turkmenistan',
+                217 =>  'Turks and Caicos Islands',
+                218 =>  'Tuvalu',
+                219 =>  'Uganda',
+                220 =>  'Ukraine',
+                221 =>  'United Arab Emirates',
+                222 =>  'United Kingdom',
+                223 =>  'United States',
+                224 =>  'United States Minor Outlying Islands',
+                225 =>  'Uruguay',
+                226 =>  'Uzbekistan',
+                227 =>  'Vanuatu',
+                228 =>  'Vatican City State (Holy See)',
+                229 =>  'Venezuela',
+                230 =>  'Viet Nam',
+                231 =>  'Virgin Islands (British)',
+                232 =>  'Virgin Islands (U.S.)',
+                233 =>  'Wallis and Futuna Islands',
+                234 =>  'Western Sahara',
+                235 =>  'Yemen',
+                237 =>  'Zaire',
+                238 =>  'Zambia',
+                239 =>  'Zimbabwe',                                                  ];
         }
         $content = '<table class="no-borders table-db-access table-settings" style="border-collapse: collapse;" width="100%">
 						<tr>
@@ -459,7 +466,8 @@ class inst_settings extends install_generic {
         return $content;
     }
 
-    public function get_cuntries() {
+    public function get_cuntries()
+    {
         include_once $this->root_path . 'includes/local/configure.php';
         $link = mysqli_connect(DB_SERVER, DB_SERVER_USERNAME, DB_SERVER_PASSWORD);
         if (!$link) {
@@ -496,13 +504,15 @@ class inst_settings extends install_generic {
         return $countries;
     }
 
-    public function get_filled_output() {
+    public function get_filled_output()
+    {
         return $this->get_output();
     }
 
-    public function parse_input() {
+    public function parse_input()
+    {
 
-        $this->platform_type = $_POST['multi_channel']? 0 : $_POST['platform_type'];
+        $this->platform_type = $_POST['multi_channel'] ? 0 : $_POST['platform_type'];
         $this->platform_owner = $_POST['platform_owner'];
         $this->platform_name = $_POST['platform_name'];
         $this->platform_url = $_POST['platform_url'];
@@ -535,7 +545,7 @@ class inst_settings extends install_generic {
             return false;
         }
 
-        $query = "UPDATE platforms SET " .
+        $query = 'UPDATE platforms SET ' .
                 "platform_owner='" . $this->prepare_input($this->platform_owner) . "'" .
                 ", platform_name='" . $this->prepare_input($this->platform_name) . "'" .
                 ", platform_url='" . $this->prepare_input($this->platform_url) . "'" .
@@ -545,13 +555,13 @@ class inst_settings extends install_generic {
                 ", platform_email_extra='" . $this->prepare_input($this->platform_extra) . "'" .
                 ", platform_telephone='" . $this->prepare_input($this->platform_phone) . "'" .
                 ", platform_landline='" . $this->prepare_input($this->platform_landline) . "'" .
-                " WHERE platform_id=1;";
+                ' WHERE platform_id=1;';
         $result = mysqli_query($link, $query);
         if (!$result) {
             $this->log('install_error', 'Can\'t update database settings: ' . $link->error, $query);
             return false;
         }
-        $query = "UPDATE platforms SET " .
+        $query = 'UPDATE platforms SET ' .
                 "platform_owner='" . $this->prepare_input($this->platform_owner) . "'" .
                 //", platform_name='" . $this->prepare_input($this->platform_name) . "'" .
                 ", platform_url='" . $this->prepare_input($this->platform_url) . "/furniture'" .
@@ -561,13 +571,13 @@ class inst_settings extends install_generic {
                 ", platform_email_extra='" . $this->prepare_input($this->platform_extra) . "'" .
                 ", platform_telephone='" . $this->prepare_input($this->platform_phone) . "'" .
                 ", platform_landline='" . $this->prepare_input($this->platform_landline) . "'" .
-                " WHERE platform_id=7;";
+                ' WHERE platform_id=7;';
         $result = mysqli_query($link, $query);
         if (!$result) {
             $this->log('install_error', 'Can\'t update database settings: ' . $link->error, $query);
             return false;
         }
-        $query = "UPDATE platforms SET " .
+        $query = 'UPDATE platforms SET ' .
                 "platform_owner='" . $this->prepare_input($this->platform_owner) . "'" .
                 //", platform_name='" . $this->prepare_input($this->platform_name) . "'" .
                 ", platform_url='" . $this->prepare_input($this->platform_url) . "/watch'" .
@@ -577,13 +587,13 @@ class inst_settings extends install_generic {
                 ", platform_email_extra='" . $this->prepare_input($this->platform_extra) . "'" .
                 ", platform_telephone='" . $this->prepare_input($this->platform_phone) . "'" .
                 ", platform_landline='" . $this->prepare_input($this->platform_landline) . "'" .
-                " WHERE platform_id=8;";
+                ' WHERE platform_id=8;';
         $result = mysqli_query($link, $query);
         if (!$result) {
             $this->log('install_error', 'Can\'t update database settings: ' . $link->error, $query);
             return false;
         }
-        $query = "UPDATE platforms SET " .
+        $query = 'UPDATE platforms SET ' .
                 "platform_owner='" . $this->prepare_input($this->platform_owner) . "'" .
                 //", platform_name='" . $this->prepare_input($this->platform_name) . "'" .
                 ", platform_url='" . $this->prepare_input($this->platform_url) . "/b2b-supermarket'" .
@@ -593,13 +603,13 @@ class inst_settings extends install_generic {
                 ", platform_email_extra='" . $this->prepare_input($this->platform_extra) . "'" .
                 ", platform_telephone='" . $this->prepare_input($this->platform_phone) . "'" .
                 ", platform_landline='" . $this->prepare_input($this->platform_landline) . "'" .
-                " WHERE platform_id=9;";
+                ' WHERE platform_id=9;';
         $result = mysqli_query($link, $query);
         if (!$result) {
             $this->log('install_error', 'Can\'t update database settings: ' . $link->error, $query);
             return false;
         }
-        $query = "UPDATE platforms SET " .
+        $query = 'UPDATE platforms SET ' .
                 "platform_owner='" . $this->prepare_input($this->platform_owner) . "'" .
                 //", platform_name='" . $this->prepare_input($this->platform_name) . "'" .
                 ", platform_url='" . $this->prepare_input($this->platform_url) . "/printshop'" .
@@ -609,14 +619,14 @@ class inst_settings extends install_generic {
                 ", platform_email_extra='" . $this->prepare_input($this->platform_extra) . "'" .
                 ", platform_telephone='" . $this->prepare_input($this->platform_phone) . "'" .
                 ", platform_landline='" . $this->prepare_input($this->platform_landline) . "'" .
-                " WHERE platform_id=10;";
+                ' WHERE platform_id=10;';
         $result = mysqli_query($link, $query);
         if (!$result) {
             $this->log('install_error', 'Can\'t update database settings: ' . $link->error, $query);
             return false;
         }
 
-        $query = "UPDATE platforms_address_book SET " .
+        $query = 'UPDATE platforms_address_book SET ' .
                 "entry_company='" . $this->prepare_input($this->platform_companyname) . "'" .
                 ", entry_company_vat='" . $this->prepare_input($this->platform_companyvat) . "'" .
                 ", entry_company_reg_number='" . $this->prepare_input($this->platform_companyno) . "'" .
@@ -627,7 +637,7 @@ class inst_settings extends install_generic {
                 ", entry_state='" . $this->prepare_input($this->platform_state) . "'" .
                 ", entry_country_id='" . (int) $this->platform_country . "'" .
                 ", entry_zone_id='" . 0 . "'" .
-                " WHERE platform_id IN (1, 7, 8, 9, 10);";
+                ' WHERE platform_id IN (1, 7, 8, 9, 10);';
         $result = mysqli_query($link, $query);
         if (!$result) {
             $this->log('install_error', 'Can\'t update database settings: ' . $link->error, $query);
@@ -649,7 +659,7 @@ class inst_settings extends install_generic {
         }
 
         // to remove "You have changes in categories..." dashboard warning
-        $query = "UPDATE menus SET last_modified= NOW();";
+        $query = 'UPDATE menus SET last_modified= NOW();';
         $result = mysqli_query($link, $query);
         if (!$result) {
             $this->log('install_error', 'Can\'t update menu date: ' . $link->error, $query);
@@ -674,40 +684,39 @@ class inst_settings extends install_generic {
                     $this->log('install_error', 'Can\'t update database settings: ' . $link->error, $query);
                     return false;
                 }
-                
+
                 break;
             case '0':// Splash page and multi sales channels
             default:
                 break;
         }
-        
 
         if ($this->enable_ssl == 0) {
             error_clear_last();
             $content = file_get_contents($this->root_path . 'admin/includes/local/configure.php');
             if ($content === false) {
-                $this->log('install_error', 'Cant read admin config file.', error_get_last()['message']??null);
+                $this->log('install_error', 'Cant read admin config file.', error_get_last()['message'] ?? null);
                 return false;
             }
             $content = str_replace(["define('ENABLE_SSL', true);", "define('ENABLE_SSL_CATALOG', true);"], ["define('ENABLE_SSL', false);", "define('ENABLE_SSL_CATALOG', false);"], $content);
             error_clear_last();
             $response = file_put_contents($this->root_path . 'admin/includes/local/configure.php', $content);
             if ($response === false) {
-                $this->log('install_error', 'Can\'t save admin config file.', error_get_last()['message']??null);
+                $this->log('install_error', 'Can\'t save admin config file.', error_get_last()['message'] ?? null);
                 return false;
             }
         } else {
             error_clear_last();
             $content = file_get_contents($this->root_path . 'admin/includes/local/configure.php');
             if ($content === false) {
-                $this->log('install_error', 'Cant read admin config file.', error_get_last()['message']??null);
+                $this->log('install_error', 'Cant read admin config file.', error_get_last()['message'] ?? null);
                 return false;
             }
             $content = str_replace(["define('HTTP_SERVER', 'http:", "define('HTTP_CATALOG_SERVER', 'http:"], ["define('HTTP_SERVER', 'https:", "define('HTTP_CATALOG_SERVER', 'https:"], $content);
             error_clear_last();
             $response = file_put_contents($this->root_path . 'admin/includes/local/configure.php', $content);
             if ($response === false) {
-                $this->log('install_error', 'Can\'t save admin config file.', error_get_last()['message']??null);
+                $this->log('install_error', 'Can\'t save admin config file.', error_get_last()['message'] ?? null);
                 return false;
             }
         }
@@ -716,9 +725,9 @@ class inst_settings extends install_generic {
             $content = file_get_contents($this->root_path . '.htaccess');
             if ($content !== false) {
                 if ($this->enable_ssl == 2) {
-                    $content = str_replace(["#RewriteCond %{HTTP_HOST} !^www\.", "#RewriteCond %{HTTPS}s on(s)|offs()", "#RewriteRule ^ http%1://www.%{HTTP_HOST}%{REQUEST_URI} [NE,L,R]"], ["RewriteCond %{HTTPS}s on(s)|offs()", "RewriteCond %{HTTP_HOST} !^www\.", "RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [NE,L,R]"], $content);
+                    $content = str_replace(["#RewriteCond %{HTTP_HOST} !^www\.", '#RewriteCond %{HTTPS}s on(s)|offs()', '#RewriteRule ^ http%1://www.%{HTTP_HOST}%{REQUEST_URI} [NE,L,R]'], ['RewriteCond %{HTTPS}s on(s)|offs()', "RewriteCond %{HTTP_HOST} !^www\.", 'RewriteRule ^ https://www.%{HTTP_HOST}%{REQUEST_URI} [NE,L,R]'], $content);
                 } else {
-                    $content = str_replace(["#RewriteCond %{HTTP_HOST} !^www\.", "#RewriteRule ^ http%1://www.%{HTTP_HOST}%{REQUEST_URI} [NE,L,R]"], ["RewriteCond %{HTTP_HOST} !^www\.", "RewriteRule ^ http%1://www.%{HTTP_HOST}%{REQUEST_URI} [NE,L,R]"], $content);
+                    $content = str_replace(["#RewriteCond %{HTTP_HOST} !^www\.", '#RewriteRule ^ http%1://www.%{HTTP_HOST}%{REQUEST_URI} [NE,L,R]'], ["RewriteCond %{HTTP_HOST} !^www\.", 'RewriteRule ^ http%1://www.%{HTTP_HOST}%{REQUEST_URI} [NE,L,R]'], $content);
                 }
                 $response = file_put_contents($this->root_path . '.htaccess', $content);
             }
@@ -730,12 +739,12 @@ class inst_settings extends install_generic {
             curl_setopt($curlSession, CURLOPT_HEADER, false);
             //curl_setopt($curlSession, CURLOPT_BINARYTRANSFER, true);
             curl_setopt($curlSession, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt ($curlSession, CURLOPT_SSL_VERIFYPEER, 0 );
-            curl_setopt ($curlSession, CURLOPT_SSL_VERIFYHOST, 0 );
+            curl_setopt($curlSession, CURLOPT_SSL_VERIFYPEER, 0);
+            curl_setopt($curlSession, CURLOPT_SSL_VERIFYHOST, 0);
             $response = curl_exec($curlSession);
             curl_close($curlSession);
         }
-        
+
         mysqli_close($link);
         return true;
     }

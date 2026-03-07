@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace common\api\models\AR\Products;
 
-
 use common\api\models\AR\EPMap;
 
 class SpecialPrices extends EPMap
 {
-
     protected $hideFields = [
         'specials_id',
         'groups_id',
@@ -43,14 +43,14 @@ class SpecialPrices extends EPMap
     {
         $keyCodes = [];
         if (defined('USE_MARKET_PRICES') && USE_MARKET_PRICES == 'True') {
-            foreach (\common\helpers\Currencies::get_currencies() as $currency){
+            foreach (\common\helpers\Currencies::get_currencies() as $currency) {
                 $keyCode = $currency['code'] . '_0';
                 $keyCodes[$keyCode] = [
                     'specials_id' => null,
                     'groups_id' => 0,
                     'currencies_id' => $currency['currencies_id'],
                 ];
-                if ( \common\helpers\Extensions::isCustomerGroupsAllowed() ) {
+                if (\common\helpers\Extensions::isCustomerGroupsAllowed()) {
                     foreach (\common\helpers\Group::get_customer_groups() as $groupInfo) {
                         $keyCode = $currency['code'] . '_' . $groupInfo['groups_id'];
                         $keyCodes[$keyCode] = [
@@ -61,8 +61,8 @@ class SpecialPrices extends EPMap
                     }
                 }
             }
-        }else{
-            if ( \common\helpers\Extensions::isCustomerGroupsAllowed() ) {
+        } else {
+            if (\common\helpers\Extensions::isCustomerGroupsAllowed()) {
                 $keyCodes[\common\helpers\Currencies::systemCurrencyCode().'_0'] = [
                     'specials_id' => null,
                     'groups_id' => 0,
@@ -89,15 +89,15 @@ class SpecialPrices extends EPMap
 
     public function beforeSave($insert)
     {
-        if ( $insert ) {
+        if ($insert) {
             if (is_null($this->specials_new_products_price)) {
                 $this->specials_new_products_price = -2;
-                if ($this->groups_id==0 && $this->currencies_id==0 && is_object($this->parentObject)) {
+                if ($this->groups_id == 0 && $this->currencies_id == 0 && is_object($this->parentObject)) {
                     $this->specials_new_products_price = $this->parentObject->specials_new_products_price;
                 }
             }
-        }else{
-            if ($this->groups_id==0 && $this->currencies_id==0 && is_object($this->parentObject)) {
+        } else {
+            if ($this->groups_id == 0 && $this->currencies_id == 0 && is_object($this->parentObject)) {
                 $this->specials_new_products_price = $this->parentObject->specials_new_products_price;
             }
         }

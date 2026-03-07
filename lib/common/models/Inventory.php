@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,8 @@
 
 namespace common\models;
 
-use Yii;
-use yii\db\ActiveRecord;
 use common\models\queries\InventoryQuery;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "inventory".
@@ -94,18 +95,19 @@ class Inventory extends ActiveRecord
     {
         return $this->hasOne(SuppliersProducts::class, ['uprid' => 'products_id']);
     }
-    
+
     /**
      *
      * @param integer $excludeSupplier
      * @return activeQuery
      */
-    public function getActiveSuppliersProducts($excludeSupplier=false) {
-      $ret = $this->getSuppliersProducts()->andWhere(['status' => 1]);
-      if ( $excludeSupplier ) {
-        $ret->andWhere('suppliers_id <> :suppliers_id', [':suppliers_id' => $excludeSupplier]);
-      }
-      return $ret;
+    public function getActiveSuppliersProducts($excludeSupplier = false)
+    {
+        $ret = $this->getSuppliersProducts()->andWhere(['status' => 1]);
+        if ($excludeSupplier) {
+            $ret->andWhere('suppliers_id <> :suppliers_id', [':suppliers_id' => $excludeSupplier]);
+        }
+        return $ret;
     }
 
     /**
@@ -116,7 +118,7 @@ class Inventory extends ActiveRecord
     {
         return $this->hasOne(Products::class, ['products_id' => 'prid']);
     }
-    
+
     public function getSuppliersProducts()
     {
         return $this->hasMany(SuppliersProducts::class, ['uprid' => 'products_id']);
@@ -125,7 +127,8 @@ class Inventory extends ActiveRecord
     /**
      * @return InventoryQuery
      */
-    public static function find(){
+    public static function find()
+    {
         return new InventoryQuery(static::class);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,26 +16,24 @@
 namespace backend\design;
 
 use Yii;
-use backend\controllers\DesignController;
 
 class CategoryTemplate
 {
-
     public static function categoryedit($categories_id)
     {
-        $platforms = tep_db_query("
+        $platforms = tep_db_query('
             SELECT p.platform_id, t.theme_name, t.title
-            FROM " . TABLE_PLATFORMS_CATEGORIES . " p
-                left join " . TABLE_PLATFORMS_TO_THEMES . " p2t on p.platform_id = p2t.platform_id
-                left join " . TABLE_THEMES . " t on t.id = p2t.theme_id
+            FROM ' . TABLE_PLATFORMS_CATEGORIES . ' p
+                left join ' . TABLE_PLATFORMS_TO_THEMES . ' p2t on p.platform_id = p2t.platform_id
+                left join ' . TABLE_THEMES . " t on t.id = p2t.theme_id
             WHERE p2t.is_default = 1 and p.categories_id = '" . $categories_id . "'
             ");
-        $themes = array();
+        $themes = [];
         $showBlock = false;
         while ($platform = tep_db_fetch_array($platforms)) {
-            $templates = tep_db_query("
+            $templates = tep_db_query('
                 select setting_value, setting_name
-                from " . TABLE_THEMES_SETTINGS . "
+                from ' . TABLE_THEMES_SETTINGS . "
                 where
                     theme_name = '" . $platform['theme_name'] . "' and
                     setting_group = 'added_page' and
@@ -68,9 +68,9 @@ class CategoryTemplate
                     $list[$key]['templates'] = $themes[$item['id']]['themes'];
                     $list[$key]['templates_categories'] = $themes[$item['id']]['themes_categories'];
 
-                    $setTemplate = tep_db_fetch_array(tep_db_query("
+                    $setTemplate = tep_db_fetch_array(tep_db_query('
                         select template_name
-                        from " . TABLE_CATEGORIES_TO_TEMPLATE . "
+                        from ' . TABLE_CATEGORIES_TO_TEMPLATE . "
                         where
                             categories_id = '" . $categories_id . "' and
                             platform_id = '" . $item['id'] . "' and
@@ -80,9 +80,9 @@ class CategoryTemplate
                         $list[$key]['template'] = $setTemplate['template_name'];
                     }
 
-                    $setTemplateProduct = tep_db_fetch_array(tep_db_query("
+                    $setTemplateProduct = tep_db_fetch_array(tep_db_query('
                         select template_name
-                        from " . TABLE_CATEGORIES_PRODUCT_TO_TEMPLATE . "
+                        from ' . TABLE_CATEGORIES_PRODUCT_TO_TEMPLATE . "
                         where
                             categories_id = '" . $categories_id . "' and
                             platform_id = '" . $item['id'] . "' and
@@ -110,38 +110,38 @@ class CategoryTemplate
         $list = self::categoryedit($categories_id);
 
         foreach ($list['list'] as $item) {
-            if ($categories_id && $item['id'] && ($item['theme_name']??null)) {
-                tep_db_query("
-                delete from " . TABLE_CATEGORIES_PRODUCT_TO_TEMPLATE . "
+            if ($categories_id && $item['id'] && ($item['theme_name'] ?? null)) {
+                tep_db_query('
+                delete from ' . TABLE_CATEGORIES_PRODUCT_TO_TEMPLATE . "
                 where
                     categories_id = '" . $categories_id . "' and
                     platform_id = '" . $item['id'] . "' and
                     theme_name = '" . $item['theme_name'] . "'");
 
                 if ($product_template[$item['id']]) {
-                    $data = array(
+                    $data = [
                         'categories_id' => $categories_id,
                         'platform_id' => $item['id'],
                         'theme_name' => $item['theme_name'],
-                        'template_name' => $product_template[$item['id']]
-                    );
+                        'template_name' => $product_template[$item['id']],
+                    ];
                     tep_db_perform(TABLE_CATEGORIES_PRODUCT_TO_TEMPLATE, $data);
                 }
 
-                tep_db_query("
-                delete from " . TABLE_CATEGORIES_TO_TEMPLATE . "
+                tep_db_query('
+                delete from ' . TABLE_CATEGORIES_TO_TEMPLATE . "
                 where
                     categories_id = '" . $categories_id . "' and
                     platform_id = '" . $item['id'] . "' and
                     theme_name = '" . $item['theme_name'] . "'");
 
                 if ($category_template[$item['id']]) {
-                    $data = array(
+                    $data = [
                         'categories_id' => $categories_id,
                         'platform_id' => $item['id'],
                         'theme_name' => $item['theme_name'],
-                        'template_name' => $category_template[$item['id']]
-                    );
+                        'template_name' => $category_template[$item['id']],
+                    ];
                     tep_db_perform(TABLE_CATEGORIES_TO_TEMPLATE, $data);
                 }
             }
@@ -150,11 +150,11 @@ class CategoryTemplate
 
     public static function categorydelete($categories_id)
     {
-        tep_db_query("
-            delete from " . TABLE_CATEGORIES_PRODUCT_TO_TEMPLATE . "
+        tep_db_query('
+            delete from ' . TABLE_CATEGORIES_PRODUCT_TO_TEMPLATE . "
             where categories_id = '" . $categories_id . "'");
-        tep_db_query("
-            delete from " . TABLE_CATEGORIES_TO_TEMPLATE . "
+        tep_db_query('
+            delete from ' . TABLE_CATEGORIES_TO_TEMPLATE . "
             where categories_id = '" . $categories_id . "'");
     }
 

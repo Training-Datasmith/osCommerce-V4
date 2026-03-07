@@ -1,28 +1,31 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\helpers;
 
-class Php8 {
-
+class Php8
+{
     public static function getConst(string $name, string $default = null)
     {
-        return defined($name) ? constant($name) : (is_null($default)? $name : $default);
+        return defined($name) ? constant($name) : (is_null($default) ? $name : $default);
     }
-
 
     public static function nullObjProps(&$obj, array $prop_names)
     {
-        if (!is_object($obj)) $obj = new \stdClass();
+        if (!is_object($obj)) {
+            $obj = new \stdClass();
+        }
         foreach ($prop_names as $name) {
             $obj->$name = $obj->$name ?? null;
         }
@@ -30,7 +33,7 @@ class Php8 {
 
     public static function nullArrProps(&$arr, array $prop_names)
     {
-        foreach($prop_names as $name) {
+        foreach ($prop_names as $name) {
             $arr[$name] = $arr[$name] ?? null;
         }
     }
@@ -77,7 +80,7 @@ class Php8 {
         $pos1 = strrpos($key, '.');
         $pos2 = strrpos($key, '->');
         if ($pos1 !== false || $pos2 !== false) {
-            $pos = min($pos1?: PHP_INT_MAX, $pos2?: PHP_INT_MAX);
+            $pos = min($pos1 ?: PHP_INT_MAX, $pos2 ?: PHP_INT_MAX);
             $array = static::getValue($array, substr($key, 0, $pos), $default);
             $key = substr($key, $pos + ($pos === $pos1 ? 1 : 2));
             return static::getValue($array, $key, $default);

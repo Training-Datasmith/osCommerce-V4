@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace backend\models\EP\Provider\Trueloaded;
 
-use backend\models\EP\Messages;
 use common\api\models\XML\IOCore;
 
 class Warehouses extends XmlBase

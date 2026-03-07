@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Cache;
 
 use PayPal\Core\PayPalConfigManager;
@@ -53,7 +55,7 @@ abstract class AuthorizationCache
      * @param      $tokenExpiresIn
      * @throws \Exception
      */
-    public static function push($config = null, $clientId, $accessToken, $tokenCreateTime, $tokenExpiresIn, $tokenType='Bearer')
+    public static function push($config = null, $clientId, $accessToken, $tokenCreateTime, $tokenExpiresIn, $tokenType = 'Bearer')
     {
         // Return if not enabled
         if (!self::isEnabled($config)) {
@@ -69,18 +71,18 @@ abstract class AuthorizationCache
 
         // Reads all the existing persisted data
         $tokens = self::pull();
-        $tokens = $tokens ? $tokens : array();
+        $tokens = $tokens ? $tokens : [];
         if (is_array($tokens)) {
-            $tokens[$clientId] = array(
+            $tokens[$clientId] = [
                 'clientId' => $clientId,
                 'accessTokenEncrypted' => $accessToken,
                 'tokenCreateTime' => $tokenCreateTime,
                 'tokenExpiresIn' => $tokenExpiresIn,
-                'tokenType' => $tokenType
-            );
+                'tokenType' => $tokenType,
+            ];
         }
         if (!file_put_contents($cachePath, json_encode($tokens))) {
-            throw new \Exception("Failed to write cache");
+            throw new \Exception('Failed to write cache');
         };
     }
 
@@ -95,7 +97,7 @@ abstract class AuthorizationCache
         $value = self::getConfigValue('cache.enabled', $config);
         return empty($value) ? false : ((trim($value) == true || trim($value) == 'true'));
     }
-    
+
     /**
      * Returns the cache file path
      *

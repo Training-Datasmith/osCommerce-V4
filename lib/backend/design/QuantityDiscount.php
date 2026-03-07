@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace backend\design;
 
-use Yii;
 use yii\base\Widget;
 
 class QuantityDiscount extends Widget
@@ -21,7 +22,8 @@ class QuantityDiscount extends Widget
     public $value;
     public $gross;
 
-    public function init(){
+    public function init()
+    {
         parent::init();
     }
 
@@ -31,7 +33,7 @@ class QuantityDiscount extends Widget
             'name' => $this->name,
             'value' => isset($this->value) ? json_encode($this->value) : json_encode([]),
             'gross' => isset($this->gross) ? $this->gross : false,
-            'idSuffix' => preg_replace('/[\[\]]+/', '', $this->name)
+            'idSuffix' => preg_replace('/[\[\]]+/', '', $this->name),
         ]);
     }
 }

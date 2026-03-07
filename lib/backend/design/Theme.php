@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,30 +15,29 @@
 namespace backend\design;
 
 use common\classes\design;
-use common\helpers\Language;
+use common\classes\Images;
 use common\models\Banners;
 use common\models\BannersGroups;
 use common\models\BannersGroupsSizes;
+use common\models\DesignBoxes;
 use common\models\DesignBoxesSettings;
 use common\models\DesignBoxesSettingsTmp;
+use common\models\DesignBoxesTmp;
 use common\models\Modules;
 use common\models\Themes;
 use common\models\ThemesSettings;
 use common\models\ThemesStyles;
 use common\models\ThemesStylesGroups;
 use common\models\ThemesStylesMain;
-use yii\helpers\FileHelper;
-use common\classes\Images;
-use common\models\DesignBoxes;
-use common\models\DesignBoxesTmp;
 use Yii;
+use yii\helpers\FileHelper;
 
 class Theme
 {
     public static $themeFiles = [];
     public static $exportImportType = 'theme';
 
-    public static function export($theme_name, $output='download')
+    public static function export($theme_name, $output = 'download')
     {
         $tmp_path = DIR_FS_CATALOG;
         $img_path = $tmp_path;
@@ -46,7 +47,7 @@ class Theme
         $backup_file = $theme_name;
 
         $zip = new \ZipArchive();
-        if ($zip->open($tmp_path . $backup_file . '.zip', \ZipArchive::CREATE) === TRUE) {
+        if ($zip->open($tmp_path . $backup_file . '.zip', \ZipArchive::CREATE) === true) {
 
             $theme = $theme_name;
             $themeFolder = '/desktop';
@@ -55,7 +56,7 @@ class Theme
                 $json = self::getThemeJson($theme);
                 $themes_arr = [];
                 $parents = [];
-                $parents_query = tep_db_query("select theme_name, parent_theme from " . TABLE_THEMES);
+                $parents_query = tep_db_query('select theme_name, parent_theme from ' . TABLE_THEMES);
                 while ($item = tep_db_fetch_array($parents_query)) {
                     $themes_arr[$item['theme_name']] = $item['parent_theme'];
                 }
@@ -86,10 +87,10 @@ class Theme
                     }
                 }
 
-                $zip->addFromString ($themeFolder . '/theme-tree.json', $json);
+                $zip->addFromString($themeFolder . '/theme-tree.json', $json);
 
-                foreach (Uploads::$archiveImages as $item){// add images from different places, by records in db
-                    if (is_file($img_path . $item['old'])){
+                foreach (Uploads::$archiveImages as $item) {// add images from different places, by records in db
+                    if (is_file($img_path . $item['old'])) {
                         if (!in_array('img' . DIRECTORY_SEPARATOR . $item['new'], $files)) {
                             $item['new'] = str_replace('\\', '/', $item['new']);
                             $zip->addFile($img_path . $item['old'], $themeFolder . '/img/' . $item['new']);
@@ -105,7 +106,9 @@ class Theme
                 $menus = [];
 
                 foreach ($_SESSION['exportItems']['menus'] as $menu => $checked) {
-                    if ($checked == 'false') continue;
+                    if ($checked == 'false') {
+                        continue;
+                    }
 
                     $menus[$menu] = \common\helpers\MenuHelper::menuTree($menu);
                 }
@@ -122,7 +125,9 @@ class Theme
 
                 $bannerImages = [];
                 foreach ($_SESSION['exportItems']['banners'] as $bannerGroup => $checked) {
-                    if ($checked == 'false') continue;
+                    if ($checked == 'false') {
+                        continue;
+                    }
 
                     $groupData = \common\helpers\Banner::groupData($bannerGroup);
                     $groupImages = \common\helpers\Banner::groupImages($groupData, $bannerImages);
@@ -148,9 +153,9 @@ class Theme
             $zip->close();
             $backup_file .= '.zip';
 
-            if ( $output=='filename' ) {
+            if ($output == 'filename') {
                 return $tmp_path . $backup_file;
-            }else {
+            } else {
                 header('Cache-Control: none');
                 header('Pragma: none');
                 header('Content-type: application/x-octet-stream');
@@ -173,7 +178,7 @@ class Theme
 
         $designBoxes = \common\models\DesignBoxesTmp::find()->where([
             $type => $id,
-            'theme_name' => $theme_name
+            'theme_name' => $theme_name,
         ])->orderBy('sort_order')->asArray()->all();
 
         if ($params['block-name']) {
@@ -191,7 +196,7 @@ class Theme
         }
 
         $zip = new \ZipArchive();
-        if ($zip->open($fsCatalog . $themeArchive . '.zip', \ZipArchive::CREATE) !== TRUE) {
+        if ($zip->open($fsCatalog . $themeArchive . '.zip', \ZipArchive::CREATE) !== true) {
             return 'Error';
         }
 
@@ -199,21 +204,21 @@ class Theme
         foreach ($designBoxes as $key => $box) {
             $boxTree = self::blocksTree($box['id']);
             $boxTree['sort_order'] = $key;
-            $boxes[] =$boxTree;
+            $boxes[] = $boxTree;
         }
         $json = json_encode($boxes);
         $files = [];
 
-        $zip->addFromString ('data.json', $json);
+        $zip->addFromString('data.json', $json);
 
-        foreach (self::$themeFiles as $file){
+        foreach (self::$themeFiles as $file) {
             $path = str_replace('frontend/themes/' . $theme_name . '/', '', $file);
             $path = str_replace('themes/' . $theme_name . '/', 'theme/', $path);
             $zip->addFile(DIR_FS_CATALOG . $file, $path);
             $files[] = $path;
         }
 
-        $zip->addFromString ('files.json', json_encode($files));
+        $zip->addFromString('files.json', json_encode($files));
 
         $info = [
             'name' => $params['block-name'] ?? '',
@@ -222,11 +227,11 @@ class Theme
             'comment' => $params['comment'] ?? '',
             'page_type' => $params['page_type'] ?? '',
         ];
-        $zip->addFromString ('info.json', json_encode($info));
+        $zip->addFromString('info.json', json_encode($info));
 
         if ($params['image']) {
-            $zip->addFromString ('images/screenshot.png', base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $params['image'])));
-            $zip->addFromString ('images.json', json_encode(['screenshot.png']));
+            $zip->addFromString('images/screenshot.png', base64_decode(preg_replace('#^data:image/\w+;base64,#i', '', $params['image'])));
+            $zip->addFromString('images.json', json_encode(['screenshot.png']));
         }
 
         $zip->close();
@@ -243,7 +248,7 @@ class Theme
         return json_encode([
             'text' => $message,
             'filename' => $themeArchive,
-            'extensionWidgets' => self::extensionWidgets()
+            'extensionWidgets' => self::extensionWidgets(),
         ]);
     }
 
@@ -256,7 +261,7 @@ class Theme
 
         $zip = new \ZipArchive();
 
-        if ($zip->open($archiveFilename, \ZipArchive::CREATE) === TRUE) {
+        if ($zip->open($archiveFilename, \ZipArchive::CREATE) === true) {
             if (!file_exists($path)) {
                 try {
                     FileHelper::createDirectory($path, 0777);
@@ -267,7 +272,9 @@ class Theme
             if ($zip->extractTo($path)) {
                 clearstatcache();
                 $extractedFiles = FileHelper::findFiles($path, ['recursive' => true]);
-                if (!is_array($extractedFiles)) $extractedFiles = [];
+                if (!is_array($extractedFiles)) {
+                    $extractedFiles = [];
+                }
                 foreach ($extractedFiles as $extractedFile) {
                     if (is_file($extractedFile)) {
                         @chmod($extractedFile, 0666);
@@ -278,7 +285,6 @@ class Theme
                 }
             }
 
-
             if (!is_dir($pathDesktop)) {
                 $pathDesktop = $path;
             }
@@ -287,14 +293,14 @@ class Theme
                 $arrMobile = json_decode(file_get_contents($pathMobile . 'theme-tree.json'), true);
             }
 
-            if (is_file($path . 'menu.json') ) {
+            if (is_file($path . 'menu.json')) {
                 $menuData = json_decode(file_get_contents($path . 'menu.json'), true);
                 foreach ($menuData as $menu => $data) {
                     \common\helpers\MenuHelper::createMenu($menu, $data);
                 }
             }
 
-            if (is_file($path . 'banners' . DIRECTORY_SEPARATOR . 'banners.json') ) {
+            if (is_file($path . 'banners' . DIRECTORY_SEPARATOR . 'banners.json')) {
                 $platformIds = self::getPlatformIds($themeName);
                 $bannerData = json_decode(file_get_contents($path . 'banners/banners.json'), true);
                 $bannersIds = \common\helpers\Banner::setupBanners($bannerData, $path, $platformIds);
@@ -302,11 +308,11 @@ class Theme
             }
 
             Theme::copyFiles($themeName);
-        }else{
+        } else {
             return false;
         }
 
-        if (is_array($arrDesktop) && $themeName){
+        if (is_array($arrDesktop) && $themeName) {
 
             Steps::importTheme(['theme_name' => $themeName]);
             Theme::importTheme($arrDesktop, $themeName);
@@ -332,7 +338,7 @@ class Theme
         $pathTmp = implode(DIRECTORY_SEPARATOR, [DIR_FS_CATALOG, 'themes', $params['theme_name'], 'tmp']);
 
         $zip = new \ZipArchive();
-        if ($zip->open($fileName, \ZipArchive::CREATE) === TRUE) {
+        if ($zip->open($fileName, \ZipArchive::CREATE) === true) {
             if (!file_exists($pathTmp)) {
                 try {
                     FileHelper::createDirectory($pathTmp, 0777);
@@ -346,9 +352,8 @@ class Theme
             return 'Error: archive is broken';
         }
 
-
         $boxesArr = json_decode(file_get_contents($pathTmp . DIRECTORY_SEPARATOR . 'data.json'), true);
-        if (!is_array($boxesArr)){
+        if (!is_array($boxesArr)) {
             return 'Error: data.json';
         }
 
@@ -386,12 +391,11 @@ class Theme
             }
         }
 
-
         if (is_file($pathTmp . DIRECTORY_SEPARATOR . 'files.json')) {
             $files = json_decode(file_get_contents($pathTmp . DIRECTORY_SEPARATOR . 'files.json'), true);
-            if (is_array($files)){
+            if (is_array($files)) {
                 foreach ($files as $file) {
-                    if (!preg_match('/^lib\//', $file)){
+                    if (!preg_match('/^lib\//', $file)) {
                         continue;
                     }
 
@@ -400,7 +404,7 @@ class Theme
                     if (!is_file($fileFrom)) {
                         continue;
                     }
-                    $settingValue = preg_replace ('/^lib\//', 'lib/frontend/themes/' . $params['theme_name'] . '/', $settingValue);
+                    $settingValue = preg_replace('/^lib\//', 'lib/frontend/themes/' . $params['theme_name'] . '/', $settingValue);
                     if (is_file($settingValue)) {
                         continue;
                     }
@@ -441,26 +445,26 @@ class Theme
     {
         $theme = [];
 
-        $query = tep_db_query("select * from " . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($theme_name) . "' and block_name not like 'block-%'");
-        while ($item = tep_db_fetch_array($query)){
+        $query = tep_db_query('select * from ' . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($theme_name) . "' and block_name not like 'block-%'");
+        while ($item = tep_db_fetch_array($query)) {
             $theme['blocks'][] = self::blocksTree($item['id'], true);
         }
 
-        $query = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "'");
-        while ($item = tep_db_fetch_array($query)){
-            if ($item['setting_group'] == 'css' && $item['setting_name'] == 'css'){
+        $query = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        while ($item = tep_db_fetch_array($query)) {
+            if ($item['setting_group'] == 'css' && $item['setting_name'] == 'css') {
 
                 preg_match_all("/url\([\'\"]{0,1}([^\)\'\"]+)/", $item['setting_value'], $out, PREG_PATTERN_ORDER);
 
                 $css_img_arr = [];
-                foreach ($out[1] as $img){
-                    if (substr($img, 0, 2) != '//' && substr($img, 0, 4) != 'http'){
-                        if (!$css_img_arr[$img]){
+                foreach ($out[1] as $img) {
+                    if (substr($img, 0, 2) != '//' && substr($img, 0, 4) != 'http') {
+                        if (!$css_img_arr[$img]) {
                             $css_img_arr[$img] = Uploads::addArchiveImages('background_image', $img);
                         }
                     }
                 }
-                foreach ($css_img_arr as $path => $img){
+                foreach ($css_img_arr as $path => $img) {
                     $item['setting_value'] = str_replace($path, $img, $item['setting_value']);
                 }
             }
@@ -472,14 +476,14 @@ class Theme
             ];
         }
 
-        $query = tep_db_query("select * from " . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($theme_name) . "'");
-        while ($item = tep_db_fetch_array($query)){
+        $query = tep_db_query('select * from ' . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        while ($item = tep_db_fetch_array($query)) {
             $item['value'] = Uploads::addArchiveImages($item['attribute'], $item['value']);
 
             $vArr = Style::vArr($item['visibility']);
             foreach ($vArr as $vKey => $vItem) {
                 if ($vItem > 10) {
-                    $vMedia = tep_db_fetch_array(tep_db_query("select setting_value from " . TABLE_THEMES_SETTINGS . " where id = '" . $vItem . "'"));
+                    $vMedia = tep_db_fetch_array(tep_db_query('select setting_value from ' . TABLE_THEMES_SETTINGS . " where id = '" . $vItem . "'"));
                     $vArr[$vKey] = $vMedia['setting_value'] ?? '';
                 }
             }
@@ -511,8 +515,8 @@ class Theme
             $theme_path .= 'themes' . DIRECTORY_SEPARATOR . $theme_name . DIRECTORY_SEPARATOR;
         }
 
-        $files_arr = array();
-        $arr = file_exists($theme_path . $path) ? scandir($theme_path . $path) : array();
+        $files_arr = [];
+        $arr = file_exists($theme_path . $path) ? scandir($theme_path . $path) : [];
         foreach ($arr as $item) {
             if ($item != '.' && $item != '..' && $item != 'updates' && $item != 'cache') {
                 if (is_dir($theme_path . $path . DIRECTORY_SEPARATOR . $item)) {
@@ -535,27 +539,30 @@ class Theme
         if (!in_array($widget['widget_name'], self::$widgetTranslationKeysWidgetsNames)) {
             return $translations;
         }
-        if (isset($widget['settings']) && is_array($widget['settings']))
-        foreach ($widget['settings'] as $setting) {
-            if (!isset($setting['setting_name']) || !in_array($setting['setting_name'], self::$widgetTranslationKeysSettingsNames)) {
-                continue;
-            }
-            preg_match_all('/##([A-Z\_0-9]+)##/', $setting['setting_value'], $matches);
-            foreach ($matches[1] as $key) {
-                $translation = \common\models\Translation::find()
-                    ->where(['translation_key' => $key])
-                    ->asArray()->all();
-                foreach ($translation as $t) {
-                    if (substr($t['translation_entity'], 0, 5) == 'admin') continue;
-                    if (!isset($translations[$t['translation_entity']])) {
-                        $translations[$t['translation_entity']] = [];
-                    }
-                    if (!isset($translations[$t['translation_entity']][$t['translation_key']])) {
-                        $translations[$t['translation_entity']][$t['translation_key']] = [];
-                    }
-                    $code = \common\helpers\Language::get_language_code($t['language_id'], false);
-                    if (!isset($translations[$t['translation_entity']][$t['translation_key']][$code])) {
-                        $translations[$t['translation_entity']][$t['translation_key']][$code] = $t['translation_value'];
+        if (isset($widget['settings']) && is_array($widget['settings'])) {
+            foreach ($widget['settings'] as $setting) {
+                if (!isset($setting['setting_name']) || !in_array($setting['setting_name'], self::$widgetTranslationKeysSettingsNames)) {
+                    continue;
+                }
+                preg_match_all('/##([A-Z\_0-9]+)##/', $setting['setting_value'], $matches);
+                foreach ($matches[1] as $key) {
+                    $translation = \common\models\Translation::find()
+                        ->where(['translation_key' => $key])
+                        ->asArray()->all();
+                    foreach ($translation as $t) {
+                        if (substr($t['translation_entity'], 0, 5) == 'admin') {
+                            continue;
+                        }
+                        if (!isset($translations[$t['translation_entity']])) {
+                            $translations[$t['translation_entity']] = [];
+                        }
+                        if (!isset($translations[$t['translation_entity']][$t['translation_key']])) {
+                            $translations[$t['translation_entity']][$t['translation_key']] = [];
+                        }
+                        $code = \common\helpers\Language::get_language_code($t['language_id'], false);
+                        if (!isset($translations[$t['translation_entity']][$t['translation_key']][$code])) {
+                            $translations[$t['translation_entity']][$t['translation_key']][$code] = $t['translation_value'];
+                        }
                     }
                 }
             }
@@ -573,7 +580,7 @@ class Theme
             foreach ($keys as $key => $languageCodes) {
                 foreach ($languageCodes as $code => $translat) {
                     $language = \common\helpers\Language::get_language_id($code);
-                    if (!($language['languages_id']??null)) {
+                    if (!($language['languages_id'] ?? null)) {
                         continue;
                     }
                     $languageId = $language['languages_id'];
@@ -614,7 +621,7 @@ class Theme
             }
 
             foreach ($properties as $property) {
-                if (($property['value_main_style']??null) &&
+                if (($property['value_main_style'] ?? null) &&
                     !isset($mainStyles[$property['value']]) &&
                     !isset($mainStyles[preg_replace('/\-[0-9]+$/', '-1', $property['value'])])
                 ) {
@@ -646,7 +653,7 @@ class Theme
             $size[$themeName] = [];
         }
 
-        if ( isset($size[$themeName][$sizeId]) ) {
+        if (isset($size[$themeName][$sizeId])) {
             return $size[$themeName][$sizeId];
         }
 
@@ -676,11 +683,11 @@ class Theme
             return $styleMediaSize;
         }
         static $size = [];
-        if (!($size[$themeName]??null)) {
+        if (!($size[$themeName] ?? null)) {
             $size[$themeName] = [];
         }
 
-        if ( isset($size[$themeName][$styleMediaSize]) ) {
+        if (isset($size[$themeName][$styleMediaSize])) {
             return $size[$themeName][$styleMediaSize];
         }
 
@@ -713,7 +720,7 @@ class Theme
 
     public static function widgetNameToCssClass($widgetName)
     {
-        $class = preg_replace('/([A-Z])/', "-\$1", $widgetName);
+        $class = preg_replace('/([A-Z])/', '-$1', $widgetName);
         $class = str_replace('\\', '-', $class);
         $class = '.w-' . $class;
         $class = str_replace('--', '-', $class);
@@ -729,7 +736,7 @@ class Theme
             $response[$themeName] = [];
         }
 
-        if ( isset($response[$themeName][$class]) ) {
+        if (isset($response[$themeName][$class])) {
             return $response[$themeName][$class];
         }
 
@@ -796,7 +803,7 @@ class Theme
                     $widgets[] = [
                         'name' => $widgetName,
                         'extension' => $widgetPath[0],
-                        'status' => $status
+                        'status' => $status,
                     ];
                 }
             }
@@ -807,9 +814,9 @@ class Theme
 
     public static function blocksTree($id, $images = false)
     {
-        $arr = array();
+        $arr = [];
 
-        $query = tep_db_fetch_array(tep_db_query("select widget_name, widget_params, sort_order, block_name, theme_name, microtime from " . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$id . "'"));
+        $query = tep_db_fetch_array(tep_db_query('select widget_name, widget_params, sort_order, block_name, theme_name, microtime from ' . TABLE_DESIGN_BOXES_TMP . " where id = '" . (int)$id . "'"));
 
         if (!$query) {
             return [];
@@ -830,13 +837,13 @@ class Theme
 
         $mainStyles = \backend\design\Style::mainStyles($query['theme_name']);
 
-        $query2 = tep_db_query("
+        $query2 = tep_db_query('
 select dbs.setting_name, dbs.setting_value, dbs.visibility, dbs.microtime, l.code
-from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " dbs left join " . TABLE_LANGUAGES . " l on dbs.language_id = l.languages_id
+from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . ' dbs left join ' . TABLE_LANGUAGES . " l on dbs.language_id = l.languages_id
 where dbs.box_id = '" . (int)$id . "'
 ");
         while ($item2 = tep_db_fetch_array($query2)) {
-            if ($images){
+            if ($images) {
                 $item2['setting_value'] = Uploads::addArchiveImages($item2['setting_name'], $item2['setting_value']);
             } else {
                 $item2['setting_value'] = self::addFiles($item2, 'box', $query['theme_name']);
@@ -844,7 +851,7 @@ where dbs.box_id = '" . (int)$id . "'
             $vArr = Style::vArr($item2['visibility']);
             foreach ($vArr as $vKey => $vItem) {
                 if ($vItem > 10) {
-                    $vMedia = tep_db_fetch_array(tep_db_query("select setting_value from " . TABLE_THEMES_SETTINGS . " where id = '" . $vItem . "'"));
+                    $vMedia = tep_db_fetch_array(tep_db_query('select setting_value from ' . TABLE_THEMES_SETTINGS . " where id = '" . $vItem . "'"));
                     if ($vMedia) {
                         $vArr[$vKey] = $vMedia['setting_value'];
                     }
@@ -859,7 +866,7 @@ where dbs.box_id = '" . (int)$id . "'
                 'setting_name' => $item2['setting_name'],
                 'setting_value' => $item2['setting_value'],
                 'language_id' => ($item2['code'] ? $item2['code'] : 0),
-                'visibility' => $item2['visibility']
+                'visibility' => $item2['visibility'],
             ];
             if ($mainStyles[$item2['setting_value']] ?? false) {
                 $settings['setting_value_main_style'] = $mainStyles[$item2['setting_value']];
@@ -886,66 +893,66 @@ where dbs.box_id = '" . (int)$id . "'
         }
 
         if ($query['widget_name'] == 'BatchSelectedProducts') {
-            $arr['settings'][] = array(
+            $arr['settings'][] = [
                 'setting_name' => 'cross_id',
                 'setting_value' => $id,
                 'language_id' => 0,
-                'visibility' => ''
-            );
+                'visibility' => '',
+            ];
         }
 
-        if ($query['widget_name'] == 'BlockBox' || $query['widget_name'] == 'email\BlockBox' || $query['widget_name'] == 'invoice\Container' || $query['widget_name'] == 'cart\CartTabs' || $query['widget_name'] == 'ClosableBox'){
+        if ($query['widget_name'] == 'BlockBox' || $query['widget_name'] == 'email\BlockBox' || $query['widget_name'] == 'invoice\Container' || $query['widget_name'] == 'cart\CartTabs' || $query['widget_name'] == 'ClosableBox') {
 
-            $query = tep_db_query("select id from " . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "'");
-            if (tep_db_num_rows($query) > 0){
-                while ($item = tep_db_fetch_array($query)){
+            $query = tep_db_query('select id from ' . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "'");
+            if (tep_db_num_rows($query) > 0) {
+                while ($item = tep_db_fetch_array($query)) {
                     $arr['sub_1'][] = self::blocksTree($item['id'], $images);
                 }
             }
-            $query = tep_db_query("select id from " . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "-2'");
-            if (tep_db_num_rows($query) > 0){
-                while ($item = tep_db_fetch_array($query)){
+            $query = tep_db_query('select id from ' . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "-2'");
+            if (tep_db_num_rows($query) > 0) {
+                while ($item = tep_db_fetch_array($query)) {
                     $arr['sub_2'][] = self::blocksTree($item['id'], $images);
                 }
             }
-            $query = tep_db_query("select id from " . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "-3'");
-            if (tep_db_num_rows($query) > 0){
-                while ($item = tep_db_fetch_array($query)){
+            $query = tep_db_query('select id from ' . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "-3'");
+            if (tep_db_num_rows($query) > 0) {
+                while ($item = tep_db_fetch_array($query)) {
                     $arr['sub_3'][] = self::blocksTree($item['id'], $images);
                 }
             }
-            $query = tep_db_query("select id from " . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "-4'");
-            if (tep_db_num_rows($query) > 0){
-                while ($item = tep_db_fetch_array($query)){
+            $query = tep_db_query('select id from ' . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "-4'");
+            if (tep_db_num_rows($query) > 0) {
+                while ($item = tep_db_fetch_array($query)) {
                     $arr['sub_4'][] = self::blocksTree($item['id'], $images);
                 }
             }
-            $query = tep_db_query("select id from " . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "-5'");
-            if (tep_db_num_rows($query) > 0){
-                while ($item = tep_db_fetch_array($query)){
+            $query = tep_db_query('select id from ' . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "-5'");
+            if (tep_db_num_rows($query) > 0) {
+                while ($item = tep_db_fetch_array($query)) {
                     $arr['sub_5'][] = self::blocksTree($item['id'], $images);
                 }
             }
-        } elseif ($query['widget_name'] == 'Tabs'){
+        } elseif ($query['widget_name'] == 'Tabs') {
 
-            for($i = 1; $i < 11; $i++) {
-                $query = tep_db_query("select id from " . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . "-" . $i . "'");
+            for ($i = 1; $i < 11; $i++) {
+                $query = tep_db_query('select id from ' . TABLE_DESIGN_BOXES_TMP . " where block_name = 'block-" . tep_db_input($id) . '-' . $i . "'");
                 if (tep_db_num_rows($query) > 0) {
                     while ($item = tep_db_fetch_array($query)) {
                         $arr['sub_' . $i][] = self::blocksTree($item['id'], $images);
                     }
                 }
             }
-        } elseif ($query['widget_name'] == 'WidgetsAria'){
+        } elseif ($query['widget_name'] == 'WidgetsAria') {
             $aria = DesignBoxesSettingsTmp::find()->where([
                 'box_id' => $id,
-                'setting_name' => 'aria_name'
+                'setting_name' => 'aria_name',
             ])->asArray()->one();
 
             if ($aria['setting_value'] ?? false) {
                 $areaBoxes = DesignBoxesTmp::find()->where([
                     'theme_name' => $query['theme_name'],
-                    'block_name' => $aria['setting_value']
+                    'block_name' => $aria['setting_value'],
                 ])->asArray()->all();
 
                 foreach ($areaBoxes as $areaBox) {
@@ -966,23 +973,27 @@ where dbs.box_id = '" . (int)$id . "'
         \common\models\ThemesStyles::deleteAll(['theme_name' => $theme_name]);
         \common\models\ThemesSettings::deleteAll(['theme_name' => $theme_name]);
 
-        if (is_array($arr['settings'] ?? null)) foreach ($arr['settings'] as $item) {
-            if ($item['setting_group'] == 'css' && $item['setting_name'] == 'css'){
-                $item['setting_value'] = str_replace("$$", 'themes/' . $theme_name . '/img/', $item['setting_value']);
+        if (is_array($arr['settings'] ?? null)) {
+            foreach ($arr['settings'] as $item) {
+                if ($item['setting_group'] == 'css' && $item['setting_name'] == 'css') {
+                    $item['setting_value'] = str_replace('$$', 'themes/' . $theme_name . '/img/', $item['setting_value']);
+                }
+                $item['setting_value'] = str_replace('<theme_name>', $theme_name, $item['setting_value']);
+                $sql_data_array = [
+                    'theme_name' => $theme_name,
+                    'setting_group' => $item['setting_group'],
+                    'setting_name' => $item['setting_name'],
+                    'setting_value' => $item['setting_value'],
+                ];
+                tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
             }
-            $item['setting_value'] = str_replace('<theme_name>', $theme_name, $item['setting_value']);
-            $sql_data_array = array(
-                'theme_name' => $theme_name,
-                'setting_group' => $item['setting_group'],
-                'setting_name' => $item['setting_name'],
-                'setting_value' => $item['setting_value'],
-            );
-            tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
         }
 
-        if (is_array($arr['blocks'] ?? null)) foreach ($arr['blocks'] as $item){
-            self::blocksTreeImport($item, $theme_name, '', '', false, false);
-            \yii\caching\TagDependency::invalidate(\Yii::$app->getCache(), 'translation');
+        if (is_array($arr['blocks'] ?? null)) {
+            foreach ($arr['blocks'] as $item) {
+                self::blocksTreeImport($item, $theme_name, '', '', false, false);
+                \yii\caching\TagDependency::invalidate(\Yii::$app->getCache(), 'translation');
+            }
         }
 
         foreach (['', 'Tmp'] as $key) {
@@ -991,7 +1002,9 @@ where dbs.box_id = '" . (int)$id . "'
             $crossIds = $sesignBoxesSettings::find()
                 ->where(['setting_name' => 'cross_id'])
                 ->all();
-            if (! $crossIds) continue;
+            if (! $crossIds) {
+                continue;
+            }
             foreach ($crossIds as $crossId) {
                 $crossItems = $sesignBoxesSettings::find()
                     ->alias('s')
@@ -1000,10 +1013,12 @@ where dbs.box_id = '" . (int)$id . "'
                     ->where([
                         's.setting_name' => 'batchSelectedWidget',
                         's.setting_value' => $crossId->setting_value,
-                        'b.theme_name' => $theme_name
+                        'b.theme_name' => $theme_name,
                     ])
                     ->all();
-                if (!$crossItems) continue;
+                if (!$crossItems) {
+                    continue;
+                }
                 foreach ($crossItems as $crossItem) {
                     $crossItem->setting_value = $crossId->box_id;
                     $crossItem->save(false);
@@ -1012,34 +1027,36 @@ where dbs.box_id = '" . (int)$id . "'
             }
         }
 
-        if (is_array($arr['styles'] ?? null)) foreach ($arr['styles'] as $item) {
-            if (substr($item['value'], 0, 2) == '$$'){
-                $item['value'] = 'themes/' . $theme_name . '/img/' . substr_replace( $item['value'], '', 0, 2);
-            }
-            if (strlen($item['visibility']) > 1){
-
-                $vArr = Style::vArr($item['visibility'], true);
-                foreach ($vArr as $vKey => $vItem) {
-                    if (strlen($vItem) > 1) {
-                        $vis_query = tep_db_fetch_array(tep_db_query("select id from " . TABLE_THEMES_SETTINGS . " where setting_value = '" . tep_db_input($vItem) . "' and setting_name = 'media_query' and theme_name = '" . tep_db_input($theme_name) . "'"));
-                        $vArr[$vKey] = $vis_query['id'];
-                    } else {
-                        $vArr[$vKey] = $vItem;
-                    }
+        if (is_array($arr['styles'] ?? null)) {
+            foreach ($arr['styles'] as $item) {
+                if (substr($item['value'], 0, 2) == '$$') {
+                    $item['value'] = 'themes/' . $theme_name . '/img/' . substr_replace($item['value'], '', 0, 2);
                 }
-                $item['visibility'] = Style::vStr($vArr);
+                if (strlen($item['visibility']) > 1) {
+
+                    $vArr = Style::vArr($item['visibility'], true);
+                    foreach ($vArr as $vKey => $vItem) {
+                        if (strlen($vItem) > 1) {
+                            $vis_query = tep_db_fetch_array(tep_db_query('select id from ' . TABLE_THEMES_SETTINGS . " where setting_value = '" . tep_db_input($vItem) . "' and setting_name = 'media_query' and theme_name = '" . tep_db_input($theme_name) . "'"));
+                            $vArr[$vKey] = $vis_query['id'];
+                        } else {
+                            $vArr[$vKey] = $vItem;
+                        }
+                    }
+                    $item['visibility'] = Style::vStr($vArr);
+                }
+                $sql_data_array = [
+                    'theme_name' => $theme_name,
+                    'selector' => $item['selector'],
+                    'attribute' => $item['attribute'],
+                    'value' => $item['value'],
+                    'visibility' => $item['visibility'],
+                    'media' => $item['media'],
+                    'accessibility' => $item['accessibility'],
+                ];
+                tep_db_perform(TABLE_THEMES_STYLES, $sql_data_array);
+                //tep_db_perform(TABLE_THEMES_STYLES_TMP, $sql_data_array);
             }
-            $sql_data_array = array(
-                'theme_name' => $theme_name,
-                'selector' => $item['selector'],
-                'attribute' => $item['attribute'],
-                'value' => $item['value'],
-                'visibility' => $item['visibility'],
-                'media' => $item['media'],
-                'accessibility' => $item['accessibility'],
-            );
-            tep_db_perform(TABLE_THEMES_STYLES, $sql_data_array);
-            //tep_db_perform(TABLE_THEMES_STYLES_TMP, $sql_data_array);
         }
 
         if (isset($arr['main_styles']) && is_array($arr['main_styles'])) {
@@ -1079,14 +1096,14 @@ where dbs.box_id = '" . (int)$id . "'
         if (!($arr['block_name'] ?? false)) {
             return '';
         }
-        $sql_data_array = array(
+        $sql_data_array = [
             'microtime' => $microtime,
             'theme_name' => $theme_name,
             'block_name' => ($block_name ? $block_name : $arr['block_name']),
             'widget_name' => $arr['widget_name'],
             'widget_params' => $arr['widget_params'],
             'sort_order' => ($sort_order ? $sort_order : $arr['sort_order']),
-        );
+        ];
         tep_db_perform(TABLE_DESIGN_BOXES_TMP, $sql_data_array);
         $box_id = tep_db_insert_id();
         if ($save) {
@@ -1114,8 +1131,8 @@ where dbs.box_id = '" . (int)$id . "'
 
         $checkDuplicates = [];
 
-        if (is_array($arr['settings'] ?? null) && count($arr['settings']))
-            foreach ($arr['settings'] as $item){
+        if (is_array($arr['settings'] ?? null) && count($arr['settings'])) {
+            foreach ($arr['settings'] as $item) {
 
                 if ($bannerSettings && $item['setting_name'] == 'banners_group') {
                     $item['setting_value'] = $bannerSettings['groupId'];
@@ -1126,8 +1143,8 @@ where dbs.box_id = '" . (int)$id . "'
 
                 $language_id = 0;
                 $key = true;
-                if ($item['language_id'] ?? false){
-                    $lan_query = tep_db_fetch_array(tep_db_query("select languages_id from " . TABLE_LANGUAGES . " where code = '" . tep_db_input($item['language_id']) . "'"));
+                if ($item['language_id'] ?? false) {
+                    $lan_query = tep_db_fetch_array(tep_db_query('select languages_id from ' . TABLE_LANGUAGES . " where code = '" . tep_db_input($item['language_id']) . "'"));
                     if ($lan_query['languages_id'] ?? false) {
                         $language_id = $lan_query['languages_id'];
                     } else {
@@ -1135,12 +1152,12 @@ where dbs.box_id = '" . (int)$id . "'
                     }
                 }
                 $visibility = '';
-                if (($item['visibility'] ?? false) && strlen($item['visibility']) > 1){
+                if (($item['visibility'] ?? false) && strlen($item['visibility']) > 1) {
 
                     $vArr = Style::vArr($item['visibility'], true);
                     foreach ($vArr as $vKey => $vItem) {
                         if (strlen($vItem) > 1) {
-                            $vis_query = tep_db_fetch_array(tep_db_query("select id from " . TABLE_THEMES_SETTINGS . " where setting_value = '" . tep_db_input($vItem) . "' and setting_name = 'media_query' and theme_name = '" . tep_db_input($theme_name) . "'"));
+                            $vis_query = tep_db_fetch_array(tep_db_query('select id from ' . TABLE_THEMES_SETTINGS . " where setting_value = '" . tep_db_input($vItem) . "' and setting_name = 'media_query' and theme_name = '" . tep_db_input($theme_name) . "'"));
                             $vArr[$vKey] = $vis_query['id'] ?? null;
                         }
                     }
@@ -1153,12 +1170,12 @@ where dbs.box_id = '" . (int)$id . "'
                     if (str_contains($item['setting_value'], '$$') && str_contains($item['setting_value'], '<theme_name>')) {
                         $item['setting_value'] = trim($item['setting_value'], '$$');
                     }
-                    if (substr($item['setting_value'], 0, 2) == '$$'){
-                        $item['setting_value'] = 'themes/' . $theme_name . '/img/' . substr_replace( $item['setting_value'], '', 0, 2);
+                    if (substr($item['setting_value'], 0, 2) == '$$') {
+                        $item['setting_value'] = 'themes/' . $theme_name . '/img/' . substr_replace($item['setting_value'], '', 0, 2);
                     }
                     $item['setting_value'] = self::importFiles($item, 'box', $theme_name);
                     $item['setting_value'] = str_replace('<theme_name>/', $theme_name . '/', $item['setting_value']);
-                    if (($item['setting_value_main_style']??null) &&
+                    if (($item['setting_value_main_style'] ?? null) &&
                         !isset($mainStyles[$item['setting_value']]) &&
                         !isset($mainStyles[preg_replace('/\-[0-9]+$/', '-1', $item['setting_value'])])
                     ) {
@@ -1166,7 +1183,7 @@ where dbs.box_id = '" . (int)$id . "'
                     } else {
                         $setting_value = $item['setting_value'];
                     }
-                    $sql_data_array = array(
+                    $sql_data_array = [
                         'box_id' => $box_id,
                         'microtime' => $microtime,
                         'theme_name' => $theme_name,
@@ -1174,7 +1191,7 @@ where dbs.box_id = '" . (int)$id . "'
                         'setting_value' => $setting_value,
                         'language_id' => $language_id,
                         'visibility' => $visibility,
-                    );
+                    ];
                     tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS_TMP, $sql_data_array);
                     $set_id = tep_db_insert_id();
                     if ($save) {
@@ -1184,60 +1201,61 @@ where dbs.box_id = '" . (int)$id . "'
                     $checkDuplicates[$item['setting_name']][$language_id][$visibility] = 1;
                 }
             }
+        }
 
-        if ($arr['widget_name'] == 'BlockBox' || $arr['widget_name'] == 'email\BlockBox' || $arr['widget_name'] == 'invoice\Container' || $arr['widget_name'] == 'cart\CartTabs' || $arr['widget_name'] == 'ClosableBox'){
+        if ($arr['widget_name'] == 'BlockBox' || $arr['widget_name'] == 'email\BlockBox' || $arr['widget_name'] == 'invoice\Container' || $arr['widget_name'] == 'cart\CartTabs' || $arr['widget_name'] == 'ClosableBox') {
 
-            if (is_array($arr['sub_1'] ?? null) && count($arr['sub_1']) > 0){
-                foreach ($arr['sub_1'] as $item){
+            if (is_array($arr['sub_1'] ?? null) && count($arr['sub_1']) > 0) {
+                foreach ($arr['sub_1'] as $item) {
                     self::blocksTreeImport($item, $theme_name, 'block-' . $box_id, '', $save, $newMicrotime);
                 }
             }
-            if (is_array($arr['sub_2'] ?? null) && count($arr['sub_2']) > 0){
-                foreach ($arr['sub_2'] as $item){
+            if (is_array($arr['sub_2'] ?? null) && count($arr['sub_2']) > 0) {
+                foreach ($arr['sub_2'] as $item) {
                     self::blocksTreeImport($item, $theme_name, 'block-' . $box_id . '-2', '', $save, $newMicrotime);
                 }
             }
-            if (is_array($arr['sub_3'] ?? null) && count($arr['sub_3']) > 0){
-                foreach ($arr['sub_3'] as $item){
+            if (is_array($arr['sub_3'] ?? null) && count($arr['sub_3']) > 0) {
+                foreach ($arr['sub_3'] as $item) {
                     self::blocksTreeImport($item, $theme_name, 'block-' . $box_id . '-3', '', $save, $newMicrotime);
                 }
             }
-            if (is_array($arr['sub_4'] ?? null) && count($arr['sub_4']) > 0){
-                foreach ($arr['sub_4'] as $item){
+            if (is_array($arr['sub_4'] ?? null) && count($arr['sub_4']) > 0) {
+                foreach ($arr['sub_4'] as $item) {
                     self::blocksTreeImport($item, $theme_name, 'block-' . $box_id . '-4', '', $save, $newMicrotime);
                 }
             }
-            if (is_array($arr['sub_5'] ?? null) && count($arr['sub_5']) > 0){
-                foreach ($arr['sub_5'] as $item){
+            if (is_array($arr['sub_5'] ?? null) && count($arr['sub_5']) > 0) {
+                foreach ($arr['sub_5'] as $item) {
                     self::blocksTreeImport($item, $theme_name, 'block-' . $box_id . '-5', '', $save, $newMicrotime);
                 }
             }
-        } elseif ($arr['widget_name'] == 'Tabs'){
+        } elseif ($arr['widget_name'] == 'Tabs') {
 
-            for($i = 1; $i < 11; $i++) {
-                if (is_array($arr['sub_' . $i] ?? null) && count($arr['sub_1']) > 0){
-                    foreach ($arr['sub_' . $i] as $item){
+            for ($i = 1; $i < 11; $i++) {
+                if (is_array($arr['sub_' . $i] ?? null) && count($arr['sub_1']) > 0) {
+                    foreach ($arr['sub_' . $i] as $item) {
                         self::blocksTreeImport($item, $theme_name, 'block-' . $box_id . '-' . $i, '', $save, $newMicrotime);
                     }
                 }
             }
-        } elseif ($arr['widget_name'] == 'WidgetsAria' && isset($arr['settings']) && is_array($arr['settings'])){
+        } elseif ($arr['widget_name'] == 'WidgetsAria' && isset($arr['settings']) && is_array($arr['settings'])) {
             $areaName = '';
-            foreach ($arr['settings'] as $setting){
+            foreach ($arr['settings'] as $setting) {
                 if ($setting['setting_name'] == 'aria_name') {
                     $areaName = $setting['setting_value'];
                     break;
                 }
             }
 
-            if (is_array($arr['WidgetsAria'] ?? null) && count($arr['WidgetsAria']) > 0){
+            if (is_array($arr['WidgetsAria'] ?? null) && count($arr['WidgetsAria']) > 0) {
                 $boxes = DesignBoxesTmp::find()->where(['theme_name' => $theme_name, 'block_name' => $areaName])
                     ->asArray()->all();
                 foreach ($boxes as $box) {
                     Theme::deleteBlock($box['id']);
                 }
                 DesignBoxesTmp::deleteAll(['theme_name' => $theme_name, 'block_name' => $areaName]);
-                foreach ($arr['WidgetsAria'] as $item){
+                foreach ($arr['WidgetsAria'] as $item) {
                     self::blocksTreeImport($item, $theme_name, $areaName, '', $save, false);
                 }
             }
@@ -1268,15 +1286,15 @@ where dbs.box_id = '" . (int)$id . "'
     {
         self::saveThemeVersion($theme_name);
 
-        tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS . " where box_id in (select id from " . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($theme_name) . "')");
+        tep_db_query('delete from ' . TABLE_DESIGN_BOXES_SETTINGS . ' where box_id in (select id from ' . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($theme_name) . "')");
         //the order is important (empty settings first)
-        tep_db_query("delete from " . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('delete from ' . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($theme_name) . "'");
 
-        tep_db_query("DELETE db FROM " . TABLE_DESIGN_BOXES . " db INNER JOIN " . TABLE_DESIGN_BOXES_TMP . " dbt ON dbt.id=db.id WHERE dbt.theme_name='" . tep_db_input($theme_name) . "';");
-        tep_db_query("DELETE db FROM " . TABLE_DESIGN_BOXES_SETTINGS . " db INNER JOIN " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " dbt ON dbt.id=db.id WHERE dbt.theme_name='" . tep_db_input($theme_name) . "';");
+        tep_db_query('DELETE db FROM ' . TABLE_DESIGN_BOXES . ' db INNER JOIN ' . TABLE_DESIGN_BOXES_TMP . " dbt ON dbt.id=db.id WHERE dbt.theme_name='" . tep_db_input($theme_name) . "';");
+        tep_db_query('DELETE db FROM ' . TABLE_DESIGN_BOXES_SETTINGS . ' db INNER JOIN ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " dbt ON dbt.id=db.id WHERE dbt.theme_name='" . tep_db_input($theme_name) . "';");
 
-        tep_db_query("INSERT INTO " . TABLE_DESIGN_BOXES . " SELECT * FROM " . TABLE_DESIGN_BOXES_TMP . " WHERE theme_name = '" . tep_db_input($theme_name) . "'");
-        tep_db_query("INSERT INTO " . TABLE_DESIGN_BOXES_SETTINGS . " SELECT * FROM " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " WHERE theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('INSERT INTO ' . TABLE_DESIGN_BOXES . ' SELECT * FROM ' . TABLE_DESIGN_BOXES_TMP . " WHERE theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('INSERT INTO ' . TABLE_DESIGN_BOXES_SETTINGS . ' SELECT * FROM ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " WHERE theme_name = '" . tep_db_input($theme_name) . "'");
 
     }
 
@@ -1321,17 +1339,16 @@ where dbs.box_id = '" . (int)$id . "'
         }
     }
 
-
-    public static function copyTheme ($theme_name, $parent_theme, $parent_theme_files = '')
+    public static function copyTheme($theme_name, $parent_theme, $parent_theme_files = '')
     {
         set_time_limit(0);
-        $id_array = array();
-        $visibility_array = array();
-        $visibilityStyleArray = array();
+        $id_array = [];
+        $visibility_array = [];
+        $visibilityStyleArray = [];
 
-        $themes_arr = array();
-        $parents = array();
-        $parents_query = tep_db_query("select theme_name, parent_theme from " . TABLE_THEMES);
+        $themes_arr = [];
+        $parents = [];
+        $parents_query = tep_db_query('select theme_name, parent_theme from ' . TABLE_THEMES);
         while ($item = tep_db_fetch_array($parents_query)) {
             $themes_arr[$item['theme_name']] = $item['parent_theme'];
         }
@@ -1346,29 +1363,29 @@ where dbs.box_id = '" . (int)$id . "'
         $parents = array_reverse($parents);
 
         if ($parent_theme_files == 'copy') {
-            $query = tep_db_query("select * from " . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($parent_theme) . "'");
+            $query = tep_db_query('select * from ' . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($parent_theme) . "'");
             while ($item = tep_db_fetch_array($query)) {
-                $sql_data_array = array(
+                $sql_data_array = [
                     'microtime' => $item['microtime'],
                     'theme_name' => $theme_name,
                     'block_name' => $item['block_name'],
                     'widget_name' => $item['widget_name'],
                     'widget_params' => $item['widget_params'],
                     'sort_order' => $item['sort_order'],
-                );
+                ];
                 tep_db_perform(TABLE_DESIGN_BOXES, $sql_data_array);
                 $new_row_id = tep_db_insert_id();
                 $sql_data_array['id'] = $new_row_id;
                 tep_db_perform(TABLE_DESIGN_BOXES_TMP, $sql_data_array);
 
-                $query2 = tep_db_query("select * from " . TABLE_DESIGN_BOXES_SETTINGS . " where box_id = '" . (int)$item['id'] . "'");
+                $query2 = tep_db_query('select * from ' . TABLE_DESIGN_BOXES_SETTINGS . " where box_id = '" . (int)$item['id'] . "'");
                 while ($item2 = tep_db_fetch_array($query2)) {
                     if ($parent_theme_files == 'copy' && ($item2['setting_name'] == 'background_image' || $item2['setting_name'] == 'logo')) {
                         foreach ($parents as $parentItem) {
                             $item2['setting_value'] = str_replace($parentItem, $theme_name, $item2['setting_value']);
                         }
                     }
-                    $sql_data_array = array(
+                    $sql_data_array = [
                         'microtime' => $item2['microtime'],
                         'theme_name' => $theme_name,
                         'box_id' => $new_row_id,
@@ -1376,7 +1393,7 @@ where dbs.box_id = '" . (int)$id . "'
                         'setting_value' => $item2['setting_value'],
                         'language_id' => $item2['language_id'],
                         'visibility' => $item2['visibility'],
-                    );
+                    ];
                     tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, $sql_data_array);
                     $new_row_id_2 = tep_db_insert_id();
                     $sql_data_array['id'] = $new_row_id_2;
@@ -1393,24 +1410,24 @@ where dbs.box_id = '" . (int)$id . "'
                 $id_array[$item['id']] = $new_row_id;
             }
 
-            $query = tep_db_query("select id, block_name from " . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($theme_name) . "'");
+            $query = tep_db_query('select id, block_name from ' . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($theme_name) . "'");
             while ($item = tep_db_fetch_array($query)) {
                 preg_match('/[a-z]-([0-9]+)/', $item['block_name'], $matches);
                 if ($matches[1] ?? null) {
                     $new_block_name = str_replace($matches[1], $id_array[$matches[1]], $item['block_name']);
-                    $sql_data_array = array(
+                    $sql_data_array = [
                         'block_name' => $new_block_name,
-                    );
+                    ];
                     tep_db_perform(TABLE_DESIGN_BOXES, $sql_data_array, 'update', " id = '" . $item['id'] . "'");
                     tep_db_perform(TABLE_DESIGN_BOXES_TMP, $sql_data_array, 'update', " id = '" . $item['id'] . "'");
                 }
             }
         }
 
-        $query = tep_db_query("select * from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($parent_theme) . "'");
-        while ($item = tep_db_fetch_array($query)){
+        $query = tep_db_query('select * from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($parent_theme) . "'");
+        while ($item = tep_db_fetch_array($query)) {
             if ($parent_theme_files == 'copy' && (
-                    $item['setting_name'] == 'css' ||
+                $item['setting_name'] == 'css' ||
                     $item['setting_name'] == 'javascript' ||
                     $item['setting_name'] == 'font_added'
             )) {
@@ -1419,16 +1436,16 @@ where dbs.box_id = '" . (int)$id . "'
                     $item['setting_value'] = str_replace($parentItem, $theme_name, $item['setting_value']);
                 }
             }
-            $sql_data_array = array(
+            $sql_data_array = [
                 'theme_name' => $theme_name,
                 'setting_group' => $item['setting_group'],
                 'setting_name' => $item['setting_name'],
                 'setting_value' => $item['setting_value'],
-            );
+            ];
             tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
             $newMediaId = tep_db_insert_id();
 
-            if ($item['setting_name'] == 'media_query' && $parent_theme_files == 'copy'){
+            if ($item['setting_name'] == 'media_query' && $parent_theme_files == 'copy') {
                 $visibilityStyleArray[$item['id']] = $newMediaId;
                 foreach ($visibility_array as $settingsId => $oldMediaId) {
                     $vArr = Style::vArr($oldMediaId);
@@ -1437,7 +1454,7 @@ where dbs.box_id = '" . (int)$id . "'
                         if ($omi > 10) {
                             if ($omi == $item['id']) {
                                 $vArr[$vKey] = $newMediaId;
-                                $sql_data_array = array();
+                                $sql_data_array = [];
                                 $sql_data_array['visibility'] = Style::vStr($vArr);
                                 tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS, $sql_data_array, 'update', " id = '" . $settingsId . "'");
                                 tep_db_perform(TABLE_DESIGN_BOXES_SETTINGS_TMP, $sql_data_array, 'update', " id = '" . $settingsId . "'");
@@ -1449,9 +1466,9 @@ where dbs.box_id = '" . (int)$id . "'
         }
 
         if ($parent_theme_files == 'copy') {
-            $query = tep_db_query("select * from " . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($parent_theme) . "'");
+            $query = tep_db_query('select * from ' . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($parent_theme) . "'");
         } else {
-            $query = tep_db_query("select * from " . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($parent_theme) . "' and accessibility = '.b-bottom'");
+            $query = tep_db_query('select * from ' . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($parent_theme) . "' and accessibility = '.b-bottom'");
         }
         while ($item = tep_db_fetch_array($query)) {
             $visibilityArray = explode(',', $item['visibility']);
@@ -1467,7 +1484,7 @@ where dbs.box_id = '" . (int)$id . "'
             if ($parent_theme_files == 'copy') {
                 $item['value'] = str_replace($parent_theme, $theme_name, $item['value']);
             }
-            $sql_data_array = array(
+            $sql_data_array = [
                 'theme_name' => $theme_name,
                 'selector' => $item['selector'],
                 'attribute' => $item['attribute'],
@@ -1475,7 +1492,7 @@ where dbs.box_id = '" . (int)$id . "'
                 'visibility' => $item['visibility'],
                 'media' => $item['media'],
                 'accessibility' => $item['accessibility'],
-            );
+            ];
             tep_db_perform(TABLE_THEMES_STYLES, $sql_data_array);
         }
 
@@ -1526,26 +1543,28 @@ where dbs.box_id = '" . (int)$id . "'
             $path .= 'themes' . DIRECTORY_SEPARATOR . $theme_name;
 
             if (file_exists($screenshot)) {
-                if (!file_exists($path)) mkdir($path);
+                if (!file_exists($path)) {
+                    mkdir($path);
+                }
                 copy($screenshot, $path . DIRECTORY_SEPARATOR . 'screenshot.png');
             }
 
         }
     }
 
-    public static function themeRemove ($theme_name, $removeFiles = true)
+    public static function themeRemove($theme_name, $removeFiles = true)
     {
-        tep_db_query("delete from " . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($theme_name) . "'");
-        tep_db_query("delete from " . TABLE_DESIGN_BOXES_TMP . " where theme_name = '" . tep_db_input($theme_name) . "'");
-        tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "'");
-        tep_db_query("delete from " . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('delete from ' . TABLE_DESIGN_BOXES . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('delete from ' . TABLE_DESIGN_BOXES_TMP . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('delete from ' . TABLE_DESIGN_BOXES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('delete from ' . TABLE_DESIGN_BOXES_SETTINGS_TMP . " where theme_name = '" . tep_db_input($theme_name) . "'");
 
-        tep_db_query("delete from " . TABLE_THEMES . " where theme_name = '" . tep_db_input($theme_name) . "'");
-        tep_db_query("delete from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "'");
-        tep_db_query("delete from " . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($theme_name) . "'");
-        tep_db_query("delete from " . TABLE_THEMES_STYLES_CACHE . " where theme_name = '" . tep_db_input($theme_name) . "'");
-        tep_db_query("delete from " . TABLE_THEMES_STEPS . " where theme_name = '" . tep_db_input($theme_name) . "'");
-        tep_db_query("delete from " . TABLE_THEMES_STYLES_CACHE . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('delete from ' . TABLE_THEMES . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('delete from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('delete from ' . TABLE_THEMES_STYLES . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('delete from ' . TABLE_THEMES_STYLES_CACHE . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('delete from ' . TABLE_THEMES_STEPS . " where theme_name = '" . tep_db_input($theme_name) . "'");
+        tep_db_query('delete from ' . TABLE_THEMES_STYLES_CACHE . " where theme_name = '" . tep_db_input($theme_name) . "'");
         ThemesStylesMain::deleteAll(['theme_name' => $theme_name]);
         ThemesStylesGroups::deleteAll(['theme_name' => $theme_name]);
 
@@ -1557,7 +1576,7 @@ where dbs.box_id = '" . (int)$id . "'
         FileHelper::removeDirectory($themeBackups);
 
         if ($removeFiles) {
-            $count = tep_db_fetch_array(tep_db_query("select count(*) as total from " . TABLE_THEMES . " where parent_theme = '" . tep_db_input($theme_name) . "'"));
+            $count = tep_db_fetch_array(tep_db_query('select count(*) as total from ' . TABLE_THEMES . " where parent_theme = '" . tep_db_input($theme_name) . "'"));
             if ($count['total'] == 0) {
                 $path = DIR_FS_CATALOG;
                 $pathLib = $path . 'lib' . DIRECTORY_SEPARATOR . 'frontend' . DIRECTORY_SEPARATOR;
@@ -1569,11 +1588,11 @@ where dbs.box_id = '" . (int)$id . "'
         }
     }
 
-    public static function getThemeTitle ($theme_name)
+    public static function getThemeTitle($theme_name)
     {
         static $themeTitle = [];
 
-        if ( isset($themeTitle[$theme_name]) ) {
+        if (isset($themeTitle[$theme_name])) {
             return $themeTitle[$theme_name];
         }
 
@@ -1583,7 +1602,7 @@ where dbs.box_id = '" . (int)$id . "'
             $mobile = true;
         }
 
-        $query = tep_db_fetch_array(tep_db_query("select title from " . TABLE_THEMES . " where theme_name = '" . tep_db_input($theme_name) . "'"));
+        $query = tep_db_fetch_array(tep_db_query('select title from ' . TABLE_THEMES . " where theme_name = '" . tep_db_input($theme_name) . "'"));
 
         $themeTitle[$theme_name] = $query['title'];
 
@@ -1594,10 +1613,10 @@ where dbs.box_id = '" . (int)$id . "'
         return $themeTitle[$theme_name];
     }
 
-    public static function useMobileTheme ($theme_name)
+    public static function useMobileTheme($theme_name)
     {
 
-        $theme = tep_db_fetch_array(tep_db_query("select setting_value from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_name = 'use_mobile_theme'"));
+        $theme = tep_db_fetch_array(tep_db_query('select setting_value from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_name = 'use_mobile_theme'"));
         if ($theme['setting_value']) {
             return true;
         }
@@ -1605,7 +1624,7 @@ where dbs.box_id = '" . (int)$id . "'
         return false;
     }
 
-    public static function getThemeName ($platform_id)
+    public static function getThemeName($platform_id)
     {
         static $_cache = [];
 
@@ -1617,12 +1636,12 @@ where dbs.box_id = '" . (int)$id . "'
             $platform_config = new \common\classes\platform_config($platform_id);
             $platform_config->constant_up();
             if ($platform_config->isVirtual() || $platform_config->isMarketplace()) {
-                $theme = tep_db_fetch_array(tep_db_query("select t.theme_name from platforms_to_themes AS p2t INNER JOIN themes as t ON (p2t.theme_id=t.id) where p2t.is_default = 1 and p2t.platform_id = " . (int)\common\classes\platform::defaultId()));
+                $theme = tep_db_fetch_array(tep_db_query('select t.theme_name from platforms_to_themes AS p2t INNER JOIN themes as t ON (p2t.theme_id=t.id) where p2t.is_default = 1 and p2t.platform_id = ' . (int)\common\classes\platform::defaultId()));
             } else {
-                $theme = tep_db_fetch_array(tep_db_query("select t.theme_name from " . TABLE_THEMES . " t, " . TABLE_PLATFORMS_TO_THEMES . " p2t where p2t.is_default = 1 and t.id = p2t.theme_id and p2t.platform_id='" . $platform_id . "'"));
+                $theme = tep_db_fetch_array(tep_db_query('select t.theme_name from ' . TABLE_THEMES . ' t, ' . TABLE_PLATFORMS_TO_THEMES . " p2t where p2t.is_default = 1 and t.id = p2t.theme_id and p2t.platform_id='" . $platform_id . "'"));
             }
         } else {
-            $theme = tep_db_fetch_array(tep_db_query("select theme_name from " . TABLE_THEMES));
+            $theme = tep_db_fetch_array(tep_db_query('select theme_name from ' . TABLE_THEMES));
         }
 
         $_cache[$platform_id] = ($theme['theme_name'] ?? '');
@@ -1630,13 +1649,12 @@ where dbs.box_id = '" . (int)$id . "'
         return $_cache[$platform_id];
     }
 
-
     /**
      * copy image in theme image dir and save name in db, use only with save design/settings, it use POST data
      * @param string   $name image name in db, theme_settings.setting_name
      * @return string  path and filename saved in db, 'themes/themename/img/imagename.jpg'
      */
-    public static function saveThemeImage ($name)
+    public static function saveThemeImage($name)
     {
         $post = Yii::$app->request->post();
 
@@ -1654,7 +1672,8 @@ where dbs.box_id = '" . (int)$id . "'
             $post[$name],
             $post[$name . '_upload'],
             'themes' . DIRECTORY_SEPARATOR . $post['theme_name'] . DIRECTORY_SEPARATOR . 'img',
-            false, true
+            false,
+            true
         );
 
         $imageMod->attributes = [
@@ -1672,7 +1691,7 @@ where dbs.box_id = '" . (int)$id . "'
         return $uploadedFile;
     }
 
-    public static function saveFavicon ()
+    public static function saveFavicon()
     {
         $uploadedFile = self::saveThemeImage('favicon');
 
@@ -1705,11 +1724,11 @@ where dbs.box_id = '" . (int)$id . "'
         $info = getimagesize(DIR_FS_CATALOG . $uploadedFile);
         $mime = $info['mime'];
 
-        if ($mime == 'image/jpeg'){
+        if ($mime == 'image/jpeg') {
             $im = @imagecreatefromjpeg(DIR_FS_CATALOG . $uploadedFile);
-        } elseif ($mime == 'image/png'){
+        } elseif ($mime == 'image/png') {
             $im = @imagecreatefrompng(DIR_FS_CATALOG . $uploadedFile);
-        } elseif ($mime == 'image/gif'){
+        } elseif ($mime == 'image/gif') {
             $im = @imagecreatefromgif(DIR_FS_CATALOG . $uploadedFile);
         }
         if (!$im) {
@@ -1744,18 +1763,18 @@ where dbs.box_id = '" . (int)$id . "'
             ['size' => 512, 'name' => 'android-icon-512x512.png'],
         ];
 
-        foreach ($icons as $icon){
+        foreach ($icons as $icon) {
             $l = $icon['size'];
-            if ($w > $h){
-                $left = round(0 - (($l * ($w/$h)) - $l) / 2);
+            if ($w > $h) {
+                $left = round(0 - (($l * ($w / $h)) - $l) / 2);
                 $top = 0;
-                $width = round($l * ($w/$h));
+                $width = round($l * ($w / $h));
                 $height = $l;
             } else {
                 $left = 0;
-                $top = round(0 - (($l * ($h/$w)) - $l) / 2);
+                $top = round(0 - (($l * ($h / $w)) - $l) / 2);
                 $width = $l;
-                $height = round($l * ($h/$w));
+                $height = round($l * ($h / $w));
             }
             $im1 = imagecreatetruecolor($l, $l);
             imagealphablending($im1, false);
@@ -1778,21 +1797,21 @@ where dbs.box_id = '" . (int)$id . "'
         if (is_array($post['added_page_settings'] ?? null)) {
             foreach ($post['added_page_settings'] as $setting => $value) {
 
-                $count = tep_db_fetch_array(tep_db_query("select count(*) as total from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_group = 'added_page_settings' and setting_name = '" . tep_db_input($page_name) . "' and (setting_value = '" . tep_db_input($setting) . "' or setting_value like '" . tep_db_input($setting) . ":%')"));
+                $count = tep_db_fetch_array(tep_db_query('select count(*) as total from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_group = 'added_page_settings' and setting_name = '" . tep_db_input($page_name) . "' and (setting_value = '" . tep_db_input($setting) . "' or setting_value like '" . tep_db_input($setting) . ":%')"));
                 if ($value) {
-                    $sql_data_array = array(
+                    $sql_data_array = [
                         'theme_name' => $theme_name,
                         'setting_group' => 'added_page_settings',
                         'setting_name' => $page_name,
-                        'setting_value' => $value == 'on' ? $setting : $setting . ':' . $value
-                    );
+                        'setting_value' => $value == 'on' ? $setting : $setting . ':' . $value,
+                    ];
                     if ($count['total']) {
                         tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array, 'update', "theme_name = '" . $theme_name . "' and 	setting_group = 'added_page_settings' and	setting_name='" . $page_name . "'");
                     } else {
                         tep_db_perform(TABLE_THEMES_SETTINGS, $sql_data_array);
                     }
                 } elseif ($count['total'] > 0) {
-                    tep_db_query("delete from " . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_group = 'added_page_settings' and setting_name = '" . tep_db_input($page_name) . "' and (setting_value = '" . tep_db_input($setting) . "' or setting_value like '" . tep_db_input($setting) . ":%')");
+                    tep_db_query('delete from ' . TABLE_THEMES_SETTINGS . " where theme_name = '" . tep_db_input($theme_name) . "' and setting_group = 'added_page_settings' and setting_name = '" . tep_db_input($page_name) . "' and (setting_value = '" . tep_db_input($setting) . "' or setting_value like '" . tep_db_input($setting) . ":%')");
                 }
             }
         }
@@ -1863,7 +1882,7 @@ where dbs.box_id = '" . (int)$id . "'
         $ds = DIRECTORY_SEPARATOR;
         $widgetPath = explode('\\', $widgetName);
         $last = count($widgetPath) - 1;
-        $widgetPath[$last] = preg_replace('/([A-Z])/', "-\$1", $widgetPath[$last]);
+        $widgetPath[$last] = preg_replace('/([A-Z])/', '-$1', $widgetPath[$last]);
         $widgetPath[$last] = strtolower($widgetPath[$last]);
         $widgetPath[$last] = trim($widgetPath[$last], '-');
 
@@ -1905,7 +1924,7 @@ where dbs.box_id = '" . (int)$id . "'
         }
 
         if (in_array($settingName, ['background_image', 'background-image', 'logo', 'image', 'file', 'poster'])) {
-            if (str_contains($settingValue, 'url(')){
+            if (str_contains($settingValue, 'url(')) {
                 $settingValue = str_replace('url(', '', $settingValue);
                 $settingValue = trim($settingValue, ') \' "');
             }
@@ -1933,7 +1952,7 @@ where dbs.box_id = '" . (int)$id . "'
         if (in_array($settingName, ['background_image', 'background-image', 'logo', 'image', 'file', 'poster'])) {
 
             $fileFrom = DIR_FS_CATALOG . implode(DIRECTORY_SEPARATOR, ['themes', $themeName, 'tmp', $settingValue]);
-            $settingValue = preg_replace ('/^theme\//', 'themes/' . $themeName . '/', $settingValue);
+            $settingValue = preg_replace('/^theme\//', 'themes/' . $themeName . '/', $settingValue);
             if (is_file($fileFrom)) {
 
                 $foldersArr = explode(DIRECTORY_SEPARATOR, $settingValue);
@@ -1941,11 +1960,13 @@ where dbs.box_id = '" . (int)$id . "'
 
                 $path2 = DIR_FS_CATALOG;
                 foreach ($foldersArr as $item) {
-                    if (!$item) continue;
+                    if (!$item) {
+                        continue;
+                    }
                     $path2 .= $item . DIRECTORY_SEPARATOR;
                     if (!file_exists($path2)) {
                         mkdir($path2, 0777);
-                        @chmod($path2,0777);
+                        @chmod($path2, 0777);
                     }
                 }
 
@@ -1972,7 +1993,6 @@ where dbs.box_id = '" . (int)$id . "'
 
         return $settingValue;
     }
-
 
     public static function deleteBlock($id, $desktop = false)
     {
@@ -2040,7 +2060,7 @@ where dbs.box_id = '" . (int)$id . "'
         $bannerGroup = $type = $bannerId = '';
         foreach ($settings as $setting) {
             if ($setting['setting_name'] == 'banners_group') {
-                if (preg_match("/^[0-9]+$/", $setting['setting_value'])) {
+                if (preg_match('/^[0-9]+$/', $setting['setting_value'])) {
                     $bannersGroups = BannersGroups::findOne($setting['setting_value']);
                     if ($bannersGroups) {
                         $bannerGroup = $bannersGroups->banners_group;

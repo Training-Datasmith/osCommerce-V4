@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -15,18 +17,19 @@ namespace common\classes;
 
 use common\helpers\System;
 
-class Migration extends \yii\db\Migration {
-
+class Migration extends \yii\db\Migration
+{
     /**
      * drop index with same name if exists and create it again
      * @inheritdoc
      */
-    public function createIndex($name, $table, $columns, $unique = false) {
+    public function createIndex($name, $table, $columns, $unique = false)
+    {
         $checkExists = $this->db->createCommand(
-                        "show indexes from " . $table .
-                        " WHERE Key_name like :indexName ",
-                        ['indexName' => $name]
-                )->queryOne();
+            'show indexes from ' . $table .
+                        ' WHERE Key_name like :indexName ',
+            ['indexName' => $name]
+        )->queryOne();
         if (is_array($checkExists)) {
             // drop old one
             $this->dropIndex($name, $table);
@@ -41,7 +44,7 @@ class Migration extends \yii\db\Migration {
     public function dropIndex($name, $table)
     {
         $checkExists = $this->db->createCommand(
-            "show indexes from " . $table ." WHERE Key_name like :indexName ",
+            'show indexes from ' . $table .' WHERE Key_name like :indexName ',
             ['indexName' => $name]
         )->queryOne();
         if (is_array($checkExists)) {
@@ -52,7 +55,7 @@ class Migration extends \yii\db\Migration {
     public function isIndexExist($name, $table)
     {
         $checkExists = $this->db->createCommand(
-            "show indexes from " . $table ." WHERE Key_name like :indexName ",
+            'show indexes from ' . $table .' WHERE Key_name like :indexName ',
             ['indexName' => $name]
         )->queryOne();
         return is_array($checkExists);
@@ -64,11 +67,11 @@ class Migration extends \yii\db\Migration {
         $this->addPrimaryKey($name, $table, $columns);
     }
 
-
     /**
      * @inheritdoc
      */
-    public function addForeignKey($name, $table, $columns, $refTable, $refColumns, $delete = null, $update = null) {
+    public function addForeignKey($name, $table, $columns, $refTable, $refColumns, $delete = null, $update = null)
+    {
         $ts = $this->getDb()->getTableSchema($table, true);
         if (isset($ts->foreignKeys[$name])) {
             $this->dropForeignKey($name, $table);
@@ -79,7 +82,8 @@ class Migration extends \yii\db\Migration {
     /**
      * @inheritdoc
      */
-    public function dropForeignKey($name, $table) {
+    public function dropForeignKey($name, $table)
+    {
         $ts = $this->getDb()->getTableSchema($table);
         if (isset($ts->foreignKeys[$name])) {
             parent::dropForeignKey($name, $table);
@@ -89,7 +93,7 @@ class Migration extends \yii\db\Migration {
     /**
      * Creates table and indexes if table not exists yet
      * @param string       $table_name
-     * @param array        $struct      table structure array like ['column' => $migrate->integer(10), etc.]     
+     * @param array        $struct      table structure array like ['column' => $migrate->integer(10), etc.]
      * @param string|array $primary     info for primary key:
      *                                  string -> comma separated string of columns that the primary key will consist of. The index name will be $table_name + '_pk'
      *                                  array  -> the key is a name of primary key, the value is comma separated string of columns
@@ -111,7 +115,8 @@ class Migration extends \yii\db\Migration {
      *
      * @return boolean True if table did not exist and has just been created.
      */
-    public function createTableIfNotExists(string $table_name, array $struct, /* array|string */ $primary = null, /* array|string */ $indexes = null) {
+    public function createTableIfNotExists(string $table_name, array $struct, /* array|string */ $primary = null, /* array|string */ $indexes = null)
+    {
         if (!$this->isTableExists($table_name)) {
             try {
                 $this->createTable($table_name, $struct);
@@ -130,8 +135,9 @@ class Migration extends \yii\db\Migration {
                             case 0:
                                 break;
                             case 1: // key as index_name
-                                foreach ($primary as $index_name => $columns)
+                                foreach ($primary as $index_name => $columns) {
                                     break;
+                                }
                                 break;
                             default: // array of columns
                                 $index_name = $table_name . '_pk';
@@ -140,15 +146,16 @@ class Migration extends \yii\db\Migration {
                         }
                     }
 
-                    if (!is_null($index_name))
+                    if (!is_null($index_name)) {
                         $this->addPrimaryKey($index_name, $table_name, $columns);
+                    }
                 }
 
                 // create indexes
                 if (!is_null($indexes)) {
 
                     if (!is_array($indexes)) {
-                        $indexes = array($indexes);
+                        $indexes = [$indexes];
                     }
                     foreach ($indexes as $index_name => $columns) {
                         $unique = false;
@@ -156,8 +163,9 @@ class Migration extends \yii\db\Migration {
                             $unique = true;
                             $index_name = str_replace('unique:', '', $index_name);
                         }
-                        if (is_int($index_name) or empty($index_name))
+                        if (is_int($index_name) or empty($index_name)) {
                             $index_name = str_replace(',', '_', $columns);
+                        }
                         $this->createIndex($index_name, $table_name, $columns, $unique);
                     }
                 }
@@ -178,32 +186,35 @@ class Migration extends \yii\db\Migration {
         }
     }
 
-
     /**
      * Drops multiple tables.
      * @param array|string $tables array of table names to be dropped.
      */
-    public function dropTables($tables) {
+    public function dropTables($tables)
+    {
         if (is_string($tables)) {
             $tables = explode(',', $tables);
         }
         if (is_array($tables)) {
-            foreach ($tables as $table)
+            foreach ($tables as $table) {
                 $this->dropTableIfExists($table);
+            }
         }
     }
 
     /**
      * @inheritdoc
      */
-    public function isTableExists($tableName) {
+    public function isTableExists($tableName)
+    {
         return $this->db->getTableSchema($tableName, true) !== null;
     }
 
     /**
      * @inheritdoc
      */
-    public function isFieldExists($field, $table) {
+    public function isFieldExists($field, $table)
+    {
         $fields = $this->db->createCommand("show FIELDS from {$table}")->queryColumn();
         return in_array($field, $fields);
     }
@@ -215,7 +226,8 @@ class Migration extends \yii\db\Migration {
      * @param $columnName
      * @return bool
      */
-    public function isMissingColumn($tableName, $columnName) {
+    public function isMissingColumn($tableName, $columnName)
+    {
         return $this->db->getTableSchema($tableName, true)->getColumn($columnName) === null;
     }
 
@@ -229,7 +241,8 @@ class Migration extends \yii\db\Migration {
      * into the physical one. Anything that is not recognized as abstract type will be kept in the generated SQL.
      * For example, 'string' will be turned into 'varchar(255)', while 'string not null' will become 'varchar(255) not null'.
      */
-    public function addColumnIfMissing($table, $column, $type) {
+    public function addColumnIfMissing($table, $column, $type)
+    {
         if ($this->isMissingColumn($table, $column)) {
             $this->addColumn($table, $column, $type);
         }
@@ -242,11 +255,11 @@ class Migration extends \yii\db\Migration {
         }
     }
 
-
     /**
      * @inheritdoc
      */
-    public function createTable($table, $columns, $options = null) {
+    public function createTable($table, $columns, $options = null)
+    {
         if ($options === null && $this->db->driverName === 'mysql') {
             // http://stackoverflow.com/questions/766809/whats-the-difference-between-utf8-general-ci-and-utf8-unicode-ci
             //$options = 'CHARACTER SET utf8 COLLATE utf8_unicode_ci ENGINE=InnoDB';
@@ -255,7 +268,8 @@ class Migration extends \yii\db\Migration {
         parent::createTable($table, $columns, $options);
     }
 
-    public function batchInsertSafe($table, $columns, $rows) {
+    public function batchInsertSafe($table, $columns, $rows)
+    {
         try {
             parent::batchInsert($table, $columns, $rows);
             return true;
@@ -264,9 +278,9 @@ class Migration extends \yii\db\Migration {
         }
         $errorCnt = 0;
         $errorMsg = '';
-        foreach($rows as $row) {
+        foreach ($rows as $row) {
             $insert = [];
-            foreach($columns as $index => $col) {
+            foreach ($columns as $index => $col) {
                 $insert[$col] = $row[$index];
             }
             try {
@@ -277,7 +291,7 @@ class Migration extends \yii\db\Migration {
             }
         }
         if ($errorCnt) {
-            \Yii::warning( "Error in row-by-row inserting ($errorCnt): " . $errorMsg);
+            \Yii::warning("Error in row-by-row inserting ($errorCnt): " . $errorMsg);
         }
         return $errorCnt;
     }
@@ -287,12 +301,14 @@ class Migration extends \yii\db\Migration {
      * @param string  $entity
      * @param array $keys [$key=>$value], $value = string | array per language ['en' => 'english', 'fr' => 'French']
      */
-    public function addTranslation($entity, $keys, $replaceExisting = false) {
+    public function addTranslation($entity, $keys, $replaceExisting = false)
+    {
         static $language_map = false;
         if ($language_map === false) {
             $language_map = \yii\helpers\ArrayHelper::map(
-                            \common\models\Languages::find()->select('languages_id, code')->asArray()->all(),
-                            'code', 'languages_id'
+                \common\models\Languages::find()->select('languages_id, code')->asArray()->all(),
+                'code',
+                'languages_id'
             );
         }
         foreach ($keys as $key => $value) {
@@ -316,10 +332,10 @@ class Migration extends \yii\db\Migration {
                         }
                     }
                     $this->db->createCommand(
-                            "INSERT IGNORE INTO `translation` " .
-                            "  (language_id, translation_key, translation_entity, translation_value, checked, translated, hash) " .
-                            "  VALUES (:languages_id, :text_key, :entity, :text_value, :checked, :translated, :hash)",
-                            [
+                        'INSERT IGNORE INTO `translation` ' .
+                            '  (language_id, translation_key, translation_entity, translation_value, checked, translated, hash) ' .
+                            '  VALUES (:languages_id, :text_key, :entity, :text_value, :checked, :translated, :hash)',
+                        [
                                 'languages_id' => (int) $languageId,
                                 'entity' => $entity,
                                 'text_key' => $key,
@@ -338,10 +354,10 @@ class Migration extends \yii\db\Migration {
                     }
                 }
                 $this->db->createCommand(
-                        "INSERT IGNORE INTO `translation` " .
-                        "  (language_id, translation_key, translation_entity, translation_value, checked, translated, hash) " .
-                        "  VALUES (1, :text_key, :entity, :text_value, 1, 1, :hash)",
-                        [
+                    'INSERT IGNORE INTO `translation` ' .
+                        '  (language_id, translation_key, translation_entity, translation_value, checked, translated, hash) ' .
+                        '  VALUES (1, :text_key, :entity, :text_value, 1, 1, :hash)',
+                    [
                             'entity' => $entity,
                             'text_key' => $key,
                             'text_value' => $value,
@@ -350,10 +366,10 @@ class Migration extends \yii\db\Migration {
                 )->execute();
 
                 $this->db->createCommand(
-                        "INSERT IGNORE INTO `translation` " .
-                        "  (language_id, translation_key, translation_entity, translation_value, hash) " .
-                        "  SELECT languages_id, :text_key, :entity, :text_value, :hash FROM languages",
-                        [
+                    'INSERT IGNORE INTO `translation` ' .
+                        '  (language_id, translation_key, translation_entity, translation_value, hash) ' .
+                        '  SELECT languages_id, :text_key, :entity, :text_value, :hash FROM languages',
+                    [
                             'entity' => $entity,
                             'text_key' => $key,
                             'text_value' => $value,
@@ -371,20 +387,23 @@ class Migration extends \yii\db\Migration {
      * @param string $entity
      * @param array $keys
      */
-    public function removeTranslation($entity, $keys = null) {
+    public function removeTranslation($entity, $keys = null)
+    {
         if (!empty($keys)) {
             $this->print("Remove translations for enity $entity\n");
-            if (!is_array($keys))
-                $keys = array($keys);
+            if (!is_array($keys)) {
+                $keys = [$keys];
+            }
             foreach ($keys as $key) {
                 $this->db->createCommand(
-                                "DELETE FROM translation " .
-                                "WHERE translation_entity=:entity AND translation_key=:translate_key ",
-                                ['entity' => $entity, 'translate_key' => $key])
+                    'DELETE FROM translation ' .
+                                'WHERE translation_entity=:entity AND translation_key=:translate_key ',
+                    ['entity' => $entity, 'translate_key' => $key]
+                )
                         ->execute();
             }
         } elseif (is_null($keys)) {
-            $this->db->createCommand("DELETE FROM translation WHERE translation_entity=:entity", ['entity' => $entity])->execute();
+            $this->db->createCommand('DELETE FROM translation WHERE translation_entity=:entity', ['entity' => $entity])->execute();
         }
 
         \yii\caching\TagDependency::invalidate(\Yii::$app->getCache(), 'translation');
@@ -395,43 +414,45 @@ class Migration extends \yii\db\Migration {
      * @param $type_to_data
      * @example addEmailTemplate('Test email', [ 'html'=>['subject'=>'email subject', 'body'=>'email body'], [ 'text'=>['subject'=>'email subject', 'body'=>'email body'] ])
      */
-    public function addEmailTemplate($key_name, $type_to_data) {
+    public function addEmailTemplate($key_name, $type_to_data)
+    {
         $data = [
             'html' => [
                 'email_templates_subject' => (
-                isset($type_to_data['html']['subject']) ?
+                    isset($type_to_data['html']['subject']) ?
                 $type_to_data['html']['subject'] :
                 (isset($type_to_data['text']['subject']) ? $type_to_data['text']['subject'] : '')
                 ),
                 'email_templates_body' => (
-                isset($type_to_data['html']['body']) ?
+                    isset($type_to_data['html']['body']) ?
                 $type_to_data['html']['body'] :
                 (isset($type_to_data['text']['body']) ? $type_to_data['text']['body'] : '')
                 ),
             ],
             'plaintext' => [
                 'email_templates_subject' => (
-                isset($type_to_data['text']['subject']) ?
+                    isset($type_to_data['text']['subject']) ?
                 $type_to_data['text']['subject'] :
                 (isset($type_to_data['html']['subject']) ? $type_to_data['html']['subject'] : '')
                 ),
                 'email_templates_body' => (
-                isset($type_to_data['text']['body']) ?
+                    isset($type_to_data['text']['body']) ?
                 $type_to_data['text']['body'] :
                 (isset($type_to_data['html']['body']) ? $type_to_data['html']['body'] : '')
                 ),
-            ]
+            ],
         ];
 
         foreach ($data as $email_template_type => $email_template_data) {
             $existing_email_templates_id = $this->db->createCommand(
-                            "SELECT email_templates_id " .
-                            "FROM email_templates " .
-                            "WHERE email_templates_key = :templates_key and email_template_type=:email_type ",
-                            [
+                'SELECT email_templates_id ' .
+                            'FROM email_templates ' .
+                            'WHERE email_templates_key = :templates_key and email_template_type=:email_type ',
+                [
                                 'templates_key' => $key_name,
                                 'email_type' => $email_template_type,
-                    ])->queryScalar();
+                    ]
+            )->queryScalar();
 
             if (!$existing_email_templates_id) {
                 $this->insert('email_templates', [
@@ -455,42 +476,45 @@ class Migration extends \yii\db\Migration {
         }
     }
 
-    public function removeEmailTemplate($key_name) {
+    public function removeEmailTemplate($key_name)
+    {
         $this->db->createCommand(
-                "DELETE ett FROM email_templates_texts ett " .
-                " INNER JOIN email_templates et ON ett.email_templates_id=et.email_templates_id " .
-                "WHERE email_templates_key = :templates_key ",
-                [
+            'DELETE ett FROM email_templates_texts ett ' .
+                ' INNER JOIN email_templates et ON ett.email_templates_id=et.email_templates_id ' .
+                'WHERE email_templates_key = :templates_key ',
+            [
                     'templates_key' => $key_name,
-        ])->execute();
+        ]
+        )->execute();
         $this->db->createCommand(
-                "DELETE et FROM email_templates et " .
-                "WHERE email_templates_key = :templates_key ",
-                [
+            'DELETE et FROM email_templates et ' .
+                'WHERE email_templates_key = :templates_key ',
+            [
                     'templates_key' => $key_name,
-        ])->execute();
+        ]
+        )->execute();
     }
 
-    public function appendAcl($aclChain, $assign_to_access_levels = 1) { /// public to use in extension install()
-        $PARENT_ID = 0;
+    public function appendAcl($aclChain, $assign_to_access_levels = 1) /// public to use in extension install()
+    {$PARENT_ID = 0;
         $ACL_INSERTED_ID = false;
 
         foreach ($aclChain as $assignBox) {
 
             $checkOnLevel = $this->db->createCommand(
-                            "SELECT access_control_list_id AS id " .
-                            "FROM access_control_list " .
-                            "WHERE parent_id=:parent_id AND access_control_list_key=:box_name ",
-                            ['parent_id' => (int) $PARENT_ID, 'box_name' => $assignBox]
-                    )->queryOne();
+                'SELECT access_control_list_id AS id ' .
+                            'FROM access_control_list ' .
+                            'WHERE parent_id=:parent_id AND access_control_list_key=:box_name ',
+                ['parent_id' => (int) $PARENT_ID, 'box_name' => $assignBox]
+            )->queryOne();
             if (is_array($checkOnLevel)) {
                 $PARENT_ID = $checkOnLevel['id'];
             } else {
                 $getSO = $this->db->createCommand(
-                                "SELECT MAX(sort_order) AS max_so " .
-                                "FROM access_control_list " .
+                    'SELECT MAX(sort_order) AS max_so ' .
+                                'FROM access_control_list ' .
                                 "WHERE parent_id='" . (int) $PARENT_ID . "'"
-                        )->queryOne();
+                )->queryOne();
                 $SORT_ORDER = (int) $getSO['max_so'] + 1;
 
                 $this->insert('access_control_list', [
@@ -501,11 +525,12 @@ class Migration extends \yii\db\Migration {
                 $ACL_INSERTED_ID = $this->db->getLastInsertID();
                 $PARENT_ID = $ACL_INSERTED_ID;
 
-                if (!is_array($assign_to_access_levels))
-                    $assign_to_access_levels = array($assign_to_access_levels);
+                if (!is_array($assign_to_access_levels)) {
+                    $assign_to_access_levels = [$assign_to_access_levels];
+                }
 
                 $this->db->createCommand(
-                        "UPDATE access_levels " .
+                    'UPDATE access_levels ' .
                         "SET access_levels_persmissions = CONCAT(access_levels_persmissions,',','" . (int) $ACL_INSERTED_ID . "') " .
                         "WHERE access_levels_id IN ('" . implode("','", array_map('intval', $assign_to_access_levels)) . "')"
                 )->execute();
@@ -518,7 +543,8 @@ class Migration extends \yii\db\Migration {
         return $ACL_INSERTED_ID;
     }
 
-    public function removeAcl($aclChain) {
+    public function removeAcl($aclChain)
+    {
         $this->dropAcl($aclChain);
     }
 
@@ -534,62 +560,65 @@ class Migration extends \yii\db\Migration {
         return true;
     }
 
-    public function dropAcl($aclChain) {
+    public function dropAcl($aclChain)
+    {
         $aclChain = array_reverse($aclChain);
         $ids = [];
         foreach ($aclChain as $assignBox) {
             foreach (\common\models\AccessControlList::find()->where(['access_control_list_key' => $assignBox])->all() as $acl) {
-                if (!$this->checkParent($acl->parent_id, $aclChain)) continue;
+                if (!$this->checkParent($acl->parent_id, $aclChain)) {
+                    continue;
+                }
                 $count = \common\models\AccessControlList::find()->where(['parent_id' => $acl->access_control_list_id])->count();
-                if($count == 0) {
+                if ($count == 0) {
                     $ids[] = $acl->access_control_list_id;
                     $acl->delete();
                 }
             }
         }
-        
+
         if (count($ids) > 0) {
             foreach (\common\models\AccessLevels::find()->all() as $acl) {
-                $persmissions = explode(",", $acl->access_levels_persmissions);
+                $persmissions = explode(',', $acl->access_levels_persmissions);
                 foreach ($persmissions as $key => $value) {
                     if (in_array($value, $ids)) {
                         unset($persmissions[$key]);
                     }
                 }
-                $acl->access_levels_persmissions = implode(",", $persmissions);
+                $acl->access_levels_persmissions = implode(',', $persmissions);
                 $acl->save(false);
             }
         }
     }
 
-    public function addAdminMenuAfter($menuData, $afterBoxTitle) { /// public to use in extension install()
-        if (is_array($menuData) && !empty($menuData['title'])) {
-            $checkBox = $this->db->createCommand(
-                            "SELECT box_id " .
-                            "FROM admin_boxes " .
-                            "WHERE title=:box_title",
-                            ['box_title' => $menuData['title']]
-                    )->queryOne();
-            if (is_array($checkBox)) {
-                return (int) $checkBox['box_id'];
-            }
-        } else {
-            return false;
+    public function addAdminMenuAfter($menuData, $afterBoxTitle) /// public to use in extension install()
+    {if (is_array($menuData) && !empty($menuData['title'])) {
+        $checkBox = $this->db->createCommand(
+            'SELECT box_id ' .
+                        'FROM admin_boxes ' .
+                        'WHERE title=:box_title',
+            ['box_title' => $menuData['title']]
+        )->queryOne();
+        if (is_array($checkBox)) {
+            return (int) $checkBox['box_id'];
         }
+    } else {
+        return false;
+    }
 
         $getBox = $this->db->createCommand(
-                        "SELECT parent_id, box_id, sort_order " .
-                        "FROM admin_boxes " .
-                        "WHERE title=:box_title",
-                        ['box_title' => $afterBoxTitle]
-                )->queryOne();
+            'SELECT parent_id, box_id, sort_order ' .
+                        'FROM admin_boxes ' .
+                        'WHERE title=:box_title',
+            ['box_title' => $afterBoxTitle]
+        )->queryOne();
         if (is_array($getBox)) {
             //$getBox['box_id'];
             $new_sort_order = $getBox['sort_order'] + 1;
             $this->db->createCommand(
-                    "UPDATE admin_boxes SET sort_order=sort_order+1 " .
-                    "WHERE parent_id=:parent_id AND sort_order>=:shift_sort_order",
-                    ['parent_id' => (int) $getBox['parent_id'], 'shift_sort_order' => (int) $new_sort_order]
+                'UPDATE admin_boxes SET sort_order=sort_order+1 ' .
+                    'WHERE parent_id=:parent_id AND sort_order>=:shift_sort_order',
+                ['parent_id' => (int) $getBox['parent_id'], 'shift_sort_order' => (int) $new_sort_order]
             )->execute();
 
             $defaultData = [
@@ -625,7 +654,8 @@ class Migration extends \yii\db\Migration {
         \common\helpers\MenuHelper::removeAdminMenuItem($array_or_title);
     }
 
-    protected function updateMenuXmlAfter($filename, $nodeData, $afterBoxTitle) {
+    protected function updateMenuXmlAfter($filename, $nodeData, $afterBoxTitle)
+    {
         $afterBoxTitle = 'BOX_REPORTS_COMPARE';
         $simpleMenu = \simplexml_load_file($filename);
 
@@ -766,7 +796,9 @@ class Migration extends \yii\db\Migration {
     public function addConfigurationKey($attrArray, $changeIfExists = false)
     {
         if (!isset($attrArray['configuration_key'])) {
-            if (System::isDevelopment()) throw new \Exception("Param 'configuration_key' is not set");
+            if (System::isDevelopment()) {
+                throw new \Exception("Param 'configuration_key' is not set");
+            }
             return false;
         }
         unset($attrArray['date_added']);
@@ -776,7 +808,9 @@ class Migration extends \yii\db\Migration {
             $model->loadDefaultValues();
             $model->date_added = new \yii\db\Expression('now()');
         } else {
-            if (!$changeIfExists) return false;
+            if (!$changeIfExists) {
+                return false;
+            }
         }
         $model->setAttributes($attrArray);
         $model->last_modified = new \yii\db\Expression('now()');
@@ -786,7 +820,7 @@ class Migration extends \yii\db\Migration {
 
     public function removeConfigurationKeys($key_or_array)
     {
-        $this->print('Remove configuration keys: '. self::varToStr($key_or_array) . "\n" );
+        $this->print('Remove configuration keys: '. self::varToStr($key_or_array) . "\n");
         $this->delete(TABLE_CONFIGURATION, ['configuration_key' => $key_or_array]);
     }
 
@@ -836,7 +870,7 @@ class Migration extends \yii\db\Migration {
      */
     public function addOrRenameWidget(string $newWidgetName, $toPlaceholders, $oldWidgetName = null, $renameWidgetStylesArray = null, $position = 'end')
     {
-        $tmp = explode("=>", $newWidgetName);
+        $tmp = explode('=>', $newWidgetName);
         if (count($tmp) > 1) {
             list($newWidgetName, $newWidgetNameOrZipFile) = $tmp;
         } else {
@@ -848,18 +882,17 @@ class Migration extends \yii\db\Migration {
             $theme = $themeArr['theme_name'];
             $oldWidgetExists = !empty($oldWidgetName) && $this->isWidgetExist($oldWidgetName, $theme);
             $newWidgetExists = $this->isWidgetExist($newWidgetName, $theme);
-            if(!$newWidgetExists && !$oldWidgetExists)
-            {
+            if (!$newWidgetExists && !$oldWidgetExists) {
                 if (!empty($toPlaceholders)) {
                     $errMsg = $this->addWidget($toPlaceholders, $newWidgetNameOrZipFile, null, $theme, $position);
-                    if(!empty($errMsg)) {
+                    if (!empty($errMsg)) {
                         \Yii::warning("AddWidget error for widget '$newWidgetName' in theme '$theme': $errMsg");
                     }
                 }
             } else {
-                \Yii::warning("Widget '$newWidgetName' is not added to theme '$theme' because:" . ($newWidgetExists? ' widget already exists' : '') . ($oldWidgetExists? ' old widget already exists - trying to rename' : '') );
+                \Yii::warning("Widget '$newWidgetName' is not added to theme '$theme' because:" . ($newWidgetExists ? ' widget already exists' : '') . ($oldWidgetExists ? ' old widget already exists - trying to rename' : ''));
                 if ($oldWidgetExists) {
-                    $this->renameWidgetAndStyles($oldWidgetName, $newWidgetName, $renameWidgetStylesArray??[], $theme);
+                    $this->renameWidgetAndStyles($oldWidgetName, $newWidgetName, $renameWidgetStylesArray ?? [], $theme);
                 }
             }
         }
@@ -875,197 +908,196 @@ class Migration extends \yii\db\Migration {
      */
     public function addWidget($placeholder, $widget, $ifNoWidget = '', $themeName = '', $position = 'end')
     {
-      try {
-          if (is_string($placeholder)) {
-              $placeholders = [$placeholder];
-          } else {
-              $placeholders = $placeholder;
-          }
-        if (is_file(DIR_FS_CATALOG . $widget)) {
-            $widgetName = '';
-            $widgetLocation = DIR_FS_CATALOG . $widget;
-        } else {
-            $mainWidgetsPath = DIR_FS_CATALOG
-                . implode(DIRECTORY_SEPARATOR, ['lib', 'frontend', 'design', 'boxes'])
-                . DIRECTORY_SEPARATOR
-                . str_replace('\\', DIRECTORY_SEPARATOR, $widget);
-            $widgetArr = explode('\\', $widget);
-            $extensionsPath = DIR_FS_CATALOG
-                . implode(DIRECTORY_SEPARATOR, ['lib', 'common', 'extensions'])
-                . DIRECTORY_SEPARATOR
-                . str_replace('\\', DIRECTORY_SEPARATOR, $widget)
-                . DIRECTORY_SEPARATOR . end($widgetArr);
-            if (is_file($mainWidgetsPath . '.php') || is_file($extensionsPath . '.php')) {
-                $widgetName = $widget;
+        try {
+            if (is_string($placeholder)) {
+                $placeholders = [$placeholder];
             } else {
-                $this->print("\nError: $extensionsPath don't have php file \n\n");
-                return "\"$extensionsPath\" don't have php file";
+                $placeholders = $placeholder;
             }
-            if (is_file($mainWidgetsPath . '.zip')) {
-                $widgetLocation = $mainWidgetsPath . '.zip';
-            } elseif (is_file($extensionsPath . '.zip')) {
-                $widgetLocation = $extensionsPath . '.zip';
-            }
-        }
-
-        $themeError = '';
-        $_themeName = $themeName;
-        if ($themeName) {
-            $_themeName = str_replace('-mobile', '', $themeName);
-        }
-        if ($themeName && \common\models\Themes::findOne(['theme_name' => $_themeName])) {
-            $themes = [['theme_name' => $themeName]];
-        } else {
-            $themes = \common\models\Themes::find()->asArray()->all();
-            $themesMobile = [];
-            foreach ($themes as $theme) {
-                if (\common\models\DesignBoxesTmp::findOne(['theme_name' => $theme['theme_name'] . '-mobile'])) {
-                    $themesMobile[] = ['theme_name' => $theme['theme_name'] . '-mobile'];
-                }
-            }
-            $themes = array_merge($themes, $themesMobile);
-        }
-        foreach ($themes as $theme) {
-            $params = [];
-            $blockNames = [];
-            foreach ($placeholders as $blockName) {
-                if (!str_contains($blockName, '-')) {
-                    $blockNames = [$blockName];
-                    break;
-                }
-
-                $boxes = \common\models\DesignBoxesTmp::find()->where([
-                    'widget_params' => $blockName, 'theme_name' => $theme['theme_name']
-                ])->asArray()->all();
-                if ($boxes && is_array($boxes)) {
-                    foreach ($boxes as $box) {
-                        $blockNames[] = 'block-' . $box['id'];
-                    }
-                    break;
-                }
-            }
-            if (!count($blockNames)) {
-                if (str_contains(end($placeholders), '-')) {
-                    $message = 'Placeholder "' . end($placeholders) . '" not found in theme "'. $theme['theme_name'] .'", widget "' . $widget . '" could not be installed in the theme' . "\n";
-                    $this->print($message);
-                    \Yii::warning($message);
-                }
-                $blockNames = [end($placeholders)];
-            }
-
-            $params['theme_name'] = $theme['theme_name'];
-
-            foreach ($blockNames as $blockName) {
-                $params['block_name'] = $blockName;
-
-                if ($ifNoWidget) {
-                    $widgets = \backend\design\Theme::getWidgetsInPlaceholder($blockName, $theme['theme_name']);
-                    foreach ($widgets as $_widget) {
-                        if ($_widget['widget_name'] == $ifNoWidget) {
-                            continue 2;
-                        }
-                    }
-                }
-
-                if (is_array($position)) {
-
-                    $parentBox = \common\models\DesignBoxesTmp::find()->where([
-                        'widget_params' => $placeholder,
-                        'theme_name' => $theme['theme_name'],
-                    ])->asArray()->one();
-                    $db = \common\models\DesignBoxesTmp::find()->alias('db')
-                        ->select(['db.sort_order'])
-                        ->leftJoin(\common\models\DesignBoxesSettingsTmp::tableName() . ' dbs', 'db.id = dbs.box_id')
-                        ->andWhere([
-                            'db.theme_name' => $theme['theme_name']
-                        ])
-                        ->andWhere(['or', [
-                            'db.block_name' => $placeholder,
-                        ], [
-                            'db.block_name' => 'block-' . ($parentBox['id'] ?? ''),
-                        ]]);
-
-                    foreach ($position as $setting_name => $setting_value) {
-                        $db->andWhere([
-                            'dbs.setting_name' => $setting_name,
-                            'dbs.setting_value' => $setting_value,
-                        ]);
-                    }
-                    $dbArr = $db->asArray()->one();
-                    $params['sort_order'] = ($dbArr['sort_order']??0) + 1;
-
-                    $boxes = \common\models\DesignBoxesTmp::find()->where([
-                        'block_name' => $blockName, 'theme_name' => $theme['theme_name']
-                    ])->orderBy('sort_order')->all();
-
-                    foreach ($boxes as $box) {
-                        if ($box->sort_order >= $params['sort_order']){
-                            $box->sort_order = $box->sort_order + 1;
-                            $box->save();
-                        }
-                    }
-
-                } elseif ($position == 'end') {
-                    $max = \common\models\DesignBoxesTmp::find()->where([
-                        'block_name' => $blockName, 'theme_name' => $theme['theme_name']
-                    ])->max('sort_order');
-                    $params['sort_order'] = $max + 1;
+            if (is_file(DIR_FS_CATALOG . $widget)) {
+                $widgetName = '';
+                $widgetLocation = DIR_FS_CATALOG . $widget;
+            } else {
+                $mainWidgetsPath = DIR_FS_CATALOG
+                    . implode(DIRECTORY_SEPARATOR, ['lib', 'frontend', 'design', 'boxes'])
+                    . DIRECTORY_SEPARATOR
+                    . str_replace('\\', DIRECTORY_SEPARATOR, $widget);
+                $widgetArr = explode('\\', $widget);
+                $extensionsPath = DIR_FS_CATALOG
+                    . implode(DIRECTORY_SEPARATOR, ['lib', 'common', 'extensions'])
+                    . DIRECTORY_SEPARATOR
+                    . str_replace('\\', DIRECTORY_SEPARATOR, $widget)
+                    . DIRECTORY_SEPARATOR . end($widgetArr);
+                if (is_file($mainWidgetsPath . '.php') || is_file($extensionsPath . '.php')) {
+                    $widgetName = $widget;
                 } else {
-                    $boxes = \common\models\DesignBoxesTmp::find()->where([
-                        'block_name' => $blockName, 'theme_name' => $theme['theme_name']
-                    ])->orderBy('sort_order')->all();
+                    $this->print("\nError: $extensionsPath don't have php file \n\n");
+                    return "\"$extensionsPath\" don't have php file";
+                }
+                if (is_file($mainWidgetsPath . '.zip')) {
+                    $widgetLocation = $mainWidgetsPath . '.zip';
+                } elseif (is_file($extensionsPath . '.zip')) {
+                    $widgetLocation = $extensionsPath . '.zip';
+                }
+            }
 
-                    if ($position == 'middle') {
-                        $params['sort_order'] = round(count($boxes)/2) + 1;
-                        $sortOrder = 1;
+            $themeError = '';
+            $_themeName = $themeName;
+            if ($themeName) {
+                $_themeName = str_replace('-mobile', '', $themeName);
+            }
+            if ($themeName && \common\models\Themes::findOne(['theme_name' => $_themeName])) {
+                $themes = [['theme_name' => $themeName]];
+            } else {
+                $themes = \common\models\Themes::find()->asArray()->all();
+                $themesMobile = [];
+                foreach ($themes as $theme) {
+                    if (\common\models\DesignBoxesTmp::findOne(['theme_name' => $theme['theme_name'] . '-mobile'])) {
+                        $themesMobile[] = ['theme_name' => $theme['theme_name'] . '-mobile'];
+                    }
+                }
+                $themes = array_merge($themes, $themesMobile);
+            }
+            foreach ($themes as $theme) {
+                $params = [];
+                $blockNames = [];
+                foreach ($placeholders as $blockName) {
+                    if (!str_contains($blockName, '-')) {
+                        $blockNames = [$blockName];
+                        break;
+                    }
+
+                    $boxes = \common\models\DesignBoxesTmp::find()->where([
+                        'widget_params' => $blockName, 'theme_name' => $theme['theme_name'],
+                    ])->asArray()->all();
+                    if ($boxes && is_array($boxes)) {
                         foreach ($boxes as $box) {
-                            if ($sortOrder == $params['sort_order']) {
+                            $blockNames[] = 'block-' . $box['id'];
+                        }
+                        break;
+                    }
+                }
+                if (!count($blockNames)) {
+                    if (str_contains(end($placeholders), '-')) {
+                        $message = 'Placeholder "' . end($placeholders) . '" not found in theme "'. $theme['theme_name'] .'", widget "' . $widget . '" could not be installed in the theme' . "\n";
+                        $this->print($message);
+                        \Yii::warning($message);
+                    }
+                    $blockNames = [end($placeholders)];
+                }
+
+                $params['theme_name'] = $theme['theme_name'];
+
+                foreach ($blockNames as $blockName) {
+                    $params['block_name'] = $blockName;
+
+                    if ($ifNoWidget) {
+                        $widgets = \backend\design\Theme::getWidgetsInPlaceholder($blockName, $theme['theme_name']);
+                        foreach ($widgets as $_widget) {
+                            if ($_widget['widget_name'] == $ifNoWidget) {
+                                continue 2;
+                            }
+                        }
+                    }
+
+                    if (is_array($position)) {
+
+                        $parentBox = \common\models\DesignBoxesTmp::find()->where([
+                            'widget_params' => $placeholder,
+                            'theme_name' => $theme['theme_name'],
+                        ])->asArray()->one();
+                        $db = \common\models\DesignBoxesTmp::find()->alias('db')
+                            ->select(['db.sort_order'])
+                            ->leftJoin(\common\models\DesignBoxesSettingsTmp::tableName() . ' dbs', 'db.id = dbs.box_id')
+                            ->andWhere([
+                                'db.theme_name' => $theme['theme_name'],
+                            ])
+                            ->andWhere(['or', [
+                                'db.block_name' => $placeholder,
+                            ], [
+                                'db.block_name' => 'block-' . ($parentBox['id'] ?? ''),
+                            ]]);
+
+                        foreach ($position as $setting_name => $setting_value) {
+                            $db->andWhere([
+                                'dbs.setting_name' => $setting_name,
+                                'dbs.setting_value' => $setting_value,
+                            ]);
+                        }
+                        $dbArr = $db->asArray()->one();
+                        $params['sort_order'] = ($dbArr['sort_order'] ?? 0) + 1;
+
+                        $boxes = \common\models\DesignBoxesTmp::find()->where([
+                            'block_name' => $blockName, 'theme_name' => $theme['theme_name'],
+                        ])->orderBy('sort_order')->all();
+
+                        foreach ($boxes as $box) {
+                            if ($box->sort_order >= $params['sort_order']) {
+                                $box->sort_order = $box->sort_order + 1;
+                                $box->save();
+                            }
+                        }
+
+                    } elseif ($position == 'end') {
+                        $max = \common\models\DesignBoxesTmp::find()->where([
+                            'block_name' => $blockName, 'theme_name' => $theme['theme_name'],
+                        ])->max('sort_order');
+                        $params['sort_order'] = $max + 1;
+                    } else {
+                        $boxes = \common\models\DesignBoxesTmp::find()->where([
+                            'block_name' => $blockName, 'theme_name' => $theme['theme_name'],
+                        ])->orderBy('sort_order')->all();
+
+                        if ($position == 'middle') {
+                            $params['sort_order'] = round(count($boxes) / 2) + 1;
+                            $sortOrder = 1;
+                            foreach ($boxes as $box) {
+                                if ($sortOrder == $params['sort_order']) {
+                                    $sortOrder++;
+                                }
+                                $box->sort_order = $sortOrder;
+                                $box->save();
                                 $sortOrder++;
                             }
-                            $box->sort_order = $sortOrder;
-                            $box->save();
-                            $sortOrder++;
+                        } elseif ($position == 'start') {
+                            $params['sort_order'] = 1;
+                            $sortOrder = 2;
+                            foreach ($boxes as $box) {
+                                $box->sort_order = $sortOrder;
+                                $box->save();
+                                $sortOrder++;
+                            }
                         }
-                    } elseif ($position == 'start') {
-                        $params['sort_order'] = 1;
-                        $sortOrder = 2;
-                        foreach ($boxes as $box) {
-                            $box->sort_order = $sortOrder;
-                            $box->save();
-                            $sortOrder++;
+                    }
+
+                    if ($widgetLocation ?? null) {
+                        $importBlock = \backend\design\Theme::importBlock($widgetLocation, $params);
+                        if (!is_array($importBlock)) {
+                            $this->print("\n" . $importBlock . "\n");
+                            $themeError .= $theme['theme_name'] . ': error in ' . $importBlock . "\n";
+                        }
+                    } elseif ($widgetName ?? null) {
+                        $designBoxes = new \common\models\DesignBoxesTmp();
+                        $designBoxes->microtime = microtime(true);
+                        $designBoxes->theme_name = $theme['theme_name'];
+                        $designBoxes->block_name = $blockName;
+                        $designBoxes->widget_name = $widgetName;
+                        $designBoxes->sort_order = $params['sort_order'];
+                        $designBoxes->save();
+                        if ($designBoxes->errors) {
+                            $themeError .= $theme['theme_name'] . ': sql error ' . "\n";
                         }
                     }
                 }
 
-
-                if ($widgetLocation ?? null) {
-                    $importBlock = \backend\design\Theme::importBlock($widgetLocation, $params);
-                    if (!is_array($importBlock)) {
-                        $this->print("\n" . $importBlock . "\n");
-                        $themeError .= $theme['theme_name'] . ': error in ' . $importBlock . "\n";
-                    }
-                } elseif ($widgetName ?? null) {
-                    $designBoxes = new \common\models\DesignBoxesTmp();
-                    $designBoxes->microtime = microtime(true);
-                    $designBoxes->theme_name = $theme['theme_name'];
-                    $designBoxes->block_name = $blockName;
-                    $designBoxes->widget_name = $widgetName;
-                    $designBoxes->sort_order = $params['sort_order'];
-                    $designBoxes->save();
-                    if ($designBoxes->errors) {
-                        $themeError .= $theme['theme_name'] . ': sql error ' . "\n";
-                    }
-                }
+                \backend\design\Theme::elementsSave($params['theme_name']);
+                \common\models\DesignBoxesCache::deleteAll(['theme_name' => $params['theme_name']]);
             }
-
-            \backend\design\Theme::elementsSave($params['theme_name']);
-            \common\models\DesignBoxesCache::deleteAll(['theme_name' => $params['theme_name']]);
+            return $themeError;
+        } catch (\Throwable $e) {
+            \Yii::warning($e->getMessage() . "\n" . $e->getTraceAsString());
+            return $e->getMessage();
         }
-        return $themeError;
-      } catch (\Throwable $e) {
-          \Yii::warning($e->getMessage() . "\n" . $e->getTraceAsString());
-          return $e->getMessage();
-      }
     }
 
     public function removeWidget($widgetName)
@@ -1150,7 +1182,9 @@ class Migration extends \yii\db\Migration {
 
     public function renameWidgetAndStyles(string $oldName, string $newName, array $renameWidgetStylesArray = [], $themeName = null)
     {
-        if (!$this->isWidgetExist($oldName, $themeName)) return;
+        if (!$this->isWidgetExist($oldName, $themeName)) {
+            return;
+        }
         $this->renameWidget($oldName, $newName, $themeName);
         if (is_array($renameWidgetStylesArray)) {
             foreach ($renameWidgetStylesArray as $oldStyleName => $newStyleName) {
@@ -1174,7 +1208,8 @@ class Migration extends \yii\db\Migration {
             $params['theme_mobile'] = $themeName . '-mobile';
         }
 
-        $count = \common\models\ThemesStyles::updateAll([
+        $count = \common\models\ThemesStyles::updateAll(
+            [
                 'selector' => new \yii\db\Expression("REPLACE(selector, '$oldName', '$newName')"),
                 'accessibility' => $newName,
             ],
@@ -1198,13 +1233,13 @@ class Migration extends \yii\db\Migration {
         $filePath = rtrim(DIR_FS_CATALOG, '/\\') . DIRECTORY_SEPARATOR . trim($migrationPath, DIRECTORY_SEPARATOR);
 
         if (!is_file($filePath)) {
-            $this->print("Migration file not found: " . $filePath . " \n");
-            \Yii::warning("Migration file not found: " . $filePath);
+            $this->print('Migration file not found: ' . $filePath . " \n");
+            \Yii::warning('Migration file not found: ' . $filePath);
             return '';
         }
 
         $migration = json_decode(file_get_contents($filePath), true);
-        if ( $result = \backend\design\Steps::applyMigration($themeName, $migration) ) {
+        if ($result = \backend\design\Steps::applyMigration($themeName, $migration)) {
             \backend\design\Theme::elementsSave($themeName);
             \common\models\DesignBoxesCache::deleteAll(['theme_name' => $themeName]);
             \backend\design\Theme::saveThemeVersion($themeName);
@@ -1262,7 +1297,7 @@ class Migration extends \yii\db\Migration {
         $res = $this->isOldProject();
         if (!$res) {
             $res = (defined("OLD_$code") && constant("OLD_$code") == true) ||
-                (class_exists("\\common\\extensions\\$code\\$code" ) && !class_exists("\\common\\extensions\\$code\\Setup"));
+                (class_exists("\\common\\extensions\\$code\\$code") && !class_exists("\\common\\extensions\\$code\\Setup"));
             if ($res) {
                 $this->print("Changes is not applied due OLD_$code constant\n");
             }
@@ -1283,8 +1318,7 @@ class Migration extends \yii\db\Migration {
             'setting_name'  => $pageGroup,
             'setting_value' => $pageName,
         ];
-        foreach (\common\models\Themes::find()->all() as $theme)
-        {
+        foreach (\common\models\Themes::find()->all() as $theme) {
             $arr['theme_name'] = $theme->theme_name;
             if (empty(\common\models\ThemesSettings::findOne($arr))) {
                 $settings = new \common\models\ThemesSettings();
@@ -1338,7 +1372,9 @@ class Migration extends \yii\db\Migration {
             foreach ($platforms as $platform) {
                 $attrOrigin['platform_id'] = $platform['id'];
                 $attr['platform_id'] = $platform['id'];
-                if (!empty(\common\models\Information::findOne($attrOrigin))) continue;
+                if (!empty(\common\models\Information::findOne($attrOrigin))) {
+                    continue;
+                }
                 $model = new \common\models\Information();
                 $model->loadDefaultValues();
                 $model->setAttributes($attr);
@@ -1361,8 +1397,7 @@ class Migration extends \yii\db\Migration {
                 'date' => [''],
             ]);
             $status = \common\models\PageStatus::findOne(['page_id' => $information_id]);
-            if($status)
-            {
+            if ($status) {
                 $status->status = 'public';
                 $status->save(false);
             }
@@ -1379,7 +1414,7 @@ class Migration extends \yii\db\Migration {
             ->distinct()
             ->column();
         if (!$moreThanOne && count($ids) > 1) {
-            \Yii::warning("More than one information pages found: deletion failed");
+            \Yii::warning('More than one information pages found: deletion failed');
             return false;
         }
         \common\models\PageStatus::deleteAll(['page_id' => $ids]);

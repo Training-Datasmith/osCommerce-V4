@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,33 +18,34 @@ namespace common\classes;
 /*refactoring: $GLOBALS => $this->include_modules */
 use yii\helpers\ArrayHelper;
 
-class shipping extends modules\ModuleCollection {
-
+class shipping extends modules\ModuleCollection
+{
     public $modules;
     protected $include_modules = [];
     private $manager;
 
-// class constructor
-    function __construct($module, \common\services\OrderManager $manager) {
+    // class constructor
+    public function __construct($module, \common\services\OrderManager $manager)
+    {
         global $PHP_SELF;
 
         if (defined('MODULE_SHIPPING_INSTALLED') && tep_not_null(MODULE_SHIPPING_INSTALLED)) {
             $this->modules = explode(';', MODULE_SHIPPING_INSTALLED);
 
-            $include_modules = array();
+            $include_modules = [];
 
             $this->manager = $manager;
 
-            if (( tep_not_null($module) ) && ( in_array(substr($module['id'], 0, strpos($module['id'], '_')) . '.' . substr($PHP_SELF, ( strrpos($PHP_SELF, '.') + 1)), $this->modules) )) {
-                $include_modules[] = array(
+            if ((tep_not_null($module)) && (in_array(substr($module['id'], 0, strpos($module['id'], '_')) . '.' . substr($PHP_SELF, (strrpos($PHP_SELF, '.') + 1)), $this->modules))) {
+                $include_modules[] = [
                     'class' => substr($module['id'], 0, strpos($module['id'], '_')),
-                    'file' => substr($module['id'], 0, strpos($module['id'], '_')) . '.' . substr($PHP_SELF, ( strrpos($PHP_SELF, '.') + 1))
-                );
+                    'file' => substr($module['id'], 0, strpos($module['id'], '_')) . '.' . substr($PHP_SELF, (strrpos($PHP_SELF, '.') + 1)),
+                ];
             } else {
-// Show either normal shipping modules or free shipping module when Free Shipping Module is On
+                // Show either normal shipping modules or free shipping module when Free Shipping Module is On
                 // Free Shipping Only
-                if (false && defined('MODULE_SHIPPING_FREESHIPPER_STATUS') && ( MODULE_SHIPPING_FREESHIPPER_STATUS == '1' || MODULE_SHIPPING_FREESHIPPER_STATUS == 'True' ) and $manager->getCart()->show_weight() == 0) {
-                    $include_modules[] = array('class' => 'freeshipper', 'file' => 'freeshipper.php');
+                if (false && defined('MODULE_SHIPPING_FREESHIPPER_STATUS') && (MODULE_SHIPPING_FREESHIPPER_STATUS == '1' || MODULE_SHIPPING_FREESHIPPER_STATUS == 'True') and $manager->getCart()->show_weight() == 0) {
+                    $include_modules[] = ['class' => 'freeshipper', 'file' => 'freeshipper.php'];
                 } else {
                     // All Other Shipping Modules
                     if (is_array($this->modules)) {
@@ -51,7 +54,7 @@ class shipping extends modules\ModuleCollection {
                             $class = substr($value, 0, strrpos($value, '.'));
                             // Don't show Free Shipping Module
                             if (true || $class != 'freeshipper') {
-                                $include_modules[] = array('class' => $class, 'file' => $value);
+                                $include_modules[] = ['class' => $class, 'file' => $value];
                             }
                         }
                     }
@@ -70,26 +73,28 @@ class shipping extends modules\ModuleCollection {
                 }
                 $this->include_modules[$class] = $builder(['class' => $module]);
                 if (!is_null($manager)) {
-                    $this->include_modules[$class]->setPlatform($manager->get('platform_id') ?? \Yii::$app->get('platform')->config()->getId() );
+                    $this->include_modules[$class]->setPlatform($manager->get('platform_id') ?? \Yii::$app->get('platform')->config()->getId());
                 }
             }
         }
-        if (defined('MODULE_ORDER_TOTAL_SHIPPING_FREE_SHIPPING_OVER') && defined('MODULE_ORDER_TOTAL_SHIPPING_FREE_SHIPPING') && MODULE_ORDER_TOTAL_SHIPPING_FREE_SHIPPING == 'true'){
+        if (defined('MODULE_ORDER_TOTAL_SHIPPING_FREE_SHIPPING_OVER') && defined('MODULE_ORDER_TOTAL_SHIPPING_FREE_SHIPPING') && MODULE_ORDER_TOTAL_SHIPPING_FREE_SHIPPING == 'true') {
             $this->setFreeShippingOver(MODULE_ORDER_TOTAL_SHIPPING_FREE_SHIPPING_OVER);
         }
     }
 
-    public function getIncludedModules() {
+    public function getIncludedModules()
+    {
         return $this->include_modules;
     }
 
-    public function getEnabledModules() {
+    public function getEnabledModules()
+    {
         static $enabled = null;
-        if (is_null($enabled)){
+        if (is_null($enabled)) {
             /** @var \common\extensions\CustomerModules\CustomerModules $CustomerModules */
             //$CustomerModules = \common\helpers\Acl::checkExtensionAllowed('CustomerModules', 'allowed');
             $enabled = [];
-            foreach ($this->include_modules as $class => $module){
+            foreach ($this->include_modules as $class => $module) {
                 /*$forceCustomer = false;
                 if ($CustomerModules && !\Yii::$app->user->isGuest) {
                   if ($CustomerModules::checkForceAllowed(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $class)) {
@@ -97,7 +102,7 @@ class shipping extends modules\ModuleCollection {
                   }
                 }
 */
-                if ($module->enabled /*|| $forceCustomer*/){
+                if ($module->enabled /*|| $forceCustomer*/) {
                     $enabled[$class] = $module;
                 }
             }
@@ -105,11 +110,13 @@ class shipping extends modules\ModuleCollection {
         return $enabled;
     }
 
-    public function get($class){
+    public function get($class)
+    {
         return $this->getEnabledModules()[$class] ?? false;
     }
 
-    public function has($class){
+    public function has($class)
+    {
         return isset($this->include_modules[$class]) ? $this->include_modules[$class] : false;
     }
 
@@ -117,36 +124,39 @@ class shipping extends modules\ModuleCollection {
     public $shipping_weight;
     public $shipping_quoted = '';
     public $shipping_num_boxes = 1;
-    public function claculateShippingElements(){
+    public function claculateShippingElements()
+    {
 
         $this->shipping_weight = $this->manager->get('total_weight');
 
         if (SHIPPING_BOX_WEIGHT >= $this->shipping_weight * SHIPPING_BOX_PADDING / 100) {
             $this->shipping_weight += SHIPPING_BOX_WEIGHT;
         } else {
-            $this->shipping_weight += ( $this->shipping_weight * SHIPPING_BOX_PADDING / 100 );
+            $this->shipping_weight += ($this->shipping_weight * SHIPPING_BOX_PADDING / 100);
         }
 
         if ($this->shipping_weight > SHIPPING_MAX_WEIGHT) { // Split into many boxes
-            $this->shipping_num_boxes = ceil($this->shipping_weight / max(SHIPPING_MAX_WEIGHT,1) );
+            $this->shipping_num_boxes = ceil($this->shipping_weight / max(SHIPPING_MAX_WEIGHT, 1));
             $this->shipping_weight /= $this->shipping_num_boxes;
         }
     }
 
-    public function getSurcharge(){
+    public function getSurcharge()
+    {
         static $perWarehouseAdditionalCharge;
-        if ( !is_array($perWarehouseAdditionalCharge) ) {
+        if (!is_array($perWarehouseAdditionalCharge)) {
             $perWarehouseAdditionalCharge = ArrayHelper::map(
                 \common\models\Warehouses::find()
                     ->where(['>', 'shipping_additional_charge', 0])
                     ->select(['warehouse_id', 'shipping_additional_charge'])
                     ->asArray()
                     ->all(),
-                'warehouse_id', 'shipping_additional_charge'
+                'warehouse_id',
+                'shipping_additional_charge'
             );
         }
 
-        if (is_null($this->surcharge)){
+        if (is_null($this->surcharge)) {
             $this->surcharge = 0;
             $additionalWarehouseCharge = 0;
             $products = $this->manager->getCart()->get_products();
@@ -155,7 +165,7 @@ class shipping extends modules\ModuleCollection {
             $groups_id = 0;
             if (!\Yii::$app->user->isGuest) {
                 $groups_id = \Yii::$app->user->getIdentity()->groups_id;
-            } elseif ( \Yii::$app->user->isGuest && defined('DEFAULT_USER_GROUP') ){
+            } elseif (\Yii::$app->user->isGuest && defined('DEFAULT_USER_GROUP')) {
                 $groups_id = (int)DEFAULT_USER_GROUP;
             }
             if ((defined('USE_MARKET_PRICES') && USE_MARKET_PRICES == 'True') ||
@@ -164,7 +174,7 @@ class shipping extends modules\ModuleCollection {
                     ->where([
                       'products_id' => $productsIds,
                       'groups_id' => $groups_id,
-                      'currencies_id' => ((defined('USE_MARKET_PRICES') && USE_MARKET_PRICES == 'True') ? (int)\Yii::$app->settings->get('currency_id') : 0)
+                      'currencies_id' => ((defined('USE_MARKET_PRICES') && USE_MARKET_PRICES == 'True') ? (int)\Yii::$app->settings->get('currency_id') : 0),
                         ]);
                 if (defined('SHIPPING_SURCHARGE_ONE_TIME_CART') && SHIPPING_SURCHARGE_ONE_TIME_CART == 'True') {
                     $q->orderBy('shipping_surcharge_price desc')->limit(1);
@@ -190,9 +200,9 @@ class shipping extends modules\ModuleCollection {
                         $this->surcharge += $mProduct[(int)$product['id']] * $product['quantity'];
                     }
                 }
-                if ( count($perWarehouseAdditionalCharge)>0 ) {
+                if (count($perWarehouseAdditionalCharge) > 0) {
                     foreach ($perWarehouseAdditionalCharge as $checkWarehouseId => $additionalCharge) {
-                        if (\common\helpers\Warehouses::get_products_quantity($product['id'],$checkWarehouseId)>0) {
+                        if (\common\helpers\Warehouses::get_products_quantity($product['id'], $checkWarehouseId) > 0) {
                             $additionalWarehouseCharge = max($additionalWarehouseCharge, $additionalCharge);
                         }
                     }
@@ -211,30 +221,33 @@ class shipping extends modules\ModuleCollection {
 
     private $freeShippingOver;
 
-    public function setFreeShippingOver($amount){
+    public function setFreeShippingOver($amount)
+    {
         $this->freeShippingOver = (float)$amount;
     }
 
-    public function getFreeShippingOver(){
+    public function getFreeShippingOver()
+    {
         return $this->freeShippingOver;
     }
 
-    function quote($method = '', $module = '', $visibility = ['shop_order', 'shop_quote', 'shop_sample', 'admin', 'pos'], $groups_id = 0) {
+    public function quote($method = '', $module = '', $visibility = ['shop_order', 'shop_quote', 'shop_sample', 'admin', 'pos'], $groups_id = 0)
+    {
         $visibility = \common\helpers\Extensions::getVisibilityVariants($visibility);
-      if ($groups_id==0 && !\Yii::$app->user->isGuest) {
-        $groups_id = \Yii::$app->user->getIdentity()->groups_id;
-      }elseif( empty($groups_id) && \Yii::$app->user->isGuest && defined('DEFAULT_USER_GROUP') ){
-        $groups_id = (int)DEFAULT_USER_GROUP;
-      }
-        $quotes_array = array();
+        if ($groups_id == 0 && !\Yii::$app->user->isGuest) {
+            $groups_id = \Yii::$app->user->getIdentity()->groups_id;
+        } elseif (empty($groups_id) && \Yii::$app->user->isGuest && defined('DEFAULT_USER_GROUP')) {
+            $groups_id = (int)DEFAULT_USER_GROUP;
+        }
+        $quotes_array = [];
         $this->surcharge = null;
         $this->deliveryQuotes = [];
         $this->pickupQuotes = [];
 
-        if ( \common\helpers\Acl::checkExtensionAllowed('FraudAddress','allowed') && is_object($this->manager) ) {
+        if (\common\helpers\Acl::checkExtensionAllowed('FraudAddress', 'allowed') && is_object($this->manager)) {
             $fraudChecker = \common\extensions\FraudAddress\FraudAddress::checkoutChecker($this->manager);
             if ($fraudChecker && $fraudChecker->isSuspect()) {
-                \Yii::info('Detected fraud checkout '.var_export($fraudChecker->suspectDetails(), true),'events');
+                \Yii::info('Detected fraud checkout '.var_export($fraudChecker->suspectDetails(), true), 'events');
                 if (!\common\extensions\FraudAddress\FraudAddress::allowFraudCheckout()) {
                     $this->deliveryQuotes = \common\extensions\FraudAddress\FraudAddress::fraudShippingQuotes();
                     return $this->deliveryQuotes;
@@ -242,7 +255,7 @@ class shipping extends modules\ModuleCollection {
             }
         }
 
-        if ($method == 'free' && $module == 'free'){
+        if ($method == 'free' && $module == 'free') {
             $currencies = \Yii::$container->get('currencies');
             return [
                         [
@@ -258,46 +271,46 @@ class shipping extends modules\ModuleCollection {
                                     'cost' => 0,
                                 ],
                             ],
-                        ]
+                        ],
                     ];
         }
 
         if (is_array($this->modules)) {
 
-          /** @var \common\extensions\CustomerModules\CustomerModules $CustomerModules */
-          $CustomerModules = \common\helpers\Acl::checkExtensionAllowed('CustomerModules', 'allowed');
+            /** @var \common\extensions\CustomerModules\CustomerModules $CustomerModules */
+            $CustomerModules = \common\helpers\Acl::checkExtensionAllowed('CustomerModules', 'allowed');
 
             $this->claculateShippingElements();
 
-            $include_quotes = array();
+            $include_quotes = [];
 
-            foreach ($this->include_modules as $_module){
-              if ( $_module->getGroupVisibily(\common\classes\platform::currentId(), $groups_id) || (!empty($CustomerModules) && $CustomerModules::checkAllowed(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $_module->code, 'shipping'))) {
-                $forceCustomer = false;
-                if ($CustomerModules && !\Yii::$app->user->isGuest) {
-                  if ($CustomerModules::checkForceAllowed(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $_module->code, 'shipping')) {
-                    $forceCustomer = true;
-                  }
-                }
-                if (tep_not_null($module)) {
-                    if (( $module == $_module->code ) && ( $_module->enabled || $forceCustomer) && $_module->getVisibily(\common\classes\platform::currentId(), $visibility) ) {
+            foreach ($this->include_modules as $_module) {
+                if ($_module->getGroupVisibily(\common\classes\platform::currentId(), $groups_id) || (!empty($CustomerModules) && $CustomerModules::checkAllowed(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $_module->code, 'shipping'))) {
+                    $forceCustomer = false;
+                    if ($CustomerModules && !\Yii::$app->user->isGuest) {
+                        if ($CustomerModules::checkForceAllowed(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $_module->code, 'shipping')) {
+                            $forceCustomer = true;
+                        }
+                    }
+                    if (tep_not_null($module)) {
+                        if (($module == $_module->code) && ($_module->enabled || $forceCustomer) && $_module->getVisibily(\common\classes\platform::currentId(), $visibility)) {
+                            $include_quotes[] = $_module;
+                        }
+                    } elseif (($_module->enabled || $forceCustomer) && $_module->getVisibily(\common\classes\platform::currentId(), $visibility)) {
                         $include_quotes[] = $_module;
                     }
-                } elseif (($_module->enabled || $forceCustomer) && $_module->getVisibily(\common\classes\platform::currentId(), $visibility)) {
-                    $include_quotes[] = $_module;
                 }
-              }
             }
 
-            if ($include_quotes){
-                foreach($include_quotes as $_module){
+            if ($include_quotes) {
+                foreach ($include_quotes as $_module) {
                     $_module->setWeight($this->shipping_weight);
                     $_module->setNumBoxes($this->shipping_num_boxes);
                     $quotes = $_module->quote($method, '', $visibility);
                     if (property_exists($_module, 'tax_class') && $_module->useDelivery()) {
                         if ($_module->tax_class > 0) {
                             $response = $_module->getTaxValues($_module->tax_class);
-                            if (is_array($quotes) AND is_array($response)) {
+                            if (is_array($quotes) and is_array($response)) {
                                 $quotes['tax'] = $response['tax'];
                             }
                         }
@@ -307,32 +320,34 @@ class shipping extends modules\ModuleCollection {
                         $module_ignored = false;
                         foreach (\common\helpers\Hooks::getList('shipping/check-ignored') as $filename) {
                             $module_ignored = include($filename);
-                            if ($module_ignored === true) break;
-                        }
-                        if ($module_ignored === true) continue;
-
-
-                        /**/
-                      if ($CustomerModules && !\Yii::$app->user->isGuest) {
-                        if ( is_array($quotes['methods'])) {
-                          foreach ($quotes['methods'] as $key => $value) {
-                            if (!$CustomerModules::checkAvailable(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $quotes['id'], 'shipping', $value['id'])) {
-                              unset($quotes['methods'][$key]);
+                            if ($module_ignored === true) {
+                                break;
                             }
-                          }
-                          if ( count($quotes['methods']) == 0) {
-                            continue;
-                          }
-                        } else {
-                          if (!$CustomerModules::checkAvailable(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $quotes['id'], 'shipping')) {
-                            continue;
-                          }
                         }
-                      }
-/**/
+                        if ($module_ignored === true) {
+                            continue;
+                        }
+
+                        if ($CustomerModules && !\Yii::$app->user->isGuest) {
+                            if (is_array($quotes['methods'])) {
+                                foreach ($quotes['methods'] as $key => $value) {
+                                    if (!$CustomerModules::checkAvailable(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $quotes['id'], 'shipping', $value['id'])) {
+                                        unset($quotes['methods'][$key]);
+                                    }
+                                }
+                                if (count($quotes['methods']) == 0) {
+                                    continue;
+                                }
+                            } else {
+                                if (!$CustomerModules::checkAvailable(\common\classes\platform::currentId(), \Yii::$app->user->getId(), $quotes['id'], 'shipping')) {
+                                    continue;
+                                }
+                            }
+                        }
+
                         if ($this->getSurcharge() > 0 && $quotes['id'] != 'freeshipper' && is_array($quotes['methods'])) {
                             foreach ($quotes['methods'] as $key => $value) {
-                                if ($value['cost']>0 || !defined('SHIPPING_SURCHARGE_FREE_METHODS') || SHIPPING_SURCHARGE_FREE_METHODS=='True') {
+                                if ($value['cost'] > 0 || !defined('SHIPPING_SURCHARGE_FREE_METHODS') || SHIPPING_SURCHARGE_FREE_METHODS == 'True') {
                                     $quotes['methods'][$key]['cost'] = $value['cost'] + $this->getSurcharge();
                                 }
                             }
@@ -343,14 +358,14 @@ class shipping extends modules\ModuleCollection {
                         foreach (\common\helpers\Hooks::getList('shipping/after-quote') as $filename) {
                             include($filename);
                         }
-                        if ($_module->useDelivery()){
+                        if ($_module->useDelivery()) {
                             $this->deliveryQuotes[] = $quotes;
-                            $this->deliveryMethodsCount += (is_array($quotes['methods']??null)? count($quotes['methods']): 0);
+                            $this->deliveryMethodsCount += (is_array($quotes['methods'] ?? null) ? count($quotes['methods']) : 0);
                         } else {
                             $this->pickupQuotes[] = $quotes;
-                            $this->pickupMethodsCount += (is_array($quotes['methods']??null)? count($quotes['methods']): 0);
+                            $this->pickupMethodsCount += (is_array($quotes['methods'] ?? null) ? count($quotes['methods']) : 0);
                         }
-                        $this->allMethodsCount += (is_array($quotes['methods']??null)? count($quotes['methods']): 0);
+                        $this->allMethodsCount += (is_array($quotes['methods'] ?? null) ? count($quotes['methods']) : 0);
                     }
                 }
 
@@ -362,79 +377,86 @@ class shipping extends modules\ModuleCollection {
         return array_merge($this->deliveryQuotes, $this->pickupQuotes);
     }
 
-    public function getDeliveryQuotes(){
+    public function getDeliveryQuotes()
+    {
         return $this->deliveryQuotes;
     }
 
-    public function getPickupQuotes(){
+    public function getPickupQuotes()
+    {
         return $this->pickupQuotes;
     }
 
     protected function limitModulesResult($moduleQuotes)
     {
         $resultQuotes = [];
-        if ( !defined('MODULE_ORDER_TOTAL_SHIPPING_RESULT_COUNT') || !is_numeric(MODULE_ORDER_TOTAL_SHIPPING_RESULT_COUNT) ) {
+        if (!defined('MODULE_ORDER_TOTAL_SHIPPING_RESULT_COUNT') || !is_numeric(MODULE_ORDER_TOTAL_SHIPPING_RESULT_COUNT)) {
             return $moduleQuotes;
         }
 
         $shippingCost = [];
         $shippingOrder = [];
         $shippingRef = [];
-        foreach ($moduleQuotes as $moduleIdx=>$moduleInfo){
-            if ( isset($moduleInfo['methods']) && is_array($moduleInfo['methods']) && count($moduleInfo['methods'])>0 ) {
-                foreach( $moduleInfo['methods'] as $methodIdx => $moduleMethod ) {
-                    if ( !empty($moduleInfo['error']) || !empty($moduleMethod['error']) || !isset($moduleMethod['cost']) ) {
+        foreach ($moduleQuotes as $moduleIdx => $moduleInfo) {
+            if (isset($moduleInfo['methods']) && is_array($moduleInfo['methods']) && count($moduleInfo['methods']) > 0) {
+                foreach ($moduleInfo['methods'] as $methodIdx => $moduleMethod) {
+                    if (!empty($moduleInfo['error']) || !empty($moduleMethod['error']) || !isset($moduleMethod['cost'])) {
                         $shippingCost[] = 1000000;
                         $shippingOrder[] = count($shippingOrder);
                         $shippingRef[] = [$moduleIdx, $methodIdx];
-                    }else{
+                    } else {
                         $cost = \common\helpers\Tax::add_tax_always($moduleMethod['cost'], $moduleInfo['tax']);
                         $shippingCost[] = floatval($cost);
                         $shippingOrder[] = count($shippingOrder);
                         $shippingRef[] = [$moduleIdx, $methodIdx];
                     }
                 }
-            }else{
+            } else {
                 $shippingCost[] = 1000000;
                 $shippingOrder[] = count($shippingOrder);
                 $shippingRef[] = [ $moduleIdx, -1 ];
             }
         }
 
-        if ( !defined('MODULE_ORDER_TOTAL_SHIPPING_LIMIT_RESULT_SORT') || MODULE_ORDER_TOTAL_SHIPPING_LIMIT_RESULT_SORT=='Cheapest first' ) {
+        if (!defined('MODULE_ORDER_TOTAL_SHIPPING_LIMIT_RESULT_SORT') || MODULE_ORDER_TOTAL_SHIPPING_LIMIT_RESULT_SORT == 'Cheapest first') {
             array_multisort($shippingCost, SORT_NUMERIC, $shippingOrder, SORT_NUMERIC, $shippingRef);
-        }else{
+        } else {
             //array_multisort($shippingOrder, SORT_NUMERIC, $shippingRef);
         }
 
         $addedMethods = 0;
-        foreach ( $shippingRef as $ref){
+        foreach ($shippingRef as $ref) {
             $moduleIdx = $ref[0];
             $methodIdx = $ref[1];
-            if ( !isset($resultQuotes[$moduleIdx]) ) {
+            if (!isset($resultQuotes[$moduleIdx])) {
                 $resultQuotes[$moduleIdx] = $moduleQuotes[$moduleIdx];
                 $resultQuotes[$moduleIdx]['methods'] = [];
             }
-            if ( $methodIdx==-1 ) {
+            if ($methodIdx == -1) {
                 unset($resultQuotes[$moduleIdx]['methods']);
-            }else{
+            } else {
                 $resultQuotes[$moduleIdx]['methods'][] = $moduleQuotes[$moduleIdx]['methods'][$methodIdx];
             }
-            if (!$resultQuotes[$moduleIdx]['hide_row'] && !$moduleQuotes[$moduleIdx]['methods'][$methodIdx]['hide_row']) $addedMethods++;
-            if ( $addedMethods>=(int)MODULE_ORDER_TOTAL_SHIPPING_RESULT_COUNT ) break;
+            if (!$resultQuotes[$moduleIdx]['hide_row'] && !$moduleQuotes[$moduleIdx]['methods'][$methodIdx]['hide_row']) {
+                $addedMethods++;
+            }
+            if ($addedMethods >= (int)MODULE_ORDER_TOTAL_SHIPPING_RESULT_COUNT) {
+                break;
+            }
         }
 
         return array_values($resultQuotes);
     }
 
-    function getFirstQuoteModule($class, $visibility = ['shop_order', 'admin', 'pos']) {
+    public function getFirstQuoteModule($class, $visibility = ['shop_order', 'admin', 'pos'])
+    {
         if (is_object($this->include_modules[$class]) && $this->include_modules[$class]->enabled) {
             $quotes = $this->include_modules[$class]->quote('', '', $visibility);
             if (is_array($quotes['methods'])) {
                 return [[
                 'id' => $quotes['id'] . '_' . $quotes['methods'][0]['id'],
                 'title' => $quotes['module'] . ' (' . $quotes['methods'][0]['title'] . ')',
-                'cost' => $quotes['methods'][0]['cost']
+                'cost' => $quotes['methods'][0]['cost'],
                 ]];
             }
         }
@@ -442,82 +464,88 @@ class shipping extends modules\ModuleCollection {
     }
 
     public $cheapest = null;
-    CONST CHEAPEST_DELIVERY = 1;
-    CONST CHEAPEST_PICKUP = 2;
+    public const CHEAPEST_DELIVERY = 1;
+    public const CHEAPEST_PICKUP = 2;
 
-    public function useDeliveryCheapest(){
+    public function useDeliveryCheapest()
+    {
         $this->cheapest = self::CHEAPEST_DELIVERY;
     }
 
-    public function usePickupCheapest(){
+    public function usePickupCheapest()
+    {
         $this->cheapest = self::CHEAPEST_PICKUP;
     }
 
     /*var $type: pickup, delivery or empty(all)*/
-    function cheapest($type = '') {
+    public function cheapest($type = '')
+    {
         //global $select_shipping;
         $cheapest = false;
         if (is_array($this->modules)) {
             $rates = [];
             $_quotes = null;
 
-            if (!is_null($this->cheapest) && empty($type)){
-                if ($this->cheapest == self::CHEAPEST_DELIVERY && $this->deliveryQuotes){
+            if (!is_null($this->cheapest) && empty($type)) {
+                if ($this->cheapest == self::CHEAPEST_DELIVERY && $this->deliveryQuotes) {
                     $_quotes = $this->deliveryQuotes;
-                } else if ($this->cheapest == self::CHEAPEST_PICKUP && $this->pickupQuotes){
+                } elseif ($this->cheapest == self::CHEAPEST_PICKUP && $this->pickupQuotes) {
                     $_quotes = $this->pickupQuotes;
                 }
             }
-            if (is_null($_quotes)){
+            if (is_null($_quotes)) {
                 $_quotes = ($type == 'pickup' ? $this->pickupQuotes : ($type == 'delivery' ? $this->deliveryQuotes : array_merge($this->deliveryQuotes, $this->pickupQuotes)));
             }
 
-            foreach($_quotes as $quotes){
-                if (isset($quotes['hide_row']) && $quotes['hide_row']) continue;
-                    if (!isset($quotes['error'])) {
-                        if (is_array($quotes['methods'])) {
-                        for ($i = 0, $n = sizeof($quotes['methods']); $i < $n; $i ++) {
+            foreach ($_quotes as $quotes) {
+                if (isset($quotes['hide_row']) && $quotes['hide_row']) {
+                    continue;
+                }
+                if (!isset($quotes['error'])) {
+                    if (is_array($quotes['methods'])) {
+                        for ($i = 0, $n = sizeof($quotes['methods']); $i < $n; $i++) {
                             if (isset($quotes['methods'][$i]['cost']) && is_numeric($quotes['methods'][$i]['cost'])) {
-                                $rates[] = array(
+                                $rates[] = [
                                     'module' => $quotes['id'],
                                     'id' => $quotes['id'] . '_' . $quotes['methods'][$i]['id'],
                                     'title' => $quotes['module'] . ' (' . $quotes['methods'][$i]['title'] . ')',
                                     'cost' => $quotes['methods'][$i]['cost'],
                                     'no_cost' => (isset($quotes['methods'][$i]['no_cost']) ? $quotes['methods'][$i]['no_cost'] : false),
-                                    'cost_inc_tax' => ((defined('PRICE_WITH_BACK_TAX') && PRICE_WITH_BACK_TAX == 'True')?$quotes['methods'][$i]['cost']:
+                                    'cost_inc_tax' => ((defined('PRICE_WITH_BACK_TAX') && PRICE_WITH_BACK_TAX == 'True') ? $quotes['methods'][$i]['cost'] :
                                         \common\helpers\Tax::add_tax_always($quotes['methods'][$i]['cost'], (isset($quotes['tax']) ? $quotes['tax'] : 0))),
-                                    'cost_exc_tax' => ((defined('PRICE_WITH_BACK_TAX') && PRICE_WITH_BACK_TAX == 'True')?
-                                  \common\helpers\Tax::reduce_tax_always($quotes['methods'][$i]['cost'], (isset($quotes['tax']) ? $quotes['tax'] : 0)):
-                                  $quotes['methods'][$i]['cost'])
-                                );
+                                    'cost_exc_tax' => ((defined('PRICE_WITH_BACK_TAX') && PRICE_WITH_BACK_TAX == 'True') ?
+                                  \common\helpers\Tax::reduce_tax_always($quotes['methods'][$i]['cost'], (isset($quotes['tax']) ? $quotes['tax'] : 0)) :
+                                  $quotes['methods'][$i]['cost']),
+                                ];
                             }
                         }
                     }
                 }
             }
 
-            for ($i = 0, $n = sizeof($rates); $i < $n; $i ++) {
-              if ($i==0 || !defined('DEFAULT_SHIPPING_BY_SORT_ORDER') || DEFAULT_SHIPPING_BY_SORT_ORDER != 'True') {
-                if (is_array($cheapest)) {
-                    if ($rates[$i]['cost'] < $cheapest['cost']) {
+            for ($i = 0, $n = sizeof($rates); $i < $n; $i++) {
+                if ($i == 0 || !defined('DEFAULT_SHIPPING_BY_SORT_ORDER') || DEFAULT_SHIPPING_BY_SORT_ORDER != 'True') {
+                    if (is_array($cheapest)) {
+                        if ($rates[$i]['cost'] < $cheapest['cost']) {
+                            $cheapest = $rates[$i];
+                        }
+                    } else {
                         $cheapest = $rates[$i];
                     }
-                } else {
-                    $cheapest = $rates[$i];
                 }
-              }
             }
         }
         return $cheapest;
     }
 
-    public static function module($module, $front = false) {
+    public static function module($module, $front = false)
+    {
         $file = $front ? DIR_WS_MODULES . 'shipping/' . $module . '.php' : DIR_FS_DOCUMENT_ROOT . '/includes/modules/shipping/' . $module . '.php';
 
         if (!is_null($module) && file_exists($file)) {
-            include_once( $file);
+            include_once($file);
             if (class_exists($module)) {
-                return new $module;
+                return new $module();
             }
         }
         return null;

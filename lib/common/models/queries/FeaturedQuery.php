@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -20,11 +22,13 @@ use yii\db\ActiveQuery;
  *
  * @see Specials
  */
-class FeaturedQuery extends ActiveQuery {
-  use DateRangeTrait;
+class FeaturedQuery extends ActiveQuery
+{
+    use DateRangeTrait;
 
-  public function active($active = true) {
-    return $this->andWhere(['status' => $active ? 1 : 0]);
-  }
-  
+    public function active($active = true)
+    {
+        return $this->andWhere(['status' => $active ? 1 : 0]);
+    }
+
 }

@@ -1,4 +1,7 @@
 <?php
+
+declare(strict_types=1);
+
 namespace PayPalCheckoutSdk\Core;
 
 /**
@@ -17,12 +20,12 @@ class UserAgent
      */
     public static function getValue()
     {
-        $featureList = array(
+        $featureList = [
             'platform-ver=' . PHP_VERSION,
             'bit=' . self::_getPHPBit(),
             'os=' . str_replace(' ', '_', php_uname('s') . ' ' . php_uname('r')),
-            'machine=' . php_uname('m')
-        );
+            'machine=' . php_uname('m'),
+        ];
         if (defined('OPENSSL_VERSION_TEXT')) {
             $opensslVersion = explode(' ', OPENSSL_VERSION_TEXT);
             $featureList[] = 'crypto-lib-ver=' . $opensslVersion[1];
@@ -31,7 +34,7 @@ class UserAgent
             $curlVersion = curl_version();
             $featureList[] = 'curl=' . $curlVersion['version'];
         }
-        return sprintf("PayPalSDK/%s %s (%s)", "Checkout-PHP-SDK", Version::VERSION, implode('; ', $featureList));
+        return sprintf('PayPalSDK/%s %s (%s)', 'Checkout-PHP-SDK', Version::VERSION, implode('; ', $featureList));
     }
     /**
      * Gets PHP Bit version

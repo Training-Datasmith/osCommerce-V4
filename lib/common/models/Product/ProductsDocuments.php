@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models\Product;
 
 use common\models\queries\ProductsDocumentsQuery;

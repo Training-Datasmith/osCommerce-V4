@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\product;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Description extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -35,7 +36,7 @@ class Description extends Widget
         if (!$params['products_id']) {
             return '';
         }
-        
+
         $products = Yii::$container->get('products');
         $product = $products->getProduct($params['products_id']);
 
@@ -55,12 +56,11 @@ class Description extends Widget
             }
             Yii::$app->getView()->registerMetaTag([
                 'property' => 'og:description',
-                'content' => $ogDescription
-            ],'og:description');
-
+                'content' => $ogDescription,
+            ], 'og:description');
 
             \frontend\design\JsonLd::addData(['Product' => [
-                'description' => $ogDescription
+                'description' => $ogDescription,
             ]], ['Product', 'description']);
         }
 

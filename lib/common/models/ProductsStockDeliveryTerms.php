@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "products_stock_delivery_terms".
@@ -56,12 +56,11 @@ class ProductsStockDeliveryTerms extends \yii\db\ActiveRecord
             return false;
         }
 
-        foreach (ProductsStockStatusesCrossLink::find()->where(['stock_delivery_terms_id'=>$this->stock_delivery_terms_id])->all() as $link){
+        foreach (ProductsStockStatusesCrossLink::find()->where(['stock_delivery_terms_id' => $this->stock_delivery_terms_id])->all() as $link) {
             $link->delete();
         }
 
         return true;
     }
-
 
 }

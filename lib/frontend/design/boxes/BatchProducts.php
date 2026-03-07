@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,12 +15,9 @@
 namespace frontend\design\boxes;
 
 use common\models\OrdersProducts;
+use frontend\design\Info;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use frontend\design\Info;
-use common\helpers\Product;
-use common\classes\platform;
 use yii\db\Query;
 
 class BatchProducts extends Widget
@@ -33,21 +32,21 @@ class BatchProducts extends Widget
     {
         parent::init();
 
-        if ( !isset($this->params['products_id']) || empty($this->params['products_id']) ) {
-            $this->params['products_id'] = intval(Yii::$app->request->get('products_id',0));
+        if (!isset($this->params['products_id']) || empty($this->params['products_id'])) {
+            $this->params['products_id'] = intval(Yii::$app->request->get('products_id', 0));
         }
     }
 
     public function run()
     {
-        if ( $this->params['products_id'] ) {
+        if ($this->params['products_id']) {
             $products = $this->productList($this->params['products_id']);
 
             if (count($products) > 0) {
-                if ( isset($this->settings[0]['product_auto_select']) && $this->settings[0]['product_auto_select'] ) {
+                if (isset($this->settings[0]['product_auto_select']) && $this->settings[0]['product_auto_select']) {
                     $products[0]['batchSelected'] = true;
                 }
-                if ( $this->settings[0]['force_disable_attributes_quantity'] ) {
+                if ($this->settings[0]['force_disable_attributes_quantity']) {
                     foreach ($products as $idx => $product) {
                         if (array_key_exists('show_attributes_quantity', $product)) {
                             $products[$idx]['show_attributes_quantity'] = 0;
@@ -55,11 +54,10 @@ class BatchProducts extends Widget
                     }
                 }
 
-
                 return \frontend\design\boxes\ProductListing::widget([
                     'products' => $products,
                     'settings' => $this->settings,
-                    'id' => $this->id
+                    'id' => $this->id,
                 ]);
             }
         }
@@ -67,7 +65,7 @@ class BatchProducts extends Widget
         return Info::hideBox($this->id, $this->settings[0]['hide_parents']);
     }
 
-    protected function productList( $products_id )
+    protected function productList($products_id)
     {
         if ($this->settings[0]['sort_order']) {
             $orderBy = \common\helpers\Sorting::getOrderByArray($this->settings[0]['sort_order']);
@@ -84,37 +82,39 @@ class BatchProducts extends Widget
 
         $cW = ['AND',
             ['not exists',
-                (new Query())->from(['bs_parent' => TABLE_SETS_PRODUCTS])->where('p.products_id = bs_parent.sets_id')
+                (new Query())->from(['bs_parent' => TABLE_SETS_PRODUCTS])->where('p.products_id = bs_parent.sets_id'),
             ],
-            ['products_pctemplates_id'=>0],
+            ['products_pctemplates_id' => 0],
         ];
 
-        if ( isset($this->settings[0]['product_source'])
-            && preg_match('/xsell_(\d+)/',$this->settings[0]['product_source'], $xsell_match) ) {
+        if (isset($this->settings[0]['product_source'])
+            && preg_match('/xsell_(\d+)/', $this->settings[0]['product_source'], $xsell_match)) {
             $xsell_type_id = (int)$xsell_match[1];
 
             if ($xsellModel = \common\helpers\Extensions::getModel('UpSell', 'ProductsXsell')) {
                 $cW[] = ['exists', $xsellModel::find()->alias('xp')
-                    ->andWhere("p.products_id = xp.xsell_id")
+                    ->andWhere('p.products_id = xp.xsell_id')
                     ->andWhere([
                         'xp.products_id' => (int)$products_id,
                         'xp.xsell_type_id' => $xsell_type_id,
-                    ])
+                    ]),
                 ];
             }
 
-        }elseif ( isset($this->settings[0]['product_source']) && $this->settings[0]['product_source']=='main_product'){
-            $cW[] = ['p.products_id'=>(int)$products_id];
-        }elseif ( isset($this->settings[0]['product_source']) && $this->settings[0]['product_source']=='alsopurchased'){
+        } elseif (isset($this->settings[0]['product_source']) && $this->settings[0]['product_source'] == 'main_product') {
+            $cW[] = ['p.products_id' => (int)$products_id];
+        } elseif (isset($this->settings[0]['product_source']) && $this->settings[0]['product_source'] == 'alsopurchased') {
             $cW[] = ['exists', OrdersProducts::find()->alias('opa')
-                ->innerJoin(OrdersProducts::tableName(),
-                    " opa.orders_id = " . OrdersProducts::tableName() . ".orders_id and " . OrdersProducts::tableName() . ".products_id != '" . (int)$products_id . "'")
-                ->andWhere("p.products_id = " . OrdersProducts::tableName() . ".products_id")
+                ->innerJoin(
+                    OrdersProducts::tableName(),
+                    ' opa.orders_id = ' . OrdersProducts::tableName() . '.orders_id and ' . OrdersProducts::tableName() . ".products_id != '" . (int)$products_id . "'"
+                )
+                ->andWhere('p.products_id = ' . OrdersProducts::tableName() . '.products_id')
                 ->andWhere([
                     'opa.products_id' => (int)$products_id,
-                ])
+                ]),
             ];
-        }else{
+        } else {
 
         }
 

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,7 @@
 
 namespace backend\models\ProductEdit;
 
-
 use backend\models\EP\Directory;
-use backend\models\EP\Providers;
 
 class ViewImportExport
 {
@@ -31,17 +31,19 @@ class ViewImportExport
         //$this->wrap($this->productInfoRef);
 
         $directories = Directory::getAll();
-        foreach ($directories as $directory){
+        foreach ($directories as $directory) {
             /**
              * @var Directory $directory
              */
-            if ($directory->directory_type=='datasource' && $datasource = $directory->getDatasource()){
-                if ( !$datasource->allowProductView() ) continue;
+            if ($directory->directory_type == 'datasource' && $datasource = $directory->getDatasource()) {
+                if (!$datasource->allowProductView()) {
+                    continue;
+                }
                 $view = $datasource->productView([
                     'directory' => $directory,
                     'productInfo' => $productInfo,
                 ]);
-                if ( $view ) {
+                if ($view) {
                     $this->list[] = [
                         'datasource' => $datasource,
                         'directory_name' => $directory->directory,

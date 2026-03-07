@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,11 +14,10 @@
 
 namespace common\models;
 
-
 use common\models\Product\ProductsNotes;
 use common\models\queries\ProductsQuery;
 use yii\db\ColumnSchema;
-use \yii\db\Expression;
+use yii\db\Expression;
 
 /**
  * This is the model class for table "products".
@@ -156,17 +157,17 @@ use \yii\db\Expression;
  */
 class Products extends \yii\db\ActiveRecord
 {
-  public static $listingDescriptionFields = ['products_name', 'products_description', 'products_url', 'products_head_title_tag', 'products_description_short', 'products_seo_page_name', 'products_h1_tag', 'products_h2_tag', 'products_h3_tag', 'products_internal_name' ];
-  public static $searchDescriptionFields =  ['products_name', 'products_description', 'products_url', 'products_head_title_tag', 'products_head_desc_tag', 'products_head_keywords_tag', 'products_description_short', 'products_seo_page_name', 'products_h1_tag', 'products_h2_tag', 'products_h3_tag', 'products_internal_name'];
-  public static $searchFields =  ['products_model', 'products_seo_page_name', 'products_ean', 'products_asin', 'products_isbn', 'products_upc' ];
-  public static $searchInventoryFields =  ['products_model', 'products_ean', 'products_asin', 'products_isbn', 'products_upc' ];
+    public static $listingDescriptionFields = ['products_name', 'products_description', 'products_url', 'products_head_title_tag', 'products_description_short', 'products_seo_page_name', 'products_h1_tag', 'products_h2_tag', 'products_h3_tag', 'products_internal_name' ];
+    public static $searchDescriptionFields =  ['products_name', 'products_description', 'products_url', 'products_head_title_tag', 'products_head_desc_tag', 'products_head_keywords_tag', 'products_description_short', 'products_seo_page_name', 'products_h1_tag', 'products_h2_tag', 'products_h3_tag', 'products_internal_name'];
+    public static $searchFields =  ['products_model', 'products_seo_page_name', 'products_ean', 'products_asin', 'products_isbn', 'products_upc' ];
+    public static $searchInventoryFields =  ['products_model', 'products_ean', 'products_asin', 'products_isbn', 'products_upc' ];
 
     protected $_recalculate_sub_product_parent_id = null;
 
-  /**
-     * set table name
-     * @return string
-     */
+    /**
+       * set table name
+       * @return string
+       */
     public static function tableName()
     {
         return 'products';
@@ -325,7 +326,7 @@ class Products extends \yii\db\ActiveRecord
             'maps_id' => 'Maps ID',
             'is_bundle' => 'Is Bundle',
             'products_sets_price_formula' => 'Products Sets Price Formula',
-            'disable_children_discount' => 'Disable Children Discount'
+            'disable_children_discount' => 'Disable Children Discount',
         ];
     }
 
@@ -350,13 +351,12 @@ class Products extends \yii\db\ActiveRecord
         return $res;
     }
 
-
-// personal_catalolog moved to extension. relation is used nowhere in osc and extensions but maybe somethere in old projects?
-//    public function getCustomers()
-//    {
-//        return $this->hasMany(\common\models\Customers::class, ['customers_id' => 'customers_id'])
-//            ->viaTable('personal_catalog', ['products_id' => 'products_id']);
-//    }
+    // personal_catalolog moved to extension. relation is used nowhere in osc and extensions but maybe somethere in old projects?
+    //    public function getCustomers()
+    //    {
+    //        return $this->hasMany(\common\models\Customers::class, ['customers_id' => 'customers_id'])
+    //            ->viaTable('personal_catalog', ['products_id' => 'products_id']);
+    //    }
 
     /**
      * one-to-many all languages 1 platform (current)
@@ -401,113 +401,122 @@ class Products extends \yii\db\ActiveRecord
                 ->addSelect(['platform_id', 'products_id', 'language_id'])
                 ->addSelect(['main' => new Expression('platform_id= :currentPlatformId', [':currentPlatformId' => \common\classes\platform::currentId()])])
                 ->where(['language_id' => (int)$languages_id,
-                         'platform_id' => [intval(\common\classes\platform::defaultId()), intval(\Yii::$app->get('platform')->config()->getPlatformToDescription())]
+                         'platform_id' => [intval(\common\classes\platform::defaultId()), intval(\Yii::$app->get('platform')->config()->getPlatformToDescription())],
                   ])
                 ->orderBy('main desc')
 
+        ;
+    }
+
+    public function getListingName()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
+        $platform_id = \common\classes\platform::currentId();
+        $platform_id = (new \common\classes\platform_settings($platform_id))->getPlatformToDescription();
+
+        /**
+         * @var $search \common\extensions\PlainProductsDescription\models\PlainProductsNameSearch
+         * @var $toProducts \common\extensions\PlainProductsDescription\models\PlainProductsNameToProducts
+         */
+        $search = \common\helpers\Extensions::getModel('PlainProductsDescription', 'PlainProductsNameSearch');
+        $toProducts = \common\helpers\Extensions::getModel('PlainProductsDescription', 'PlainProductsNameToProducts');
+        if (!empty($search) && !empty($toProducts)) {
+            return $this->hasOne($search, ['id' => 'plain_id'])
+                ->andWhere([$search::tableName() . '.language_id' => (int)$languages_id])
+                ->viaTable($toProducts::tableName(), ['products_id' => 'products_id'], function ($query) use ($platform_id, $toProducts) {
+                    $query->andOnCondition([$toProducts::tableName() .'.platform_id' => $platform_id]);
+                });
+
+        } else {
+            return $this->hasOne(ProductsDescription::class, ['products_id' => 'products_id'])
+                    ->andWhere([ProductsDescription::tableName() . '.language_id' => (int)$languages_id, ProductsDescription::tableName() . '.platform_id' => $platform_id]);
+        }
+    }
+
+    public function getAnyListingName()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
+        if ((\Yii::$container ?? null) && \Yii::$container->has('_languages')) {
+            $languages_id = (array)(\Yii::$container->get('_languages'));
+        }
+        if (!is_array($languages_id)) {
+            $languages_id = intval($languages_id);
+        }
+
+        /**
+         * @var $search \common\extensions\PlainProductsDescription\models\PlainProductsNameSearch
+         * @var $toProducts \common\extensions\PlainProductsDescription\models\PlainProductsNameToProducts
+         */
+        $search = \common\helpers\Extensions::getModel('PlainProductsDescription', 'PlainProductsNameSearch');
+        $toProducts = \common\helpers\Extensions::getModel('PlainProductsDescription', 'PlainProductsNameToProducts');
+
+        if (!empty($search) && !empty($toProducts)) {
+
+            return $this->hasOne($search, ['id' => 'plain_id'])
+                ->andWhere([$search::tableName() . '.language_id' => $languages_id])
+                ->viaTable($toProducts::tableName(), ['products_id' => 'products_id'])
             ;
+
+        } else {
+            return $this->hasOne(ProductsDescription::class, ['products_id' => 'products_id'])
+                    ->andWhere([ProductsDescription::tableName() . '.language_id' => $languages_id,
+                        //,        ProductsDescription::tableName() . '.platform_id' => \common\classes\platform::currentId()
+                        ]);
+        }
     }
 
-    public function getListingName() {
-      $languages_id = \Yii::$app->settings->get('languages_id');
-      $platform_id = \common\classes\platform::currentId();
-      $platform_id = (new \common\classes\platform_settings($platform_id))->getPlatformToDescription();
+    public function getPlainProductsNameToProducts()
+    {
 
-      /**
-       * @var $search \common\extensions\PlainProductsDescription\models\PlainProductsNameSearch
-       * @var $toProducts \common\extensions\PlainProductsDescription\models\PlainProductsNameToProducts
-       */
-      $search = \common\helpers\Extensions::getModel('PlainProductsDescription', 'PlainProductsNameSearch');
-      $toProducts = \common\helpers\Extensions::getModel('PlainProductsDescription', 'PlainProductsNameToProducts');
-      if ( !empty($search) && !empty($toProducts) ) {
-        return $this->hasOne($search, ['id' => 'plain_id'])
-            ->andWhere([$search::tableName() . '.language_id' => (int)$languages_id])
-            ->viaTable($toProducts::tableName(), ['products_id' => 'products_id'], function ($query) use($platform_id, $toProducts) {$query->andOnCondition([$toProducts::tableName() .'.platform_id' => $platform_id]);});
-
-      } else {
-        return $this->hasOne(ProductsDescription::class, ['products_id' => 'products_id'])
-                ->andWhere([ProductsDescription::tableName() . '.language_id' => (int)$languages_id, ProductsDescription::tableName() . '.platform_id' => $platform_id]);
-      }
+        /**
+         * @var $toProducts \common\extensions\PlainProductsDescription\models\PlainProductsNameToProducts
+         */
+        $toProducts = \common\helpers\Extensions::getModel('PlainProductsDescription', 'PlainProductsNameToProducts');
+        if (!empty($toProducts)) {
+            return $this->hasOne($toProducts, ['products_id' => 'products_id']);
+        } else {
+            return $this;
+        }
     }
 
-    public function getAnyListingName() {
-      $languages_id = \Yii::$app->settings->get('languages_id');
-      if ((\Yii::$container??null)&&\Yii::$container->has('_languages'))
-         $languages_id=(array)(\Yii::$container->get('_languages'));
-      if (!is_array($languages_id)) $languages_id=intval($languages_id);
+    public function getlistingPrice()
+    {
+        if (USE_MARKET_PRICES == 'True') {
+            $currencies = \Yii::$container->get('currencies');
+            $currency = \Yii::$app->settings->get('currency');
+            $currencies_id = (int)$currencies->currencies[$currency]['id'];
+        } else {
+            $currencies_id = 0;
+        }
+        $groups_id =  (int) \Yii::$app->storage->get('customer_groups_id');
 
-      /**
-       * @var $search \common\extensions\PlainProductsDescription\models\PlainProductsNameSearch
-       * @var $toProducts \common\extensions\PlainProductsDescription\models\PlainProductsNameToProducts
-       */
-      $search = \common\helpers\Extensions::getModel('PlainProductsDescription', 'PlainProductsNameSearch');
-      $toProducts = \common\helpers\Extensions::getModel('PlainProductsDescription', 'PlainProductsNameToProducts');
+        /*
+         * @var $extModel \common\extensions\ProductPriceIndex\modelsProductPriceIndex
+         */
+        $extModel = \common\helpers\Extensions::getModel('ProductPriceIndex', 'ProductPriceIndex');
+        if (!empty($extModel)) {
+            return $this->hasOne($extModel, ['products_id' => 'products_id'])
+                ->andOnCondition([
+                  'currencies_id' => $currencies_id,
+                  'groups_id' => $groups_id,
+                  $extModel::tableName() . '.products_status' => 1,
+                ]);
 
-      if ( !empty($search) && !empty($toProducts) ) {
-
-        return $this->hasOne($search, ['id' => 'plain_id'])
-            ->andWhere([$search::tableName() . '.language_id' => $languages_id])
-            ->viaTable($toProducts::tableName(), ['products_id' => 'products_id'])
-            ;
-
-      } else {
-        return $this->hasOne(ProductsDescription::class, ['products_id' => 'products_id'])
-                ->andWhere([ProductsDescription::tableName() . '.language_id' => $languages_id
-                    //,        ProductsDescription::tableName() . '.platform_id' => \common\classes\platform::currentId()
-                    ]);
-      }
+        } else {
+            return $this->hasOne(ProductsPrices::class, ['products_id' => 'products_id'])
+                ->andOnCondition(
+                    'products_group_price <>-1'
+                )
+                ->andOnCondition([
+                  'currencies_id' => $currencies_id,
+                  'groups_id' => $groups_id,
+                ]);
+        }
     }
 
-    public function getPlainProductsNameToProducts() {
-
-      /**
-       * @var $toProducts \common\extensions\PlainProductsDescription\models\PlainProductsNameToProducts
-       */
-      $toProducts = \common\helpers\Extensions::getModel('PlainProductsDescription', 'PlainProductsNameToProducts');
-      if (!empty($toProducts)) {
-        return $this->hasOne($toProducts, ['products_id' => 'products_id']);
-      } else {
-        return $this;
-      }
-    }
-
-    public function getlistingPrice() {
-      if (USE_MARKET_PRICES == 'True') {
-        $currencies = \Yii::$container->get('currencies');
-        $currency = \Yii::$app->settings->get('currency');
-        $currencies_id = (int)$currencies->currencies[$currency]['id'];
-      } else {
-        $currencies_id = 0;
-      }
-      $groups_id =  (int) \Yii::$app->storage->get('customer_groups_id');
-
-      /*
-       * @var $extModel \common\extensions\ProductPriceIndex\modelsProductPriceIndex
-       */
-      $extModel = \common\helpers\Extensions::getModel('ProductPriceIndex', 'ProductPriceIndex');
-      if (!empty($extModel)) {
-        return $this->hasOne($extModel, ['products_id' => 'products_id'])
-            ->andOnCondition([
-              'currencies_id' => $currencies_id,
-              'groups_id' => $groups_id,
-              $extModel::tableName() . '.products_status' => 1
-            ]);
-
-
-      } else {
-        return $this->hasOne(ProductsPrices::class, ['products_id' => 'products_id'])
-            ->andOnCondition(
-              'products_group_price <>-1'
-              )
-            ->andOnCondition([
-              'currencies_id' => $currencies_id,
-              'groups_id' => $groups_id,
-            ]);
-      }
-    }
-
-    public function getDeliveryTerm() {
-      return $this->hasOne(ProductsStockDeliveryTerms::class, ['stock_delivery_terms_id' => 'stock_delivery_terms_id']);
+    public function getDeliveryTerm()
+    {
+        return $this->hasOne(ProductsStockDeliveryTerms::class, ['stock_delivery_terms_id' => 'stock_delivery_terms_id']);
     }
 
     /**
@@ -519,9 +528,10 @@ class Products extends \yii\db\ActiveRecord
         return $this->hasMany(ProductsAttributes::class, ['products_id' => 'products_id']);
     }
 
-    public function getListingGlobalSort() {
-      return $this->hasOne(ProductsGlobalSort::class, ['products_id' => 'products_id'])
-          ->andOnCondition([ProductsGlobalSort::tableName().'.platform_id' => \common\classes\platform::currentId()]);
+    public function getListingGlobalSort()
+    {
+        return $this->hasOne(ProductsGlobalSort::class, ['products_id' => 'products_id'])
+            ->andOnCondition([ProductsGlobalSort::tableName().'.platform_id' => \common\classes\platform::currentId()]);
     }
 
     /** VL2do
@@ -543,7 +553,7 @@ class Products extends \yii\db\ActiveRecord
         return $this->hasMany(ProductsAttributes::class, ['products_id' => 'products_id'])
             ->joinWith('productsOptions')
             ->joinWith('productsOptionsValues')
-            ;
+        ;
     }
 
     /**
@@ -559,7 +569,7 @@ class Products extends \yii\db\ActiveRecord
             ->select('categories_name')
             ->addSelect(CategoriesDescription::tableName() . '.categories_id, language_id')
             ->addSelect('parent_id, categories_status')
-            ;
+        ;
     }
 
     /**
@@ -570,9 +580,9 @@ class Products extends \yii\db\ActiveRecord
     {
         return $this->hasMany(Properties::class, ['properties_id' => 'properties_id'])->andOnCondition(['display_listing' => 1])
             ->viaTable(Properties2Propducts::tableName(), ['products_id' => 'products_id'])
-            ;
+        ;
     }
-//
+
     /**
      * one-to-many all languages all platforms
      * @return \yii\db\ActiveQuery
@@ -581,8 +591,10 @@ class Products extends \yii\db\ActiveRecord
     {
         return $this->hasMany(ProductsDescription::class, ['products_id' => 'products_id'])->select(self::$searchDescriptionFields)
             ->addSelect('products_id, language_id, platform_id, department_id')
-            ->indexBy(function ($row) { return $row['language_id'] . '_' . $row['department_id'] . '_' . $row['platform_id'] ;} )
-            ;
+            ->indexBy(function ($row) {
+                return $row['language_id'] . '_' . $row['department_id'] . '_' . $row['platform_id'] ;
+            })
+        ;
     }
 
     /**
@@ -593,9 +605,8 @@ class Products extends \yii\db\ActiveRecord
     {
         return $this->hasMany(ProductsAttributes::class, ['products_id' => 'products_id'])->with(['searchProductsOptions', 'searchProductsOptionsValues'])
             ->select('products_id, options_id, options_values_id, products_options_sort_order, products_attributes_filename')
-            ;
+        ;
     }
-
 
     /**
      * one-to-many
@@ -603,14 +614,17 @@ class Products extends \yii\db\ActiveRecord
      */
     public function getSearchProperties()
     {
-        return $this->hasMany(Properties2Propducts::class, ['products_id' => 'products_id'],
-                function ($query) {
-                    $query->onCondition('values_flag is null or values_flag = 1')
-                          ->joinWith('properties')->andOnCondition(['display_search' => 1])
-                        ;
-                })
+        return $this->hasMany(
+            Properties2Propducts::class,
+            ['products_id' => 'products_id'],
+            function ($query) {
+                $query->onCondition('values_flag is null or values_flag = 1')
+                      ->joinWith('properties')->andOnCondition(['display_search' => 1])
+                ;
+            }
+        )
             ->with(['searchDescriptions', 'searchValues'])
-            ;
+        ;
     }
 
     /**
@@ -619,14 +633,17 @@ class Products extends \yii\db\ActiveRecord
      */
     public function getProperties()
     {
-        return $this->hasMany(Properties2Propducts::class, ['products_id' => 'products_id'],
-                function ($query) {
-                    $query->onCondition('values_flag is null or values_flag = 1')
-                          ->joinWith('properties')
-                        ;
-                })
+        return $this->hasMany(
+            Properties2Propducts::class,
+            ['products_id' => 'products_id'],
+            function ($query) {
+                $query->onCondition('values_flag is null or values_flag = 1')
+                      ->joinWith('properties')
+                ;
+            }
+        )
             ->with(['propertiesValue'])
-            ;
+        ;
     }
 
     public function getProperties2Products()
@@ -634,17 +651,17 @@ class Products extends \yii\db\ActiveRecord
         return $this->hasMany(Properties2Propducts::class, ['products_id' => 'products_id']);
     }
 
-// use if ($ext=\common\helpers\Extensions::isAllowed('GoogleAnalyticsTools')) $ext::attachJoin($productsQuery)
-//    public function getSearchGapi()
-//    {
-//        /**
-//         * @var $ext \common\extensions\GoogleAnalyticsTools\GoogleAnalyticsTools
-//         */
-//        if ( $ext = \common\helpers\Extensions::isAllowed('GoogleAnalyticsTools') ){
-//            return $ext::productRelation($this);
-//        }
-//        return $this;
-//    }
+    // use if ($ext=\common\helpers\Extensions::isAllowed('GoogleAnalyticsTools')) $ext::attachJoin($productsQuery)
+    //    public function getSearchGapi()
+    //    {
+    //        /**
+    //         * @var $ext \common\extensions\GoogleAnalyticsTools\GoogleAnalyticsTools
+    //         */
+    //        if ( $ext = \common\helpers\Extensions::isAllowed('GoogleAnalyticsTools') ){
+    //            return $ext::productRelation($this);
+    //        }
+    //        return $this;
+    //    }
 
     /**
      * one-to-many
@@ -657,7 +674,7 @@ class Products extends \yii\db\ActiveRecord
                     ->select(self::$searchInventoryFields)
                     ->addSelect('products_id, prid')
                     ->indexBy('products_id')
-            ;
+        ;
     }
 
     /**
@@ -670,7 +687,7 @@ class Products extends \yii\db\ActiveRecord
             ->viaTable(Products2Categories::tableName(), ['products_id' => 'products_id'])
             ->select('categories_name')
             ->addSelect('categories_id, language_id')
-            ;
+        ;
     }
 
     /**
@@ -700,8 +717,8 @@ class Products extends \yii\db\ActiveRecord
      */
     public function getVisiblePlatforms()
     {
-      $plids =  \common\classes\platform::getList();
-      $plids = \yii\helpers\ArrayHelper::getColumn($plids, 'id');
+        $plids =  \common\classes\platform::getList();
+        $plids = \yii\helpers\ArrayHelper::getColumn($plids, 'id');
 
         return $this->hasMany(PlatformsProducts::class, ['products_id' => 'products_id'])->andOnCondition(['platform_id' => $plids])->indexBy('platform_id'); //indexby important
     }
@@ -717,7 +734,7 @@ class Products extends \yii\db\ActiveRecord
 
     public function getReviews()
     {
-      return $this->hasMany(\common\models\Reviews::class, ['products_id' => 'products_id']);
+        return $this->hasMany(\common\models\Reviews::class, ['products_id' => 'products_id']);
     }
 
     /**
@@ -726,9 +743,9 @@ class Products extends \yii\db\ActiveRecord
      */
     public function getLocalRating()
     {
-      $ret = $this->getReviews()->select(['products_id' => 'products_id', 'average_rating' => new \yii\db\Expression('avg(reviews_rating) / 5 * 100') ]);
+        $ret = $this->getReviews()->select(['products_id' => 'products_id', 'average_rating' => new \yii\db\Expression('avg(reviews_rating) / 5 * 100') ]);
 
-      return $ret;
+        return $ret;
     }
 
     /**
@@ -783,11 +800,11 @@ class Products extends \yii\db\ActiveRecord
         return $this->hasMany(ProductsVideos::className(), ['products_id' => 'products_id']);
     }
 
-// SeoRedirectsNamed model moved to extensions/SeoRedirectsNamed/models
-//    public function getSeoRedirectsNamed()
-//    {
-//        return $this->hasMany(SeoRedirectsNamed::className(), ['owner_id' => 'products_id'])->andWhere(['redirects_type'=>'product']);
-//    }
+    // SeoRedirectsNamed model moved to extensions/SeoRedirectsNamed/models
+    //    public function getSeoRedirectsNamed()
+    //    {
+    //        return $this->hasMany(SeoRedirectsNamed::className(), ['owner_id' => 'products_id'])->andWhere(['redirects_type'=>'product']);
+    //    }
 
     /**
      * one-to-many
@@ -823,12 +840,13 @@ class Products extends \yii\db\ActiveRecord
      * @param integer $excludeSupplier
      * @return activeQuery
      */
-    public function getActiveSuppliersProducts($excludeSupplier=false) {
-      $ret = $this->getSuppliersProducts()->andWhere(['status' => 1]);
-      if ( $excludeSupplier ) {
-        $ret->andWhere('suppliers_id <> :suppliers_id', [':suppliers_id' => $excludeSupplier]);
-      }
-      return $ret;
+    public function getActiveSuppliersProducts($excludeSupplier = false)
+    {
+        $ret = $this->getSuppliersProducts()->andWhere(['status' => 1]);
+        if ($excludeSupplier) {
+            $ret->andWhere('suppliers_id <> :suppliers_id', [':suppliers_id' => $excludeSupplier]);
+        }
+        return $ret;
     }
 
     /**
@@ -878,8 +896,9 @@ class Products extends \yii\db\ActiveRecord
         return $this->hasOne(Products::class, ['products_id' => 'parent_products_id']);
     }
 
-    public function getSet(){
-        return $this->hasMany(SetsProducts::class,['sets_id' => 'products_id']);
+    public function getSet()
+    {
+        return $this->hasMany(SetsProducts::class, ['sets_id' => 'products_id']);
     }
 
     /**
@@ -903,7 +922,7 @@ class Products extends \yii\db\ActiveRecord
         if (!parent::beforeDelete()) {
             return false;
         }
-        if ( (int)$this->products_id>0 ) {
+        if ((int)$this->products_id > 0) {
             foreach (\common\models\Products::find()
                          ->where(['parent_products_id' => (int)$this->products_id])
                          ->asArray()
@@ -922,46 +941,46 @@ class Products extends \yii\db\ActiveRecord
             return false;
         }
 
-        if ( $insert ){
-            if ($this->parent_products_id){
+        if ($insert) {
+            if ($this->parent_products_id) {
                 $this->products_id_stock = $this->parent_products_id;
                 $this->products_id_price = $this->parent_products_id;
                 $this->_recalculate_sub_product_parent_id = $this->parent_products_id;
             }
-            if (defined('NEW_MARK_UNTIL_DAYS') && intval(constant('NEW_MARK_UNTIL_DAYS'))>0 && empty($this->products_new_until)) {
-              $this->products_new_until = date(\common\helpers\Date::DATABASE_DATE_FORMAT, strtotime('+' . intval(constant('NEW_MARK_UNTIL_DAYS')) . ' day') );
+            if (defined('NEW_MARK_UNTIL_DAYS') && intval(constant('NEW_MARK_UNTIL_DAYS')) > 0 && empty($this->products_new_until)) {
+                $this->products_new_until = date(\common\helpers\Date::DATABASE_DATE_FORMAT, strtotime('+' . intval(constant('NEW_MARK_UNTIL_DAYS')) . ' day'));
             }
-        }else{
-            if ( $this->isAttributeChanged('parent_products_id',false) ){
-                $this->products_id_stock = $this->parent_products_id?intval($this->parent_products_id):$this->products_id;
-                $this->products_id_price = $this->parent_products_id && !\common\helpers\Product::isSubProductWithPrice()?intval($this->parent_products_id):$this->products_id;
+        } else {
+            if ($this->isAttributeChanged('parent_products_id', false)) {
+                $this->products_id_stock = $this->parent_products_id ? intval($this->parent_products_id) : $this->products_id;
+                $this->products_id_price = $this->parent_products_id && !\common\helpers\Product::isSubProductWithPrice() ? intval($this->parent_products_id) : $this->products_id;
                 // for recalculate ref count on parent if parent changed to 0
-                if ( intval($this->parent_products_id)==0 ){
+                if (intval($this->parent_products_id) == 0) {
                     $this->_recalculate_sub_product_parent_id = intval($this->getOldAttribute('parent_products_id'));
-                }else{
+                } else {
                     $this->_recalculate_sub_product_parent_id = intval($this->parent_products_id);
                 }
             }
-            static::updateAll(['products_price_full'=>$this->products_price_full],['parent_products_id'=>$this->products_id, 'products_id_price'=>$this->products_id]);
+            static::updateAll(['products_price_full' => $this->products_price_full], ['parent_products_id' => $this->products_id, 'products_id_price' => $this->products_id]);
         }
 
-        if ( $insert ) {
+        if ($insert) {
             foreach ($this->getTableSchema()->columns as $column) {
                 /**
                  * @var $column ColumnSchema
                  */
-                if (!$column->allowNull && ($this->getAttribute($column->name) === null || $column->dbTypecast($this->getAttribute($column->name))===null) ) {
+                if (!$column->allowNull && ($this->getAttribute($column->name) === null || $column->dbTypecast($this->getAttribute($column->name)) === null)) {
                     $defValue = $column->defaultValue;
-                    if ( $column->dbTypecast($defValue)===null ) {
+                    if ($column->dbTypecast($defValue) === null) {
                         $defTypeValue = [
                             'boolean' => 0,
                             'float' => 0.0,
                             'decimal' => 0.0,
                         ];
-                        if ( stripos($column->type,'int')!==false ) {
+                        if (stripos($column->type, 'int') !== false) {
                             $defValue = 0;
-                        }else{
-                            $defValue = isset($defTypeValue[$column->type])?$defTypeValue[$column->type]:'';
+                        } else {
+                            $defValue = isset($defTypeValue[$column->type]) ? $defTypeValue[$column->type] : '';
                         }
                     }
                     $this->setAttribute($column->name, $defValue);
@@ -976,8 +995,8 @@ class Products extends \yii\db\ActiveRecord
     {
         parent::afterSave($insert, $changedAttributes);
 
-        if ( !$this->parent_products_id ) {
-            if ( $insert ) {
+        if (!$this->parent_products_id) {
+            if ($insert) {
                 // parented product handled in before save
                 static::updateAll(
                     [
@@ -988,8 +1007,8 @@ class Products extends \yii\db\ActiveRecord
                 );
             }
         }
-        if (empty($this->parent_products_id) && array_key_exists('products_status', $changedAttributes)){
-            if ( $this->getAttribute('products_status') ) {
+        if (empty($this->parent_products_id) && array_key_exists('products_status', $changedAttributes)) {
+            if ($this->getAttribute('products_status')) {
                 static::updateAll(
                     [
                         'products_status' => new Expression('IFNULL(sub_product_prev_status,1)'),
@@ -998,7 +1017,7 @@ class Products extends \yii\db\ActiveRecord
                     ],
                     ['parent_products_id' => intval($this->products_id)]
                 );
-            }else {
+            } else {
                 static::updateAll(
                     [
                         'sub_product_prev_status' => new Expression('products_status'),
@@ -1014,21 +1033,21 @@ class Products extends \yii\db\ActiveRecord
                 ->where(['parent_products_id' => intval($this->_recalculate_sub_product_parent_id)])
                 ->count();
             static::updateAll(
-                ['sub_product_children_count'=>(int)$childCount],
-                ['products_id'=>intval($this->_recalculate_sub_product_parent_id)]
+                ['sub_product_children_count' => (int)$childCount],
+                ['products_id' => intval($this->_recalculate_sub_product_parent_id)]
             );
             $this->_recalculate_sub_product_parent_id = null;
         }
 
-        if ( $insert ) {
+        if ($insert) {
             /** @var \common\extensions\UserGroupsRestrictions\UserGroupsRestrictions $ext */
             if ($ext = \common\helpers\Acl::checkExtensionAllowed('UserGroupsRestrictions', 'allowed')) {
-                if ( $groupService = $ext::getGroupsService() ){
+                if ($groupService = $ext::getGroupsService()) {
                     $groupService->addProductToAllGroups($this->products_id);
                 }
             }
         }
-        if ( array_key_exists('products_groups_id', $changedAttributes) ) {
+        if (array_key_exists('products_groups_id', $changedAttributes)) {
             \common\helpers\ProductsGroupSortCache::update($this->products_id);
         }
     }
@@ -1036,48 +1055,49 @@ class Products extends \yii\db\ActiveRecord
     public function afterDelete()
     {
         parent::afterDelete();
-        if ( $this->parent_products_id ) {
+        if ($this->parent_products_id) {
             $childCount = static::find()
                 ->where(['parent_products_id' => intval($this->parent_products_id)])
                 ->count();
             static::updateAll(
-                ['sub_product_children_count'=>(int)$childCount],
-                ['products_id'=>intval($this->parent_products_id)]
+                ['sub_product_children_count' => (int)$childCount],
+                ['products_id' => intval($this->parent_products_id)]
             );
-        }else{
+        } else {
             foreach (static::find()
-                ->where(['parent_products_id'=>$this->products_id])
+                ->where(['parent_products_id' => $this->products_id])
                 ->select(['products_id'])
                 ->asArray()
-                ->all() as $childProduct){
+                ->all() as $childProduct) {
                 \common\helpers\Product::remove_product($childProduct['products_id']);
             }
         }
     }
 
-    public function getBackendDescription() {
-      $languages_id = \Yii::$app->settings->get('languages_id');
+    public function getBackendDescription()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
 
-      if (\backend\models\ProductNameDecorator::instance()->useInternalNameForListing()) {
-        $nameColumn = new \yii\db\Expression("IF(LENGTH(" . ProductsDescription::tableName() . ".products_internal_name), " . ProductsDescription::tableName() . ".products_internal_name, " . ProductsDescription::tableName() . ".products_name)");
-      } else {
-        $nameColumn = ProductsDescription::tableName() . '.products_name';
-      }
+        if (\backend\models\ProductNameDecorator::instance()->useInternalNameForListing()) {
+            $nameColumn = new \yii\db\Expression('IF(LENGTH(' . ProductsDescription::tableName() . '.products_internal_name), ' . ProductsDescription::tableName() . '.products_internal_name, ' . ProductsDescription::tableName() . '.products_name)');
+        } else {
+            $nameColumn = ProductsDescription::tableName() . '.products_name';
+        }
 
-      return $this->hasOne(\common\models\ProductsDescription::class, ['products_id' => 'products_id'])
-                ->select(['products_name' => $nameColumn])
-                ->addSelect(['platform_id', 'products_id', 'language_id'])
-                ->andOnCondition(['language_id' => (int)$languages_id,
-                                  'platform_id' => intval(\common\classes\platform::defaultId())
-                  ])
-                //->orderBy($nameColumn)
-                ;
+        return $this->hasOne(\common\models\ProductsDescription::class, ['products_id' => 'products_id'])
+                  ->select(['products_name' => $nameColumn])
+                  ->addSelect(['platform_id', 'products_id', 'language_id'])
+                  ->andOnCondition(['language_id' => (int)$languages_id,
+                                    'platform_id' => intval(\common\classes\platform::defaultId()),
+                    ])
+                  //->orderBy($nameColumn)
+        ;
     }
 
-// SeoRedirectsNamed model moved to extensions/SeoRedirectsNamed/models
-//    public function getSeoRedirects() {
-//       return $this->hasMany(SeoRedirectsNamed::class, ['owner_id' => 'products_id'])->andOnCondition('redirects_type = "product"');
-//    }
+    // SeoRedirectsNamed model moved to extensions/SeoRedirectsNamed/models
+    //    public function getSeoRedirects() {
+    //       return $this->hasMany(SeoRedirectsNamed::class, ['owner_id' => 'products_id'])->andOnCondition('redirects_type = "product"');
+    //    }
 
     // incapsulate product types for hooks
     public function returnProductType()

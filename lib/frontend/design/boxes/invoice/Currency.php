@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,10 @@
 
 namespace frontend\design\boxes\invoice;
 
-use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Currency extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -31,7 +30,7 @@ class Currency extends Widget
     public function run()
     {
         \common\helpers\Translation::init('admin/design');
-        $order = $this->params["order"];
+        $order = $this->params['order'];
 
         return $order->info['currency'];
     }

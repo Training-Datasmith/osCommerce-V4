@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -21,14 +23,16 @@ use yii\db\ActiveQuery;
  */
 class InventoryQuery extends ActiveQuery
 {
-    public function existent($exist = true){
-        return $this->andWhere(['non_existent' => $exist? 0 : 1]);
+    public function existent($exist = true)
+    {
+        return $this->andWhere(['non_existent' => $exist ? 0 : 1]);
     }
-    
-    public function restriction($aliases = ['i']){
+
+    public function restriction($aliases = ['i'])
+    {
         $ids = \yii\helpers\ArrayHelper::getColumn(\common\models\ProductsStockIndication::getHidden(), 'stock_indication_id');
-        if ($ids){
-            foreach($aliases as $alias){
+        if ($ids) {
+            foreach ($aliases as $alias) {
                 $this->andWhere(['not in', $alias.'.stock_indication_id', $ids]);
             }
         }

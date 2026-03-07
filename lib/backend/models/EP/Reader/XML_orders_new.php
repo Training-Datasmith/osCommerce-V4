@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,13 @@
 
 namespace backend\models\EP\Reader;
 
-use backend\models\EP\Exception;
 use yii\base\BaseObject;
 
 class XML_orders_new extends BaseObject implements ReaderInterface
 {
-    const MAX_LINE_LENGTH = 1000000;
+    public const MAX_LINE_LENGTH = 1000000;
 
-    public $column_separator = "auto";
+    public $column_separator = 'auto';
     public $column_enclosure = '"';
     public $data_escape = '\\';
     public $line_separator = "\r\n";
@@ -32,13 +33,13 @@ class XML_orders_new extends BaseObject implements ReaderInterface
     protected $file_handle;
 
     protected $file_header;
-    protected $use_config = array(
-        'column_separator' => "auto",
+    protected $use_config = [
+        'column_separator' => 'auto',
         'column_enclosure' => '"',
         'data_escape' => '\\',
-        'line_separator' => "auto",
+        'line_separator' => 'auto',
         'input_encoding' => 'auto',
-    );
+    ];
     private $file_start_pointer = 0;
     private $file_end_pointer = 0;
     private $file_data_start_pointer;
@@ -47,7 +48,8 @@ class XML_orders_new extends BaseObject implements ReaderInterface
     {
         try {
             parent::__set($name, $value);
-        }catch (\Exception $ex){}
+        } catch (\Exception $ex) {
+        }
     }
 
     public function currentPosition()
@@ -60,8 +62,8 @@ class XML_orders_new extends BaseObject implements ReaderInterface
 
     public function getProgress()
     {
-        $percentDone = min(100,($this->file_start_pointer/$this->file_end_pointer)*100);
-        return number_format(  $percentDone,1,'.','');
+        $percentDone = min(100, ($this->file_start_pointer / $this->file_end_pointer) * 100);
+        return number_format($percentDone, 1, '.', '');
     }
 
     public function setDataPosition($position)
@@ -71,37 +73,36 @@ class XML_orders_new extends BaseObject implements ReaderInterface
 
     public function readColumns()
     {
-        return array( 'name' => 'undefined', 'value' => 'null', );
+        return [ 'name' => 'undefined', 'value' => 'null', ];
     }
 
     public function read()
     {
         $data = false;
-  
-        if ( !$this->file_handle ) {
+
+        if (!$this->file_handle) {
 
             $tmpReader = new \XMLReader();
             $tmpReader->open($this->filename);
             while ($tmpReader->read() && $tmpReader->name !== 'Order');
             do {
-                    $this->file_end_pointer++;
-                    $tmpReader->next('Order');
+                $this->file_end_pointer++;
+                $tmpReader->next('Order');
 
             } while ($tmpReader->name === 'Order');
             unset($tmpReader);
             $this->file_handle = new \XMLReader();
             $this->file_handle->open($this->filename);
-            $this->doc = new \DOMDocument;
+            $this->doc = new \DOMDocument();
             while ($this->file_handle->read() && $this->file_handle->name !== 'Order');
-        }else{
+        } else {
             $this->file_handle->next('Order');
         }
-        
 
         if ($this->file_handle->name === 'Order') {
             $data = simplexml_import_dom($this->doc->importNode($this->file_handle->expand(), true));
             $data = $this->SimpleXML2Array($data);
-            $data['row']=$data;
+            $data['row'] = $data;
             $this->file_start_pointer++;
             //while ($this->file_handle->read() && $this->file_handle->name !== 'Order');
         }
@@ -109,15 +110,16 @@ class XML_orders_new extends BaseObject implements ReaderInterface
         return $data;
     }
 
-    public function SimpleXML2Array($xml){
+    public function SimpleXML2Array($xml)
+    {
         $array = (array)$xml;
         //recursive Parser
-        foreach ($array as $key => $value){
-            if(is_object($value) || is_array($value)){
+        foreach ($array as $key => $value) {
+            if (is_object($value) || is_array($value)) {
                 $array[$key] = $this->SimpleXML2Array($value);
             }
         }
-        if(empty($array)){
+        if (empty($array)) {
             return '';
         }
         return $array;

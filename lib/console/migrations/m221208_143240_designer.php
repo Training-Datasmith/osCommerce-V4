@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m221208_143240_designer extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/design',[
+        $this->addTranslation('admin/design', [
             'SAVE_TO_WIDGET_GROUPS' => 'Save to widget groups',
             'WIDGET_GROUP_CATEGORY' => 'Widget group category',
             'NO_CATEGORIZED' => 'No categorized',

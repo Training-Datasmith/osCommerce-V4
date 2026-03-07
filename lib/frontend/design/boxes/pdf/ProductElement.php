@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,10 @@
 
 namespace frontend\design\boxes\pdf;
 
-use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class ProductElement extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -35,7 +34,7 @@ class ProductElement extends Widget
         static $productsElements = [];
         static $productsItemSize = 0;
         static $productsElementsSize = [];
-        if ($this->settings['item_clear'] ?? null){
+        if ($this->settings['item_clear'] ?? null) {
             $productsItem = 0;
             $productsElements = [];
             $productsItemSize = 0;
@@ -55,7 +54,7 @@ class ProductElement extends Widget
             return '';
         }
 
-        if ($this->settings['out'] ?? null){// main boxes
+        if ($this->settings['out'] ?? null) {// main boxes
 
             if ($productsElements[$element] ?? null) {
                 $productsElements = [];

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 class ProductsAssetsValues extends ActiveRecord
@@ -25,12 +26,14 @@ class ProductsAssetsValues extends ActiveRecord
     {
         return 'products_assets_values';
     }
-    
-    public function getAssetFields(){
+
+    public function getAssetFields()
+    {
         return $this->hasOne(ProductsAssetsFields::className(), ['products_assets_fields_id' => 'products_assets_fields_id']);
     }
-    
-    public function getAsset(){
+
+    public function getAsset()
+    {
         return $this->hasOne(ProductsAssets::className(), ['products_assets_id' => 'products_assets_id']);
     }
 }

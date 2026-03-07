@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -26,14 +28,14 @@ use yii\db\ActiveRecord;
  */
 class OptionsTemplatesAttributes extends ActiveRecord
 {
-
     public static function tableName()
     {
         return 'options_templates_attributes';
     }
 
-    public function getPrices(){
-        return $this->hasMany(OptionsTemplatesAttributesPrices::className(),['options_templates_attributes_id' => 'options_templates_attributes_id']);
+    public function getPrices()
+    {
+        return $this->hasMany(OptionsTemplatesAttributesPrices::className(), ['options_templates_attributes_id' => 'options_templates_attributes_id']);
     }
 
     public function getProductsOptions()
@@ -46,17 +48,15 @@ class OptionsTemplatesAttributes extends ActiveRecord
         return $this->hasMany(\common\models\ProductsOptionsValues::class, ['products_options_values_id' => 'options_values_id']);
     }
 
-
     public function beforeDelete()
     {
         if (!parent::beforeDelete()) {
             return false;
         }
 
-        OptionsTemplatesAttributesPrices::deleteAll(['options_templates_attributes_id'=>$this->options_templates_attributes_id]);
+        OptionsTemplatesAttributesPrices::deleteAll(['options_templates_attributes_id' => $this->options_templates_attributes_id]);
 
         return true;
     }
-
 
 }

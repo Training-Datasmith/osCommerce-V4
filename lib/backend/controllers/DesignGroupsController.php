@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,10 +14,12 @@
 
 namespace backend\controllers;
 
+use backend\design\FrontendStructure;
 use backend\design\Groups;
 use backend\design\Steps;
 use backend\design\Style;
 use backend\design\Theme;
+use backend\design\Uploads;
 use backend\models\Admin;
 use common\classes\Images as CommonImages;
 use common\models\DesignBoxes;
@@ -30,42 +34,43 @@ use common\models\DesignBoxesTmp;
 use common\models\Themes;
 use common\models\ThemesSettings;
 use common\models\ThemesStyles;
+use common\models\ThemesStylesCache;
 use common\models\ThemesStylesGroups;
 use common\models\ThemesStylesMain;
-use common\models\ThemesStylesCache;
 use Yii;
 use yii\helpers\ArrayHelper;
-use backend\design\Uploads;
-use backend\design\FrontendStructure;
 use yii\helpers\FileHelper;
 
 /**
  *
  */
-class DesignGroupsController extends Sceleton {
-
+class DesignGroupsController extends Sceleton
+{
     public $acl = ['BOX_HEADING_DESIGN_CONTROLS', 'BOX_HEADING_THEMES'];
     public $designerMode = '';
     public $designerModeTitle = '';
 
-    function __construct($id,$module=null) {
+    public function __construct($id, $module = null)
+    {
         \common\helpers\Translation::init('admin/design');
 
-        $admin = new Admin;
+        $admin = new Admin();
         $this->designerMode = $admin->getAdditionalData('designer_mode');
         switch ($this->designerMode) {
-            case 'advanced': $this->designerModeTitle = EDIT_MODE . ': ' . ADVANCED_MODE; break;
-            case 'expert': $this->designerModeTitle = EDIT_MODE . ': ' . EXPERT_MODE; break;
+            case 'advanced': $this->designerModeTitle = EDIT_MODE . ': ' . ADVANCED_MODE;
+                break;
+            case 'expert': $this->designerModeTitle = EDIT_MODE . ': ' . EXPERT_MODE;
+                break;
             default: $this->designerModeTitle = EDIT_MODE . ': ' . BASIC_MODE;
         }
 
-        return parent::__construct($id,$module);
+        return parent::__construct($id, $module);
     }
 
     public function actionIndex()
     {
-        $this->selectedMenu = array('design_controls', 'design/themes');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/groups'), 'title' => BOX_HEADING_THEMES);
+        $this->selectedMenu = ['design_controls', 'design/themes'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/groups'), 'title' => BOX_HEADING_THEMES];
         $this->view->headingTitle = BOX_HEADING_THEMES;
 
         $this->topButtons[] = '<span class="btn btn-primary btn-add-group">' . TEXT_IMPORT . '</span>';
@@ -98,7 +103,9 @@ class DesignGroupsController extends Sceleton {
         $start = Yii::$app->request->get('start', 0);
         $length = Yii::$app->request->get('length', 10);
         $search = Yii::$app->request->get('search');
-        if( $length == -1 ) $length = 10000;
+        if ($length == -1) {
+            $length = 10000;
+        }
         $keywords = '';
         if ($search) {
             $keywords = $search['value'];
@@ -127,8 +134,10 @@ class DesignGroupsController extends Sceleton {
         }
 
         $groups = DesignBoxesGroups::find()->alias('g')
-            ->leftJoin(DesignBoxesGroupsLanguages::tableName() . ' gl',
-                'gl.boxes_group_id = g.id and gl.language_id = ' . $languages_id)
+            ->leftJoin(
+                DesignBoxesGroupsLanguages::tableName() . ' gl',
+                'gl.boxes_group_id = g.id and gl.language_id = ' . $languages_id
+            )
             ->where(['category' => $currentCategory])
             ->asArray()->all();
 
@@ -161,12 +170,12 @@ class DesignGroupsController extends Sceleton {
             }
         }
 
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => count($responseList),
             'recordsFiltered' => count($responseList),
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         echo json_encode($response);
     }
 
@@ -235,10 +244,10 @@ class DesignGroupsController extends Sceleton {
             }
             $uploadFile = $path . DIRECTORY_SEPARATOR . $tempName;
 
-            if ( !is_writeable(dirname($path)) ) {
-                $response = ['status' => 'error', 'text'=> 'Directory "' . $path . '" not writeable'];
-            } elseif (!is_uploaded_file($_FILES['file']['tmp_name']) || filesize($_FILES['file']['tmp_name'])==0) {
-                $response = ['status' => 'error', 'text'=> 'File upload error'];
+            if (!is_writeable(dirname($path))) {
+                $response = ['status' => 'error', 'text' => 'Directory "' . $path . '" not writeable'];
+            } elseif (!is_uploaded_file($_FILES['file']['tmp_name']) || filesize($_FILES['file']['tmp_name']) == 0) {
+                $response = ['status' => 'error', 'text' => 'File upload error'];
             } else {
                 if (move_uploaded_file($_FILES['file']['tmp_name'], $uploadFile)) {
                     $text = '';
@@ -266,7 +275,6 @@ class DesignGroupsController extends Sceleton {
         }
         $group = Groups::getGroup($groupId);
 
-
         $this->selectedMenu = ['design_controls', 'design/themes'];
         $this->navigation[] = ['title' => 'Widget group: "' . ArrayHelper::getValue($group, ['languages', $languageId, 'title']) . '"'];
 
@@ -274,7 +282,7 @@ class DesignGroupsController extends Sceleton {
         $this->topButtons[] = '<a href="' . Yii::$app->urlManager->createUrl(['design-groups/view', 'row_id' => $rowId, 'category' => $category, 'group_id' => $groupId]) . '" class="btn btn-primary">' . IMAGE_VIEW . '</a>';
         $this->topButtons[] = '<a href="' . Yii::$app->urlManager->createUrl(['design-groups', 'row_id' => $rowId, 'category' => $category]) . '" class="btn">' . IMAGE_BACK . '</a>';
 
-        $group['categoryDropdown'] = Groups::widgetGroupsCategoriesDropdown('group[category]', ($group['category']??''), ['class' => 'form-control']);
+        $group['categoryDropdown'] = Groups::widgetGroupsCategoriesDropdown('group[category]', ($group['category'] ?? ''), ['class' => 'form-control']);
 
         $pageTypesArr = ['main' => 'main'];
         $pageTypes = FrontendStructure::getPageTypes();
@@ -331,7 +339,7 @@ class DesignGroupsController extends Sceleton {
             'new' => true,
             'languageId' => $languageId,
             'backUrl' => Yii::$app->urlManager->createUrl(['design-groups', 'row_id' => $rowId, 'category' => $category]),
-            'themes' => \common\models\Themes::find()->asArray()->all()
+            'themes' => \common\models\Themes::find()->asArray()->all(),
         ]);
     }
 
@@ -413,13 +421,13 @@ class DesignGroupsController extends Sceleton {
             $infoContent['comment'] = $comment;
         }
         if ($designBoxesGroups->file != $group['file']) {
-            if (substr($group['file'], -4) != '.zip'){
+            if (substr($group['file'], -4) != '.zip') {
                 $group['file'] = $group['file'] . '.zip';
             }
             if (is_file($filePath . $group['file']) && !$newGroup) {
                 return json_encode([
                     'error' => sprintf('File "%s" already exists, please enter other name', $group['file']),
-                    'focus' => 'group[file]'
+                    'focus' => 'group[file]',
                 ]);
             }
             if (is_file($filePath . $designBoxesGroups->file)) {
@@ -457,7 +465,6 @@ class DesignGroupsController extends Sceleton {
                 ];
             }
         }
-
 
         $infoContent['images'] = [];
         $oldImages = DesignBoxesGroupsImages::find()
@@ -500,13 +507,12 @@ class DesignGroupsController extends Sceleton {
             }
         }
 
-
         chmod($filePath . $group['file'], 0755);
         $zip = new \ZipArchive();
         if ($zip->open($filePath . $group['file'], \ZipArchive::CREATE)) {
             $zip->deleteName('images/');
             $zip->deleteName('info.json');
-            $zip->addFromString ('info.json', json_encode($infoContent));
+            $zip->addFromString('info.json', json_encode($infoContent));
 
             foreach ($infoContent['images'] as $image) {
                 if (is_file($imagePath . $image)) {
@@ -515,7 +521,6 @@ class DesignGroupsController extends Sceleton {
             }
             $zip->close();
         }
-
 
         $successMessage = 'Saved';
         return json_encode(['text' => $successMessage, 'html' => $this->actionEdit()]);
@@ -571,8 +576,8 @@ class DesignGroupsController extends Sceleton {
 
     public function actionWizard()
     {
-        $this->selectedMenu = array('design_controls', 'design/themes');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('design/groups'), 'title' => 'Create theme');
+        $this->selectedMenu = ['design_controls', 'design/themes'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('design/groups'), 'title' => 'Create theme'];
         $this->view->headingTitle = 'Create theme';
 
         $themeName = Yii::$app->request->get('theme_name', '');
@@ -594,23 +599,23 @@ class DesignGroupsController extends Sceleton {
         ];
 
         $groupsCategories = DesignBoxesGroupsCategory::find()->asArray()->all();
-        foreach ($groupsCategories as$groupsCategory) {
+        foreach ($groupsCategories as $groupsCategory) {
             $groupLists[] = [
                 'title' => $groupsCategory['name'],
                 'category' => $groupsCategory['name'],
-                'multiSelect' => false
+                'multiSelect' => false,
             ];
         }
 
         $groupLists[] = [
             'title' => TEXT_COLOR_SCHEME,
             'category' => 'color',
-            'multiSelect' => false
+            'multiSelect' => false,
         ];
         $groupLists[] = [
             'title' => TEXT_FONTS,
             'category' => 'font',
-            'multiSelect' => false
+            'multiSelect' => false,
         ];
         $filePath = Groups::groupFilePath() . DIRECTORY_SEPARATOR;
 
@@ -643,7 +648,9 @@ class DesignGroupsController extends Sceleton {
                             $groupData = json_decode($json, true);
                             $zip->close();
 
-                            if (!is_array($groupData)) continue;
+                            if (!is_array($groupData)) {
+                                continue;
+                            }
 
                             foreach ($groupData as $color) {
                                 if ($color['main_style'] ?? false) {
@@ -660,12 +667,14 @@ class DesignGroupsController extends Sceleton {
 
                 $filesQuery = DesignBoxesTmp::find()->alias('b')
                     ->select(['bs.setting_value'])->distinct()
-                    ->leftJoin(DesignBoxesSettingsTmp::tableName() . ' bs',
-                        "b.id = bs.box_id")
+                    ->leftJoin(
+                        DesignBoxesSettingsTmp::tableName() . ' bs',
+                        'b.id = bs.box_id'
+                    )
                     ->where([
                         'b.theme_name' => $themeName,
                         'b.block_name' => $category['category'],
-                        'bs.setting_name' => 'from_file'
+                        'bs.setting_name' => 'from_file',
                     ])
                     ->asArray()->all();
                 $files = [];
@@ -715,7 +724,7 @@ class DesignGroupsController extends Sceleton {
         $ts = ThemesSettings::find()
             ->where(['theme_name' => 'origin', 'setting_name' => 'block_copy_theme'])
             ->asArray()->one();
-        if ($ts['setting_value'] ?? false){
+        if ($ts['setting_value'] ?? false) {
             if ($ts['setting_value'] + 600 > time()) {
                 return json_encode(['error' => SYSTEM_NOT_READY]);
             } else {
@@ -761,7 +770,7 @@ class DesignGroupsController extends Sceleton {
         if (file_exists($bottomFile)) {
             $bottomCss = file_get_contents($bottomFile);
         }
-        $bottomCss .= \backend\design\Style::getCss($themeName, array('.b-bottom'));
+        $bottomCss .= \backend\design\Style::getCss($themeName, ['.b-bottom']);
         $bottomCss = \frontend\design\Info::minifyCss($bottomCss);
         $filePath = DIR_FS_CATALOG . 'themes' . $ds . $themeName . $ds . 'css' . $ds;
         FileHelper::createDirectory($filePath);
@@ -822,7 +831,7 @@ class DesignGroupsController extends Sceleton {
             }
 
             $zip = new \ZipArchive();
-            if ($zip->open($path . DIRECTORY_SEPARATOR . $file, \ZipArchive::CREATE) === TRUE) {
+            if ($zip->open($path . DIRECTORY_SEPARATOR . $file, \ZipArchive::CREATE) === true) {
                 $json = $zip->getFromName('data.json');
                 $groupData = json_decode($json, true);
                 foreach ($groupData as $blockName => $data) {
@@ -860,7 +869,7 @@ class DesignGroupsController extends Sceleton {
             $params['theme_name'] = $themeName;
             $params['block_name'] = $categoryBlockName;
             $params['sort_order'] = $sortOrder;
-            $sortOrder = $sortOrder+10;
+            $sortOrder = $sortOrder + 10;
 
             $importBlock = Theme::importBlock($path . DIRECTORY_SEPARATOR . $file, $params, $file);
             if (!is_array($importBlock)) {
@@ -912,7 +921,7 @@ class DesignGroupsController extends Sceleton {
         }
 
         $zip = new \ZipArchive();
-        if ($zip->open($path . DIRECTORY_SEPARATOR . $file, \ZipArchive::CREATE) !== TRUE) {
+        if ($zip->open($path . DIRECTORY_SEPARATOR . $file, \ZipArchive::CREATE) !== true) {
             return json_encode(['error' => 'ZipArchive error']);
         }
         $json = $zip->getFromName('data.json');
@@ -941,7 +950,7 @@ class DesignGroupsController extends Sceleton {
                 $themeSetting = ThemesSettings::find()->where([
                     'theme_name' => $themeName,
                     'setting_group' => 'extend',
-                    'setting_name' => 'font_added'
+                    'setting_name' => 'font_added',
                 ])->andWhere(['like', 'setting_value', $style['value']])->one();
 
                 if (!$themeSetting || !preg_match("/font-family: [\'\"]{0,1}" . $style['value'] . "[\'\"]{0,1};/", $themeSetting->setting_value)) {
@@ -1019,7 +1028,7 @@ class DesignGroupsController extends Sceleton {
         }
 
         $zip = new \ZipArchive();
-        if ($zip->open($path . DIRECTORY_SEPARATOR . $file, \ZipArchive::CREATE) !== TRUE) {
+        if ($zip->open($path . DIRECTORY_SEPARATOR . $file, \ZipArchive::CREATE) !== true) {
             return json_encode(['error' => 'ZipArchive error']);
         }
         $json = $zip->getFromName('data.json');
@@ -1070,8 +1079,8 @@ class DesignGroupsController extends Sceleton {
             $categories[$pageGroup['name']] = [
                 'title' => ($pageGroup['title'] ? $pageGroup['title'] : $pageGroup['name']),
                 'key' => $pageGroup['name'],
-                "folder" => true,
-                'checkbox' => false
+                'folder' => true,
+                'checkbox' => false,
             ];
         }
 
@@ -1085,7 +1094,7 @@ class DesignGroupsController extends Sceleton {
                 $categories[$page['group']] = [
                     'title' => $page['group'],
                     'children' => [],
-                    "folder" => true,
+                    'folder' => true,
                 ];
             }
             if (!isset($categories[$page['group']]['children'])) {
@@ -1094,7 +1103,7 @@ class DesignGroupsController extends Sceleton {
             $categories[$page['group']]['children'][] = [
                 'title' => $page['title'],
                 'key' => $page['page_name'],
-                'checkbox' => true
+                'checkbox' => true,
             ];
         }
 
@@ -1155,12 +1164,14 @@ class DesignGroupsController extends Sceleton {
 
             $filesQuery = DesignBoxesTmp::find()->alias('b')
                 ->select(['bs.setting_value'])->distinct()
-                ->leftJoin(DesignBoxesSettingsTmp::tableName() . ' bs',
-                    "b.id = bs.box_id")
+                ->leftJoin(
+                    DesignBoxesSettingsTmp::tableName() . ' bs',
+                    'b.id = bs.box_id'
+                )
                 ->where([
                     'b.theme_name' => $themeName,
                     'b.block_name' => $category,
-                    'bs.setting_name' => 'from_file'
+                    'bs.setting_name' => 'from_file',
                 ])
                 ->asArray()->all();
 

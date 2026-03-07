@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace common\api\models\XML;
 
-
 class IOPK extends IOMap
 {
-
-    static public function restoreFrom(\SimpleXMLElement $node, $obj)
+    public static function restoreFrom(\SimpleXMLElement $node, $obj)
     {
-        if ( !is_object($obj) || !($obj instanceof Complex) ) {
+        if (!is_object($obj) || !($obj instanceof Complex)) {
             $obj = new self();
         }
         return parent::restoreFrom($node, $obj);

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -14,11 +16,12 @@
 namespace common\services;
 
 use common\helpers\PriceFormula;
-use Yii;
 use common\models\Suppliers;
+use Yii;
 
 #[\AllowDynamicProperties]
-class SupplierService implements \IteratorAggregate {
+class SupplierService implements \IteratorAggregate
+{
     /* change @var $status */
 
     public $allow_change_status = false;
@@ -37,12 +40,13 @@ class SupplierService implements \IteratorAggregate {
 
     /* change $auth */
     public $allow_change_auth = false;
-    
+
     public $currencies_editor_simple = false;
     public $currencies;
     public $currenciesMap;
 
-    public function __construct() {
+    public function __construct()
+    {
         $this->currencies = Yii::$container->get('currencies');
         $this->currenciesMap = \yii\helpers\ArrayHelper::map($this->currencies->currencies, 'id', 'title');
     }
@@ -50,7 +54,8 @@ class SupplierService implements \IteratorAggregate {
     public $supplier;
     public $delivery_indicators;
 
-    public function loadSupplier($suppliers_id) {
+    public function loadSupplier($suppliers_id)
+    {
         if ($suppliers_id) {
             $this->supplier = Suppliers::findOne(['suppliers_id' => $suppliers_id]);
         }
@@ -73,7 +78,8 @@ class SupplierService implements \IteratorAggregate {
         $this->definePriceFormula();
     }
 
-    public function defineDeliveryInfo() {
+    public function defineDeliveryInfo()
+    {
         $this->delivery_indicators = \common\classes\StockIndication::get_delivery_terms();
         if ($this->delivery_indicators) {
             $this->delivery_indicators = \yii\helpers\ArrayHelper::map($this->delivery_indicators, 'id', 'text');
@@ -82,27 +88,30 @@ class SupplierService implements \IteratorAggregate {
 
     public $price_formula_text;
 
-    public function definePriceFormula() {
+    public function definePriceFormula()
+    {
         $this->price_formula_text = '';
-        if ( $_formula = PriceFormula::getSupplierFormula($this->supplier->suppliers_id) ) {
-            if ( is_array($_formula) && !empty($_formula['text']) ) {
+        if ($_formula = PriceFormula::getSupplierFormula($this->supplier->suppliers_id)) {
+            if (is_array($_formula) && !empty($_formula['text'])) {
                 $this->price_formula_text = $_formula['text'];
             }
         }
     }
 
     #[\ReturnTypeWillChange]
-    public function getIterator() {
+    public function getIterator()
+    {
         return new \ArrayIterator($this);
     }
 
-    public function get($object, $as = null) {
+    public function get($object, $as = null)
+    {
         $_proto = $this->getIterator();
         if (isset($_proto[$object])) {
             return $_proto[$object];
         } else {
             $newObject = Yii::createObject($object);
-            if (!is_null($as)){
+            if (!is_null($as)) {
                 $this->{$as} = $newObject;
                 return $this->{$as};
             } else {
@@ -111,27 +120,29 @@ class SupplierService implements \IteratorAggregate {
             }
         }
     }
-    
-    public function set($property, $value){
+
+    public function set($property, $value)
+    {
         $_proto = $this->getIterator();
         if (isset($_proto[$property])) {
             $_proto[$property] = $value;
             return $_proto[$property];
-        } else {            
+        } else {
             throw new Exception('Property not found');
         }
     }
 
-
-    public function getProducts(){
-        if (!property_exists($this, 'products')){
+    public function getProducts()
+    {
+        if (!property_exists($this, 'products')) {
             $this->products = $this->supplier->getSupplierProducts()->all();
         }
-        
+
         return $this->products;
     }
 
-    public function render($type, $params = []) {
+    public function render($type, $params = [])
+    {
 
         if (class_exists($type)) {
             $_ref = new \ReflectionClass($type);

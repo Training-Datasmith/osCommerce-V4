@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,10 +24,8 @@ class m230214_183752_delivery_options_ext extends Migration
      */
     public function safeUp()
     {
-        if (method_exists($this, 'isOldExtension'))
-        {
-            if (!$this->isOldExtension('DeliveryOptions'))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension('DeliveryOptions')) {
                 $this->removeTranslation('checkout', [
                     'TEXT_DELIVERY_OPTIONS',
                     'TEXT_STANDARD_DELIVERY',
@@ -34,8 +34,7 @@ class m230214_183752_delivery_options_ext extends Migration
                 $this->removeTranslation('admin/categories/productedit', ['TEXT_ALLOW_DELIVERY_OPTIONS']);
                 $this->removeConfigurationKeys('DeliveryOptions_EXTENSION_TAX_CLASS');
             }
-            if (!\common\helpers\Extensions::isInstalled('DeliveryOptions'))
-            {
+            if (!\common\helpers\Extensions::isInstalled('DeliveryOptions')) {
                 $this->dropTables([
                     'delivery_options',
                     'delivery_options_description',

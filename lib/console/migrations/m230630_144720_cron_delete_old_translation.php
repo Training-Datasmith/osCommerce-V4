@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,10 +25,9 @@ class m230630_144720_cron_delete_old_translation extends Migration
     public function safeUp()
     {
         $ext = 'common\extensions\CronScheduler\Setup';
-        if (method_exists($this, 'isOldProject'))
-        {
+        if (method_exists($this, 'isOldProject')) {
             if (!$this->isOldProject() || !class_exists($ext) || method_exists($ext, 'isAppShop')) {
-                $this->removeTranslation('admin/main',[
+                $this->removeTranslation('admin/main', [
                     'CREATE_NEW_JOB',
                     'MAX_EXECUTION_TIME_TEXT',
                     'ARGUMENTS_TEXT',
@@ -40,7 +41,6 @@ class m230630_144720_cron_delete_old_translation extends Migration
             }
         }
 
-
     }
 
     /**
@@ -48,7 +48,7 @@ class m230630_144720_cron_delete_old_translation extends Migration
      */
     public function safeDown()
     {
-        $this->addTranslation('admin/main',[
+        $this->addTranslation('admin/main', [
             'CREATE_NEW_JOB' => 'Create new job',
             'MAX_EXECUTION_TIME_TEXT' => 'Max execution time',
             'ARGUMENTS_TEXT' => 'Arguments',

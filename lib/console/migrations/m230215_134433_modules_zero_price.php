@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,14 +24,11 @@ class m230215_134433_modules_zero_price extends Migration
      */
     public function safeUp()
     {
-        $code = "ModulesZeroPrice";
-        if (method_exists($this, 'isOldExtension'))
-        {
-            if (!$this->isOldExtension($code))
-            {
+        $code = 'ModulesZeroPrice';
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension($code)) {
                 if (!((class_exists("\\common\\extensions\\$code\\$code"))
-                    && !method_exists("\\common\\extensions\\$code\\$code", 'optionPriceFree')))
-                {
+                    && !method_exists("\\common\\extensions\\$code\\$code", 'optionPriceFree'))) {
                     $this->removeConfigurationKeys('MODULE_PRICE_FREE');
                 }
             }

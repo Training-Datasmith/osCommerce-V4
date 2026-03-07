@@ -1,105 +1,111 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace backend\controllers;
 
+use common\components\Socials;
 use Yii;
 use yii\helpers\ArrayHelper;
-use common\components\Socials;
 
-class SocialsController extends Sceleton {
-
+class SocialsController extends Sceleton
+{
     public $acl = ['TEXT_SETTINGS', 'BOX_HEADING_SOCIALS'];
 
-    public function __construct($id, $module) {
+    public function __construct($id, $module)
+    {
         parent::__construct($id, $module);
         \common\helpers\Translation::init('admin/socials');
     }
 
-    public function actionIndex() {
+    public function actionIndex()
+    {
 
-        $this->selectedMenu = array('settings', 'socials');
-        $this->navigation[] = array('link' => \Yii::$app->urlManager->createUrl('socials/index'), 'title' => HEADING_TITLE);
+        $this->selectedMenu = ['settings', 'socials'];
+        $this->navigation[] = ['link' => \Yii::$app->urlManager->createUrl('socials/index'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
-        
+
         $platform_id = Yii::$app->request->get('platform_id', 0);
 
         $platforms = \common\classes\platform::getList(false);
 
         $this->view->tabList = [
-            array(
+            [
                 'title' => TABLE_SOCIAL_MODULE,
                 'not_important' => 0,
-            ),
-            array(
+            ],
+            [
                 'title' => TABLE_HEADING_STATUS . ' (Auth)',
                 'not_important' => 0,
-            ),
+            ],
         ];
         $this->view->group_id = (int)Yii::$app->request->get('group_id', 0);
         $messages = Yii::$app->session->getAllFlashes();
         Yii::$app->session->removeAllFlashes();
         return $this->render('index', [
                     'platforms' => $platforms,
-                    'first_platform_id' => ($platform_id?$platform_id:\common\classes\platform::firstId()),
+                    'first_platform_id' => ($platform_id ? $platform_id : \common\classes\platform::firstId()),
                     'default_platform_id' => \common\classes\platform::defaultId(),
                     'isMultiPlatforms' => \common\classes\platform::isMulti(),
-                    'messages' => $messages
+                    'messages' => $messages,
         ]);
     }
 
-    public function actionList() {
+    public function actionList()
+    {
         $draw = (int) Yii::$app->request->get('draw', 1);
         $start = (int) Yii::$app->request->get('start', 0);
         $length = (int) Yii::$app->request->get('length', 10);
-        
+
         $platform_id = (int) Yii::$app->request->get('platform_id');
 
         $responseList = [];
-        if ($length == -1)
+        if ($length == -1) {
             $length = 10000;
+        }
         $recordsTotal = 0;
 
         if (isset($_GET['search']['value']) && tep_not_null($_GET['search']['value'])) {
             $keywords = tep_db_input(tep_db_prepare_input($_GET['search']['value']));
             $search_condition = " where module like '%" . $keywords . "%' ";
         } else {
-            $search_condition = " where 1 ";
+            $search_condition = ' where 1 ';
         }
 
         if (isset($_GET['order'][0]['column']) && $_GET['order'][0]['dir']) {
             switch ($_GET['order'][0]['column']) {
                 case 0:
-                    $orderBy = "module " . tep_db_prepare_input($_GET['order'][0]['dir']);
+                    $orderBy = 'module ' . tep_db_prepare_input($_GET['order'][0]['dir']);
                     break;
                 default:
-                    $orderBy = "module";
+                    $orderBy = 'module';
                     break;
             }
         } else {
-            $orderBy = "module";
+            $orderBy = 'module';
         }
 
-        $current_page_number = ( $start / $length ) + 1;
-        $socialsRaw = "select * from " . TABLE_SOCIALS . " $search_condition  and platform_id = '{$platform_id}' order by $orderBy";
+        $current_page_number = ($start / $length) + 1;
+        $socialsRaw = 'select * from ' . TABLE_SOCIALS . " $search_condition  and platform_id = '{$platform_id}' order by $orderBy";
         $_split = new \splitPageResults($current_page_number, $length, $socialsRaw, $recordsTotal, 'socials_id');
         $socialsQuery = tep_db_query($socialsRaw);
         while ($social = tep_db_fetch_array($socialsQuery)) {
             if (!empty(\common\components\Socials::getSiteUrl($social['module']))) {
-                $responseList[] = array(
+                $responseList[] = [
                     $social['module'] . '<input class="cell_identify" type="hidden" value="' . $social['socials_id'] . '">',
-                    (!in_array($social['module'], ['instagram', 'youtube']) ? '<input name="active" type="checkbox" class="check_on_off" ' . ($social['active'] ? " checked" : "") . '>' : ''),
-                );
+                    (!in_array($social['module'], ['instagram', 'youtube']) ? '<input name="active" type="checkbox" class="check_on_off" ' . ($social['active'] ? ' checked' : '') . '>' : ''),
+                ];
             }
         }
 
@@ -112,11 +118,12 @@ class SocialsController extends Sceleton {
         echo json_encode($response);
     }
 
-    public function actionPreview() {
+    public function actionPreview()
+    {
         $this->layout = false;
         $socials_id = (int) Yii::$app->request->get('socials_id');
 
-        $socialQuery = tep_db_query("select * from " . TABLE_SOCIALS . " where socials_id = '" . (int) $socials_id . "'");
+        $socialQuery = tep_db_query('select * from ' . TABLE_SOCIALS . " where socials_id = '" . (int) $socials_id . "'");
         $social = tep_db_fetch_array($socialQuery);
         if (is_array($social)) {
             echo '<div class="or_box_head">' . $social['module'] . '</div>';
@@ -127,7 +134,8 @@ class SocialsController extends Sceleton {
         }
     }
 
-    public function actionNew() {
+    public function actionNew()
+    {
         $platform_id = (int) Yii::$app->request->get('platform_id');
         $_social = new \StdClass();
         $_social->socials_id = 0;
@@ -143,18 +151,19 @@ class SocialsController extends Sceleton {
         $defined_modules = [];
         $exist = [];
         if (is_array($_defined_modules)) {
-            $_modules = tep_db_query("select module from " . TABLE_SOCIALS . " where platform_id = '{$platform_id}'");
+            $_modules = tep_db_query('select module from ' . TABLE_SOCIALS . " where platform_id = '{$platform_id}'");
             if (tep_db_num_rows($_modules)) {
                 while ($row = tep_db_fetch_array($_modules)) {
                     $exist[] = $row['module'];
                 }
             }
             foreach ($_defined_modules as $mod) {
-                if (!in_array($mod['name'], $exist))
+                if (!in_array($mod['name'], $exist)) {
                     $defined_modules[$mod['name']] = $mod['name'];
+                }
             }
         }
-        
+
         return $this->renderAjax('new', [
                     'social' => $_social,
                     'modules' => $defined_modules,
@@ -162,11 +171,12 @@ class SocialsController extends Sceleton {
         ]);
     }
 
-    public function actionEdit() {
+    public function actionEdit()
+    {
         \common\helpers\Translation::init('admin/adminfiles');
-        
-        $this->selectedMenu = array('settings', 'socials');
-        $this->navigation[] = array('link' => \Yii::$app->urlManager->createUrl('socials/index'), 'title' => HEADING_TITLE);
+
+        $this->selectedMenu = ['settings', 'socials'];
+        $this->navigation[] = ['link' => \Yii::$app->urlManager->createUrl('socials/index'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
 
         $this->topButtons[] = '<span class="btn btn-confirm" onclick="$(\'form[name=social_form]\').trigger(\'submit\')">' . IMAGE_SAVE . '</span>';
@@ -185,7 +195,7 @@ class SocialsController extends Sceleton {
 
         $_social = new \StdClass();
         if ($socials_id) {
-            $social = tep_db_fetch_array(tep_db_query("select * from " . TABLE_SOCIALS . " where socials_id = '" . $socials_id . "' and platform_id = '{$platform_id}'"));
+            $social = tep_db_fetch_array(tep_db_query('select * from ' . TABLE_SOCIALS . " where socials_id = '" . $socials_id . "' and platform_id = '{$platform_id}'"));
             $_social->socials_id = $socials_id;
             $_social->platform_id = $social['platform_id'];
             $_social->module = $social['module'];
@@ -202,8 +212,7 @@ class SocialsController extends Sceleton {
             $title = 'Edit Social Module';
         }
 
-
-        $addons_query = tep_db_query("select * from " . TABLE_SOCIALS_ADDONS . " where socials_id = '" . $socials_id . "'");
+        $addons_query = tep_db_query('select * from ' . TABLE_SOCIALS_ADDONS . " where socials_id = '" . $socials_id . "'");
 
         if (tep_db_num_rows($addons_query)) {
             while ($row = tep_db_fetch_array($addons_query)) {
@@ -228,7 +237,8 @@ class SocialsController extends Sceleton {
         ]);
     }
 
-    public function actionSave() {
+    public function actionSave()
+    {
 
         $platform_id = (int) Yii::$app->request->post('platform_id');
         $socials_id = (int) Yii::$app->request->post('socials_id', 0);
@@ -250,9 +260,9 @@ class SocialsController extends Sceleton {
                 } else {
                     tep_db_perform(TABLE_SOCIALS, $sql_data_array);
                     $socials_id = tep_db_insert_id();
-                }                
+                }
                 unset($settings['auth']);
-            } else if (!$socials_id) {
+            } elseif (!$socials_id) {
                 $sql_data_array = [
                     'platform_id' => $platform_id,
                     'module' => $module,
@@ -295,33 +305,33 @@ class SocialsController extends Sceleton {
             }
 
             if (is_array($settings ?? null) && count($settings) > 0) {
-                
-                tep_db_query("delete from " . TABLE_SOCIALS_ADDONS . " where socials_id = '" . (int) $socials_id . "'");
+
+                tep_db_query('delete from ' . TABLE_SOCIALS_ADDONS . " where socials_id = '" . (int) $socials_id . "'");
                 foreach ($settings as $block => $info) {
                     if (is_array($info) && count($info)) {
                         foreach ($info as $key => $value) {
-                            
-                            if (isset($_FILES['settings']['name'][$block][$key])){
+
+                            if (isset($_FILES['settings']['name'][$block][$key])) {
                                 $path = \Yii::getAlias('@webroot');
                                 $path .= DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
                                 $uploadfile = $path . basename($value);
                                 $dest_path = \Yii::getAlias('@common'). DIRECTORY_SEPARATOR . 'config' . DIRECTORY_SEPARATOR . 'google' . DIRECTORY_SEPARATOR ;
-                                if (!is_dir($dest_path)){
+                                if (!is_dir($dest_path)) {
                                     mkdir($dest_path);
                                     chmod($dest_path, 0777);
                                 }
-                                    
+
                                 $dest = $dest_path . basename($value);
                                 $rewrite = false;
-                                if (file_exists($uploadfile)){
+                                if (file_exists($uploadfile)) {
                                     $rewrite = true;
-                                    if (file_exists($dest) && $dest == $uploadfile){
+                                    if (file_exists($dest) && $dest == $uploadfile) {
                                         $info = pathinfo($dest);
                                         $info['filename'] .= '-'.rand();
-                                        $dest = $info['dirname'] . DIRECTORY_SEPARATOR. $info['filename'] . '.'.$info['extension'];                                        
+                                        $dest = $info['dirname'] . DIRECTORY_SEPARATOR. $info['filename'] . '.'.$info['extension'];
                                     }
-                                    
-                                    if(copy($uploadfile, $dest)){
+
+                                    if (copy($uploadfile, $dest)) {
                                         unset($uploadfile);
                                     }
                                 }
@@ -332,14 +342,13 @@ class SocialsController extends Sceleton {
                                             'block_name' => strtolower($block),
                                         ];
                                 tep_db_perform(TABLE_SOCIALS_ADDONS, $sql_data_array);
-                            }
-                            else {
+                            } else {
                                 $sql_data_array = [
                                     'socials_id' => $socials_id,
                                     'configuration_key' => $key,
                                     'configuration_value' => $value,
                                     'block_name' => strtolower($block),
-                                ];    
+                                ];
                                 tep_db_perform(TABLE_SOCIALS_ADDONS, $sql_data_array);
                             }
                         }
@@ -348,29 +357,31 @@ class SocialsController extends Sceleton {
                 Yii::$app->session->setFlash('success', TEXT_MESSEAGE_SUCCESS);
             }
         } else {
-           // Yii::$app->session->setFlash('danger', TEXT_MESSAGE_ERROR);
+            // Yii::$app->session->setFlash('danger', TEXT_MESSAGE_ERROR);
             return $this->redirect(['socials/']);
         }
 
         return $this->redirect(['socials/edit', 'socials_id' => $socials_id, 'platform_id' => $platform_id]);
     }
 
-    public function actionDelete() {
+    public function actionDelete()
+    {
         $socials_id = (int) Yii::$app->request->post('socials_id');
-        tep_db_query("delete from " . TABLE_SOCIALS . " where socials_id = '" . (int) $socials_id . "'");
+        tep_db_query('delete from ' . TABLE_SOCIALS . " where socials_id = '" . (int) $socials_id . "'");
         echo 'ok';
     }
 
-    public function actionChange() {
+    public function actionChange()
+    {
         $socials_id = (int) Yii::$app->request->post('socials_id');
         $platform_id = Yii::$app->request->post('platform_id', 0);
         $status = Yii::$app->request->post('status', 'false') == 'true' ? 1 : 0;
         $message = '';
         $error = true;
         if ($platform_id && $socials_id) {
-            $_status = tep_db_fetch_array(tep_db_query("select test_success, module from " . TABLE_SOCIALS . " where socials_id = '" . (int) $socials_id . "'"));
+            $_status = tep_db_fetch_array(tep_db_query('select test_success, module from ' . TABLE_SOCIALS . " where socials_id = '" . (int) $socials_id . "'"));
             if ($_status['test_success']) {
-                tep_db_query("update " . TABLE_SOCIALS . " set active='" . (int) $status . "' where socials_id = '" . (int) $socials_id . "' and platform_id = '" . (int) $platform_id . "'");
+                tep_db_query('update ' . TABLE_SOCIALS . " set active='" . (int) $status . "' where socials_id = '" . (int) $socials_id . "' and platform_id = '" . (int) $platform_id . "'");
                 $message = TEXT_MESSEAGE_SUCCESS;
                 $error = false;
                 $title = TEXT_MESSTYPE_SUCCESS;
@@ -384,7 +395,8 @@ class SocialsController extends Sceleton {
         return $this->renderAjax('message', ['type' => ($error ? 'error' : 'success'), 'message' => $message, 'title' => $title]);
     }
 
-    public function actionTest() {
+    public function actionTest()
+    {
 
         $module = Yii::$app->request->get('module');
         $platform_id = (int) Yii::$app->request->get('platform_id');

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,12 +25,11 @@ class m230606_090219_add_email_address extends Migration
     public function safeUp()
     {
         if (!$this->isFieldExists('entry_email_address', 'address_book')) {
-            $this->addColumn('address_book','entry_email_address',$this->string(96)->notNull()->defaultValue(''));
+            $this->addColumn('address_book', 'entry_email_address', $this->string(96)->notNull()->defaultValue(''));
         }
 
-
-        foreach ( ['SHIPPING', 'BILLING', 'ACCOUNT'] as $k) {
-            if ($k=='ACCOUNT') { // I like it .... (evil)
+        foreach (['SHIPPING', 'BILLING', 'ACCOUNT'] as $k) {
+            if ($k == 'ACCOUNT') { // I like it .... (evil)
                 $gid = 'BOX_CONFIGURATION_CUSTOMER_DETAILS';
                 $title = 'Address book email';
             } else {
@@ -46,16 +47,16 @@ class m230606_090219_add_email_address extends Migration
                     'configuration_value' => 'visible',
                     'set_function' => "tep_cfg_select_option(array('disabled', 'visible', 'visible_register', 'required', 'required_register', 'required_company'),",
                     'sort_order' => '40',
-                    'date_added' => (new yii\db\Expression('now()'))
+                    'date_added' => (new yii\db\Expression('now()')),
                 ]);
             }
         }
 
-        $this->addTranslation('admin/main',[
+        $this->addTranslation('admin/main', [
             'ENTRY_EMAIL_ADDRESS_ADRESS_BOOK' => 'Email address',
             'ENTRY_EMAIL_ADDRESS_ADRESS_BOOK_ERROR' => 'Please enter the email address',
         ]);
-        $this->addTranslation('main',[
+        $this->addTranslation('main', [
             'ENTRY_EMAIL_ADDRESS_ADRESS_BOOK' => 'Email address',
             'ENTRY_EMAIL_ADDRESS_ADRESS_BOOK_ERROR' => 'Please enter the email address',
         ]);
@@ -66,11 +67,11 @@ class m230606_090219_add_email_address extends Migration
      */
     public function safeDown()
     {
-        $this->removeTranslation('admin/main',[
+        $this->removeTranslation('admin/main', [
             'ENTRY_EMAIL_ADDRESS_ADRESS_BOOK',
             'ENTRY_EMAIL_ADDRESS_ADRESS_BOOK_ERROR',
         ]);
-        $this->removeTranslation('main',[
+        $this->removeTranslation('main', [
             'ENTRY_EMAIL_ADDRESS_ADRESS_BOOK',
             'ENTRY_EMAIL_ADDRESS_ADRESS_BOOK_ERROR',
         ]);

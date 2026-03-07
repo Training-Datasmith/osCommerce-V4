@@ -1,9 +1,8 @@
 <?php
+
 declare (strict_types=1);
 
-
 namespace common\models\repositories;
-
 
 use common\models\OrdersLabel;
 use common\models\OrdersLabelToOrdersProducts;
@@ -16,8 +15,7 @@ class OrdersLabelRepository
 
     public function __construct(
         TransactionManager $transactionManager
-    )
-    {
+    ) {
         $this->transactionManager = $transactionManager;
     }
 
@@ -28,7 +26,7 @@ class OrdersLabelRepository
      */
     public function get($ordersLabelId, bool $asArray = false)
     {
-        if ($ordersLabel= $this->find($ordersLabelId, $asArray)) {
+        if ($ordersLabel = $this->find($ordersLabelId, $asArray)) {
             throw new NotFoundException('Orders Label not found');
         }
         return $ordersLabel;
@@ -78,13 +76,13 @@ class OrdersLabelRepository
      */
     public function remove(OrdersLabel $ordersLabel): bool
     {
-        $this->transactionManager->wrap(static function() use ($ordersLabel){
+        $this->transactionManager->wrap(static function () use ($ordersLabel) {
             OrdersLabelToOrdersProducts::deleteAll([
                 'orders_label_id' => $ordersLabel->orders_label_id,
-                'orders_id' => $ordersLabel->orders_id
+                'orders_id' => $ordersLabel->orders_id,
             ]);
             if ($ordersLabel->delete() === false) {
-                throw new \RuntimeException( 'Orders Label remove error.' );
+                throw new \RuntimeException('Orders Label remove error.');
             }
         });
         return true;
@@ -97,8 +95,9 @@ class OrdersLabelRepository
     public function removeOrderProductLabelsByOrder(int $orderId): int
     {
         return OrdersLabelToOrdersProducts::deleteAll([
-            'orders_id' => $orderId
-        ]);;
+            'orders_id' => $orderId,
+        ]);
+        ;
     }
 
     /**
@@ -107,9 +106,10 @@ class OrdersLabelRepository
      * @return bool
      * @throws \RuntimeException
      */
-    public function save(OrdersLabel $ordersLabel, bool $validation = false) {
+    public function save(OrdersLabel $ordersLabel, bool $validation = false)
+    {
         if ($ordersLabel->save($validation) === false) {
-            throw new \RuntimeException( 'Orders Label save error.' );
+            throw new \RuntimeException('Orders Label save error.');
         }
         return true;
     }
@@ -125,7 +125,7 @@ class OrdersLabelRepository
         $orderLabel = OrdersLabel::find()
             ->where([
                 'orders_label_id' => $orderLabelId,
-                'orders_id' =>$orderId
+                'orders_id' => $orderId,
             ])
             ->limit(1)
             ->asArray($asArray)

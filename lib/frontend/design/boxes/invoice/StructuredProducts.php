@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,16 +15,14 @@
 
 namespace frontend\design\boxes\invoice;
 
-use Yii;
-use yii\base\Widget;
-use frontend\design\IncludeTpl;
+use backend\design\editor\Formatter;
 use frontend\design\Info;
+use yii\base\Widget;
 use yii\helpers\Html;
 use yii\helpers\Inflector;
-use \backend\design\editor\Formatter;
 
-class StructuredProducts extends Widget {
-
+class StructuredProducts extends Widget
+{
     public $id;
     public $file;
     public $params;
@@ -33,15 +33,17 @@ class StructuredProducts extends Widget {
     private $order;
     private $width;
 
-    public function init() {
+    public function init()
+    {
         parent::init();
 
         $this->order = $this->params['order'];
-        if (!is_object($this->order))
+        if (!is_object($this->order)) {
             throw new \Exception('Invalid order object');
-        $this->structure = new \backend\design\boxes\invoice\StructuredProducts;
+        }
+        $this->structure = new \backend\design\boxes\invoice\StructuredProducts();
         if (!empty($this->settings[0]['sort_order'])) {
-            $this->fields = explode(";", $this->settings[0]['sort_order']);
+            $this->fields = explode(';', $this->settings[0]['sort_order']);
         } else {
             $this->fields = $this->structure->baseColumns;
         }
@@ -55,23 +57,24 @@ class StructuredProducts extends Widget {
         $this->_widths();
     }
 
-    private function _widths(){
+    private function _widths()
+    {
         if (is_array($this->fields) && count($this->fields)) {
             $undefined = 0;
             $defined = 0;
             foreach ($this->fields as $field) {
-                if (isset($this->settings[0]["width_" . $field])){
-                    $this->width[$field] = (float)$this->settings[0]["width_" . $field];
+                if (isset($this->settings[0]['width_' . $field])) {
+                    $this->width[$field] = (float)$this->settings[0]['width_' . $field];
                     $defined += $this->width[$field];
                 } else {
                     $this->width[$field] = false;
                     $undefined++;
                 }
             }
-            if ($undefined){
-                $avg = number_format( (100 - $defined) / $undefined, 2);
+            if ($undefined) {
+                $avg = number_format((100 - $defined) / $undefined, 2);
                 foreach ($this->fields as $field) {
-                    if ($this->width[$field] === false){
+                    if ($this->width[$field] === false) {
                         $this->width[$field] = $avg;
                     }
                 }
@@ -79,29 +82,31 @@ class StructuredProducts extends Widget {
         }
     }
 
-    public function formHead() {
+    public function formHead()
+    {
         if (is_array($this->fields) && count($this->fields)) {
             foreach ($this->fields as $field) {
-                $pos = $this->settings[0]["position_" . $field] ?? "left";
+                $pos = $this->settings[0]['position_' . $field] ?? 'left';
                 $width = $this->width[$field];
                 $this->html .= $this->wrapTd($this->structure->getLabel($field), ['style' => "background-color: #eee;width:{$width}%;text-align:{$pos};"]);
             }
-            $this->html = $this->wrapTr($this->html, ['class' => "invoice-products-headings"]);
+            $this->html = $this->wrapTr($this->html, ['class' => 'invoice-products-headings']);
         }
     }
 
-    public function formBody() {
+    public function formBody()
+    {
         $counter = 0;
         if (is_array($this->order->products)) {
             $rows = [];
             foreach ($this->order->getOrderedProducts('invoice') as $product) {
                 $html = '';
-                if ((!($this->params['from'] ?? false) && !($this->params['to'] ?? false)) || ($counter >= ($this->params['from']??0) && $counter < ($this->params['to'] ?? 0))) {
+                if ((!($this->params['from'] ?? false) && !($this->params['to'] ?? false)) || ($counter >= ($this->params['from'] ?? 0) && $counter < ($this->params['to'] ?? 0))) {
                     foreach ($this->fields as $field) {
-                        $pos = $this->settings[0]["position_" . $field] ?? "left";
+                        $pos = $this->settings[0]['position_' . $field] ?? 'left';
                         $key = $this->structure->getKey($field);
-                        if (method_exists($this, 'get' . Inflector::id2camel($key, "_"))) {
-                            $html .= $this->wrapTd($this->{'get' . Inflector::id2camel($key, "_")}($product), ['style' => "text-align:{$pos};"]);
+                        if (method_exists($this, 'get' . Inflector::id2camel($key, '_'))) {
+                            $html .= $this->wrapTd($this->{'get' . Inflector::id2camel($key, '_')}($product), ['style' => "text-align:{$pos};"]);
                         } elseif (isset($product[$key])) {
                             $html .= $this->wrapTd($product[$key], ['style' => "text-align:{$pos};"]);
                         } else {
@@ -115,31 +120,35 @@ class StructuredProducts extends Widget {
         }
     }
 
-    public function getTax($product) {
+    public function getTax($product)
+    {
         return \common\helpers\Tax::display_tax_value($product['tax']) . '%';
     }
 
-    public function getPriceIncTax($product) {
+    public function getPriceIncTax($product)
+    {
         return Formatter::price($product['final_price'], $product['tax'], 1, $this->order->info['currency'], $this->order->info['currency_value']);
     }
 
-    public function getTotalIncTax($product) {
+    public function getTotalIncTax($product)
+    {
         return Html::tag('b', Formatter::price($product['final_price'], $product['tax'], $product['qty'], $this->order->info['currency'], $this->order->info['currency_value']));
     }
 
-    public function getTotalExcTax($product) {
+    public function getTotalExcTax($product)
+    {
         return Formatter::priceEx($product['final_price'], $product['tax'], $product['qty'], $this->order->info['currency'], $this->order->info['currency_value']);
     }
 
-    public function getName($product) {
+    public function getName($product)
+    {
         $name = $product['name'];
         if (isset($product['tpl_attributes']) && !empty($product['tpl_attributes'])) {
-            $name .= '<div><small><i>' . str_replace(array('&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;', "\n\t"), array('&nbsp;', '<b>', '</b>', '<br>', '<br>'), htmlspecialchars($product['tpl_attributes'])) . '</i></small></div>';
-        } else
-        if (is_array($product['attributes'])) {
+            $name .= '<div><small><i>' . str_replace(['&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;', "\n\t"], ['&nbsp;', '<b>', '</b>', '<br>', '<br>'], htmlspecialchars($product['tpl_attributes'])) . '</i></small></div>';
+        } elseif (is_array($product['attributes'])) {
             foreach ($product['attributes'] as $attribut) {
                 $name .= '
-      <div><small>&nbsp;<i> - ' . str_replace(array('&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;'), array('&nbsp;', '<b>', '</b>', '<br>'), htmlspecialchars($attribut['option'])) . ': ' . $attribut['value'] . '</i></small></div>';
+      <div><small>&nbsp;<i> - ' . str_replace(['&amp;nbsp;', '&lt;b&gt;', '&lt;/b&gt;', '&lt;br&gt;'], ['&nbsp;', '<b>', '</b>', '<br>'], htmlspecialchars($attribut['option'])) . ': ' . $attribut['value'] . '</i></small></div>';
             }
         }
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('ProductAssets', 'allowed')) {
@@ -148,7 +157,8 @@ class StructuredProducts extends Widget {
         return $name;
     }
 
-    private function getInfo($product, $field) {
+    private function getInfo($product, $field)
+    {
         if (\common\helpers\Inventory::isInventory($product['id'])) {
             $inv = \common\models\Inventory::find()->select($field)->where(['products_id' => $product['id']])->one();
         }
@@ -161,21 +171,24 @@ class StructuredProducts extends Widget {
         return false;
     }
 
-    public function getModelBarcode($product) {
+    public function getModelBarcode($product)
+    {
         if (!empty($product['model'])) {
             return $this->drawBarcode($product['model'], [], ['style' => 'height:40px;width:200px;']);
         }
         return '';
     }
 
-    public function getEan($product) {
+    public function getEan($product)
+    {
         if ($ean = $this->getInfo($product, 'products_ean')) {
             return $ean;
         }
         return '';
     }
 
-    public function getEanBarcode($product) {
+    public function getEanBarcode($product)
+    {
         $ean = $this->getEan($product);
         if (!empty($ean)) {
             return $this->drawBarcode($ean, [], ['style' => 'height:40px;width:200px;']);
@@ -183,14 +196,16 @@ class StructuredProducts extends Widget {
         return '';
     }
 
-    public function getUpc($product) {
+    public function getUpc($product)
+    {
         if ($upc = $this->getInfo($product, 'products_upc')) {
             return $upc;
         }
         return '';
     }
 
-    public function getUpcBarcode($product) {
+    public function getUpcBarcode($product)
+    {
         $upc = $this->getUpc($product);
         if (!empty($upc)) {
             return $this->drawBarcode($upc, [], ['style' => 'height:40px;width:200px;']);
@@ -198,14 +213,16 @@ class StructuredProducts extends Widget {
         return '';
     }
 
-    public function getAsin($product) {
+    public function getAsin($product)
+    {
         if ($asin = $this->getInfo($product, 'products_asin')) {
             return $asin;
         }
         return '';
     }
 
-    public function getAsinBarcode($product) {
+    public function getAsinBarcode($product)
+    {
         $asin = $this->getAsin($product);
         if (!empty($asin)) {
             return $this->drawBarcode($asin, [], ['style' => 'height:40px;width:200px;']);
@@ -213,14 +230,16 @@ class StructuredProducts extends Widget {
         return '';
     }
 
-    public function getIsbn($product) {
+    public function getIsbn($product)
+    {
         if ($isbn = $this->getInfo($product, 'products_isbn')) {
             return $isbn;
         }
         return '';
     }
 
-    public function getIsbnBarcode($product) {
+    public function getIsbnBarcode($product)
+    {
         $isbn = $this->getIsbn($product);
         if (!empty($isbn)) {
             return $this->drawBarcode($isbn, [], ['style' => 'height:50px;width:200px;']);
@@ -228,7 +247,8 @@ class StructuredProducts extends Widget {
         return '';
     }
 
-    public function drawBarcode($content, $barcodeOptions = [], $options = []) {
+    public function drawBarcode($content, $barcodeOptions = [], $options = [])
+    {
         $barcodeSize = ($barcodeOptions ? $barcodeOptions : [38, 7.5]);
         $barcodeobj = new \TCPDFBarcode($content, 'C128');
         $barcode = base64_encode($barcodeobj->getBarcodePngData($barcodeSize[0], $barcodeSize[1]));
@@ -236,19 +256,23 @@ class StructuredProducts extends Widget {
         return Html::tag('img', '', $options);
     }
 
-    public function wrapTable($html) {
+    public function wrapTable($html)
+    {
         return Html::tag('table', $html, ['class' => 'invoice-products', 'style' => 'width: 100%', 'cellpadding' => 5]);
     }
 
-    public function wrapTd($html, $options = []) {
-        return Html::tag("td", $html, $options);
+    public function wrapTd($html, $options = [])
+    {
+        return Html::tag('td', $html, $options);
     }
 
-    public function wrapTr($html, $options = []) {
-        return Html::tag("tr", $html, $options);
+    public function wrapTr($html, $options = [])
+    {
+        return Html::tag('tr', $html, $options);
     }
 
-    public function run() {
+    public function run()
+    {
 
         if (is_array($this->order->products)) {
             $width = Info::blockWidth($this->id);

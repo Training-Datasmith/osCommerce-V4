@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -21,12 +23,12 @@ return [
                     'xmlCollection' => 'Zones>Zone',
                     'properties' => [
                         'association_id' => false,
-                        'zone_country_id' => ['class'=>'IOCountryMap'],
-                        'zone_id' => ['class'=>'IOCountryZoneMap'],
+                        'zone_country_id' => ['class' => 'IOCountryMap'],
+                        'zone_id' => ['class' => 'IOCountryZoneMap'],
                     ],
                 ],
             ],
-        ]
+        ],
     ],
     'covered_tables' => [ 'tax_zones', 'zones_to_tax_zones' ],
 ];

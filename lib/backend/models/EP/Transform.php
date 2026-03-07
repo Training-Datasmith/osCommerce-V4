@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace backend\models\EP;
 
-
 class Transform
 {
     protected $columnMap = [];
@@ -21,7 +22,9 @@ class Transform
     public function setProviderColumns($columns)
     {
         $this->columnMap = $columns;
-        if ( count($this->mapping)==0 ) $this->mapping = array_flip($columns);
+        if (count($this->mapping) == 0) {
+            $this->mapping = array_flip($columns);
+        }
     }
 
     public function setTransformMap($external)
@@ -31,11 +34,15 @@ class Transform
 
     public function transform($data)
     {
-        if ( !is_array($data) ) return $data;
+        if (!is_array($data)) {
+            return $data;
+        }
 
         $transformedData = [];
-        foreach( $this->mapping as $file_key=>$db_key ) {
-            if ( !array_key_exists($file_key, $data) ) continue;
+        foreach ($this->mapping as $file_key => $db_key) {
+            if (!array_key_exists($file_key, $data)) {
+                continue;
+            }
             $transformedData[$db_key] = $data[$file_key];
         }
 

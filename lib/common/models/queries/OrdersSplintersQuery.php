@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,23 +16,25 @@ namespace common\models\queries;
 
 use yii\db\ActiveQuery;
 
-class OrdersSplintersQuery extends ActiveQuery {
-  
-/**
- *
- * @param int $status splinters_status
- * @param bool $withSubId ['is not', 'splinters_suborder_id', null]
- * @return $this
- */
-    public function status($status, $withSubId = false){
+class OrdersSplintersQuery extends ActiveQuery
+{
+    /**
+     *
+     * @param int $status splinters_status
+     * @param bool $withSubId ['is not', 'splinters_suborder_id', null]
+     * @return $this
+     */
+    public function status($status, $withSubId = false)
+    {
         $query = $this->andWhere(['splinters_status' => $status]);
-        if ($withSubId){
+        if ($withSubId) {
             $query->andWhere(['is not', 'splinters_suborder_id', null]);
         }
         return $query;
     }
-    
-    public function type($type){
+
+    public function type($type)
+    {
         return $this->andWhere(['splinters_type' => $type]);
     }
 }

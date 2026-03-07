@@ -14,19 +14,20 @@ namespace backend\controllers;
 
 use Yii;
 
-class AdminfilesController extends Sceleton {
-
+class AdminfilesController extends Sceleton
+{
     public $acl = ['BOX_HEADING_ADMINISTRATOR', 'BOX_ADMINISTRATOR_BOXES'];
 
-    public function actionIndex() {
-        $this->selectedMenu = array('administrator', 'adminfiles');
-        $this->navigation[] = array('link' => \Yii::$app->urlManager->createUrl('adminfiles/index'), 'title' => HEADING_TITLE);
+    public function actionIndex()
+    {
+        $this->selectedMenu = ['administrator', 'adminfiles'];
+        $this->navigation[] = ['link' => \Yii::$app->urlManager->createUrl('adminfiles/index'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
         $this->topButtons[] = '<a href="'.Yii::$app->urlManager->createUrl('adminfiles/edit').'" class="btn btn-primary" onclick="return editItem(0)">'.IMAGE_INSERT.'</a>';
         $this->view->accessTable = [
             [
                 'title' => TABLE_HEADING_NAME,
-                'not_important' => 0
+                'not_important' => 0,
             ],
         ];
 
@@ -36,21 +37,23 @@ class AdminfilesController extends Sceleton {
         return $this->render('index');
     }
 
-    public function actionList() {
+    public function actionList()
+    {
         $draw = Yii::$app->request->get('draw', 1);
         $start = Yii::$app->request->get('start', 0);
         $length = Yii::$app->request->get('length', 10);
 
         $responseList = [];
-        if ($length == -1)
+        if ($length == -1) {
             $length = 10000;
+        }
         $recordsTotal = 0;
 
         if (isset($_GET['search']['value']) && tep_not_null($_GET['search']['value'])) {
             $keywords = tep_db_input(tep_db_prepare_input($_GET['search']['value']));
             $search_condition = " where access_levels_name like '%" . $keywords . "%' ";
         } else {
-            $search_condition = " where 1 ";
+            $search_condition = ' where 1 ';
         }
 
         /*if (isset($_GET['order'][0]['column']) && $_GET['order'][0]['dir']) {
@@ -66,47 +69,49 @@ class AdminfilesController extends Sceleton {
             $orderBy = "access_levels_name";
         }*/
 
-        $orderBy = "sort_order, access_levels_name";
+        $orderBy = 'sort_order, access_levels_name';
 
-        $current_page_number = ( $start / $length ) + 1;
-        $accessQueryRaw = "select * from " . TABLE_ACCESS_LEVELS . " $search_condition order by $orderBy";
+        $current_page_number = ($start / $length) + 1;
+        $accessQueryRaw = 'select * from ' . TABLE_ACCESS_LEVELS . " $search_condition order by $orderBy";
         $_split = new \splitPageResults($current_page_number, $length, $accessQueryRaw, $recordsTotal, 'access_levels_id');
         $accessQuery = tep_db_query($accessQueryRaw);
         while ($access = tep_db_fetch_array($accessQuery)) {
-            $responseList[] = array(
+            $responseList[] = [
                     '<div class="handle_cat_list"><span class="handle"><i class="icon-hand-paper-o"></i></span><div class="cat_name cat_name_attr cat_no_folder">' . $access['access_levels_name']  .
                         '<input class="cell_identify" type="hidden" value="' . $access['access_levels_id'] . '">'.
                         '<input class="cell_type" type="hidden" value="top" >'.
                     '</div></div>',
                     //$access['access_levels_name'] . '<input class="cell_identify" type="hidden" value="' . $access['access_levels_id'] . '">',
-                );
+                ];
         }
 
         $response = [
             'draw' => $draw,
             'recordsTotal' => $recordsTotal,
             'recordsFiltered' => $recordsTotal,
-            'data' => $responseList
+            'data' => $responseList,
         ];
         echo json_encode($response);
     }
 
     private function getAccessLevelByIdArray($accessLevelId = 0)
     {
-        $return = array();
+        $return = [];
         try {
             $return = \common\models\AccessLevels::find()->where(['access_levels_id' => (int)$accessLevelId])->asArray(true)->one();
             try {
-                if (is_array($return) AND isset($return['access_levels_persmissions'])) {
+                if (is_array($return) and isset($return['access_levels_persmissions'])) {
                     if ($return['access_levels_persmissions'] == '') {
-                        $return['access_levels_persmissions'] = array();
+                        $return['access_levels_persmissions'] = [];
                     } else {
                         $return['access_levels_persmissions'] = explode(',', $return['access_levels_persmissions']);
                         $return['access_levels_persmissions'] = array_combine($return['access_levels_persmissions'], $return['access_levels_persmissions']);
                     }
                 }
-            } catch (\Exception $exc) {}
-            $return['admin_templates'] = (\common\models\AdminTemplates::find()->where(['access_levels_id' => (int)$accessLevelId])
+            } catch (\Exception $exc) {
+            }
+            $return['admin_templates'] = (
+                \common\models\AdminTemplates::find()->where(['access_levels_id' => (int)$accessLevelId])
                 ->indexBy('admin_template_id')->asArray(true)->all()
             );
         } catch (\Exception $exc) {
@@ -115,48 +120,50 @@ class AdminfilesController extends Sceleton {
         return $return;
     }
 
-    public function actionSortOrder() {
+    public function actionSortOrder()
+    {
         $moved_id = (int) $_POST['sort_top'];
-        $ref_array = (isset($_POST['top']) && is_array($_POST['top'])) ? array_map('intval', $_POST['top']) : array();
+        $ref_array = (isset($_POST['top']) && is_array($_POST['top'])) ? array_map('intval', $_POST['top']) : [];
         if ($moved_id && in_array($moved_id, $ref_array)) {
             // {{ normalize
             $order_counter = 0;
             $order_list_r = tep_db_query(
-                    "SELECT access_levels_id, sort_order " .
-                    "FROM " . TABLE_ACCESS_LEVELS . " " .
-                    "WHERE 1 " .
-                    "ORDER BY sort_order, access_levels_name"
+                'SELECT access_levels_id, sort_order ' .
+                    'FROM ' . TABLE_ACCESS_LEVELS . ' ' .
+                    'WHERE 1 ' .
+                    'ORDER BY sort_order, access_levels_name'
             );
             while ($order_list = tep_db_fetch_array($order_list_r)) {
                 $order_counter++;
-                tep_db_query("UPDATE " . TABLE_ACCESS_LEVELS . " SET sort_order='{$order_counter}' WHERE access_levels_id='{$order_list['access_levels_id']}' ");
+                tep_db_query('UPDATE ' . TABLE_ACCESS_LEVELS . " SET sort_order='{$order_counter}' WHERE access_levels_id='{$order_list['access_levels_id']}' ");
             }
             // }} normalize
             $get_current_order_r = tep_db_query(
-                    "SELECT access_levels_id, sort_order " .
-                    "FROM " . TABLE_ACCESS_LEVELS . " " .
+                'SELECT access_levels_id, sort_order ' .
+                    'FROM ' . TABLE_ACCESS_LEVELS . ' ' .
                     "WHERE access_levels_id IN('" . implode("','", $ref_array) . "') " .
-                    "ORDER BY sort_order"
+                    'ORDER BY sort_order'
             );
-            $ref_ids = array();
-            $ref_so = array();
+            $ref_ids = [];
+            $ref_so = [];
             while ($_current_order = tep_db_fetch_array($get_current_order_r)) {
                 $ref_ids[] = (int) $_current_order['access_levels_id'];
                 $ref_so[] = (int) $_current_order['sort_order'];
             }
 
             foreach ($ref_array as $_idx => $id) {
-                tep_db_query("UPDATE " . TABLE_ACCESS_LEVELS . " SET sort_order='{$ref_so[$_idx]}' WHERE access_levels_id='{$id}' ");
+                tep_db_query('UPDATE ' . TABLE_ACCESS_LEVELS . " SET sort_order='{$ref_so[$_idx]}' WHERE access_levels_id='{$id}' ");
             }
         }
     }
 
-    public function actionPreview() {
+    public function actionPreview()
+    {
         $this->layout = false;
         $item_id = (int) Yii::$app->request->post('item_id');
 
-        $accessQuery = tep_db_query("select * from " . TABLE_ACCESS_LEVELS . " where access_levels_id = '" . $item_id . "'");
-        $access = tep_db_fetch_array( $accessQuery );
+        $accessQuery = tep_db_query('select * from ' . TABLE_ACCESS_LEVELS . " where access_levels_id = '" . $item_id . "'");
+        $access = tep_db_fetch_array($accessQuery);
         if (is_array($access)) {
             echo '<div class="or_box_head">' . $access['access_levels_name'] . '</div>';
             echo '<div class="btn-toolbar btn-toolbar-order">';
@@ -183,14 +190,15 @@ class AdminfilesController extends Sceleton {
         }
     }
 
-    public function actionConfirmAclCopy() {
+    public function actionConfirmAclCopy()
+    {
         \common\helpers\Translation::init('admin/adminfiles');
         $this->layout = false;
         $item_id = (int) Yii::$app->request->post('item_id');
         $acl = \common\models\AccessLevels::find()->where(['access_levels_id' => $item_id])->one();
         if ($acl) {
             $aclList = [];
-            foreach ( \common\models\AccessLevels::find()->where(['NOT IN', 'access_levels_id', $item_id])->all() as $record) {
+            foreach (\common\models\AccessLevels::find()->where(['NOT IN', 'access_levels_id', $item_id])->all() as $record) {
                 $aclList[$record->access_levels_id] = $record->access_levels_name;
             }
             $params = [
@@ -201,7 +209,8 @@ class AdminfilesController extends Sceleton {
         }
     }
 
-    public function actionAclCopy() {
+    public function actionAclCopy()
+    {
         $item_id = (int) Yii::$app->request->post('item_id');
         $move_to_acl_id = (int) Yii::$app->request->post('move_to_acl_id');
         $acl = \common\models\AccessLevels::find()->where(['access_levels_id' => $item_id])->one();
@@ -210,7 +219,8 @@ class AdminfilesController extends Sceleton {
 
             if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
                 $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-                ($logUniversal
+                (
+                    $logUniversal
                     ->setType($logUniversal::ULT_ACCESS_LEVEL_UPDATE)
                     ->setRelation($move_to_acl_id)
                     ->setBeforeArray($this->getAccessLevelByIdArray($move_to_acl_id))
@@ -221,7 +231,8 @@ class AdminfilesController extends Sceleton {
             $target->save(false);
 
             if (isset($logUniversal)) {
-                ($logUniversal
+                (
+                    $logUniversal
                     ->setAfterArray($this->getAccessLevelByIdArray($move_to_acl_id))
                     ->doSave(true)
                 );
@@ -230,7 +241,8 @@ class AdminfilesController extends Sceleton {
         }
     }
 
-    public function actionConfirmAclDublicate() {
+    public function actionConfirmAclDublicate()
+    {
         \common\helpers\Translation::init('admin/adminfiles');
         $this->layout = false;
         $item_id = (int) Yii::$app->request->post('item_id');
@@ -243,7 +255,8 @@ class AdminfilesController extends Sceleton {
         }
     }
 
-    public function actionAclDublicate() {
+    public function actionAclDublicate()
+    {
         $item_id = (int) Yii::$app->request->post('item_id');
         $new_title = (string) tep_db_prepare_input(Yii::$app->request->post('new_title', ''));
         $acl = \common\models\AccessLevels::find()->where(['access_levels_id' => $item_id])->asArray()->one();
@@ -251,7 +264,8 @@ class AdminfilesController extends Sceleton {
 
             if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
                 $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-                ($logUniversal
+                (
+                    $logUniversal
                     ->setType($logUniversal::ULT_ACCESS_LEVEL_CREATE)
                     ->setBeforeArray($this->getAccessLevelByIdArray(0))
                 );
@@ -265,7 +279,8 @@ class AdminfilesController extends Sceleton {
             $dublicate->save(false);
 
             if (isset($logUniversal)) {
-                ($logUniversal
+                (
+                    $logUniversal
                     ->setRelation($dublicate->access_levels_id)
                     ->setAfterArray($this->getAccessLevelByIdArray($dublicate->access_levels_id))
                     ->doSave(true)
@@ -275,7 +290,8 @@ class AdminfilesController extends Sceleton {
         }
     }
 
-    public function actionEdit() {
+    public function actionEdit()
+    {
         \common\helpers\Translation::init('admin/adminfiles');
         \common\helpers\Translation::init('admin/categories');
 
@@ -286,8 +302,8 @@ class AdminfilesController extends Sceleton {
             $item_id = (int) Yii::$app->request->get('item_id');
         }
 
-        $this->selectedMenu = array('administrator', 'adminfiles');
-        $this->navigation[] = array('link' => \Yii::$app->urlManager->createUrl('adminfiles/index'), 'title' => HEADING_TITLE);
+        $this->selectedMenu = ['administrator', 'adminfiles'];
+        $this->navigation[] = ['link' => \Yii::$app->urlManager->createUrl('adminfiles/index'), 'title' => HEADING_TITLE];
 
         $this->topButtons[] = '<span class="btn btn-confirm" onclick="$(\'#save_item_form\').trigger(\'submit\')">' . IMAGE_SAVE . '</span>';
 
@@ -304,10 +320,9 @@ class AdminfilesController extends Sceleton {
             $actionName = IMAGE_INSERT;
         }
 
-        $accessQuery = tep_db_query("select * from " . TABLE_ACCESS_LEVELS . " where access_levels_id = '" . $item_id . "'");
-        $access = tep_db_fetch_array( $accessQuery );
-        $accessInfo = new \objectInfo( $access );
-
+        $accessQuery = tep_db_query('select * from ' . TABLE_ACCESS_LEVELS . " where access_levels_id = '" . $item_id . "'");
+        $access = tep_db_fetch_array($accessQuery);
+        $accessInfo = new \objectInfo($access);
 
         $aclTree = \common\helpers\Acl::buildTree($accessInfo->access_levels_persmissions ?? null);
 
@@ -320,7 +335,8 @@ class AdminfilesController extends Sceleton {
         ]);
     }
 
-    public function actionSubmit() {
+    public function actionSubmit()
+    {
         \common\helpers\Translation::init('admin/adminfiles');
 
         $item_id = (int) Yii::$app->request->post('item_id');
@@ -336,14 +352,14 @@ class AdminfilesController extends Sceleton {
         if (!is_array($persmissions)) {
             $persmissions = [];
         }
-        $access_levels_persmissions = implode(",", $persmissions);
+        $access_levels_persmissions = implode(',', $persmissions);
 
         $sql_data_array = [
             'access_levels_name' => $access_levels_name,
             'access_levels_persmissions' => $access_levels_persmissions,
         ];
 
-        if( $item_id > 0 ) {
+        if ($item_id > 0) {
             if (isset($logUniversal)) {
                 $logUniversal->setType($logUniversal::ULT_ACCESS_LEVEL_UPDATE);
             }
@@ -359,7 +375,8 @@ class AdminfilesController extends Sceleton {
         \common\helpers\AdminTemplates::save(Yii::$app->request->post('pages'), $item_id);
 
         if (isset($logUniversal)) {
-            ($logUniversal
+            (
+                $logUniversal
                 ->setRelation((int)$item_id)
                 ->setAfterArray($this->getAccessLevelByIdArray($item_id))
                 ->doSave(true)
@@ -369,7 +386,7 @@ class AdminfilesController extends Sceleton {
 
         $messageType = 'success';
         $message = TEXT_MESSEAGE_SUCCESS;
-?>
+        ?>
         <div class="popup-box-wrap pop-mess">
                 <div class="around-pop-up"></div>
                 <div class="popup-box">
@@ -394,26 +411,29 @@ class AdminfilesController extends Sceleton {
             </script>
             </div>
 <?php
-        echo '<script> window.location.replace("'. Yii::$app->urlManager->createUrl(['adminfiles/edit', 'item_id' => $item_id]) . '");</script>';
+                echo '<script> window.location.replace("'. Yii::$app->urlManager->createUrl(['adminfiles/edit', 'item_id' => $item_id]) . '");</script>';
         //return $this->actionEdit();
     }
 
-    public function actionDelete() {
+    public function actionDelete()
+    {
         $item_id = (int) Yii::$app->request->post('item_id');
 
         if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
             $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-            ($logUniversal
+            (
+                $logUniversal
                 ->setType($logUniversal::ULT_ACCESS_LEVEL_DELETE)
                 ->setRelation($item_id)
                 ->setBeforeArray($this->getAccessLevelByIdArray($item_id))
             );
         }
 
-        tep_db_query("delete from " . TABLE_ACCESS_LEVELS . " where access_levels_id = '" . $item_id . "'");
+        tep_db_query('delete from ' . TABLE_ACCESS_LEVELS . " where access_levels_id = '" . $item_id . "'");
 
         if (isset($logUniversal)) {
-            ($logUniversal
+            (
+                $logUniversal
                 ->setAfterArray($this->getAccessLevelByIdArray($item_id))
                 ->doSave(true)
             );
@@ -421,7 +441,8 @@ class AdminfilesController extends Sceleton {
         }
     }
 
-    public function actionRecalcAcl() {
+    public function actionRecalcAcl()
+    {
         $this->layout = false;
         $persmissions = Yii::$app->request->post('persmissions');
 
@@ -432,15 +453,15 @@ class AdminfilesController extends Sceleton {
         ]);
     }
 
-    public function actionExportAcl() {
+    public function actionExportAcl()
+    {
         $access_levels_id = Yii::$app->request->get('item_id');
         $this->layout = false;
 
-        $xml = new \yii\web\XmlResponseFormatter;
+        $xml = new \yii\web\XmlResponseFormatter();
         $xml->rootTag = 'Acl';
         Yii::$app->response->format = 'custom_xml';
         Yii::$app->response->formatters['custom_xml'] = $xml;
-
 
         $headers = Yii::$app->response->headers;
         $headers->add('Content-Type', 'text/xml; charset=utf-8');
@@ -449,7 +470,7 @@ class AdminfilesController extends Sceleton {
 
         $acl = \common\models\AccessLevels::find()->where(['access_levels_id' => $access_levels_id])->one();
         if (is_string($acl->access_levels_persmissions)) {
-            $selectedIds = explode(",", $acl->access_levels_persmissions);
+            $selectedIds = explode(',', $acl->access_levels_persmissions);
         }
         if (!is_array($selectedIds)) {
             $selectedIds = [];
@@ -470,7 +491,8 @@ class AdminfilesController extends Sceleton {
         return $response;
     }
 
-    public function actionImportAcl() {
+    public function actionImportAcl()
+    {
         if (isset($_FILES['file']['tmp_name'])) {
             $xmlfile = file_get_contents($_FILES['file']['tmp_name']);
             $ob = simplexml_load_string($xmlfile);
@@ -479,13 +501,13 @@ class AdminfilesController extends Sceleton {
                 $access_levels_id = (int) Yii::$app->request->get('item_id');
                 $selectedIds = [];
                 foreach ($ob->item as $key) {
-                     $acl = \common\models\AccessControlList::find()->where(['access_control_list_key' => (string)$key])->one();
-                     if (is_object($acl)) {
-                         $selectedIds[] = $acl->access_control_list_id;
-                     }
+                    $acl = \common\models\AccessControlList::find()->where(['access_control_list_key' => (string)$key])->one();
+                    if (is_object($acl)) {
+                        $selectedIds[] = $acl->access_control_list_id;
+                    }
                 }
                 if (count($selectedIds) > 0) {
-                    $access_levels_persmissions = implode(",", $selectedIds);
+                    $access_levels_persmissions = implode(',', $selectedIds);
                 } else {
                     $access_levels_persmissions = '';
                 }
@@ -494,7 +516,8 @@ class AdminfilesController extends Sceleton {
 
                     if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
                         $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-                        ($logUniversal
+                        (
+                            $logUniversal
                             ->setType($logUniversal::ULT_ACCESS_LEVEL_UPDATE)
                             ->setRelation($access_levels_id)
                             ->setBeforeArray($this->getAccessLevelByIdArray($access_levels_id))
@@ -505,7 +528,8 @@ class AdminfilesController extends Sceleton {
                     $al->save();
 
                     if (isset($logUniversal)) {
-                        ($logUniversal
+                        (
+                            $logUniversal
                             ->setAfterArray($this->getAccessLevelByIdArray($access_levels_id))
                             ->doSave(true)
                         );

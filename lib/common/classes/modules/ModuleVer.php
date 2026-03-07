@@ -1,20 +1,22 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\classes\modules;
 
-class ModuleVer {
-
+class ModuleVer
+{
     public $major = 0;
     public $minor = 0;
     public $build = 0;
@@ -32,7 +34,7 @@ class ModuleVer {
     private static function badFormat($version, $default, $expected)
     {
         if (is_null($default)) {
-            throw new \Exception( sprintf('Module version is incorrect (expected %s): %s', $expected, var_export($version, true)) );
+            throw new \Exception(sprintf('Module version is incorrect (expected %s): %s', $expected, var_export($version, true)));
         }
         return self::parse($default, '0.0.0');
     }
@@ -43,7 +45,7 @@ class ModuleVer {
             return $version;
         } elseif (is_numeric($version)) {
             return self::parseNumber($version, $default);
-        } elseif(is_string($version)) {
+        } elseif (is_string($version)) {
             if (preg_match(self::REG_FORMAT_FILE, $version)) {
                 return self::parseFileFormat($version, $default);
             } elseif (preg_match(self::REG_FORMAT_COMMON, $version)) {
@@ -87,22 +89,22 @@ class ModuleVer {
 
     public function toNumber()
     {
-        return $this->major + $this->minor/100 + $this->build/10000;
+        return $this->major + $this->minor / 100 + $this->build / 10000;
     }
 
     public function toFileFormat()
     {
-        return sprintf("%u_%u_%u", $this->major, $this->minor, $this->build);
+        return sprintf('%u_%u_%u', $this->major, $this->minor, $this->build);
     }
 
     public function toCommonFormat()
     {
-        return sprintf("%u.%u.%u", $this->major, $this->minor, $this->build);
+        return sprintf('%u.%u.%u', $this->major, $this->minor, $this->build);
     }
 
     public function toCompareFormat()
     {
-        return sprintf("%u.%02u.%02u", $this->major, $this->minor, $this->build);
+        return sprintf('%u.%02u.%02u', $this->major, $this->minor, $this->build);
     }
 
     public function compareTo($ver)

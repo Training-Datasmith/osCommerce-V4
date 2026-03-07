@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Stripe\HttpClient;
 
 use Stripe\Exception;
@@ -161,8 +163,8 @@ class CurlClient implements ClientInterface
 
     // USER DEFINED TIMEOUTS
 
-    const DEFAULT_TIMEOUT = 80;
-    const DEFAULT_CONNECT_TIMEOUT = 30;
+    public const DEFAULT_TIMEOUT = 80;
+    public const DEFAULT_CONNECT_TIMEOUT = 30;
 
     private $timeout = self::DEFAULT_TIMEOUT;
     private $connectTimeout = self::DEFAULT_CONNECT_TIMEOUT;

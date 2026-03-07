@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -19,7 +21,7 @@ class AgreementTransactions extends PayPalModel
      * Array of agreement_transaction object.
      *
      * @param \PayPal\Api\AgreementTransaction[] $agreement_transaction_list
-     * 
+     *
      * @return $this
      */
     public function setAgreementTransactionList($agreement_transaction_list)
@@ -47,10 +49,10 @@ class AgreementTransactions extends PayPalModel
     public function addAgreementTransactionList($agreementTransaction)
     {
         if (!$this->getAgreementTransactionList()) {
-            return $this->setAgreementTransactionList(array($agreementTransaction));
+            return $this->setAgreementTransactionList([$agreementTransaction]);
         } else {
             return $this->setAgreementTransactionList(
-                array_merge($this->getAgreementTransactionList(), array($agreementTransaction))
+                array_merge($this->getAgreementTransactionList(), [$agreementTransaction])
             );
         }
     }
@@ -64,7 +66,7 @@ class AgreementTransactions extends PayPalModel
     public function removeAgreementTransactionList($agreementTransaction)
     {
         return $this->setAgreementTransactionList(
-            array_diff($this->getAgreementTransactionList(), array($agreementTransaction))
+            array_diff($this->getAgreementTransactionList(), [$agreementTransaction])
         );
     }
 

@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -15,14 +16,10 @@ namespace frontend\controllers;
 
 use common\classes\Images;
 use common\classes\platform;
-use common\models\repositories\ProductsRepository;
-use common\services\InventoryService;
-use frontend\models\repositories\CatalogPagesReadRepository;
 use frontend\models\repositories\InformationReadRepository;
 use frontend\services\CatalogPagesService;
 use Yii;
 use yii\web\NotFoundHttpException;
-
 
 class CatalogPagesController extends Sceleton
 {
@@ -41,8 +38,7 @@ class CatalogPagesController extends Sceleton
         CatalogPagesService $catalogPagesService,
         InformationReadRepository $informationReadRepository,
         array $config = []
-    )
-    {
+    ) {
         parent::__construct($id, $module, $config);
         $this->informationReadRepository = $informationReadRepository;
         $this->catalogPagesService = $catalogPagesService;
@@ -92,4 +88,3 @@ class CatalogPagesController extends Sceleton
         ]);
     }
 }
-

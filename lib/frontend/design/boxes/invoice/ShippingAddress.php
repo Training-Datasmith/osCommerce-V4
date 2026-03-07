@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,11 @@
 
 namespace frontend\design\boxes\invoice;
 
-use Yii;
+use common\helpers\Php8;
 use yii\base\Widget;
-use \common\helpers\Php8;
-use frontend\design\IncludeTpl;
 
 class ShippingAddress extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -36,7 +35,7 @@ class ShippingAddress extends Widget
         $class = $arr[0] ?? null;
         $method = $arr[1] ?? null;
         try {
-            $shipping = isset($this->params['order']->manager) ? $this->params['order']->manager->getShippingCollection()->get($class): null;
+            $shipping = isset($this->params['order']->manager) ? $this->params['order']->manager->getShippingCollection()->get($class) : null;
             if (is_object($shipping)) {
                 $collect = $shipping->toCollect($method);
                 if ($collect && method_exists($shipping, 'getAdditionalOrderParams')) {

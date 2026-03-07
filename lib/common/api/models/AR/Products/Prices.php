@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,7 +19,6 @@ use common\api\models\AR\Products;
 
 class Prices extends EPMap
 {
-
     protected $hideFields = [
         'products_id',
         'groups_id',
@@ -43,14 +44,14 @@ class Prices extends EPMap
     {
         $keyCodes = [];
         if (defined('USE_MARKET_PRICES') && USE_MARKET_PRICES == 'True') {
-            foreach (\common\helpers\Currencies::get_currencies() as $currency){
+            foreach (\common\helpers\Currencies::get_currencies() as $currency) {
                 $keyCode = $currency['code'] . '_0';
                 $keyCodes[$keyCode] = [
                     'products_id' => null,
                     'groups_id' => 0,
                     'currencies_id' => $currency['currencies_id'],
                 ];
-                if ( \common\helpers\Extensions::isCustomerGroupsAllowed() ) {
+                if (\common\helpers\Extensions::isCustomerGroupsAllowed()) {
                     foreach (\common\helpers\Group::get_customer_groups() as $groupInfo) {
                         $keyCode = $currency['code'] . '_' . $groupInfo['groups_id'];
                         $keyCodes[$keyCode] = [
@@ -61,8 +62,8 @@ class Prices extends EPMap
                     }
                 }
             }
-        }else{
-            if ( \common\helpers\Extensions::isCustomerGroupsAllowed() ) {
+        } else {
+            if (\common\helpers\Extensions::isCustomerGroupsAllowed()) {
                 $keyCodes[\common\helpers\Currencies::systemCurrencyCode().'_0'] = [
                     'products_id' => null,
                     'groups_id' => 0,
@@ -89,22 +90,21 @@ class Prices extends EPMap
 
     public function beforeSave($insert)
     {
-        if ( $insert ) {
+        if ($insert) {
             if (is_null($this->products_group_price)) {
                 $this->products_group_price = -2;
-                if ($this->groups_id==0 && $this->currencies_id==0 && is_object($this->parentObject)) {
+                if ($this->groups_id == 0 && $this->currencies_id == 0 && is_object($this->parentObject)) {
                     $this->products_group_price = $this->parentObject->products_price;
                 }
             }
             if (is_null($this->products_group_discount_price)) {
                 $this->products_group_discount_price = '';
-                if ($this->groups_id==0 && $this->currencies_id==0 && is_object($this->parentObject)) {
+                if ($this->groups_id == 0 && $this->currencies_id == 0 && is_object($this->parentObject)) {
                     $this->products_group_discount_price = $this->parentObject->products_price_discount;
                 }
             }
         }
         return parent::beforeSave($insert);
     }
-
 
 }

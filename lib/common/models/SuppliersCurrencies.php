@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -25,17 +27,19 @@ class SuppliersCurrencies extends ActiveRecord
     {
         return 'suppliers_currencies';
     }
-    
-    public static function primaryKey() {
+
+    public static function primaryKey()
+    {
         return ['suppliers_id', 'currencies_id'];
     }
-    
-    public function getCurrencies(){
+
+    public function getCurrencies()
+    {
         return $this->hasOne(Currencies::className(), ['currencies_id' => 'currencies_id' ]);
     }
 
-
-    public static function create($suppliers_id, $currencies_id){
+    public static function create($suppliers_id, $currencies_id)
+    {
         $sCurrency = self::findOne(['suppliers_id' => $suppliers_id, 'currencies_id' => $currencies_id]);
         if (!$sCurrency) {
             $sCurrency = new self();
@@ -44,21 +48,22 @@ class SuppliersCurrencies extends ActiveRecord
         }
         return $sCurrency;
     }
-    
-    public function prepareData($data){
-        if (!($this->suppliers_id || $this->currencies_id)){
+
+    public function prepareData($data)
+    {
+        if (!($this->suppliers_id || $this->currencies_id)) {
             throw new \Exception('Currencies id and suppliers id are not defined');
         }
-        
+
         $currency = Yii::$container->get('currencies');
         $rates = \yii\helpers\ArrayHelper::map($currency->currencies, 'id', 'value');
-        $data['use_default'] = $data['use_default']??null;
-        $this->setAttributes([            
+        $data['use_default'] = $data['use_default'] ?? null;
+        $this->setAttributes([
             'status' => (int)($data['status'] ?? null),
             'use_custom_currency_value' => !(int)$data['use_default'],
-            'currency_value' => !(int)$data['use_default'] ? (float)$data['custom_currency_value']: $rates[$this->currencies_id],
+            'currency_value' => !(int)$data['use_default'] ? (float)$data['custom_currency_value'] : $rates[$this->currencies_id],
             'margin_value' => (float)($data['margin_value'] ?? null),
-            'margin_type' => $data['margin_type'] ?? null
+            'margin_type' => $data['margin_type'] ?? null,
         ], false);
     }
 }

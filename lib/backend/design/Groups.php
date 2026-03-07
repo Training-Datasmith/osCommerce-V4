@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,22 +14,21 @@
 
 namespace backend\design;
 
-use common\classes\design;
 use common\classes\Images as CommonImages;
 use common\helpers\Html;
 use common\models\DesignBoxesGroups;
 use common\models\DesignBoxesGroupsCategory;
 use common\models\DesignBoxesGroupsImages;
 use common\models\DesignBoxesGroupsLanguages;
-use backend\design\Theme;
 use common\models\ThemesSettings;
 use Yii;
-use yii\helpers\FileHelper;
 use yii\helpers\ArrayHelper;
+use yii\helpers\FileHelper;
 
 class Groups
 {
-    public static function groupFilePath() {
+    public static function groupFilePath()
+    {
         return DIR_FS_CATALOG . implode(DIRECTORY_SEPARATOR, ['lib', 'backend', 'design', 'groups']);
     }
 
@@ -96,7 +97,7 @@ class Groups
 
             $imageFSPath = CommonImages::getFSCatalogImagesPath() . 'widget-groups' . DIRECTORY_SEPARATOR . $groupId . DIRECTORY_SEPARATOR;
             $zip->extractTo($imageFSPath, $images);
-            if (is_dir($imageFSPath . 'images')){
+            if (is_dir($imageFSPath . 'images')) {
                 FileHelper::copyDirectory($imageFSPath . 'images', $imageFSPath);
                 FileHelper::removeDirectory($imageFSPath . 'images');
             }
@@ -167,12 +168,12 @@ class Groups
         return 'ok';
     }
 
-    public static function basename($param, $suffix=null,$charset = 'utf-8')
+    public static function basename($param, $suffix = null, $charset = 'utf-8')
     {
-        if ( $suffix ) {
+        if ($suffix) {
             $tmpstr = ltrim(mb_substr($param, mb_strrpos($param, DIRECTORY_SEPARATOR, 0, $charset), null, $charset), DIRECTORY_SEPARATOR);
-            if ( (mb_strpos($param, $suffix, null, $charset)+mb_strlen($suffix, $charset) )  ==  mb_strlen($param, $charset) ) {
-                return str_ireplace( $suffix, '', $tmpstr);
+            if ((mb_strpos($param, $suffix, null, $charset) + mb_strlen($suffix, $charset))  ==  mb_strlen($param, $charset)) {
+                return str_ireplace($suffix, '', $tmpstr);
             } else {
                 return ltrim(mb_substr($param, mb_strrpos($param, DIRECTORY_SEPARATOR, 0, $charset), null, $charset), DIRECTORY_SEPARATOR);
             }
@@ -185,9 +186,9 @@ class Groups
     {
         $widgets = [];
         $widgets[] = [
-            'name' => "title",
+            'name' => 'title',
             'title' => TEXT_WIDGET_GROUPS,
-            'type' => "groups"
+            'type' => 'groups',
         ];
 
         $designBoxesGroups = DesignBoxesGroups::find()
@@ -195,14 +196,15 @@ class Groups
             ->orWhere(['page_type' => '', 'status' => 1])
             ->asArray()->all();
 
-        if (is_array($designBoxesGroups))
-        foreach ($designBoxesGroups as $group) {
-            $widgets[] = [
-                'name' => 'group-' . $group['id'],
-                'title' => $group['name'],
-                'type' => "groups",
-                'description' => $group['comment']
-            ];
+        if (is_array($designBoxesGroups)) {
+            foreach ($designBoxesGroups as $group) {
+                $widgets[] = [
+                    'name' => 'group-' . $group['id'],
+                    'title' => $group['name'],
+                    'type' => 'groups',
+                    'description' => $group['comment'],
+                ];
+            }
         }
 
         return $widgets;
@@ -213,27 +215,27 @@ class Groups
         $categories = [
             'header' => [
                 'name' => 'header',
-                'title' => TEXT_HEADER
+                'title' => TEXT_HEADER,
             ],
             'footer' => [
                 'name' => 'footer',
-                'title' => TEXT_FOOTER
+                'title' => TEXT_FOOTER,
             ],
             'header-menu' => [
                 'name' => 'header-menu',
-                'title' => 'Header menu'
+                'title' => 'Header menu',
             ],
             'pages' => [
                 'name' => 'pages',
-                'title' => TEXT_PAGES
+                'title' => TEXT_PAGES,
             ],
             'color' => [
                 'name' => 'color',
-                'title' => TEXT_COLOR_SCHEME
+                'title' => TEXT_COLOR_SCHEME,
             ],
             'font' => [
                 'name' => 'font',
-                'title' => TEXT_FONTS
+                'title' => TEXT_FONTS,
             ],
         ];
 
@@ -254,7 +256,9 @@ class Groups
             $categoryPath = [];
 
             foreach ($categoryArr as $categoryLevel) {
-                if (!$categoryLevel) continue;
+                if (!$categoryLevel) {
+                    continue;
+                }
                 $categoryPath[] = $categoryLevel;
                 $categoryPath[] = 'children';
             }
@@ -392,13 +396,13 @@ class Groups
 
         $themeName = $group['theme_name'];
 
-        if (substr($group['file'], -4) != '.zip'){
+        if (substr($group['file'], -4) != '.zip') {
             $group['file'] = $group['file'] . '.zip';
         }
         if (is_file($fsCatalog . $group['file'])) {
             return json_encode([
                 'error' => sprintf(FILE_ALREADY_EXISTS, $group['file']),
-                'focus' => 'group[file]'
+                'focus' => 'group[file]',
             ]);
         }
 
@@ -406,7 +410,7 @@ class Groups
         chmod($fsCatalog, 0755);
 
         $zip = new \ZipArchive();
-        if ($zip->open($fsCatalog . $group['file'], \ZipArchive::CREATE) !== TRUE) {
+        if ($zip->open($fsCatalog . $group['file'], \ZipArchive::CREATE) !== true) {
             return json_encode(['error' => 'Error']);
         }
 
@@ -419,13 +423,13 @@ class Groups
         foreach ($group['pages'] as $page) {
             $designBoxes = \common\models\DesignBoxesTmp::find()->where([
                 'block_name' => $page,
-                'theme_name' => $themeName
+                'theme_name' => $themeName,
             ])->orderBy('sort_order')->asArray()->all();
 
             foreach ($designBoxes as $key => $box) {
                 $boxTree = Theme::blocksTree($box['id']);
                 $boxTree['sort_order'] = $key;
-                $boxes[$page] =$boxTree;
+                $boxes[$page] = $boxTree;
             }
 
             $themeAddedPages = ThemesSettings::find()
@@ -436,7 +440,7 @@ class Groups
                 if (\common\classes\design::pageName($addedPage['setting_value']) == $page) {
                     $addedPages[] = [
                         'setting_name' => $addedPage['setting_name'],
-                        'setting_value' => $addedPage['setting_value']
+                        'setting_value' => $addedPage['setting_value'],
                     ];
                 }
             }
@@ -444,17 +448,17 @@ class Groups
         $json = json_encode($boxes);
         $files = [];
 
-        $zip->addFromString ('data.json', $json);
+        $zip->addFromString('data.json', $json);
 
-        foreach (Theme::$themeFiles as $file){
+        foreach (Theme::$themeFiles as $file) {
             $path = str_replace('frontend/themes/' . $themeName . '/', '', $file);
             $path = str_replace('themes/' . $themeName . '/', 'theme/', $path);
             $zip->addFile(DIR_FS_CATALOG . $file, $path);
             $files[] = $path;
         }
 
-        $zip->addFromString ('files.json', json_encode($files));
-        $zip->addFromString ('addedPages.json', json_encode($addedPages));
+        $zip->addFromString('files.json', json_encode($files));
+        $zip->addFromString('addedPages.json', json_encode($addedPages));
 
         $zip->close();
 

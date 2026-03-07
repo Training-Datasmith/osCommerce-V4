@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 /**
@@ -30,7 +31,7 @@ class PlatformsHolidays extends ActiveRecord
         return [
             [['platform_id'], 'required'],
             [['platform_id'], 'integer'],
-            [['holidate'], 'safe']
+            [['holidate'], 'safe'],
         ];
     }
 

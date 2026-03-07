@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,24 +14,24 @@
 
 namespace backend\design\orders;
 
-
-use Yii;
-use yii\base\Widget;
 use common\helpers\OrderProduct;
+use yii\base\Widget;
 
-class ProductsHolder extends Widget {
-
+class ProductsHolder extends Widget
+{
     public $order;
     public $manager;
 
-    public function init(){
+    public function init()
+    {
         parent::init();
     }
 
-    public function run(){
+    public function run()
+    {
         global $languages_id;
 
-        $opsArray = array();
+        $opsArray = [];
         foreach (\common\models\OrdersProductsStatus::findAll(['language_id' => (int)$languages_id]) as $opsRecord) {
             $opsArray[$opsRecord->orders_products_status_id] = $opsRecord;
         }
@@ -41,21 +43,21 @@ class ProductsHolder extends Widget {
          * @var $ext \common\extensions\Handlers\Handlers
          */
         if ($ext = \common\helpers\Extensions::isAllowed('Handlers')) {
-//            $handlers_query = tep_db_query("select handlers_id from handlers_access_levels where access_levels_id='" . (int)$_SESSION['access_levels_id'] . "'");
-//            while ($handlers = tep_db_fetch_array($handlers_query)) {
-//                $handlers_array[] = $handlers['handlers_id'];
-//            }
+            //            $handlers_query = tep_db_query("select handlers_id from handlers_access_levels where access_levels_id='" . (int)$_SESSION['access_levels_id'] . "'");
+            //            while ($handlers = tep_db_fetch_array($handlers_query)) {
+            //                $handlers_array[] = $handlers['handlers_id'];
+            //            }
             $handlers_array = $ext::getHandlersQuery((int)$_SESSION['access_levels_id']);
         }
-        
+
         $warehouses_allocated_array = [];
         if (!(\common\helpers\Acl::rule(['BOX_HEADING_CUSTOMERS', 'BOX_CUSTOMERS_ORDERS', 'RULE_ALLOW_WAREHOUSES']))) {
-            
+
         }
-        
+
         $suppliers_allocated_array = [];
         if (!(\common\helpers\Acl::rule(['BOX_HEADING_CUSTOMERS', 'BOX_CUSTOMERS_ORDERS', 'RULE_ALLOW_SUPPLIERS']))) {
-            
+
         }
 
         $warehouseList = [];
@@ -70,7 +72,7 @@ class ProductsHolder extends Widget {
         }
         unset($locationBlockRecord);
 
-        return $this->render('products-holder',[
+        return $this->render('products-holder', [
             'manager' => $this->manager,
             'opsRecord' => $opsRecord,
             'order' => $this->order,
@@ -85,7 +87,7 @@ class ProductsHolder extends Widget {
                 'ordered'    => $opsArray[OrderProduct::OPS_STOCK_ORDERED]->orders_products_status_name_long ?? TEXT_STATUS_LONG_OPS_STOCK_ORDERED,
                 'received'   => $opsArray[OrderProduct::OPS_RECEIVED]->orders_products_status_name_long ?? TEXT_STATUS_LONG_OPS_RECEIVED,
                 'dispatched' => $opsArray[OrderProduct::OPS_DISPATCHED]->orders_products_status_name_long ?? TEXT_STATUS_LONG_OPS_DISPATCHED,
-                'delivered'  => $opsArray[OrderProduct::OPS_DELIVERED]->orders_products_status_name_long ?? TEXT_STATUS_LONG_OPS_DELIVERED
+                'delivered'  => $opsArray[OrderProduct::OPS_DELIVERED]->orders_products_status_name_long ?? TEXT_STATUS_LONG_OPS_DELIVERED,
             ],
         ]);
     }

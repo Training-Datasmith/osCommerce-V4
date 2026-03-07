@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Core;
 
 use PayPal\Auth\OAuthTokenCredential;
@@ -26,7 +28,7 @@ class PayPalCredentialManager
      *
      * @var array
      */
-    private $credentialHashmap = array();
+    private $credentialHashmap = [];
 
     /**
      * Contains the API username of the default account to use
@@ -47,7 +49,7 @@ class PayPalCredentialManager
         try {
             $this->initCredential($config);
         } catch (\Exception $e) {
-            $this->credentialHashmap = array();
+            $this->credentialHashmap = [];
             throw $e;
         }
     }
@@ -74,9 +76,9 @@ class PayPalCredentialManager
     private function initCredential($config)
     {
         $suffix = 1;
-        $prefix = "acct";
+        $prefix = 'acct';
 
-        $arr = array();
+        $arr = [];
         foreach ($config as $k => $v) {
             if (strstr($k, $prefix)) {
                 $arr[$k] = $v;
@@ -84,10 +86,10 @@ class PayPalCredentialManager
         }
         $credArr = $arr;
 
-        $arr = array();
+        $arr = [];
         foreach ($config as $key => $value) {
             $pos = strpos($key, '.');
-            if (strstr($key, "acct")) {
+            if (strstr($key, 'acct')) {
                 $arr[] = substr($key, 0, $pos);
             }
         }
@@ -96,11 +98,11 @@ class PayPalCredentialManager
         $key = $prefix . $suffix;
         $userName = null;
         while (in_array($key, $arrayPartKeys)) {
-            if (isset($credArr[$key . ".ClientId"]) && isset($credArr[$key . ".ClientSecret"])) {
+            if (isset($credArr[$key . '.ClientId']) && isset($credArr[$key . '.ClientSecret'])) {
                 $userName = $key;
                 $this->credentialHashmap[$userName] = new OAuthTokenCredential(
-                    $credArr[$key . ".ClientId"],
-                    $credArr[$key . ".ClientSecret"]
+                    $credArr[$key . '.ClientId'],
+                    $credArr[$key . '.ClientSecret']
                 );
             }
             if ($userName && $this->defaultAccountName == null) {
@@ -150,8 +152,8 @@ class PayPalCredentialManager
         }
 
         if (empty($credObj)) {
-            throw new PayPalInvalidCredentialException("Credential not found for " .  ($userId ? $userId : " default user") .
-            ". Please make sure your configuration/APIContext has credential information");
+            throw new PayPalInvalidCredentialException('Credential not found for ' .  ($userId ? $userId : ' default user') .
+            '. Please make sure your configuration/APIContext has credential information');
         }
         return $credObj;
     }

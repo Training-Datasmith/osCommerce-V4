@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,14 +14,9 @@ declare(strict_types=1);
 
 namespace frontend\models\repositories;
 
-
-use common\models\Information;
-use common\models\queries\InformationQuery;
-use common\models\repositories\InformationRepository;
 use common\classes\Images;
-use yii\data\ActiveDataProvider;
-use yii\db\ActiveQuery;
-
+use common\models\Information;
+use common\models\repositories\InformationRepository;
 
 class InformationReadRepository
 {
@@ -58,7 +54,7 @@ class InformationReadRepository
             foreach ($information as $key => $info) {
                 $response[$key] = [
                     'title' => $information->page_title,
-                    'id' => $information->information_id
+                    'id' => $information->information_id,
                 ];
                 if (empty($information['image'])) {
                     $response[$key]['imageUrl'] = false;

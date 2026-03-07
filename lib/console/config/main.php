@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 $params = array_merge(
     require(__DIR__ . '/../../common/config/params.php'),
     require(__DIR__ . '/../../common/config/params-local.php'),
@@ -25,7 +27,7 @@ return [
             'class' => 'yii\web\Session',
         ],
         'storage' => [
-            'class' => '\common\services\storages\ObjectStorage'
+            'class' => '\common\services\storages\ObjectStorage',
         ],
         'user' => [
             'class' => 'yii\web\User',
@@ -47,8 +49,8 @@ return [
                 ],
                 'datasource' => [
                     'prefix' => function ($message) {
-                        return "[-][-][".YII_BEGIN_TIME."]";
-                    }
+                        return '[-][-]['.YII_BEGIN_TIME.']';
+                    },
                 ],
             ],
         ],

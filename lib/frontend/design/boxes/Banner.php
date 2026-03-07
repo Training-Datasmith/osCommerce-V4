@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -14,20 +16,19 @@
 namespace frontend\design\boxes;
 
 use common\classes\Images;
-use frontend\design\Info;
-use Yii;
-use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use yii\helpers\Html;
-use yii\helpers\ArrayHelper;
 use common\models\Banners;
 use common\models\BannersGroups;
 use common\models\BannersGroupsImages;
 use common\models\BannersGroupsSizes;
+use frontend\design\IncludeTpl;
+use frontend\design\Info;
+use Yii;
+use yii\base\Widget;
+use yii\helpers\ArrayHelper;
+use yii\helpers\Html;
 
 class Banner extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -38,21 +39,22 @@ class Banner extends Widget
 
         Info::includeJsFile('reducers/widgets');
         Info::addJsData(['widgets' => [
-            $this->id => [ 'lazyLoad' => @$this->settings[0]['lazy_load']]
+            $this->id => [ 'lazyLoad' => @$this->settings[0]['lazy_load']],
         ]]);
     }
 
     public function run()
     {
         $languages_id = \Yii::$app->settings->get('languages_id');
-        $banners = array();
+        $banners = [];
         $banner_speed = '';
 
         Info::addBlockToWidgetsList('banner');
         Info::includeJsFile('Banner');
 
-        if (!@$this->settings[0]['banners_group'] && @$this->settings[0]['params'])
+        if (!@$this->settings[0]['banners_group'] && @$this->settings[0]['params']) {
             $this->settings[0]['banners_group'] = $this->settings[0]['params'];
+        }
         $_platform_id = \common\classes\platform::currentId();
 
         if (@$this->params['banner_group']) {
@@ -67,7 +69,7 @@ class Banner extends Widget
             $this->settings[0]['banners_group'] = $this->params['banners_group'];
         }
         $groupId = 0;
-        if (preg_match("/^[0-9]+$/", $this->settings[0]['banners_group'])) {
+        if (preg_match('/^[0-9]+$/', $this->settings[0]['banners_group'])) {
             $groupId = $this->settings[0]['banners_group'];
         } else {
             $bannersGroups = BannersGroups::findOne(['banners_group' => $this->settings[0]['banners_group']]);
@@ -85,24 +87,24 @@ class Banner extends Widget
         }
 
         $use_phys_platform = true;
-        if ($ext = \common\helpers\Acl::checkExtensionAllowed('AdditionalPlatforms', 'allowed')){
-            if ($ext::checkSattelite()){
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('AdditionalPlatforms', 'allowed')) {
+            if ($ext::checkSattelite()) {
                 $s_platform_id = $ext::getSatteliteId();
                 $fromPlatform = '';
                 $andPlatform = '';
                 if (!Info::isAdmin()) {
-                    $fromPlatform = " " . TABLE_BANNERS_TO_PLATFORM . " nb2p, ";
+                    $fromPlatform = ' ' . TABLE_BANNERS_TO_PLATFORM . ' nb2p, ';
                     $andPlatform = " and nb2p.banners_id=nb.banners_id and nb2p.platform_id='" . $s_platform_id . "' ";
                 }
-                $sql = tep_db_query("select * from " . $fromPlatform . Banners::tableName() . " nb, " . TABLE_BANNERS_LANGUAGES .
+                $sql = tep_db_query('select * from ' . $fromPlatform . Banners::tableName() . ' nb, ' . TABLE_BANNERS_LANGUAGES .
                         " bl where bl.banners_id = nb.banners_id AND bl.language_id='" . $languages_id . "' "
                         . $andPlatform . " and nb.group_id = '" . $groupId . "' "
                         . $andWhere
-                        ." and (nb.expires_date is null or nb.expires_date >= now()) and (nb.date_scheduled is null or nb.date_scheduled <= now()) "
+                        .' and (nb.expires_date is null or nb.expires_date >= now()) and (nb.date_scheduled is null or nb.date_scheduled <= now()) '
                         . "AND (bl.banners_html_text!='' OR bl.banners_image!='' OR bl.banners_url)
                         and nb.status = '1'
-                         order by " . ($this->settings[0]['banners_type'] == 'random' ? " RAND() LIMIT 1" : " nb.sort_order"));
-                if (tep_db_num_rows($sql)){
+                         order by " . ($this->settings[0]['banners_type'] == 'random' ? ' RAND() LIMIT 1' : ' nb.sort_order'));
+                if (tep_db_num_rows($sql)) {
                     $use_phys_platform = false;
                     $_platform_id = $s_platform_id;
                 }
@@ -111,25 +113,25 @@ class Banner extends Widget
         $fromPlatform = '';
         $andPlatform = '';
         if (!Info::isAdmin()) {
-            $fromPlatform = " " . TABLE_BANNERS_TO_PLATFORM . " nb2p, ";
+            $fromPlatform = ' ' . TABLE_BANNERS_TO_PLATFORM . ' nb2p, ';
             $andPlatform = " and nb2p.banners_id=nb.banners_id and nb2p.platform_id='" . $_platform_id . "' ";
         }
-        if ($use_phys_platform){
-            $sql = tep_db_query("select * from " . $fromPlatform . Banners::tableName() . " nb, " . TABLE_BANNERS_LANGUAGES .
+        if ($use_phys_platform) {
+            $sql = tep_db_query('select * from ' . $fromPlatform . Banners::tableName() . ' nb, ' . TABLE_BANNERS_LANGUAGES .
                     " bl where bl.banners_id = nb.banners_id AND bl.language_id='" . $languages_id . "' "
                     . $andPlatform . " and nb.group_id = '" . $groupId . "' "
                     . $andWhere
-                    ." AND (nb.expires_date is null or nb.expires_date >= now()) and (nb.date_scheduled is null or nb.date_scheduled <= now()) and "
+                    .' AND (nb.expires_date is null or nb.expires_date >= now()) and (nb.date_scheduled is null or nb.date_scheduled <= now()) and '
                     . "(bl.banners_html_text!='' OR bl.banners_image!='' OR bl.banners_url)
                         and nb.status = '1'
-                        order by " . ($this->settings[0]['banners_type'] == 'random' ? " RAND() LIMIT 1" : " nb.sort_order"));
+                        order by " . ($this->settings[0]['banners_type'] == 'random' ? ' RAND() LIMIT 1' : ' nb.sort_order'));
         }
         if (@$this->settings[0]['banners_type'] == 'random') {
             $this->settings[0]['banners_type'] = 'banner';
         }
-        
+
         if (!@$this->settings[0]['banners_type']) {
-            $type_sql_query = tep_db_query("select nb.banner_type from " . $fromPlatform . Banners::tableName() . " nb where nb.group_id = '" . $groupId . "' " . $andPlatform . " limit 1");
+            $type_sql_query = tep_db_query('select nb.banner_type from ' . $fromPlatform . Banners::tableName() . " nb where nb.group_id = '" . $groupId . "' " . $andPlatform . ' limit 1');
             if (tep_db_num_rows($type_sql_query) > 0) {
                 $type_sql = tep_db_fetch_array($type_sql_query);
                 $type_array = $type_sql['banner_type'];
@@ -203,7 +205,9 @@ class Banner extends Widget
             \Yii::$app->view->registerLinkTag(['rel' => 'preload', 'href' => $banners[0]['banners_image_url'], 'as' => 'image']);
         }
 
-        if (count($banners) == 0) return '';
+        if (count($banners) == 0) {
+            return '';
+        }
 
         $settings = array_merge(self::$defaultSettings, $this->settings[0]);
         $template = '';
@@ -218,7 +222,7 @@ class Banner extends Widget
             if ($this->id) {
                 Info::addJsData(['widgets' => [ $this->id => [
                     'settings' => $settings,
-                    'colInRowCarousel' => $this->settings['colInRowCarousel']
+                    'colInRowCarousel' => $this->settings['colInRowCarousel'],
                 ]]]);
             }
         }
@@ -228,11 +232,12 @@ class Banner extends Widget
             'banners' => $banners,
             'banner_type' => $this->settings[0]['banners_type'],
             'banner_speed' => $banner_speed,
-            'settings' => $settings
+            'settings' => $settings,
         ]]);
     }
 
-    public static function bannerGroupImages ($bannerGroupSettings, $bannersId, $mainImage, $title = '', $lazyLoad = false, $dontUseWebp = false){
+    public static function bannerGroupImages($bannerGroupSettings, $bannersId, $mainImage, $title = '', $lazyLoad = false, $dontUseWebp = false)
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
 
         $naBanner = Info::themeSetting('base64_banner');
@@ -250,7 +255,7 @@ class Banner extends Widget
         if ($firstType == 'image') {
             $size = @getimagesize(Images::getFSCatalogImagesPath() . $mainImage);
             if (is_array($size)) {
-                $heightPer = round($size[1] * 100 / $size[0] , 4);
+                $heightPer = round($size[1] * 100 / $size[0], 4);
             } else {
                 $heightPer = 100;
             }
@@ -263,15 +268,17 @@ class Banner extends Widget
         }
 
         $mainType = $firstType;
-        foreach ($bannerGroupImages as $image){
+        foreach ($bannerGroupImages as $image) {
             if (self::getMediaType($image['image']) == 'video') {
                 $mainType = 'video';
             }
         }
 
         $sources = '';
-        foreach ($bannerGroupImages as $image){
-            if (!$bannerGroupSettings[$image['image_width']]) continue;
+        foreach ($bannerGroupImages as $image) {
+            if (!$bannerGroupSettings[$image['image_width']]) {
+                continue;
+            }
 
             $imageMedia = $image['image'];
 
@@ -332,7 +339,7 @@ class Banner extends Widget
         }
 
         $pictureAttributes = [
-            'id' => 'banner-' . $bannersId
+            'id' => 'banner-' . $bannersId,
         ];
 
         if (!$dontUseWebp) {
@@ -341,7 +348,7 @@ class Banner extends Widget
         $mainImage = \common\helpers\Media::getAlias('@webCatalogImages/' . $mainImage);
 
         $attributes = [
-            'title' => $title
+            'title' => $title,
         ];
         if ($lazyLoad && $mainType == 'image') {
             $attributes['data-src'] = $mainImage;
@@ -373,7 +380,7 @@ class Banner extends Widget
         }
     }
 
-    public static function getMediaType ($imageMedia)
+    public static function getMediaType($imageMedia)
     {
         $mediaType = 'image';
         if (is_file(Images::getFSCatalogImagesPath() . $imageMedia)) {
@@ -387,7 +394,8 @@ class Banner extends Widget
         return $mediaType;
     }
 
-    public static function bannerGroupSvg ($bannerGroupSettings, $bannersId, $mainImage){
+    public static function bannerGroupSvg($bannerGroupSettings, $bannersId, $mainImage)
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
 
         $bannerGroupImages = BannersGroupsImages::find()
@@ -397,8 +405,10 @@ class Banner extends Widget
 
         $images = '<div class="banner-svg-' . $bannersId . ' banner-svg-' . $bannersId . '-main">' . $mainImage . '</div>';
         $styles = '.banner-svg-' . $bannersId . '{display:none}.banner-svg-' . $bannersId . '-main{display:block}';
-        foreach ($bannerGroupImages as $image){
-            if (!isset($bannerGroupSettings[$image['image_width']]) || !$image['svg']) continue;
+        foreach ($bannerGroupImages as $image) {
+            if (!isset($bannerGroupSettings[$image['image_width']]) || !$image['svg']) {
+                continue;
+            }
 
             $images = $images . '<div class="banner-svg-' . $bannersId . ' banner-svg-' . $bannersId . '-' . $image['image_width'] . '">' . $image['svg'] . '</div>';
 
@@ -438,7 +448,8 @@ class Banner extends Widget
         'manualAdvance' => 'false',
     ];
 
-    public static function textPosition ($key) {
+    public static function textPosition($key)
+    {
 
         switch ($key) {
             case '0':

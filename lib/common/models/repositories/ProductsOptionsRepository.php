@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -20,7 +22,6 @@ use common\models\ProductsOptions;
  */
 class ProductsOptionsRepository
 {
-
     /**
      * @param ProductsOptions $option
      * @return bool

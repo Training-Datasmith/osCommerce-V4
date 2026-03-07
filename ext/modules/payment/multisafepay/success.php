@@ -1,23 +1,25 @@
 <?php
 
+declare(strict_types=1);
+
 /*
-  MultiSafepay Payment Module for osCommerce 
+  MultiSafepay Payment Module for osCommerce
   http://www.multisafepay.com
 
   Copyright (C) 2008 MultiSafepay.com
  */
 
-chdir("../../../../");
-require("includes/application_top.php");
+chdir('../../../../');
+require('includes/application_top.php');
 
 \common\helpers\Translation::init('checkout/process');
 
 if ($multisafepay_order_id && $_GET['customer_id'] && $_GET['hash']) {
     if (md5($multisafepay_order_id . $_GET['customer_id']) == $_GET['hash']) {
         $customer_id = $_GET['customer_id'];
-        $check_customer_query = tep_db_query("select customers_id, customers_firstname, customers_password, customers_email_address, customers_default_address_id from " . TABLE_CUSTOMERS . " where customers_id = '" . (int) $customer_id . "'");
+        $check_customer_query = tep_db_query('select customers_id, customers_firstname, customers_password, customers_email_address, customers_default_address_id from ' . TABLE_CUSTOMERS . " where customers_id = '" . (int) $customer_id . "'");
         $check_customer = tep_db_fetch_array($check_customer_query);
-        $check_country_query = tep_db_query("select entry_country_id, entry_zone_id from " . TABLE_ADDRESS_BOOK . " where customers_id = '" . (int) $check_customer['customers_id'] . "' and address_book_id = '" . (int) $check_customer['customers_default_address_id'] . "'");
+        $check_country_query = tep_db_query('select entry_country_id, entry_zone_id from ' . TABLE_ADDRESS_BOOK . " where customers_id = '" . (int) $check_customer['customers_id'] . "' and address_book_id = '" . (int) $check_customer['customers_default_address_id'] . "'");
         $check_country = tep_db_fetch_array($check_country_query);
         $customer_id = $check_customer['customers_id'];
         $customer_default_address_id = $check_customer['customers_default_address_id'];
@@ -47,4 +49,3 @@ if ($customer_id) {
     //so, it's better to show the index page.
     tep_redirect(tep_href_link(FILENAME_DEFAULT));
 }
-?>

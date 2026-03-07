@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,9 @@
 
 namespace common\models;
 
-use Yii;
-use yii\db\ActiveRecord;
 use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
+
 /**
  * This is the model class for table "warehouses".
  *
@@ -22,7 +24,7 @@ use yii\behaviors\TimestampBehavior;
  * @property string $warehouse_owner
  * @property string $warehouse_name
  * @property int $status
- * @property int $is_default 
+ * @property int $is_default
  * @property int $is_store
  * @property string $warehouse_email_address
  * @property string $warehouse_telephone
@@ -40,8 +42,9 @@ class Warehouses extends ActiveRecord
     {
         return 'warehouses';
     }
-    
-    public function behaviors() {
+
+    public function behaviors()
+    {
         return [
             [
                 'class' => TimestampBehavior::className(),
@@ -53,14 +56,15 @@ class Warehouses extends ActiveRecord
             ],
         ];
     }
-    
-    public function getAddress(){
+
+    public function getAddress()
+    {
         return $this->hasOne(WarehousesAddressBook::className(), ['warehouse_id' => 'warehouse_id']);
     }
 
-    public function getWarehousePlatform(){
+    public function getWarehousePlatform()
+    {
         return $this->hasOne(WarehousesPlatforms::className(), ['warehouse_id' => 'warehouse_id']);
     }
 
-   
 }

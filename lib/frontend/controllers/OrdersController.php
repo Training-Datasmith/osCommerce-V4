@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -14,15 +16,15 @@ namespace frontend\controllers;
 
 use frontend\design\Info;
 use Yii;
+
 /**
  * Site controller
  */
 class OrdersController extends Sceleton
 {
-
     public function actionIndex()
     {
-        if (!defined("THEME_NAME")) {
+        if (!defined('THEME_NAME')) {
             define('THEME_NAME', Yii::$app->request->get('theme_name'));
         }
         $page_name = Yii::$app->request->get('page_name');
@@ -34,7 +36,8 @@ class OrdersController extends Sceleton
         ]);
     }
 
-    public function actionInvoice() {
+    public function actionInvoice()
+    {
 
         \common\helpers\Translation::init('email-template');
 
@@ -52,12 +55,12 @@ class OrdersController extends Sceleton
         if (\Yii::$app->session->get('customer_id') != $order->customer['id'] && !Info::isAdmin() && $key != 'UNJfMzvmwE6EVbL6') {
             return false;
         }
-        
-        if ($_GET['theme_name']??null) {
+
+        if ($_GET['theme_name'] ?? null) {
             $theme = $_GET['theme_name'];
         } else {
-            $theme_array = tep_db_fetch_array(tep_db_query("select theme_name from " . TABLE_THEMES . " where is_default = 1"));
-            if ($theme_array['theme_name']??null){
+            $theme_array = tep_db_fetch_array(tep_db_query('select theme_name from ' . TABLE_THEMES . ' where is_default = 1'));
+            if ($theme_array['theme_name'] ?? null) {
                 $theme = $theme_array['theme_name'];
             } else {
                 $theme = 'theme-1';
@@ -72,7 +75,7 @@ class OrdersController extends Sceleton
             'params' => [
                 'order' => $order,
                 'currencies' => $currencies,
-                'oID' => $oID
+                'oID' => $oID,
             ],
             'base_url' => (getenv('HTTPS') == 'on' ? HTTPS_SERVER : HTTP_SERVER) . DIR_WS_CATALOG,
             'oID' => $oID,
@@ -81,10 +84,11 @@ class OrdersController extends Sceleton
 
     }
 
-    public function actionPackingslip() {
+    public function actionPackingslip()
+    {
 
         \common\helpers\Translation::init('email-template');
-        
+
         $page_name = Yii::$app->request->get('page_name');
 
         $this->layout = false;
@@ -107,32 +111,39 @@ class OrdersController extends Sceleton
             'params' => [
                 'order' => $order,
                 'currencies' => $currencies,
-                'oID' => $oID
+                'oID' => $oID,
             ],
             'base_url' => (getenv('HTTPS') == 'on' ? HTTPS_SERVER : HTTP_SERVER) . DIR_WS_CATALOG,
             'oID' => $oID,
             'currencies' => $currencies,
         ]);
     }
-    
-    public function actionCreditNote(){
+
+    public function actionCreditNote()
+    {
         \common\helpers\Translation::init('email-template');
 
         $this->layout = false;
 
         $oID = (int)\Yii::$app->request->get('orders_id');
-        
-        if (!$oID || \Yii::$user->isGuest) return '';
+
+        if (!$oID || \Yii::$user->isGuest) {
+            return '';
+        }
         $order = \common\models\Orders::findOne(['orders_id' => $oID]);
-        if (empty($order) || $order->customers_id != \Yii::$app->user->getIdentity()->customers_id) return '';
-        
+        if (empty($order) || $order->customers_id != \Yii::$app->user->getIdentity()->customers_id) {
+            return '';
+        }
+
         $manager = \common\services\OrderManager::loadManager();
         $splitter = $manager->getOrderSplitter();
         $CNs = $splitter->getInstancesFromSplinters($oID, $splitter::STATUS_RETURNED);
         if (empty($CNs)) {
             $CNs = $splitter->getInstancesFromSplinters($oID, $splitter::STATUS_RETURNING);
         }
-        if (empty($CNs)) return '';
+        if (empty($CNs)) {
+            return '';
+        }
 
         $currencies = \Yii::$container->get('currencies');
 
@@ -143,7 +154,7 @@ class OrdersController extends Sceleton
             'params' => [
                 'order' => $CNs[0],
                 'currencies' => $currencies,
-                'oID' => $oID
+                'oID' => $oID,
             ],
             'base_url' => (getenv('HTTPS') == 'on' ? HTTPS_SERVER : HTTP_SERVER) . DIR_WS_CATALOG,
             'oID' => $oID,
@@ -152,7 +163,8 @@ class OrdersController extends Sceleton
 
     }
 
-    public function actionPurchase(){
+    public function actionPurchase()
+    {
         if (!\common\helpers\Acl::checkExtensionAllowed('PurchaseOrders')) {
             return '';
         }
@@ -175,7 +187,7 @@ class OrdersController extends Sceleton
             'params' => [
                 'order' => $order,
                 'currencies' => $currencies,
-                'oID' => $oID
+                'oID' => $oID,
             ],
             'base_url' => (getenv('HTTPS') == 'on' ? HTTPS_SERVER : HTTP_SERVER) . DIR_WS_CATALOG,
             'oID' => $oID,
@@ -186,7 +198,7 @@ class OrdersController extends Sceleton
 
     public function actionList()
     {
-        if (!defined("THEME_NAME")) {
+        if (!defined('THEME_NAME')) {
             define('THEME_NAME', Yii::$app->request->get('theme_name'));
         }
         $page_name = Yii::$app->request->get('page_name');

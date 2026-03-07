@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,7 +18,6 @@ use yii\base\Widget;
 
 class model extends Widget
 {
-
     public $file;
     public $params;
     public $settings;

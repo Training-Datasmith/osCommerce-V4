@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,13 @@
 
 namespace frontend\design\boxes\contact;
 
-use frontend\design\Info;
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use frontend\design\Info;
 use frontend\design\JsonLd;
+use yii\base\Widget;
 
 class Contacts extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -38,10 +38,10 @@ class Contacts extends Widget
         $address['name'] = '';
         $address['reg_number'] = '';
 
-        if ($this->settings[0]['time_format'] == '24' && is_array($data['open'])){
-            foreach ($data['open'] as $key => $item){
-                $data['open'][$key]['time_from'] = date("G:i", strtotime($item['time_from']));
-                $data['open'][$key]['time_to'] = date("G:i", strtotime($item['time_to']));
+        if ($this->settings[0]['time_format'] == '24' && is_array($data['open'])) {
+            foreach ($data['open'] as $key => $item) {
+                $data['open'][$key]['time_from'] = date('G:i', strtotime($item['time_from']));
+                $data['open'][$key]['time_to'] = date('G:i', strtotime($item['time_to']));
             }
         }
 
@@ -127,91 +127,91 @@ class Contacts extends Widget
 
         self::jsonLdData($data, $this->settings[0]);
 
+        return IncludeTpl::widget(['file' => 'boxes/contact/contacts.tpl', 'params' => [
+            'data' => $data,
+            'phone' => '+' . preg_replace('/[^0-9]/i', '', $data['telephone']),
+            'address' => $addressTxt,
+            'settings' => $this->settings,
+        ]]);
 
-    return IncludeTpl::widget(['file' => 'boxes/contact/contacts.tpl', 'params' => [
-        'data' => $data,
-        'phone' => '+' . preg_replace("/[^0-9]/i", "", $data['telephone']),
-        'address' => $addressTxt,
-        'settings' => $this->settings
-    ]]);
+    }
 
-  }
+    public static function jsonLdData($data, $settings)
+    {
 
-  public static function jsonLdData($data, $settings){
-
-      $address_format_id = \common\helpers\Address::get_address_format_id($data['country_id']);
-      $addressFormat = \common\helpers\Address::getFormatById($address_format_id);
-      $addressFormatArr = json_decode($addressFormat->address_format);
-      $addressFormatArrFlat = [];
-      foreach ($addressFormatArr as $row) {
-          $addressFormatArrFlat = array_merge($addressFormatArrFlat, $row);
-      }
-
-      $ldAddress['@type'] = 'PostalAddress';
-      if (isset($data['street_address']) && in_array('street_address', $addressFormatArrFlat)) {
-          $ldAddress['streetAddress'] = $data['street_address'];
-      }
-      if (isset($data['city']) && in_array('city', $addressFormatArrFlat)) {
-          $ldAddress['addressLocality'] = $data['city'];
-      }
-      if (isset($data['state']) && in_array('state', $addressFormatArrFlat)) {
-          $ldAddress['addressRegion'] = $data['state'];
-      }
-      if (isset($data['postcode']) && in_array('postcode', $addressFormatArrFlat)) {
-          $ldAddress['postalCode'] = $data['postcode'];
-      }
-      if (isset($data['country']) && in_array('country', $addressFormatArrFlat)) {
-          $ldAddress['addressCountry'] = $data['country'];
-      }
-      if (isset($data['suburb']) && in_array('suburb', $addressFormatArrFlat)) {
-          $ldAddress['addressLocality'] = $data['suburb'];
-      }
-
-      JsonLd::addData(['Organization' => [
-          'address' => $ldAddress
-      ]], ['Organization', 'address']);
-
-      if (isset($data['company_vat']) && in_array('company_vat', $addressFormatArrFlat)) {
-          JsonLd::addData(['Organization' => [
-              'vatID' => $data['entry_company_vat']
-          ]], ['Organization', 'vatID']);
-      }
-
-      if (isset($data['telephone'])) {
-          JsonLd::addData(['Organization' => [
-              'telephone' => $data['telephone']
-          ]], ['Organization', 'telephone']);
-      }
-      if (isset($data['email_address'])) {
-          JsonLd::addData(['Organization' => [
-              'email' => $data['email_address']
-          ]], ['Organization', 'email']);
-      }
-      if (isset($data['reg_number'])) {
-          JsonLd::addData(['Organization' => [
-              'leiCode' => $data['reg_number']
-          ]], ['Organization', 'leiCode']);
-      }
-      if (isset($data['entry_company_vat'])) {
-          JsonLd::addData(['Organization' => [
-              'vatID' => $data['entry_company_vat']
-          ]], ['Organization', 'vatID']);
-      }
-
-      $jsonOurs = [];
-      if (isset($data['open']) && is_array($data['open'])) {
-        foreach ($data['open'] as $key => $item) {
-            $jsonOurs[] = [
-                '@type' => 'OpeningHoursSpecification',
-                'dayOfWeek' => $item['days_arr'],
-                'opens' => date("G:i", strtotime($item['time_from'])),
-                'closes' => date("G:i", strtotime($item['time_to'])),
-            ];
+        $address_format_id = \common\helpers\Address::get_address_format_id($data['country_id']);
+        $addressFormat = \common\helpers\Address::getFormatById($address_format_id);
+        $addressFormatArr = json_decode($addressFormat->address_format);
+        $addressFormatArrFlat = [];
+        foreach ($addressFormatArr as $row) {
+            $addressFormatArrFlat = array_merge($addressFormatArrFlat, $row);
         }
-      }
 
-      JsonLd::addData(['Organization' => [
-          'openingHoursSpecification' => $jsonOurs
-      ]], ['Organization', 'openingHoursSpecification']);
-  }
+        $ldAddress['@type'] = 'PostalAddress';
+        if (isset($data['street_address']) && in_array('street_address', $addressFormatArrFlat)) {
+            $ldAddress['streetAddress'] = $data['street_address'];
+        }
+        if (isset($data['city']) && in_array('city', $addressFormatArrFlat)) {
+            $ldAddress['addressLocality'] = $data['city'];
+        }
+        if (isset($data['state']) && in_array('state', $addressFormatArrFlat)) {
+            $ldAddress['addressRegion'] = $data['state'];
+        }
+        if (isset($data['postcode']) && in_array('postcode', $addressFormatArrFlat)) {
+            $ldAddress['postalCode'] = $data['postcode'];
+        }
+        if (isset($data['country']) && in_array('country', $addressFormatArrFlat)) {
+            $ldAddress['addressCountry'] = $data['country'];
+        }
+        if (isset($data['suburb']) && in_array('suburb', $addressFormatArrFlat)) {
+            $ldAddress['addressLocality'] = $data['suburb'];
+        }
+
+        JsonLd::addData(['Organization' => [
+            'address' => $ldAddress,
+        ]], ['Organization', 'address']);
+
+        if (isset($data['company_vat']) && in_array('company_vat', $addressFormatArrFlat)) {
+            JsonLd::addData(['Organization' => [
+                'vatID' => $data['entry_company_vat'],
+            ]], ['Organization', 'vatID']);
+        }
+
+        if (isset($data['telephone'])) {
+            JsonLd::addData(['Organization' => [
+                'telephone' => $data['telephone'],
+            ]], ['Organization', 'telephone']);
+        }
+        if (isset($data['email_address'])) {
+            JsonLd::addData(['Organization' => [
+                'email' => $data['email_address'],
+            ]], ['Organization', 'email']);
+        }
+        if (isset($data['reg_number'])) {
+            JsonLd::addData(['Organization' => [
+                'leiCode' => $data['reg_number'],
+            ]], ['Organization', 'leiCode']);
+        }
+        if (isset($data['entry_company_vat'])) {
+            JsonLd::addData(['Organization' => [
+                'vatID' => $data['entry_company_vat'],
+            ]], ['Organization', 'vatID']);
+        }
+
+        $jsonOurs = [];
+        if (isset($data['open']) && is_array($data['open'])) {
+            foreach ($data['open'] as $key => $item) {
+                $jsonOurs[] = [
+                    '@type' => 'OpeningHoursSpecification',
+                    'dayOfWeek' => $item['days_arr'],
+                    'opens' => date('G:i', strtotime($item['time_from'])),
+                    'closes' => date('G:i', strtotime($item['time_to'])),
+                ];
+            }
+        }
+
+        JsonLd::addData(['Organization' => [
+            'openingHoursSpecification' => $jsonOurs,
+        ]], ['Organization', 'openingHoursSpecification']);
+    }
 }

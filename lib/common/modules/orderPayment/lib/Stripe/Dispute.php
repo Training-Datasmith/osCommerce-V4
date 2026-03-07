@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -33,35 +35,34 @@ namespace Stripe;
  */
 class Dispute extends ApiResource
 {
-    const OBJECT_NAME = 'dispute';
-
     use ApiOperations\All;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
+    public const OBJECT_NAME = 'dispute';
 
-    const REASON_BANK_CANNOT_PROCESS = 'bank_cannot_process';
-    const REASON_CHECK_RETURNED = 'check_returned';
-    const REASON_CREDIT_NOT_PROCESSED = 'credit_not_processed';
-    const REASON_CUSTOMER_INITIATED = 'customer_initiated';
-    const REASON_DEBIT_NOT_AUTHORIZED = 'debit_not_authorized';
-    const REASON_DUPLICATE = 'duplicate';
-    const REASON_FRAUDULENT = 'fraudulent';
-    const REASON_GENERAL = 'general';
-    const REASON_INCORRECT_ACCOUNT_DETAILS = 'incorrect_account_details';
-    const REASON_INSUFFICIENT_FUNDS = 'insufficient_funds';
-    const REASON_PRODUCT_NOT_RECEIVED = 'product_not_received';
-    const REASON_PRODUCT_UNACCEPTABLE = 'product_unacceptable';
-    const REASON_SUBSCRIPTION_CANCELED = 'subscription_canceled';
-    const REASON_UNRECOGNIZED = 'unrecognized';
+    public const REASON_BANK_CANNOT_PROCESS = 'bank_cannot_process';
+    public const REASON_CHECK_RETURNED = 'check_returned';
+    public const REASON_CREDIT_NOT_PROCESSED = 'credit_not_processed';
+    public const REASON_CUSTOMER_INITIATED = 'customer_initiated';
+    public const REASON_DEBIT_NOT_AUTHORIZED = 'debit_not_authorized';
+    public const REASON_DUPLICATE = 'duplicate';
+    public const REASON_FRAUDULENT = 'fraudulent';
+    public const REASON_GENERAL = 'general';
+    public const REASON_INCORRECT_ACCOUNT_DETAILS = 'incorrect_account_details';
+    public const REASON_INSUFFICIENT_FUNDS = 'insufficient_funds';
+    public const REASON_PRODUCT_NOT_RECEIVED = 'product_not_received';
+    public const REASON_PRODUCT_UNACCEPTABLE = 'product_unacceptable';
+    public const REASON_SUBSCRIPTION_CANCELED = 'subscription_canceled';
+    public const REASON_UNRECOGNIZED = 'unrecognized';
 
-    const STATUS_CHARGE_REFUNDED = 'charge_refunded';
-    const STATUS_LOST = 'lost';
-    const STATUS_NEEDS_RESPONSE = 'needs_response';
-    const STATUS_UNDER_REVIEW = 'under_review';
-    const STATUS_WARNING_CLOSED = 'warning_closed';
-    const STATUS_WARNING_NEEDS_RESPONSE = 'warning_needs_response';
-    const STATUS_WARNING_UNDER_REVIEW = 'warning_under_review';
-    const STATUS_WON = 'won';
+    public const STATUS_CHARGE_REFUNDED = 'charge_refunded';
+    public const STATUS_LOST = 'lost';
+    public const STATUS_NEEDS_RESPONSE = 'needs_response';
+    public const STATUS_UNDER_REVIEW = 'under_review';
+    public const STATUS_WARNING_CLOSED = 'warning_closed';
+    public const STATUS_WARNING_NEEDS_RESPONSE = 'warning_needs_response';
+    public const STATUS_WARNING_UNDER_REVIEW = 'warning_under_review';
+    public const STATUS_WON = 'won';
 
     /**
      * @param null|array|string $opts

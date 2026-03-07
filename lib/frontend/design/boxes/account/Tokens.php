@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes\account;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Tokens extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -51,48 +52,48 @@ class Tokens extends Widget
         $gateways = $rows = [];
         $prevPayment = '';
 
-        foreach($tokens as $token){
-          $t = $token->toArray();
-          if ($paymentModules->isPaymentEnabled($t['payment_class'])){
-            if (!isset($gateways[$t['payment_class']])) {
-              $m = $paymentModules->get($t['payment_class']);
-              $gateways[$t['payment_class']]['title'] = (!empty($m->public_title)?$m->public_title:$m->title);
-            }
-            if ($prevPayment == '' ) {
-              $prevPayment  = $t['payment_class'];
-            }
-            if ($prevPayment != $t['payment_class'] ) {
-              $gateways[$prevPayment]['tokens'] = $rows;
-              $prevPayment  = $t['payment_class'];
-              $rows = [];
-            }
-            
-            if ($page) {
-                $t['link_edit'] = Yii::$app->urlManager->createUrl(['account/payment-token-rename', 'page_name' => $page, 'edit' => $t['payment_tokens_id']]);
-            } else {
-                $t['link_edit'] = Yii::$app->urlManager->createUrl(['account/payment-token-rename', 'edit' => $t['payment_tokens_id']]);
-            }
+        foreach ($tokens as $token) {
+            $t = $token->toArray();
+            if ($paymentModules->isPaymentEnabled($t['payment_class'])) {
+                if (!isset($gateways[$t['payment_class']])) {
+                    $m = $paymentModules->get($t['payment_class']);
+                    $gateways[$t['payment_class']]['title'] = (!empty($m->public_title) ? $m->public_title : $m->title);
+                }
+                if ($prevPayment == '') {
+                    $prevPayment  = $t['payment_class'];
+                }
+                if ($prevPayment != $t['payment_class']) {
+                    $gateways[$prevPayment]['tokens'] = $rows;
+                    $prevPayment  = $t['payment_class'];
+                    $rows = [];
+                }
 
-            $t['link_delete'] = Yii::$app->urlManager->createUrl([
-                'account/payment-token-delete',
-                'token' => $t['token'],
-                'id' => $t['payment_tokens_id'],
-                'class' => $t['payment_class'],
-            ]);
-            $t['id'] = $t['payment_tokens_id'];
-            $rows[] = $t;
+                if ($page) {
+                    $t['link_edit'] = Yii::$app->urlManager->createUrl(['account/payment-token-rename', 'page_name' => $page, 'edit' => $t['payment_tokens_id']]);
+                } else {
+                    $t['link_edit'] = Yii::$app->urlManager->createUrl(['account/payment-token-rename', 'edit' => $t['payment_tokens_id']]);
+                }
 
-          }
+                $t['link_delete'] = Yii::$app->urlManager->createUrl([
+                    'account/payment-token-delete',
+                    'token' => $t['token'],
+                    'id' => $t['payment_tokens_id'],
+                    'class' => $t['payment_class'],
+                ]);
+                $t['id'] = $t['payment_tokens_id'];
+                $rows[] = $t;
+
+            }
         }
-        if ($prevPayment != '' ) {
-          $gateways[$prevPayment]['tokens'] = $rows;
+        if ($prevPayment != '') {
+            $gateways[$prevPayment]['tokens'] = $rows;
         }
-//        echo "<PRE>" . print_r($gateways, 1) . "</PRE>";
+        //        echo "<PRE>" . print_r($gateways, 1) . "</PRE>";
 
         return IncludeTpl::widget(['file' => 'account/tokens.tpl', 'params' => [
             'gateways_array' => $gateways,
             'settings' => $this->settings,
             'id' => $this->id,
-        ]]); 
+        ]]);
     }
 }

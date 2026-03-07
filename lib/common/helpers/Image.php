@@ -1,81 +1,83 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\helpers;
-use common\models\BannersGroupsImages;
-use common\models\BannersGroupsSizes;
-use common\models\BannersLanguages;
-use common\models\ImageTypes;
-use yii\helpers\ArrayHelper;
-use common\models\ProductsImages;
+
 use common\classes\Images;
-use yii\helpers\FileHelper;
+use common\models\ImageTypes;
+use common\models\ProductsImages;
 
-class Image {
+class Image
+{
+    public static function copyProductImages($fromProductId, $toProductId)
+    {
+        $imgs = ProductsImages::find()//->with(['description', 'imagesAttributes', 'externalUrl', 'inventory'])
+            ->andWhere(['products_id' => $fromProductId])->asArray()->all();
+        if (is_array($imgs)) {
+            $copyModels = [
+                '\common\models\ProductsImagesAttributes' => 'products_images_id',
+                '\common\models\ProductsImagesDescription' => 'products_images_id',
+                '\common\models\ProductsImagesExternalUrl' => 'products_images_id',
+            ];
 
-    public static function copyProductImages($fromProductId, $toProductId) {
-      $imgs = ProductsImages::find()//->with(['description', 'imagesAttributes', 'externalUrl', 'inventory'])
-          ->andWhere(['products_id' => $fromProductId])->asArray()->all();
-      if (is_array($imgs)) {
-        $copyModels = [
-            '\common\models\ProductsImagesAttributes' => 'products_images_id',
-            '\common\models\ProductsImagesDescription' => 'products_images_id',
-            '\common\models\ProductsImagesExternalUrl' => 'products_images_id',
-        ];
-
-        $basePath = \common\classes\Images::getFSCatalogImagesPath() . 'products' . DIRECTORY_SEPARATOR;
-        //$productsId.'/' .$imageId
-        foreach ($imgs as $img) {
-          $tmp = $img;
-          foreach (['description', 'attributes', 'externalUrl', 'inventory', 'products_images_id'] as $key) {
-            unset($tmp[$key]);
-          }
-          $tmp['products_id'] = $toProductId;
-          try {
-            $copyModel = new ProductsImages();
-            $copyModel->setAttributes($tmp, false);
-            $copyModel->loadDefaultValues(true);
-            $copyModel->save(false);
-            $newImageId = $copyModel->products_images_id;
-            \yii\helpers\BaseFileHelper::copyDirectory($basePath . $fromProductId . DIRECTORY_SEPARATOR . $img['products_images_id'],
-                $basePath . $toProductId . DIRECTORY_SEPARATOR . $newImageId);
-
-            foreach ($copyModels as $copyModelClass=>$copyProductColumn) {
-              if ( !class_exists($copyModelClass) ) {
-                  continue;
-              }
-
-              call_user_func_array([$copyModelClass,'deleteAll'], [[$copyProductColumn => $newImageId]]);
-              $sourceCollection = call_user_func_array([$copyModelClass,'findAll'], [[$copyProductColumn => $img['products_images_id']]]);
-              foreach ($sourceCollection as $originModel) {
-                $__data = $originModel->getAttributes();
-                $__data[$copyProductColumn] = $newImageId;
-                $copyModel = \Yii::createObject($copyModelClass);
-                if ( $copyModel instanceof \yii\db\ActiveRecord ) {
-                  $copyModel->setAttributes($__data, false);
-                  $copyModel->loadDefaultValues(true);
-                  $copyModel->save(false);
+            $basePath = \common\classes\Images::getFSCatalogImagesPath() . 'products' . DIRECTORY_SEPARATOR;
+            //$productsId.'/' .$imageId
+            foreach ($imgs as $img) {
+                $tmp = $img;
+                foreach (['description', 'attributes', 'externalUrl', 'inventory', 'products_images_id'] as $key) {
+                    unset($tmp[$key]);
                 }
-              }
-            }
+                $tmp['products_id'] = $toProductId;
+                try {
+                    $copyModel = new ProductsImages();
+                    $copyModel->setAttributes($tmp, false);
+                    $copyModel->loadDefaultValues(true);
+                    $copyModel->save(false);
+                    $newImageId = $copyModel->products_images_id;
+                    \yii\helpers\BaseFileHelper::copyDirectory(
+                        $basePath . $fromProductId . DIRECTORY_SEPARATOR . $img['products_images_id'],
+                        $basePath . $toProductId . DIRECTORY_SEPARATOR . $newImageId
+                    );
 
-          } catch (\Exception $ex) {
-            \Yii::error($ex->getMessage());
-          }
+                    foreach ($copyModels as $copyModelClass => $copyProductColumn) {
+                        if (!class_exists($copyModelClass)) {
+                            continue;
+                        }
+
+                        call_user_func_array([$copyModelClass,'deleteAll'], [[$copyProductColumn => $newImageId]]);
+                        $sourceCollection = call_user_func_array([$copyModelClass,'findAll'], [[$copyProductColumn => $img['products_images_id']]]);
+                        foreach ($sourceCollection as $originModel) {
+                            $__data = $originModel->getAttributes();
+                            $__data[$copyProductColumn] = $newImageId;
+                            $copyModel = \Yii::createObject($copyModelClass);
+                            if ($copyModel instanceof \yii\db\ActiveRecord) {
+                                $copyModel->setAttributes($__data, false);
+                                $copyModel->loadDefaultValues(true);
+                                $copyModel->save(false);
+                            }
+                        }
+                    }
+
+                } catch (\Exception $ex) {
+                    \Yii::error($ex->getMessage());
+                }
+            }
         }
-      }
     }
 
-    public static function getNewSize($pic, $reqW, $reqH) {
+    public static function getNewSize($pic, $reqW, $reqH)
+    {
         $size = @GetImageSize($pic);
         if (!is_array($size)) {
             $size = [0,0];
@@ -92,7 +94,8 @@ class Image {
         return $newsize;
     }
 
-    public static function info_image($image, $alt, $width = '', $height = '') {
+    public static function info_image($image, $alt, $width = '', $height = '')
+    {
         if (tep_not_null($image) && (file_exists(DIR_FS_CATALOG_IMAGES . $image))) {
             if ($width != '' && $height != '') {
                 $size = @GetImageSize(DIR_FS_CATALOG_IMAGES . $image);
@@ -128,7 +131,7 @@ class Image {
 
         $cImages = [];
         foreach ($categoriesImages as $categoriesImage) {
-            $catalog = defined("DIR_WS_CATALOG_IMAGES") ? DIR_WS_CATALOG_IMAGES : DIR_WS_IMAGES;
+            $catalog = defined('DIR_WS_CATALOG_IMAGES') ? DIR_WS_CATALOG_IMAGES : DIR_WS_IMAGES;
             $categoriesImage['image_url'] = $catalog . $categoriesImage['image'];
             $cImages[$categoriesImage['platform_id']][] = $categoriesImage;
         }
@@ -152,7 +155,9 @@ class Image {
                     !in_array($cImage->categories_images_id, $images['image_id'][$platform['id']])
                 ) {
                     $image_location = DIR_FS_DOCUMENT_ROOT . DIR_WS_CATALOG_IMAGES . $cImage->image;
-                    if (file_exists($image_location)) @unlink($image_location);
+                    if (file_exists($image_location)) {
+                        @unlink($image_location);
+                    }
 
                     Images::removeResizeImages($cImage->image);
                     Images::removeWebp($cImage->image);
@@ -189,10 +194,10 @@ class Image {
         }
     }
 
-    public static function info_image_if_exists($image, $alt, $width = '', $height = '') {
+    public static function info_image_if_exists($image, $alt, $width = '', $height = '')
+    {
         return str_replace(TEXT_IMAGE_NONEXISTENT, '', self::info_image($image, $alt, $width, $height));
     }
-
 
     /**
      * Prepare image for saving: move, remove, resize image
@@ -220,7 +225,7 @@ class Image {
             $parentOldImage = pathinfo($resize['parentOldImage'], PATHINFO_FILENAME);
             $oldImage = pathinfo($oldValue, PATHINFO_FILENAME);
             if (strpos($oldImage, $parentOldImage) === 0 &&
-                pathinfo($oldValue, PATHINFO_EXTENSION ) == pathinfo($resize['parentOldImage'], PATHINFO_EXTENSION)
+                pathinfo($oldValue, PATHINFO_EXTENSION) == pathinfo($resize['parentOldImage'], PATHINFO_EXTENSION)
             ) {
                 $remove = true;
                 $upload = DIR_WS_IMAGES . $resize['parentImage'];
@@ -241,7 +246,7 @@ class Image {
                 unlink($fsPath . $oldValue);
             }
             $pos = strripos($oldValue, '.');
-            $name = substr($oldValue, 0, $pos+1) . 'webp';
+            $name = substr($oldValue, 0, $pos + 1) . 'webp';
             if (is_file($fsPath . $name)) {
                 unlink($fsPath . $name);
             }
@@ -292,7 +297,7 @@ class Image {
                     } elseif (!$resize['width'] && $resize['height']) {
                         $width = ($size[0] * $resize['height']) / $size[1];
                         $height = $resize['height'];
-                    }else {
+                    } else {
                         $width = $resize['width'];
                         $height = ($size[1] * $resize['width']) / $size[0];
                     }
@@ -300,7 +305,7 @@ class Image {
                     Images::createWebp($newImg, true);
                     $image = str_replace(DIR_WS_IMAGES, '', str_replace('\\', '/', $newImg));
                 }
-            } else if (is_file(DIR_FS_CATALOG . $newImg)) {
+            } elseif (is_file(DIR_FS_CATALOG . $newImg)) {
                 $image = str_replace(DIR_WS_IMAGES, '', str_replace('\\', '/', $newImg));
             }
 

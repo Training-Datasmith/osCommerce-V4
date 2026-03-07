@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,32 +14,29 @@
 
 namespace frontend\design\boxes\login;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
-use frontend\forms\registration\CustomerRegistration;
+use yii\base\Widget;
 
 class Returning extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
 
     public function init()
     {
-        parent::init();        
+        parent::init();
     }
 
     public function run()
     {
-        if ( !isset($this->params['enterModels']['login']) || !is_object($this->params['enterModels']['login']) ){
+        if (!isset($this->params['enterModels']['login']) || !is_object($this->params['enterModels']['login'])) {
             return '';
         }
         return IncludeTpl::widget(['file' => 'boxes/login/returning.tpl', 'params' => array_merge($this->params, [
             'settings' => $this->settings,
             'id' => $this->id,
-            'loginModel' => $this->params['enterModels']['login']
+            'loginModel' => $this->params['enterModels']['login'],
         ])]);
     }
 }

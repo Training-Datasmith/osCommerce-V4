@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -27,7 +29,7 @@ class PayoutBatchHeader extends PayPalModel
      * The PayPal-generated ID for a batch payout.
      *
      * @param string $payout_batch_id
-     * 
+     *
      * @return $this
      */
     public function setPayoutBatchId($payout_batch_id)
@@ -50,7 +52,7 @@ class PayoutBatchHeader extends PayPalModel
      * The PayPal-generated batch payout status. If the batch payout passes the preliminary checks, the status is `PENDING`.
      *
      * @param string $batch_status
-     * 
+     *
      * @return $this
      */
     public function setBatchStatus($batch_status)
@@ -119,7 +121,7 @@ class PayoutBatchHeader extends PayPalModel
      * The original batch header as provided by the payment sender.
      *
      * @param \PayPal\Api\PayoutSenderBatchHeader $sender_batch_header
-     * 
+     *
      * @return $this
      */
     public function setSenderBatchHeader($sender_batch_header)
@@ -211,7 +213,7 @@ class PayoutBatchHeader extends PayPalModel
      * Sets Links
      *
      * @param \PayPal\Api\Links[] $links
-     * 
+     *
      * @return $this
      */
     public function setLinks($links)
@@ -239,10 +241,10 @@ class PayoutBatchHeader extends PayPalModel
     public function addLink($links)
     {
         if (!$this->getLinks()) {
-            return $this->setLinks(array($links));
+            return $this->setLinks([$links]);
         } else {
             return $this->setLinks(
-                array_merge($this->getLinks(), array($links))
+                array_merge($this->getLinks(), [$links])
             );
         }
     }
@@ -256,7 +258,7 @@ class PayoutBatchHeader extends PayPalModel
     public function removeLink($links)
     {
         return $this->setLinks(
-            array_diff($this->getLinks(), array($links))
+            array_diff($this->getLinks(), [$links])
         );
     }
 

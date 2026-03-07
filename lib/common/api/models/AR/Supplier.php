@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,17 +14,14 @@
 
 namespace common\api\models\AR;
 
-
 use yii\db\Expression;
 
 class Supplier extends EPMap
 {
-
     public static function primaryKey()
     {
         return ['suppliers_id'];
     }
-
 
     public static function tableName()
     {
@@ -31,13 +30,13 @@ class Supplier extends EPMap
 
     public function beforeSave($insert)
     {
-        if ( $insert ) {
-            if ( empty($this->date_added) ) {
-                $this->date_added = new Expression("NOW()");
+        if ($insert) {
+            if (empty($this->date_added)) {
+                $this->date_added = new Expression('NOW()');
             }
-        }else{
-            if ( $this->isModified() ) {
-                $this->last_modified = new Expression("NOW()");
+        } else {
+            if ($this->isModified()) {
+                $this->last_modified = new Expression('NOW()');
             }
         }
         return parent::beforeSave($insert);

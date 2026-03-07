@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230816_142130_backend_search_settings_update extends Migration
      */
     public function safeUp()
     {
-        
+
         $check = (new yii\db\Query())->from('configuration')->where(['configuration_key' => 'BACKEND_SEARCH_SHOW_DATA'])->exists();
         if (!$check) {
             $this->insert('configuration', [
@@ -33,7 +35,7 @@ class m230816_142130_backend_search_settings_update extends Migration
                 'configuration_value' => 'Image, SKU, Price',
                 'sort_order' => '11',
                 'set_function' => 'tep_cfg_select_multioption(array(\'Image\', \'SKU\',\'Price\',\'Stock\'),',
-                'date_added' => (new yii\db\Expression('now()'))
+                'date_added' => (new yii\db\Expression('now()')),
             ]);
         }
 
@@ -47,7 +49,7 @@ class m230816_142130_backend_search_settings_update extends Migration
                 'configuration_value' => 'False',
                 'sort_order' => '15',
                 'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'),',
-                'date_added' => (new yii\db\Expression('now()'))
+                'date_added' => (new yii\db\Expression('now()')),
             ]);
         }
 

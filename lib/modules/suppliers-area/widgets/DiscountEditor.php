@@ -1,29 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 namespace suppliersarea\widgets;
 
-use Yii;
-use yii\helpers\Html;
-
-class DiscountEditor extends \yii\base\Widget {
-
-    
+class DiscountEditor extends \yii\base\Widget
+{
     public $product;
-    
-    public function init() {
-        parent::init();        
+
+    public function init()
+    {
+        parent::init();
     }
 
-    public function run() {    
-        
+    public function run()
+    {
+
         $uprid = $this->product->uprid;
-        
-        return $this->render('discount-editor',[
+
+        return $this->render('discount-editor', [
             'value' => floatval($this->product->supplier_discount),
             'b_uprid' => base64_encode($uprid),
-            'uprid' => $uprid,            
+            'uprid' => $uprid,
             'baseUrl' => \suppliersarea\SupplierModule::getInstance()->baseUrl,
         ]);
-        
+
     }
 }

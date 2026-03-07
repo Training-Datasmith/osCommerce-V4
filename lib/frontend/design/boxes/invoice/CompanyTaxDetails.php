@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,10 @@
 
 namespace frontend\design\boxes\invoice;
 
-use Yii;
 use yii\base\Widget;
-use frontend\design\Info;
 
 class CompanyTaxDetails extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -31,16 +30,16 @@ class CompanyTaxDetails extends Widget
     public function run()
     {
         $ret = '';
-        if (!empty($this->params["order"])) {
-            $order = $this->params["order"];
-            $platform_id = $order->info['platform_id']??0;
+        if (!empty($this->params['order'])) {
+            $order = $this->params['order'];
+            $platform_id = $order->info['platform_id'] ?? 0;
             $taxDescription = '';
-            if (!empty($order->info['tax_groups']) && is_array($order->info['tax_groups']) && count($order->info['tax_groups'])==1) {
+            if (!empty($order->info['tax_groups']) && is_array($order->info['tax_groups']) && count($order->info['tax_groups']) == 1) {
                 $taxDescription = key($order->info['tax_groups']);
             }
 
-            for ($i=0;$i<3;$i++) {
-                if (!empty($this->settings[0]['company_' . $i])){
+            for ($i = 0;$i < 3;$i++) {
+                if (!empty($this->settings[0]['company_' . $i])) {
 
                     switch ($this->settings[0]['company_' . $i]) {
                         case 'name':
@@ -54,7 +53,7 @@ class CompanyTaxDetails extends Widget
                             break;
                     }
 
-                    if (!empty($this->settings[0]['spacer_' . $i])){
+                    if (!empty($this->settings[0]['spacer_' . $i])) {
                         $ret .= $this->settings[0]['spacer_' . $i];
                     }
 

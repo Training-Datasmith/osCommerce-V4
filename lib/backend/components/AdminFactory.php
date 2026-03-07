@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -14,19 +16,18 @@
 namespace backend\components;
 
 use Yii;
-use \common\components\SessionFlow;
-use \frontend\design\Info;
 
-class AdminFactory {
-
-    public static function init() {
+class AdminFactory
+{
+    public static function init(): void
+    {
         global $session_started, $request_type, $ssl_session_id, $SID;
         global $lng, $language, $languages_id, $breadcrumb, $navigation;
         global $PHP_SELF;
 
         /* init session from appication_top */
 
-        if (($session_started == true) && function_exists('ini_get') && (ini_get('register_globals') == false || ini_get('register_globals') == "Off")) {
+        if (($session_started == true) && function_exists('ini_get') && (ini_get('register_globals') == false || ini_get('register_globals') == 'Off')) {
             if (is_array($_SESSION)) {
                 extract($_SESSION, EXTR_OVERWRITE + EXTR_REFS);
                 foreach ($_SESSION as $_key => $_item) {
@@ -51,7 +52,7 @@ class AdminFactory {
                 tep_redirect(tep_href_link(FILENAME_SSL_CHECK));
             }
         }
-        
+
         $lng = new \common\classes\language();
 
         if (!tep_session_is_registered('language') || isset($_GET['language'])) {
@@ -69,16 +70,16 @@ class AdminFactory {
             $language = $lng->language['code'];
             $languages_id = $lng->language['id'];
             \Yii::$app->settings->set('locale', $lng->language['locale']);
-            \Yii::$app->settings->set('languages_id', $languages_id);//preparing to switch  
+            \Yii::$app->settings->set('languages_id', $languages_id);//preparing to switch
         } else {
             $lng->set_language($language);
             \Yii::$app->settings->set('locale', $lng->language['locale']);
-            \Yii::$app->settings->set('languages_id', $lng->language['id']);//preparing to switch  
+            \Yii::$app->settings->set('languages_id', $lng->language['id']);//preparing to switch
         }
         $lng->set_locale();
         $lng->load_vars();
 
-        $breadcrumb = new \common\classes\breadcrumb;
+        $breadcrumb = new \common\classes\breadcrumb();
 
         // navigation history
         if (!tep_session_is_registered('navigation')) {
@@ -86,22 +87,22 @@ class AdminFactory {
             $navigation = new \common\classes\navigation();
         }
         if (is_object($navigation) && method_exists($navigation, 'add_current_page')) {
-          $route = false;
-          $tmp = Yii::$app->urlManager->parseRequest(Yii::$app->request);
-          if (is_array($tmp) && !empty($tmp[0])){
-            $route = $tmp[0];
-          }
-            if (!Yii::$app->request->isAjax 
+            $route = false;
+            $tmp = Yii::$app->urlManager->parseRequest(Yii::$app->request);
+            if (is_array($tmp) && !empty($tmp[0])) {
+                $route = $tmp[0];
+            }
+            if (!Yii::$app->request->isAjax
                 && $route && !(in_array($route, ['index/load-languages-js']))
-                ) {
+            ) {
                 $navigation->add_current_page();
             }
         }
         \common\helpers\Translation::init('admin/main');
-        
+
         $messageStack = \Yii::$container->get('message_stack');
 
-        if (defined('XML_DUMP_ENABLE') && XML_DUMP_ENABLE == "True") {
+        if (defined('XML_DUMP_ENABLE') && XML_DUMP_ENABLE == 'True') {
             $can_backup_xml = true;
             if (is_dir(DIR_FS_CATALOG_XML)) {
                 if (!is_writeable(DIR_FS_CATALOG_XML)) {
@@ -129,11 +130,9 @@ class AdminFactory {
             $messageStack->add(WARNING_FILE_UPLOADS_DISABLED, 'header', 'warning');
         }
 
-        if (basename($PHP_SELF) != FILENAME_LOGIN && basename($PHP_SELF) != FILENAME_PASSWORD_FORGOTTEN && basename($PHP_SELF) != FILENAME_LOGOFF && basename($PHP_SELF) != 'password-forgotten-new-password' && basename($PHP_SELF) != 'captcha') {
+        if (basename((string) $PHP_SELF) != FILENAME_LOGIN && basename((string) $PHP_SELF) != FILENAME_PASSWORD_FORGOTTEN && basename((string) $PHP_SELF) != FILENAME_LOGOFF && basename((string) $PHP_SELF) != 'password-forgotten-new-password' && basename((string) $PHP_SELF) != 'captcha') {
             tep_admin_check_login();
         }
-
-        return;
     }
 
 }

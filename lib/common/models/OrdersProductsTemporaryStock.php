@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "temporary_stock".
@@ -44,7 +44,7 @@ class OrdersProductsTemporaryStock extends \yii\db\ActiveRecord
             [['specials_id'], 'default', 0],
             [['products_id', 'normalize_id'], 'string'],
             [['temporary_stock_datetime'], 'safe'],
-            [['session_id'], 'string', 'max' => 128]
+            [['session_id'], 'string', 'max' => 128],
         ];
     }
 

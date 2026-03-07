@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -21,7 +23,7 @@ class WebhookEventList extends PayPalModel
      * A list of webhooks events.
      *
      * @param \PayPal\Api\WebhookEvent[] $events
-     * 
+     *
      * @return $this
      */
     public function setEvents($events)
@@ -49,10 +51,10 @@ class WebhookEventList extends PayPalModel
     public function addEvent($webhookEvent)
     {
         if (!$this->getEvents()) {
-            return $this->setEvents(array($webhookEvent));
+            return $this->setEvents([$webhookEvent]);
         } else {
             return $this->setEvents(
-                array_merge($this->getEvents(), array($webhookEvent))
+                array_merge($this->getEvents(), [$webhookEvent])
             );
         }
     }
@@ -66,7 +68,7 @@ class WebhookEventList extends PayPalModel
     public function removeEvent($webhookEvent)
     {
         return $this->setEvents(
-            array_diff($this->getEvents(), array($webhookEvent))
+            array_diff($this->getEvents(), [$webhookEvent])
         );
     }
 
@@ -74,7 +76,7 @@ class WebhookEventList extends PayPalModel
      * The number of items in each range of results. Note that the response might have fewer items than the requested `page_size` value.
      *
      * @param int $count
-     * 
+     *
      * @return $this
      */
     public function setCount($count)
@@ -97,7 +99,7 @@ class WebhookEventList extends PayPalModel
      * Sets Links
      *
      * @param \PayPal\Api\Links[] $links
-     * 
+     *
      * @return $this
      */
     public function setLinks($links)
@@ -125,10 +127,10 @@ class WebhookEventList extends PayPalModel
     public function addLink($links)
     {
         if (!$this->getLinks()) {
-            return $this->setLinks(array($links));
+            return $this->setLinks([$links]);
         } else {
             return $this->setLinks(
-                array_merge($this->getLinks(), array($links))
+                array_merge($this->getLinks(), [$links])
             );
         }
     }
@@ -142,7 +144,7 @@ class WebhookEventList extends PayPalModel
     public function removeLink($links)
     {
         return $this->setLinks(
-            array_diff($this->getLinks(), array($links))
+            array_diff($this->getLinks(), [$links])
         );
     }
 

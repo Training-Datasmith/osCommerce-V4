@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
-use Yii;
 use yii\behaviors\TimestampBehavior;
 use yii\db\ActiveRecord;
 
@@ -25,8 +26,9 @@ class ShippingZones extends ActiveRecord
     {
         return 'ship_zones';
     }
-    
-    public static function primaryKey() {
+
+    public static function primaryKey()
+    {
         return ['ship_zone_id'];
     }
 
@@ -42,29 +44,32 @@ class ShippingZones extends ActiveRecord
             [['platform_id'], 'default', 'value' => 0],
         ];
     }
-    
-    public function behaviors() {
+
+    public function behaviors()
+    {
         return [
             [
                 'class' => TimestampBehavior::className(),
                 'attributes' => [
                     ActiveRecord::EVENT_BEFORE_INSERT => ['date_added', 'last_modified'],
                     ActiveRecord::EVENT_BEFORE_UPDATE => ['last_modified'],
-                ],              
+                ],
                  'value' => new \yii\db\Expression('NOW()'),
             ],
         ];
     }
-    
-    public static function create(string $name, int $platform_id = 0, string $desc = '') {
+
+    public static function create(string $name, int $platform_id = 0, string $desc = '')
+    {
         $zone = new static();
         $zone->ship_zone_name = $name;
         $zone->ship_zone_description = $desc;
         $zone->platform_id = $platform_id;
         return $zone;
     }
-    
-    public static function getMax($platform_id){
+
+    public static function getMax($platform_id)
+    {
         return static::find()->where(['platform_id' => (int)$platform_id,])->max('ship_zone_id');
     }
 

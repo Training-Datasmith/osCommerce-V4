@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,9 +24,9 @@ class m220822_093740_info_and_invoices extends Migration
      */
     public function safeUp()
     {
-       $this->addWidget('invoice', 'lib/console/widgets/invoice.zip', 'Logo', 'splash');
-	   $this->addWidget('packingslip', 'lib/console/widgets/packingslip.zip', 'Logo', 'splash');
-	   $this->addWidget('info', 'lib/console/widgets/info-page.zip', 'info\Title', 'splash');
+        $this->addWidget('invoice', 'lib/console/widgets/invoice.zip', 'Logo', 'splash');
+        $this->addWidget('packingslip', 'lib/console/widgets/packingslip.zip', 'Logo', 'splash');
+        $this->addWidget('info', 'lib/console/widgets/info-page.zip', 'info\Title', 'splash');
     }
 
     /**

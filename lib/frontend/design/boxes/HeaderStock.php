@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class HeaderStock extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -33,7 +34,7 @@ class HeaderStock extends Widget
         return IncludeTpl::widget(['file' => 'boxes/header-stock.tpl', 'params' => [
             'checked' => SHOW_OUT_OF_STOCK,
             'url' => tep_href_link(Yii::$app->controller->id . '/' . Yii::$app->controller->action->id, \common\helpers\Output::get_all_get_params()),
-            'text' => $this->params['text'] ?? TEXT_OUT_STOCK
+            'text' => $this->params['text'] ?? TEXT_OUT_STOCK,
         ]]);
     }
 }

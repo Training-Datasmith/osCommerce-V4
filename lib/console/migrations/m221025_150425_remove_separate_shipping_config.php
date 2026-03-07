@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -32,7 +34,7 @@ class m221025_150425_remove_separate_shipping_config extends Migration
             'CUSTOMERS_GROUPS_ENABLE_DESC',
             'CUSTOMERS_GROUPS_ENABLE_TITLE',
             'SALES_STATS_DISPLAY_DESC',
-            'SALES_STATS_DISPLAY_TITLE'
+            'SALES_STATS_DISPLAY_TITLE',
         ]);
     }
 

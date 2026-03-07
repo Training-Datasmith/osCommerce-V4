@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\account;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class ApplyCertificate extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -30,7 +30,7 @@ class ApplyCertificate extends Widget
 
     public function run()
     {
-        $form = new \frontend\forms\account\ApplyCerificate;
+        $form = new \frontend\forms\account\ApplyCerificate();
 
         return IncludeTpl::widget(['file' => 'boxes/account/apply-certificate.tpl', 'params' => [
             'model' => $form,

@@ -1,8 +1,11 @@
 <?php
+
+declare(strict_types=1);
 /**
  * NOT part of Lib
  * @Holbi Group Ltd
  */
+
 namespace PayPalCheckoutSdk\Core;
 
 use PayPalHttp\HttpRequest;
@@ -15,14 +18,13 @@ class ClientTokenRequest extends HttpRequest
      */
     public function __construct($customer_id)
     {
-        parent::__construct("/v1/identity/generate-token", "POST");
-        $this->headers["Content-Type"] = "application/json";
+        parent::__construct('/v1/identity/generate-token', 'POST');
+        $this->headers['Content-Type'] = 'application/json';
 
         $body = [
-            "customer_id" => $customer_id
+            'customer_id' => $customer_id,
         ];
 
         $this->body = $body;
     }
 }
-

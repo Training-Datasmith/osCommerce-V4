@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 /**
@@ -16,19 +17,21 @@ use yii\db\ActiveRecord;
  * @property int $billing_status
  * @property int $shipping_status
  */
-class GeoZones extends ActiveRecord {
-
+class GeoZones extends ActiveRecord
+{
     /**
      * {@inheritdoc}
      */
-    public static function tableName(): string {
+    public static function tableName(): string
+    {
         return 'geo_zones';
     }
 
     /**
      * {@inheritdoc}
      */
-    public function rules(): array {
+    public function rules(): array
+    {
         return [
             [['billing_status', 'shipping_status'], 'integer'],
             [['last_modified', 'date_added'], 'safe'],
@@ -36,12 +39,14 @@ class GeoZones extends ActiveRecord {
             [['geo_zone_description'], 'string', 'max' => 255],
         ];
     }
-    
-    public function getZones(){
+
+    public function getZones()
+    {
         return $this->hasMany(ZonesToGeoZones::class, [ 'geo_zone_id' => 'geo_zone_id']);
     }
 
-    public function getPlatformZones(){
+    public function getPlatformZones()
+    {
         return $this->hasMany(PlatformsGeoZones::class, [ 'geo_zone_id' => 'geo_zone_id']);
     }
 

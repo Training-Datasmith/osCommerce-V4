@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // This class was generated on Wed, 01 Aug 2018 16:35:04 PDT by version 0.1.0-dev+0ee05a-dirty of Braintree SDK Generator
 // CapturesGetRequest.php
 // @version 0.1.0-dev+0ee05a-dirty
@@ -13,13 +15,12 @@ use PayPalHttp\HttpRequest;
 
 class CapturesGetRequest extends HttpRequest
 {
-    function __construct($captureId)
+    public function __construct($captureId)
     {
-        parent::__construct("/v2/payments/captures/{capture_id}?", "GET");
+        parent::__construct('/v2/payments/captures/{capture_id}?', 'GET');
 
-        $this->path = str_replace("{capture_id}", urlencode($captureId), $this->path);
-        $this->headers["Content-Type"] = "application/json";
+        $this->path = str_replace('{capture_id}', urlencode($captureId), $this->path);
+        $this->headers['Content-Type'] = 'application/json';
     }
-
 
 }

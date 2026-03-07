@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,8 +18,8 @@ use yii\base\Widget;
 
 class MessagePopup extends Widget
 {
-    const MESSAGE_TYPE_SUCCESS = 'success';
-    const MESSAGE_TYPE_WARNING = 'warning';
+    public const MESSAGE_TYPE_SUCCESS = 'success';
+    public const MESSAGE_TYPE_WARNING = 'warning';
 
     public $messageType = 'success';
     public $heading = '';

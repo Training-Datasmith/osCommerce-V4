@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -53,9 +55,9 @@ class m221212_144859_customers_external_ids_table extends Migration
      */
     public function safeDown()
     {
-//        echo "m221212_144859_customers_external_ids_table cannot be reverted.\n";
+        //        echo "m221212_144859_customers_external_ids_table cannot be reverted.\n";
 
-//        return false;
+        //        return false;
     }
 
     /*

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m220806_151620_smtp_mail_update extends Migration
      */
     public function safeUp()
     {
-        $this->insert('configuration',[
+        $this->insert('configuration', [
             'configuration_key' => 'SMTP_ENCRYPTION',
             'configuration_title' => 'SMTP Encryption',
             'set_function' => 'multiOption(\'dropdown\', [\'\'=>\'Regular\', \'ssl\'=>\'Secure to regular port (STARTTLS)\', \'tls\'=>\'Secure to dedicated port (TLS)\'], ',
@@ -31,7 +33,7 @@ class m220806_151620_smtp_mail_update extends Migration
             'sort_order' => 12,
             'date_added' => new \yii\db\Expression('NOW()'),
         ]);
-        $this->update('configuration', ['configuration_value'=>'Swiftmailer'], ['configuration_key'=>'SMTP_MAILER','configuration_value'=>'']);
+        $this->update('configuration', ['configuration_value' => 'Swiftmailer'], ['configuration_key' => 'SMTP_MAILER','configuration_value' => '']);
     }
 
     /**
@@ -39,7 +41,7 @@ class m220806_151620_smtp_mail_update extends Migration
      */
     public function safeDown()
     {
-        $this->delete('configuration',['configuration_key'=>'SMTP_ENCRYPTION']);
+        $this->delete('configuration', ['configuration_key' => 'SMTP_ENCRYPTION']);
     }
 
     /*

@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "platforms_configuration".
@@ -69,6 +69,6 @@ class PlatformsConfiguration extends \yii\db\ActiveRecord
 
     public function getPlatform()
     {
-      return $this->hasOne(Platforms::class, ['platform_id' => 'platform_id']);
+        return $this->hasOne(Platforms::class, ['platform_id' => 'platform_id']);
     }
 }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
 * This file is part of osCommerce ecommerce platform.
 * osCommerce the ecommerce
@@ -15,7 +17,6 @@ namespace common\extensions\ErrorLogViewer;
 
 class Setup extends \common\classes\modules\SetupExtensions
 {
-
     public static function getDescription()
     {
         return 'This extension allows you to view error logs';

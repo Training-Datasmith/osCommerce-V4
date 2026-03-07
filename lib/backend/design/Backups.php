@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -27,11 +29,11 @@ class Backups
         $zipName = $path . DIRECTORY_SEPARATOR . $backupId . '.zip';
 
         $zip = new \ZipArchive();
-        if ($zip->open($zipName, \ZipArchive::CREATE) === TRUE) {
+        if ($zip->open($zipName, \ZipArchive::CREATE) === true) {
 
             foreach ([$themeName, $themeName . '-mobile'] as $theme) {
                 $json = \backend\design\Theme::getThemeJson($theme);
-                $zip->addFromString ($theme . '.json', $json);
+                $zip->addFromString($theme . '.json', $json);
             }
 
             $zip->close();
@@ -51,7 +53,7 @@ class Backups
             $zipText = file_get_contents('zip://' . $zipName . '#' . $theme . '.json');
             $themeArray = json_decode($zipText, true);
 
-            if (is_array($themeArray)){
+            if (is_array($themeArray)) {
                 Theme::importTheme($themeArray, $theme);
                 Style::createCache($theme);
             }

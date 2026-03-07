@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * Created by PhpStorm.
  * User: user
@@ -8,17 +10,18 @@
 
 namespace common\models;
 
-
 use yii\db\ActiveRecord;
 
-class CustomersPhones extends ActiveRecord {
+class CustomersPhones extends ActiveRecord
+{
+    public static function tableName()
+    {
+        return 'customers_phones';
+    }
 
-	public static function tableName() {
-		return 'customers_phones';
-	}
-
-	public function getCustomer(){
-		return $this->hasOne(Customers::className(), ['customers_id' => 'customers_id']);
-	}
+    public function getCustomer()
+    {
+        return $this->hasOne(Customers::className(), ['customers_id' => 'customers_id']);
+    }
 
 }

@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models\Product;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models\Product;
 
 /**
  * This is the model class for table "products_documents_titles".

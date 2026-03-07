@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,16 +24,14 @@ class m230109_162801_drop_unused_competitors_translate extends Migration
      */
     public function safeUp()
     {
-        if (method_exists($this, 'isOldExtension'))
-        {
-            if (!$this->isOldExtension('Competitors'))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension('Competitors')) {
                 $this->removeTranslation('admin/categories', [
                     'TEXT_COMPETITORS',
                     'TEXT_COMPETITORS_CURRENCY',
                     'TEXT_COMPETITORS_MASK',
                     'TEXT_COMPETITORS_NAME',
-                    'TEXT_COMPETITORS_SITE'
+                    'TEXT_COMPETITORS_SITE',
                 ]);
             }
         }

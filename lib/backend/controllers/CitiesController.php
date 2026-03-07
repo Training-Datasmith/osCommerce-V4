@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -19,40 +21,42 @@ use Yii;
 /**
  * default controller to handle user requests.
  */
-class CitiesController extends Sceleton {
-
+class CitiesController extends Sceleton
+{
     public $acl = ['TEXT_SETTINGS', 'BOX_HEADING_LOCATION', 'BOX_CITIES'];
 
-    public function actionIndex() {
+    public function actionIndex()
+    {
         Translation::init('admin/geo_zones');
-        $this->selectedMenu = array('settings', 'locations', 'cities');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('cities/index'), 'title' => HEADING_TITLE);
+        $this->selectedMenu = ['settings', 'locations', 'cities'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('cities/index'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
         $this->topButtons[] = '<a href="#" class="btn btn-primary" onclick="return cityEdit(0)">' . TEXT_INFO_HEADING_NEW_CITY . '</a>';
 
-        $this->view->citiesTable = array(
-            array(
+        $this->view->citiesTable = [
+            [
                 'title' => TABLE_HEADING_COUNTRY_NAME,
                 'not_important' => 0,
-            ),
-            array(
+            ],
+            [
                 'title' => TABLE_HEADING_CITY_NAME,
                 'not_important' => 0,
-            ),
+            ],
                 /* array(
                   'title' => TABLE_HEADING_CITY_CODE,
                   'not_important' => 0,
                   ), */
-            array(
+            [
                 'title' => TABLE_HEADING_ZONE_NAME,
                 'not_important' => 0,
-            ),
-        );
+            ],
+        ];
 
         return $this->render('index');
     }
 
-    public function actionList() {
+    public function actionList()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
         $draw = Yii::$app->request->get('draw', 1);
         $start = Yii::$app->request->get('start', 0);
@@ -68,54 +72,55 @@ class CitiesController extends Sceleton {
         if (isset($_GET['order'][0]['column']) && $_GET['order'][0]['dir']) {
             switch ($_GET['order'][0]['column']) {
                 case 0:
-                    $orderBy = "c.countries_name " . tep_db_prepare_input($_GET['order'][0]['dir']).', z.city_name';
+                    $orderBy = 'c.countries_name ' . tep_db_prepare_input($_GET['order'][0]['dir']).', z.city_name';
                     break;
                 case 1:
-                    $orderBy = "z.city_name " . tep_db_prepare_input($_GET['order'][0]['dir']);
+                    $orderBy = 'z.city_name ' . tep_db_prepare_input($_GET['order'][0]['dir']);
                     break;
                 case 2:
                     $orderBy = "IFNULL(zz.zone_name,'') " . tep_db_prepare_input($_GET['order'][0]['dir']).', c.countries_name, z.city_name';
                     break;
                 default:
-                    $orderBy = "c.countries_name, z.city_name";
+                    $orderBy = 'c.countries_name, z.city_name';
                     break;
             }
         } else {
-            $orderBy = "c.countries_name, z.city_name";
+            $orderBy = 'c.countries_name, z.city_name';
         }
 
         $current_page_number = ($start / $length) + 1;
-        $responseList = array();
+        $responseList = [];
 
         $cities_query_raw =
-            "select z.city_id, c.countries_id, c.countries_name, z.city_name, z.city_code, z.city_country_id, zz.zone_name ".
-            "from " . TABLE_COUNTRIES . " c, " . TABLE_CITIES . " z ".
-            " left join ".TABLE_ZONES." zz ON zz.zone_id=z.city_zone_id and zz.zone_country_id=z.city_country_id ".
-            "where z.city_country_id = c.countries_id and c.language_id = '" . $languages_id . "' " . $search . " ".
-            "order by " . $orderBy;
+            'select z.city_id, c.countries_id, c.countries_name, z.city_name, z.city_code, z.city_country_id, zz.zone_name '.
+            'from ' . TABLE_COUNTRIES . ' c, ' . TABLE_CITIES . ' z '.
+            ' left join '.TABLE_ZONES.' zz ON zz.zone_id=z.city_zone_id and zz.zone_country_id=z.city_country_id '.
+            "where z.city_country_id = c.countries_id and c.language_id = '" . $languages_id . "' " . $search . ' '.
+            'order by ' . $orderBy;
         $cities_split = new \splitPageResults($current_page_number, $length, $cities_query_raw, $cities_query_numrows);
         $cities_query = tep_db_query($cities_query_raw);
 
         while ($cities = tep_db_fetch_array($cities_query)) {
 
-            $responseList[] = array(
+            $responseList[] = [
                 $cities['countries_name'] . tep_draw_hidden_field('id', $cities['city_id'], 'class="cell_identify"'),
                 $cities['city_name'],
                     //$cities['city_code']
                 $cities['zone_name'],
-            );
+            ];
         }
 
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $cities_query_numrows,
             'recordsFiltered' => $cities_query_numrows,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         echo json_encode($response);
     }
 
-    public function actionCitiesactions() {
+    public function actionCitiesactions()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
         Translation::init('admin/cities');
         Translation::init('admin/zones');
@@ -125,9 +130,9 @@ class CitiesController extends Sceleton {
         $this->layout = false;
         if ($cities_id) {
             $city = tep_db_fetch_array(tep_db_query(
-                "select z.city_id, c.countries_id, c.countries_name, z.city_name, z.city_code, z.city_country_id, zz.zone_name ".
-                "from " . TABLE_COUNTRIES . " c, " . TABLE_CITIES . " z ".
-                " left join ".TABLE_ZONES." zz ON zz.zone_id=z.city_zone_id and zz.zone_country_id=z.city_country_id ".
+                'select z.city_id, c.countries_id, c.countries_name, z.city_name, z.city_code, z.city_country_id, zz.zone_name '.
+                'from ' . TABLE_COUNTRIES . ' c, ' . TABLE_CITIES . ' z '.
+                ' left join '.TABLE_ZONES.' zz ON zz.zone_id=z.city_zone_id and zz.zone_country_id=z.city_country_id '.
                 "where z.city_country_id = c.countries_id and c.language_id = '" . $languages_id . "' and z.city_id = '" . (int) $cities_id . "'"
             ));
             $cInfo = new \objectInfo($city, false);
@@ -141,7 +146,8 @@ class CitiesController extends Sceleton {
         }
     }
 
-    public function actionEdit() {
+    public function actionEdit()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
         Translation::init('admin/cities');
         Translation::init('admin/zones');
@@ -149,9 +155,9 @@ class CitiesController extends Sceleton {
 
         $cities_id = Yii::$app->request->get('cities_id', 0);
         $city = tep_db_fetch_array(tep_db_query(
-            "select z.city_id, c.countries_id, c.countries_name, z.city_name, z.city_code, z.city_country_id, z.city_zone_id, zz.zone_id ".
-            "from " . TABLE_COUNTRIES . " c, " . TABLE_CITIES . " z ".
-            " left join ".TABLE_ZONES." zz ON zz.zone_id=z.city_zone_id and zz.zone_country_id=z.city_country_id ".
+            'select z.city_id, c.countries_id, c.countries_name, z.city_name, z.city_code, z.city_country_id, z.city_zone_id, zz.zone_id '.
+            'from ' . TABLE_COUNTRIES . ' c, ' . TABLE_CITIES . ' z '.
+            ' left join '.TABLE_ZONES.' zz ON zz.zone_id=z.city_zone_id and zz.zone_country_id=z.city_country_id '.
             "where z.city_country_id = c.countries_id and c.language_id = '" . $languages_id . "' and z.city_id = '" . (int) $cities_id . "'"
         ));
         $cInfo = new \objectInfo($city, false);
@@ -175,18 +181,19 @@ class CitiesController extends Sceleton {
         //echo '</div>';
         echo '<div class="main_row">';
         echo '<div class="main_title">' . TEXT_INFO_ZONES_NAME . '</div>';
-        echo '<div class="main_value">' . \common\helpers\Html::dropDownList('city_zone_id', $cInfo->zone_id ?? null, \yii\helpers\ArrayHelper::map(\common\helpers\Zones::prepare_country_zones_pull_down($cInfo->countries_id),'id','text')) . '</div>';
+        echo '<div class="main_value">' . \common\helpers\Html::dropDownList('city_zone_id', $cInfo->zone_id ?? null, \yii\helpers\ArrayHelper::map(\common\helpers\Zones::prepare_country_zones_pull_down($cInfo->countries_id), 'id', 'text')) . '</div>';
         echo '</div>';
         echo '<div class="main_row">';
         echo '<div class="main_title">' . TEXT_INFO_COUNTRY_NAME . '</div>';
-        echo '<div class="main_value">' . \common\helpers\Html::dropDownList('city_country_id', $cInfo->countries_id, \common\helpers\Country::new_get_countries('',true), ['onchange'=>'update_zone(this.form)']) . '</div>';
+        echo '<div class="main_value">' . \common\helpers\Html::dropDownList('city_country_id', $cInfo->countries_id, \common\helpers\Country::new_get_countries('', true), ['onchange' => 'update_zone(this.form)']) . '</div>';
         echo '</div>';
 
         echo '<div class="btn-toolbar btn-toolbar-order"><input type="button" value="' . IMAGE_UPDATE . '" class="btn btn-no-margin" onclick="citySave(' . ($cInfo->city_id ? $cInfo->city_id : 0) . ')"><input type="button" value="' . IMAGE_CANCEL . '" class="btn btn-cancel" onclick="resetStatement()"></div>';
         echo '</form>';
     }
 
-    public function actionSave() {
+    public function actionSave()
+    {
         global $language;
         Translation::init('admin/cities');
 
@@ -204,34 +211,35 @@ class CitiesController extends Sceleton {
                 'city_zone_id' => (int)$city_zone_id,
                 'city_code' => (string)$city_code,
                 'city_name' => (string)$city_name,
-            ],false);
+            ], false);
             $cityModel->save(false);
             $action = 'added';
         } else {
             $cityModel = \common\models\Cities::find()->where(['city_id' => (int)$cities_id])->one();
-            if ( $cityModel ){
+            if ($cityModel) {
                 $cityModel->setAttributes([
                     'city_country_id' => (int) $city_country_id,
                     'city_zone_id' => (int)$city_zone_id,
                     'city_code' => (string)$city_code,
                     'city_name' => (string)$city_name,
-                ],false);
+                ], false);
                 $cityModel->save(false);
             }
             $action = 'updated';
         }
 
-
-        echo json_encode(array('message' => 'City ' . $action, 'messageType' => 'alert-success'));
+        echo json_encode(['message' => 'City ' . $action, 'messageType' => 'alert-success']);
     }
 
-    public function actionDelete() {
+    public function actionDelete()
+    {
         global $language;
         Translation::init('admin/cities');
         $cities_id = Yii::$app->request->post('cities_id', 0);
 
-        if ($cities_id)
-            tep_db_query("delete from " . TABLE_CITIES . " where city_id = '" . (int) $cities_id . "'");
+        if ($cities_id) {
+            tep_db_query('delete from ' . TABLE_CITIES . " where city_id = '" . (int) $cities_id . "'");
+        }
 
         echo 'reset';
     }

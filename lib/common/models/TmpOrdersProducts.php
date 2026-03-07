@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 class TmpOrdersProducts extends ActiveRecord
@@ -25,9 +26,10 @@ class TmpOrdersProducts extends ActiveRecord
     {
         return 'tmp_orders_products';
     }
-    
-    public function beforeDelete() {
-        if ($this->orders_products_id){
+
+    public function beforeDelete()
+    {
+        if ($this->orders_products_id) {
             TmpOrdersProductsAttributes::deleteAll(['orders_products_id' => $this->orders_products_id]);
             TmpOrdersProductsDownload::deleteAll(['orders_products_id' => $this->orders_products_id]);
         }

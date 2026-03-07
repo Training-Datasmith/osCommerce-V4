@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -29,7 +31,7 @@ class m220831_132104_stock_deficit_translation extends Migration
             'TEXT_STOCK_TEMPORARY_QUANTITY' => 'In cart',
             'TEXT_TEMPORARY_STOCK' => 'In cart stock',
             'TEXT_STOCK_TEMPORARY_ALLOCATED' => 'Not paid order',
-            'TEXT_AUTOALLOCATE' => 'Allocate automatically'
+            'TEXT_AUTOALLOCATE' => 'Allocate automatically',
         ]);
     }
 
@@ -44,7 +46,7 @@ class m220831_132104_stock_deficit_translation extends Migration
             'TEXT_STOCK_TEMPORARY_QUANTITY',
             'TEXT_TEMPORARY_STOCK',
             'TEXT_STOCK_TEMPORARY_ALLOCATED',
-            'TEXT_AUTOALLOCATE'
+            'TEXT_AUTOALLOCATE',
         ]);
     }
 }

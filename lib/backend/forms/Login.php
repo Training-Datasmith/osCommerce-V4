@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,12 @@
 
 namespace backend\forms;
 
+use common\classes\ReCaptcha;
 use Yii;
 use yii\base\Model;
-use common\classes\ReCaptcha;
 
-class Login extends Model {
-
+class Login extends Model
+{
     public $captha_enabled = false;
 
     public $captcha = null;
@@ -27,14 +29,15 @@ class Login extends Model {
 
     private $shortName = 'Login';
 
-    public function __construct($config = array()) {
+    public function __construct($config = [])
+    {
         if (isset($config['captha_enabled']) && $config['captha_enabled'] == true) {
             $this->captha_enabled = 'captha';
             unset($config['captha_enabled']);
         } elseif (\common\models\Fraud::underSurveillanceAddress()) {
             $this->captha_enabled = 'captha';
         }
-        if (defined('ADMIN_LOGIN_OTP_ENABLE') AND (ADMIN_LOGIN_OTP_ENABLE == 'True')) {
+        if (defined('ADMIN_LOGIN_OTP_ENABLE') and (ADMIN_LOGIN_OTP_ENABLE == 'True')) {
             $this->captha_enabled = 'captha';
         }
         if ($this->captha_enabled == 'captha') {
@@ -50,26 +53,29 @@ class Login extends Model {
         parent::__construct($config);
     }
 
-    public function formName(){
+    public function formName()
+    {
         return $this->shortName;
     }
 
     public function load($data, $formName = null)
     {
-        if ($this->captha_enabled == 'recaptha'){
+        if ($this->captha_enabled == 'recaptha') {
             $formName = '';
         }
         return parent::load($data, $formName);
     }
 
-    public function beforeValidate() {
-        if ($this->captha_enabled == 'recaptha'){
+    public function beforeValidate()
+    {
+        if ($this->captha_enabled == 'recaptha') {
             $this->captcha_response = Yii::$app->request->post('g-recaptcha-response', null);
         }
         return parent::beforeValidate();
     }
 
-    public function rules() {
+    public function rules()
+    {
         $_rules = [];
         if ($this->captha_enabled == 'captha') {
             $_rules[] = ['captcha', 'required'];
@@ -81,21 +87,24 @@ class Login extends Model {
         return $_rules;
     }
 
-    public function validateCaptcha($attribute, $params) {
-        if ($this->captha_enabled == 'recaptha'){
-            if (!$this->captcha->checkVerification($this->captcha_response)){
+    public function validateCaptcha($attribute, $params)
+    {
+        if ($this->captha_enabled == 'recaptha') {
+            if (!$this->captcha->checkVerification($this->captcha_response)) {
                 $this->addError($attribute, 'Wrong captcha verification');
             }
         }
     }
 
-    public function scenarios() {
+    public function scenarios()
+    {
         return [
-            'default' => $this->collectFields(null)
+            'default' => $this->collectFields(null),
         ];
     }
 
-    public function collectFields($type) {
+    public function collectFields($type)
+    {
         $fields = [];
         if ($this->captha_enabled == 'captha') {
             $fields[] = 'captcha';

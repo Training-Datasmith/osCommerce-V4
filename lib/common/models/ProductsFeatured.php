@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +14,6 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 use yii\db\Expression;
 
@@ -29,8 +30,8 @@ class ProductsFeatured extends ActiveRecord
 
     public function beforeSave($insert)
     {
-        if ( $insert ) {
-            if ( empty($this->featured_date_added) ) {
+        if ($insert) {
+            if (empty($this->featured_date_added)) {
                 $this->featured_date_added = new Expression('NOW()');
             }
         }

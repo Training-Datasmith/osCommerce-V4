@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,11 +16,9 @@
 namespace backend\models\EP\Datasource;
 
 use backend\models\EP\DatasourceBase;
-use common\helpers\Categories;
 
 class Google extends DatasourceBase
 {
-
     public function getName()
     {
         return 'Google';
@@ -29,8 +29,8 @@ class Google extends DatasourceBase
         $orderStatusesSelect = [
             '*' => '[Any order status]',
         ];
-        foreach( \common\helpers\Order::getStatusesGrouped(true) as $option){
-            $orderStatusesSelect[$option['id']] = html_entity_decode($option['text'],null,'UTF-8');
+        foreach (\common\helpers\Order::getStatusesGrouped(true) as $option) {
+            $orderStatusesSelect[$option['id']] = html_entity_decode($option['text'], null, 'UTF-8');
         }
         $configArray['order']['export_statuses'] = [
             'items' => $orderStatusesSelect,
@@ -43,12 +43,11 @@ class Google extends DatasourceBase
             ],
         ];
 
-        $configArray['delays']['latencity'] = isset($configArray['delays']['latencity'])?(int)$configArray['delays']['latencity']:2;
-        $configArray['delays']['outdated'] = isset($configArray['delays']['outdated'])?(int)$configArray['delays']['outdated']:3;
+        $configArray['delays']['latencity'] = isset($configArray['delays']['latencity']) ? (int)$configArray['delays']['latencity'] : 2;
+        $configArray['delays']['outdated'] = isset($configArray['delays']['outdated']) ? (int)$configArray['delays']['outdated'] : 3;
 
         return parent::prepareConfigForView($configArray);
     }
-
 
     public function getViewTemplate()
     {

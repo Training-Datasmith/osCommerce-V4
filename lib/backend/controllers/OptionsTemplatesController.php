@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -14,51 +16,56 @@ namespace backend\controllers;
 
 use backend\models\ProductEdit\PostArrayHelper;
 use backend\models\ProductNameDecorator;
+use common\helpers\Translation;
 use Yii;
-use \common\helpers\Translation;
 use yii\helpers\ArrayHelper;
 
-class OptionsTemplatesController extends Sceleton {
-
+class OptionsTemplatesController extends Sceleton
+{
     public $acl = ['BOX_HEADING_CATALOG', 'BOX_CATALOG_CATEGORIES_PRODUCTS_ATTRIBUTES', 'BOX_CATALOG_CATEGORIES_OPTIONS_TEMPLATES'];
 
-    public function __construct($id, $module=null) {
-      Translation::init('admin/options-templates');
-      parent::__construct($id, $module);
-      $this->view->currenciesTabs = null;
-      $this->view->useMarketPrices = (USE_MARKET_PRICES == 'True');
-    }    
+    public function __construct($id, $module = null)
+    {
+        Translation::init('admin/options-templates');
+        parent::__construct($id, $module);
+        $this->view->currenciesTabs = null;
+        $this->view->useMarketPrices = (USE_MARKET_PRICES == 'True');
+    }
 
-    public function actionIndex() {
+    public function actionIndex()
+    {
 
-        $this->selectedMenu = array('catalog', 'product_attributes', 'options-templates');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('options-templates/index'), 'title' => HEADING_TITLE);
+        $this->selectedMenu = ['catalog', 'product_attributes', 'options-templates'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('options-templates/index'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
         $this->topButtons[] = '<a href="#" class="btn btn-primary" onclick="return options_templateEdit(0)">' . IMAGE_NEW_OPTIONS_TEMPLATE . '</a>';
 
-        $this->view->options_templateTable = array(
-            array(
+        $this->view->options_templateTable = [
+            [
                 'title' => TABLE_HEADING_OPTIONS_TEMPLATE,
                 'not_important' => 0,
-            ),
+            ],
 //            array(
 //                'title' => TABLE_HEADING_PRODUCTS_COUNT,
 //                'not_important' => 0,
 //            ),
-        );
+        ];
 
         $messages = [];
         if (isset($_SESSION['messages'])) {
             $messages = $_SESSION['messages'];
             unset($_SESSION['messages']);
         }
-        if (!is_array($messages)) $messages = [];
+        if (!is_array($messages)) {
+            $messages = [];
+        }
 
         $tID = Yii::$app->request->get('tID', 0);
-        return $this->render('index', array('messages' => $messages, 'tID' => $tID));
+        return $this->render('index', ['messages' => $messages, 'tID' => $tID]);
     }
 
-    public function actionList() {
+    public function actionList()
+    {
         $draw = Yii::$app->request->get('draw', 1);
         $start = Yii::$app->request->get('start', 0);
         $length = Yii::$app->request->get('length', 10);
@@ -66,10 +73,10 @@ class OptionsTemplatesController extends Sceleton {
         $keywords = $_GET['search']['value'] ?? null;
 
         if (($_GET['order'][0]['column'] ?? null) == 0 && isset($_GET['order'][0]['dir'])) {
-            $orderCol = "ot.options_templates_name";
+            $orderCol = 'ot.options_templates_name';
             $orderDir = $_GET['order'][0]['dir'] == 'desc' ? SORT_DESC : SORT_ASC;
         } else {
-            $orderCol = "ot.options_templates_id";
+            $orderCol = 'ot.options_templates_id';
         }
 
         $query = \common\models\OptionsTemplates::find()
@@ -86,23 +93,24 @@ class OptionsTemplatesController extends Sceleton {
 
         $responseList = [];
         foreach ($list as $item) {
-            $responseList[] = array(
+            $responseList[] = [
                 $item['options_templates_name'] . tep_draw_hidden_field('id', $item['options_templates_id'], 'class="cell_identify"'),
                 //$options_templates['products_count'],
-            );
+            ];
         }
 
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $options_templates_query_numrows,
             'recordsFiltered' => $options_templates_query_numrows,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         return $response;
     }
 
-    public function actionStatusactions() {
+    public function actionStatusactions()
+    {
         \common\helpers\Translation::init('admin/options-templates');
 
         $options_templates_id = (int) Yii::$app->request->post('options_templates_id', 0);
@@ -120,7 +128,8 @@ class OptionsTemplatesController extends Sceleton {
 
     }
 
-    public function actionEdit() {
+    public function actionEdit()
+    {
         \common\helpers\Translation::init('admin/options-templates');
 
         $options_templates_id = (int) Yii::$app->request->get('options_templates_id', 0);
@@ -147,11 +156,12 @@ class OptionsTemplatesController extends Sceleton {
         echo '</form>';
     }
 
-    public function actionSave() {
+    public function actionSave()
+    {
         \common\helpers\Translation::init('admin/options-templates');
         $options_templates_id = intval(Yii::$app->request->get('options_templates_id', 0));
         $options_templates_name = tep_db_prepare_input(Yii::$app->request->post('options_templates_name', ''));
-        
+
         $obj = self::getObjByIdOrCreate($options_templates_id);
         if ($obj->isNewRecord) {
             $obj->date_added = new \yii\db\Expression('NOW()');
@@ -167,7 +177,8 @@ class OptionsTemplatesController extends Sceleton {
         return ['message' => 'Template ' . $action, 'messageType' => 'alert-success'];
     }
 
-    public function actionConfirmdelete() {
+    public function actionConfirmdelete()
+    {
         $this->layout = false;
 
         $options_templates_id = (int) Yii::$app->request->post('options_templates_id', 0);
@@ -175,20 +186,21 @@ class OptionsTemplatesController extends Sceleton {
         $tInfo = self::getObjById($options_templates_id);
         if (!empty($tInfo)) {
 
-            echo tep_draw_form('options_templates', 'options-templates', \common\helpers\Output::get_all_get_params(array('tID', 'action')) . 'dID=' . $tInfo->options_templates_id . '&action=deleteconfirm', 'post', 'id="item_delete" onSubmit="return options_templateDelete();"');
+            echo tep_draw_form('options_templates', 'options-templates', \common\helpers\Output::get_all_get_params(['tID', 'action']) . 'dID=' . $tInfo->options_templates_id . '&action=deleteconfirm', 'post', 'id="item_delete" onSubmit="return options_templateDelete();"');
 
             echo '<div class="or_box_head">' . $tInfo->options_templates_name . '</div>';
             echo TEXT_DELETE_INTRO . '<br>';
             echo '<div class="btn-toolbar btn-toolbar-order">';
             echo '<button type="submit" class="btn btn-primary btn-no-margin">' . IMAGE_CONFIRM . '</button>';
-            echo '<button class="btn btn-cancel" onClick="return resetStatement(' . $options_templates_id . ')">' . IMAGE_CANCEL . '</button>';      
+            echo '<button class="btn btn-cancel" onClick="return resetStatement(' . $options_templates_id . ')">' . IMAGE_CANCEL . '</button>';
 
             echo tep_draw_hidden_field('options_templates_id', $options_templates_id);
             echo '</div></form>';
         }
     }
 
-    public function actionDelete() {
+    public function actionDelete()
+    {
         \common\helpers\Translation::init('admin/options-templates');
 
         $options_templates_id = (int) Yii::$app->request->post('options_templates_id', 0);
@@ -200,7 +212,7 @@ class OptionsTemplatesController extends Sceleton {
         try {
 
             // delete products -> products_to_options_templates -> products_attributes -> products_attributes_prices -> inventory
-            foreach(\common\models\Products2OptionsTemplates::find()->select('products_id')->where(['options_templates_id' => $options_templates_id])->each() as $product) {
+            foreach (\common\models\Products2OptionsTemplates::find()->select('products_id')->where(['options_templates_id' => $options_templates_id])->each() as $product) {
                 $pid = $product->products_id;
 
                 \common\models\ProductsAttributesPrices::deleteAll(['in', 'products_attributes_id',
@@ -228,12 +240,13 @@ class OptionsTemplatesController extends Sceleton {
         }
     }
 
-    public function actionAttributes() {
+    public function actionAttributes()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
         $currencies = Yii::$container->get('currencies');
         \common\helpers\Translation::init('admin/categories');
 
-        $this->selectedMenu = array('catalog', 'product_attributes', 'options-templates');
+        $this->selectedMenu = ['catalog', 'product_attributes', 'options-templates'];
 
         $options_templates_id = (int) Yii::$app->request->get('options_templates_id', 0);
         $tInfo = self::getObjByIdCheck($options_templates_id);
@@ -246,13 +259,13 @@ class OptionsTemplatesController extends Sceleton {
 
         $this->topButtons[] = '<span class="btn btn-confirm" onclick="$(\'#options_templates_attributes\').trigger(\'submit\')">' . IMAGE_SAVE . '</span>';
 
-        $this->navigation[]       = array('link' => Yii::$app->urlManager->createUrl('options-templates/attributes'), 'title' => sprintf(HEADING_TITLE_EDIT_ATTRIBUTES, $tInfo->options_templates_name));
+        $this->navigation[]       = ['link' => Yii::$app->urlManager->createUrl('options-templates/attributes'), 'title' => sprintf(HEADING_TITLE_EDIT_ATTRIBUTES, $tInfo->options_templates_name)];
         $this->view->headingTitle = sprintf(HEADING_TITLE_EDIT_ATTRIBUTES, $tInfo->options_templates_name);
 
         $this->view->usePopupMode = false;
         if (Yii::$app->request->isAjax) {
-          $this->layout = false;
-          $this->view->usePopupMode = true;
+            $this->layout = false;
+            $this->view->usePopupMode = true;
         }
 
         $this->view->groups = [];
@@ -263,7 +276,7 @@ class OptionsTemplatesController extends Sceleton {
         // init price tabs
         $this->view->defaultCurrency = $currencies->currencies[DEFAULT_CURRENCY]['id'];
         $this->view->price_tabs = $this->view->price_tabparams = [];
-////currencies tabs and params
+        ////currencies tabs and params
         if ($this->view->useMarketPrices) {
             $this->view->currenciesTabs = [];
             foreach ($currencies->currencies as $value) {
@@ -279,9 +292,9 @@ class OptionsTemplatesController extends Sceleton {
             ];
         }
 
-    //// groups tabs and params
-        if (\common\helpers\Extensions::isCustomerGroupsAllowed() ) {
-            $this->view->groups_m = array_merge(array(array('groups_id' => 0, 'groups_name' => TEXT_MAIN)), $this->view->groups);
+        //// groups tabs and params
+        if (\common\helpers\Extensions::isCustomerGroupsAllowed()) {
+            $this->view->groups_m = array_merge([['groups_id' => 0, 'groups_name' => TEXT_MAIN]], $this->view->groups);
             $tmp = [];
             foreach ($this->view->groups_m as $value) {
                 $value['id'] = $value['groups_id'];
@@ -308,35 +321,35 @@ class OptionsTemplatesController extends Sceleton {
                 ->orderBy('products_options_sort_order, products_options_name')
                 ->asArray();
 
-            $attributes = [];
+        $attributes = [];
 
-            foreach ($options_list->each() as $options) {
-                $values_list = \common\models\ProductsOptionsValues::find()
-                        ->alias('pov')
-                        ->select('pov.products_options_values_id, pov.products_options_values_name')
-                        ->innerJoinWith(['values2Options v2o' =>
-                            function ($query) use ($options) {
-                                return $query->andOnCondition(['v2o.products_options_id' => $options['products_options_id']]);
-                            }])
-                        ->where(['pov.language_id' => $languages_id])
-                        ->orderBy('products_options_values_sort_order, products_options_values_name')
-                        ->asArray()
-                        ->all();
-                $option = [];
-                foreach ($values_list as $values) {
-                    $option[] = [
-                        'value' => $values['products_options_values_id'],
-                        'name' => htmlspecialchars($values['products_options_values_name'])
-                    ];
-                }
-                $attributes[] = [
-                    'id' => $options['products_options_id'],
-                    'label' => htmlspecialchars($options['products_options_name']),
-                    'options' => $option,
+        foreach ($options_list->each() as $options) {
+            $values_list = \common\models\ProductsOptionsValues::find()
+                    ->alias('pov')
+                    ->select('pov.products_options_values_id, pov.products_options_values_name')
+                    ->innerJoinWith(['values2Options v2o' =>
+                        function ($query) use ($options) {
+                            return $query->andOnCondition(['v2o.products_options_id' => $options['products_options_id']]);
+                        }])
+                    ->where(['pov.language_id' => $languages_id])
+                    ->orderBy('products_options_values_sort_order, products_options_values_name')
+                    ->asArray()
+                    ->all();
+            $option = [];
+            foreach ($values_list as $values) {
+                $option[] = [
+                    'value' => $values['products_options_values_id'],
+                    'name' => htmlspecialchars($values['products_options_values_name']),
                 ];
             }
+            $attributes[] = [
+                'id' => $options['products_options_id'],
+                'label' => htmlspecialchars($options['products_options_name']),
+                'options' => $option,
+            ];
+        }
 
-            $this->view->attributes = $attributes;
+        $this->view->attributes = $attributes;
         if (!empty($attributes)) {
             $_tax = \common\helpers\Tax::get_tax_rate(\common\helpers\Tax::getDefaultTaxClassIdForProducts());
 
@@ -352,19 +365,19 @@ class OptionsTemplatesController extends Sceleton {
                     ->where([
                         'pa.options_templates_id' => $tInfo->options_templates_id,
                         'po.language_id' => $languages_id,
-                        'pov.language_id' => $languages_id
+                        'pov.language_id' => $languages_id,
                             ])
                     ->orderBy('po.products_options_sort_order, po.products_options_name, pa.products_options_sort_order, pov.products_options_values_sort_order, pov.products_options_values_name')
                     ->asArray();
 
-            foreach($query->each() as $data) {
+            foreach ($query->each() as $data) {
                 $price0 = \common\helpers\Attributes::get_template_attributes_price($data['options_templates_attributes_id'], $this->view->defaultCurrency, 0);
 
-                if ( strpos($data['price_prefix'],'%')!==false ){
-                    $gross_price_formatted = $net_price_formatted = \common\helpers\Output::percent($price0,'');
-                }else {
+                if (strpos($data['price_prefix'], '%') !== false) {
+                    $gross_price_formatted = $net_price_formatted = \common\helpers\Output::percent($price0, '');
+                } else {
                     $net_price_formatted = $currencies->display_price($price0, 0, 1, false);
-                    $gross_price_formatted = $currencies->display_price($price0, (double)$_tax, 1, false);
+                    $gross_price_formatted = $currencies->display_price($price0, (float)$_tax, 1, false);
                 }
 
                 if (!isset($selectedAttributes[$data['products_options_id']])) {
@@ -380,7 +393,7 @@ class OptionsTemplatesController extends Sceleton {
                         'products_attributes_maxdays' => $data['products_attributes_maxdays'],
                         'products_attributes_maxcount' => $data['products_attributes_maxcount'],
                         'price_prefix' => $data['price_prefix'],
-                        'prices' => \common\helpers\Attributes::get_template_attributes_prices($data["options_templates_attributes_id"], (double)$_tax),
+                        'prices' => \common\helpers\Attributes::get_template_attributes_prices($data['options_templates_attributes_id'], (float)$_tax),
                         'net_price_formatted' => $net_price_formatted,
                         'gross_price_formatted' => $gross_price_formatted,
                     ];
@@ -403,7 +416,7 @@ class OptionsTemplatesController extends Sceleton {
                         'products_attributes_maxdays' => $data['products_attributes_maxdays'],
                         'products_attributes_maxcount' => $data['products_attributes_maxcount'],
                         'price_prefix' => $data['price_prefix'],
-                        'prices' => \common\helpers\Attributes::get_template_attributes_prices($data["options_templates_attributes_id"], (double)$_tax),
+                        'prices' => \common\helpers\Attributes::get_template_attributes_prices($data['options_templates_attributes_id'], (float)$_tax),
                         'net_price_formatted' => $net_price_formatted,
                         'gross_price_formatted' => $gross_price_formatted,
                     ];
@@ -432,7 +445,8 @@ class OptionsTemplatesController extends Sceleton {
         ]);
     }
 
-    public function actionAttributesUpdate() {
+    public function actionAttributesUpdate()
+    {
         $currencies = Yii::$container->get('currencies');
         $languages_id = \Yii::$app->settings->get('languages_id');
 
@@ -449,7 +463,7 @@ class OptionsTemplatesController extends Sceleton {
         $_def_curr_id = $currencies->currencies[DEFAULT_CURRENCY]['id'];
 
         if (USE_MARKET_PRICES == 'True') {
-            foreach ($currencies->currencies as $key => $value)  {
+            foreach ($currencies->currencies as $key => $value) {
                 $currencies_ids[$currencies->currencies[$key]['id']] = $currencies->currencies[$key]['id'];
             }
         } else {
@@ -457,10 +471,10 @@ class OptionsTemplatesController extends Sceleton {
         }
 
         $db_attributes = ArrayHelper::index(\common\models\OptionsTemplatesAttributes::find()
-            ->where(['options_templates_id'=>$options_templates_id])
-            ->all(), function($model){
-            return intval($model->options_id).'-'.intval($model->options_values_id);
-        });
+            ->where(['options_templates_id' => $options_templates_id])
+            ->all(), function ($model) {
+                return intval($model->options_id).'-'.intval($model->options_values_id);
+            });
 
         $all_inventory_ids_array = $all_inventory_uprids_array = $options = $attributes_array = [];
         $products_attributes_id = Yii::$app->request->post('products_attributes_id');
@@ -510,7 +524,9 @@ class OptionsTemplatesController extends Sceleton {
 
                 if ($ext = \common\helpers\Extensions::isAllowed('TypicalOperatingTemp')) {
                     $_ext_data = $ext::saveTemplateAttribute($option_id, $value_id);
-                    if (is_array($_ext_data)) $sql_data_array = array_merge($sql_data_array, $_ext_data);
+                    if (is_array($_ext_data)) {
+                        $sql_data_array = array_merge($sql_data_array, $_ext_data);
+                    }
                 }
 
                 /*
@@ -543,12 +559,12 @@ class OptionsTemplatesController extends Sceleton {
                             'products_attributes_weight' => 0,
                             'products_attributes_filename' => tep_db_prepare_input($attr_file[$option_id][$value_id]),
                             'products_attributes_maxdays' => (isset($products_attributes_maxdays[$option_id][$value_id]) && (int)$products_attributes_maxdays[$option_id][$value_id] > 0 ? (int)$products_attributes_maxdays[$option_id][$value_id] : 0),
-                            'products_attributes_maxcount' => (isset($products_attributes_maxcount[$option_id][$value_id]) && (int)$products_attributes_maxcount[$option_id][$value_id] > 0 ? (int)$products_attributes_maxcount[$option_id][$value_id] : 0)
+                            'products_attributes_maxcount' => (isset($products_attributes_maxcount[$option_id][$value_id]) && (int)$products_attributes_maxcount[$option_id][$value_id] > 0 ? (int)$products_attributes_maxcount[$option_id][$value_id] : 0),
                         ]);
                     } else {
                         $sql_data_array = array_merge($sql_data_array, [
                             'products_attributes_maxdays' => (isset($products_attributes_maxdays[$option_id][$value_id]) && (int)$products_attributes_maxdays[$option_id][$value_id] > 0 ? (int)$products_attributes_maxdays[$option_id][$value_id] : 0),
-                            'products_attributes_maxcount' => (isset($products_attributes_maxcount[$option_id][$value_id]) && (int)$products_attributes_maxcount[$option_id][$value_id] > 0 ? (int)$products_attributes_maxcount[$option_id][$value_id] : 0)
+                            'products_attributes_maxcount' => (isset($products_attributes_maxcount[$option_id][$value_id]) && (int)$products_attributes_maxcount[$option_id][$value_id] > 0 ? (int)$products_attributes_maxcount[$option_id][$value_id] : 0),
                         ]);
                     }
 
@@ -564,25 +580,25 @@ class OptionsTemplatesController extends Sceleton {
 
                 $attr_key = (int)$option_id.'-'.(int)$value_id;
 
-                if ( isset($db_attributes[$attr_key]) ){
+                if (isset($db_attributes[$attr_key])) {
                     $OptionsTemplatesAttribute = $db_attributes[$attr_key];
                     unset($db_attributes[$attr_key]);
-                }else{
+                } else {
                     $OptionsTemplatesAttribute = new \common\models\OptionsTemplatesAttributes([
                         'options_templates_id' => $options_templates_id,
                         'options_id' => (int)$option_id,
-                        'options_values_id'=> (int)$value_id,
+                        'options_values_id' => (int)$value_id,
                     ]);
                     $OptionsTemplatesAttribute->loadDefaultValues();
                 }
                 yii_setup_model($OptionsTemplatesAttribute, $sql_data_array);
-//                $OptionsTemplatesAttribute->setAttributes($sql_data_array,false);
+                //                $OptionsTemplatesAttribute->setAttributes($sql_data_array,false);
                 $OptionsTemplatesAttribute->save(false);
                 $products_attributes_id = $OptionsTemplatesAttribute->options_templates_attributes_id;
 
                 ///group prices
                 if (true) {
-                    $db_prices = ArrayHelper::index($OptionsTemplatesAttribute->getPrices()->all(), function($model){
+                    $db_prices = ArrayHelper::index($OptionsTemplatesAttribute->getPrices()->all(), function ($model) {
                         return $model->groups_id.'_'.$model->currencies_id;
                     });
                     if (USE_MARKET_PRICES == 'True' || \common\helpers\Extensions::isCustomerGroupsAllowed()) {
@@ -590,13 +606,14 @@ class OptionsTemplatesController extends Sceleton {
                             foreach ($groups as $groups_id => $non) {
                                 $sql_data_array = [
                                     'attributes_group_price' => tep_db_prepare_input(PostArrayHelper::getFromPostArrays(
-                                        ['db' => 'attributes_group_price', 'dbdef' => ($groups_id == 0 ? 0 : -2), 'post' => 'products_group_price_' . $old_products_id . '-' . $option_id . '-' . $value_id, 'f' => ['self', 'defGroupPrice']]
-                                        , $post_currencies_id, $groups_id
+                                        ['db' => 'attributes_group_price', 'dbdef' => ($groups_id == 0 ? 0 : -2), 'post' => 'products_group_price_' . $old_products_id . '-' . $option_id . '-' . $value_id, 'f' => ['self', 'defGroupPrice']],
+                                        $post_currencies_id,
+                                        $groups_id
                                     )),
                                 ];
                                 $save_currency_id = (USE_MARKET_PRICES == 'True' ? tep_db_prepare_input($post_currencies_id) : 0);
                                 $db_key = (int)$groups_id.'_'.(int)$save_currency_id;
-                                if ( !isset($db_prices[$db_key]) ){
+                                if (!isset($db_prices[$db_key])) {
                                     $priceModel = new \common\models\OptionsTemplatesAttributesPrices([
                                         'options_templates_attributes_id' => $products_attributes_id,
                                         'groups_id' => intval($groups_id),
@@ -606,7 +623,7 @@ class OptionsTemplatesController extends Sceleton {
                                     yii_setup_model($priceModel, $sql_data_array);
                                     //$priceModel->setAttributes($sql_data_array, false);
                                     $priceModel->save(false);
-                                }else{
+                                } else {
                                     yii_setup_model($db_prices[$db_key], $sql_data_array);
                                     //$db_prices[$db_key]->setAttributes($sql_data_array, false);
                                     $db_prices[$db_key]->save(false);
@@ -615,30 +632,31 @@ class OptionsTemplatesController extends Sceleton {
                             }
                         }
                     }
-                    foreach ( $db_prices as $not_updated ) {
+                    foreach ($db_prices as $not_updated) {
                         $not_updated->delete();
                     }
                 }
             }
         }
 
-        foreach( $db_attributes as $not_updated ){
+        foreach ($db_attributes as $not_updated) {
             $not_updated->delete();
         }
 
-//        $query = tep_db_query("select products_id from " . TABLE_PRODUCTS_TO_OPTIONS_TEMPLATES . " where options_templates_id = '" . tep_db_input($options_templates_id) . "'");
-//        while ($data = tep_db_fetch_array($query)) {
-//            self::copy_product_attributes_from_options_template($options_templates_id, $data['products_id']);
-//        }
+        //        $query = tep_db_query("select products_id from " . TABLE_PRODUCTS_TO_OPTIONS_TEMPLATES . " where options_templates_id = '" . tep_db_input($options_templates_id) . "'");
+        //        while ($data = tep_db_fetch_array($query)) {
+        //            self::copy_product_attributes_from_options_template($options_templates_id, $data['products_id']);
+        //        }
 
         if (Yii::$app->request->isAjax) {
-//          $this->layout = false;
+            //          $this->layout = false;
         } else {
             return $this->redirect(Yii::$app->urlManager->createUrl(['options-templates/index', 'tID' => $options_templates_id]));
         }
     }
 
-    public function actionNewAttribute() {
+    public function actionNewAttribute()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
 
         \common\helpers\Translation::init('admin/categories');
@@ -649,21 +667,21 @@ class OptionsTemplatesController extends Sceleton {
         $products_id = $options_templates_id;
 
         /*arrays of new options & values */
-        $products_options_ids = array_unique( explode(',', Yii::$app->request->post('products_options_id')));
-        $products_options_values_ids = array_unique( explode(',', Yii::$app->request->post('products_options_values_id')));
+        $products_options_ids = array_unique(explode(',', Yii::$app->request->post('products_options_id')));
+        $products_options_values_ids = array_unique(explode(',', Yii::$app->request->post('products_options_values_id')));
         foreach ($products_options_ids as $k => $v) {
-          if (intval($v)==0) {
-            unset($products_options_ids[$k]);
-          } else {
-            $products_options_ids[$k] = intval($v);
-          }
+            if (intval($v) == 0) {
+                unset($products_options_ids[$k]);
+            } else {
+                $products_options_ids[$k] = intval($v);
+            }
         }
         foreach ($products_options_values_ids as $k => $v) {
-          if (intval($v)==0) {
-            unset($products_options_values_ids[$k]);
-          } else {
-            $products_options_values_ids[$k] = intval($v);
-          }
+            if (intval($v) == 0) {
+                unset($products_options_values_ids[$k]);
+            } else {
+                $products_options_values_ids[$k] = intval($v);
+            }
         }
 
         $this->view->groups = [];
@@ -674,10 +692,10 @@ class OptionsTemplatesController extends Sceleton {
         $ret = [];
         $currencies = Yii::$container->get('currencies');
 
-/// re-arrange data arrays for design templates
-// init price tabs
+        /// re-arrange data arrays for design templates
+        // init price tabs
         $this->view->price_tabs = $this->view->price_tabparams = [];
-////currencies tabs and params
+        ////currencies tabs and params
         if ($this->view->useMarketPrices) {
             $this->view->currenciesTabs = [];
             foreach ($currencies->currencies as $value) {
@@ -694,8 +712,8 @@ class OptionsTemplatesController extends Sceleton {
         }
 
         //// groups tabs and params
-        if (\common\helpers\Extensions::isCustomerGroupsAllowed() && count($this->view->groups)>0) {
-            $this->view->groups_m = array_merge(array(array('groups_id' => 0, 'groups_name' => TEXT_MAIN)), $this->view->groups);
+        if (\common\helpers\Extensions::isCustomerGroupsAllowed() && count($this->view->groups) > 0) {
+            $this->view->groups_m = array_merge([['groups_id' => 0, 'groups_name' => TEXT_MAIN]], $this->view->groups);
             $tmp = [];
             foreach ($this->view->groups_m as $value) {
                 $value['id'] = $value['groups_id'];
@@ -722,16 +740,16 @@ class OptionsTemplatesController extends Sceleton {
                 ->where([
                     'p2p.products_options_id' => $products_options_ids,
                     'pov.products_options_values_id' => $products_options_values_ids,
-                    'pov.language_id' => $languages_id
+                    'pov.language_id' => $languages_id,
                         ])
                 ->orderBy('pov.products_options_values_sort_order, pov.products_options_values_name')
                 ->asArray();
-        foreach( $values_query->each() as $values) {
-            $values['net_price_formatted'] =  $currencies->display_price(0, 0, 1 ,false);
-            $values['gross_price_formatted'] =  $currencies->display_price(0, 0, 1 ,false);
+        foreach ($values_query->each() as $values) {
+            $values['net_price_formatted'] =  $currencies->display_price(0, 0, 1, false);
+            $values['gross_price_formatted'] =  $currencies->display_price(0, 0, 1, false);
             $option[0] = $values;
             $is_virtual_option = \common\helpers\Attributes::is_virtual_option($values['products_options_id']);
-            if ( true ){
+            if (true) {
                 $ret[] = ['data' => $this->render('product-new-attribute.tpl', [
                     'options' => $option,
                     'products_id' => $products_id,
@@ -741,7 +759,7 @@ class OptionsTemplatesController extends Sceleton {
                 ]),
                     'is_virtual_option' => $is_virtual_option,
                     'products_options_values_id' => $values['products_options_values_id'],
-                    'products_options_id' => $values['products_options_id']
+                    'products_options_id' => $values['products_options_id'],
                 ];
             }
         }
@@ -750,7 +768,8 @@ class OptionsTemplatesController extends Sceleton {
         return $ret;
     }
 
-    public function actionNewOption() {
+    public function actionNewOption()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
 
         \common\helpers\Translation::init('admin/categories');
@@ -759,21 +778,21 @@ class OptionsTemplatesController extends Sceleton {
 
         $options_templates_id = (int) Yii::$app->request->post('options_templates_id');
         $products_id = $options_templates_id;
-        $products_options_ids = array_unique( explode(',', Yii::$app->request->post('products_options_id')));
-        $products_options_values_ids = array_unique( explode(',', Yii::$app->request->post('products_options_values_id')));
+        $products_options_ids = array_unique(explode(',', Yii::$app->request->post('products_options_id')));
+        $products_options_values_ids = array_unique(explode(',', Yii::$app->request->post('products_options_values_id')));
         foreach ($products_options_ids as $k => $v) {
-          if (intval($v)==0) {
-            unset($products_options_ids[$k]);
-          } else {
-            $products_options_ids[$k] = intval($v);
-          }
+            if (intval($v) == 0) {
+                unset($products_options_ids[$k]);
+            } else {
+                $products_options_ids[$k] = intval($v);
+            }
         }
         foreach ($products_options_values_ids as $k => $v) {
-          if (intval($v)==0) {
-            unset($products_options_values_ids[$k]);
-          } else {
-            $products_options_values_ids[$k] = intval($v);
-          }
+            if (intval($v) == 0) {
+                unset($products_options_values_ids[$k]);
+            } else {
+                $products_options_values_ids[$k] = intval($v);
+            }
         }
 
         $this->view->groups = [];
@@ -788,10 +807,10 @@ class OptionsTemplatesController extends Sceleton {
         $products_options_id = false;
         $currencies = Yii::$container->get('currencies');
 
-/// re-arrange data arrays for design templates
-// init price tabs
+        /// re-arrange data arrays for design templates
+        // init price tabs
         $this->view->price_tabs = $this->view->price_tabparams = [];
-////currencies tabs and params
+        ////currencies tabs and params
         if ($this->view->useMarketPrices) {
             $this->view->currenciesTabs = [];
             foreach ($currencies->currencies as $value) {
@@ -808,8 +827,8 @@ class OptionsTemplatesController extends Sceleton {
         }
 
         //// groups tabs and params
-        if (\common\helpers\Extensions::isCustomerGroupsAllowed() && count($this->view->groups)>0) {
-            $this->view->groups_m = array_merge(array(array('groups_id' => 0, 'groups_name' => TEXT_MAIN)), $this->view->groups);
+        if (\common\helpers\Extensions::isCustomerGroupsAllowed() && count($this->view->groups) > 0) {
+            $this->view->groups_m = array_merge([['groups_id' => 0, 'groups_name' => TEXT_MAIN]], $this->view->groups);
             $tmp = [];
             foreach ($this->view->groups_m as $value) {
                 $value['id'] = $value['groups_id'];
@@ -855,7 +874,7 @@ class OptionsTemplatesController extends Sceleton {
                         ]),
                             'is_virtual_option' => $is_virtual_option,
                             'products_options_id' => $attributes[0]['products_options_id'],
-                            'products_options_values_id' => $attributes[0]['values'][0]['products_options_values_id']
+                            'products_options_values_id' => $attributes[0]['values'][0]['products_options_values_id'],
                         ];
                     }
                     $attributes = [];
@@ -865,8 +884,8 @@ class OptionsTemplatesController extends Sceleton {
                 $attributes[0] = [
                     'is_virtual_option' => \common\helpers\Attributes::is_virtual_option($products_options_id),
                     'products_options_id' => $values['products_options_id'],
-                    'net_price_formatted' => $currencies->display_price(0, 0, 1 ,false),
-                    'gross_price_formatted' => $currencies->display_price(0, 0, 1 ,false),
+                    'net_price_formatted' => $currencies->display_price(0, 0, 1, false),
+                    'gross_price_formatted' => $currencies->display_price(0, 0, 1, false),
                     'products_options_name' => htmlspecialchars($values['products_options_name']),
                     'values' => [],
                 ];
@@ -874,9 +893,9 @@ class OptionsTemplatesController extends Sceleton {
             }
             $attributes[0]['values'][] = [
                 'products_options_values_id' => $values['products_options_values_id'],
-                'net_price_formatted' => $currencies->display_price(0, 0, 1 ,false),
-                'gross_price_formatted' => $currencies->display_price(0, 0, 1 ,false),
-                'products_options_values_name' => htmlspecialchars($values['products_options_values_name'])
+                'net_price_formatted' => $currencies->display_price(0, 0, 1, false),
+                'gross_price_formatted' => $currencies->display_price(0, 0, 1, false),
+                'products_options_values_name' => htmlspecialchars($values['products_options_values_name']),
             ];
 
         }
@@ -892,7 +911,7 @@ class OptionsTemplatesController extends Sceleton {
                  ]),
                 'is_virtual_option' => $is_virtual_option,
                 'products_options_id' => $attributes[0]['products_options_id'],
-                'products_options_values_id' => $attributes[0]['values'][0]['products_options_values_id']
+                'products_options_values_id' => $attributes[0]['values'][0]['products_options_values_id'],
             ];
 
         }
@@ -901,7 +920,8 @@ class OptionsTemplatesController extends Sceleton {
         return $ret;
     }
 
-    public function actionEditCatalog() {
+    public function actionEditCatalog()
+    {
         \common\helpers\Translation::init('admin/options-templates');
 
         $options_templates_id = (int) Yii::$app->request->get('options_templates_id');
@@ -923,12 +943,13 @@ class OptionsTemplatesController extends Sceleton {
                     'selected_data' => $selected_data,
                     'tree_data' => $tree_init_data,
                     'tree_server_url' => Yii::$app->urlManager->createUrl(['options-templates/load-tree', 'options_templates_id' => $options_templates_id]),
-                    'tree_server_save_url' => Yii::$app->urlManager->createUrl(['options-templates/update-catalog-selection', 'options_templates_id' => $options_templates_id])
+                    'tree_server_save_url' => Yii::$app->urlManager->createUrl(['options-templates/update-catalog-selection', 'options_templates_id' => $options_templates_id]),
         ]);
     }
 
-    private function get_assigned_catalog($options_templates_id, $validate = false) {
-        $assigned = array();
+    private function get_assigned_catalog($options_templates_id, $validate = false)
+    {
+        $assigned = [];
         $get_assigned_r = \common\models\Products2OptionsTemplates::find()->alias('p2ot')
                 ->select('p2ot.products_id AS id, p2c.categories_id as cid')
                 ->leftJoin(\common\models\Products2Categories::tableName().' p2c', 'p2ot.products_id=p2c.products_id')
@@ -936,29 +957,32 @@ class OptionsTemplatesController extends Sceleton {
                 ->asArray();
         if ($validate) {
             $get_assigned_r
-                ->innerJoin(\common\models\Products::tableName(). ' p', 'p.products_id=p2ot.products_id AND p.products_status=1 ' . \common\helpers\Product::get_sql_product_restrictions(array('p', 'pd', 's', 'sp', 'pp')))
-                ->innerJoin(\common\models\ProductsDescription::tableName(). ' pd', 'pd.products_id=p2ot.products_id AND pd.language_id=' . \Yii::$app->settings->get('languages_id') . ' AND pd.platform_id=' . intval(\common\classes\platform::defaultId()) );
+                ->innerJoin(\common\models\Products::tableName(). ' p', 'p.products_id=p2ot.products_id AND p.products_status=1 ' . \common\helpers\Product::get_sql_product_restrictions(['p', 'pd', 's', 'sp', 'pp']))
+                ->innerJoin(\common\models\ProductsDescription::tableName(). ' pd', 'pd.products_id=p2ot.products_id AND pd.language_id=' . \Yii::$app->settings->get('languages_id') . ' AND pd.platform_id=' . intval(\common\classes\platform::defaultId()));
         }
-        foreach($get_assigned_r->each() as $_assigned) {
+        foreach ($get_assigned_r->each() as $_assigned) {
             $_key = 'p' . (int) $_assigned['id'] . '_' . $_assigned['cid'];
             $assigned[$_key] = $_key;
         }
         return $assigned;
     }
 
-    private function load_tree_slice($options_templates_id, $category_id) {
-        $tree_init_data = array();
+    private function load_tree_slice($options_templates_id, $category_id)
+    {
+        $tree_init_data = [];
         $languages_id = (int) \Yii::$app->settings->get('languages_id');
         $get_categories_r = \common\models\Categories::find()->alias('c')
                 ->select("CONCAT('c',c.categories_id) as `key`, cd.categories_name as title")
-                ->innerJoinWith(['descriptions cd' => function ($query) use($languages_id, $category_id) { $query->andOnCondition([
-                    'cd.language_id'  =>  $languages_id,
-                    'cd.affiliate_id' => 0,
-                    'c.parent_id'     => (int) $category_id
-                    ]); }], false)
+                ->innerJoinWith(['descriptions cd' => function ($query) use ($languages_id, $category_id) {
+                    $query->andOnCondition([
+                        'cd.language_id'  =>  $languages_id,
+                        'cd.affiliate_id' => 0,
+                        'c.parent_id'     => (int) $category_id,
+                        ]);
+                }], false)
                 ->orderBy('c.sort_order, cd.categories_name')
                 ->asArray();
-        foreach($get_categories_r->each() as $_categories) {
+        foreach ($get_categories_r->each() as $_categories) {
             //$_categories['parent'] = (int)$category_id;
             $_categories['folder'] = true;
             $_categories['lazy'] = true;
@@ -966,7 +990,7 @@ class OptionsTemplatesController extends Sceleton {
             $tree_init_data[] = $_categories;
         }
         $get_products_r = \common\models\Products::find()->alias('p')
-                ->select("SELECT concat('p',p.products_id,'_',p2c.categories_id) AS `key`, ".ProductNameDecorator::instance()->listingQueryExpression('pd','')." AS title ")
+                ->select("SELECT concat('p',p.products_id,'_',p2c.categories_id) AS `key`, ".ProductNameDecorator::instance()->listingQueryExpression('pd', '').' AS title ')
                 ->wDescription('pd')
                 ->innerJoinWith('categoriesList p2c')
                 ->where(['p2c.categories_id' => (int) $category_id])
@@ -975,12 +999,12 @@ class OptionsTemplatesController extends Sceleton {
 
         $active = $search = null; // php8: never assigned here
         $get_products_r = tep_db_query(
-                "SELECT concat('p',p.products_id,'_',p2c.categories_id) AS `key`, ".ProductNameDecorator::instance()->listingQueryExpression('pd','')." AS title " .
-                "from " . TABLE_PRODUCTS_DESCRIPTION . " pd, " . TABLE_PRODUCTS_TO_CATEGORIES . " p2c, " . TABLE_PRODUCTS . " p " .
+            "SELECT concat('p',p.products_id,'_',p2c.categories_id) AS `key`, ".ProductNameDecorator::instance()->listingQueryExpression('pd', '').' AS title ' .
+                'from ' . TABLE_PRODUCTS_DESCRIPTION . ' pd, ' . TABLE_PRODUCTS_TO_CATEGORIES . ' p2c, ' . TABLE_PRODUCTS . ' p ' .
                 "WHERE pd.products_id=p.products_id and pd.language_id='" . $languages_id . "' and pd.platform_id='".intval(\common\classes\platform::defaultId())."' and p2c.products_id=p.products_id and p2c.categories_id='" . (int) $category_id . "' " .
-                ($active ? " AND p.products_status=1 " . \common\helpers\Product::get_sql_product_restrictions(array('p', 'pd', 's', 'sp', 'pp')) . " " : "") .
-                (tep_not_null($search) ? " and (pd.products_name like '%{$search}%' or pd.products_internal_name like '%{$search}%') " : "") .
-                "order by p.sort_order, pd.products_name"
+                ($active ? ' AND p.products_status=1 ' . \common\helpers\Product::get_sql_product_restrictions(['p', 'pd', 's', 'sp', 'pp']) . ' ' : '') .
+                (tep_not_null($search) ? " and (pd.products_name like '%{$search}%' or pd.products_internal_name like '%{$search}%') " : '') .
+                'order by p.sort_order, pd.products_name'
         );
         if (tep_db_num_rows($get_products_r) > 0) {
             while ($_product = tep_db_fetch_array($get_products_r)) {
@@ -993,9 +1017,11 @@ class OptionsTemplatesController extends Sceleton {
         return $tree_init_data;
     }
 
-    private function get_category_children(&$children, $options_templates_id, $categories_id) {
-        if (!is_array($children))
-            $children = array();
+    private function get_category_children(&$children, $options_templates_id, $categories_id)
+    {
+        if (!is_array($children)) {
+            $children = [];
+        }
         foreach ($this->load_tree_slice($options_templates_id, $categories_id) as $item) {
             $key = $item['key'];
             $children[] = $key;
@@ -1005,14 +1031,15 @@ class OptionsTemplatesController extends Sceleton {
         }
     }
 
-    public function actionLoadTree() {
+    public function actionLoadTree()
+    {
         \common\helpers\Translation::init('admin/options-templates');
         $this->layout = false;
 
         $options_templates_id = (int) Yii::$app->request->get('options_templates_id');
         $do = Yii::$app->request->post('do', '');
 
-        $response_data = array();
+        $response_data = [];
 
         if ($do == 'missing_lazy') {
             $category_id = Yii::$app->request->post('id');
@@ -1023,8 +1050,9 @@ class OptionsTemplatesController extends Sceleton {
                 $selected_data = json_decode($selected_data, true);
             }
 
-            if (substr($category_id, 0, 1) == 'c')
+            if (substr($category_id, 0, 1) == 'c') {
                 $category_id = intval(substr($category_id, 1));
+            }
 
             $response_data['tree_data'] = $this->load_tree_slice($options_templates_id, $category_id);
             foreach ($response_data['tree_data'] as $_idx => $_data) {
@@ -1047,7 +1075,7 @@ class OptionsTemplatesController extends Sceleton {
                 list($ppid, $cat_id) = explode('_', $id, 2);
                 if ($selected) {
                     // check parent categories
-                    $parent_ids = array((int) $cat_id);
+                    $parent_ids = [(int) $cat_id];
                     \common\helpers\Categories::get_parent_categories($parent_ids, $parent_ids[0], false);
                     foreach ($parent_ids as $parent_id) {
                         if (!isset($selected_data['c' . (int) $parent_id])) {
@@ -1068,7 +1096,7 @@ class OptionsTemplatesController extends Sceleton {
             } elseif (substr($id, 0, 1) == 'c') {
                 $cat_id = (int) substr($id, 1);
                 if ($selected) {
-                    $parent_ids = array((int) $cat_id);
+                    $parent_ids = [(int) $cat_id];
                     \common\helpers\Categories::get_parent_categories($parent_ids, $parent_ids[0], false);
                     foreach ($parent_ids as $parent_id) {
                         if (!isset($selected_data['c' . (int) $parent_id])) {
@@ -1077,7 +1105,7 @@ class OptionsTemplatesController extends Sceleton {
                         }
                     }
                     if ($select_children) {
-                        $children = array();
+                        $children = [];
                         $this->get_category_children($children, $options_templates_id, $cat_id);
                         foreach ($children as $child_key) {
                             if (!isset($selected_data[$child_key])) {
@@ -1091,7 +1119,7 @@ class OptionsTemplatesController extends Sceleton {
                         $selected_data[$id] = $id;
                     }
                 } else {
-                    $children = array();
+                    $children = [];
                     $this->get_category_children($children, $options_templates_id, $cat_id);
                     foreach ($children as $child_key) {
                         if (isset($selected_data[$child_key])) {
@@ -1113,7 +1141,8 @@ class OptionsTemplatesController extends Sceleton {
         Yii::$app->response->data = $response_data;
     }
 
-    function actionUpdateCatalogSelection() {
+    public function actionUpdateCatalogSelection()
+    {
         \common\helpers\Translation::init('admin/platforms');
         $this->layout = false;
 
@@ -1124,11 +1153,12 @@ class OptionsTemplatesController extends Sceleton {
         if (!is_array($selected_data)) {
             $selected_data = json_decode($selected_data, true);
         }
-        if (!isset($selected_data['c0']))
+        if (!isset($selected_data['c0'])) {
             $selected_data['c0'] = 'c0';
+        }
 
         $assigned = $this->get_assigned_catalog($options_templates_id);
-        $assigned_products = array();
+        $assigned_products = [];
         foreach ($assigned as $assigned_key) {
             if (substr($assigned_key, 0, 1) == 'p') {
                 $pid = intval(substr($assigned_key, 1));
@@ -1137,63 +1167,63 @@ class OptionsTemplatesController extends Sceleton {
             }
         }
         if (is_array($selected_data)) {
-            $selected_products = array();
+            $selected_products = [];
             foreach ($selected_data as $selection) {
                 if (substr($selection, 0, 1) == 'p') {
                     $pid = intval(substr($selection, 1));
                     $selected_products[$pid] = $pid;
                     continue;
                 }
-/*
-                if (isset($assigned[$selection])) {
-                    unset($assigned[$selection]);
-                } else {
-                    if (substr($selection, 0, 1) == 'c') {
-                        $cat_id = (int) substr($selection, 1);
-                        tep_db_perform(TABLE_PLATFORMS_CATEGORIES, array(
-                            'platform_id' => $platform_id,
-                            'categories_id' => $cat_id,
-                        ));
-                        unset($assigned[$selection]);
-                    }
-                }
- */
+                /*
+                                if (isset($assigned[$selection])) {
+                                    unset($assigned[$selection]);
+                                } else {
+                                    if (substr($selection, 0, 1) == 'c') {
+                                        $cat_id = (int) substr($selection, 1);
+                                        tep_db_perform(TABLE_PLATFORMS_CATEGORIES, array(
+                                            'platform_id' => $platform_id,
+                                            'categories_id' => $cat_id,
+                                        ));
+                                        unset($assigned[$selection]);
+                                    }
+                                }
+                 */
             }
             foreach ($selected_products as $pid) {
                 if (isset($assigned_products[$pid])) {
                     unset($assigned_products[$pid]);
                 } else {
                     if ($overwrite_existing_attributes == 'true' || !\common\helpers\Attributes::has_product_attributes($pid)) {
-                        tep_db_perform(TABLE_PRODUCTS_TO_OPTIONS_TEMPLATES, array(
+                        tep_db_perform(TABLE_PRODUCTS_TO_OPTIONS_TEMPLATES, [
                             'options_templates_id' => $options_templates_id,
                             'products_id' => $pid,
-                        ));
+                        ]);
                         self::copy_product_attributes_from_options_template($options_templates_id, $pid);
                     }
                 }
             }
         }
-/*
-        foreach ($assigned as $clean_key) {
-            if (substr($clean_key, 0, 1) == 'c') {
-                $cat_id = (int) substr($clean_key, 1);
-                if ($cat_id == 0)
-                    continue;
-                tep_db_query(
-                        "DELETE FROM " . TABLE_PLATFORMS_CATEGORIES . " " .
-                        "WHERE platform_id ='" . $platform_id . "' AND categories_id = '" . $cat_id . "' "
-                );
-                unset($assigned[$clean_key]);
-            }
-        }
- */
+        /*
+                foreach ($assigned as $clean_key) {
+                    if (substr($clean_key, 0, 1) == 'c') {
+                        $cat_id = (int) substr($clean_key, 1);
+                        if ($cat_id == 0)
+                            continue;
+                        tep_db_query(
+                                "DELETE FROM " . TABLE_PLATFORMS_CATEGORIES . " " .
+                                "WHERE platform_id ='" . $platform_id . "' AND categories_id = '" . $cat_id . "' "
+                        );
+                        unset($assigned[$clean_key]);
+                    }
+                }
+         */
         foreach ($assigned_products as $assigned_product_id) {
-            tep_db_query("delete from " . TABLE_PRODUCTS_TO_OPTIONS_TEMPLATES . " where options_templates_id = '" . (int)$options_templates_id . "' and products_id = '" . (int)$assigned_product_id . "'");
-            $query = tep_db_query("select products_attributes_id from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int)$assigned_product_id . "'");
+            tep_db_query('delete from ' . TABLE_PRODUCTS_TO_OPTIONS_TEMPLATES . " where options_templates_id = '" . (int)$options_templates_id . "' and products_id = '" . (int)$assigned_product_id . "'");
+            $query = tep_db_query('select products_attributes_id from ' . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int)$assigned_product_id . "'");
             while ($data = tep_db_fetch_array($query)) {
-                tep_db_query("delete from " . TABLE_PRODUCTS_ATTRIBUTES_PRICES . " where products_attributes_id = '" . (int)$data['products_attributes_id'] . "'");
+                tep_db_query('delete from ' . TABLE_PRODUCTS_ATTRIBUTES_PRICES . " where products_attributes_id = '" . (int)$data['products_attributes_id'] . "'");
             }
-            tep_db_query("delete from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int)$assigned_product_id . "'");
+            tep_db_query('delete from ' . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int)$assigned_product_id . "'");
             /** @var \common\extensions\Inventory\Inventory $ext */
             if ($ext = \common\helpers\Extensions::isAllowed('Inventory')) {
                 $ext::deleteProduct((int)$assigned_product_id);
@@ -1201,22 +1231,23 @@ class OptionsTemplatesController extends Sceleton {
         }
 
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-        Yii::$app->response->data = array(
-            'status' => 'ok'
-        );
+        Yii::$app->response->data = [
+            'status' => 'ok',
+        ];
     }
 
-    public static function copy_product_attributes_from_options_template($options_templates_id, $products_id) {
+    public static function copy_product_attributes_from_options_template($options_templates_id, $products_id)
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
-        $query = tep_db_query("select products_attributes_id from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $products_id . "'");
+        $query = tep_db_query('select products_attributes_id from ' . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $products_id . "'");
         while ($data = tep_db_fetch_array($query)) {
-            tep_db_query("delete from " . TABLE_PRODUCTS_ATTRIBUTES_PRICES . " where products_attributes_id = '" . (int) $data['products_attributes_id'] . "'");
+            tep_db_query('delete from ' . TABLE_PRODUCTS_ATTRIBUTES_PRICES . " where products_attributes_id = '" . (int) $data['products_attributes_id'] . "'");
         }
-        tep_db_query("delete from " . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $products_id . "'");
+        tep_db_query('delete from ' . TABLE_PRODUCTS_ATTRIBUTES . " where products_id = '" . (int) $products_id . "'");
 
-        $product_attribute_query = tep_db_query("select * from " . TABLE_OPTIONS_TEMPLATES_ATTRIBUTES . " where options_templates_id = '" . (int) $options_templates_id . "'");
+        $product_attribute_query = tep_db_query('select * from ' . TABLE_OPTIONS_TEMPLATES_ATTRIBUTES . " where options_templates_id = '" . (int) $options_templates_id . "'");
         while ($product_attribute = tep_db_fetch_array($product_attribute_query)) {
-            $str = "insert into " . TABLE_PRODUCTS_ATTRIBUTES . " set ";
+            $str = 'insert into ' . TABLE_PRODUCTS_ATTRIBUTES . ' set ';
             foreach ($product_attribute as $key => $value) {
                 if ($key != 'options_templates_attributes_id') {
                     if ($key == 'options_templates_id') {
@@ -1224,21 +1255,21 @@ class OptionsTemplatesController extends Sceleton {
                         $value = $products_id;
                     }
                     if (is_null($value)) {
-                        $str .= " " . $key . " = NULL, ";
+                        $str .= ' ' . $key . ' = NULL, ';
                     } else {
-                        $str .= " " . $key . " = '" . tep_db_input($value) . "', ";
+                        $str .= ' ' . $key . " = '" . tep_db_input($value) . "', ";
                     }
                 }
             }
             $str = substr($str, 0, strlen($str) - 2);
             tep_db_query($str);
             $products_attributes_id = tep_db_insert_id();
-            $product_attribute_prices_query = tep_db_query("select * from " . TABLE_OPTIONS_TEMPLATES_ATTRIBUTES_PRICES . " where options_templates_attributes_id = '" . (int) $product_attribute['options_templates_attributes_id'] . "'");
+            $product_attribute_prices_query = tep_db_query('select * from ' . TABLE_OPTIONS_TEMPLATES_ATTRIBUTES_PRICES . " where options_templates_attributes_id = '" . (int) $product_attribute['options_templates_attributes_id'] . "'");
             while ($product_attribute_prices = tep_db_fetch_array($product_attribute_prices_query)) {
-                $str = "insert into " . TABLE_PRODUCTS_ATTRIBUTES_PRICES . " set ";
+                $str = 'insert into ' . TABLE_PRODUCTS_ATTRIBUTES_PRICES . ' set ';
                 foreach ($product_attribute_prices as $key => $value) {
                     if ($key != 'options_templates_attributes_id') {
-                        $str .= " " . $key . " = '" . tep_db_input($value) . "', ";
+                        $str .= ' ' . $key . " = '" . tep_db_input($value) . "', ";
                     } else {
                         $str .= " products_attributes_id = '" . $products_attributes_id . "', ";
                     }
@@ -1251,24 +1282,24 @@ class OptionsTemplatesController extends Sceleton {
         /** @var \common\extensions\Inventory\Inventory $ext */
         if ($ext = \common\helpers\Extensions::isAllowed('Inventory')) {
             $total_comb = 1;
-            $count_values = array();
-            $inventory_uprids_array = array();
-            $products_options_array = array();
-            $products_options_name_query = tep_db_query("select distinct popt.products_options_id, popt.products_options_name from " . TABLE_PRODUCTS_OPTIONS . " popt, " . TABLE_PRODUCTS_ATTRIBUTES . " patrib where patrib.products_id = '" . (int) $products_id . "' and patrib.options_id = popt.products_options_id and popt.language_id = '" . (int) $languages_id . "' order by popt.products_options_sort_order");
+            $count_values = [];
+            $inventory_uprids_array = [];
+            $products_options_array = [];
+            $products_options_name_query = tep_db_query('select distinct popt.products_options_id, popt.products_options_name from ' . TABLE_PRODUCTS_OPTIONS . ' popt, ' . TABLE_PRODUCTS_ATTRIBUTES . " patrib where patrib.products_id = '" . (int) $products_id . "' and patrib.options_id = popt.products_options_id and popt.language_id = '" . (int) $languages_id . "' order by popt.products_options_sort_order");
             while ($products_options_name = tep_db_fetch_array($products_options_name_query)) {
                 $options_id = $products_options_name['products_options_id'];
                 if (\common\helpers\Attributes::is_virtual_option($options_id)) {
                     continue;
                 }
-                $products_options_array[$options_id] = array();
+                $products_options_array[$options_id] = [];
                 $count_values[$options_id] = 0;
-                $products_options_query = tep_db_query("select pa.products_attributes_id, pov.products_options_values_id, pov.products_options_values_name, pa.options_values_price, pa.price_prefix from " . TABLE_PRODUCTS_ATTRIBUTES . " pa, " . TABLE_PRODUCTS_OPTIONS_VALUES . " pov where pa.products_id = '" . (int) $products_id . "' and pa.options_id = '" . (int) $options_id . "' and pa.options_values_id = pov.products_options_values_id and pov.language_id = '" . (int) $languages_id . "' order by pa.products_options_sort_order");
+                $products_options_query = tep_db_query('select pa.products_attributes_id, pov.products_options_values_id, pov.products_options_values_name, pa.options_values_price, pa.price_prefix from ' . TABLE_PRODUCTS_ATTRIBUTES . ' pa, ' . TABLE_PRODUCTS_OPTIONS_VALUES . " pov where pa.products_id = '" . (int) $products_id . "' and pa.options_id = '" . (int) $options_id . "' and pa.options_values_id = pov.products_options_values_id and pov.language_id = '" . (int) $languages_id . "' order by pa.products_options_sort_order");
                 while ($products_options = tep_db_fetch_array($products_options_query)) {
                     $products_options['options_values_price'] = \common\helpers\Attributes::get_options_values_price($products_options['products_attributes_id']);
-                    $products_options_array[$options_id][] = array('id' => $products_options['products_options_values_id'], 'text' => $products_options['products_options_values_name']);
+                    $products_options_array[$options_id][] = ['id' => $products_options['products_options_values_id'], 'text' => $products_options['products_options_values_name']];
                     $products_options_array[$options_id][sizeof($products_options_array[$options_id]) - 1]['price'] = ($products_options['price_prefix'] != '-' ? $products_options['options_values_price'] : -$products_options['options_values_price']);
 
-                    $count_values[$options_id] ++;
+                    $count_values[$options_id]++;
                 }
                 $total_comb *= $count_values[$options_id];
             }
@@ -1279,7 +1310,7 @@ class OptionsTemplatesController extends Sceleton {
                     $num = $i;
                     $comb_name = '';
                     $comb_price = 0;
-                    $comb_arr = array();
+                    $comb_arr = [];
                     foreach ($products_options_array as $id => $array) {
                         $k = $num % $count_values[$id];
                         $comb_name .= ' ' . $array[$k]['text'];
@@ -1288,30 +1319,33 @@ class OptionsTemplatesController extends Sceleton {
                         $num = (int) ($num / $count_values[$id]);
                     }
                     $uprid = \common\helpers\Inventory::normalize_id(\common\helpers\Inventory::get_uprid($products_id, $comb_arr));
-                    $check_inventory = tep_db_fetch_array(tep_db_query("select inventory_id from " . TABLE_INVENTORY . " where prid = '" . (int) $products_id . "' and products_id = '" . tep_db_input($uprid) . "'"));
+                    $check_inventory = tep_db_fetch_array(tep_db_query('select inventory_id from ' . TABLE_INVENTORY . " where prid = '" . (int) $products_id . "' and products_id = '" . tep_db_input($uprid) . "'"));
                     if (!$check_inventory['inventory_id']) {
-                        tep_db_query("insert into " . TABLE_INVENTORY . " set products_id = '" . tep_db_input($uprid) . "', prid = '" . (int) $products_id . "', products_name = '" . tep_db_input($products_name . $comb_name) . "', inventory_price = '" . tep_db_input(abs($comb_price)) . "', price_prefix = '" . tep_db_input($comb_price < 0 ? '-' : '+') . "', inventory_full_price = '" . tep_db_input($products_price + $comb_price) . "'");
+                        tep_db_query('insert into ' . TABLE_INVENTORY . " set products_id = '" . tep_db_input($uprid) . "', prid = '" . (int) $products_id . "', products_name = '" . tep_db_input($products_name . $comb_name) . "', inventory_price = '" . tep_db_input(abs($comb_price)) . "', price_prefix = '" . tep_db_input($comb_price < 0 ? '-' : '+') . "', inventory_full_price = '" . tep_db_input($products_price + $comb_price) . "'");
                     }
                     $inventory_uprids_array[] = $uprid;
                 }
             }
-            tep_db_query("delete from " . TABLE_INVENTORY . " where prid = '" . (int)$products_id . "' and products_id not in ('" . implode("','", $inventory_uprids_array) . "')");
+            tep_db_query('delete from ' . TABLE_INVENTORY . " where prid = '" . (int)$products_id . "' and products_id not in ('" . implode("','", $inventory_uprids_array) . "')");
         }
     }
 
-    private static function getObjById($id) {
+    private static function getObjById($id)
+    {
         if ($id > 0) {
             return \common\models\OptionsTemplates::findOne(['options_templates_id' => $id]);
         }
     }
 
-    private static function getObjByIdCheck($id) {
+    private static function getObjByIdCheck($id)
+    {
         $res = self::getObjById($id);
         \common\helpers\AssertUser::assertNotNull($res, "There is not template with id '$id'");
         return $res;
     }
 
-    private static function getObjByIdOrCreate($id) {
+    private static function getObjByIdOrCreate($id)
+    {
         return ($id > 0) ? self::getObjByIdCheck($id) : new \common\models\OptionsTemplates();
     }
 

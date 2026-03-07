@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -43,9 +45,9 @@ class m220928_154358_admin_hidden_languages_update extends Migration
      */
     public function safeDown()
     {
-//        echo "m220928_154358_admin_hidden_languages_update cannot be reverted.\n";
+        //        echo "m220928_154358_admin_hidden_languages_update cannot be reverted.\n";
 
-//        return false;
+        //        return false;
     }
 
     /*

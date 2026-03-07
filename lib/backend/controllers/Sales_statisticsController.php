@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,24 +15,25 @@
 
 namespace backend\controllers;
 
-use Yii;
-use backend\components\Graphs;
 use backend\models\Report;
+use Yii;
 
-class Sales_statisticsController extends Sceleton {
-
+class Sales_statisticsController extends Sceleton
+{
     public $acl = ['BOX_HEADING_REPORTS', 'BOX_REPORTS_SALES'];
 
-    public function __construct($id, $module = null) {
+    public function __construct($id, $module = null)
+    {
         \common\helpers\Translation::init('shipping');
         \common\helpers\Translation::init('ordertotal');
         \common\helpers\Translation::init('admin/sales_statistics');
         parent::__construct($id, $module);
     }
 
-    public function actionIndex() {
-        $this->selectedMenu = array('reports', 'sales_statistics');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('sales_statistics/index'), 'title' => HEADING_TITLE);
+    public function actionIndex()
+    {
+        $this->selectedMenu = ['reports', 'sales_statistics'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('sales_statistics/index'), 'title' => HEADING_TITLE];
 
         $this->view->headingTitle = HEADING_TITLE;
 
@@ -52,12 +55,11 @@ class Sales_statisticsController extends Sceleton {
 
         $this->view->filter->walkin = Yii::$app->request->get('walkin') ?? false;
         $this->view->filter->admin = [];
-        foreach(\common\helpers\Admin::getAdminsWithWalkinOrders() as $admin){
+        foreach (\common\helpers\Admin::getAdminsWithWalkinOrders() as $admin) {
             $this->view->filter->admin[$admin->admin_id] = $admin->admin_firstname .' '. $admin->admin_lastname;
         }
 
         $this->view->filter->charts = $report->getChartsGroups();
-
 
         $model = $report->getReportModel();
 
@@ -81,7 +83,7 @@ class Sales_statisticsController extends Sceleton {
             }
         }
         $ph = $report->getSelectedPlatforms();
-        if (empty($ph)){
+        if (empty($ph)) {
             $ph = [];
             foreach (\common\classes\platform::getList(true, true) as $p) {
                 $ph[] = $p['id'];
@@ -96,7 +98,7 @@ class Sales_statisticsController extends Sceleton {
             'rows' => $model->getRowsCount(),
             'table_title' => $model->getTableTitle(),
             'filters' => $report->getFilters(),
-            'selected_filter' => \yii\helpers\Url::to(['sales_statistics/index']) . '?' . $_SERVER["QUERY_STRING"],
+            'selected_filter' => \yii\helpers\Url::to(['sales_statistics/index']) . '?' . $_SERVER['QUERY_STRING'],
             'selected_statuses' => $report->getSelectedStatuses(),
             'selected_payments' => $report->getSelectedPayments(),
             'selected_shippings' => $report->getSelectedShippings(),
@@ -120,7 +122,8 @@ class Sales_statisticsController extends Sceleton {
         }
     }
 
-    public function actionLoadRange() {
+    public function actionLoadRange()
+    {
         $type = Yii::$app->request->get('type');
         $range = '';
         $undisabled = [];
@@ -132,7 +135,8 @@ class Sales_statisticsController extends Sceleton {
         echo json_encode(['range' => $range, 'undisabled' => $undisabled]);
     }
 
-    public function actionLoadOptions() {
+    public function actionLoadOptions()
+    {
         $type = Yii::$app->request->get('type');
         $range = Yii::$app->request->get('range');
         $options = '';
@@ -140,37 +144,40 @@ class Sales_statisticsController extends Sceleton {
         if ($type) {
             $report = new Report(Yii::$app->request->get());
             $options = $report->getReportModel()->getOptions($range);
-            if ($range == 'custom')
-            $undisabled = $report->getUndisabledCharts();
+            if ($range == 'custom') {
+                $undisabled = $report->getUndisabledCharts();
+            }
         }
         echo json_encode(['options' => $options, 'undisabled' => $undisabled]);
     }
 
-    public function getGeoDetails($report, $isAjax = false){
+    public function getGeoDetails($report, $isAjax = false)
+    {
 
-         return $this->renderAjax('geo_details', [
-                'selected_geo_type' => $report->getSelectedGeoType(),
-                'geo_type' => $report->getGeoType(),
-                'selected_zones' => $report->getSelectedZones(),
-                'zones' => $report->getGeoZones(),
-                'ajax' => $isAjax,
-                'country' => $report->getSelectedCountry(),
-                'state' => $report->getSelectedState(),
-                'sps' => $report->getSelectedSPS(),
-            ]);
+        return $this->renderAjax('geo_details', [
+               'selected_geo_type' => $report->getSelectedGeoType(),
+               'geo_type' => $report->getGeoType(),
+               'selected_zones' => $report->getSelectedZones(),
+               'zones' => $report->getGeoZones(),
+               'ajax' => $isAjax,
+               'country' => $report->getSelectedCountry(),
+               'state' => $report->getSelectedState(),
+               'sps' => $report->getSelectedSPS(),
+           ]);
     }
 
-    public function actionGetGeo(){
+    public function actionGetGeo()
+    {
         $geoType = Yii::$app->request->get('geo_type', 0);
         $sAction = Yii::$app->request->get('action', '');
-        switch ($sAction){
-            case "country" :
+        switch ($sAction) {
+            case 'country' :
                 $term = Yii::$app->request->get('term', '');
                 $delivery_countries = \common\helpers\Order::getOrdersQuery(['delivery_country' => $term])
                                             ->groupBy('delivery_country')->orderBy('delivery_country')->all();
                 $response = \yii\helpers\ArrayHelper::getColumn($delivery_countries, 'delivery_country');
                 break;
-            case "state" :
+            case 'state' :
                 $term = Yii::$app->request->get('term', '');
                 $country = Yii::$app->request->get('country');
                 if (!empty($country)) {
@@ -192,7 +199,8 @@ class Sales_statisticsController extends Sceleton {
         exit();
     }
 
-    public function actionSaveFilter() {
+    public function actionSaveFilter()
+    {
         $params = Yii::$app->request->getBodyParams();
         $message = '';
 
@@ -200,7 +208,7 @@ class Sales_statisticsController extends Sceleton {
 
         if (is_array($params)) {
             if (isset($params['filter_name']) && !empty($params['filter_name']) && isset($params['options']) && !empty($params['options'])) {
-                tep_db_query("insert into " . TABLE_SALES_FILTERS . " set sales_filter_name = '" . tep_db_input($params['filter_name']) . "', sales_filter_vals = '" . tep_db_input($params['options']) . "'");
+                tep_db_query('insert into ' . TABLE_SALES_FILTERS . " set sales_filter_name = '" . tep_db_input($params['filter_name']) . "', sales_filter_vals = '" . tep_db_input($params['options']) . "'");
                 $message = TEXT_MESSEAGE_SUCCESS;
             } else {
                 $message = TEXT_MESSAGE_ERROR;
@@ -212,14 +220,15 @@ class Sales_statisticsController extends Sceleton {
         exit();
     }
 
-    public function actionDeleteFilter() {
+    public function actionDeleteFilter()
+    {
         $params = Yii::$app->request->getBodyParams();
         $message = '';
 
         if (is_array($params)) {
             $params['filter_vals'] = str_replace(\yii\helpers\Url::to(['sales_statistics/index']) . '?', '', $params['filter_vals']);
             if (isset($params['filter_vals']) && !empty($params['filter_vals'])) {
-                tep_db_query("delete from " . TABLE_SALES_FILTERS . " where sales_filter_vals = '" . tep_db_input($params['filter_vals']) . "'");
+                tep_db_query('delete from ' . TABLE_SALES_FILTERS . " where sales_filter_vals = '" . tep_db_input($params['filter_vals']) . "'");
                 $message = TEXT_MESSEAGE_SUCCESS;
             } else {
                 $message = TEXT_MESSAGE_ERROR;
@@ -231,20 +240,22 @@ class Sales_statisticsController extends Sceleton {
         exit();
     }
 
-    public function actionMapShow() {
-        $origPlace = array(0, 0, 2);
-        $country_info = tep_db_fetch_array(tep_db_query("select ab.entry_country_id from " . TABLE_PLATFORMS_ADDRESS_BOOK . " ab inner join " . TABLE_PLATFORMS . " p on p.is_default = 1 and p.platform_id = ab.platform_id where ab.is_default = 1"));
+    public function actionMapShow()
+    {
+        $origPlace = [0, 0, 2];
+        $country_info = tep_db_fetch_array(tep_db_query('select ab.entry_country_id from ' . TABLE_PLATFORMS_ADDRESS_BOOK . ' ab inner join ' . TABLE_PLATFORMS . ' p on p.is_default = 1 and p.platform_id = ab.platform_id where ab.is_default = 1'));
         $_country = (int) STORE_COUNTRY;
         if ($country_info) {
             $_country = $country_info['entry_country_id'];
         }
         if (defined('STORE_COUNTRY') && (int) STORE_COUNTRY > 0) {
-            $origPlace = tep_db_fetch_array(tep_db_query("select lat, lng, zoom from " . TABLE_COUNTRIES . " where countries_id = '" . (int) $_country . "'"));
+            $origPlace = tep_db_fetch_array(tep_db_query('select lat, lng, zoom from ' . TABLE_COUNTRIES . " where countries_id = '" . (int) $_country . "'"));
         }
         return $this->renderAjax('map', ['mapskey' => \common\components\GoogleTools::instance()->getMapProvider()->getMapsKey(), 'origPlace' => $origPlace]);
     }
 
-    public function actionMap() {
+    public function actionMap()
+    {
         $report = new Report($_GET);
         $model = $report->getReportModel();
         $data = $model->loadPurchases(true);
@@ -253,7 +264,8 @@ class Sales_statisticsController extends Sceleton {
         exit();
     }
 
-    public function actionExport() {
+    public function actionExport()
+    {
         $report = new Report($_GET);
         $model = $report->getReportModel();
         $data = $model->loadPurchases(false);
@@ -261,7 +273,7 @@ class Sales_statisticsController extends Sceleton {
         $end = Yii::$app->request->get('end', null);
 
         $ex_type = Yii::$app->request->get('ex_type');
-        $ex_data = explode("|", Yii::$app->request->get('ex_data'));
+        $ex_data = explode('|', Yii::$app->request->get('ex_data'));
         $report->export($data, ['modules' => $ex_data, 'type' => $ex_type, 'start' => $start, 'end' => $end]);
         exit();
     }

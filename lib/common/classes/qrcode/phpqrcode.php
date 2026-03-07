@@ -1,5 +1,9 @@
 <?php
+
+declare(strict_types=1);
+
 namespace common\classes\qrcode;
+
 /*
  * PHP QR Code encoder
  *
@@ -32,14 +36,11 @@ namespace common\classes\qrcode;
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
- 
- 
 
 /*
  * Version: 1.1.4
  * Build: 2010100721
  */
-
 
 //require_once('init.php');
 /*require_once('qrstr.php');

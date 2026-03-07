@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,24 +14,18 @@
 
 namespace frontend\design;
 
-use Yii;
-use common\classes\Images;
-use backend\design\Style;
-
 class FormElements
 {
-
     public static function radioButton()
     {
         return [
-            'item' => function($index, $label, $name, $checked, $value) {
+            'item' => function ($index, $label, $name, $checked, $value) {
                 return '
     <label class="radio-button">
         <input type="radio" name="' . $name . '" value="' . $value . '"' . ($checked ? 'checked' : '') . '>
         <span>' . $label . '</span>
     </label>';
-            }
+            },
         ];
     }
 }
-

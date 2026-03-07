@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "tracking_numbers_export".
@@ -59,8 +59,8 @@ class TrackingNumbersExport extends \yii\db\ActiveRecord
         ];
     }
 
-
-    public function getPayments(){
+    public function getPayments()
+    {
         return $this->hasMany(OrdersPayment::className(), ['orders_payment_id' => 'orders_payment_id']);
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -39,12 +41,11 @@ namespace Stripe;
  */
 class Order extends ApiResource
 {
-    const OBJECT_NAME = 'order';
-
     use ApiOperations\All;
     use ApiOperations\Create;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
+    public const OBJECT_NAME = 'order';
 
     /**
      * @param null|array $params

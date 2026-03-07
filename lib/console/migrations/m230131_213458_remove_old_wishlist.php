@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230131_213458_remove_old_wishlist extends Migration
      */
     public function safeUp()
     {
-        if(method_exists($this, 'isOldProject')) {
+        if (method_exists($this, 'isOldProject')) {
             if (!$this->isOldProject()) {
                 $this->dropTables(['customers_wishlist', 'customers_wishlist_attributes']);
             }

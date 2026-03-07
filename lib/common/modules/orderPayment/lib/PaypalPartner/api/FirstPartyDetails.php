@@ -1,5 +1,7 @@
 <?php
- /**
+
+declare(strict_types=1);
+/**
  * Transactional Middle Ware for Paypal modules
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,19 +12,18 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+
 namespace common\modules\orderPayment\lib\PaypalPartner\api;
 
 use PayPal\Common\PayPalResourceModel;
-use PayPal\Validation\ArgumentValidator;
-use PayPal\Rest\ApiContext;
 
-
-class FirstPartyDetails extends PayPalResourceModel {
-
-/**
- * sets  "features": ["PAYMENT", "REFUND" ] You also need either pass "seller_nonce" => " Seller-Nonce"  or set it up later.
- */
-    public function __construct($data = null){
+class FirstPartyDetails extends PayPalResourceModel
+{
+    /**
+     * sets  "features": ["PAYMENT", "REFUND" ] You also need either pass "seller_nonce" => " Seller-Nonce"  or set it up later.
+     */
+    public function __construct($data = null)
+    {
         $this->features = [
                 PartnerConstants::FEATURE_PAYMENT,
                 PartnerConstants::FEATURE_REFUND,
@@ -32,13 +33,13 @@ class FirstPartyDetails extends PayPalResourceModel {
 
     public function setSellerNonce($seller_nonce)
     {
-      $this->seller_nonce = $seller_nonce;
-      return $this;
+        $this->seller_nonce = $seller_nonce;
+        return $this;
     }
 
     public function getSellerNonce()
     {
-      return $this->seller_nonce;
+        return $this->seller_nonce;
     }
 
     public function setPartnerClientId($clientId)

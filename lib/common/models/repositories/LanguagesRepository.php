@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -9,9 +11,10 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-namespace common\models\repositories;
-use common\models\Languages;
 
+namespace common\models\repositories;
+
+use common\models\Languages;
 
 /**
  * Class LanguagesRepository
@@ -27,9 +30,9 @@ class LanguagesRepository
     public function findById($id, bool $asArray = false)
     {
         $language = Languages::find()
-            ->where(['languages_id'=> $id])
+            ->where(['languages_id' => $id])
             ->asArray($asArray);
-        if(is_array($id)){
+        if (is_array($id)) {
             return $language->indexBy('languages_id')->all();
         }
 
@@ -89,15 +92,15 @@ class LanguagesRepository
      * @throws \Throwable
      * @throws \yii\db\StaleObjectException
      */
-    public function edit(Languages $language,$params = [], $safeOnly = true)
+    public function edit(Languages $language, $params = [], $safeOnly = true)
     {
-        foreach ($params as $attribute => $param){
-            if(!$language->hasAttribute($attribute)){
+        foreach ($params as $attribute => $param) {
+            if (!$language->hasAttribute($attribute)) {
                 unset($params[$attribute]);
             }
         }
         $language->setAttributes($params, $safeOnly);
-        if(!$language->update(true,array_keys($params))){
+        if (!$language->update(true, array_keys($params))) {
             return $language->getErrors();
         }
         return true;

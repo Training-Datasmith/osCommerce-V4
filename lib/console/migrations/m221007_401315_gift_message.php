@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of True Loaded.
  *
@@ -20,7 +22,7 @@ class m221007_401315_gift_message extends Migration
      */
     public function safeUp()
     {
-        $this->addColumn("products_options_values", "custom_input_type", $this->tinyInteger(2)->defaultValue(null));
+        $this->addColumn('products_options_values', 'custom_input_type', $this->tinyInteger(2)->defaultValue(null));
     }
 
     /**

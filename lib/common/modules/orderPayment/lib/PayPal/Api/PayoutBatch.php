@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -21,7 +23,7 @@ class PayoutBatch extends PayPalModel
      * A batch header. Includes the generated batch status.
      *
      * @param \PayPal\Api\PayoutBatchHeader $batch_header
-     * 
+     *
      * @return $this
      */
     public function setBatchHeader($batch_header)
@@ -44,7 +46,7 @@ class PayoutBatch extends PayPalModel
      * An array of items in a batch payout.
      *
      * @param \PayPal\Api\PayoutItemDetails[] $items
-     * 
+     *
      * @return $this
      */
     public function setItems($items)
@@ -72,10 +74,10 @@ class PayoutBatch extends PayPalModel
     public function addItem($payoutItemDetails)
     {
         if (!$this->getItems()) {
-            return $this->setItems(array($payoutItemDetails));
+            return $this->setItems([$payoutItemDetails]);
         } else {
             return $this->setItems(
-                array_merge($this->getItems(), array($payoutItemDetails))
+                array_merge($this->getItems(), [$payoutItemDetails])
             );
         }
     }
@@ -89,10 +91,9 @@ class PayoutBatch extends PayPalModel
     public function removeItem($payoutItemDetails)
     {
         return $this->setItems(
-            array_diff($this->getItems(), array($payoutItemDetails))
+            array_diff($this->getItems(), [$payoutItemDetails])
         );
     }
-
 
     /**
      * Sets Links

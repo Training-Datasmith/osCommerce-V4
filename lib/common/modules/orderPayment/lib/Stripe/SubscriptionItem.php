@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -21,16 +23,15 @@ namespace Stripe;
  */
 class SubscriptionItem extends ApiResource
 {
-    const OBJECT_NAME = 'subscription_item';
-
     use ApiOperations\All;
     use ApiOperations\Create;
     use ApiOperations\Delete;
     use ApiOperations\NestedResource;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
+    public const OBJECT_NAME = 'subscription_item';
 
-    const PATH_USAGE_RECORDS = '/usage_records';
+    public const PATH_USAGE_RECORDS = '/usage_records';
 
     /**
      * @param null|string $id the ID of the subscription item on which to create the usage record
@@ -66,7 +67,7 @@ class SubscriptionItem extends ApiResource
         return $obj;
     }
 
-    const PATH_USAGE_RECORD_SUMMARIES = '/usage_record_summaries';
+    public const PATH_USAGE_RECORD_SUMMARIES = '/usage_record_summaries';
 
     /**
      * @param string $id the ID of the subscription item on which to retrieve the usage record summaries

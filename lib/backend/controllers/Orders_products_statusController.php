@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,26 +25,28 @@ class Orders_products_statusController extends Sceleton
 
     public function actionIndex()
     {
-        $this->selectedMenu = array('settings', 'status', 'orders_products_status');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('orders_products_status/index'), 'title' => HEADING_TITLE_ORDERS_PRODUCTS_STATUS);
+        $this->selectedMenu = ['settings', 'status', 'orders_products_status'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('orders_products_status/index'), 'title' => HEADING_TITLE_ORDERS_PRODUCTS_STATUS];
         $this->view->headingTitle = HEADING_TITLE_ORDERS_PRODUCTS_STATUS;
-        $this->view->StatusTable = array(
-            array(
+        $this->view->StatusTable = [
+            [
                 'title' => TABLE_HEADING_ORDERS_PRODUCTS_STATUS,
-                'not_important' => 0
-            ),
-            array(
+                'not_important' => 0,
+            ],
+            [
                 'title' => '',
-                'not_important' => 0
-            )
-        );
+                'not_important' => 0,
+            ],
+        ];
         $messages = [];
         if (isset($_SESSION['messages'])) {
             $messages = $_SESSION['messages'];
             unset($_SESSION['messages']);
-            if (!is_array($messages)) $messages = [];
+            if (!is_array($messages)) {
+                $messages = [];
+            }
         }
-        return $this->render('index', array('messages' => $messages));
+        return $this->render('index', ['messages' => $messages]);
     }
 
     public function actionList()
@@ -57,20 +61,20 @@ class Orders_products_statusController extends Sceleton
         if (isset($_GET['search']['value']) && tep_not_null($_GET['search']['value'])) {
             $opsQuery->andWhere(['or',
                 ['like', 'orders_products_status_name', tep_db_input(tep_db_prepare_input($_GET['search']['value']))],
-                ['like', 'orders_products_status_name_long', tep_db_input(tep_db_prepare_input($_GET['search']['value']))]
+                ['like', 'orders_products_status_name_long', tep_db_input(tep_db_prepare_input($_GET['search']['value']))],
             ]);
         }
         if (isset($_GET['order'][0]['column']) && $_GET['order'][0]['dir']) {
             switch ($_GET['order'][0]['column']) {
                 case 0:
                     $opsQuery->orderBy('orders_products_status_name_long ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 case 1:
                     $opsQuery->orderBy('orders_products_status_name ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
-                break;
+                    break;
                 default:
                     $opsQuery->orderBy('orders_products_status_id ASC');
-                break;
+                    break;
             }
         } else {
             $opsQuery->orderBy('orders_products_status_id ASC');
@@ -82,17 +86,17 @@ class Orders_products_statusController extends Sceleton
         $opsQuery = $opsQuery->asArray(true)->all();
         $responseList = [];
         foreach ($opsQuery as $opsRecord) {
-            $responseList[] = array(
+            $responseList[] = [
                 $opsRecord['orders_products_status_name_long'] . tep_draw_hidden_field('id', $opsRecord['orders_products_status_id'], 'class="cell_identify"'),
-                $opsRecord['orders_products_status_name']
-            );
+                $opsRecord['orders_products_status_name'],
+            ];
         }
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $orders_products_status_query_numrows,
             'recordsFiltered' => $orders_products_status_query_numrows,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         echo json_encode($response);
     }
 
@@ -104,12 +108,12 @@ class Orders_products_statusController extends Sceleton
         $this->layout = false;
         $opsRecord = \common\models\OrdersProductsStatus::findOne([
             'orders_products_status_id' => Yii::$app->request->post('orders_products_status_id', 0),
-            'language_id' => $languages_id
+            'language_id' => $languages_id,
         ]);
         if ($opsRecord) {
             $opsNameOriginal = [
                 'TEXT_STATUS_LONG_' . \common\helpers\OrderProduct::getStatusArray()[$opsRecord->orders_products_status_id]['key'],
-                'TEXT_STATUS_' . \common\helpers\OrderProduct::getStatusArray()[$opsRecord->orders_products_status_id]['key']
+                'TEXT_STATUS_' . \common\helpers\OrderProduct::getStatusArray()[$opsRecord->orders_products_status_id]['key'],
             ];
             $opsNameOriginal[0] = (defined($opsNameOriginal[0]) ? constant($opsNameOriginal[0]) : $opsNameOriginal[0]);
             $opsNameOriginal[1] = (defined($opsNameOriginal[1]) ? constant($opsNameOriginal[1]) : $opsNameOriginal[1]);
@@ -135,7 +139,7 @@ class Orders_products_statusController extends Sceleton
 
         \common\helpers\Translation::init('admin/orders_products_status');
         $opsRecord = \common\models\OrdersProductsStatus::findOne([
-            'orders_products_status_id' => Yii::$app->request->get('orders_products_status_id', 0)
+            'orders_products_status_id' => Yii::$app->request->get('orders_products_status_id', 0),
         ]);
         if (!$opsRecord) {
             return $this->redirect('index');
@@ -145,12 +149,14 @@ class Orders_products_statusController extends Sceleton
         $languages = \common\helpers\Language::get_languages();
         for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
             $orders_products_status_inputs_string[$languages[$i]['id']] = \yii\helpers\Html::input(
-                'text', 'orders_products_status_name[' . $languages[$i]['id'] . ']',
+                'text',
+                'orders_products_status_name[' . $languages[$i]['id'] . ']',
                 \common\helpers\Order::get_orders_products_status_name($opsRecord->orders_products_status_id, $languages[$i]['id'], false),
                 ['class' => 'form-control']
             );
             $orders_products_status_inputs_string_long[$languages[$i]['id']] = \yii\helpers\Html::input(
-                'text', 'orders_products_status_name_long[' . $languages[$i]['id'] . ']',
+                'text',
+                'orders_products_status_name_long[' . $languages[$i]['id'] . ']',
                 \common\helpers\Order::get_orders_products_status_name($opsRecord->orders_products_status_id, $languages[$i]['id']),
                 ['class' => 'form-control']
             );
@@ -165,19 +171,19 @@ class Orders_products_statusController extends Sceleton
                     'orders_products_status_manual_matrix[' . $opsmRecord->orders_products_status_manual_id . ']',
                     isset($opsmmArray[$opsmRecord->orders_products_status_manual_id]),
                     ['id' => $opsmId, 'class' => 'form-control']
-                )
+                ),
             ];
         }
-        $this->selectedMenu = array('settings', 'status', 'orders_products_status');
+        $this->selectedMenu = ['settings', 'status', 'orders_products_status'];
         $this->view->headingTitle = TEXT_INFO_HEADING_EDIT_ORDERS_PRODUCTS_STATUS;
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('orders_products_status/index'), 'title' => TEXT_INFO_HEADING_EDIT_ORDERS_PRODUCTS_STATUS);
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('orders_products_status/index'), 'title' => TEXT_INFO_HEADING_EDIT_ORDERS_PRODUCTS_STATUS];
         return $this->render('edit', [
             'orders_products_status_id' => $opsRecord->orders_products_status_id,
             'orders_products_status_colour' => $opsRecord->getColour(),
             'orders_products_status_inputs_string' => $orders_products_status_inputs_string,
             'orders_products_status_inputs_string_long' => $orders_products_status_inputs_string_long,
             'orders_products_status_manual_matrix_string' => $orders_products_status_manual_matrix_string,
-            'languages' => $languages
+            'languages' => $languages,
         ]);
     }
 
@@ -185,7 +191,7 @@ class Orders_products_statusController extends Sceleton
     {
         \common\helpers\Translation::init('admin/orders_products_status');
         $opsRecord = \common\models\OrdersProductsStatus::findOne([
-            'orders_products_status_id' => Yii::$app->request->get('orders_products_status_id', 0)
+            'orders_products_status_id' => Yii::$app->request->get('orders_products_status_id', 0),
         ]);
         if ($opsRecord) {
             $languages = \common\helpers\Language::get_languages();
@@ -196,7 +202,7 @@ class Orders_products_statusController extends Sceleton
                 $orders_products_status_name_long_array = $_POST['orders_products_status_name_long'];
                 $opsRecordEdit = \common\models\OrdersProductsStatus::findOne([
                     'orders_products_status_id' => $opsRecord->orders_products_status_id,
-                    'language_id' => (int)$language_id
+                    'language_id' => (int)$language_id,
                 ]);
                 $action = 'updated';
                 $added = false;
@@ -219,7 +225,7 @@ class Orders_products_statusController extends Sceleton
                 }
             }
             $opsRecord = \common\models\OrdersProductsStatus::findOne([
-                'orders_products_status_id' => $opsRecord->orders_products_status_id
+                'orders_products_status_id' => $opsRecord->orders_products_status_id,
             ]);
             if ($opsRecord) {
                 if (($opsRecord = $opsRecord->setMatrixArray(array_keys((array)\Yii::$app->request->post('orders_products_status_manual_matrix')))) !== true) {
@@ -231,13 +237,13 @@ class Orders_products_statusController extends Sceleton
             echo json_encode([
                 'message' => 'Status ' . $action,
                 'messageType' => 'alert-success',
-                'added' => $added
+                'added' => $added,
             ]);
         } else {
             echo json_encode([
                 'message' => 'Status not found',
                 'messageType' => 'alert-danger',
-                'added' => false
+                'added' => false,
             ]);
         }
     }

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,9 +12,10 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-namespace common\models\repositories;
-use common\models\Product\ProductsDocuments;
 
+namespace common\models\repositories;
+
+use common\models\Product\ProductsDocuments;
 
 /**
  * Class ProductsDocumentsRepository
@@ -25,7 +28,7 @@ final class ProductsDocumentsRepository
      * @param bool $asArray
      * @return array|ProductsDocuments|\yii\db\ActiveRecord|null
      */
-    public function findById($id,  bool $asArray = false)
+    public function findById($id, bool $asArray = false)
     {
         $productsDocuments = ProductsDocuments::find()
             ->where(['products_documents_id' => $id])->asArray($asArray);
@@ -43,7 +46,7 @@ final class ProductsDocumentsRepository
     public function getById($id, bool $asArray = false)
     {
         $productsDocuments = $this->findById($id, $asArray);
-        if(!$productsDocuments){
+        if (!$productsDocuments) {
             throw new NotFoundException('Products Notes not found');
         }
         return $productsDocuments;
@@ -85,13 +88,13 @@ final class ProductsDocumentsRepository
      */
     public function edit(ProductsDocuments $productsDocuments, array $params = [], bool $safeOnly = false)
     {
-        foreach ($params as $attribute => $param){
-            if(!$productsDocuments->hasAttribute($attribute)){
+        foreach ($params as $attribute => $param) {
+            if (!$productsDocuments->hasAttribute($attribute)) {
                 unset($params[$attribute]);
             }
         }
         $productsDocuments->setAttributes($params, $safeOnly);
-        if(!$productsDocuments->update(false, array_keys($params))){
+        if (!$productsDocuments->update(false, array_keys($params))) {
             return $productsDocuments->getErrors();
         }
         return true;

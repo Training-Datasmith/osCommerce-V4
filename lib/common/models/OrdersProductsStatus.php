@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "orders_products_status".
@@ -32,7 +32,7 @@ class OrdersProductsStatus extends \yii\db\ActiveRecord
             [['orders_products_status_id', 'language_id'], 'integer'],
             [['orders_products_status_name'], 'string', 'max' => 32],
             [['orders_products_status_name_long'], 'string', 'max' => 64],
-            [['orders_products_status_colour'], 'string', 'max' => 16]
+            [['orders_products_status_colour'], 'string', 'max' => 16],
         ];
     }
 
@@ -97,7 +97,7 @@ class OrdersProductsStatus extends \yii\db\ActiveRecord
      * @param array $matrixArray - array of Manual Order product status id's
      * @return true | string with error message
      */
-    public function setMatrixArray(array $matrixArray = array())
+    public function setMatrixArray(array $matrixArray = [])
     {
         $return = true;
         OrdersProductsStatusManualMatrix::deleteAll(['orders_products_status_id' => $this->orders_products_status_id]);

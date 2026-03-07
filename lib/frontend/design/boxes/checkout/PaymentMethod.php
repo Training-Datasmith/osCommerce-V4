@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\checkout;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class PaymentMethod extends Widget
 {
-
     public $file;
     public $params;
     public $manager;
@@ -31,11 +31,11 @@ class PaymentMethod extends Widget
 
     public function run()
     {
-        if (is_object($this->manager)){
+        if (is_object($this->manager)) {
             $this->params['manager'] = $this->manager;
         }
         if (isset($this->settings[0]['combine_fields_notes'])) {
-          $this->params['combine_fields_notes'] = $this->settings[0]['combine_fields_notes'];
+            $this->params['combine_fields_notes'] = $this->settings[0]['combine_fields_notes'];
         }
 
         return IncludeTpl::widget(['file' => 'boxes/checkout/payment-method.tpl', 'params' => $this->params]);

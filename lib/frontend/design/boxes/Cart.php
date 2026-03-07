@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,36 +14,37 @@
 
 namespace frontend\design\boxes;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use common\classes\Images;
 
-class Cart extends Widget {
+class Cart extends Widget
+{
+    public $params;
+    public $settings;
 
-	public $params;
-	public $settings;
+    public function init()
+    {
+        parent::init();
+    }
 
-	public function init() {
-		parent::init();
-	}
+    public function run()
+    {
+        if (GROUPS_DISABLE_CART) {
+            return '';
+        }
 
-	public function run() {
-		if( GROUPS_DISABLE_CART ) {
-			return '';
-		}
+        global $cart;
+        $currencies = \Yii::$container->get('currencies');
+        if (! is_object($cart) || ! is_object($currencies)) {
+            return '';
+        }
 
-		global $cart;
-		$currencies = \Yii::$container->get('currencies');
-		if( ! is_object( $cart ) || ! is_object( $currencies ) ) {
-			return '';
-		}
-        
-        if( $ext = \common\helpers\Extensions::isAllowed('MultiCart') ) {
-            if($ext::getCartsAmount(false) > 0) {
+        if ($ext = \common\helpers\Extensions::isAllowed('MultiCart')) {
+            if ($ext::getCartsAmount(false) > 0) {
                 return $ext::cartsBlock([
                     'settings' => $this->settings,
-                    'id' => $this->id
+                    'id' => $this->id,
                 ]);
             }
         }
@@ -59,25 +62,25 @@ class Cart extends Widget {
             }
         }
 
-		if (!Yii::$app->user->isGuest){
-		  $checkout_link = tep_href_link('checkout', '', 'SSL');
-		} else {
-		  $checkout_link = tep_href_link('checkout/login', '', 'SSL');
-		}
-		
-		$params = [
-			'total'          => (($this->settings[0]['total']??null) ? $currencies->format( $cart->show_total() ) : ''),
-			'count_contents' => $cart->count_contents(),
-			'settings'       => $this->settings,
-			'products'       => $products,
-			'is_multi_cart'  => false,
-			'currencies'     => $currencies,
-			'checkout_link'  => $checkout_link
-		];
+        if (!Yii::$app->user->isGuest) {
+            $checkout_link = tep_href_link('checkout', '', 'SSL');
+        } else {
+            $checkout_link = tep_href_link('checkout/login', '', 'SSL');
+        }
 
-		return IncludeTpl::widget( [
-			'file'   => 'boxes/cart.tpl',
-			'params' => $params
-		] );
-	}
+        $params = [
+            'total'          => (($this->settings[0]['total'] ?? null) ? $currencies->format($cart->show_total()) : ''),
+            'count_contents' => $cart->count_contents(),
+            'settings'       => $this->settings,
+            'products'       => $products,
+            'is_multi_cart'  => false,
+            'currencies'     => $currencies,
+            'checkout_link'  => $checkout_link,
+        ];
+
+        return IncludeTpl::widget([
+            'file'   => 'boxes/cart.tpl',
+            'params' => $params,
+        ]);
+    }
 }

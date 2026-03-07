@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace frontend\design\boxes;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
 use frontend\design\Info;
-use common\helpers\Product;
-use common\classes\platform;
+use Yii;
+use yii\base\Widget;
 
 class FeaturedProducts extends Widget
 {
@@ -66,14 +66,14 @@ class FeaturedProducts extends Widget
                         'products' => Yii::$container->get('products')->getAllProducts($this->settings['listing_type']),
                         'settings' => $this->settings,
                         'languages_id' => $languages_id,
-                        'id' => $this->id
-                    ]
+                        'id' => $this->id,
+                    ],
                 ]);
             } else {
                 return \frontend\design\boxes\ProductListing::widget([
                     'products' => Yii::$container->get('products')->getAllProducts($this->settings['listing_type']),
                     'settings' => $this->settings,
-                    'id' => $this->id
+                    'id' => $this->id,
                 ]);
             }
 

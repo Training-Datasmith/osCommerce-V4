@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,7 +25,7 @@ class m240103_140120_add_translation extends Migration
     public function safeUp()
     {
         $this->addTranslation('admin/install', [
-            'TEXT_MENU_STRUCTURE' => 'Admin menu items were added'
+            'TEXT_MENU_STRUCTURE' => 'Admin menu items were added',
         ]);
     }
 
@@ -32,7 +34,7 @@ class m240103_140120_add_translation extends Migration
      */
     public function safeDown()
     {
-       $this->removeTranslation('admin/install', ['TEXT_MENU_STRUCTURE']);
+        $this->removeTranslation('admin/install', ['TEXT_MENU_STRUCTURE']);
     }
 
     /*

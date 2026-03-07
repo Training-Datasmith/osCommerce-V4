@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,17 +14,16 @@
 
 namespace OscLink\XML;
 
-
 class IOPlatformMap extends Complex
 {
     protected $name = '@platform';
 
     public function serializeTo(\SimpleXMLElement $parent)
     {
-        if ( !empty($this->value) ) {
+        if (!empty($this->value)) {
             $parent->addAttribute('internalId', $this->value);
             $externalId = IOCore::get()->getAttributeMapper()->externalId($this);
-            if ( is_numeric($externalId) ) {
+            if (is_numeric($externalId)) {
                 $parent->addAttribute('externalId', $externalId);
             }
         }

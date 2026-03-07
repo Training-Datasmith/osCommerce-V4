@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 /**
 * This file is part of osCommerce ecommerce platform.
@@ -11,7 +12,6 @@
 * Released under the GNU General Public License
 * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
 */
-
 
 namespace common\extensions\StockControl;
 
@@ -31,7 +31,7 @@ class Setup extends \common\classes\modules\SetupExtensions
                 'TEXT_STOCK_SPLIT_PLATFORMS' => 'Split stock between platforms',
                 'TEXT_STOCK_PLATFORMS_TO_WAREHOUSE' => 'Assign platform to warehouse',
 
-            ]
+            ],
         ];
     }
 
@@ -53,7 +53,7 @@ class Setup extends \common\classes\modules\SetupExtensions
     {
         return [
             '1.0.1' => 'Added hook',
-            '1.0.0' => ['whats_new' => "Basic version"],
+            '1.0.0' => ['whats_new' => 'Basic version'],
         ];
     }
 
@@ -63,7 +63,7 @@ class Setup extends \common\classes\modules\SetupExtensions
             'platform_stock_control',
             'warehouse_stock_control',
             'platform_inventory_control',
-            'warehouse_inventory_control'
+            'warehouse_inventory_control',
         ];
     }
 
@@ -74,45 +74,53 @@ class Setup extends \common\classes\modules\SetupExtensions
      */
     public static function install($platformId, $migration)
     {
-        $migration->createTableIfNotExists('platform_stock_control', [
+        $migration->createTableIfNotExists(
+            'platform_stock_control',
+            [
                 'products_id' => $migration->integer(10)->notNull(),
                 'platform_id' => $migration->integer(10)->notNull(),
                 'current_quantity' => $migration->integer(10)->defaultValue(0)->notNull(),
                 'manual_quantity' => $migration->integer(10)->defaultValue(0)->notNull(),
             ],
             [ // primary key
-                'pk' => ['products_id', 'platform_id']
+                'pk' => ['products_id', 'platform_id'],
             ],
             null  // index keys
         );
-        $migration->createTableIfNotExists('platform_inventory_control', [
+        $migration->createTableIfNotExists(
+            'platform_inventory_control',
+            [
                 'products_id' => $migration->string(160)->notNull(),
                 'platform_id' => $migration->integer(10)->notNull(),
                 'current_quantity' => $migration->integer(10)->defaultValue(0)->notNull(),
                 'manual_quantity' => $migration->integer(10)->defaultValue(0)->notNull(),
             ],
             [ // primary key
-                'pk' => ['products_id', 'platform_id']
+                'pk' => ['products_id', 'platform_id'],
             ],
             null  // index keys
         );
-        $migration->createTableIfNotExists('warehouse_stock_control', [
+        $migration->createTableIfNotExists(
+            'warehouse_stock_control',
+            [
                 'products_id' => $migration->integer(10)->notNull(),
                 'platform_id' => $migration->integer(10)->notNull(),
                 'warehouse_id' => $migration->integer(10)->defaultValue(0)->notNull(),
             ],
             [ // primary key
-                'pk' => ['products_id', 'platform_id']
+                'pk' => ['products_id', 'platform_id'],
             ],
             null  // index keys
         );
-        $migration->createTableIfNotExists('warehouse_inventory_control', [
+        $migration->createTableIfNotExists(
+            'warehouse_inventory_control',
+            [
                 'products_id' => $migration->string(160)->notNull(),
                 'platform_id' => $migration->integer(10)->notNull(),
                 'warehouse_id' => $migration->integer(10)->defaultValue(0)->notNull(),
             ],
             [ // primary key
-                'pk' => ['products_id', 'platform_id']
+                'pk' => ['products_id', 'platform_id'],
             ],
             null  // index keys
         );

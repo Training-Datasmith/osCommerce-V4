@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,13 @@
 
 namespace frontend\design\boxes\product;
 
+use common\helpers\Product;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use common\helpers\Tax;
-use common\helpers\Product;
 
 class Price extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -50,18 +50,18 @@ class Price extends Widget
 
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('PackUnits', 'allowed')) {
             $return_price = $ext::checkPackPrice($params['products_id']);
-        }else{
+        } else {
             $return_price = true;
         }
 
         $products = Yii::$container->get('products');
         $product = $products->getProduct($params['products_id']);
-        if (!$product->checkAttachedDetails($products::TYPE_STOCK)){
+        if (!$product->checkAttachedDetails($products::TYPE_STOCK)) {
             $product_qty = Product::get_products_stock($params['products_id']);
-            $stock_info = \common\classes\StockIndication::product_info(array(
+            $stock_info = \common\classes\StockIndication::product_info([
                 'products_id' => $params['products_id'],
                 'products_quantity' => $product_qty,
-            ));
+            ]);
             $product = $products->attachDetails($params['products_id'], [$products::TYPE_STOCK => $stock_info])->getProduct($params['products_id']);
         } else {
             $stock_info = $product[$products::TYPE_STOCK];
@@ -74,20 +74,20 @@ class Price extends Widget
          * 2 - hide if zero
          */
         /** @var \common\extensions\Quotations\Quotations $ext */
-        if (($stock_info['flags']['request_for_quote'] && ( ($ext = \common\helpers\Extensions::isAllowed('Quotations')) && !$ext::optionIsPriceShow() ) /*&& $stock_info['flags']['display_price_options'] != 0*/) ||
+        if (($stock_info['flags']['request_for_quote'] && (($ext = \common\helpers\Extensions::isAllowed('Quotations')) && !$ext::optionIsPriceShow()) /*&& $stock_info['flags']['display_price_options'] != 0*/) ||
             ($stock_info['flags']['display_price_options'] == 1) ||
-            (abs($product['products_price']) < 0.01 && $stock_info['flags']['display_price_options'] == 2 && !$product['is_bundle']) ){
+            (abs($product['products_price']) < 0.01 && $stock_info['flags']['display_price_options'] == 2 && !$product['is_bundle'])) {
             $return_price = false;
         }
 
-        if(!$return_price){
+        if (!$return_price) {
             return '';
         }
         if (\common\helpers\Extensions::callIfAllowed('ModulesZeroPrice', 'optionPriceFree') && (abs($product['products_price']) < 0.01)) {
             if (isset($product['special_expiration_date']) && !empty($product['special_expiration_date'])) {
-                $priceValidUntil = date("Y-m-d", strtotime($product['special_expiration_date']));
+                $priceValidUntil = date('Y-m-d', strtotime($product['special_expiration_date']));
             } else {
-                $priceValidUntil = date("Y-m-d", time() + 60*60*24*365);
+                $priceValidUntil = date('Y-m-d', time() + 60 * 60 * 24 * 365);
             }
             \frontend\design\JsonLd::addData(['Product' => [
                 'offers' => [
@@ -97,7 +97,7 @@ class Price extends Widget
                     'price' => '0.00',
                     'priceCurrency' => \Yii::$app->settings->get('currency'),
                     'priceValidUntil' => $priceValidUntil,
-                ]
+                ],
             ]], ['Product', 'offers']);
 
             //return TEXT_FREE;
@@ -106,7 +106,7 @@ class Price extends Widget
                 'old' => '',
                 'current' => TEXT_FREE,
                 'stock_info' => $stock_info,
-                'expires_date' => $product['special_expiration_date'] ? date("Y-m-d", strtotime($product['special_expiration_date'])) : '',
+                'expires_date' => $product['special_expiration_date'] ? date('Y-m-d', strtotime($product['special_expiration_date'])) : '',
             ]]);
         }
         /*
@@ -160,7 +160,7 @@ class Price extends Widget
 
                   $special_ex_one_clear = $currencies->display_price_clear($product['special_price'], 0, 1);
                   $special_ex_one = $currencies->format($special_ex_one_clear, false);
-                  
+
                   $old_ex_one_clear = $currencies->display_price_clear($product['products_price'], 0, 1);
                   $old_ex_one = $currencies->format($old_ex_one_clear, false);
                 }
@@ -177,20 +177,20 @@ class Price extends Widget
                   $current_ex = $currencies->display_price($product['products_price'], 0, $qty, false, false);
                   $current_ex_one = $currencies->display_price($product['products_price'], 0, 1, false, false);
                 }
-                
+
                 if (\common\helpers\Customer::check_customer_groups($customer_groups_id, 'groups_price_as_special') && $product['products_price_main'] > $product['products_price']) {
                     $special_value = $product['products_price'];
                     $special_one = $current_one;
                     $special = $current;
                     $old_clear = $currencies->display_price_clear($product['products_price_main'], $product['tax_rate'], $qty);
                     $old = $currencies->format($old_clear, false);
-                    
+
                     $old_one_clear = $currencies->display_price_clear($product['products_price_main'], $product['tax_rate'], 1);
                     $old_one = $currencies->format($old_one_clear, false);
-                    
+
                     $special_clear = $currencies->display_price_clear($product['products_price'], $product['tax_rate'], $qty);
                     $special_one_clear = $currencies->display_price_clear($product['products_price'], $product['tax_rate'], 1);
-                    
+
                     if ($product['tax_rate']>0 && defined("DISPLAY_BOTH_PRICES") && DISPLAY_BOTH_PRICES =='True') {
                         $special_ex = $current_ex;
                         $old_ex_clear = $currencies->display_price($product['products_price_main'], 0, $qty);
@@ -204,7 +204,7 @@ class Price extends Widget
                     $current = '';
                 }
             }
-            
+
         }
 */
 
@@ -233,27 +233,27 @@ class Price extends Widget
                     '@type' => 'Offer',
                     'url' => Yii::$app->urlManager->createAbsoluteUrl(['catalog/product', 'products_id' => $params['products_id']]),
                     'availability' => 'https://schema.org/' . ($stock_info['stock_code'] == 'out-stock' ? 'OutOfStock' : 'InStock'),
-                ]
+                ],
             ]], ['Product', 'offers']);
 
             if (isset($product['special_expiration_date']) && !empty($product['special_expiration_date'])) {
                 \frontend\design\JsonLd::addData(['Product' => [
                     'offers' => [
-                        'priceValidUntil' => date("Y-m-d", strtotime($product['special_expiration_date'])),
-                    ]
+                        'priceValidUntil' => date('Y-m-d', strtotime($product['special_expiration_date'])),
+                    ],
                 ]], ['Product', 'offers', 'priceValidUntil']);
             } else {
                 \frontend\design\JsonLd::addData(['Product' => [
                     'offers' => [
-                        'priceValidUntil' => date("Y-m-d", time() + 60*60*24*180),
-                    ]
+                        'priceValidUntil' => date('Y-m-d', time() + 60 * 60 * 24 * 180),
+                    ],
                 ]], ['Product', 'offers', 'priceValidUntil']);
             }
             \frontend\design\JsonLd::addData(['Product' => [
                 'offers' => [
                     'price' => $jsonPrice,
                     'priceCurrency' => \Yii::$app->settings->get('currency'),
-                ]
+                ],
             ]], ['Product', 'offers', 'price']);
         }
 
@@ -267,7 +267,7 @@ class Price extends Widget
             }
         }
 
-        if (!empty($stock_info['eol']) && (empty($stock_info['flags']['can_add_to_cart']) || empty($stock_info['flags']['add_to_cart']))){
+        if (!empty($stock_info['eol']) && (empty($stock_info['flags']['can_add_to_cart']) || empty($stock_info['flags']['add_to_cart']))) {
             return '';
         }
 
@@ -277,7 +277,7 @@ class Price extends Widget
             'products_id' => $product['products_id'],
             'stock_info' => $stock_info,
             'settings' => $this->settings,
-            'expires_date' => (isset($product['special_expiration_date']) && !empty($product['special_expiration_date']) ? date("Y-m-d", strtotime($product['special_expiration_date'])) : ''),
+            'expires_date' => (isset($product['special_expiration_date']) && !empty($product['special_expiration_date']) ? date('Y-m-d', strtotime($product['special_expiration_date'])) : ''),
 /*
             'special' => $special,
             'old' => $old,

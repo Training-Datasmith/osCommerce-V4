@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -22,13 +24,12 @@ namespace Stripe;
  */
 class ApplicationFee extends ApiResource
 {
-    const OBJECT_NAME = 'application_fee';
-
     use ApiOperations\All;
     use ApiOperations\NestedResource;
     use ApiOperations\Retrieve;
+    public const OBJECT_NAME = 'application_fee';
 
-    const PATH_REFUNDS = '/refunds';
+    public const PATH_REFUNDS = '/refunds';
 
     /**
      * @param string $id the ID of the application fee on which to retrieve the fee refunds

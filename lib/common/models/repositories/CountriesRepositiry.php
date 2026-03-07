@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models\repositories;
 
 use common\models\PlatformsCountries;
 
-class CountriesRepositiry 
+class CountriesRepositiry
 {
     public function getPlatformsCountries(int $platformId)
     {
@@ -16,10 +18,10 @@ class CountriesRepositiry
         } else {
             throw new NotFoundException('Countries is not found.');
         }
-         * 
+         *
          */
     }
-    
+
     public function deleteCountry(int $platformId)
     {
         return PlatformsCountries::deleteAll(['platform_id' => $platformId]);

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,14 +24,16 @@ class m230323_115002_fix_translation_en6 extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/main',
+        $this->addTranslation(
+            'admin/main',
             [
                 'TEXT_NO_SELECTED_CATEGORIES'   => "You haven't select categories\nPlease, select at least one!",
                 'TEXT_NO_SELECTED_CUSTOMERS'    => "You haven't select customers\nPlease, select at least one!",
                 'TEXT_NO_SELECTED_ORDERS'       => "You haven't select orders\nPlease, select at least one!",
                 'TEXT_NO_SELECTED_PRODUCTS'     => "You haven't select products\nPlease, select at least one!",
             ],
-            true);
+            true
+        );
     }
 
     /**

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,7 +18,6 @@ use yii;
 
 class PostArrayHelper
 {
-
     /**
      * check & returns data from marketing tabs if any
      * @field ['db' => 'products_price_discount_pack_unit', db field name --- not required at all :(
@@ -25,7 +26,7 @@ class PostArrayHelper
      * 'flag' => 'qty_discount_status_pack_unit', POST switcher flag (1 - on!!! someone use yes o_O )
      * 'f' => ['self', 'formatDiscountString']] - validator - callback
      */
-    public static function getFromPostArrays($field, $curr_id, $group_id=0)
+    public static function getFromPostArrays($field, $curr_id, $group_id = 0)
     {
         $data = $field['dbdef'] ?? null;
         if (isset($field['f']) && is_array($field['f']) && reset($field['f']) == 'self') { // php 8.2
@@ -46,7 +47,7 @@ class PostArrayHelper
             if ($check == 1) {
                 $tmp = Yii::$app->request->post($field['post'], '');
                 if (is_array($tmp)) {
-                    $data = tep_db_prepare_input($tmp[$curr_id][$group_id]??null);
+                    $data = tep_db_prepare_input($tmp[$curr_id][$group_id] ?? null);
                     if (isset($field['postreindex'])) {
                         $tmp = Yii::$app->request->post($field['postreindex'], '');
                         $a = [];
@@ -169,7 +170,7 @@ class PostArrayHelper
 
     private static function defGroupPrice($data, $def)
     {
-        if  (!preg_match('/\-?[\d\,\.]+/', trim($data)) || ($data < 0 && (int)$data!=-1 && (int)$data!=-2 )) {
+        if (!preg_match('/\-?[\d\,\.]+/', trim($data)) || ($data < 0 && (int)$data != -1 && (int)$data != -2)) {
             $data = $def;
         }
         return $data;

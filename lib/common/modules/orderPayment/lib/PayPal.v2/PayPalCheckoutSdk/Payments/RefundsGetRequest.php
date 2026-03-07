@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // This class was generated on Wed, 01 Aug 2018 16:35:04 PDT by version 0.1.0-dev+0ee05a-dirty of Braintree SDK Generator
 // RefundsGetRequest.php
 // @version 0.1.0-dev+0ee05a-dirty
@@ -13,13 +15,12 @@ use PayPalHttp\HttpRequest;
 
 class RefundsGetRequest extends HttpRequest
 {
-    function __construct($refundId)
+    public function __construct($refundId)
     {
-        parent::__construct("/v2/payments/refunds/{refund_id}?", "GET");
+        parent::__construct('/v2/payments/refunds/{refund_id}?', 'GET');
 
-        $this->path = str_replace("{refund_id}", urlencode($refundId), $this->path);
-        $this->headers["Content-Type"] = "application/json";
+        $this->path = str_replace('{refund_id}', urlencode($refundId), $this->path);
+        $this->headers['Content-Type'] = 'application/json';
     }
-
 
 }

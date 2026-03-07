@@ -12,37 +12,37 @@
 
 namespace backend\controllers;
 
-use Yii;
-use yii\helpers\ArrayHelper;
 use common\helpers\Affiliate;
+use Yii;
 
 /**
  * default controller to handle user requests.
  */
-class EmailController extends Sceleton  {
-
+class EmailController extends Sceleton
+{
     public $acl = ['BOX_HEADING_DESIGN_CONTROLS', 'BOX_TRANSLATION_EMAIL_TEMPLATES'];
 
-    public function actionIndex() {
+    public function actionIndex()
+    {
         global $language;
 
         \common\helpers\Translation::init('admin/email/templates');
 
         $this->view->headingTitle = HEADING_TITLE;
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('email/'), 'title' => HEADING_TITLE);
-        $this->selectedMenu = array('design_controls', 'email/templates');
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('email/'), 'title' => HEADING_TITLE];
+        $this->selectedMenu = ['design_controls', 'email/templates'];
 
-        $customers = array();
-        $customers[] = array('id' => '', 'text' => TEXT_SELECT_CUSTOMER);
-        $customers[] = array('id' => '***', 'text' => TEXT_ALL_CUSTOMERS);
-         /** @var \common\extensions\Subscribers\Subscribers $subscr  */
+        $customers = [];
+        $customers[] = ['id' => '', 'text' => TEXT_SELECT_CUSTOMER];
+        $customers[] = ['id' => '***', 'text' => TEXT_ALL_CUSTOMERS];
+        /** @var \common\extensions\Subscribers\Subscribers $subscr  */
         if ($subscr = \common\helpers\Acl::checkExtensionAllowed('Subscribers', 'allowed')) {
-            $customers[] = array('id' => '**D', 'text' => TEXT_NEWSLETTER_CUSTOMERS);
+            $customers[] = ['id' => '**D', 'text' => TEXT_NEWSLETTER_CUSTOMERS];
         }
-        $mail_query = tep_db_query("select customers_email_address, customers_firstname, customers_lastname from " . TABLE_CUSTOMERS . " " . Affiliate::whereIfExists('', 'where ') . " order by customers_lastname");
-        while($customers_values = tep_db_fetch_array($mail_query)) {
-          $customers[] = array('id' => $customers_values['customers_email_address'],
-                               'text' => $customers_values['customers_lastname'] . ', ' . $customers_values['customers_firstname'] . ' (' . $customers_values['customers_email_address'] . ')');
+        $mail_query = tep_db_query('select customers_email_address, customers_firstname, customers_lastname from ' . TABLE_CUSTOMERS . ' ' . Affiliate::whereIfExists('', 'where ') . ' order by customers_lastname');
+        while ($customers_values = tep_db_fetch_array($mail_query)) {
+            $customers[] = ['id' => $customers_values['customers_email_address'],
+                                 'text' => $customers_values['customers_lastname'] . ', ' . $customers_values['customers_firstname'] . ' (' . $customers_values['customers_email_address'] . ')'];
         }
 
         if (Yii::$app->request->isAjax) {
@@ -52,24 +52,24 @@ class EmailController extends Sceleton  {
         return $this->render('index', ['customers' => $customers]);
     }
 
-    public function actionTemplates() {
+    public function actionTemplates()
+    {
 
         \common\helpers\Acl::checkAccess(['MANAGE_EMAIL_TEMPLATES']);
 
         global $language;
 
-        $this->selectedMenu = array('design_controls', 'email/templates');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('email/templates'), 'title' => HEADING_TITLE);
-
+        $this->selectedMenu = ['design_controls', 'email/templates'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('email/templates'), 'title' => HEADING_TITLE];
 
         $this->view->headingTitle = HEADING_TITLE;
 
-        $this->view->groupsTable = array(
-            array(
+        $this->view->groupsTable = [
+            [
                 'title' => TABLE_HEADING_EMAIL_TEMPLATES,
-                'not_important' => 1
-            ),
-        );
+                'not_important' => 1,
+            ],
+        ];
 
         $this->view->filters = new \stdClass();
         $this->view->filters->row = (int)Yii::$app->request->get('row', 0);
@@ -84,11 +84,13 @@ class EmailController extends Sceleton  {
 
         $messages = [];
         if (isset($_SESSION['messages'])) {
-        $messages = $_SESSION['messages'];
-        unset($_SESSION['messages']);
+            $messages = $_SESSION['messages'];
+            unset($_SESSION['messages']);
         }
-        if (!is_array($messages)) $messages = [];
-        
+        if (!is_array($messages)) {
+            $messages = [];
+        }
+
         return $this->render('templates', [
                     'messages' => $messages,
                     'type_id' => $type_id,
@@ -100,35 +102,37 @@ class EmailController extends Sceleton  {
     {
         \common\helpers\Translation::init('admin/email/templates');
 
-        $draw   = Yii::$app->request->get( 'draw', 1 );
-        $start  = Yii::$app->request->get( 'start', 0 );
-        $length = Yii::$app->request->get( 'length', 10 );
+        $draw   = Yii::$app->request->get('draw', 1);
+        $start  = Yii::$app->request->get('start', 0);
+        $length = Yii::$app->request->get('length', 10);
 
-        $responseList = array();
-        if( $length == -1 ) $length = 10000;
+        $responseList = [];
+        if ($length == -1) {
+            $length = 10000;
+        }
         $query_numrows = 0;
 
         //TODO search
         $search_condition = '';
-        if( isset( $_GET['search']['value'] ) && tep_not_null( $_GET['search']['value'] ) ) {
-          $keywords         = tep_db_input( tep_db_prepare_input( $_GET['search']['value'] ) );
-          $search_condition = "AND email_templates_key like '%" . $keywords . "%' ";
+        if (isset($_GET['search']['value']) && tep_not_null($_GET['search']['value'])) {
+            $keywords         = tep_db_input(tep_db_prepare_input($_GET['search']['value']));
+            $search_condition = "AND email_templates_key like '%" . $keywords . "%' ";
         }
 
-        if( isset( $_GET['order'][0]['column'] ) && $_GET['order'][0]['dir'] ) {
-          switch( $_GET['order'][0]['column'] ) {
-            case 0:
-              $orderBy = "email_templates_key " . tep_db_input(tep_db_prepare_input( $_GET['order'][0]['dir'] ));
-              break;
-            case 1:
-              $orderBy = "email_template_type " . tep_db_input(tep_db_prepare_input( $_GET['order'][0]['dir'] ));
-              break;
-            default:
-              $orderBy = "email_templates_key, email_template_type";
-              break;
-          }
+        if (isset($_GET['order'][0]['column']) && $_GET['order'][0]['dir']) {
+            switch ($_GET['order'][0]['column']) {
+                case 0:
+                    $orderBy = 'email_templates_key ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
+                    break;
+                case 1:
+                    $orderBy = 'email_template_type ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir']));
+                    break;
+                default:
+                    $orderBy = 'email_templates_key, email_template_type';
+                    break;
+            }
         } else {
-          $orderBy = "email_templates_key, email_template_type";
+            $orderBy = 'email_templates_key, email_template_type';
         }
 
         $formFilter = Yii::$app->request->get('filter');
@@ -138,86 +142,86 @@ class EmailController extends Sceleton  {
             $search_condition .= " and type_id = '" . (int)$filter['type_id'] . "'";
         }
 
+        $groups_query_raw = 'select email_templates_id, email_templates_key, email_template_type from ' . TABLE_EMAIL_TEMPLATES . " where 1 {$search_condition} group by email_templates_key order by {$orderBy}";
 
-      $groups_query_raw = "select email_templates_id, email_templates_key, email_template_type from " . TABLE_EMAIL_TEMPLATES . " where 1 {$search_condition} group by email_templates_key order by {$orderBy}";
+        $current_page_number = ($start / $length) + 1;
+        $_split              = new \splitPageResults($current_page_number, $length, $groups_query_raw, $query_numrows, 'email_templates_key');
+        $groups_query     = tep_db_query($groups_query_raw);
+        while ($email_templates = tep_db_fetch_array($groups_query)) {
+            $name_key = 'TEXT_EMAIL_'.str_replace(' ', '_', strtoupper($email_templates['email_templates_key']));
+            $email_templates['email_templates_key'] = (defined($name_key) ? constant($name_key) : $email_templates['email_templates_key']);
 
-      $current_page_number = ( $start / $length ) + 1;
-      $_split              = new \splitPageResults( $current_page_number, $length, $groups_query_raw, $query_numrows, 'email_templates_key' );
-      $groups_query     = tep_db_query( $groups_query_raw );
-      while( $email_templates = tep_db_fetch_array( $groups_query ) ) {
-        $name_key = 'TEXT_EMAIL_'.str_replace(' ','_',strtoupper($email_templates['email_templates_key']));
-        $email_templates['email_templates_key'] = ( defined($name_key)?constant($name_key):$email_templates['email_templates_key'] );
+            $responseList[] = [
 
-        $responseList[] = array(
+              '<div class="click_double" data-click-double="' . \Yii::$app->urlManager->createUrl(['email/template-edit', 'tpl_id' => $email_templates['email_templates_id']]) . '">'.$email_templates['email_templates_key'] . '<input class="cell_identify" type="hidden" value="' . $email_templates['email_templates_id'] . '"></div>',
 
-          '<div class="click_double" data-click-double="' . \Yii::$app->urlManager->createUrl(['email/template-edit', 'tpl_id' => $email_templates['email_templates_id']]) . '">'.$email_templates['email_templates_key'] . '<input class="cell_identify" type="hidden" value="' . $email_templates['email_templates_id'] . '"></div>',
+            ];
+        }
 
-        );
-      }
-
-      $response = array(
-        'draw'            => $draw,
-        'recordsTotal'    => $query_numrows,
-        'recordsFiltered' => $query_numrows,
-        'data'            => $responseList
-      );
-      echo json_encode( $response );
+        $response = [
+          'draw'            => $draw,
+          'recordsTotal'    => $query_numrows,
+          'recordsFiltered' => $query_numrows,
+          'data'            => $responseList,
+        ];
+        echo json_encode($response);
 
     }
 
-    function actionTemplatepreedit( $item_id = NULL ){
-      $this->layout = false;
-      \common\helpers\Translation::init('admin/email/templates');
+    public function actionTemplatepreedit($item_id = null)
+    {
+        $this->layout = false;
+        \common\helpers\Translation::init('admin/email/templates');
 
-      if( $item_id === NULL )
-        $item_id = (int) Yii::$app->request->post( 'item_id' );
+        if ($item_id === null) {
+            $item_id = (int) Yii::$app->request->post('item_id');
+        }
 
-
-      $get_template_r = tep_db_query("select email_templates_id, email_templates_key, email_template_type from " . TABLE_EMAIL_TEMPLATES . " where email_templates_id='".(int)$item_id."'");
-      if ( tep_db_num_rows($get_template_r)>0 ) {
-        $etInfo = new \objectInfo( tep_db_fetch_array($get_template_r) );
-        $item_id = intval($etInfo->email_templates_id);
-        ?>
+        $get_template_r = tep_db_query('select email_templates_id, email_templates_key, email_template_type from ' . TABLE_EMAIL_TEMPLATES . " where email_templates_id='".(int)$item_id."'");
+        if (tep_db_num_rows($get_template_r) > 0) {
+            $etInfo = new \objectInfo(tep_db_fetch_array($get_template_r));
+            $item_id = intval($etInfo->email_templates_id);
+            ?>
         <div class="or_box_head or_box_head_no_margin"><?php
-          $name_key = 'TEXT_EMAIL_'.str_replace(' ','_',strtoupper($etInfo->email_templates_key));
-          echo ( defined($name_key)?constant($name_key):$etInfo->email_templates_key );
-          ?></div>
+              $name_key = 'TEXT_EMAIL_'.str_replace(' ', '_', strtoupper($etInfo->email_templates_key));
+            echo(defined($name_key) ? constant($name_key) : $etInfo->email_templates_key);
+            ?></div>
         <div class="row_or_wrapp">
         </div>
         <div class="btn-toolbar btn-toolbar-order">
           <a class="btn btn-process-order btn-edit btn-primary" href="<?php echo  \Yii::$app->urlManager->createUrl(['email/template-edit', 'tpl_id' => $etInfo->email_templates_id]); ?>"><?=IMAGE_EDIT?></a>
 <?php
 if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES'])) {
-?>
+    ?>
           <button onclick="return deleteItemConfirm(<?php echo $item_id ?>)" class="btn btn-delete btn-no-margin btn-process-order "><?php echo IMAGE_DELETE ?></button>
 <?php
 }
-?>
+            ?>
           <a class="btn btn-process-order btn-edit " href="<?php echo  \Yii::$app->urlManager->createUrl(['email/template-edit', 'from_tpl_id' => $etInfo->email_templates_id]); ?>"><?=IMAGE_COPY?></a>
         </div>
         <?php
-        //<button class="btn btn-delete" onclick="return previewItem( <_?php echo $item_id; ?_>)"><_?=IMAGE_PREVIEW?_><!--</button>-->
-      }
+                    //<button class="btn btn-delete" onclick="return previewItem( <_?php echo $item_id; ?_>)"><_?=IMAGE_PREVIEW?_><!--</button>-->
+        }
     }
 
     public function actionConfirmitemdelete()
     {
         \common\helpers\Translation::init('admin/email/templates');
         $this->layout = false;
-        $item_id   = (int) Yii::$app->request->post( 'item_id' );
+        $item_id   = (int) Yii::$app->request->post('item_id');
 
-        $get_template_r = tep_db_query("select email_templates_id, email_templates_key, email_template_type from " . TABLE_EMAIL_TEMPLATES . " where email_templates_id='".(int)$item_id."'");
-        if ( tep_db_num_rows($get_template_r)>0 ) {
-            $etInfo = new \objectInfo( tep_db_fetch_array($get_template_r) );
+        $get_template_r = tep_db_query('select email_templates_id, email_templates_key, email_template_type from ' . TABLE_EMAIL_TEMPLATES . " where email_templates_id='".(int)$item_id."'");
+        if (tep_db_num_rows($get_template_r) > 0) {
+            $etInfo = new \objectInfo(tep_db_fetch_array($get_template_r));
             $item_id = intval($etInfo->email_templates_id);
 
-        echo '<div class="or_box_head">' . TEXT_HEADING_DELETE . '</div>';
-        echo tep_draw_form('groups', 'email/templates', '', 'post', 'id="item_delete" onsubmit="return deleteItem();"');
-        echo '<div class="row_fields">' . TEXT_DELETE_INTRO . '</div>';
-        //echo '<div class="row_fields"><b>' . $etInfo->groups_name . '</b></div>';
-        echo '<div class="btn-toolbar btn-toolbar-order"><button class="btn btn-delete btn-no-margin">' . IMAGE_DELETE . '</button><input type="button" class="btn btn-cancel" value="' . IMAGE_CANCEL . '" onClick="return resetStatement()"></div>';
-        echo tep_draw_hidden_field( 'item_id', $item_id );
-        echo '</form>';
+            echo '<div class="or_box_head">' . TEXT_HEADING_DELETE . '</div>';
+            echo tep_draw_form('groups', 'email/templates', '', 'post', 'id="item_delete" onsubmit="return deleteItem();"');
+            echo '<div class="row_fields">' . TEXT_DELETE_INTRO . '</div>';
+            //echo '<div class="row_fields"><b>' . $etInfo->groups_name . '</b></div>';
+            echo '<div class="btn-toolbar btn-toolbar-order"><button class="btn btn-delete btn-no-margin">' . IMAGE_DELETE . '</button><input type="button" class="btn btn-cancel" value="' . IMAGE_CANCEL . '" onClick="return resetStatement()"></div>';
+            echo tep_draw_hidden_field('item_id', $item_id);
+            echo '</form>';
 
         }
     }
@@ -226,179 +230,185 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
     {
         $this->layout = false;
 
-        $template_id   = (int) Yii::$app->request->post( 'item_id' );
+        $template_id   = (int) Yii::$app->request->post('item_id');
 
         $html_id = false;
         $text_id = false;
 
         $info = tep_db_fetch_array(tep_db_query(
-          "select email_templates_id, email_templates_key, email_template_type from " . TABLE_EMAIL_TEMPLATES . " where email_templates_id='".(int)$template_id."'"
+            'select email_templates_id, email_templates_key, email_template_type from ' . TABLE_EMAIL_TEMPLATES . " where email_templates_id='".(int)$template_id."'"
         ));
         $html_id = (int)$info['email_templates_id'];
         $info2 = tep_db_fetch_array(tep_db_query(
-          "select email_templates_id, email_templates_key, email_template_type from " . TABLE_EMAIL_TEMPLATES . " ".
-          "where email_templates_key='".tep_db_input($info['email_templates_key'])."' AND email_template_type='".($info['email_template_type']=='html'?'plaintext':'html')."' " /// !!!!!! A-A-A-A-A-A-A-A-A-A-A-A-A-A-A-A!!!
+            'select email_templates_id, email_templates_key, email_template_type from ' . TABLE_EMAIL_TEMPLATES . ' '.
+          "where email_templates_key='".tep_db_input($info['email_templates_key'])."' AND email_template_type='".($info['email_template_type'] == 'html' ? 'plaintext' : 'html')."' " /// !!!!!! A-A-A-A-A-A-A-A-A-A-A-A-A-A-A-A!!!
         ));
         $text_id = (int)$info2['email_templates_id'];
 
-        tep_db_query("delete from " . TABLE_EMAIL_TEMPLATES . " where email_templates_id = '" . (int)$html_id . "'");
-        tep_db_query("delete from " . TABLE_EMAIL_TEMPLATES . " where email_templates_id = '" . (int)$text_id . "'");
-        tep_db_query("delete from " . TABLE_EMAIL_TEMPLATES_TEXTS . " where email_templates_id = '" . (int)$html_id . "'");
-        tep_db_query("delete from " . TABLE_EMAIL_TEMPLATES_TEXTS . " where email_templates_id = '" . (int)$text_id . "'");
+        tep_db_query('delete from ' . TABLE_EMAIL_TEMPLATES . " where email_templates_id = '" . (int)$html_id . "'");
+        tep_db_query('delete from ' . TABLE_EMAIL_TEMPLATES . " where email_templates_id = '" . (int)$text_id . "'");
+        tep_db_query('delete from ' . TABLE_EMAIL_TEMPLATES_TEXTS . " where email_templates_id = '" . (int)$html_id . "'");
+        tep_db_query('delete from ' . TABLE_EMAIL_TEMPLATES_TEXTS . " where email_templates_id = '" . (int)$text_id . "'");
 
         \common\models\EmailTemplatesToDesignTemplate::deleteAll(['email_templates_id' => (int)$html_id]);
     }
 
-    function actionTemplateEdit( $item_id = NULL )
+    public function actionTemplateEdit($item_id = null)
     {
-      $this->selectedMenu = array('design_controls', 'email/templates');
+        $this->selectedMenu = ['design_controls', 'email/templates'];
 
-      \common\helpers\Translation::init('admin/email/templates');
+        \common\helpers\Translation::init('admin/email/templates');
 
-      $template_id = (int)Yii::$app->request->get('tpl_id', $item_id);
+        $template_id = (int)Yii::$app->request->get('tpl_id', $item_id);
 
         $this->topButtons[] = '<span class="btn btn-confirm" onclick="$(\'#save_email_form\').trigger(\'submit\')">' . IMAGE_SAVE . '</span>';
 
-      $_copy = false;
-      if ($template_id==0) {
-        $template_id = (int)Yii::$app->request->get('from_tpl_id', 0);
-        if ($template_id > 0) {
-          $_copy = true;
+        $_copy = false;
+        if ($template_id == 0) {
+            $template_id = (int)Yii::$app->request->get('from_tpl_id', 0);
+            if ($template_id > 0) {
+                $_copy = true;
+            }
         }
-      }
 
-      $html_id = false;
-      $text_id = false;
+        $html_id = false;
+        $text_id = false;
 
-      $info = tep_db_fetch_array(tep_db_query(
-        "select email_templates_id, email_templates_key, email_template_type, type_id from " . TABLE_EMAIL_TEMPLATES . " where email_templates_id='".(int)$template_id."'"
-      ));
-      $info = $this->initInfoArrayIfEmpty($info);
-      if ($info['email_template_type']=='html'){
-        $html_id = (int)$info['email_templates_id'];
-      }else{
-        $text_id = (int)$info['email_templates_id'];
-      }
-      $info2 = tep_db_fetch_array(tep_db_query(
-        "select email_templates_id, email_templates_key, email_template_type from " . TABLE_EMAIL_TEMPLATES . " ".
-        "where email_templates_key='".tep_db_input($info['email_templates_key'])."' AND email_template_type='".($info['email_template_type']=='html'?'plaintext':'html')."' " /// !!!!!! A-A-A-A-A-A-A-A-A-A-A-A-A-A-A-A!!!
-      ));
-      $info2 = $this->initInfoArrayIfEmpty($info2);
-      if ($info2['email_template_type']=='html'){
-        $html_id = (int)$info2['email_templates_id'];
-      }else{
-        $text_id = (int)$info2['email_templates_id'];
-      }
-
-      $cDescriptionHtml = [];
-      $cDescriptionText = [];
-      $designTemplates = [];
-      $platforms = \common\classes\platform::getList(false);
-
-      $languages = \common\helpers\Language::get_languages();
-
-      foreach ($platforms as $platform) {
-        $designTemplates[$platform['id']]['design_templates'] = \common\helpers\Mail::get_email_design_templates((int)$html_id, $platform['id']);
-        for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
-          $languages[$i]['logo'] = $languages[$i]['image'];
-          $cDescriptionHtml[$platform['id']][$i] = array();
-          $cDescriptionHtml[$platform['id']][$i]['code'] = $languages[$i]['code'];
-          if ($html_id) {
-            $cDescriptionHtml[$platform['id']][$i]['email_templates_subject'] = tep_draw_input_field(
-              'email_templates_subject[' . $platform['id'] . '][html][' . $languages[$i]['id'] . ']',
-              \common\helpers\Mail::get_email_templates_subject((int)$html_id, $languages[$i]['id'], $platform['id']),
-              'class="form-control"'
-            );
-            $cDescriptionHtml[$platform['id']][$i]['email_templates_body'] = \common\helpers\Html::textarea(
-                'email_templates_body[' . $platform['id'] . '][html][' . $languages[$i]['id'] . ']',
-                \common\helpers\Mail::get_email_templates_body((int)$html_id, $languages[$i]['id'], $platform['id']),
-                [
-                    'wrap'  => 'soft',
-                    'cols'  => '70',
-                    'rows'  => '15',
-                    'class' => 'form-control'. ($info['email_template_type'] == 'html' ? ' ckeditor' : ''),
-                    'id'    => 'htmldesc'. $platform['id'] . '_' . $languages[$i]['id']
-                ]
-            );
-            $cDescriptionHtml[$platform['id']][$i]['c_link'] = 'htmldesc' . $platform['id'] . '_' . $languages[$i]['id'];
-          } else {
-            $cDescriptionHtml[$platform['id']][$i]['email_templates_subject'] = tep_draw_input_field(
-              'email_templates_subject[' . $platform['id'] . '][html][' . $languages[$i]['id'] . ']',
-              '',
-              'class="form-control"'
-            );
-            $cDescriptionHtml[$platform['id']][$i]['email_templates_body'] = tep_draw_textarea_field(
-              'email_templates_body[' . $platform['id'] . '][html][' . $languages[$i]['id'] . ']',
-              'soft', '70', '15',
-              '',
-              'class="ckeditor form-control" id="htmldesc' . $platform['id'] . '_' . $languages[$i]['id'] . '"'
-            );
-            $cDescriptionHtml[$platform['id']][$i]['c_link'] = 'htmldesc' . $platform['id'] . '_' . $languages[$i]['id'];
-          }
-          $cDescriptionText[$platform['id']][$i] = array();
-          $cDescriptionText[$platform['id']][$i]['code'] = $languages[$i]['code'];
-          if ($text_id) {
-            $cDescriptionText[$platform['id']][$i]['email_templates_subject'] = tep_draw_input_field(
-              'email_templates_subject[' . $platform['id'] . '][plaintext][' . $languages[$i]['id'] . ']',
-              \common\helpers\Mail::get_email_templates_subject((int)$text_id, $languages[$i]['id'], $platform['id']),
-              'class="form-control"'
-            );
-            $cDescriptionText[$platform['id']][$i]['email_templates_body'] = tep_draw_textarea_field(
-              'email_templates_body[' . $platform['id'] . '][plaintext][' . $languages[$i]['id'] . ']',
-              'soft', '70', '15',
-              \common\helpers\Mail::get_email_templates_body((int)$text_id, $languages[$i]['id'], $platform['id']),
-              'class="form-control" id="textdesc' . $platform['id'] . '_' . $languages[$i]['id'] . '"'
-            );
-            $cDescriptionText[$platform['id']][$i]['c_link'] = 'textdesc' . $platform['id'] . '_' . $languages[$i]['id'];
-          } else {
-            $cDescriptionText[$platform['id']][$i]['email_templates_subject'] = tep_draw_input_field(
-              'email_templates_subject[' . $platform['id'] . '][plaintext][' . $languages[$i]['id'] . ']',
-              '',
-              'class="form-control"'
-            );
-            $cDescriptionText[$platform['id']][$i]['email_templates_body'] = tep_draw_textarea_field(
-              'email_templates_body[' . $platform['id'] . '][plaintext][' . $languages[$i]['id'] . ']',
-              'soft', '70', '15',
-              '',
-              'class="form-control" id="textdesc' . $platform['id'] . '_' . $languages[$i]['id'] . '"'
-            );
-            $cDescriptionText[$platform['id']][$i]['c_link'] = 'textdesc' . $platform['id'] . '_' . $languages[$i]['id'];
-          }
+        $info = tep_db_fetch_array(tep_db_query(
+            'select email_templates_id, email_templates_key, email_template_type, type_id from ' . TABLE_EMAIL_TEMPLATES . " where email_templates_id='".(int)$template_id."'"
+        ));
+        $info = $this->initInfoArrayIfEmpty($info);
+        if ($info['email_template_type'] == 'html') {
+            $html_id = (int)$info['email_templates_id'];
+        } else {
+            $text_id = (int)$info['email_templates_id'];
         }
-      }
+        $info2 = tep_db_fetch_array(tep_db_query(
+            'select email_templates_id, email_templates_key, email_template_type from ' . TABLE_EMAIL_TEMPLATES . ' '.
+        "where email_templates_key='".tep_db_input($info['email_templates_key'])."' AND email_template_type='".($info['email_template_type'] == 'html' ? 'plaintext' : 'html')."' " /// !!!!!! A-A-A-A-A-A-A-A-A-A-A-A-A-A-A-A!!!
+        ));
+        $info2 = $this->initInfoArrayIfEmpty($info2);
+        if ($info2['email_template_type'] == 'html') {
+            $html_id = (int)$info2['email_templates_id'];
+        } else {
+            $text_id = (int)$info2['email_templates_id'];
+        }
 
-      $this->view->headingTitle = $info['email_templates_key'];
-      $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('email/templates'), 'title' => HEADING_TITLE);
+        $cDescriptionHtml = [];
+        $cDescriptionText = [];
+        $designTemplates = [];
+        $platforms = \common\classes\platform::getList(false);
 
-      $name_key = 'TEXT_EMAIL_'.str_replace(' ','_',strtoupper($info['email_templates_key']));
-      $info['email_templates_key'] = ( defined($name_key)?constant($name_key):$info['email_templates_key'] );
+        $languages = \common\helpers\Language::get_languages();
 
-      if ($template_id == 0 || $_copy) {
-          $info['email_templates_key'] = tep_draw_input_field(
+        foreach ($platforms as $platform) {
+            $designTemplates[$platform['id']]['design_templates'] = \common\helpers\Mail::get_email_design_templates((int)$html_id, $platform['id']);
+            for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
+                $languages[$i]['logo'] = $languages[$i]['image'];
+                $cDescriptionHtml[$platform['id']][$i] = [];
+                $cDescriptionHtml[$platform['id']][$i]['code'] = $languages[$i]['code'];
+                if ($html_id) {
+                    $cDescriptionHtml[$platform['id']][$i]['email_templates_subject'] = tep_draw_input_field(
+                        'email_templates_subject[' . $platform['id'] . '][html][' . $languages[$i]['id'] . ']',
+                        \common\helpers\Mail::get_email_templates_subject((int)$html_id, $languages[$i]['id'], $platform['id']),
+                        'class="form-control"'
+                    );
+                    $cDescriptionHtml[$platform['id']][$i]['email_templates_body'] = \common\helpers\Html::textarea(
+                        'email_templates_body[' . $platform['id'] . '][html][' . $languages[$i]['id'] . ']',
+                        \common\helpers\Mail::get_email_templates_body((int)$html_id, $languages[$i]['id'], $platform['id']),
+                        [
+                            'wrap'  => 'soft',
+                            'cols'  => '70',
+                            'rows'  => '15',
+                            'class' => 'form-control'. ($info['email_template_type'] == 'html' ? ' ckeditor' : ''),
+                            'id'    => 'htmldesc'. $platform['id'] . '_' . $languages[$i]['id'],
+                        ]
+                    );
+                    $cDescriptionHtml[$platform['id']][$i]['c_link'] = 'htmldesc' . $platform['id'] . '_' . $languages[$i]['id'];
+                } else {
+                    $cDescriptionHtml[$platform['id']][$i]['email_templates_subject'] = tep_draw_input_field(
+                        'email_templates_subject[' . $platform['id'] . '][html][' . $languages[$i]['id'] . ']',
+                        '',
+                        'class="form-control"'
+                    );
+                    $cDescriptionHtml[$platform['id']][$i]['email_templates_body'] = tep_draw_textarea_field(
+                        'email_templates_body[' . $platform['id'] . '][html][' . $languages[$i]['id'] . ']',
+                        'soft',
+                        '70',
+                        '15',
+                        '',
+                        'class="ckeditor form-control" id="htmldesc' . $platform['id'] . '_' . $languages[$i]['id'] . '"'
+                    );
+                    $cDescriptionHtml[$platform['id']][$i]['c_link'] = 'htmldesc' . $platform['id'] . '_' . $languages[$i]['id'];
+                }
+                $cDescriptionText[$platform['id']][$i] = [];
+                $cDescriptionText[$platform['id']][$i]['code'] = $languages[$i]['code'];
+                if ($text_id) {
+                    $cDescriptionText[$platform['id']][$i]['email_templates_subject'] = tep_draw_input_field(
+                        'email_templates_subject[' . $platform['id'] . '][plaintext][' . $languages[$i]['id'] . ']',
+                        \common\helpers\Mail::get_email_templates_subject((int)$text_id, $languages[$i]['id'], $platform['id']),
+                        'class="form-control"'
+                    );
+                    $cDescriptionText[$platform['id']][$i]['email_templates_body'] = tep_draw_textarea_field(
+                        'email_templates_body[' . $platform['id'] . '][plaintext][' . $languages[$i]['id'] . ']',
+                        'soft',
+                        '70',
+                        '15',
+                        \common\helpers\Mail::get_email_templates_body((int)$text_id, $languages[$i]['id'], $platform['id']),
+                        'class="form-control" id="textdesc' . $platform['id'] . '_' . $languages[$i]['id'] . '"'
+                    );
+                    $cDescriptionText[$platform['id']][$i]['c_link'] = 'textdesc' . $platform['id'] . '_' . $languages[$i]['id'];
+                } else {
+                    $cDescriptionText[$platform['id']][$i]['email_templates_subject'] = tep_draw_input_field(
+                        'email_templates_subject[' . $platform['id'] . '][plaintext][' . $languages[$i]['id'] . ']',
+                        '',
+                        'class="form-control"'
+                    );
+                    $cDescriptionText[$platform['id']][$i]['email_templates_body'] = tep_draw_textarea_field(
+                        'email_templates_body[' . $platform['id'] . '][plaintext][' . $languages[$i]['id'] . ']',
+                        'soft',
+                        '70',
+                        '15',
+                        '',
+                        'class="form-control" id="textdesc' . $platform['id'] . '_' . $languages[$i]['id'] . '"'
+                    );
+                    $cDescriptionText[$platform['id']][$i]['c_link'] = 'textdesc' . $platform['id'] . '_' . $languages[$i]['id'];
+                }
+            }
+        }
+
+        $this->view->headingTitle = $info['email_templates_key'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('email/templates'), 'title' => HEADING_TITLE];
+
+        $name_key = 'TEXT_EMAIL_'.str_replace(' ', '_', strtoupper($info['email_templates_key']));
+        $info['email_templates_key'] = (defined($name_key) ? constant($name_key) : $info['email_templates_key']);
+
+        if ($template_id == 0 || $_copy) {
+            $info['email_templates_key'] = tep_draw_input_field(
                 'email_templates_key',
                 '',
                 'required class="form-control" placeholder="'.TEXT_EMAIL_TEMPLATE_KEY.'"'
             );
-      }else{
-          $info['email_templates_key'] .= tep_draw_hidden_field( 'email_templates_key', $info['email_templates_key'] );
-      }
+        } else {
+            $info['email_templates_key'] .= tep_draw_hidden_field('email_templates_key', $info['email_templates_key']);
+        }
 
-      return $this->render('templates-edit', array(
-        'email_templates_key' => $info['email_templates_key'],
-        'languages' => $languages,
-        'designTemplates' => $designTemplates,
-        'cDescriptionHtml' => $cDescriptionHtml,
-        'cDescriptionText' => $cDescriptionText,
-        'email_templates_id' => ($_copy?0:(int)$template_id),
-        'platforms' => $platforms,
-        'isMultiPlatforms' => \common\classes\platform::isMulti(),
-        'default_platform_id' => \common\classes\platform::defaultId(),
-        'types' => \common\helpers\Mail::getTypeList(true),
-        'type_id' => $info['type_id'],
-      ));
+        return $this->render('templates-edit', [
+          'email_templates_key' => $info['email_templates_key'],
+          'languages' => $languages,
+          'designTemplates' => $designTemplates,
+          'cDescriptionHtml' => $cDescriptionHtml,
+          'cDescriptionText' => $cDescriptionText,
+          'email_templates_id' => ($_copy ? 0 : (int)$template_id),
+          'platforms' => $platforms,
+          'isMultiPlatforms' => \common\classes\platform::isMulti(),
+          'default_platform_id' => \common\classes\platform::defaultId(),
+          'types' => \common\helpers\Mail::getTypeList(true),
+          'type_id' => $info['type_id'],
+        ]);
     }
 
-    function actionTemplatesKeys()
+    public function actionTemplatesKeys()
     {
         \common\helpers\Translation::init('keys');
 
@@ -409,7 +419,7 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
             '##STORE_NAME##',
             '##HTTP_HOST##',
             '##STORE_OWNER_EMAIL_ADDRESS##',
-            '##SECURITY_KEY##'
+            '##SECURITY_KEY##',
         ]];
         $keysList[1] = ['text' => BOX_CUSTOMERS_CUSTOMERS, 'child' => [
             '##CUSTOMER_EMAIL##',
@@ -458,24 +468,23 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
         }
 
         if (\common\helpers\Extensions::isAllowed('Testimonials')) {
-            $keysList[0]['child'][] ='##STORE_TESTIMONIALS_URL##';
+            $keysList[0]['child'][] = '##STORE_TESTIMONIALS_URL##';
         }
 
         if (\common\helpers\Extensions::isAllowed('MailSurvay')) {
             $keysList[2]['child'][] = '##PRODUCTS_ORDERED_REVIEW##';
         }
 
-
-//        $keysList[] = ['id' => 1,'type' => 'item','text' => '&nbsp;&nbsp;Firstname'];
-//        $keysList[] = ['id' => 2,'type' => 'item','text' => '&nbsp;&nbsp;Lastname'];
-//        $keysList[] = ['id' => 3,'type' => 'group','text' => BOX_CUSTOMERS_ORDERS];
+        //        $keysList[] = ['id' => 1,'type' => 'item','text' => '&nbsp;&nbsp;Firstname'];
+        //        $keysList[] = ['id' => 2,'type' => 'item','text' => '&nbsp;&nbsp;Lastname'];
+        //        $keysList[] = ['id' => 3,'type' => 'group','text' => BOX_CUSTOMERS_ORDERS];
 
         echo '<div class="pageLinksWrapper">';
         echo '<select name="key" class="form-control">';
         foreach ($keysList as $keys) {
             echo '<optgroup label="' . htmlspecialchars($keys['text']) . '">' . "\n";
             foreach ($keys['child'] as $key => $value) {
-                 echo '<option value="' . $value . '">' . (defined($value) ? constant($value) : $value) . '</option>';
+                echo '<option value="' . $value . '">' . (defined($value) ? constant($value) : $value) . '</option>';
             }
             echo '</optgroup>';
         }
@@ -534,152 +543,152 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
 
     }
 
-    function actionTemplatesSave()
+    public function actionTemplatesSave()
     {
-      $this->layout = false;
+        $this->layout = false;
 
-      \common\helpers\Translation::init('admin/email/templates');
+        \common\helpers\Translation::init('admin/email/templates');
 
-      $template_id = (int)Yii::$app->request->post('email_templates_id');
+        $template_id = (int)Yii::$app->request->post('email_templates_id');
 
-      $html_id = false;
-      $text_id = false;
+        $html_id = false;
+        $text_id = false;
 
-      $info = tep_db_fetch_array(tep_db_query(
-        "select email_templates_id, email_templates_key, email_template_type from " . TABLE_EMAIL_TEMPLATES . " where email_templates_id='".(int)$template_id."'"
-      ));
-      $info = $this->initInfoArrayIfEmpty($info);
-      if ($info['email_template_type']=='html'){
-        $html_id = (int)$info['email_templates_id'];
-      }else{
-        $text_id = (int)$info['email_templates_id'];
-      }
-      $info2 = tep_db_fetch_array(tep_db_query(
-        "select email_templates_id, email_templates_key, email_template_type from " . TABLE_EMAIL_TEMPLATES . " ".
-        "where email_templates_key='".$info['email_templates_key']."' AND email_template_type='".($info['email_template_type']=='html'?'plaintext':'html')."' " /// !!!!!! A-A-A-A-A-A-A-A-A-A-A-A-A-A-A-A!!!
-      ));
-      $info2 = $this->initInfoArrayIfEmpty($info2);
-      if ($info2['email_template_type']=='html'){
-        $html_id = (int)$info2['email_templates_id'];
-      }else{
-        $text_id = (int)$info2['email_templates_id'];
-      }
+        $info = tep_db_fetch_array(tep_db_query(
+            'select email_templates_id, email_templates_key, email_template_type from ' . TABLE_EMAIL_TEMPLATES . " where email_templates_id='".(int)$template_id."'"
+        ));
+        $info = $this->initInfoArrayIfEmpty($info);
+        if ($info['email_template_type'] == 'html') {
+            $html_id = (int)$info['email_templates_id'];
+        } else {
+            $text_id = (int)$info['email_templates_id'];
+        }
+        $info2 = tep_db_fetch_array(tep_db_query(
+            'select email_templates_id, email_templates_key, email_template_type from ' . TABLE_EMAIL_TEMPLATES . ' '.
+        "where email_templates_key='".$info['email_templates_key']."' AND email_template_type='".($info['email_template_type'] == 'html' ? 'plaintext' : 'html')."' " /// !!!!!! A-A-A-A-A-A-A-A-A-A-A-A-A-A-A-A!!!
+        ));
+        $info2 = $this->initInfoArrayIfEmpty($info2);
+        if ($info2['email_template_type'] == 'html') {
+            $html_id = (int)$info2['email_templates_id'];
+        } else {
+            $text_id = (int)$info2['email_templates_id'];
+        }
 
-      if ($html_id == 0) {
-          tep_db_perform(TABLE_EMAIL_TEMPLATES, array(
-              'email_templates_key' => Yii::$app->request->post('email_templates_key'),
-              'email_template_type' => 'html',
-            ));
-          $template_id = $html_id = tep_db_insert_id();
-      }
+        if ($html_id == 0) {
+            tep_db_perform(TABLE_EMAIL_TEMPLATES, [
+                'email_templates_key' => Yii::$app->request->post('email_templates_key'),
+                'email_template_type' => 'html',
+              ]);
+            $template_id = $html_id = tep_db_insert_id();
+        }
 
-      if ($text_id == 0) {
-          tep_db_perform(TABLE_EMAIL_TEMPLATES, array(
-              'email_templates_key' => Yii::$app->request->post('email_templates_key'),
-              'email_template_type' => 'plaintext',
-            ));
-          $text_id = tep_db_insert_id();
-          if ($html_id == 0) {
-              $template_id = $text_id;
-          }
-      }
+        if ($text_id == 0) {
+            tep_db_perform(TABLE_EMAIL_TEMPLATES, [
+                'email_templates_key' => Yii::$app->request->post('email_templates_key'),
+                'email_template_type' => 'plaintext',
+              ]);
+            $text_id = tep_db_insert_id();
+            if ($html_id == 0) {
+                $template_id = $text_id;
+            }
+        }
 
-      tep_db_perform(TABLE_EMAIL_TEMPLATES, ['type_id' => (int)Yii::$app->request->post('type_id')], 'update', "email_templates_id = '" . (int) $text_id . "'");
-      tep_db_perform(TABLE_EMAIL_TEMPLATES, ['type_id' => (int)Yii::$app->request->post('type_id')], 'update', "email_templates_id = '" . (int) $html_id . "'");
+        tep_db_perform(TABLE_EMAIL_TEMPLATES, ['type_id' => (int)Yii::$app->request->post('type_id')], 'update', "email_templates_id = '" . (int) $text_id . "'");
+        tep_db_perform(TABLE_EMAIL_TEMPLATES, ['type_id' => (int)Yii::$app->request->post('type_id')], 'update', "email_templates_id = '" . (int) $html_id . "'");
 
-      $platforms = \common\classes\platform::getList(false);
+        $platforms = \common\classes\platform::getList(false);
 
         $designTemplate = Yii::$app->request->post('design_template', '');
-      $languages = \common\helpers\Language::get_languages();
-      foreach ($platforms as $platform) {
+        $languages = \common\helpers\Language::get_languages();
+        foreach ($platforms as $platform) {
 
-          $template = \common\models\EmailTemplatesToDesignTemplate::findOne([
-                  'email_templates_id' => $template_id,
-                  'platform_id' => $platform['id']
-          ]);
+            $template = \common\models\EmailTemplatesToDesignTemplate::findOne([
+                    'email_templates_id' => $template_id,
+                    'platform_id' => $platform['id'],
+            ]);
 
-
-          if ($designTemplate[$platform['id']]) {
-              if (!$template) {
-                  $template = new \common\models\EmailTemplatesToDesignTemplate();
-              }
-              $template->attributes = [
-                  'email_templates_id' => $template_id,
-                  'platform_id' => $platform['id'],
-                  'email_design_template' => $designTemplate[$platform['id']]
-              ];
-              $template->save();
-          } elseif ($template) {
-              $template->delete();
-          }
-
-        for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
-            if ($html_id && isset($_POST['email_templates_subject'][$platform['id']]['html'])) {
-                $update_template_id = $html_id;
-                $email_templates_subject = tep_db_prepare_input($_POST['email_templates_subject'][$platform['id']]['html'][$languages[$i]['id']]);
-                $email_templates_body = tep_db_prepare_input($_POST['email_templates_body'][$platform['id']]['html'][$languages[$i]['id']]);
-
-                $check = tep_db_fetch_array(tep_db_query(
-                    "SELECT COUNT(*) AS echeck FROM " . TABLE_EMAIL_TEMPLATES_TEXTS . " " .
-                    "WHERE email_templates_id='" . (int)$update_template_id . "' AND language_id='" . (int)$languages[$i]['id'] . "' AND affiliate_id=0 and platform_id = '" . $platform['id'] . "'"
-                ));
-                if ($check['echeck'] > 0) {
-                    tep_db_perform(TABLE_EMAIL_TEMPLATES_TEXTS, array(
-                        'email_templates_subject' => $email_templates_subject,
-                        'email_templates_body' => $email_templates_body,
-                    ), 'update', "email_templates_id='" . (int)$update_template_id . "' AND language_id='" . (int)$languages[$i]['id'] . "' AND affiliate_id=0 and platform_id = '" . $platform['id'] . "'");
-                } else {
-                    tep_db_perform(TABLE_EMAIL_TEMPLATES_TEXTS, array(
-                        'email_templates_id' => (int)$update_template_id,
-                        'language_id' => (int)$languages[$i]['id'],
-                        'affiliate_id' => 0,
-                        'email_templates_subject' => $email_templates_subject,
-                        'email_templates_body' => $email_templates_body,
-                        'platform_id' =>  $platform['id'],
-                    ));
+            if ($designTemplate[$platform['id']]) {
+                if (!$template) {
+                    $template = new \common\models\EmailTemplatesToDesignTemplate();
                 }
+                $template->attributes = [
+                    'email_templates_id' => $template_id,
+                    'platform_id' => $platform['id'],
+                    'email_design_template' => $designTemplate[$platform['id']],
+                ];
+                $template->save();
+            } elseif ($template) {
+                $template->delete();
             }
 
-          if ($text_id && isset($_POST['email_templates_subject'][$platform['id']]['plaintext'])) {
-            $update_template_id = $text_id;
-            $email_templates_subject = tep_db_prepare_input($_POST['email_templates_subject'][$platform['id']]['plaintext'][$languages[$i]['id']]);
-            $email_templates_body = tep_db_prepare_input($_POST['email_templates_body'][$platform['id']]['plaintext'][$languages[$i]['id']]);
+            for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
+                if ($html_id && isset($_POST['email_templates_subject'][$platform['id']]['html'])) {
+                    $update_template_id = $html_id;
+                    $email_templates_subject = tep_db_prepare_input($_POST['email_templates_subject'][$platform['id']]['html'][$languages[$i]['id']]);
+                    $email_templates_body = tep_db_prepare_input($_POST['email_templates_body'][$platform['id']]['html'][$languages[$i]['id']]);
 
-            $check = tep_db_fetch_array(tep_db_query(
-              "SELECT COUNT(*) AS echeck FROM " . TABLE_EMAIL_TEMPLATES_TEXTS . " " .
+                    $check = tep_db_fetch_array(tep_db_query(
+                        'SELECT COUNT(*) AS echeck FROM ' . TABLE_EMAIL_TEMPLATES_TEXTS . ' ' .
+                        "WHERE email_templates_id='" . (int)$update_template_id . "' AND language_id='" . (int)$languages[$i]['id'] . "' AND affiliate_id=0 and platform_id = '" . $platform['id'] . "'"
+                    ));
+                    if ($check['echeck'] > 0) {
+                        tep_db_perform(TABLE_EMAIL_TEMPLATES_TEXTS, [
+                            'email_templates_subject' => $email_templates_subject,
+                            'email_templates_body' => $email_templates_body,
+                        ], 'update', "email_templates_id='" . (int)$update_template_id . "' AND language_id='" . (int)$languages[$i]['id'] . "' AND affiliate_id=0 and platform_id = '" . $platform['id'] . "'");
+                    } else {
+                        tep_db_perform(TABLE_EMAIL_TEMPLATES_TEXTS, [
+                            'email_templates_id' => (int)$update_template_id,
+                            'language_id' => (int)$languages[$i]['id'],
+                            'affiliate_id' => 0,
+                            'email_templates_subject' => $email_templates_subject,
+                            'email_templates_body' => $email_templates_body,
+                            'platform_id' =>  $platform['id'],
+                        ]);
+                    }
+                }
+
+                if ($text_id && isset($_POST['email_templates_subject'][$platform['id']]['plaintext'])) {
+                    $update_template_id = $text_id;
+                    $email_templates_subject = tep_db_prepare_input($_POST['email_templates_subject'][$platform['id']]['plaintext'][$languages[$i]['id']]);
+                    $email_templates_body = tep_db_prepare_input($_POST['email_templates_body'][$platform['id']]['plaintext'][$languages[$i]['id']]);
+
+                    $check = tep_db_fetch_array(tep_db_query(
+                        'SELECT COUNT(*) AS echeck FROM ' . TABLE_EMAIL_TEMPLATES_TEXTS . ' ' .
               "WHERE email_templates_id='" . (int)$update_template_id . "' AND language_id='" . (int)$languages[$i]['id'] . "' AND affiliate_id=0  and platform_id = '" . $platform['id'] . "'"
-            ));
-            if ($check['echeck'] > 0) {
-              tep_db_perform(TABLE_EMAIL_TEMPLATES_TEXTS, array(
-                'email_templates_subject' => $email_templates_subject,
-                'email_templates_body' => $email_templates_body,
-              ), 'update', "email_templates_id='" . (int)$update_template_id . "' AND language_id='" . (int)$languages[$i]['id'] . "' AND affiliate_id=0 and platform_id = '" . $platform['id'] . "'");
-            } else {
-              tep_db_perform(TABLE_EMAIL_TEMPLATES_TEXTS, array(
-                'email_templates_id' => (int)$update_template_id,
-                'language_id' => (int)$languages[$i]['id'],
-                'affiliate_id' => 0,
-                'email_templates_subject' => $email_templates_subject,
-                'email_templates_body' => $email_templates_body,
-                'platform_id' =>  $platform['id'],
-              ));
-            }
-          }
+                    ));
+                    if ($check['echeck'] > 0) {
+                        tep_db_perform(TABLE_EMAIL_TEMPLATES_TEXTS, [
+                          'email_templates_subject' => $email_templates_subject,
+                          'email_templates_body' => $email_templates_body,
+                        ], 'update', "email_templates_id='" . (int)$update_template_id . "' AND language_id='" . (int)$languages[$i]['id'] . "' AND affiliate_id=0 and platform_id = '" . $platform['id'] . "'");
+                    } else {
+                        tep_db_perform(TABLE_EMAIL_TEMPLATES_TEXTS, [
+                          'email_templates_id' => (int)$update_template_id,
+                          'language_id' => (int)$languages[$i]['id'],
+                          'affiliate_id' => 0,
+                          'email_templates_subject' => $email_templates_subject,
+                          'email_templates_body' => $email_templates_body,
+                          'platform_id' =>  $platform['id'],
+                        ]);
+                    }
+                }
 
+            }
         }
-      }
-      echo '<script> window.location.replace("'. Yii::$app->urlManager->createUrl(['email/template-edit', 'tpl_id' => $template_id]) . '");</script>';
-      //return $this->actionTemplateEdit( (int)$template_id );
+        echo '<script> window.location.replace("'. Yii::$app->urlManager->createUrl(['email/template-edit', 'tpl_id' => $template_id]) . '");</script>';
+        //return $this->actionTemplateEdit( (int)$template_id );
     }
 
-    function actionTemplatePreview($item_id = NULL) {
+    public function actionTemplatePreview($item_id = null)
+    {
         $this->layout = false;
         \common\helpers\Translation::init('admin/email/templates');
         $languages_id = \Yii::$app->settings->get('languages_id');
         $template_id = \Yii::$app->request->post('item_id', $item_id);
 
         $info = tep_db_fetch_array(tep_db_query(
-                        "select email_templates_id, email_templates_key, email_template_type from " . TABLE_EMAIL_TEMPLATES . " where email_templates_id='" . (int) $template_id . "'"
+            'select email_templates_id, email_templates_key, email_template_type from ' . TABLE_EMAIL_TEMPLATES . " where email_templates_id='" . (int) $template_id . "'"
         ));
         ?>
         <?php echo \common\helpers\Mail::get_email_templates_subject((int) $template_id, $languages_id); ?>
@@ -698,15 +707,15 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
     {
         $this->acl = ['BOX_HEADING_DESIGN_CONTROLS', 'BOX_SMS_TEMPLATES'];
         \common\helpers\Acl::checkAccess(['BOX_HEADING_DESIGN_CONTROLS', 'BOX_SMS_TEMPLATES']);
-        $this->selectedMenu = array('design_controls', 'email/sms-templates');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('email/sms-templates'), 'title' => HEADING_TITLE);
+        $this->selectedMenu = ['design_controls', 'email/sms-templates'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('email/sms-templates'), 'title' => HEADING_TITLE];
         $this->view->headingTitle = HEADING_TITLE;
-        $this->view->groupsTable = array(
-            array(
+        $this->view->groupsTable = [
+            [
                 'title' => TABLE_HEADING_SMS_TEMPLATES,
-                'not_important' => 1
-            )
-        );
+                'not_important' => 1,
+            ],
+        ];
         $this->view->filters = new \stdClass();
         $this->view->filters->row = (int)\Yii::$app->request->get('row');
         $this->view->insertTemplate = \common\helpers\Acl::rule(['BOX_HEADING_DESIGN_CONTROLS', 'BOX_SMS_TEMPLATES', 'INSERT_SMS_TEMPLATES']);
@@ -733,7 +742,7 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
         $draw = Yii::$app->request->get('draw', 1);
         $start = Yii::$app->request->get('start', 0);
         $length = Yii::$app->request->get('length', 10);
-        $responseList = array();
+        $responseList = [];
         if ($length == -1) {
             $length = 9999;
         }
@@ -746,13 +755,13 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
             switch ($_GET['order'][0]['column']) {
                 case 0:
                     $smsTemplateQuery->orderBy(['sms_templates_key' => $sort]);
-                break;
+                    break;
                 case 1:
                     $smsTemplateQuery->orderBy(['sms_template_type_id' => $sort]);
-                break;
+                    break;
                 default:
                     $smsTemplateQuery->orderBy(['sms_templates_key' => SORT_ASC, 'sms_template_type_id' => SORT_ASC]);
-                break;
+                    break;
             }
         } else {
             $smsTemplateQuery->orderBy(['sms_templates_key' => SORT_ASC, 'sms_template_type_id' => SORT_ASC]);
@@ -766,41 +775,46 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
         $smsTemplateQuery->offset($start)->limit($length);
         foreach ($smsTemplateQuery->all() as $sms_templates) {
             $name_key = 'TEXT_EMAIL_' . str_replace(' ', '_', strtoupper($sms_templates['sms_templates_key']));
-            $sms_templates['sms_templates_key'] = ( defined($name_key) ? constant($name_key) : $sms_templates['sms_templates_key'] );
-            $responseList[] = array(
+            $sms_templates['sms_templates_key'] = (defined($name_key) ? constant($name_key) : $sms_templates['sms_templates_key']);
+            $responseList[] = [
                 '<div class="click_double" data-click-double="' . \Yii::$app->urlManager->createUrl(['email/sms-templates-edit', 'tpl_id' => $sms_templates['sms_templates_id']]) . '">' . $sms_templates['sms_templates_key'] . '<input class="cell_identify" type="hidden" value="' . $sms_templates['sms_templates_id'] . '"></div>',
-            );
+            ];
         }
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $query_numrows,
             'recordsFiltered' => $query_numrows,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         echo json_encode($response);
     }
 
-    function actionSmsTemplatesEdit($sms_templates_id = NULL)
+    public function actionSmsTemplatesEdit($sms_templates_id = null)
     {
         $this->acl = ['BOX_HEADING_DESIGN_CONTROLS', 'BOX_SMS_TEMPLATES'];
-        $this->selectedMenu = array('design_controls', 'email/sms-templates');
+        $this->selectedMenu = ['design_controls', 'email/sms-templates'];
         \common\helpers\Translation::init('admin/email/sms-templates');
         \common\helpers\Translation::init('admin/email/template-edit');
         \common\helpers\Translation::init('admin/email/templates');
         $template_id = (int)Yii::$app->request->get('tpl_id', $sms_templates_id);
         $smsTemplatesRecord = \common\models\SmsTemplates::find()->where(['sms_templates_id' => $template_id])->asArray(true)->one();
         $this->view->headingTitle = trim($smsTemplatesRecord['sms_templates_key']);
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('email/sms-templates'), 'title' => HEADING_TITLE);
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('email/sms-templates'), 'title' => HEADING_TITLE];
         $cDescriptionText = [];
         $platforms = \common\classes\platform::getList(false);
         $languages = \common\helpers\Language::get_languages();
         foreach ($platforms as $platform) {
             for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
                 $languages[$i]['logo'] = $languages[$i]['image'];
-                $cDescriptionText[$platform['id']][$i] = array();
+                $cDescriptionText[$platform['id']][$i] = [];
                 $cDescriptionText[$platform['id']][$i]['code'] = $languages[$i]['code'];
                 $cDescriptionText[$platform['id']][$i]['sms_templates_body'] = tep_draw_textarea_field(
-                    'sms_templates_body[' . $platform['id'] . '][plaintext][' . $languages[$i]['id'] . ']', 'soft', '70', '15', \common\helpers\Mail::get_sms_templates_body((int)$template_id, $languages[$i]['id'], $platform['id']), 'class="form-control" id="textdesc' . $platform['id'] . '_' . $languages[$i]['id'] . '"'
+                    'sms_templates_body[' . $platform['id'] . '][plaintext][' . $languages[$i]['id'] . ']',
+                    'soft',
+                    '70',
+                    '15',
+                    \common\helpers\Mail::get_sms_templates_body((int)$template_id, $languages[$i]['id'], $platform['id']),
+                    'class="form-control" id="textdesc' . $platform['id'] . '_' . $languages[$i]['id'] . '"'
                 );
                 $cDescriptionText[$platform['id']][$i]['c_link'] = 'textdesc' . $platform['id'] . '_' . $languages[$i]['id'];
             }
@@ -809,10 +823,12 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
         $smsTemplatesRecord['sms_templates_key'] = (defined($name_key) ? constant($name_key) : $smsTemplatesRecord['sms_templates_key']);
         if ($template_id == 0) {
             $smsTemplatesRecord['sms_templates_key'] = tep_draw_input_field(
-                'sms_templates_key', '', 'required class="form-control" placeholder="' . TEXT_SMS_TEMPLATE_KEY . '"'
+                'sms_templates_key',
+                '',
+                'required class="form-control" placeholder="' . TEXT_SMS_TEMPLATE_KEY . '"'
             );
         }
-        return $this->render('sms-templates-edit', array(
+        return $this->render('sms-templates-edit', [
             'sms_templates_key' => $smsTemplatesRecord['sms_templates_key'],
             'languages' => $languages,
             'cDescriptionText' => $cDescriptionText,
@@ -821,11 +837,11 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
             'isMultiPlatforms' => \common\classes\platform::isMulti(),
             'default_platform_id' => \common\classes\platform::defaultId(),
             'types' => \common\helpers\Mail::getSmsTypeList(true),
-            'sms_templates_type_id' => $smsTemplatesRecord['sms_templates_type_id']
-        ));
+            'sms_templates_type_id' => $smsTemplatesRecord['sms_templates_type_id'],
+        ]);
     }
 
-    function actionSmsTemplatesSave()
+    public function actionSmsTemplatesSave()
     {
         $this->layout = false;
         $sms_templates_id = (int)Yii::$app->request->post('sms_templates_id', 0);
@@ -866,7 +882,7 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
         echo '<script> window.location.replace("' . Yii::$app->urlManager->createUrl(['email/sms-templates-edit', 'tpl_id' => $sms_templates_id]) . '");</script>';
     }
 
-    function actionSmsTemplatesView($template_id = NULL)
+    public function actionSmsTemplatesView($template_id = null)
     {
         $this->layout = false;
         \common\helpers\Translation::init('admin/email/sms-templates');
@@ -878,11 +894,11 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
         $stInfo = new \objectInfo(\common\models\SmsTemplates::find()->where(['sms_templates_id' => (int)$template_id])->asArray(true)->one());
         $template_id = (int)$stInfo->sms_templates_id;
         if ($template_id > 0) {
-        ?>
+            ?>
             <div class="or_box_head or_box_head_no_margin">
             <?php
-                $name_key = 'TEXT_SMS_' . str_replace(' ', '_', strtoupper($stInfo->sms_templates_key));
-                echo ( defined($name_key) ? constant($name_key) : $stInfo->sms_templates_key );
+                    $name_key = 'TEXT_SMS_' . str_replace(' ', '_', strtoupper($stInfo->sms_templates_key));
+            echo(defined($name_key) ? constant($name_key) : $stInfo->sms_templates_key);
             ?>
             </div>
             <div class="row_or_wrapp"></div>
@@ -890,11 +906,11 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
                 <a class="btn btn-process-order btn-edit btn-primary" href="<?php echo \Yii::$app->urlManager->createUrl(['email/sms-templates-edit', 'tpl_id' => $stInfo->sms_templates_id]); ?>"><?= IMAGE_EDIT ?></a>
                 <?php
                 if (\common\helpers\Acl::rule(['BOX_HEADING_DESIGN_CONTROLS', 'BOX_SMS_TEMPLATES', 'DELETE_SMS_TEMPLATES'])) {
-                ?>
+                    ?>
                     <button onclick="return deleteItemConfirm(<?php echo $template_id; ?>)" class="btn btn-delete btn-no-margin btn-process-order "><?php echo IMAGE_DELETE ?></button>
                 <?php
                 }
-                ?>
+            ?>
             </div>
             <?php
         }
@@ -906,7 +922,7 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
         \common\helpers\Translation::init('admin/email/template-edit');
         \common\helpers\Translation::init('admin/email/templates');
         $this->layout = false;
-        $template_id = (int)Yii::$app->request->post( 'item_id' );
+        $template_id = (int)Yii::$app->request->post('item_id');
         $smsTemplatesRecord = \common\models\SmsTemplates::find()->where(['sms_templates_id' => $template_id])->one();
         if (is_object($smsTemplatesRecord)) {
             echo '<div class="or_box_head">' . TEXT_HEADING_DELETE . '</div>';
@@ -914,7 +930,7 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
             echo '<div class="row_fields">' . TEXT_SMS_TEMPLATE_DELETE . '</div>';
             //echo '<div class="row_fields"><b>' . $etInfo->groups_name . '</b></div>';
             echo '<div class="btn-toolbar btn-toolbar-order"><button class="btn btn-delete btn-no-margin">' . IMAGE_DELETE . '</button><input type="button" class="btn btn-cancel" value="' . IMAGE_CANCEL . '" onClick="return resetStatement();"></div>';
-            echo tep_draw_hidden_field( 'item_id', $smsTemplatesRecord->sms_templates_id );
+            echo tep_draw_hidden_field('item_id', $smsTemplatesRecord->sms_templates_id);
             echo '</form>';
         }
     }
@@ -922,7 +938,7 @@ if (\common\helpers\Acl::rule(['MANAGE_EMAIL_TEMPLATES', 'DELETE_EMAIL_TEMPLATES
     public function actionSmsTemplatesDelete()
     {
         $this->layout = false;
-        $template_id = (int)Yii::$app->request->post( 'item_id' );
+        $template_id = (int)Yii::$app->request->post('item_id');
         if (\common\helpers\Acl::rule(['BOX_HEADING_DESIGN_CONTROLS', 'BOX_SMS_TEMPLATES', 'DELETE_SMS_TEMPLATES'])) {
             \common\models\SmsTemplates::deleteAll(['sms_templates_id' => $template_id]);
             \common\models\SmsTemplatesTexts::deleteAll(['sms_templates_id' => $template_id]);

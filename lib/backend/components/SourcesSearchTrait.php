@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,8 @@
 
 namespace backend\components;
 
-
-use common\models\SuppliersProducts;
-
 trait SourcesSearchTrait
 {
-
     public function actionSources()
     {
         $this->layout = false;
@@ -26,13 +24,13 @@ trait SourcesSearchTrait
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
 
         $query1 = (new \yii\db\Query())
-            ->select("source as `text`, source AS label")
+            ->select('source as `text`, source AS label')
             ->from(\common\models\Products::tableName())
             ->where(['!=','source',''])
             ->andFilterWhere(['LIKE', 'source', $term]);
 
         $query2 = (new \yii\db\Query())
-            ->select("source as `text`, source AS label")
+            ->select('source as `text`, source AS label')
             ->from(\common\models\SuppliersProducts::tableName())
             ->where(['!=','source',''])
             ->andFilterWhere(['LIKE', 'source', $term]);
@@ -40,7 +38,7 @@ trait SourcesSearchTrait
         $unionQuery = (new \yii\db\Query())
             ->from(['dummy_name' => $query1->union($query2)])
             ->orderBy(['label' => SORT_ASC]);
-                
+
         \Yii::$app->response->data = $unionQuery->all();
     }
 

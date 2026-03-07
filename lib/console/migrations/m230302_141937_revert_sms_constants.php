@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230302_141937_revert_sms_constants extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation( 'admin/sms', [
+        $this->addTranslation('admin/sms', [
             'TEXT_COUNTRY_PHONE_PREFIX' => 'Dialling Prefix',
         ]);
     }

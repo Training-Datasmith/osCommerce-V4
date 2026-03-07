@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,7 +19,6 @@ use common\api\models\AR\EPMap;
 
 class Title extends EPMap
 {
-
     protected $hideFields = [
         'products_documents_id',
         'language_id',
@@ -36,7 +37,7 @@ class Title extends EPMap
     public static function getAllKeyCodes()
     {
         $keyCodes = [];
-        foreach (\common\classes\language::get_all() as $lang){
+        foreach (\common\classes\language::get_all() as $lang) {
             $keyCode = $lang['code'];
             $keyCodes[$keyCode] = [
                 'products_documents_id' => null,
@@ -51,6 +52,5 @@ class Title extends EPMap
         $this->products_documents_id = $parentObject->products_documents_id;
         parent::parentEPMap($parentObject);
     }
-
 
 }

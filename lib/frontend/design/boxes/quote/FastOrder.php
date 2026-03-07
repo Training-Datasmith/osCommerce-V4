@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,11 @@
 
 namespace frontend\design\boxes\quote;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
-use frontend\forms\registration\CustomerRegistration;
+use yii\base\Widget;
 
 class FastOrder extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -32,11 +31,11 @@ class FastOrder extends Widget
     public function run()
     {
         /** @var \common\extensions\Quotations\Quotations $ext */
-        if ( ($ext = \common\helpers\Extensions::isAllowed('Quotations')) && $ext::optionUseQuoteFastOrder() ){
+        if (($ext = \common\helpers\Extensions::isAllowed('Quotations')) && $ext::optionUseQuoteFastOrder()) {
             return IncludeTpl::widget(['file' => 'boxes/quote/fast-order.tpl', 'params' => array_merge($this->params, [
                 'settings' => $this->settings,
                 'id' => $this->id,
-                'fastModel' => $this->params['enterModels']['fast']
+                'fastModel' => $this->params['enterModels']['fast'],
             ])]);
         }
     }

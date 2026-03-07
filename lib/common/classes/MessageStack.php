@@ -1,23 +1,26 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\classes;
 
-class MessageStack {
-
+class MessageStack
+{
     public $messages = [];
 
-    public function initFlash() {
+    public function initFlash()
+    {
         foreach (\Yii::$app->session->getAllFlashes(true) as $class => $messages) {
             if (is_array($messages)) {
                 foreach ($messages as $message) {
@@ -30,13 +33,15 @@ class MessageStack {
         return $this;
     }
 
-    public function add($message, $class = 'header', $type = 'error', $name = '') {
+    public function add($message, $class = 'header', $type = 'error', $name = '')
+    {
         $this->messages[$class][] = ['text' => $message, 'type' => $type, 'name' => $name];
     }
 
-    public function add_unique($message, $class = 'header', $type = 'error') {
+    public function add_unique($message, $class = 'header', $type = 'error')
+    {
         if (isset($this->messages[$class]) && is_array($this->messages[$class])) {
-            foreach($this->messages[$class] as $msg) {
+            foreach ($this->messages[$class] as $msg) {
                 if ($msg['text'] == $message && $msg['type'] == $type) {
                     return false;
                 }
@@ -45,15 +50,18 @@ class MessageStack {
         $this->add($message, $class, $type);
     }
 
-    public function add_session($message, $class = 'header', $type = 'error') {
+    public function add_session($message, $class = 'header', $type = 'error')
+    {
         \Yii::$app->session->addFlash($class, ['text' => $message, 'type' => $type]);
     }
 
-    public function reset() {
+    public function reset()
+    {
         $this->messages = [];
     }
 
-    public function convert_to_session($only_class = '', $replace_to_class = '') {
+    public function convert_to_session($only_class = '', $replace_to_class = '')
+    {
         foreach ($this->messages as $_class => $_message_array) {
             if (empty($only_class) || $only_class == $_class) {
                 foreach ($_message_array as $_message) {
@@ -66,14 +74,16 @@ class MessageStack {
         $this->messages = array_values($this->messages);
     }
 
-    public function remove_current($class, $message) {
+    public function remove_current($class, $message)
+    {
         global $cart;
         if (is_object($cart) && $cart->basketID && \Yii::$app->user->isGuest) {
-            tep_db_query("delete from " . TABLE_CUSTOMERS_ERRORS . " where customers_id = '" . (int) \Yii::$app->user->getId() . "' and basket_id = '" . (int) $cart->basketID . "' and error_entity='" . tep_db_input($class) . "' and error_message = '" . tep_db_input($message) . "'");
+            tep_db_query('delete from ' . TABLE_CUSTOMERS_ERRORS . " where customers_id = '" . (int) \Yii::$app->user->getId() . "' and basket_id = '" . (int) $cart->basketID . "' and error_entity='" . tep_db_input($class) . "' and error_message = '" . tep_db_input($message) . "'");
         }
     }
 
-    public function outputHead($simple = false, $class = 'header') {
+    public function outputHead($simple = false, $class = 'header')
+    {
         $html = '';
         if (!isset($this->messages[$class])) {
             return $html;
@@ -84,8 +94,9 @@ class MessageStack {
         if ($simple) {
             foreach ($this->messages[$class] as $error) {
                 foreach ($error as $key => $item) {
-                    if ($key == 'text')
-                        $html .= $item . "<br>";
+                    if ($key == 'text') {
+                        $html .= $item . '<br>';
+                    }
                 }
             }
             return $html;
@@ -125,7 +136,8 @@ class MessageStack {
      * $this->messages['alert'][i]['type'] should be 'primary', 'secondary',
      * 'success', 'warning', 'info', 'light', 'dark'
      */
-    public function outputAlert() {
+    public function outputAlert()
+    {
         $html = '';
         if (!isset($this->messages['alert'])) {
             return $html;
@@ -143,9 +155,10 @@ class MessageStack {
         return $html;
     }
 
-    public function output($class = 'header', $type = 'info') {
+    public function output($class = 'header', $type = 'info')
+    {
         $html = '';
-        if (\Yii::$app->session->has($class)){
+        if (\Yii::$app->session->has($class)) {
             $this->initFlash();
         }
         if (!isset($this->messages[$class])) {
@@ -165,42 +178,46 @@ class MessageStack {
         return $html;
     }
 
-    public function getErrors() {
+    public function getErrors()
+    {
         return $this->messages;
     }
-    
-    public function asArray($class = 'header'){
-        if (\Yii::$app->session->has($class)){
+
+    public function asArray($class = 'header')
+    {
+        if (\Yii::$app->session->has($class)) {
             $this->initFlash();
         }
-        if (isset($this->messages[$class])){
+        if (isset($this->messages[$class])) {
             return ['messages' => $this->messages[$class]];
         }
         return [];
     }
 
-    public function size($class = 'header') {
+    public function size($class = 'header')
+    {
         $count = 0;
         if (isset($this->messages[$class]) && is_array($this->messages[$class])) {
             $count = count($this->messages[$class]);
         }
-        if (\Yii::$app->session->hasFlash($class)){
+        if (\Yii::$app->session->hasFlash($class)) {
             $count++;
         }
         return $count;
     }
 
-    public function save_to_base($class, $message, $type, $title = '') {
+    public function save_to_base($class, $message, $type, $title = '')
+    {
         global $cart;
         if (is_object($cart) && $cart->basketID && !\Yii::$app->user->isGuest && $class != 'header' && ($type == 'error' || $type == 'warning')) {
-            $sql_array = array(
+            $sql_array = [
                 'customers_id' => (int) \Yii::$app->user->getId(),
                 'basket_id' => (int) $cart->basketID,
                 'error_entity' => tep_db_prepare_input($class),
                 'error_title' => tep_db_prepare_input($title),
                 'error_message' => tep_db_prepare_input($message),
-                'error_date' => 'now()'
-            );
+                'error_date' => 'now()',
+            ];
             tep_db_perform(TABLE_CUSTOMERS_ERRORS, $sql_array);
         }
     }

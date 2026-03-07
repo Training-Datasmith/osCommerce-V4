@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,7 +19,6 @@ use common\api\models\AR\EPMap;
 
 class AssignedDepartments extends EPMap
 {
-
     protected $hideFields = [
         'products_id',
     ];
@@ -40,7 +41,7 @@ class AssignedDepartments extends EPMap
 
     public function matchIndexedValue(EPMap $importedObject)
     {
-        if ( !is_null($importedObject->departments_id) && !is_null($this->departments_id) && $importedObject->departments_id==$this->departments_id ){
+        if (!is_null($importedObject->departments_id) && !is_null($this->departments_id) && $importedObject->departments_id == $this->departments_id) {
             $this->pendingRemoval = false;
             return true;
         }

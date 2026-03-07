@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -29,30 +31,29 @@ namespace Stripe;
  */
 class File extends ApiResource
 {
-    const OBJECT_NAME = 'file';
-
     use ApiOperations\All;
     use ApiOperations\Retrieve;
 
-    const PURPOSE_ACCOUNT_REQUIREMENT = 'account_requirement';
-    const PURPOSE_ADDITIONAL_VERIFICATION = 'additional_verification';
-    const PURPOSE_BUSINESS_ICON = 'business_icon';
-    const PURPOSE_BUSINESS_LOGO = 'business_logo';
-    const PURPOSE_CUSTOMER_SIGNATURE = 'customer_signature';
-    const PURPOSE_DISPUTE_EVIDENCE = 'dispute_evidence';
-    const PURPOSE_IDENTITY_DOCUMENT = 'identity_document';
-    const PURPOSE_PCI_DOCUMENT = 'pci_document';
-    const PURPOSE_TAX_DOCUMENT_USER_UPLOAD = 'tax_document_user_upload';
+    use ApiOperations\Create {
+        create as protected _create;
+    }
+    public const OBJECT_NAME = 'file';
+
+    public const PURPOSE_ACCOUNT_REQUIREMENT = 'account_requirement';
+    public const PURPOSE_ADDITIONAL_VERIFICATION = 'additional_verification';
+    public const PURPOSE_BUSINESS_ICON = 'business_icon';
+    public const PURPOSE_BUSINESS_LOGO = 'business_logo';
+    public const PURPOSE_CUSTOMER_SIGNATURE = 'customer_signature';
+    public const PURPOSE_DISPUTE_EVIDENCE = 'dispute_evidence';
+    public const PURPOSE_IDENTITY_DOCUMENT = 'identity_document';
+    public const PURPOSE_PCI_DOCUMENT = 'pci_document';
+    public const PURPOSE_TAX_DOCUMENT_USER_UPLOAD = 'tax_document_user_upload';
 
     // This resource can have two different object names. In latter API
     // versions, only `file` is used, but since stripe-php may be used with
     // any API version, we need to support deserializing the older
     // `file_upload` object into the same class.
-    const OBJECT_NAME_ALT = 'file_upload';
-
-    use ApiOperations\Create {
-        create as protected _create;
-    }
+    public const OBJECT_NAME_ALT = 'file_upload';
 
     public static function classUrl()
     {

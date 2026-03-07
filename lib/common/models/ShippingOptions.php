@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "ship_options".
@@ -23,8 +23,9 @@ class ShippingOptions extends \yii\db\ActiveRecord
     {
         return 'ship_options';
     }
-    
-    public static function primaryKey() {
+
+    public static function primaryKey()
+    {
         return ['ship_options_id', 'language_id', 'platform_id'];
     }
 
@@ -40,28 +41,33 @@ class ShippingOptions extends \yii\db\ActiveRecord
             [['restrict_access', 'sort_order'], 'default', 'value' => 0],
         ];
     }
-    
-    public static function create($platform_id, $language_id){
+
+    public static function create($platform_id, $language_id)
+    {
         $option = new static([
             'ship_options_id' => static::getMax($platform_id) + 1 ,
             'platform_id' => (int)$platform_id,
         ]);
         return $option;
     }
-    
-    public function setName($name){
+
+    public function setName($name)
+    {
         $this->ship_options_name = (string)$name;
     }
-    
-    public function setAccess($restrict_access){
+
+    public function setAccess($restrict_access)
+    {
         $this->restrict_access = (int)$restrict_access;
     }
-    
-    public function setOrder($sort_order){
+
+    public function setOrder($sort_order)
+    {
         $this->sort_order = (int)$sort_order;
     }
-    
-    public static function getMax($platform_id){
+
+    public static function getMax($platform_id)
+    {
         return static::find()->where(['platform_id' => (int)$platform_id,])->max('ship_options_id');
     }
 

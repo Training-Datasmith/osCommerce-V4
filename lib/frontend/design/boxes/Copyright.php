@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,12 @@
 
 namespace frontend\design\boxes;
 
+use frontend\design\Info;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use frontend\design\Info;
 
 class Copyright extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -35,9 +35,9 @@ class Copyright extends Widget
         $languages_id = \Yii::$app->settings->get('languages_id');
         $data = Info::platformData();
 
-        if (Yii::$app->id == 'app-console'){
+        if (Yii::$app->id == 'app-console') {
             $text = \common\helpers\Translation::getTranslationValue('TEXT_COPYRIGHT', 'main', \common\classes\language::defaultId());
-            return '<div>' . strip_tags(sprintf($text, date("Y"), @$data['company'])) . '</div>';
+            return '<div>' . strip_tags(sprintf($text, date('Y'), @$data['company'])) . '</div>';
         }
 
         $info_id = (int)Yii::$app->request->get('info_id');
@@ -62,10 +62,11 @@ class Copyright extends Widget
 
         $text = preg_replace_callback('/href=\"([^"]{0,})\"/', self::class . '::createUrl', $text);
 
-        return '<div>' . sprintf($text, date("Y"), @$data['company']) . '</div>';
+        return '<div>' . sprintf($text, date('Y'), @$data['company']) . '</div>';
     }
 
-    private static function createUrl($matches){
+    private static function createUrl($matches)
+    {
 
         if (strpos($matches[1], 'http') === 0 || strpos($matches[1], '//') === 0) {
             return $matches[0];

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\checkout;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class ShippingAddress extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -32,7 +32,7 @@ class ShippingAddress extends Widget
     public function run()
     {
         //if (!$this->params['is_shipping']) return '';
-        if ($this->manager && !$this->params['manager']){
+        if ($this->manager && !$this->params['manager']) {
             $this->params['manager'] = $this->manager;
         }
 

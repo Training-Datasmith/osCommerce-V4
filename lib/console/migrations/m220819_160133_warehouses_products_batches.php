@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -23,7 +25,7 @@ class m220819_160133_warehouses_products_batches extends Migration
     public function safeUp()
     {
         $this->addTranslation('admin/main', [
-            'TEXT_WAREHOUSES_PRODUCTS_BATCH_NAME' => 'Batch:'
+            'TEXT_WAREHOUSES_PRODUCTS_BATCH_NAME' => 'Batch:',
         ]);
 
         if ($this->db->getTableSchema('warehouses_products_batches', true) === null) {
@@ -80,7 +82,7 @@ class m220819_160133_warehouses_products_batches extends Migration
     public function safeDown()
     {
         $this->addTranslation('admin/main', [
-            'TEXT_WAREHOUSES_PRODUCTS_BATCH_NAME'
+            'TEXT_WAREHOUSES_PRODUCTS_BATCH_NAME',
         ]);
 
         if ($this->db->getTableSchema('warehouses_products_batches', true) !== null) {

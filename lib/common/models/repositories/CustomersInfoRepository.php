@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,34 +14,35 @@
 
 namespace common\models\repositories;
 
-
 use common\models\CustomersInfo;
 
-class CustomersInfoRepository {
-
+class CustomersInfoRepository
+{
     public function getByCustomer($customerId)
     {
-        $customersInfo = CustomersInfo::find()->where(['customers_info_id' =>$customerId])->limit(1)->one();
-        if(!$customersInfo){
+        $customersInfo = CustomersInfo::find()->where(['customers_info_id' => $customerId])->limit(1)->one();
+        if (!$customersInfo) {
             throw new NotFoundException('Customer info not found');
         }
         return $customersInfo;
     }
-    public function edit( CustomersInfo $customersInfo, $params = [], $validate = false, $safeOnly = false ) {
-        foreach ( $params as $attribute => $param ) {
-            if ( ! $customersInfo->hasAttribute( $attribute ) ) {
-                unset( $params[ $attribute ] );
+    public function edit(CustomersInfo $customersInfo, $params = [], $validate = false, $safeOnly = false)
+    {
+        foreach ($params as $attribute => $param) {
+            if (! $customersInfo->hasAttribute($attribute)) {
+                unset($params[ $attribute ]);
             }
         }
-        $customersInfo->setAttributes( $params, $safeOnly );
-        if ( ! $customersInfo->update( $validate, array_keys( $params ) ) ) {
+        $customersInfo->setAttributes($params, $safeOnly);
+        if (! $customersInfo->update($validate, array_keys($params))) {
             return $customersInfo->getErrors();
         }
         return true;
     }
-    public function save( CustomersInfo $customerInfo ) {
-        if ( ! $customerInfo->save() ) {
-            throw new \RuntimeException( 'Customer info saving error.' );
+    public function save(CustomersInfo $customerInfo)
+    {
+        if (! $customerInfo->save()) {
+            throw new \RuntimeException('Customer info saving error.');
         }
         return true;
     }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,18 +14,12 @@
 
 namespace backend\design;
 
-use yii\helpers\FileHelper;
-use common\classes\Images;
-use common\models\DesignBoxesTmp;
-
-use Yii;
-
 class Migration
 {
     protected $themeName;
     protected $migration;
 
-    function __construct($themeName)
+    public function __construct($themeName)
     {
         $this->themeName = $themeName;
     }

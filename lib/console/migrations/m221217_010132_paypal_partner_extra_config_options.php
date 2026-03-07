@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of True Loaded.
  *
@@ -34,9 +36,9 @@ class m221217_010132_paypal_partner_extra_config_options extends Migration
             //True/False
 
             $pc = common\models\PlatformsConfiguration::find()->where(['configuration_key' => 'MODULE_PAYMENT_PAYPAL_PARTNER_BUTTON_LAYOUT']);
-            foreach($pc->all() as $d) {
+            foreach ($pc->all() as $d) {
 
-                $_show = ($d->configuration_value=='vertical'?'Vertical':'Horizontal');
+                $_show = ($d->configuration_value == 'vertical' ? 'Vertical' : 'Horizontal');
                 $this->insert(TABLE_PLATFORMS_CONFIGURATION, [
                     'configuration_key' => 'MODULE_PAYMENT_PAYPAL_PARTNER_SHOPPING_CART',
                     'configuration_title' => 'Show PayPal button(s) on Shopping Cart',
@@ -47,20 +49,20 @@ class m221217_010132_paypal_partner_extra_config_options extends Migration
                     'sort_order' => 1000,
                     'date_added' => new \yii\db\Expression('NOW()'),
                     'use_function' => '',
-                    'set_function' => 'multiOption(\'dropdown\', array(\'Horizontal\', \'Vertical\', \'False\'), '
+                    'set_function' => 'multiOption(\'dropdown\', array(\'Horizontal\', \'Vertical\', \'False\'), ',
                 ]);
-                $enabled = (isset($pShowCheckout[$d['platform_id']])?$pShowCheckout[$d['platform_id']]:$showCheckout)=='True';
+                $enabled = (isset($pShowCheckout[$d['platform_id']]) ? $pShowCheckout[$d['platform_id']] : $showCheckout) == 'True';
                 $this->insert(TABLE_PLATFORMS_CONFIGURATION, [
                     'configuration_key' => 'MODULE_PAYMENT_PAYPAL_PARTNER_AT_CHECKOUT',
                     'configuration_title' => 'Show PayPal button on Checkout',
                     'configuration_description' => 'Show PayPal buttons on Checkout Page',
-                    'configuration_value' => ($enabled?$_show:'False'),
+                    'configuration_value' => ($enabled ? $_show : 'False'),
                     'platform_id' => $d->platform_id,
                     'configuration_group_id' => 'BOX_CONFIGURATION_MODULE',
                     'sort_order' => 1000,
                     'date_added' => new \yii\db\Expression('NOW()'),
                     'use_function' => '',
-                    'set_function' => 'multiOption(\'dropdown\', array(\'Horizontal\', \'Vertical\', \'False\'), '
+                    'set_function' => 'multiOption(\'dropdown\', array(\'Horizontal\', \'Vertical\', \'False\'), ',
                 ]);
                 $this->insert(TABLE_PLATFORMS_CONFIGURATION, [
                     'configuration_key' => 'MODULE_PAYMENT_PAYPAL_PARTNER_AT_CHECKOUT_LOGIN',
@@ -72,7 +74,7 @@ class m221217_010132_paypal_partner_extra_config_options extends Migration
                     'sort_order' => 1000,
                     'date_added' => new \yii\db\Expression('NOW()'),
                     'use_function' => '',
-                    'set_function' => 'multiOption(\'dropdown\', array(\'Horizontal\', \'Vertical\', \'False\'), '
+                    'set_function' => 'multiOption(\'dropdown\', array(\'Horizontal\', \'Vertical\', \'False\'), ',
                 ]);
                 $d->delete();
             }
@@ -81,12 +83,12 @@ class m221217_010132_paypal_partner_extra_config_options extends Migration
                 ->select('configuration_value, platform_id')
                 ->indexBy('platform_id')
                 ->column()
-                ;
+            ;
 
             $pP = common\models\PlatformsConfiguration::find()->where(['configuration_key' => 'MODULE_PAYMENT_PAYPAL_PARTNER_BUY_IMMEDIATELLY']);
-            foreach($pP->all() as $d) {
+            foreach ($pP->all() as $d) {
                 if ($d->configuration_value == 'True') {
-                    $_show =  ($pProductLayout[$d->platform_id]=='vertical'?'Vertical':'Horizontal') ;
+                    $_show =  ($pProductLayout[$d->platform_id] == 'vertical' ? 'Vertical' : 'Horizontal') ;
                     $d->configuration_value = $_show;
                 }
                 $d->set_function = 'multiOption(\'dropdown\', array(\'Horizontal\', \'Vertical\', \'False\'), ';
@@ -97,9 +99,8 @@ class m221217_010132_paypal_partner_extra_config_options extends Migration
             common\models\PlatformsConfiguration::deleteAll(['configuration_key' => 'EXPRESS_PAYMENTS_AT_CHECKOUT']);
             common\models\Configuration::deleteAll(['configuration_key' => 'EXPRESS_PAYMENTS_AT_CHECKOUT']);
 
-
         } catch (\Exception $ex) {
-            
+
             echo $ex->getMessage();
 
         }
@@ -118,9 +119,9 @@ class m221217_010132_paypal_partner_extra_config_options extends Migration
      */
     public function safeDown()
     {
-//        echo "m221217_010132_paypal_partner_extra_config_options cannot be reverted.\n";
+        //        echo "m221217_010132_paypal_partner_extra_config_options cannot be reverted.\n";
 
-//        return false;
+        //        return false;
     }
 
     /*

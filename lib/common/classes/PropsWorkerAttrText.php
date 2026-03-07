@@ -1,17 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\classes;
 
 class PropsWorkerAttrText extends PropsWorkerAbstract
 {
-
     /**
      * Convert POST params to xml
      * @param $params array $POST
      * @param $productId
      * @return array
      */
-    public static function paramsToXml($params = array(), $productId = false)
+    public static function paramsToXml($params = [], $productId = false)
     {
         $data = [];
         if (is_array($params['attr_text'] ?? null)) {
@@ -35,7 +36,7 @@ class PropsWorkerAttrText extends PropsWorkerAbstract
      */
     public static function normalize_id($uprid)
     {
-        $uprid = preg_replace('#\{a\d+\}[^{]*#','',$uprid);
+        $uprid = preg_replace('#\{a\d+\}[^{]*#', '', $uprid);
         return $uprid;
     }
 
@@ -48,7 +49,7 @@ class PropsWorkerAttrText extends PropsWorkerAbstract
     public static function cartUprid($products_id, $propsData)
     {
         if (is_array($propsData['AttrText'] ?? null)) {
-            foreach ($propsData['AttrText'] as $id=>$val) {
+            foreach ($propsData['AttrText'] as $id => $val) {
                 if (preg_match('#^a(\d)+$#', $id, $match)) {
                     $products_id .= sprintf('{a%s}%s', $match[1], $val['crc']);
                 }
@@ -68,7 +69,7 @@ class PropsWorkerAttrText extends PropsWorkerAbstract
             $propData = \Yii::$app->get('PropsHelper')::XmlToParams($props);
             if (is_array($propData['AttrText'] ?? null)) {
                 $res = [];
-                foreach($propData['AttrText'] as $id=>$val) {
+                foreach ($propData['AttrText'] as $id => $val) {
                     if (preg_match('#^a(\d+)$#', $id, $match)) {
                         $res[$match[1]] = $val['value'];
                     }

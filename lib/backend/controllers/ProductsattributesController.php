@@ -2,10 +2,10 @@
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -15,27 +15,28 @@ namespace backend\controllers;
 use backend\models\ProductNameDecorator;
 use Yii;
 
-class ProductsattributesController extends Sceleton {
-
+class ProductsattributesController extends Sceleton
+{
     public $acl = ['BOX_HEADING_CATALOG', 'BOX_CATALOG_CATEGORIES_PRODUCTS_ATTRIBUTES', 'TEXT_PRODUCTS_ATTRIBUTES'];
 
-    public function actionIndex() {
-        $this->selectedMenu = array('catalog', 'product_attributes', 'productsattributes');
+    public function actionIndex()
+    {
+        $this->selectedMenu = ['catalog', 'product_attributes', 'productsattributes'];
 
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('productsattributes/index'), 'title' => HEADING_TITLE);
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('productsattributes/index'), 'title' => HEADING_TITLE];
         $this->topButtons[] = '<a href="#" class="btn btn-primary" onClick="return editAttribute(0)">' . IMAGE_INSERT . '</a>';
         $this->view->headingTitle = HEADING_TITLE;
 
-        $this->view->attributesTable = array(
-            array(
+        $this->view->attributesTable = [
+            [
                 'title' => TABLE_HEADING_OPT_NAME,
-                'not_important' => 0
-            ),
+                'not_important' => 0,
+            ],
 //                array(
 //                    'title'         => TABLE_HEADING_OPT_SORT_ORDER,
 //                    'not_important' => 1
 //                ),
-        );
+        ];
 
         $row = (int) Yii::$app->request->get('row');
         $global_id = (int) Yii::$app->request->get('global_id');
@@ -44,22 +45,24 @@ class ProductsattributesController extends Sceleton {
         return $this->render('index', [
                     'row' => $row,
                     'global_id' => $global_id,
-                    'global_type_code' => $global_type_code
+                    'global_type_code' => $global_type_code,
                 ]);
     }
 
-    public function actionList() {
+    public function actionList()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
         $draw = Yii::$app->request->get('draw', 1);
         $start = Yii::$app->request->get('start', 0);
         $length = Yii::$app->request->get('length', 10);
         $current_option_id = (int) Yii::$app->request->get('id', 0);
 
-        if ($length == -1)
+        if ($length == -1) {
             $length = 1000;
+        }
         $keywords = $_GET['search']['value'] ?? null;
 
-        $responseList = array();
+        $responseList = [];
         $subOption = $current_option_id > 0;
         if ($subOption) {
             $query = \common\models\ProductsOptionsValues::find()->alias('pov')->select(['pov.products_options_values_id', 'pov.products_options_values_name', 'pov.products_options_values_name_alias', 'pov2po.products_options_id'])
@@ -68,11 +71,11 @@ class ProductsattributesController extends Sceleton {
                     ->andFilterWhere(['like', 'pov.products_options_values_name', $keywords])
                     ->orderBy(['pov.products_options_values_sort_order' => SORT_ASC, 'pov.products_options_values_name' => SORT_ASC]);
 
-            $responseList[] = array(
+            $responseList[] = [
                 '<span class="parent_cats"><i class="icon-circle"></i><i class="icon-circle"></i><i class="icon-circle"></i></span>' .
                 '<input class="cell_type" type="hidden" value="root" >' .
-                '<input class="cell_identify" type="hidden" value="0" data-option_id="' . $current_option_id . '">'
-            );
+                '<input class="cell_identify" type="hidden" value="0" data-option_id="' . $current_option_id . '">',
+            ];
         } else {
             $query = \common\models\ProductsOptions::find()
                     ->where(['language_id' => $languages_id])
@@ -86,28 +89,29 @@ class ProductsattributesController extends Sceleton {
 
         $cell_type = $subOption ? 'suboption' : 'option';
         foreach ($Qgroups as $Dgroups) {
-            $responseList[] = array(
+            $responseList[] = [
                 '<div class="handle_cat_list"><span class="handle"><i class="icon-hand-paper-o"></i></span><div class="' . ($subOption ? 'optval_name' : 'cat_name') . ' cat_name_attr">' . $Dgroups[$subOption ? 'products_options_values_name' : 'products_options_name'] .
                 '<input class="cell_identify" type="hidden" value="' . $Dgroups[$subOption ? 'products_options_values_id' : 'products_options_id'] . '">' .
                 '<input class="cell_type" type="hidden" value="' . $cell_type . '" >' .
                 '</div>' . ($subOption ?
-                ($Dgroups['products_options_values_name_alias'] != "" ? '<div class="optval_name cat_name_attr"><b>Alias:</b> ' . $Dgroups['products_options_values_name_alias'] . '</div>' : '') : '') .
-                '</div>'
-            );
+                ($Dgroups['products_options_values_name_alias'] != '' ? '<div class="optval_name cat_name_attr"><b>Alias:</b> ' . $Dgroups['products_options_values_name_alias'] . '</div>' : '') : '') .
+                '</div>',
+            ];
         }
 
-        $response = array(
+        $response = [
             'draw' => $draw,
             'recordsTotal' => $options_query_numrows,
             'recordsFiltered' => $options_query_numrows,
-            'data' => $responseList
-        );
+            'data' => $responseList,
+        ];
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         return $response;
     }
 
-    function actionItempreedit() {
-        $this->layout = FALSE;
+    public function actionItempreedit()
+    {
+        $this->layout = false;
 
         $languages_id = \Yii::$app->settings->get('languages_id');
 
@@ -147,7 +151,7 @@ class ProductsattributesController extends Sceleton {
             $products_num = \common\models\ProductsAttributes::find()->where(['options_id' => $item_id])->groupBy(['products_id'])->count();
 
             $values_num = \common\models\ProductsOptions2ProductsOptionsValues::find()->where(['products_options_id' => $item_id])->count();
-            if ($values_num > 0 OR $products_num > 0) {
+            if ($values_num > 0 or $products_num > 0) {
                 $notice = sprintf(TEXT_OPTION_NOTICE, $products_num, $values_num);
             }
             ?>
@@ -159,7 +163,8 @@ class ProductsattributesController extends Sceleton {
         return $this->renderAjax('preedit', ['Dvalue' => $Dvalue, 'notice' => $notice, 'item_id' => $item_id, 'type_code' => $type_code, 'global_id' => $global_id, 'products_num' => $products_num]);
     }
 
-    public function actionViewProducts() {
+    public function actionViewProducts()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
         $item_id = (int) Yii::$app->request->get('item_id');
         $type_code = Yii::$app->request->get('type_code');
@@ -170,7 +175,7 @@ class ProductsattributesController extends Sceleton {
                 ->joinWith('description pd', false)
                 ->joinWith('productAttributes pa', false)
                 ->andWhere([$subOption ? 'pa.options_values_id' : 'pa.options_id' => $item_id])
-                ->select( 'p.products_model, p.products_id')
+                ->select('p.products_model, p.products_id')
                 ->addSelect(['name' => ProductNameDecorator::descriptionExpr()])
                 ->asArray()
                 ->distinct()
@@ -183,12 +188,13 @@ class ProductsattributesController extends Sceleton {
         return $this->renderAjax('list', ['content' => $response]);
     }
 
-    public function actionAttributeedit() {
+    public function actionAttributeedit()
+    {
 
         \common\helpers\Translation::init('admin/productsattributes');
         \common\helpers\Translation::init('admin/properties');
 
-        $type_code = Yii::$app->request->get('type_code', NULL);
+        $type_code = Yii::$app->request->get('type_code', null);
         $products_options_id = (int) Yii::$app->request->get('products_options_id');
         $global_id = (int) Yii::$app->request->get('global_id', 0);
 
@@ -214,7 +220,7 @@ class ProductsattributesController extends Sceleton {
             }
             foreach ($languages as $languages_data) {
                 $lang_id = $languages_data['id'];
-                $options[$lang_id] = array('option_name' => '', 'option_name_alias' => '', 'option_image' => '', 'option_color' => '');
+                $options[$lang_id] = ['option_name' => '', 'option_name_alias' => '', 'option_image' => '', 'option_color' => ''];
             }
         } elseif ($products_options_id > 0) {
             $header = TEXT_EDIT_ATTRIBUTE;
@@ -266,7 +272,7 @@ class ProductsattributesController extends Sceleton {
             }
         }
 
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('productsattributes/attributesubmit'), 'title' => $header);
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('productsattributes/attributesubmit'), 'title' => $header];
         $this->view->headingTitle = $header;
 
         return $this->render('edit.tpl', [
@@ -284,7 +290,8 @@ class ProductsattributesController extends Sceleton {
         ]);
     }
 
-    function actionAttributesubmit() {
+    public function actionAttributesubmit()
+    {
 
         \common\helpers\Translation::init('admin/productsattributes');
 
@@ -297,7 +304,7 @@ class ProductsattributesController extends Sceleton {
         $option_image_loaded = Yii::$app->request->post('option_image_loaded');
         $option_image_delete = Yii::$app->request->post('option_image_delete');
         $option_color = Yii::$app->request->post('option_color');
-        $option_sort_order = Yii::$app->request->post('option_sort_order_eng', array());
+        $option_sort_order = Yii::$app->request->post('option_sort_order_eng', []);
         $type_code = Yii::$app->request->post('type_code', 'option');
         $type = Yii::$app->request->post('type', '');
         $is_virtual = Yii::$app->request->post('is_virtual', 0);
@@ -334,7 +341,7 @@ class ProductsattributesController extends Sceleton {
 
                     $obj = $insert ? null : \common\models\ProductsOptionsValues::findOne(['language_id' => (int) $_language_id, 'products_options_values_id' => $id]);
                     if (is_null($obj)) { // new also for updating if there isn't record for that language
-                        $obj = new \common\models\ProductsOptionsValues;
+                        $obj = new \common\models\ProductsOptionsValues();
                     }
 
                     $obj->products_options_values_id = $id;
@@ -373,7 +380,7 @@ class ProductsattributesController extends Sceleton {
 
                         $obj = $insert ? null : \common\models\ProductsOptionsValues::findOne(['language_id' => (int) $_language_id, 'products_options_values_id' => $id]);
                         if (is_null($obj)) { // new also for updating if there isn't record for that language
-                            $obj = new \common\models\ProductsOptionsValues;
+                            $obj = new \common\models\ProductsOptionsValues();
                         }
 
                         $obj->products_options_values_id = $id;
@@ -385,7 +392,7 @@ class ProductsattributesController extends Sceleton {
                 }
 
                 if ($insert) {
-                    $obj = new \common\models\ProductsOptions2ProductsOptionsValues;
+                    $obj = new \common\models\ProductsOptions2ProductsOptionsValues();
                     $obj->products_options_id = $global_id;
                     $obj->products_options_values_id = $id;
                     $obj->save();
@@ -407,7 +414,7 @@ class ProductsattributesController extends Sceleton {
 
                     $obj = $insert ? null : \common\models\ProductsOptions::findOne(['language_id' => (int) $_language_id, 'products_options_id' => $id]);
                     if (is_null($obj)) { // new also for updating if there isn't record for that language
-                        $obj = new \common\models\ProductsOptions;
+                        $obj = new \common\models\ProductsOptions();
                     }
 
                     $obj->products_options_id = $id;
@@ -444,7 +451,7 @@ class ProductsattributesController extends Sceleton {
 
                         $obj = $insert ? null : \common\models\ProductsOptions::findOne(['language_id' => (int) $_language_id, 'products_options_id' => $id]);
                         if (is_null($obj)) { // new also for updating if there isn't record for that language
-                            $obj = new \common\models\ProductsOptions;
+                            $obj = new \common\models\ProductsOptions();
                         }
                         $obj->products_options_id = $id;
                         $obj->language_id = (int) $_language_id;
@@ -467,19 +474,21 @@ class ProductsattributesController extends Sceleton {
         }
     }
 
-    function actionConfirmadeleteoption() {
+    public function actionConfirmadeleteoption()
+    {
         $languages_id = (int) \Yii::$app->settings->get('languages_id');
 
         \common\helpers\Translation::init('admin/productsattributes');
         \common\helpers\Translation::init('admin/faqdesk');
 
-        $this->layout = FALSE;
+        $this->layout = false;
 
         $products_options_id = (int) Yii::$app->request->post('products_options_id');
         $cell_type = Yii::$app->request->post('cell_type');
 
-        if ($cell_type == 'root')
+        if ($cell_type == 'root') {
             $cell_type = 'suboption';
+        }
 
         $products_num = $values_num = 0;
 
@@ -502,10 +511,10 @@ class ProductsattributesController extends Sceleton {
             $TEXT_INTRO = TEXT_DELETE_ITEM_INTRO;
         }
 
-        echo tep_draw_form('option_delete', 'catalog/product', \common\helpers\Output::get_all_get_params(array('action')) . 'action=delete', 'post', 'id="option_delete" onSubmit="return deleteOption();"');
+        echo tep_draw_form('option_delete', 'catalog/product', \common\helpers\Output::get_all_get_params(['action']) . 'action=delete', 'post', 'id="option_delete" onSubmit="return deleteOption();"');
         echo '<div class="or_box_head">' . $TEXT_INFO_HEADING . '</div>';
         echo '<div class="col_desc">' . $TEXT_INTRO . '<br><br><b>' . $process_item_name . '</div>';
-        if ($values_num > 0 OR $products_num > 0) {
+        if ($values_num > 0 or $products_num > 0) {
             if ($cell_type == 'suboption') {
                 $notice = sprintf(TEXT_OPTION_VALUE_DELETE_NOTICE, $products_num);
             } else {
@@ -529,8 +538,9 @@ class ProductsattributesController extends Sceleton {
             <?php
     }
 
-    function actionOptiondelete() {
-        $this->layout = FALSE;
+    public function actionOptiondelete()
+    {
+        $this->layout = false;
 
         $products_options_id = (int)Yii::$app->request->post('products_options_id');
         $cell_type = Yii::$app->request->post('cell_type');
@@ -561,7 +571,7 @@ class ProductsattributesController extends Sceleton {
                     $obj->delete();
                 }
 
-            // === suboption ===================================================
+                // === suboption ===================================================
             } else {
                 $obj = \common\models\ProductsOptionsValues::findOne(['products_options_values_id' => $products_options_id]);
                 if (!empty($obj)) {
@@ -589,7 +599,8 @@ class ProductsattributesController extends Sceleton {
         }
     }
 
-    public function actionSortOrder() {
+    public function actionSortOrder()
+    {
         $languages_id = \Yii::$app->settings->get('languages_id');
         $transaction = Yii::$app->db->beginTransaction();
         try {
@@ -607,7 +618,7 @@ class ProductsattributesController extends Sceleton {
                             ->innerJoinWith(['values2Options po2v' =>
                                 function ($query) use ($option_id) {
                                     return $query->andOnCondition(['po2v.products_options_id' => $option_id]);
-                                }
+                                },
                                     ], false)
                             ->where(['language_id' => $languages_id])
                             ->orderBy('pv.products_options_values_sort_order, pv.products_options_values_name')
@@ -635,7 +646,7 @@ class ProductsattributesController extends Sceleton {
                         }
                     }
                 }
-            // === Option =====================================================================
+                // === Option =====================================================================
             } elseif ($_POST['sort_option']) {
 
                 $moved_id = (int) $_POST['sort_option'];
@@ -671,7 +682,6 @@ class ProductsattributesController extends Sceleton {
                     }
                 }
             }
-
 
             $transaction->commit();
         } catch (\Throwable $e) {

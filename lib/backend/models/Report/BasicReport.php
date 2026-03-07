@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 namespace backend\models\Report;
 
 use Yii;
 use yii\helpers\ArrayHelper;
 
-class BasicReport {
-
+class BasicReport
+{
     private $isLoop = false;
 
     protected $request = [];
@@ -15,12 +17,14 @@ class BasicReport {
     protected $interval = 0;
     protected $class_range = [];
 
-    public function __construct($data) {
+    public function __construct($data)
+    {
         $this->request = $data;
         $this->all_params['modules'] = $this->loadOtModules();
     }
 
-    public function getRangeList() {
+    public function getRangeList()
+    {
         if (is_array($this->range)) {
             foreach ($this->range as $key => $value) {
                 $this->range[$key] = ucfirst($value);
@@ -32,11 +36,13 @@ class BasicReport {
         ]);
     }
 
-    public function getCurrentRange() {
+    public function getCurrentRange()
+    {
         return $this->current_range;
     }
 
-    public function parseDate($date, $full = true) {
+    public function parseDate($date, $full = true)
+    {
         $ex = explode(static::DELIMETER, $date);
         if (!$full) {
             return ['month' => $ex[0], 'year' => $ex[1]];
@@ -45,7 +51,8 @@ class BasicReport {
         }
     }
 
-    public function getRawData($where = "", $for_map = false) {
+    public function getRawData($where = '', $for_map = false)
+    {
         $_join = '';
         $_summ = '';
         if (isset($this->all_params['modules']) && is_array($this->all_params['modules'])) {
@@ -61,33 +68,35 @@ class BasicReport {
                 $_module = $_module_var['class'];
                 if ($_module == 'ot_paid') {
                     $$_module = ("ifnull({$_module}.value_inc_tax, "
-                        . ((isset($ot_total) AND isset($ot_due))
-                            ? ('(' .$ot_total . ' - ' . $ot_due
+                        . (
+                            (isset($ot_total) and isset($ot_due))
+                            ? (
+                                '(' .$ot_total . ' - ' . $ot_due
                                 . (isset($ot_refund) ? " + {$ot_refund}" : '')
                                 . (isset($ot_commission) ? " - {$ot_commission}" : '')
                                 . ')'
                             )
                             : '0'
                         )
-                    . ")");
+                    . ')');
                 }
-                if (($this->request['currency']??null) > 0) {
+                if (($this->request['currency'] ?? null) > 0) {
                     $_summ .= ", sum({$$_module} * o.currency_value) as {$_module}";
                 } else {
                     $_summ .= ", sum({$$_module} * if(o.currency_value_default > 0, o.currency_value_default, 1)) as {$_module}";
                 }
                 if ($_module == 'ot_tax') {
-                    $_join .= " left join (SELECT o.orders_id, sum(value_inc_tax) AS value_inc_tax FROM " . TABLE_ORDERS_TOTAL . " ot inner join " . TABLE_ORDERS . " o on o.orders_id = ot.orders_id and {$where} where  ot.class='ot_tax' group by o.orders_id) {$_module} ON ({$_module}.orders_id = o.orders_id) ";// if multiple
+                    $_join .= ' left join (SELECT o.orders_id, sum(value_inc_tax) AS value_inc_tax FROM ' . TABLE_ORDERS_TOTAL . ' ot inner join ' . TABLE_ORDERS . " o on o.orders_id = ot.orders_id and {$where} where  ot.class='ot_tax' group by o.orders_id) {$_module} ON ({$_module}.orders_id = o.orders_id) ";// if multiple
                 } elseif ($_module == 'ot_coupon') {
-                    $_join .= " left join (SELECT o.orders_id, sum(value_inc_tax) AS value_inc_tax FROM " . TABLE_ORDERS_TOTAL . " ot inner join " . TABLE_ORDERS . " o on o.orders_id = ot.orders_id and {$where} where ot.class = 'ot_coupon' " . (defined('MODULE_ORDER_TOTAL_COUPON_TOTAL') ? " and ot.title != '" . tep_db_input(MODULE_ORDER_TOTAL_COUPON_TOTAL). ":'" : '') . " group by o.orders_id) {$_module} ON ({$_module}.orders_id = o.orders_id) "; // multi-coupon with total discount line dirty hack
+                    $_join .= ' left join (SELECT o.orders_id, sum(value_inc_tax) AS value_inc_tax FROM ' . TABLE_ORDERS_TOTAL . ' ot inner join ' . TABLE_ORDERS . " o on o.orders_id = ot.orders_id and {$where} where ot.class = 'ot_coupon' " . (defined('MODULE_ORDER_TOTAL_COUPON_TOTAL') ? " and ot.title != '" . tep_db_input(MODULE_ORDER_TOTAL_COUPON_TOTAL). ":'" : '') . " group by o.orders_id) {$_module} ON ({$_module}.orders_id = o.orders_id) "; // multi-coupon with total discount line dirty hack
                 } else {
-                    $_join .= " left join " . TABLE_ORDERS_TOTAL . " {$_module} on o.orders_id = {$_module}.orders_id and {$_module}.class='" . $_module . "' ";
+                    $_join .= ' left join ' . TABLE_ORDERS_TOTAL . " {$_module} on o.orders_id = {$_module}.orders_id and {$_module}.class='" . $_module . "' ";
                 }
             }
         }
         //echo '<pre>';print_r($this);die;
 
-        if (($this->request['currency']??null) > 0) {
+        if (($this->request['currency'] ?? null) > 0) {
             $currencies = Yii::$container->get('currencies');
             $currency_code = $currencies->currency_codes[$this->request['currency']];
             if ($currency_code && $this->request['currency'] == $currencies->currencies[$currency_code]['id']) {
@@ -97,7 +106,7 @@ class BasicReport {
 
         if (isset($this->request['status'])) {
             if (is_array($this->request['status']) && count($this->request['status'])) {
-                $where .= " and o.orders_status in (" . implode(",", $this->request['status']) . ")";
+                $where .= ' and o.orders_status in (' . implode(',', $this->request['status']) . ')';
             }
         }
 
@@ -115,72 +124,72 @@ class BasicReport {
 
         if (isset($this->request['platforms'])) {
             if (is_array($this->request['platforms']) && count($this->request['platforms'])) {
-                $where .= " and o.platform_id in (" . implode(",", $this->request['platforms']) . ")";
+                $where .= ' and o.platform_id in (' . implode(',', $this->request['platforms']) . ')';
             }
         }
 
         if (isset($this->request['customer_groups'])) {
-            if (is_array($this->request['customer_groups']) && count($this->request['customer_groups'])>0) {
-                $_join .= " INNER JOIN ".TABLE_CUSTOMERS." cust ON cust.customers_id=o.customers_id AND cust.groups_id IN (" . implode(",", array_map('intval',$this->request['customer_groups'])) . ") ";
+            if (is_array($this->request['customer_groups']) && count($this->request['customer_groups']) > 0) {
+                $_join .= ' INNER JOIN '.TABLE_CUSTOMERS.' cust ON cust.customers_id=o.customers_id AND cust.groups_id IN (' . implode(',', array_map('intval', $this->request['customer_groups'])) . ') ';
             }
         }
 
-        if ( isset($this->request['walkin']) && is_array($this->request['walkin']) ){
-            if (count($this->request['walkin'])>0){
-                $where .= " and o.admin_id in (" . implode(",", $this->request['walkin']) . ")";
+        if (isset($this->request['walkin']) && is_array($this->request['walkin'])) {
+            if (count($this->request['walkin']) > 0) {
+                $where .= ' and o.admin_id in (' . implode(',', $this->request['walkin']) . ')';
             }
         }
 
         if (isset($this->request['zones'])) {
             if (is_array($this->request['zones']) && count($this->request['zones'])) {
-                $where .= " and (o.delivery_country in ( select c.countries_name from " . TABLE_COUNTRIES . " c where c.countries_id in ('" . implode("','", $this->request['zones']) . "') ) or"
-                        . " o.billing_country in ( select c.countries_name from " . TABLE_COUNTRIES . " c where c.countries_id in ('" . implode("','", $this->request['zones']) . "') )  )";
+                $where .= ' and (o.delivery_country in ( select c.countries_name from ' . TABLE_COUNTRIES . " c where c.countries_id in ('" . implode("','", $this->request['zones']) . "') ) or"
+                        . ' o.billing_country in ( select c.countries_name from ' . TABLE_COUNTRIES . " c where c.countries_id in ('" . implode("','", $this->request['zones']) . "') )  )";
             }
         }
 
-        if (isset($this->request['country'])){
+        if (isset($this->request['country'])) {
             if (is_array($this->request['country']) && count($this->request['country'])) {
-                $where .= " and (o.delivery_country in ( select c.countries_name from " . TABLE_COUNTRIES . " c where c.countries_id in ('" . implode("','", $this->request['country']) . "') ) or"
-                    . " o.billing_country in ( select c.countries_name from " . TABLE_COUNTRIES . " c where c.countries_id in ('" . implode("','", $this->request['country']) . "') )  )";
+                $where .= ' and (o.delivery_country in ( select c.countries_name from ' . TABLE_COUNTRIES . " c where c.countries_id in ('" . implode("','", $this->request['country']) . "') ) or"
+                    . ' o.billing_country in ( select c.countries_name from ' . TABLE_COUNTRIES . " c where c.countries_id in ('" . implode("','", $this->request['country']) . "') )  )";
             }
         }
 
-        if (isset($this->request['state'])){
+        if (isset($this->request['state'])) {
             $where .= " and (o.delivery_state like '" . tep_db_input($this->request['state']) . "') ";
         }
 
-        if (isset($this->request['sps'])){
+        if (isset($this->request['sps'])) {
             $where .= " and (o.delivery_street_address like '%{$this->request['sps']}%' or o.delivery_suburb like '%{$this->request['sps']}%' or o.delivery_postcode like '%{$this->request['sps']}%' ) ";
         }
 
-        $group_by = "";
+        $group_by = '';
         if (isset($this->sql_params['group']) && is_array($this->sql_params['group'])) {
-            $group_by = " group by ";
+            $group_by = ' group by ';
             foreach ($this->sql_params['group'] as $_group) {
-                $group_by .= $_group . "(o.date_purchased),";
+                $group_by .= $_group . '(o.date_purchased),';
             }
             $group_by = substr($group_by, 0, -1);
         }
 
         //need convert to main currency
         if ($for_map) {
-            $sql = "select o.lat, o.lng, o.delivery_address_format_id, o.delivery_street_address, o.delivery_suburb, o.delivery_city, o.delivery_postcode, o.delivery_state, o.delivery_country from " . TABLE_ORDERS . " o " . $_join . " where {$where} and o.lat not in (0 , 9999) and o.lng not in (0 , 9999) order by o.date_purchased";
+            $sql = 'select o.lat, o.lng, o.delivery_address_format_id, o.delivery_street_address, o.delivery_suburb, o.delivery_city, o.delivery_postcode, o.delivery_state, o.delivery_country from ' . TABLE_ORDERS . ' o ' . $_join . " where {$where} and o.lat not in (0 , 9999) and o.lng not in (0 , 9999) order by o.date_purchased";
         } else {
-            $sql = "select {$this->sql_params['select_period']}(o.date_purchased) as period, count(o.orders_id) as orders {$_summ}, group_concat(o.orders_id) as orders_ids from " . TABLE_ORDERS . " o " . $_join . " where {$where} " . $group_by . " order by o.date_purchased";
+            $sql = "select {$this->sql_params['select_period']}(o.date_purchased) as period, count(o.orders_id) as orders {$_summ}, group_concat(o.orders_id) as orders_ids from " . TABLE_ORDERS . ' o ' . $_join . " where {$where} " . $group_by . ' order by o.date_purchased';
         }
 
-        Yii::$app->getDb()->createCommand("SET SESSION group_concat_max_len = 5000000")->query();
+        Yii::$app->getDb()->createCommand('SET SESSION group_concat_max_len = 5000000')->query();
         $_query = Yii::$app->getDb()->createCommand($sql)->queryAll();
         $data = [];
         //echo $sql;die;
         if (is_array($_query) && count($_query)) {
-            foreach($_query as $row ){
+            foreach ($_query as $row) {
                 $row['period_full'] = date('m/d/Y H:i:s', strtotime($row['period']));
-                $row['cur_row'] = date('Y-M-d:H') == date('Y-M-d:H', strtotime($row['period']) );
-                if (ArrayHelper::getValue($this->request, 'with_products') && !$for_map){
+                $row['cur_row'] = date('Y-M-d:H') == date('Y-M-d:H', strtotime($row['period']));
+                if (ArrayHelper::getValue($this->request, 'with_products') && !$for_map) {
                     $this->collectProducts($row);
                 }
-                if ((isset($this->request['chart_group_item']['profit_amount']) || isset($this->request['chart_group_item']['profit_percent'])) && !$for_map){
+                if ((isset($this->request['chart_group_item']['profit_amount']) || isset($this->request['chart_group_item']['profit_percent'])) && !$for_map) {
                     $this->collectProfit($row);
                 }
                 unset($row['orders_ids']);
@@ -203,7 +212,7 @@ class BasicReport {
         //               "select year(o.date_purchased) as report_day, count(*) as report_total, sum(ot.value) as report_total_sum, ot.class from " . TABLE_ORDERS . " o inner join " . TABLE_ORDERS_TOTAL . " ot on (o.orders_id = ot.orders_id) where ".(USE_MARKET_PRICES == 'True' ? "o.currency = '" . tep_db_input($_GET['currency'] ? $_GET['currency'] : DEFAULT_CURRENCY) . "'" : '1')." ". self::$sel_status_sql . " group by year(o.date_purchased), ot.class order by report_day, ot.sort_order "
     }
 
-    protected function comparePurchases($baseArray = array())
+    protected function comparePurchases($baseArray = [])
     {
         if ($this->isLoop == true) {
             return $baseArray;
@@ -218,7 +227,7 @@ class BasicReport {
         ];
         $restoreList = [];
         foreach ($rangeList as $key) {
-            if (isset($this->{$key}) AND isset($this->{$key . '_cmp'})) {
+            if (isset($this->{$key}) and isset($this->{$key . '_cmp'})) {
                 $restoreList[$key] = $this->{$key};
                 $this->{$key} = $this->{$key . '_cmp'};
             }
@@ -231,7 +240,7 @@ class BasicReport {
             if (isset($compareArray[$key])) {
                 $cv = $compareArray[$key];
                 foreach ($cv as $cvt => $cvv) {
-                    if (isset($bv[$cvt]) AND is_numeric($cvv) AND !is_bool($cvv) AND ((float)$cvv > 0)) {
+                    if (isset($bv[$cvt]) and is_numeric($cvv) and !is_bool($cvv) and ((float)$cvv > 0)) {
                         $bv[$cvt] = ((float)$bv[$cvt] - (float)$cvv);
                     }
                 }
@@ -252,19 +261,21 @@ class BasicReport {
         return $baseArray;
     }
 
-    protected function collectProducts(&$row){
-        if (isset($row['orders_ids']) && !empty($row['orders_ids'])){
-            $orders_ids = explode(",", $row['orders_ids']);
-            if ($orders_ids){
+    protected function collectProducts(&$row)
+    {
+        if (isset($row['orders_ids']) && !empty($row['orders_ids'])) {
+            $orders_ids = explode(',', $row['orders_ids']);
+            if ($orders_ids) {
                 $row['products'] = \common\models\OrdersProducts::find()->select(['products_model', 'products_name', 'avg(final_price) as final_price', 'avg(final_price *((100+products_tax)/100)) as final_price_tax', 'sum(products_quantity) as products_quantity', 'uprid'])->where(['in', 'orders_id', $orders_ids])->asArray()->groupBy('uprid')->all();
-                foreach($row['products'] as &$product){
-                    $product['products_name'] = str_replace("'","", $product['products_name']);
+                foreach ($row['products'] as &$product) {
+                    $product['products_name'] = str_replace("'", '', $product['products_name']);
                 }
             }
         }
     }
 
-    protected function collectProfit(&$row) {
+    protected function collectProfit(&$row)
+    {
         if (isset($row['orders_ids']) && !empty($row['orders_ids'])) {
             $orders_ids = explode(',', $row['orders_ids']);
             if ($orders_ids) {
@@ -294,9 +305,10 @@ class BasicReport {
         }
     }
 
-    public function loadOtModules() {
+    public function loadOtModules()
+    {
 
-        $_query = tep_db_query("select class, if(sort_order, sort_order, 50) as sort_order from " . TABLE_ORDERS_TOTAL . " where 1 group by class order by sort_order");
+        $_query = tep_db_query('select class, if(sort_order, sort_order, 50) as sort_order from ' . TABLE_ORDERS_TOTAL . ' where 1 group by class order by sort_order');
         $data = [];
         $chart_items = $this->getFilteredModules();
         $manager = \common\services\OrderManager::loadManager();
@@ -304,16 +316,18 @@ class BasicReport {
         if (tep_db_num_rows($_query)) {
             while ($row = tep_db_fetch_array($_query)) {
                 $ot_module = $row['class'];
-                if (empty($ot_module))
+                if (empty($ot_module)) {
                     continue;
-                if (is_array($chart_items) && !in_array($ot_module, $chart_items))
+                }
+                if (is_array($chart_items) && !in_array($ot_module, $chart_items)) {
                     continue;
+                }
                 $sort = 0;
                 $module = $totalCollection->getModule($ot_module);
                 if ($module) {
                     $sort = $module->sort_order;
                 }
-                $data[$sort] = ['class' => $ot_module, 'title' => \common\helpers\Translation::getTranslationValue("MODULE_ORDER_TOTAL_" . strtoupper(substr($ot_module, 3)) . "_TITLE", 'ordertotal')];
+                $data[$sort] = ['class' => $ot_module, 'title' => \common\helpers\Translation::getTranslationValue('MODULE_ORDER_TOTAL_' . strtoupper(substr($ot_module, 3)) . '_TITLE', 'ordertotal')];
             }
         }
         ksort($data);
@@ -321,7 +335,8 @@ class BasicReport {
         return $_data;
     }
 
-    public function getFilteredModules() {
+    public function getFilteredModules()
+    {
         if (isset($this->request['chart_group_item']) && is_array($this->request['chart_group_item']) && count($this->request['chart_group_item'])) {
             $keys = array_keys($this->request['chart_group_item']);
             return $keys;
@@ -329,26 +344,32 @@ class BasicReport {
         return false;
     }
 
-    public function getOtModules() {
+    public function getOtModules()
+    {
         return $this->all_params['modules'];
     }
 
-    public function getFirstDatePurchase() {
-        $date = tep_db_fetch_array(tep_db_query("select min(date_purchased) as date from " . TABLE_ORDERS . " where 1"));
-        if ($date)
+    public function getFirstDatePurchase()
+    {
+        $date = tep_db_fetch_array(tep_db_query('select min(date_purchased) as date from ' . TABLE_ORDERS . ' where 1'));
+        if ($date) {
             return $date['date'];
+        }
         return false;
     }
 
-    public function getLastDatePurchase() {
-        $date = tep_db_fetch_array(tep_db_query("select max(date_purchased) as date from " . TABLE_ORDERS . " where 1"));
-        if ($date)
+    public function getLastDatePurchase()
+    {
+        $date = tep_db_fetch_array(tep_db_query('select max(date_purchased) as date from ' . TABLE_ORDERS . ' where 1'));
+        if ($date) {
             return $date['date'];
+        }
         return false;
     }
 
-    public function getYearsList() {
-        $years_query = tep_db_query("select distinct year(date_purchased) as year from " . TABLE_ORDERS . " where 1 order by date_purchased");
+    public function getYearsList()
+    {
+        $years_query = tep_db_query('select distinct year(date_purchased) as year from ' . TABLE_ORDERS . ' where 1 order by date_purchased');
         $years = [];
         $_prevous = null;
         if (tep_db_num_rows($years_query)) {
@@ -370,7 +391,8 @@ class BasicReport {
         return $years;
     }
 
-    public function convertColumnTitle($value) {
+    public function convertColumnTitle($value)
+    {
         if ($value == 'orders_avg') {
             return TEXT_ORDERS_AVG;
         }
@@ -389,12 +411,15 @@ class BasicReport {
         return ucfirst($value);
     }
 
-    public function prepareDaysRange($pattern = [], $date_pattern = '', &$range_class = []) {
+    public function prepareDaysRange($pattern = [], $date_pattern = '', &$range_class = [])
+    {
         $start = date('Y-m-d', mktime(0, 0, 0, $this->start_month, $this->start_day, $this->start_year));
         $end = date('Y-m-d', mktime(0, 0, 0, $this->end_month, $this->end_day, $this->end_year));
         $date_start = new \DateTime($start);
         $date_end = new \DateTime($end);
-        if ($date_end > new \DateTime()) $date_end = new \DateTime("now");
+        if ($date_end > new \DateTime()) {
+            $date_end = new \DateTime('now');
+        }
         $interval = $date_end->diff($date_start);
         $result = [];
         if ($interval->days > 0) {
@@ -402,10 +427,12 @@ class BasicReport {
             for ($i = 0; $i < $interval->days + 1; $i++) {
                 $date = new \DateTime($start);
                 $date->add(new \DateInterval('P' . $i . 'D'));
-                if(!in_array($date->format("mY"), $range_class)) $range_class[$i] = $date->format("mY");
+                if (!in_array($date->format('mY'), $range_class)) {
+                    $range_class[$i] = $date->format('mY');
+                }
                 if (!empty($date_pattern)) {
                     $pattern['period'] = $date->format($date_pattern);
-                    $pattern['period_full'] = $date->format("m/d/Y 00:00:00");
+                    $pattern['period_full'] = $date->format('m/d/Y 00:00:00');
                     $pattern['cur_row'] = date('Y-M-d') == $date->format('Y-M-d');
                 }
                 $result[$date->format('d-m-Y')] = $pattern;
@@ -415,19 +442,22 @@ class BasicReport {
             $date->add(new \DateInterval('P0D'));
             if (!empty($date_pattern)) {
                 $pattern['period'] = $date->format($date_pattern);
-                $pattern['period_full'] = $date->format("m/d/Y 00:00:00");
+                $pattern['period_full'] = $date->format('m/d/Y 00:00:00');
             }
             $result[$date->format('d-m-Y')] = $pattern;
         }
         return $result;
     }
 
-    public function prepareMonthRange($pattern = [], $date_pattern = '', &$range_class = []) {
+    public function prepareMonthRange($pattern = [], $date_pattern = '', &$range_class = [])
+    {
         $start = date('Y-m-d', mktime(0, 0, 0, $this->start_month, 1, $this->start_year));
         $end = date('Y-m-d', mktime(0, 0, 0, $this->end_month, 1, $this->end_year));
         $date_start = new \DateTime($start);
         $date_end = new \DateTime($end);
-        if ($date_end > new \DateTime()) $date_end = new \DateTime("now");
+        if ($date_end > new \DateTime()) {
+            $date_end = new \DateTime('now');
+        }
         $interval = $date_end->diff($date_start);
         $result = [];
 
@@ -436,10 +466,12 @@ class BasicReport {
             for ($i = 0; $i < ($interval->m + 1 + $interval->y * 12); $i++) {
                 $date = new \DateTime($start);
                 $date->add(new \DateInterval('P' . $i . 'M'));
-                if(!in_array($date->format("Y"), $range_class)) $range_class[$i] = $date->format("Y");
+                if (!in_array($date->format('Y'), $range_class)) {
+                    $range_class[$i] = $date->format('Y');
+                }
                 if (!empty($date_pattern)) {
                     $pattern['period'] = $date->format($date_pattern);
-                    $pattern['period_full'] = $date->format("m/d/Y 00:00:00");
+                    $pattern['period_full'] = $date->format('m/d/Y 00:00:00');
                     $pattern['cur_row'] = date('Y-M') == $date->format('Y-M');
                 }
                 $result[$date->format('m-Y')] = $pattern;
@@ -449,39 +481,41 @@ class BasicReport {
             $date->add(new \DateInterval('P0M'));
             if (!empty($date_pattern)) {
                 $pattern['period'] = $date->format($date_pattern);
-                $pattern['period_full'] = $date->format("m/d/Y 00:00:00");
+                $pattern['period_full'] = $date->format('m/d/Y 00:00:00');
             }
             $result[$date->format('m-Y')] = $pattern;
         }
         return $result;
     }
 
-    public function prepareYearsRange($pattern = [], $date_pattern = '') {
+    public function prepareYearsRange($pattern = [], $date_pattern = '')
+    {
         $start = $this->start_year;
         $end = $this->end_year;
         $result = [];
         if (is_numeric($end) && is_numeric($start)) {
             for ($i = $start; $i <= $end; $i++) {
-                $date = new \DateTime($i . "-01-01");
+                $date = new \DateTime($i . '-01-01');
                 $pattern['period'] = $date->format($date_pattern);
-                $pattern['period_full'] = $date->format("m/d/Y 00:00:00");
+                $pattern['period_full'] = $date->format('m/d/Y 00:00:00');
                 $result[$i] = $pattern;
             }
         }
         return $result;
     }
 
-    public function checkMonthDayYear() {
+    public function checkMonthDayYear()
+    {
         if (!checkdate($this->start_month, $this->start_day, $this->start_year)) {
-            $this->start_day = date("d");
-            $this->start_month = date("m");
-            $this->start_year = date("Y");
+            $this->start_day = date('d');
+            $this->start_month = date('m');
+            $this->start_year = date('Y');
         }
 
         if (!checkdate($this->end_month, $this->end_day, $this->end_year)) {
-            $this->end_day = date("d");
-            $this->end_month = date("m");
-            $this->end_year = date("Y");
+            $this->end_day = date('d');
+            $this->end_month = date('m');
+            $this->end_year = date('Y');
         }
 
         $check_start = mktime(0, 0, 0, $this->start_month, $this->start_day, $this->start_year);
@@ -493,7 +527,8 @@ class BasicReport {
         return $this;
     }
 
-    public function swapDates() {
+    public function swapDates()
+    {
         if (property_exists($this, 'start_day') && property_exists($this, 'end_day')) {
             $_start_day = $this->start_day;
             $this->start_day = $this->end_day;
@@ -511,7 +546,8 @@ class BasicReport {
         }
     }
 
-    public function insertAt(&$mas, $after, $key, $value) {
+    public function insertAt(&$mas, $after, $key, $value)
+    {
         $keys = array_keys($mas);
         $values = array_values($mas);
         if ($pos = array_search($after, $keys)) {
@@ -531,7 +567,8 @@ class BasicReport {
         }
     }
 
-    public function predefineMonthYear($month_year) {
+    public function predefineMonthYear($month_year)
+    {
         $this->month_year = $month_year;
         $month_year = $this->parseDate($month_year, false);
         $this->start_month = $month_year['month'];
@@ -542,7 +579,8 @@ class BasicReport {
         return $this;
     }
 
-    public function predefineStartCustomMonthYear($date) {
+    public function predefineStartCustomMonthYear($date)
+    {
         $this->start_custom = $date;
         $start_custom = $this->parseDate($date, false);
         $this->start_month = $start_custom['month'];
@@ -551,7 +589,8 @@ class BasicReport {
         return $this;
     }
 
-    public function predefineEndCustomMonthYear($date) {
+    public function predefineEndCustomMonthYear($date)
+    {
         $this->end_custom = $date;
         $end_custom = $this->parseDate($date, false);
         $this->end_month = $end_custom['month'];
@@ -560,7 +599,8 @@ class BasicReport {
         return $this;
     }
 
-    public function predefineStartCustomDayMonthYear($date) {
+    public function predefineStartCustomDayMonthYear($date)
+    {
         $this->start_custom = $date;
         $start_custom = $this->parseDate($date);
         $this->start_day = $start_custom['day'];
@@ -569,7 +609,8 @@ class BasicReport {
         return $this;
     }
 
-    public function predefineEndCustomDayMonthYear($date) {
+    public function predefineEndCustomDayMonthYear($date)
+    {
         $this->end_custom = $date;
         $end_custom = $this->parseDate($date);
         $this->end_day = $end_custom['day'];
@@ -578,15 +619,17 @@ class BasicReport {
         return $this;
     }
 
-    public function hasDailyItems() {
+    public function hasDailyItems()
+    {
         return false;
     }
 
-    public function getDataYear($data) {
+    public function getDataYear($data)
+    {
         $years = [];
         if (is_array($data)) {
             foreach ($data as $info) {
-                $_year = date("Y", strtotime($info['period_full']));
+                $_year = date('Y', strtotime($info['period_full']));
                 if (!in_array($_year, $years)) {
                     $years[] = $_year;
                 }
@@ -595,11 +638,13 @@ class BasicReport {
         return $years;
     }
 
-    public function setClassRange($class_range){
+    public function setClassRange($class_range)
+    {
         $this->class_range = $class_range;
     }
 
-    public function getClassRange(){
+    public function getClassRange()
+    {
         return $this->class_range;
     }
 

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -23,7 +25,7 @@ class PrivateLabelCard extends PayPalModel
      * encrypted identifier of the private label card instrument.
      *
      * @param string $id
-     * 
+     *
      * @return $this
      */
     public function setId($id)
@@ -46,7 +48,7 @@ class PrivateLabelCard extends PayPalModel
      * last 4 digits of the card number.
      *
      * @param string $card_number
-     * 
+     *
      * @return $this
      */
     public function setCardNumber($card_number)
@@ -69,7 +71,7 @@ class PrivateLabelCard extends PayPalModel
      * Merchants providing private label store cards have associated issuer account. This value indicates encrypted account number of the associated issuer account.
      *
      * @param string $issuer_id
-     * 
+     *
      * @return $this
      */
     public function setIssuerId($issuer_id)
@@ -92,7 +94,7 @@ class PrivateLabelCard extends PayPalModel
      * Merchants providing private label store cards have associated issuer account. This value indicates name on the issuer account.
      *
      * @param string $issuer_name
-     * 
+     *
      * @return $this
      */
     public function setIssuerName($issuer_name)
@@ -115,7 +117,7 @@ class PrivateLabelCard extends PayPalModel
      * This value indicates URL to access PLCC program logo image
      *
      * @param string $image_key
-     * 
+     *
      * @return $this
      */
     public function setImageKey($image_key)

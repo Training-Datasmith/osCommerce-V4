@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -15,8 +17,8 @@ namespace common\classes\modules;
 
 use common\models\OrdersLabel;
 
-abstract class ModuleLabel extends Module {
-
+abstract class ModuleLabel extends Module
+{
     public $shipping_weight;
     public $shipping_num_boxes;
 
@@ -28,8 +30,9 @@ abstract class ModuleLabel extends Module {
         return [];
     }
 
-    function quote($method = '') {
-        
+    public function quote($method = '')
+    {
+
     }
 
     /**
@@ -37,7 +40,8 @@ abstract class ModuleLabel extends Module {
      * @param int $orders_label_id
      * @return bool
      */
-    public function shipment_exists (int $order_id, int $orders_label_id) {
+    public function shipment_exists(int $order_id, int $orders_label_id)
+    {
         $check_label = \common\models\OrdersLabel::find()
             ->select(['orders_id', 'label_class', 'tracking_number', 'parcel_label_pdf'])
             ->andWhere(['orders_id' => $order_id, 'orders_label_id' => $orders_label_id])
@@ -58,13 +62,14 @@ abstract class ModuleLabel extends Module {
      * @param int $orders_label_id
      * @return float
      */
-    public function shipment_total (int $order_id, int $orders_label_id) {
+    public function shipment_total(int $order_id, int $orders_label_id)
+    {
         $shipment_total = 0;
         $oLabel = \common\models\OrdersLabel::findOne(['orders_id' => $order_id, 'orders_label_id' => $orders_label_id]);
         foreach ($oLabel->getOrdersLabelProducts() as $orders_products_id => $qty) {
             $oProduct = \common\models\OrdersProducts::findOne(['orders_id' => $order_id, 'orders_products_id' => $orders_products_id]);
-            if ($oProduct->final_price > 0 ) {
-                $shipment_total += \common\helpers\Tax::add_tax_always($oProduct->final_price,$oProduct->products_tax) * $qty;
+            if ($oProduct->final_price > 0) {
+                $shipment_total += \common\helpers\Tax::add_tax_always($oProduct->final_price, $oProduct->products_tax) * $qty;
             }
         }
         return $shipment_total;
@@ -75,7 +80,8 @@ abstract class ModuleLabel extends Module {
      * @param int $orders_label_id
      * @return float
      */
-    public function shipment_weight (int $order_id, int $orders_label_id) {
+    public function shipment_weight(int $order_id, int $orders_label_id)
+    {
         $shipment_weight = 0;
         $oLabel = \common\models\OrdersLabel::findOne(['orders_id' => $order_id, 'orders_label_id' => $orders_label_id]);
         foreach ($oLabel->getOrdersLabelProducts() as $orders_products_id => $qty) {
@@ -94,7 +100,8 @@ abstract class ModuleLabel extends Module {
      * @param int $orders_label_id
      * @return float|int
      */
-    public function shipment_volume_weight(int $order_id, int $orders_label_id) {
+    public function shipment_volume_weight(int $order_id, int $orders_label_id)
+    {
         $shipment_volume = 0;
         $oLabel = \common\models\OrdersLabel::findOne(['orders_id' => $order_id, 'orders_label_id' => $orders_label_id]);
         foreach ($oLabel->getOrdersLabelProducts() as $orders_products_id => $qty) {
@@ -109,34 +116,42 @@ abstract class ModuleLabel extends Module {
      * @param type $delivery_date
      * @return boolean
      */
-    public function checkDeliveryDate($delivery_date) {
-        if (tep_not_null($delivery_date) && $delivery_date != '0000-00-00')
+    public function checkDeliveryDate($delivery_date)
+    {
+        if (tep_not_null($delivery_date) && $delivery_date != '0000-00-00') {
             return true;
+        }
         return false;
     }
-    
+
     /*if used physical delivery*/
-    public function useDelivery() {
+    public function useDelivery()
+    {
         return true;
     }
-    
-    public function setWeight($weight){
+
+    public function setWeight($weight)
+    {
         $this->shipping_weight = $weight;
     }
-    
-    public function setNumBoxes($numBoxes){
+
+    public function setNumBoxes($numBoxes)
+    {
         $this->shipping_num_boxes = $numBoxes;
     }
-        
-    public function setPlatform(int $platform_id){
+
+    public function setPlatform(int $platform_id)
+    {
         $this->platform_id = $platform_id;
     }
-    
-    public function getGroupRestriction($platform_id) {
+
+    public function getGroupRestriction($platform_id)
+    {
         return '';
     }
-    
-    public function getRestriction($platform_id, $languages_id, $ignoreVisibility = false) {
+
+    public function getRestriction($platform_id, $languages_id, $ignoreVisibility = false)
+    {
         return parent::getRestriction($platform_id, $languages_id, true);
     }
 
@@ -144,7 +159,7 @@ abstract class ModuleLabel extends Module {
     {
         return false;
     }
-    
+
     /**
      * Allows to show extra params for label
      * @param $order_label_id
@@ -190,19 +205,19 @@ abstract class ModuleLabel extends Module {
                     }
                     switch ($info['type']) {
                         case 'edit':
-                            $html .= \common\helpers\Html::textInput($paramName, $info['value']??null, ['id' => $paramName]);
+                            $html .= \common\helpers\Html::textInput($paramName, $info['value'] ?? null, ['id' => $paramName]);
                             break;
                         case 'checkbox':
-                            $html .= \common\helpers\Html::checkbox($paramName, $info['value']??false, ['id' => $paramName]);
+                            $html .= \common\helpers\Html::checkbox($paramName, $info['value'] ?? false, ['id' => $paramName]);
                             if (!empty($info['label'])) {
                                 $html .= sprintf('<label for="%s">%s</label>', $paramName, $info['label']);
                             }
                             break;
                         case 'dropdown':
-                            $html .= \common\helpers\Html::dropDownList($paramName, $info['value']??null, $info['dropdown'], ['id' => $paramName]);
+                            $html .= \common\helpers\Html::dropDownList($paramName, $info['value'] ?? null, $info['dropdown'], ['id' => $paramName]);
                             break;
                     }
-                    
+
                 } catch (\Throwable $e) {
                     \common\helpers\Php::handleErrorProd($e, __FUNCTION__, "label/$moduleCode");
                 }
@@ -212,7 +227,7 @@ abstract class ModuleLabel extends Module {
         }
         return $html;
     }
-    
+
     public function extractExtraParamsValues($params)
     {
         $moduleCode = static::getModuleCode();
@@ -235,10 +250,10 @@ abstract class ModuleLabel extends Module {
             return @json_decode($rec->extra_params, true);
         }
     }
-    
+
     public function isExtraParamsAvailable()
     {
         return method_exists($this, 'getExtraParamsArray') && !empty($this->getExtraParamsArray());
     }
-    
+
 }

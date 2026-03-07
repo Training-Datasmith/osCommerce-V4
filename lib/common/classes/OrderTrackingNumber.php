@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,11 @@
 
 namespace common\classes;
 
-
-use common\models\TrackingCarriers;
 use common\models\TrackingNumbers;
 use common\models\TrackingNumbersToOrdersProducts;
 
 class OrderTrackingNumber extends TrackingNumbers
 {
-
     public $tracking_url;
     public $number;
     public $carrier;
@@ -49,23 +48,23 @@ class OrderTrackingNumber extends TrackingNumbers
         $parsed = \common\helpers\Order::parse_tracking_number($this->tracking_number);
         $this->number = $parsed['number'];
         $this->tracking_url = $parsed['url'];
-        if ( !empty($parsed['carrier']) ) {
+        if (!empty($parsed['carrier'])) {
             $this->carrier = $parsed['carrier'];
             /** @var \common\extensions\TrackingCarriers\TrackingCarriers $ext */
             if ($trackingCarriersId = \common\helpers\Extensions::callIfAllowed('TrackingCarriers', 'getTrackingCarriersId', [$this->carrier])) {
                 $this->tracking_carriers_id = $trackingCarriersId;
-            } else{
+            } else {
                 $this->tracking_carriers_id = 0;
             }
         }
-        if ( empty($this->tracking_url) ){
+        if (empty($this->tracking_url)) {
             /** @var \common\extensions\TrackingCarriers\TrackingCarriers $ext */
-            if ( $record = \common\helpers\Extensions::callIfAllowed('TrackingCarriers', 'getTrackingCarriersRecord', [$this->tracking_carriers_id]) ) {
+            if ($record = \common\helpers\Extensions::callIfAllowed('TrackingCarriers', 'getTrackingCarriersRecord', [$this->tracking_carriers_id])) {
                 $this->carrier = $record->tracking_carriers_name;
                 $this->tracking_url = $record->tracking_carriers_url.$this->number;
             } else {
                 $this->carrier = '';
-                $this->tracking_url = TRACKING_NUMBER_URL.str_replace(' ','', $this->number);
+                $this->tracking_url = TRACKING_NUMBER_URL.str_replace(' ', '', $this->number);
             }
         }
     }
@@ -73,10 +72,10 @@ class OrderTrackingNumber extends TrackingNumbers
     public static function getTrackingFromTable($orderId)
     {
         $tracking_table = static::find()
-            ->where(['orders_id'=>$orderId])
-            ->orderBy(['tracking_numbers_id'=>SORT_ASC])
+            ->where(['orders_id' => $orderId])
+            ->orderBy(['tracking_numbers_id' => SORT_ASC])
             ->all();
-        foreach ($tracking_table as $tracking){
+        foreach ($tracking_table as $tracking) {
             /**
              * @var $tracking OrderTrackingNumber
              */
@@ -84,10 +83,10 @@ class OrderTrackingNumber extends TrackingNumbers
 
             foreach (
                 TrackingNumbersToOrdersProducts::find()
-                    ->where(['tracking_numbers_id'=>$tracking->tracking_numbers_id])
-                    ->andWhere(['orders_id'=>$tracking->orders_id])
-                    ->orderBy(['orders_products_id'=>SORT_ASC])
-                    ->all() as $orderProductTrack){
+                    ->where(['tracking_numbers_id' => $tracking->tracking_numbers_id])
+                    ->andWhere(['orders_id' => $tracking->orders_id])
+                    ->orderBy(['orders_products_id' => SORT_ASC])
+                    ->all() as $orderProductTrack) {
                 $tracking->products[$orderProductTrack->orders_products_id] = $orderProductTrack->products_quantity;
             }
 
@@ -102,7 +101,7 @@ class OrderTrackingNumber extends TrackingNumbers
 
     public function setOrderProducts($products)
     {
-        if ( is_array($products) ) {
+        if (is_array($products)) {
             $this->products = $products;
             $this->modified_products = true; //TODO: need data check for modified array
         }
@@ -112,33 +111,35 @@ class OrderTrackingNumber extends TrackingNumbers
     {
         $process_products = $this->products;
         $currentCollection = TrackingNumbersToOrdersProducts::find()
-            ->where(['tracking_numbers_id'=>$this->tracking_numbers_id])
-            ->andWhere(['orders_id'=>$this->orders_id])
+            ->where(['tracking_numbers_id' => $this->tracking_numbers_id])
+            ->andWhere(['orders_id' => $this->orders_id])
             ->all();
         foreach ($currentCollection as $currentProduct) {
             if (isset($process_products[$currentProduct->orders_products_id])) {
                 $qtyDelta = ((int)$process_products[$currentProduct->orders_products_id] - (int)$currentProduct->products_quantity);
                 if ($qtyDelta > 0) {
-                    if (\common\helpers\OrderProduct::doDispatchSpecific($currentProduct->orders_products_id, $qtyDelta) == true AND $qtyDelta > 0) {
+                    if (\common\helpers\OrderProduct::doDispatchSpecific($currentProduct->orders_products_id, $qtyDelta) == true and $qtyDelta > 0) {
                         $currentProduct->products_quantity += $qtyDelta;
                         try {
                             $currentProduct->save();
-                        } catch (\Exception $exc) {}
+                        } catch (\Exception $exc) {
+                        }
                     }
                 }
                 unset($process_products[$currentProduct->orders_products_id]);
             }
         }
-        foreach ($process_products as $orders_products_id=>$products_quantity){
+        foreach ($process_products as $orders_products_id => $products_quantity) {
             $obj = new TrackingNumbersToOrdersProducts();
             $obj->tracking_numbers_id = $this->tracking_numbers_id;
             $obj->orders_id = $this->orders_id;
             $obj->orders_products_id = $orders_products_id;
-            if (\common\helpers\OrderProduct::doDispatchSpecific($orders_products_id, $products_quantity) == true AND $products_quantity > 0) {
+            if (\common\helpers\OrderProduct::doDispatchSpecific($orders_products_id, $products_quantity) == true and $products_quantity > 0) {
                 $obj->products_quantity = $products_quantity;
                 try {
                     $obj->save(false);
-                } catch (\Exception $exc) {}
+                } catch (\Exception $exc) {
+                }
             }
         }
         \common\helpers\Order::evaluate($this->orders_id);
@@ -151,14 +152,12 @@ class OrderTrackingNumber extends TrackingNumbers
         $this->dataLoaded();
     }
 
-
     public function __toString()
     {
-        if ( !empty($this->carrier) ) {
+        if (!empty($this->carrier)) {
             return (string)$this->carrier.','.(string)$this->number;
         }
         return (string)$this->number;
     }
-
 
 }

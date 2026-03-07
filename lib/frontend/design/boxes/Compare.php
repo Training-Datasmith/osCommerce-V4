@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,9 @@
 
 namespace frontend\design\boxes;
 
+use frontend\design\Info;
 use Yii;
 use yii\base\Widget;
-use frontend\design\Info;
 
 class Compare extends Widget
 {
@@ -33,7 +35,7 @@ class Compare extends Widget
             'compare' => [
                 'compareUrl' => Yii::$app->urlManager->createUrl('catalog/compare'),
                 //'byCategory' => $_SESSION['compare'],
-            ]
+            ],
         ]]);
         Info::addJsData(['tr' => [
             'TEXT_CLEANING_ALL' => TEXT_CLEANING_ALL,

@@ -1,11 +1,13 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -32,7 +34,6 @@ define('TABLE_LANGUAGES', 'languages');
 define('TABLE_MANUFACTURERS', 'manufacturers');
 define('TABLE_MANUFACTURERS_INFO', 'manufacturers_info');
 define('TABLE_META_TAGS', 'meta_tags');
-
 
 define('TABLE_ORDERS', 'orders');
 define('TABLE_ORDERS_PRODUCTS', 'orders_products');
@@ -84,8 +85,8 @@ define('TABLE_PRODUCTS_ATTRIBUTES_PRICES', 'products_attributes_prices');
 define('TABLE_SPECIALS_PRICES', 'specials_prices');
 define('TABLE_INVENTORY', 'inventory');
 
-define('TABLE_PRODUCTS_STOCK_INDICATION','products_stock_indication');
-define('TABLE_PRODUCTS_STOCK_INDICATION_TEXT','products_stock_indication_text');
+define('TABLE_PRODUCTS_STOCK_INDICATION', 'products_stock_indication');
+define('TABLE_PRODUCTS_STOCK_INDICATION_TEXT', 'products_stock_indication_text');
 
 define('TABLE_PROPERTIES_CATEGORIES', 'properties_categories');
 define('TABLE_PROPERTIES_CATEGORIES_DESCRIPTION', 'properties_categories_description');
@@ -120,7 +121,6 @@ define('TABLE_GIFT_WRAP_PRODUCTS', 'gift_wrap_products');
 define('TABLE_VIRTUAL_GIFT_CARD_BASKET', 'virtual_gift_card_basket');
 define('TABLE_VIRTUAL_GIFT_CARD_PRICES', 'virtual_gift_card_prices');
 
-
 define('TABLE_DESIGN_BOXES', 'design_boxes');
 define('TABLE_DESIGN_BOXES_TMP', 'design_boxes_tmp');
 define('TABLE_DESIGN_BOXES_SETTINGS', 'design_boxes_settings');
@@ -134,13 +134,12 @@ define('TABLE_MENUS', 'menus');
 define('TABLE_MENU_ITEMS', 'menu_items');
 define('TABLE_MENU_TITLES', 'menu_titles');
 
-
 define('TABLE_PRODUCTS_IMAGES', 'products_images');
 define('TABLE_PRODUCTS_IMAGES_DESCRIPTION', 'products_images_description');
 define('TABLE_PRODUCTS_IMAGES_EXTERNAL_URL', 'products_images_external_url');
 define('TABLE_IMAGE_TYPES', 'image_types');
-define('TABLE_IMAGE_CACHE_KEYS','image_cache_keys');
-define('TABLE_IMAGE_COPY_REFERENCE','image_copy_reference');
+define('TABLE_IMAGE_CACHE_KEYS', 'image_cache_keys');
+define('TABLE_IMAGE_COPY_REFERENCE', 'image_copy_reference');
 define('TABLE_PRODUCTS_IMAGES_ATTRIBUTES', 'products_images_attributes');
 define('TABLE_BANNERS_LANGUAGES', 'banners_languages');
 define('TABLE_BANNERS_NEW', 'banners_new');
@@ -238,11 +237,11 @@ define('TABLE_CUSTOMERS_QUOTE', 'customers_quote');
 define('TABLE_CUSTOMERS_QUOTE_ATTRIBUTES', 'customers_quote_attributes');
 
 /* PC configurator addon begin */
-  define('TABLE_PRODUCTS_TO_PCTEMPLATES_TO_ELEMENTS', 'products_to_pctemplates_to_elements');
-  define('TABLE_PRODUCTS_TO_ELEMENTS', 'products_to_elements');
-  define('TABLE_PCTEMPLATES_INFO', 'pctemplates_info');
-  define('TABLE_PCTEMPLATES', 'pctemplates');
-  define('TABLE_ELEMENTS', 'elements');
+define('TABLE_PRODUCTS_TO_PCTEMPLATES_TO_ELEMENTS', 'products_to_pctemplates_to_elements');
+define('TABLE_PRODUCTS_TO_ELEMENTS', 'products_to_elements');
+define('TABLE_PCTEMPLATES_INFO', 'pctemplates_info');
+define('TABLE_PCTEMPLATES', 'pctemplates');
+define('TABLE_ELEMENTS', 'elements');
 //  define('TABLE_ORDERS_PRODUCTS_ELEMENTS', 'orders_products_elements');
 /* PC configurator addon end */
 
@@ -252,7 +251,6 @@ define('TABLE_PROMOTIONS', 'promotions');
 define('TABLE_PROMOTIONS_SETS', 'promotions_sets');
 define('TABLE_PROMOTIONS_CONDITIONS', 'promotions_conditions');
 define('TABLE_PROMOTIONS_SETS_CONDITIONS', 'promotions_sets_conditions');
-
 
 define('TABLE_COLLECTIONS', 'collections');
 define('TABLE_COLLECTIONS_TO_PRODUCTS', 'collections_to_products');

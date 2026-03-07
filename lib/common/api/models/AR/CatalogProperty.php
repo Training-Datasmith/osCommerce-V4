@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +13,6 @@
  */
 
 namespace common\api\models\AR;
-
 
 use common\api\models\AR\CatalogProperty\PropertyDescription;
 use yii\db\Expression;
@@ -34,12 +35,12 @@ class CatalogProperty extends EPMap
 
     public function initCollectionByLookupKey_Descriptions($lookupKeys)
     {
-        $loadAll = in_array('*',$lookupKeys);
-        foreach(PropertyDescription::getAllKeyCodes() as $keyCode=>$lookupPK){
+        $loadAll = in_array('*', $lookupKeys);
+        foreach (PropertyDescription::getAllKeyCodes() as $keyCode => $lookupPK) {
             $this->childCollections['descriptions'][$keyCode] = null;
-            if ( is_null($this->properties_id) ) {
+            if (is_null($this->properties_id)) {
                 $this->childCollections['descriptions'][$keyCode] = new PropertyDescription($lookupPK);
-            }elseif( $loadAll || in_array($keyCode,$lookupKeys) ) {
+            } elseif ($loadAll || in_array($keyCode, $lookupKeys)) {
                 if (!isset($this->childCollections['descriptions'][$keyCode])) {
                     $lookupPK['properties_id'] = $this->properties_id;
                     $this->childCollections['descriptions'][$keyCode] = PropertyDescription::findOne($lookupPK);
@@ -59,13 +60,13 @@ class CatalogProperty extends EPMap
             return false;
         }
 
-        if ( $insert ) {
-            if ( empty($this->date_added) ) {
-                $this->date_added = new Expression("NOW()");
+        if ($insert) {
+            if (empty($this->date_added)) {
+                $this->date_added = new Expression('NOW()');
             }
-        }else{
-            if ( $this->isModified() ) {
-                $this->last_modified = new Expression("NOW()");
+        } else {
+            if ($this->isModified()) {
+                $this->last_modified = new Expression('NOW()');
             }
         }
 

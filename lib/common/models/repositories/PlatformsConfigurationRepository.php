@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -10,10 +12,11 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+
 namespace common\models\repositories;
+
 use common\models\PlatformsConfiguration;
 use yii\db\ActiveQuery;
-
 
 /**
  * Class PlatformsConfigurationRepository
@@ -29,7 +32,7 @@ final class PlatformsConfigurationRepository
     public function findById($id, bool $asArray = false)
     {
         $configuration = PlatformsConfiguration::find()
-            ->where(['configuration_id'=> $id])
+            ->where(['configuration_id' => $id])
             ->asArray($asArray)
         ;
         if (is_array($id)) {
@@ -85,13 +88,13 @@ final class PlatformsConfigurationRepository
      */
     public function edit(PlatformsConfiguration $configuration, array $params = [], bool $validation = false, bool $safeOnly = false)
     {
-        foreach ($params as $attribute => $param){
-            if(!$configuration->hasAttribute($attribute)){
+        foreach ($params as $attribute => $param) {
+            if (!$configuration->hasAttribute($attribute)) {
                 unset($params[$attribute]);
             }
         }
         $configuration->setAttributes($params, $safeOnly);
-        if($configuration->update($validation, array_keys($params)) === false){
+        if ($configuration->update($validation, array_keys($params)) === false) {
             return $configuration->getErrors();
         }
         return true;

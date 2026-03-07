@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,10 +24,8 @@ class m230621_112859_questionnaire_remove_old_translation extends Migration
      */
     public function safeUp()
     {
-        if (method_exists($this, 'isOldExtension'))
-        {
-            if (!$this->isOldExtension('Questionnaire'))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension('Questionnaire')) {
                 $this->removeTranslation('admin/questionnaire');
                 $this->removeTranslation('questionnaire');
             }
@@ -37,7 +37,7 @@ class m230621_112859_questionnaire_remove_old_translation extends Migration
      */
     public function safeDown()
     {
-        $this->addTranslation('admin/questionnaire',[
+        $this->addTranslation('admin/questionnaire', [
             'QUESTIONNAIRE' => 'Questionnaire',
             'QUESTIONNAIRE_GROUPS' => 'Questionnaire groups',
             'QUESTIONNAIRE_EDIT' => 'Edit question',
@@ -53,7 +53,7 @@ class m230621_112859_questionnaire_remove_old_translation extends Migration
             'TEXT_SUCCESS_MESSAGE' => 'Success message',
         ]);
 
-        $this->addTranslation('questionnaire',[
+        $this->addTranslation('questionnaire', [
             'QUESTIONNAIRE_PLEASE_LOGIN' => 'Please login',
             'TEXT_CONFIRM' => 'Confirm',
             'YOU_CAN_VOTE_ONLY_ONCE' => 'You can vote only once',

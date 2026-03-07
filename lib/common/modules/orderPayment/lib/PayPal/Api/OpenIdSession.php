@@ -1,13 +1,14 @@
 <?php
-namespace PayPal\Api;
 
+declare(strict_types=1);
+
+namespace PayPal\Api;
 
 use PayPal\Core\PayPalConstants;
 use PayPal\Rest\ApiContext;
 
 class OpenIdSession
 {
-
     /**
      * Returns the PayPal URL to which the user must be redirected to
      * start the authentication / authorization process.
@@ -34,18 +35,18 @@ class OpenIdSession
 
         $clientId = $clientId ? $clientId : $apiContext->getCredential()->getClientId();
 
-        $scope = count($scope) != 0 ? $scope : array('openid', 'profile', 'address', 'email', 'phone',
-            'https://uri.paypal.com/services/paypalattributes', 'https://uri.paypal.com/services/expresscheckout');
+        $scope = count($scope) != 0 ? $scope : ['openid', 'profile', 'address', 'email', 'phone',
+            'https://uri.paypal.com/services/paypalattributes', 'https://uri.paypal.com/services/expresscheckout'];
         if (!in_array('openid', $scope)) {
             $scope[] = 'openid';
         }
 
-        $params = array(
+        $params = [
             'client_id' => $clientId,
             'response_type' => 'code',
-            'scope' => implode(" ", $scope),
-            'redirect_uri' => $redirectUri
-        );
+            'scope' => implode(' ', $scope),
+            'redirect_uri' => $redirectUri,
+        ];
 
         if ($nonce) {
             $params['nonce'] = $nonce;
@@ -53,9 +54,8 @@ class OpenIdSession
         if ($state) {
             $params['state'] = $state;
         }
-        return sprintf("%s/signin/authorize?%s", self::getBaseUrl($config), http_build_query($params));
+        return sprintf('%s/signin/authorize?%s', self::getBaseUrl($config), http_build_query($params));
     }
-
 
     /**
      * Returns the URL to which the user must be redirected to
@@ -75,12 +75,12 @@ class OpenIdSession
         }
         $config = $apiContext->getConfig();
 
-        $params = array(
+        $params = [
             'id_token' => $idToken,
             'redirect_uri' => $redirectUri,
-            'logout' => 'true'
-        );
-        return sprintf("%s/webapps/auth/protocol/openidconnect/v1/endsession?%s", self::getBaseUrl($config), http_build_query($params));
+            'logout' => 'true',
+        ];
+        return sprintf('%s/webapps/auth/protocol/openidconnect/v1/endsession?%s', self::getBaseUrl($config), http_build_query($params));
     }
 
     /**
@@ -94,7 +94,7 @@ class OpenIdSession
 
         if (array_key_exists('openid.RedirectUri', $config)) {
             return $config['openid.RedirectUri'];
-        } else if (array_key_exists('mode', $config)) {
+        } elseif (array_key_exists('mode', $config)) {
             switch (strtoupper($config['mode'])) {
                 case 'SANDBOX':
                     return PayPalConstants::OPENID_REDIRECT_SANDBOX_URL;

@@ -1,10 +1,14 @@
 <?php
+
+declare(strict_types=1);
+
 namespace common\modules\analytic;
 
-trait adTrait {
-    
-    public function collectCookie(){
-return <<<EOD
+trait adTrait
+{
+    public function collectCookie()
+    {
+        return <<<EOD
 if (typeof Promise == 'undefined'){ var s=document.createElement('script');s.setAttribute('src', '//cdnjs.cloudflare.com/ajax/libs/bluebird/3.3.4/bluebird.min.js');document.head.appendChild(s); s.onload = function(){ loadGA(); } } else { loadGA(); }
 'use strict';
 function loadGA(){

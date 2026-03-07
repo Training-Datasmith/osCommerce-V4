@@ -1,5 +1,6 @@
 <?php
 
+declare(strict_types=1);
 
 /**
  * This file is part of osCommerce ecommerce platform.
@@ -12,13 +13,12 @@
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-
 namespace common\extensions\StockControl;
 
-use common\extensions\StockControl\models\PlatformStockControl;
-use common\extensions\StockControl\models\WarehouseStockControl;
 use common\extensions\StockControl\models\PlatformInventoryControl;
+use common\extensions\StockControl\models\PlatformStockControl;
 use common\extensions\StockControl\models\WarehouseInventoryControl;
+use common\extensions\StockControl\models\WarehouseStockControl;
 
 class StockControl extends \common\classes\modules\ModuleExtensions
 {
@@ -28,7 +28,7 @@ class StockControl extends \common\classes\modules\ModuleExtensions
             if ($productRecord instanceof \common\models\Products) {
                 $stockControl = (int)\Yii::$app->request->post('stock_control', 0);
                 if (((int)\Yii::$app->request->post('is_bundle', 0) > 0)
-                    OR ((int)\Yii::$app->request->post('manual_stock_unlimited', 0) > 0)
+                    or ((int)\Yii::$app->request->post('manual_stock_unlimited', 0) > 0)
                 ) {
                     $stockControl = 0;
                 }
@@ -92,11 +92,11 @@ class StockControl extends \common\classes\modules\ModuleExtensions
             if (\Yii::$app->request->post('inventory_control_present', 0)) {
                 $stockControl = (int)\Yii::$app->request->post('inventory_control_' . $uProductId);
                 if (((int)\Yii::$app->request->post('manual_stock_unlimited', 0) > 0)
-                    OR ((int)\Yii::$app->request->post('is_bundle', 0) > 0)
+                    or ((int)\Yii::$app->request->post('is_bundle', 0) > 0)
                 ) {
                     $stockControl = 0;
                 }
-                tep_db_query("update " . TABLE_INVENTORY . " set stock_control = '" . $stockControl . "' where products_id = '" . tep_db_input($uProductId) . "'");
+                tep_db_query('update ' . TABLE_INVENTORY . " set stock_control = '" . $stockControl . "' where products_id = '" . tep_db_input($uProductId) . "'");
                 switch ($stockControl) {
                     case 0:
                         break;
@@ -151,7 +151,7 @@ class StockControl extends \common\classes\modules\ModuleExtensions
     public static function viewProductEdit($pInfo)
     {
         return Render::widget2('admin-product-detail', [
-            'pInfo' => $pInfo
+            'pInfo' => $pInfo,
         ]);
     }
 
@@ -166,7 +166,7 @@ class StockControl extends \common\classes\modules\ModuleExtensions
         return Render::widget2('admin-stock-tab', [
             'ikey' => $ikey,
             'inventory' => $inventory,
-            'isStockUnlimited' => $isStockUnlimited
+            'isStockUnlimited' => $isStockUnlimited,
         ]);
     }
 
@@ -195,7 +195,8 @@ class StockControl extends \common\classes\modules\ModuleExtensions
             $platformWarehouseList[] = [
                 'id' => $platform['id'],
                 'name' => $platform['text'],
-                'warehouse' => (isset($warehouseStockControlList[$platform['id']])
+                'warehouse' => (
+                    isset($warehouseStockControlList[$platform['id']])
                     ? $warehouseStockControlList[$platform['id']]
                     : \common\helpers\Warehouses::get_default_warehouse()
                 ),
@@ -216,13 +217,15 @@ class StockControl extends \common\classes\modules\ModuleExtensions
         $platformStockList = [];
         $platforWarehouseList = [];
         $productId = (int)$productId;
-        $warehouseStockControlList = (WarehouseInventoryControl::find()->andWhere(['products_id' => $productId])
+        $warehouseStockControlList = (
+            WarehouseInventoryControl::find()->andWhere(['products_id' => $productId])
             ->select('warehouse_id')->asArray(true)->indexBy('platform_id')->column()
         );
-        $platformStockControlList = (PlatformInventoryControl::find()->andWhere(['products_id' => $productId])
+        $platformStockControlList = (
+            PlatformInventoryControl::find()->andWhere(['products_id' => $productId])
             ->select('current_quantity')->asArray(true)->indexBy('platform_id')->column()
         );
-        foreach(\common\models\Platforms::find()->where(['status' => 1])->orderBy(['sort_order' => SORT_ASC])
+        foreach (\common\models\Platforms::find()->where(['status' => 1])->orderBy(['sort_order' => SORT_ASC])
             ->asArray(false)->all() as $platformRecord
         ) {
             $platformStockList[] = [
@@ -260,11 +263,12 @@ class StockControl extends \common\classes\modules\ModuleExtensions
                 if (is_object($warehouseInventoryControl)) {
                     $supplierId = (int)0;
                     $warehouseId = (int)$warehouseInventoryControl->warehouse_id;
-                    $warehouses_stock_query = tep_db_query("select w.warehouse_id, w.warehouse_name, sum(wp.products_quantity) as products_quantity,"
-                        . " sum(wp.allocated_stock_quantity) as allocated_stock_quantity, sum(wp.temporary_stock_quantity) as temporary_stock_quantity,"
-                        . " sum(wp.warehouse_stock_quantity) as warehouse_stock_quantity, sum(wp.ordered_stock_quantity) as ordered_stock_quantity"
-                        . " from  " . TABLE_WAREHOUSES . " w left join " . TABLE_WAREHOUSES_PRODUCTS . " wp on wp.warehouse_id = w.warehouse_id"
-                            . (($supplierId > 0) ? " and wp.suppliers_id = '{$supplierId}'" : "")
+                    $warehouses_stock_query = tep_db_query(
+                        'select w.warehouse_id, w.warehouse_name, sum(wp.products_quantity) as products_quantity,'
+                        . ' sum(wp.allocated_stock_quantity) as allocated_stock_quantity, sum(wp.temporary_stock_quantity) as temporary_stock_quantity,'
+                        . ' sum(wp.warehouse_stock_quantity) as warehouse_stock_quantity, sum(wp.ordered_stock_quantity) as ordered_stock_quantity'
+                        . ' from  ' . TABLE_WAREHOUSES . ' w left join ' . TABLE_WAREHOUSES_PRODUCTS . ' wp on wp.warehouse_id = w.warehouse_id'
+                            . (($supplierId > 0) ? " and wp.suppliers_id = '{$supplierId}'" : '')
                             . " and wp.products_id = '{$uProductId}'"
                             . " and wp.prid = '" . (int)$uProductId . "'"
                         . " where w.status = '1' and w.warehouse_id = '{$warehouseId}'"
@@ -302,11 +306,12 @@ class StockControl extends \common\classes\modules\ModuleExtensions
                 if (is_object($warehouseStockControl)) {
                     $supplierId = (int)0;
                     $warehouseId = (int)$warehouseStockControl->warehouse_id;
-                    $warehouses_stock_query = tep_db_query("select w.warehouse_id, w.warehouse_name, sum(wp.products_quantity) as products_quantity,"
-                        . " sum(wp.allocated_stock_quantity) as allocated_stock_quantity, sum(wp.temporary_stock_quantity) as temporary_stock_quantity,"
-                        . " sum(wp.warehouse_stock_quantity) as warehouse_stock_quantity, sum(wp.ordered_stock_quantity) as ordered_stock_quantity"
-                        . " from  " . TABLE_WAREHOUSES . " w left join " . TABLE_WAREHOUSES_PRODUCTS . " wp on wp.warehouse_id = w.warehouse_id"
-                            . (($supplierId > 0) ? " and wp.suppliers_id = '{$supplierId}'" : "")
+                    $warehouses_stock_query = tep_db_query(
+                        'select w.warehouse_id, w.warehouse_name, sum(wp.products_quantity) as products_quantity,'
+                        . ' sum(wp.allocated_stock_quantity) as allocated_stock_quantity, sum(wp.temporary_stock_quantity) as temporary_stock_quantity,'
+                        . ' sum(wp.warehouse_stock_quantity) as warehouse_stock_quantity, sum(wp.ordered_stock_quantity) as ordered_stock_quantity'
+                        . ' from  ' . TABLE_WAREHOUSES . ' w left join ' . TABLE_WAREHOUSES_PRODUCTS . ' wp on wp.warehouse_id = w.warehouse_id'
+                            . (($supplierId > 0) ? " and wp.suppliers_id = '{$supplierId}'" : '')
                             . " and wp.products_id = '{$productId}'"
                             . " and wp.prid = '{$productId}'"
                         . " where w.status = '1' and w.warehouse_id = '{$warehouseId}'"
@@ -334,10 +339,11 @@ class StockControl extends \common\classes\modules\ModuleExtensions
         $uProductId = \common\helpers\Inventory::normalize_id_excl_virtual($uProductId);
         if (\common\helpers\Inventory::isInventory($uProductId) != true) {
             $productRecord = \common\helpers\Product::getRecord($uProductId);
-            if (($productRecord instanceof \common\models\Products) AND ($productRecord->stock_control == 1)) {
+            if (($productRecord instanceof \common\models\Products) and ($productRecord->stock_control == 1)) {
                 $return = 0;
-                $platformStockControl = (PlatformStockControl::find()->andWhere(['products_id' => $uProductId, 'platform_id' => $platformId])
-                    ->cache((defined('ALLOW_ANY_QUERY_CACHE') AND (ALLOW_ANY_QUERY_CACHE == 'True')) ? \common\helpers\Product::PRODUCT_RECORD_CACHE : -1)
+                $platformStockControl = (
+                    PlatformStockControl::find()->andWhere(['products_id' => $uProductId, 'platform_id' => $platformId])
+                    ->cache((defined('ALLOW_ANY_QUERY_CACHE') and (ALLOW_ANY_QUERY_CACHE == 'True')) ? \common\helpers\Product::PRODUCT_RECORD_CACHE : -1)
                     ->one()
                 );
                 if ($platformStockControl instanceof PlatformStockControl) {
@@ -348,10 +354,11 @@ class StockControl extends \common\classes\modules\ModuleExtensions
             unset($productRecord);
         } else {
             $inventoryRecord = \common\helpers\Inventory::getRecord($uProductId);
-            if (($inventoryRecord instanceof \common\models\Inventory) AND ($inventoryRecord->stock_control == 1)) {
+            if (($inventoryRecord instanceof \common\models\Inventory) and ($inventoryRecord->stock_control == 1)) {
                 $return = 0;
-                $platformInventoryControl = (PlatformInventoryControl::find()->andWhere(['products_id' => $uProductId, 'platform_id' => $platformId])
-                    ->cache((defined('ALLOW_ANY_QUERY_CACHE') AND (ALLOW_ANY_QUERY_CACHE == 'True')) ? \common\helpers\Product::PRODUCT_RECORD_CACHE : -1)
+                $platformInventoryControl = (
+                    PlatformInventoryControl::find()->andWhere(['products_id' => $uProductId, 'platform_id' => $platformId])
+                    ->cache((defined('ALLOW_ANY_QUERY_CACHE') and (ALLOW_ANY_QUERY_CACHE == 'True')) ? \common\helpers\Product::PRODUCT_RECORD_CACHE : -1)
                     ->one()
                 );
                 if ($platformInventoryControl instanceof PlatformInventoryControl) {
@@ -373,7 +380,7 @@ class StockControl extends \common\classes\modules\ModuleExtensions
         $uProductId = \common\helpers\Inventory::normalize_id_excl_virtual($uProductId);
         if (\common\helpers\Inventory::isInventory($uProductId) != true) {
             $productRecord = \common\helpers\Product::getRecord($uProductId);
-            if (($productRecord instanceof \common\models\Products) AND ($productRecord->stock_control == 2)) {
+            if (($productRecord instanceof \common\models\Products) and ($productRecord->stock_control == 2)) {
                 $return = [];
                 $warehouseStockControlRecord = WarehouseStockControl::findOne(['products_id' => $productRecord->products_id, 'platform_id' => $platformId]);
                 if ($warehouseStockControlRecord instanceof WarehouseStockControl) {
@@ -384,7 +391,7 @@ class StockControl extends \common\classes\modules\ModuleExtensions
             unset($productRecord);
         } else {
             $inventoryRecord = \common\helpers\Inventory::getRecord($uProductId);
-            if (($inventoryRecord instanceof \common\models\Inventory) AND ($inventoryRecord->stock_control == 2)) {
+            if (($inventoryRecord instanceof \common\models\Inventory) and ($inventoryRecord->stock_control == 2)) {
                 $return = [];
                 $warehouseInventoryControl = WarehouseInventoryControl::findOne(['products_id' => $inventoryRecord->products_id, 'platform_id' => $platformId]);
                 if ($warehouseInventoryControl instanceof WarehouseInventoryControl) {
@@ -403,7 +410,7 @@ class StockControl extends \common\classes\modules\ModuleExtensions
     {
         $return = false;
         $productRecord = \common\helpers\Product::getRecord($uProductId);
-        if (($productRecord instanceof \common\models\Products) AND ($productRecord->stock_control == 2)) {
+        if (($productRecord instanceof \common\models\Products) and ($productRecord->stock_control == 2)) {
             //$return = 0;
             $warehouseStockControl = WarehouseStockControl::findOne(['products_id' => $productRecord->products_id, 'platform_id' => (int)$platformId]);
             if (is_object($warehouseStockControl)) {
@@ -423,8 +430,9 @@ class StockControl extends \common\classes\modules\ModuleExtensions
         $platformId = (int)$platformId;
         $uProductId = \common\helpers\Inventory::normalize_id_excl_virtual($uProductId);
         $inventoryRecord = \common\helpers\Inventory::getRecord($uProductId);
-        if (($inventoryRecord instanceof \common\models\Inventory) AND ($inventoryRecord->stock_control == 1)) {
-            tep_db_query("update platform_inventory_control set current_quantity = current_quantity " . $quantity
+        if (($inventoryRecord instanceof \common\models\Inventory) and ($inventoryRecord->stock_control == 1)) {
+            tep_db_query(
+                'update platform_inventory_control set current_quantity = current_quantity ' . $quantity
                 . " where products_id = '" . tep_db_input($uProductId) . "' and platform_id='" . $platformId . "'"
             );
         }
@@ -440,8 +448,9 @@ class StockControl extends \common\classes\modules\ModuleExtensions
         $productId = (int)$productId;
         $platformId = (int)$platformId;
         $productRecord = \common\helpers\Product::getRecord($productId);
-        if (($productRecord instanceof \common\models\Products) AND ($productRecord->stock_control == 1)) {
-            tep_db_query("update platform_stock_control set current_quantity = current_quantity " . $quantity
+        if (($productRecord instanceof \common\models\Products) and ($productRecord->stock_control == 1)) {
+            tep_db_query(
+                'update platform_stock_control set current_quantity = current_quantity ' . $quantity
                 . " where products_id = '" . $productId . "' and platform_id='" . $platformId . "'"
             );
         }
@@ -551,7 +560,7 @@ class StockControl extends \common\classes\modules\ModuleExtensions
             unset($platformInventoryControlRecord);
         }
         $inventoryRecord['warehouseInventoryControlRecordArray'] = (array)($inventoryRecord['warehouseInventoryControlRecordArray'] ?? []);
-        if (($inventoryId > 0) AND (count($inventoryRecord['warehouseInventoryControlRecordArray']) > 0)) {
+        if (($inventoryId > 0) and (count($inventoryRecord['warehouseInventoryControlRecordArray']) > 0)) {
             foreach ($inventoryRecord['warehouseInventoryControlRecordArray'] as $warehouseInventoryControlRecord) {
                 $platformId = (int)(isset($warehouseInventoryControlRecord['platform_id']) ? $warehouseInventoryControlRecord['platform_id'] : 0);
                 unset($warehouseInventoryControlRecord['products_id']);

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,19 +14,16 @@
 
 namespace frontend\design\boxes;
 
+use backend\design\Style;
+use common\classes\design;
+use frontend\design\IncludeTpl;
+use frontend\design\Info;
 use Yii;
 use yii\base\Widget;
 use yii\helpers\ArrayHelper;
-use frontend\design\IncludeTpl;
-use frontend\design\ListingSql;
-use frontend\design\SplitPageResults;
-use frontend\design\Info;
-use backend\design\Style;
-use common\classes\design;
 
 class ProductListing extends Widget
 {
-
     public $id;
     public $file;
     public $params;
@@ -65,7 +64,7 @@ class ProductListing extends Widget
         Info::includeJsFile('modules/helpers/getUprid');
 
         Info::includeExtensionJsFile('Quotations/js/productListing');
-//        Info::includeExtensionJsFile('Samples/js/productListing');
+        //        Info::includeExtensionJsFile('Samples/js/productListing');
         Info::addBoxToCss('quantity');
         Info::addBoxToCss('slick');
 
@@ -82,7 +81,7 @@ class ProductListing extends Widget
 
         $cssClass = 'products-listing product-listing';
 
-        if (ArrayHelper::getValue($this->settings, [0, 'col_in_row']) && Info::get_gl() == 'grid'){
+        if (ArrayHelper::getValue($this->settings, [0, 'col_in_row']) && Info::get_gl() == 'grid') {
             $cssClass .= ' cols-' . $this->settings[0]['col_in_row'];
         } else {
             $cssClass .= ' cols-1';
@@ -96,15 +95,15 @@ class ProductListing extends Widget
 
         $html = '';
         $itmsArrey = [];
-        foreach ($this->products as $product){
+        foreach ($this->products as $product) {
             $productList[$product['products_id']] = [
-                'products_id' => $product['products_id']
+                'products_id' => $product['products_id'],
             ];
             $product['buttonArray'] = [
                 $product['products_id'] => [
                     'buttonId' => ('b_atc_' . preg_replace('/[^\d]/', '_', $product['products_id'])),
                     'quantity' => '1',
-                ]
+                ],
             ];
             $item = '';
             $item .= '<div class="item" data-id="' . $product['products_id'] . '" data-name="' . $product['products_id'] . '">';
@@ -115,7 +114,7 @@ class ProductListing extends Widget
             if (!$product['stock_indicator']['flags'] && $product['stock_indicator']) {
                 $product['stock_indicator']['flags'] = $product['stock_indicator'];
             }
-            if ( true || !isset(Info::$jsGlobalData['products']) || !isset(Info::$jsGlobalData['products'][$product['products_id']]) ) {
+            if (true || !isset(Info::$jsGlobalData['products']) || !isset(Info::$jsGlobalData['products'][$product['products_id']])) {
                 Info::addJsData(['products' => [
                     $product['products_id'] => [
                         'products_id' => $product['products_id'],
@@ -145,15 +144,15 @@ class ProductListing extends Widget
                         'calculated_price' => $product['calculated_price'],
                         'calculated_price_exc' => $product['calculated_price_exc'],
                         'products_pctemplates_id' => $product['products_pctemplates_id'],
-                    ]
+                    ],
                 ]]);
             }
 
             if (isset($product['in_wish_list']) && $product['in_wish_list']) {
                 Info::addJsData(['productListings' => [
                     'personalCatalog' => ['products' => [
-                        $product['products_id'] => '1'
-                    ]]
+                        $product['products_id'] => '1',
+                    ]],
                 ]]);
             }
         }
@@ -161,13 +160,13 @@ class ProductListing extends Widget
         Info::addJsData(['productListings' => [
             $this->settings['listing_type'] => [
                 'productListing' => $productList,
-                'itemElements' => static::itemElements($itemStructure)
+                'itemElements' => static::itemElements($itemStructure),
             ],
         ]]);
 
         if (ArrayHelper::getValue($this->settings, 'mainListing')) {
             Info::addJsData(['productListings' => [
-                'mainListing' => $this->id
+                'mainListing' => $this->id,
             ]]);
         }
         Info::addJsData(['widgets' => [
@@ -217,7 +216,7 @@ class ProductListing extends Widget
             $returnData = [
                 'entryData' => Info::$jsGlobalData,
                 'html' => $html,
-                'css' => self::getStyles()
+                'css' => self::getStyles(),
             ];
             return json_encode($returnData);
         } elseif (isset($this->settings['productsInArray']) && $this->settings['productsInArray']) {
@@ -228,12 +227,12 @@ class ProductListing extends Widget
             }
             return
                 '<div class="' . $cssClass . '" data-listing-name="' . $this->settings['listing_type'] . '" data-listing-type="' . self::$listType . '" '.
-                (!empty($this->settings[0]['listing_param'])?' data-listing-param="'.$this->settings[0]['listing_param'].'"':'').
-                (!empty($this->settings[0]['listing_callback'])?' data-listing-callback="'.$this->settings[0]['listing_callback'].'"':'').
-                (!empty($this->settings[0]['listing_pre_callback'])?' data-listing-pre-callback="'.$this->settings[0]['listing_pre_callback'].'"':'').
+                (!empty($this->settings[0]['listing_param']) ? ' data-listing-param="'.$this->settings[0]['listing_param'].'"' : '').
+                (!empty($this->settings[0]['listing_callback']) ? ' data-listing-callback="'.$this->settings[0]['listing_callback'].'"' : '').
+                (!empty($this->settings[0]['listing_pre_callback']) ? ' data-listing-pre-callback="'.$this->settings[0]['listing_pre_callback'].'"' : '').
                 '>' . $html . '</div>'.
-                (!empty($this->settings[0]['listing_callback_js'])?$this->settings[0]['listing_callback_js']:'')
-                ;
+                (!empty($this->settings[0]['listing_callback_js']) ? $this->settings[0]['listing_callback_js'] : '')
+            ;
         }
     }
 
@@ -244,35 +243,39 @@ class ProductListing extends Widget
             if ($element['name'] == 'BlockBox') {
                 $html .= '<div class="type-' . $element['type'] . ' BlockBox ' . $element['class'] . '">';
                 foreach ($element['children'] as $col) {
-                    if ($element['type'] != 1) $html .= '<div class="col">';
+                    if ($element['type'] != 1) {
+                        $html .= '<div class="col">';
+                    }
                     $html .= static::createItem($col, $product, $settings);
-                    if ($element['type'] != 1) $html .= '</div>';
+                    if ($element['type'] != 1) {
+                        $html .= '</div>';
+                    }
                 }
                 $html .= '</div>';
             } else {
                 if (self::isSwitchOff($element['name'], $settings)) {
                     continue;
                 }
-                $html .= '<div class="' . $element['name'] . (isset($element['class']) ? ' ' . $element['class']: '') . '">';
+                $html .= '<div class="' . $element['name'] . (isset($element['class']) ? ' ' . $element['class'] : '') . '">';
                 //VL widgets from extensions to check
-                if (strpos($element['name'], '\\') !== false ){
-                  $ext_widget = \common\helpers\Acl::runExtensionWidget($element['name'] , [
-                        'settings' => $settings,
-                        'product' => $product,
-                      ]);
+                if (strpos($element['name'], '\\') !== false) {
+                    $ext_widget = \common\helpers\Acl::runExtensionWidget($element['name'], [
+                          'settings' => $settings,
+                          'product' => $product,
+                        ]);
                 }
                 if (strpos($element['name'], '\\') !== false && !empty($ext_widget)) {
-                  $html .= $ext_widget;
-                } else
-                //VL widgets from extensions to check ==
-                $html .= IncludeTpl::widget([
-                    'file' => 'boxes/listing-product/element/' . $element['name'] . '.tpl',
-                    'params' => [
-                        'settings' => $settings,
-                        'product' => $product,
-                        'element' => $element,
-                    ]
-                ]);
+                    $html .= $ext_widget;
+                } else { //VL widgets from extensions to check ==
+                    $html .= IncludeTpl::widget([
+                        'file' => 'boxes/listing-product/element/' . $element['name'] . '.tpl',
+                        'params' => [
+                            'settings' => $settings,
+                            'product' => $product,
+                            'element' => $element,
+                        ],
+                    ]);
+                }
                 $html .= '</div>';
 
                 if (isset($element['settings'][0])) {
@@ -280,7 +283,7 @@ class ProductListing extends Widget
                         $settings['listing_type'] => [
                             'itemElementSettings' => [
                                 $element['name'] => $element['settings'][0],
-                            ]
+                            ],
                         ],
                     ]]);
                 }
@@ -289,7 +292,8 @@ class ProductListing extends Widget
         return $html;
     }
 
-    public static function getStyles(){
+    public static function getStyles()
+    {
         return \backend\design\Style::getStylesWrapper(self::$styles);
     }
 
@@ -364,7 +368,7 @@ class ProductListing extends Widget
                 'box_id' => $element['id'],
             ])->asArray()->all();
             foreach ($settingsQuery as $set) {
-                if ($set['visibility'] > 0){
+                if ($set['visibility'] > 0) {
                     $visibility[$set['visibility']][$set['language_id']][$set['setting_name']] = $set['setting_value'];
                 } else {
                     $settings[$set['language_id']][$set['setting_name']] = $set['setting_value'];
@@ -390,25 +394,25 @@ class ProductListing extends Widget
             if ($element['widget_name'] == 'BlockBox') {
                 $item['children'] = [];
                 $item['type'] = $type;
-                if ($type == 2 || $type == 4 || $type == 5 || $type == 6 || $type == 7 || $type == 9 || $type == 10 || $type == 11 || $type == 12){
+                if ($type == 2 || $type == 4 || $type == 5 || $type == 6 || $type == 7 || $type == 9 || $type == 10 || $type == 11 || $type == 12) {
                     $item['children'][] = self::getItemData('block-' . $block_id);
                     $item['children'][] = self::getItemData('block-' . $block_id . '-2');
-                } elseif ($type == 3 || $type == 8 || $type == 13){
+                } elseif ($type == 3 || $type == 8 || $type == 13) {
                     $item['children'][] = self::getItemData('block-' . $block_id);
                     $item['children'][] = self::getItemData('block-' . $block_id . '-2');
                     $item['children'][] = self::getItemData('block-' . $block_id . '-3');
-                } elseif ($type == 14){
+                } elseif ($type == 14) {
                     $item['children'][] = self::getItemData('block-' . $block_id);
                     $item['children'][] = self::getItemData('block-' . $block_id . '-2');
                     $item['children'][] = self::getItemData('block-' . $block_id . '-3');
                     $item['children'][] = self::getItemData('block-' . $block_id . '-4');
-                } elseif ($type == 15){
+                } elseif ($type == 15) {
                     $item['children'][] = self::getItemData('block-' . $block_id);
                     $item['children'][] = self::getItemData('block-' . $block_id . '-2');
                     $item['children'][] = self::getItemData('block-' . $block_id . '-3');
                     $item['children'][] = self::getItemData('block-' . $block_id . '-4');
                     $item['children'][] = self::getItemData('block-' . $block_id . '-5');
-                } elseif ($type == 1){
+                } elseif ($type == 1) {
                     $item['children'][] = self::getItemData('block-' . $block_id);
                 }
             }
@@ -419,7 +423,8 @@ class ProductListing extends Widget
         return $elementsArray;
     }
 
-    private static function isSwitchOff($elementName, $settings){
+    private static function isSwitchOff($elementName, $settings)
+    {
         switch ($elementName) {
             case 'name':           return (isset($settings[0]['show_name']) && $settings[0]['show_name'] ? true : false);
             case 'image':          return (isset($settings[0]['show_image']) && $settings[0]['show_image'] ? true : false);
@@ -432,8 +437,8 @@ class ProductListing extends Widget
             case 'price':          return (isset($settings[0]['show_price']) && $settings[0]['show_price'] ? true : false);
             case 'bonusPoints':    return (isset($settings[0]['show_bonus_points']) && $settings[0]['show_bonus_points'] ? true : false);
             case 'buyButton':      return (isset($settings[0]['show_buy_button']) && $settings[0]['show_buy_button'] ? true : false);
-          //case 'quoteButton':    return (isset($settings[0]['show_qty_input']) && $settings[0]['show_qty_input'] ? true : false);
-          //case 'sampleButton':   return (isset($settings[0]['']) && $settings[0][''] ? true : false);
+                //case 'quoteButton':    return (isset($settings[0]['show_qty_input']) && $settings[0]['show_qty_input'] ? true : false);
+                //case 'sampleButton':   return (isset($settings[0]['']) && $settings[0][''] ? true : false);
             case 'qtyInput':       return (isset($settings[0]['show_qty_input']) && $settings[0]['show_qty_input'] ? true : false);
             case 'viewButton':     return (isset($settings[0]['show_view_button']) && $settings[0]['show_view_button'] ? true : false);
             case 'wishlistButton': return (isset($settings[0]['show_wishlist_button']) && $settings[0]['show_wishlist_button'] ? true : false);
@@ -445,7 +450,8 @@ class ProductListing extends Widget
         }
     }
 
-    private static function fieldStyles($item, $settings, $visibility){
+    private static function fieldStyles($item, $settings, $visibility)
+    {
         $name = '.' . $item['name'] . (isset($item['class']) && !empty($item['class']) ? '.' . $item['class'] : '');
         $mediaArr = \common\models\ThemesSettings::find()
             ->cache(Style::STYLE_CACHE_LIFETIME)
@@ -477,15 +483,15 @@ class ProductListing extends Widget
         if ($after) {
             self::$styles[0] .= '.list-' . self::$listType . ' ' . $name . ':after{' . $after . '}';
         }
-        foreach ($mediaArr as $item2){
+        foreach ($mediaArr as $item2) {
             if (!isset(self::$styles[$item2['id']])) {
                 self::$styles[$item2['id']] = '';
             }
             $style = Style::getAttributes(@$visibility[$item2['id']][0]);
-            if ($style){
+            if ($style) {
                 self::$styles[$item2['id']] .= '.list-' . self::$listType . ' ' . $name . '{' . $style . '}';
             }
-            if (isset($visibility[$item2['id']][0]['schema']) && $visibility[$item2['id']][0]['schema']){
+            if (isset($visibility[$item2['id']][0]['schema']) && $visibility[$item2['id']][0]['schema']) {
                 self::$styles[$item2['id']] .= \backend\design\Style::schema(
                     $visibility[$item2['id']][0]['schema'],
                     '.list-' . self::$listType . ' ' . $name

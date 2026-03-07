@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -20,7 +22,7 @@ class VerifyWebhookSignatureResponse extends PayPalModel
      * Valid Values: ["SUCCESS", "FAILURE"]
      *
      * @param string $verification_status
-     * 
+     *
      * @return $this
      */
     public function setVerificationStatus($verification_status)

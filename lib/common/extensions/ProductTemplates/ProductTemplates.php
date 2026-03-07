@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -15,17 +17,19 @@ namespace common\extensions\ProductTemplates;
 
 use Yii;
 
-class ProductTemplates extends \common\classes\modules\ModuleExtensions {
-
-    public static function getDescription() {
+class ProductTemplates extends \common\classes\modules\ModuleExtensions
+{
+    public static function getDescription()
+    {
         return 'This extension allows to customize the product page display.';
     }
-    
-    public static function allowed() {
+
+    public static function allowed()
+    {
         return self::enabled();
     }
-    
-    public static function getAdminHooks() 
+
+    public static function getAdminHooks()
     {
         $path = \Yii::getAlias('@common') . DIRECTORY_SEPARATOR . 'extensions' . DIRECTORY_SEPARATOR . 'ProductTemplates' . DIRECTORY_SEPARATOR . 'hooks' . DIRECTORY_SEPARATOR;
         return [
@@ -41,32 +45,33 @@ class ProductTemplates extends \common\classes\modules\ModuleExtensions {
             ],
         ];
     }
-    
-    public static function productBlock() {
+
+    public static function productBlock()
+    {
         if (!self::allowed()) {
             return '';
         }
-       return \common\extensions\ProductTemplates\Render::widget(['template' => 'product-block.tpl', 'params' => []]);
+        return \common\extensions\ProductTemplates\Render::widget(['template' => 'product-block.tpl', 'params' => []]);
     }
-    
+
     public static function productedit($products_id)
     {
         if (!self::allowed()) {
             return '';
         }
-        $platforms = tep_db_query("
+        $platforms = tep_db_query('
             SELECT p.platform_id, t.theme_name, t.title
-            FROM " . TABLE_PLATFORMS_PRODUCTS . " p
-                left join " . TABLE_PLATFORMS_TO_THEMES . " p2t on p.platform_id = p2t.platform_id
-                left join " . TABLE_THEMES . " t on t.id = p2t.theme_id
+            FROM ' . TABLE_PLATFORMS_PRODUCTS . ' p
+                left join ' . TABLE_PLATFORMS_TO_THEMES . ' p2t on p.platform_id = p2t.platform_id
+                left join ' . TABLE_THEMES . " t on t.id = p2t.theme_id
             WHERE p2t.is_default = 1 and products_id = '" . $products_id . "'
             ");
-        $themes = array();
+        $themes = [];
         $showBlock = false;
         while ($platform = tep_db_fetch_array($platforms)) {
-            $templates = tep_db_query("
+            $templates = tep_db_query('
                 select setting_value
-                from " . TABLE_THEMES_SETTINGS . "
+                from ' . TABLE_THEMES_SETTINGS . "
                 where
                     theme_name = '" . $platform['theme_name'] . "' and
                     setting_group = 'added_page' and
@@ -92,9 +97,9 @@ class ProductTemplates extends \common\classes\modules\ModuleExtensions {
                 if (!empty($themes[$item['id']]['themes'])) {
                     $list[$key]['templates'] = $themes[$item['id']]['themes'];
 
-                    $setTemplate = tep_db_fetch_array(tep_db_query("
+                    $setTemplate = tep_db_fetch_array(tep_db_query('
                         select template_name
-                        from " . TABLE_PRODUCT_TO_TEMPLATE . "
+                        from ' . TABLE_PRODUCT_TO_TEMPLATE . "
                         where
                             products_id = '" . $products_id . "' and
                             platform_id = '" . $item['id'] . "' and
@@ -124,21 +129,21 @@ class ProductTemplates extends \common\classes\modules\ModuleExtensions {
         $list = self::productedit($products_id);
 
         foreach ($list['list'] as $item) {
-            if ($products_id && $item['id'] && ($item['theme_name']??null)) {
-                tep_db_query("
-                delete from " . TABLE_PRODUCT_TO_TEMPLATE . "
+            if ($products_id && $item['id'] && ($item['theme_name'] ?? null)) {
+                tep_db_query('
+                delete from ' . TABLE_PRODUCT_TO_TEMPLATE . "
                 where
                     products_id = '" . $products_id . "' and
                     platform_id = '" . $item['id'] . "' and
                     theme_name = '" . $item['theme_name'] . "'");
 
                 if ($product_template[$item['id']] ?? null) {
-                    $data = array(
+                    $data = [
                         'products_id' => $products_id,
                         'platform_id' => $item['id'],
                         'theme_name' => $item['theme_name'],
-                        'template_name' => $product_template[$item['id']]
-                    );
+                        'template_name' => $product_template[$item['id']],
+                    ];
                     tep_db_perform(TABLE_PRODUCT_TO_TEMPLATE, $data);
                 }
             }
@@ -150,8 +155,8 @@ class ProductTemplates extends \common\classes\modules\ModuleExtensions {
         if (!self::allowed()) {
             return '';
         }
-        tep_db_query("
-            delete from " . TABLE_PRODUCT_TO_TEMPLATE . "
+        tep_db_query('
+            delete from ' . TABLE_PRODUCT_TO_TEMPLATE . "
             where products_id = '" . $products_id . "'");
     }
 

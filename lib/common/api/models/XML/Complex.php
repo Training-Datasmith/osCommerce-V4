@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,8 @@
 
 namespace common\api\models\XML;
 
-
-abstract class Complex{
-
+abstract class Complex
+{
     protected $named;
     public $table;
     public $attribute;
@@ -22,7 +23,7 @@ abstract class Complex{
 
     public function getMapName()
     {
-        return !empty($this->named)?$this->named:($this->table.'.'.$this->attribute);
+        return !empty($this->named) ? $this->named : ($this->table.'.'.$this->attribute);
     }
 
     public function setMap($table, $attribute)
@@ -36,7 +37,7 @@ abstract class Complex{
 
     }
 
-    static public function restoreFrom(\SimpleXMLElement $node, $obj)
+    public static function restoreFrom(\SimpleXMLElement $node, $obj)
     {
         return strval($node);
     }

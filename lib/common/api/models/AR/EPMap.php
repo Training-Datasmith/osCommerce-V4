@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -14,7 +16,6 @@ namespace common\api\models\AR;
 
 use yii\base\InvalidConfigException;
 use yii\db\ActiveRecord;
-use yii\db\ColumnSchema;
 use yii\helpers\Inflector;
 
 class EPMap extends ActiveRecord
@@ -36,10 +37,10 @@ class EPMap extends ActiveRecord
     public function __construct(array $config = [])
     {
         $initArray = [];
-        if ( count($config)>0 ) {
+        if (count($config) > 0) {
             $fields = array_flip($this->attributes());
-            foreach( array_keys($config) as $field){
-                if ( isset($fields[$field]) ) {
+            foreach (array_keys($config) as $field) {
+                if (isset($fields[$field])) {
                     $initArray[$field] = $config[$field];
                 }
             }
@@ -50,8 +51,8 @@ class EPMap extends ActiveRecord
 
     public function getPossibleKeys()
     {
-        $keys = array_merge($this->attributes(),$this->customFields());
-        if ( count($this->hideFields)>0 ) {
+        $keys = array_merge($this->attributes(), $this->customFields());
+        if (count($this->hideFields) > 0) {
             $keys = array_diff($keys, $this->hideFields);
         }
         return $keys;
@@ -59,12 +60,12 @@ class EPMap extends ActiveRecord
 
     public function toArray(array $fields = [], array $expand = [], $recursive = true)
     {
-        if ( count($this->hideFields)>0 ) {
+        if (count($this->hideFields) > 0) {
             // {{ allow force export hidden fields
-            $entityFields = @array_merge($this->attributes(),$this->customFields());
-            if ( count($fields)>0 ) {
+            $entityFields = @array_merge($this->attributes(), $this->customFields());
+            if (count($fields) > 0) {
                 $fields = @array_intersect($entityFields, $fields);
-            }else {
+            } else {
                 $fields = @array_diff($entityFields, $this->hideFields);
             }
             // }}
@@ -72,14 +73,15 @@ class EPMap extends ActiveRecord
         return parent::toArray($fields, $expand, $recursive);
     }
 
-    public function indexedCollectionAppendMode($collectionName, $appendAppend=true)
+    public function indexedCollectionAppendMode($collectionName, $appendAppend = true)
     {
-        if ( isset($this->indexedCollections[$collectionName]) ) {
+        if (isset($this->indexedCollections[$collectionName])) {
             $this->indexedCollectionsAppendFlag[$collectionName] = $appendAppend;
         }
     }
 
-    public function initiateAfterSave($action){
+    public function initiateAfterSave($action)
+    {
         $this->_afterSaveHooks[$action] = $action;
     }
 
@@ -90,21 +92,21 @@ class EPMap extends ActiveRecord
 
     public function beforeSave($insert)
     {
-        if ( $insert ) {
+        if ($insert) {
             // {{ fix SQL ERROR insert NULL into non null column
             $schemaColumns = $this->getTableSchema()->columns;
-            if ( is_array($schemaColumns) ) {
-                foreach ($schemaColumns as $columnName=>$tableColumn) {
+            if (is_array($schemaColumns)) {
+                foreach ($schemaColumns as $columnName => $tableColumn) {
                     /**
                      * @var $tableColumn \yii\db\ColumnSchema
                      */
-                    if (!$tableColumn->allowNull && $tableColumn->dbTypecast($this->$columnName)===null){
-                        if ( is_null($tableColumn->defaultValue) ) {
+                    if (!$tableColumn->allowNull && $tableColumn->dbTypecast($this->$columnName) === null) {
+                        if (is_null($tableColumn->defaultValue)) {
                             $this->setAttribute(
                                 $columnName,
-                                !is_null($tableColumn->phpTypecast(''))?$tableColumn->phpTypecast(''):$tableColumn->phpTypecast(0)
+                                !is_null($tableColumn->phpTypecast('')) ? $tableColumn->phpTypecast('') : $tableColumn->phpTypecast(0)
                             );
-                        }else{
+                        } else {
                             $this->setAttribute($columnName, $tableColumn->defaultValue);
                         }
                     }
@@ -119,11 +121,13 @@ class EPMap extends ActiveRecord
     {
         parent::afterSave($insert, $changedAttributes);
 
-        foreach ($this->childCollections as $collectionName=>$collection) {
-            if ( !is_array($collection) ) continue;
-            if ( $insert ) {
+        foreach ($this->childCollections as $collectionName => $collection) {
+            if (!is_array($collection)) {
+                continue;
+            }
+            if ($insert) {
                 //$newPrimaryValues = $this->getPrimaryKey(true);
-                foreach( $collection as $collectionItem ) {
+                foreach ($collection as $collectionItem) {
                     /**
                      * @var EPMap $collectionItem
                      */
@@ -131,19 +135,21 @@ class EPMap extends ActiveRecord
                     /*foreach ( $newPrimaryValues as $key=>$val ) {
                         if ( $collectionItem->hasAttribute($key) ) $collectionItem->setAttribute($key, $val);
                     }*/
-                    if ( $collectionItem->pendingRemoval ) continue;
+                    if ($collectionItem->pendingRemoval) {
+                        continue;
+                    }
                     $collectionItem->insert();
                 }
-            }else{
-                foreach( $collection as $idx=>$collectionItem ) {
+            } else {
+                foreach ($collection as $idx => $collectionItem) {
                     $collectionItem->parentEPMap($this);
-                    if ( $collectionItem->pendingRemoval ) {
+                    if ($collectionItem->pendingRemoval) {
                         $collectionItem->delete();
                         unset($collection[$idx]);
-                    }else {
-                        if ( $collectionItem->isNewRecord ) {
+                    } else {
+                        if ($collectionItem->isNewRecord) {
                             $collectionItem->insert();
-                        }else {
+                        } else {
                             $collectionItem->update();
                         }
                     }
@@ -151,43 +157,51 @@ class EPMap extends ActiveRecord
             }
         }
 
-        foreach (array_keys($this->_afterSaveHooks) as $hookMethod){
-            if ( !isset($this->afterSaveHooks[$hookMethod]) ) continue;
+        foreach (array_keys($this->_afterSaveHooks) as $hookMethod) {
+            if (!isset($this->afterSaveHooks[$hookMethod])) {
+                continue;
+            }
             $method = $this->afterSaveHooks[$hookMethod];
-            if ( $this->hasMethod($method) ) call_user_func_array([$this,$method],[]);
+            if ($this->hasMethod($method)) {
+                call_user_func_array([$this,$method], []);
+            }
         }
     }
 
     public function exportArray(array $fields = [])
     {
         $data = $this->toArray($fields, [], false);
-        if ( count($fields)==0 ) {
-            foreach( array_keys($this->childCollections) as $childKey ) {
+        if (count($fields) == 0) {
+            foreach (array_keys($this->childCollections) as $childKey) {
                 $fields[$childKey]['*'] = [];
             }
         }
 
-        foreach( array_keys($this->childCollections) as $collectionName ) {
-            if ( !isset($fields[$collectionName]) ) continue;
+        foreach (array_keys($this->childCollections) as $collectionName) {
+            if (!isset($fields[$collectionName])) {
+                continue;
+            }
             $childFields = $fields[$collectionName];
 
-            $filterChild = isset($childFields['*'])?$childFields['*']:[];
+            $filterChild = isset($childFields['*']) ? $childFields['*'] : [];
 
-            $methodName = 'initCollectionByLookupKey_'.Inflector::id2camel($collectionName,'_');
-            if ( method_exists($this, $methodName) ) {
-                call_user_func_array([$this, $methodName],[array_keys($childFields)]);
+            $methodName = 'initCollectionByLookupKey_'.Inflector::id2camel($collectionName, '_');
+            if (method_exists($this, $methodName)) {
+                call_user_func_array([$this, $methodName], [array_keys($childFields)]);
             }
-            if ( is_array($this->childCollections[$collectionName]) ){
+            if (is_array($this->childCollections[$collectionName])) {
                 $data[$collectionName] = [];
             }
-            foreach($this->childCollections[$collectionName] as $exportKey=>$childAR){
+            foreach ($this->childCollections[$collectionName] as $exportKey => $childAR) {
                 $filterExportChild = $filterChild;
-                if ( isset($childFields[$exportKey]) ) {
+                if (isset($childFields[$exportKey])) {
                     $filterExportChild = array_merge($filterChild, $childFields[$exportKey]);
-                }elseif ( !isset($childFields['*']) ) {
+                } elseif (!isset($childFields['*'])) {
                     continue;
                 }
-                if ( in_array('*',$filterExportChild) ) $filterExportChild = [];
+                if (in_array('*', $filterExportChild)) {
+                    $filterExportChild = [];
+                }
                 $data[$collectionName][$exportKey] = $childAR->exportArray($filterExportChild);
             }
         }
@@ -197,35 +211,38 @@ class EPMap extends ActiveRecord
 
     public function importArray($data)
     {
-        if ( !is_array($data) ) return false;
+        if (!is_array($data)) {
+            return false;
+        }
         try {
             $schemaColumns = $this->getTableSchema()->columns;
-            if ( !is_array($schemaColumns) ) $schemaColumns = [];
-        }catch(InvalidConfigException $ex){
+            if (!is_array($schemaColumns)) {
+                $schemaColumns = [];
+            }
+        } catch (InvalidConfigException $ex) {
             $schemaColumns = [];
         }
 
-        foreach( $data as $key=>$value ) {
-            if ( $this->hasAttribute($key) ){
+        foreach ($data as $key => $value) {
+            if ($this->hasAttribute($key)) {
                 // {{ some type cast using db schema
-                if ( isset($schemaColumns[$key]) ) {
-                    if ( $value==='' && in_array($schemaColumns[$key]->phpType,['integer','boolean','double']) ) {
+                if (isset($schemaColumns[$key])) {
+                    if ($value === '' && in_array($schemaColumns[$key]->phpType, ['integer','boolean','double'])) {
                         $value = 0;
                     }
-                    if ( $value!=='' && !is_null($value) && !is_object($value) && !is_array($value)) {
+                    if ($value !== '' && !is_null($value) && !is_object($value) && !is_array($value)) {
                         $value = $schemaColumns[$key]->phpTypecast($value);
                     }
                 }
                 // }} some type cast using db schema
                 $this->setAttribute($key, $value);
-            }elseif ( isset($this->childCollections[$key]) ) {
-                $methodName = 'initCollectionByLookupKey_'.Inflector::id2camel($key,'_');
-                if ( method_exists($this, $methodName) ) {
-                    call_user_func_array([$this, $methodName],[['*']]);
+            } elseif (isset($this->childCollections[$key])) {
+                $methodName = 'initCollectionByLookupKey_'.Inflector::id2camel($key, '_');
+                if (method_exists($this, $methodName)) {
+                    call_user_func_array([$this, $methodName], [['*']]);
                 }
 
-
-                if ( $key=='warehouses_products' ) {
+                if ($key == 'warehouses_products') {
                     foreach ($this->childCollections[$key] as $importKey => $childAR) {
                         if (isset($value[$importKey]) && is_array($value[$importKey])) {
                             $childAR->importArray($value[$importKey]);
@@ -237,18 +254,20 @@ class EPMap extends ActiveRecord
 
                     if (count($value) > 0) {
                         foreach ($value as $importKey => $importData) {
-                            $instance = \Yii::createObject(['class'=>$this->indexedCollections[$key], 'keyCode'=>$importKey]);
+                            $instance = \Yii::createObject(['class' => $this->indexedCollections[$key], 'keyCode' => $importKey]);
                             /**
                              * @var $instance EPMap
                              */
                             $instance->loadDefaultValues();
                             $instance->parentEPMap($this);
-                            if (!$instance->importArray($importData)) continue;
+                            if (!$instance->importArray($importData)) {
+                                continue;
+                            }
                             if (method_exists($instance, 'getKeyCode')) {
-                                if ( isset($this->childCollections[$key][$instance->getKeyCode()]) ){
+                                if (isset($this->childCollections[$key][$instance->getKeyCode()])) {
                                     $this->childCollections[$key][$instance->getKeyCode()]->importArray($importData);
                                     $this->childCollections[$key][$instance->getKeyCode()]->pendingRemoval = false;
-                                }else {
+                                } else {
                                     $this->childCollections[$key][$instance->getKeyCode()] = $instance;
                                 }
                             } else {
@@ -256,38 +275,43 @@ class EPMap extends ActiveRecord
                             }
                         }
                     }
-                }else
-                if ( isset($this->indexedCollections[$key]) ) {
+                } elseif (isset($this->indexedCollections[$key])) {
                     foreach ($this->childCollections[$key] as $currentIdx => $childAR) {
                         $childAR->pendingRemoval = true;
                     }
 
                     $matchedIdxList = [];
-                    if (is_array($value)) foreach ($value as $indexedValue) {
-                        $instance = \Yii::createObject($this->indexedCollections[$key]);
-                        $instance->parentEPMap($this);
-                        if (!$instance->importArray($indexedValue)) continue;
-
-                        $matchCurrentAR = false;
-                        foreach ($this->childCollections[$key] as $currentIdx => $childAR) {
-                            if (isset($matchedIdxList[$currentIdx])) continue;
-                            /**
-                             * @var EPMap $childAR
-                             */
-                            if ($childAR->matchIndexedValue($instance)) {
-                                $matchedIdxList[$currentIdx] = $currentIdx;
-//                                echo '<pre>'; var_dump($indexedValue); echo '</pre>';
-                                // {{
-                                $childAR->pendingRemoval = false;
-                                $childAR->parentEPMap($this);
-                                $childAR->importArray($indexedValue);
-                                // }}
-                                $matchCurrentAR = true;
-                                break;
+                    if (is_array($value)) {
+                        foreach ($value as $indexedValue) {
+                            $instance = \Yii::createObject($this->indexedCollections[$key]);
+                            $instance->parentEPMap($this);
+                            if (!$instance->importArray($indexedValue)) {
+                                continue;
                             }
-                        }
-                        if (!$matchCurrentAR) {
-                            $this->childCollections[$key][] = $instance;
+
+                            $matchCurrentAR = false;
+                            foreach ($this->childCollections[$key] as $currentIdx => $childAR) {
+                                if (isset($matchedIdxList[$currentIdx])) {
+                                    continue;
+                                }
+                                /**
+                                 * @var EPMap $childAR
+                                 */
+                                if ($childAR->matchIndexedValue($instance)) {
+                                    $matchedIdxList[$currentIdx] = $currentIdx;
+                                    //                                echo '<pre>'; var_dump($indexedValue); echo '</pre>';
+                                    // {{
+                                    $childAR->pendingRemoval = false;
+                                    $childAR->parentEPMap($this);
+                                    $childAR->importArray($indexedValue);
+                                    // }}
+                                    $matchCurrentAR = true;
+                                    break;
+                                }
+                            }
+                            if (!$matchCurrentAR) {
+                                $this->childCollections[$key][] = $instance;
+                            }
                         }
                     }
                     if (isset($this->indexedCollectionsAppendFlag[$key]) && $this->indexedCollectionsAppendFlag[$key]) {
@@ -296,15 +320,15 @@ class EPMap extends ActiveRecord
                         }
                     }
                 } else {
-                    $importDataArray = isset($value['*'])?$value['*']:[];
+                    $importDataArray = isset($value['*']) ? $value['*'] : [];
                     foreach ($this->childCollections[$key] as $importKey => $childAR) {
                         if (isset($value[$importKey]) && is_array($value[$importKey])) {
-                            if ( count($importDataArray)>0 ) {
+                            if (count($importDataArray) > 0) {
                                 $childAR->importArray(array_replace_recursive($importDataArray, $value[$importKey]));
-                            }else{
+                            } else {
                                 $childAR->importArray($value[$importKey]);
                             }
-                        }elseif(count($importDataArray)>0){
+                        } elseif (count($importDataArray) > 0) {
                             $childAR->importArray($importDataArray);
                         }
                     }
@@ -332,14 +356,14 @@ class EPMap extends ActiveRecord
     public function getDirtyAttributes($names = null)
     {
         $dirtyAttributes = parent::getDirtyAttributes($names);
-        if ( $this->isNewRecord ) {
+        if ($this->isNewRecord) {
             return $dirtyAttributes;
         }
 
         foreach ($dirtyAttributes as $column => $newValue) {
-            if (is_null($newValue) || is_null($this->getOldAttribute($column))){
+            if (is_null($newValue) || is_null($this->getOldAttribute($column))) {
 
-            }elseif (!$this->isAttributeChanged($column,false)){
+            } elseif (!$this->isAttributeChanged($column, false)) {
                 unset($dirtyAttributes[$column]);
             }
         }
@@ -354,10 +378,10 @@ class EPMap extends ActiveRecord
     public function refresh()
     {
         $this->_afterSaveHooks = [];
-        foreach ( array_keys($this->childCollections) as $collectionName ) {
-            if ( isset($this->indexedCollections[$collectionName]) ) {
+        foreach (array_keys($this->childCollections) as $collectionName) {
+            if (isset($this->indexedCollections[$collectionName])) {
                 $this->childCollections[$collectionName] = false;
-            }else {
+            } else {
                 $this->childCollections[$collectionName] = [];
             }
         }
@@ -367,12 +391,12 @@ class EPMap extends ActiveRecord
     public function isModified()
     {
         $modified = false;
-        if ( !$this->isNewRecord ) {
+        if (!$this->isNewRecord) {
             $dirtyList = $this->getDirtyAttributes();
             if (count($dirtyList) > 0) {
                 $modified = true;
             } else {
-                foreach ($this->childCollections as $childCollectionName=>$childARs) {
+                foreach ($this->childCollections as $childCollectionName => $childARs) {
                     if (is_array($childARs) && count($childARs) > 0) {
                         foreach ($childARs as $childAR) {
                             if ($childAR->pendingRemoval || $childAR->isNewRecord || $childAR->isModified()) {
@@ -381,7 +405,9 @@ class EPMap extends ActiveRecord
                             }
                         }
                     }
-                    if ( $modified ) break;
+                    if ($modified) {
+                        break;
+                    }
                 }
             }
         }

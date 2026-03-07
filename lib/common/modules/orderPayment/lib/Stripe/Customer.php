@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -41,18 +43,17 @@ namespace Stripe;
  */
 class Customer extends ApiResource
 {
-    const OBJECT_NAME = 'customer';
-
     use ApiOperations\All;
     use ApiOperations\Create;
     use ApiOperations\Delete;
     use ApiOperations\NestedResource;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
+    public const OBJECT_NAME = 'customer';
 
-    const TAX_EXEMPT_EXEMPT = 'exempt';
-    const TAX_EXEMPT_NONE = 'none';
-    const TAX_EXEMPT_REVERSE = 'reverse';
+    public const TAX_EXEMPT_EXEMPT = 'exempt';
+    public const TAX_EXEMPT_NONE = 'none';
+    public const TAX_EXEMPT_REVERSE = 'reverse';
 
     public static function getSavedNestedResources()
     {
@@ -79,7 +80,7 @@ class Customer extends ApiResource
         $this->refreshFrom(['discount' => null], $opts, true);
     }
 
-    const PATH_BALANCE_TRANSACTIONS = '/balance_transactions';
+    public const PATH_BALANCE_TRANSACTIONS = '/balance_transactions';
 
     /**
      * @param string $id the ID of the customer on which to retrieve the customer balance transactions
@@ -139,7 +140,7 @@ class Customer extends ApiResource
         return self::_updateNestedResource($id, static::PATH_BALANCE_TRANSACTIONS, $balanceTransactionId, $params, $opts);
     }
 
-    const PATH_SOURCES = '/sources';
+    public const PATH_SOURCES = '/sources';
 
     /**
      * @param string $id the ID of the customer on which to retrieve the payment sources
@@ -214,7 +215,7 @@ class Customer extends ApiResource
         return self::_updateNestedResource($id, static::PATH_SOURCES, $sourceId, $params, $opts);
     }
 
-    const PATH_TAX_IDS = '/tax_ids';
+    public const PATH_TAX_IDS = '/tax_ids';
 
     /**
      * @param string $id the ID of the customer on which to retrieve the tax ids

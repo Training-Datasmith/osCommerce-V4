@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,10 +24,10 @@ class m230227_101417_translations_feb_upd extends Migration
      */
     public function safeUp()
     {
-		$this->addTranslation('main', [
+        $this->addTranslation('main', [
             'TEXT_CROSS_SELL' => 'Cross Sell',
         ]);
-		$this->addTranslation('main', [
+        $this->addTranslation('main', [
             'EMAIL_GREET_MR' => 'Mr',
         ]);
     }
@@ -35,7 +37,7 @@ class m230227_101417_translations_feb_upd extends Migration
      */
     public function safeDown()
     {
-       
+
     }
 
     /*

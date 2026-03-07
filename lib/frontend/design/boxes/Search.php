@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,12 @@
 
 namespace frontend\design\boxes;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class Search extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -30,8 +31,8 @@ class Search extends Widget
 
     public function run()
     {
-        if ( $extB2B = \common\helpers\Acl::checkExtensionAllowed('BusinessToBusiness') ){
-            if ( $extB2B::checkNeedLogin() ){
+        if ($extB2B = \common\helpers\Acl::checkExtensionAllowed('BusinessToBusiness')) {
+            if ($extB2B::checkNeedLogin()) {
                 return '';
             }
         }
@@ -42,8 +43,8 @@ class Search extends Widget
             'id' => $this->id,
             'link' => $link,
             'searchSuggest' => Yii::$app->urlManager->createUrl('catalog/search-suggest'),
-            'keywords' => \common\helpers\Output::output_string(isset($_GET['keywords'])?tep_db_prepare_input($_GET['keywords']):''),
-            'extra_form_fields' => (SEARCH_IN_DESCRIPTION == 'true'?'<input type="hidden" name="search_in_description" value="1">':''),
+            'keywords' => \common\helpers\Output::output_string(isset($_GET['keywords']) ? tep_db_prepare_input($_GET['keywords']) : ''),
+            'extra_form_fields' => (SEARCH_IN_DESCRIPTION == 'true' ? '<input type="hidden" name="search_in_description" value="1">' : ''),
             'searchHistory' => $this->settings[0]['search_history'],
             'historyItems' => $this->settings[0]['history_items'] ?? 5,
         ]]);

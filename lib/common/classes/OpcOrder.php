@@ -1,33 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\classes;
 
-class OpcOrder extends \common\classes\extended\OrderAbstract {
+class OpcOrder extends \common\classes\extended\OrderAbstract
+{
+    public $_store;
 
-    var $_store;
-
-    function __construct() {
-        $this->info = array();
-        $this->totals = array();
-        $this->products = array();
-        $this->customer = array();
-        $this->delivery = array();
-        $this->tax_address = array();
+    public function __construct()
+    {
+        $this->info = [];
+        $this->totals = [];
+        $this->products = [];
+        $this->customer = [];
+        $this->delivery = [];
+        $this->tax_address = [];
 
         $this->cart();
         // store values
-        $this->_store = array();
+        $this->_store = [];
         if (DISPLAY_PRICE_WITH_TAX == 'true') {
             $this->_store['total'] = $this->info['subtotal'];
         } else {
@@ -39,34 +42,40 @@ class OpcOrder extends \common\classes\extended\OrderAbstract {
         $this->info['total'] = $this->_store['total'];
     }
 
-// recalc stubs
-    function _billing_address() {
+    // recalc stubs
+    public function _billing_address()
+    {
         global $opc_billto;
         if (is_array($opc_billto)) {
             foreach ($opc_billto as $key => $value) {
-                if (in_array($key, array_keys($this->customer)))
+                if (in_array($key, array_keys($this->customer))) {
                     $this->customer[$key] = $value;
-                if (in_array($key, array_keys($this->billing)))
+                }
+                if (in_array($key, array_keys($this->billing))) {
                     $this->billing[$key] = $value;
+                }
             }
-            $this->tax_address = array('entry_country_id' => $this->billing['country_id'], 'entry_zone_id' => $this->billing['zone_id']);
+            $this->tax_address = ['entry_country_id' => $this->billing['country_id'], 'entry_zone_id' => $this->billing['zone_id']];
         }
         return false;
     }
 
-    function _shipping_address() {
+    public function _shipping_address()
+    {
         global $opc_sendto;
         if (is_array($opc_sendto)) {
             foreach ($opc_sendto as $key => $value) {
-                if (in_array($key, array_keys($this->delivery)))
+                if (in_array($key, array_keys($this->delivery))) {
                     $this->delivery[$key] = $value;
+                }
             }
-            $this->tax_address = array('entry_country_id' => $this->delivery['country_id'], 'entry_zone_id' => $this->delivery['zone_id']);
+            $this->tax_address = ['entry_country_id' => $this->delivery['country_id'], 'entry_zone_id' => $this->delivery['zone_id']];
         }
         return false;
     }
 
-    function change_shipping($new_shipping) {
+    public function change_shipping($new_shipping)
+    {
         $this->info['total'] = $this->_store['total'];
         $this->info['tax_groups'] = $this->_store['tax_groups'];
         $this->info['tax'] = $this->_store['tax'];
@@ -89,5 +98,5 @@ class OpcOrder extends \common\classes\extended\OrderAbstract {
         return false;
     }
 
-//\ recalc stubs    
+    //\ recalc stubs
 }

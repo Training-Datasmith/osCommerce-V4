@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "orders_status_type".
@@ -23,13 +23,11 @@ class OrdersStatusType extends \yii\db\ActiveRecord
         return 'orders_status_type';
     }
 
-
-    public function getGroups(){
-    	$languages_id = \Yii::$app->settings->get('languages_id');
-	    return $this->hasMany(OrdersStatusGroups::className(), ['orders_status_type_id' => 'orders_status_type_id'])
-	                ->where([OrdersStatusGroups::tableName() . '.language_id' => $languages_id]);
+    public function getGroups()
+    {
+        $languages_id = \Yii::$app->settings->get('languages_id');
+        return $this->hasMany(OrdersStatusGroups::className(), ['orders_status_type_id' => 'orders_status_type_id'])
+                    ->where([OrdersStatusGroups::tableName() . '.language_id' => $languages_id]);
     }
-
-
 
 }

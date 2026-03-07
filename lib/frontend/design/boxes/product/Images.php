@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,16 +14,15 @@
 
 namespace frontend\design\boxes\product;
 
-use Yii;
-use yii\base\Widget;
-use frontend\design\IncludeTpl;
 use common\classes\Images as cImages;
 use common\helpers\Product;
+use frontend\design\IncludeTpl;
 use frontend\design\Info;
+use Yii;
+use yii\base\Widget;
 
 class Images extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -32,7 +33,9 @@ class Images extends Widget
         Info::includeJsFile('reducers/products');
         Info::includeJsFile('reducers/widgets');
 
-        if (!is_array($this->params) ) $this->params = array();
+        if (!is_array($this->params)) {
+            $this->params = [];
+        }
         parent::init();
     }
 
@@ -43,10 +46,10 @@ class Images extends Widget
         global $request_type;
         $languageId = (int)\Yii::$app->settings->get('languages_id');
 
-        if ( isset($this->params['uprid']) && $this->params['uprid']>0 ) {
+        if (isset($this->params['uprid']) && $this->params['uprid'] > 0) {
             $show_uprid = $this->params['uprid'];
-        }else {
-            $show_uprid = Yii::$app->request->get('products_id',0);
+        } else {
+            $show_uprid = Yii::$app->request->get('products_id', 0);
         }
 
         if (!$show_uprid) {
@@ -57,13 +60,13 @@ class Images extends Widget
         \frontend\design\Info::addJsData(['widgets' => [
             $this->id => [
                 'alignPosition' => $this->settings[0]['align_position'],
-            ]]
+            ]],
         ]);
 
         $product = Yii::$container->get('products')->getProduct($show_uprid);
 
         $products_name = $product['products_name'];
-        if (!$products_name){
+        if (!$products_name) {
             $products_name = Product::get_products_name($show_uprid);
         }
         $imageId = cImages::getImageId($show_uprid);
@@ -74,18 +77,18 @@ class Images extends Widget
 
         if (substr($main_image, -7) != '/na.png') {
             $main_image_info = cImages::getImageUrl($show_uprid, 'Medium', -1, 0, false, false);
-            if (stripos($main_image, 'http') === 0){
+            if (stripos($main_image, 'http') === 0) {
                 $main_image_url = $main_image_info;
             } else {
-                $main_image_url = (($request_type == 'SSL') ? HTTPS_SERVER  : HTTP_SERVER) . $main_image_info;
+                $main_image_url = (($request_type == 'SSL') ? HTTPS_SERVER : HTTP_SERVER) . $main_image_info;
             }
             Yii::$app->getView()->registerMetaTag([
                 'property' => 'og:image',
-                'content' => $main_image_url
-            ],'og:image');
+                'content' => $main_image_url,
+            ], 'og:image');
 
             \frontend\design\JsonLd::addData(['Product' => [
-                'image' => $main_image_url
+                'image' => $main_image_url,
             ]], ['Product', 'image']);
         }
 

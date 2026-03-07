@@ -1,35 +1,37 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace frontend\forms\registration;
 
-use Yii;
-use yii\base\Model;
 use common\classes\ReCaptcha;
 use common\components\Customer;
 use common\helpers\Date as DateHelper;
+use Yii;
+use yii\base\Model;
 
-class CustomerRegistration extends Model {
-
-    const SCENARIO_LOGIN = 'login';
-    const SCENARIO_LOGIN_TOP = 'login_top';
-    const SCENARIO_GUEST = 'guest';
-    const SCENARIO_REGISTER = 'registration';
-    const SCENARIO_FAST_ORDER = 'fast_order';
-    const SCENARIO_ENQUIRE = 'enquire';
-    const SCENARIO_CHECKOUT = 'checkout';
-    const SCENARIO_EDIT = 'edit';
-    const SCENARIO_CREATE = 'create';
+class CustomerRegistration extends Model
+{
+    public const SCENARIO_LOGIN = 'login';
+    public const SCENARIO_LOGIN_TOP = 'login_top';
+    public const SCENARIO_GUEST = 'guest';
+    public const SCENARIO_REGISTER = 'registration';
+    public const SCENARIO_FAST_ORDER = 'fast_order';
+    public const SCENARIO_ENQUIRE = 'enquire';
+    public const SCENARIO_CHECKOUT = 'checkout';
+    public const SCENARIO_EDIT = 'edit';
+    public const SCENARIO_CREATE = 'create';
 
     public $email_address;
     public $password;
@@ -74,18 +76,19 @@ class CustomerRegistration extends Model {
     public $content;
     private $shortName;
     private $showAddress = false;
-    public $useExtending = false; //admin section    
-    
+    public $useExtending = false; //admin section
+
     public $captha_enabled = false;
-    
+
     public $captcha = null;
-    
-    public $captcha_response;    
+
+    public $captcha_response;
     public $captcha_widget;
 
     public $remember = null;
 
-    public function __construct($config = array()) {
+    public function __construct($config = [])
+    {
         if (isset($config['shortName'])) {
             $this->shortName = $config['shortName'];
             unset($config['shortName']);
@@ -98,18 +101,18 @@ class CustomerRegistration extends Model {
         }
         if ($this->captha_enabled == 'captha') {
             if (defined('PREFERRED_USE_RECAPTCHA') && PREFERRED_USE_RECAPTCHA == 'True') {
-                $captcha = new ReCaptcha();            
+                $captcha = new ReCaptcha();
                 if ($captcha->isEnabled()) {
                     $this->captha_enabled = 'recaptha';
                     $this->captcha_widget = \frontend\design\boxes\ReCaptchaWidget::widget();
                     $this->captcha = $captcha;
-                }else{
+                } else {
                     $this->captha_enabled = false;
                 }
             } else {
                 $this->captcha_widget = \yii\captcha\Captcha::widget([
                         'model' => $this,
-                        'attribute' => 'captcha'
+                        'attribute' => 'captcha',
                 ]);
             }
         }
@@ -117,25 +120,30 @@ class CustomerRegistration extends Model {
         $this->initParms();
     }
 
-    public function formName() {
+    public function formName()
+    {
         return $this->shortName;
     }
-    
-    public function beforeValidate() {
+
+    public function beforeValidate()
+    {
         foreach ($this->attributes as $attribute_name => $attribute_value) {
             if (is_string($attribute_value) && !in_array($attribute_name, ['password', 'confirmation','captcha_widget'])) {
                 $this->$attribute_name = \yii\helpers\HtmlPurifier::process($attribute_value);
                 $this->$attribute_name = str_replace('&amp;', '&', $this->$attribute_name);
             }
         }
-        if ($this->captha_enabled == 'recaptha'){
+        if ($this->captha_enabled == 'recaptha') {
             $this->captcha_response = Yii::$app->request->post('g-recaptcha-response', null);
         }
         return parent::beforeValidate();
     }
 
-    public static function hasScenario($scenario) {
-        if (!is_string($scenario)) return false;
+    public static function hasScenario($scenario)
+    {
+        if (!is_string($scenario)) {
+            return false;
+        }
         $reflection = new \ReflectionClass(self::className());
         $_const = $reflection->getConstants();
         if (is_array($_const)) {
@@ -145,7 +153,8 @@ class CustomerRegistration extends Model {
         return null;
     }
 
-    public function rules() {
+    public function rules()
+    {
         try {
             $languageId = (int)\Yii::$app->settings->get('languages_id');
         } catch (\Exception $e) {
@@ -192,8 +201,10 @@ class CustomerRegistration extends Model {
 
         if ($ext = \common\helpers\Acl::checkExtensionAllowed('PlatformRestrictLogin', 'enabled')) {
             $extRules = $ext::customerRegistrationRules();
-            if ( $extRules ) {
-                foreach ($extRules as $extRule) $_rules[] = $extRule+['model'=>$this];
+            if ($extRules) {
+                foreach ($extRules as $extRule) {
+                    $_rules[] = $extRule + ['model' => $this];
+                }
             }
         }
 
@@ -208,33 +219,36 @@ class CustomerRegistration extends Model {
         if ($this->captha_enabled == 'recaptha') {
             $_rules[] = ['captcha_response', 'validateCaptcha', 'skipOnEmpty' => false];
         }
-        
+
         return $_rules;
     }
-    
-    public function validateCaptcha($attribute, $params) {
-        if ($this->captha_enabled == 'recaptha'){
-            if (!$this->captcha->checkVerification($this->captcha_response)){
+
+    public function validateCaptcha($attribute, $params)
+    {
+        if ($this->captha_enabled == 'recaptha') {
+            if (!$this->captcha->checkVerification($this->captcha_response)) {
                 $this->addError($attribute, 'Wrong captcha verification');
             }
         }
     }
-    
-    public function requiredTrems($attribute, $params) {
+
+    public function requiredTrems($attribute, $params)
+    {
         if (!$this->$attribute) {
             $this->addError($attribute, 'Please Read terms & conditions');
         }
     }
 
-    public function requiredOnCheckoutAccount($attribute, $params) {
-	if (!$this->useExtending) {
-                if ($this->opc_temp_account) {
-                    if ($attribute == 'password') {
-                        if (empty($this->password) || $this->password != $this->confirmation) {
-                            $this->addError($attribute, ENTRY_PASSWORD_ERROR_NOT_MATCHING);
-                        }
+    public function requiredOnCheckoutAccount($attribute, $params)
+    {
+        if (!$this->useExtending) {
+            if ($this->opc_temp_account) {
+                if ($attribute == 'password') {
+                    if (empty($this->password) || $this->password != $this->confirmation) {
+                        $this->addError($attribute, ENTRY_PASSWORD_ERROR_NOT_MATCHING);
                     }
                 }
+            }
         }
         /*if (defined('ONE_PAGE_CREATE_ACCOUNT')) {
             if (ONE_PAGE_CREATE_ACCOUNT == 'onebuy' && !$this->useExtending) {
@@ -249,9 +263,10 @@ class CustomerRegistration extends Model {
         }*/
     }
 
-    public function requiredOnCreate($attribute, $params) {
+    public function requiredOnCreate($attribute, $params)
+    {
 
-        if($ext = \common\helpers\Acl::checkExtensionAllowed('CustomerCode')) {
+        if ($ext = \common\helpers\Acl::checkExtensionAllowed('CustomerCode')) {
             /* @var \common\extensions\CustomerCode */
             switch ($attribute) {
                 case 'erp_customer_id':
@@ -268,7 +283,8 @@ class CustomerRegistration extends Model {
         }
     }
 
-    public function requiredOnEdit() {
+    public function requiredOnEdit()
+    {
         if (empty($this->dob)) {
             if (in_array(ACCOUNT_DOB, $this->getRequired())) {
                 $this->addError('dob', ENTRY_DATE_OF_BIRTH_ERROR);
@@ -287,7 +303,8 @@ class CustomerRegistration extends Model {
         }
     }
 
-    public function checkPin($attribute, $customers_id) {
+    public function checkPin($attribute, $customers_id)
+    {
         if (in_array(ACCOUNT_PIN, ['required', 'required_register', 'visible', 'visible_register'])) {
             if (!empty($this->pin)) {
                 $oCustomer = \common\models\Customers::find()->where(['AND', ['pin' => $this->pin], ['!=', 'customers_id', $customers_id]])->limit(1)->one();
@@ -299,25 +316,29 @@ class CustomerRegistration extends Model {
         }
     }
 
-    public function attributeLabels() {
+    public function attributeLabels()
+    {
         $labels = [];
         if ($this->scenario == static::SCENARIO_CHECKOUT) {
             $labels = ['terms' => TEXT_CREATE_ACCOUNT_DEFENETLY];
         }
         $labels['status'] = '';
-        return array_merge(parent::attributeLabels(), $labels
+        return array_merge(
+            parent::attributeLabels(),
+            $labels
         );
     }
 
-    public function emailUnique($attribute, $params) {
-	//static::SCENARIO_CREATE - create customer on edit order
-	//static::SCENARIO_CHECKOUT - customer on checkout & edit order
-	//static::SCENARIO_REGISTER - customer register by himself
+    public function emailUnique($attribute, $params)
+    {
+        //static::SCENARIO_CREATE - create customer on edit order
+        //static::SCENARIO_CHECKOUT - customer on checkout & edit order
+        //static::SCENARIO_REGISTER - customer register by himself
         if ($this->scenario == static::SCENARIO_REGISTER && (defined('FLAG_EMAIL_VERIFICATION') && FLAG_EMAIL_VERIFICATION == 'True')) {
             $emailValidation = \common\models\CustomersEmailValidation::find()->where(['cev_email' => md5($this->$attribute)])->one();
             if ($emailValidation instanceof \common\models\CustomersEmailValidation) {
                 $cevCode = trim(filter_var(htmlentities(Yii::$app->request->post('email_verification_code')), FILTER_SANITIZE_STRING));
-                if ( !empty($cevCode) && $emailValidation->cev_code != md5($cevCode) ) {
+                if (!empty($cevCode) && $emailValidation->cev_code != md5($cevCode)) {
                     $this->addError($attribute, ENTRY_VERIFICATION_CODE_ERROR);
                 }
             } else {
@@ -325,11 +346,11 @@ class CustomerRegistration extends Model {
             }
         }
         if (in_array($this->scenario, [static::SCENARIO_REGISTER, static::SCENARIO_CREATE, static::SCENARIO_CHECKOUT])) {
-            
-            if ($this->scenario == static::SCENARIO_CHECKOUT){
-                if ($this->opc_temp_account){
+
+            if ($this->scenario == static::SCENARIO_CHECKOUT) {
+                if ($this->opc_temp_account) {
                     $exist = \common\models\Customers::find()->where(['customers_email_address' => $this->$attribute, 'opc_temp_account' => 0]);
-                    if (Yii::$app->storage->has('customer_id') ){
+                    if (Yii::$app->storage->has('customer_id')) {
                         $exist->andWhere(['!=', 'customers_id', Yii::$app->storage->get('customer_id')]);
                     }
                     if ($exist->one()) {
@@ -351,7 +372,7 @@ class CustomerRegistration extends Model {
             if (\Yii::$app->user->getId()) {
                 $_customerQ->andWhere(['!=', 'customers_id', \Yii::$app->user->getId()]);
                 $_customer = $_customerQ->one();
-            } else if (isset($params['customers_id'])) {//
+            } elseif (isset($params['customers_id'])) {
                 $_customerQ->andWhere(['!=', 'customers_id', $params['customers_id']]);
                 $_customer = $_customerQ->one();
             }
@@ -382,7 +403,8 @@ class CustomerRegistration extends Model {
 
     protected $_required = null;
 
-    public function getRequired() {
+    public function getRequired()
+    {
         if (is_null($this->_required)) {
             $this->_required = ['required_register'];
             if (in_array($this->scenario, [static::SCENARIO_CHECKOUT, static::SCENARIO_EDIT, static::SCENARIO_CREATE])) {
@@ -393,7 +415,8 @@ class CustomerRegistration extends Model {
         return $this->_required;
     }
 
-    public function requiredOnRegister($attribute, $params) {
+    public function requiredOnRegister($attribute, $params)
+    {
         if (in_array($attribute, ['email_address'])) {
             $cfg = false;
         } else {
@@ -405,9 +428,9 @@ class CustomerRegistration extends Model {
                 $valid = \common\helpers\Validations::validate_email($this->$attribute);
                 if (in_array(ACCOUNT_EMAIL, $this->getRequired()) && !$valid) {
                     $this->addError($attribute, ENTRY_EMAIL_ADDRESS_ERROR);
-                }else if (!empty($this->$attribute) && !$valid){
-		    $this->addError($attribute, ENTRY_EMAIL_ADDRESS_ERROR);
-		}
+                } elseif (!empty($this->$attribute) && !$valid) {
+                    $this->addError($attribute, ENTRY_EMAIL_ADDRESS_ERROR);
+                }
                 break;
             case 'gender':
                 if (in_array(ACCOUNT_GENDER, $this->getRequired()) && !in_array($this->$attribute, array_keys($this->getGenderList()))) {
@@ -415,21 +438,23 @@ class CustomerRegistration extends Model {
                 }
                 break;
             case 'firstname':
-                if (strpos($this->$attribute, '<')!==false || strpos($this->$attribute, 'https://')!==false || strpos($this->$attribute, 'http://')!==false 
+                if (strpos($this->$attribute, '<') !== false || strpos($this->$attribute, 'https://') !== false || strpos($this->$attribute, 'http://') !== false
                     || (strip_tags($this->$attribute) != $this->$attribute) || (in_array(ACCOUNT_FIRSTNAME, $this->getRequired()) && strlen($this->$attribute) < ENTRY_FIRST_NAME_MIN_LENGTH)) {
-                //if (in_array(ACCOUNT_FIRSTNAME, $this->getRequired()) && strlen($this->$attribute) < ENTRY_FIRST_NAME_MIN_LENGTH) {
+                    //if (in_array(ACCOUNT_FIRSTNAME, $this->getRequired()) && strlen($this->$attribute) < ENTRY_FIRST_NAME_MIN_LENGTH) {
                     $this->addError($attribute, sprintf(ENTRY_FIRST_NAME_ERROR, ENTRY_FIRST_NAME_MIN_LENGTH));
                 }
                 break;
             case 'lastname':
-                if (strpos($this->$attribute, '<')!==false || strpos($this->$attribute, 'https://')!==false || strpos($this->$attribute, 'http://')!==false 
+                if (strpos($this->$attribute, '<') !== false || strpos($this->$attribute, 'https://') !== false || strpos($this->$attribute, 'http://') !== false
                     || (strip_tags($this->$attribute) != $this->$attribute) || (in_array(ACCOUNT_LASTNAME, $this->getRequired()) && strlen($this->$attribute) < ENTRY_LAST_NAME_MIN_LENGTH)) {
-                //if (in_array(ACCOUNT_LASTNAME, $this->getRequired()) && strlen($this->$attribute) < ENTRY_LAST_NAME_MIN_LENGTH) {
+                    //if (in_array(ACCOUNT_LASTNAME, $this->getRequired()) && strlen($this->$attribute) < ENTRY_LAST_NAME_MIN_LENGTH) {
                     $this->addError($attribute, sprintf(ENTRY_LAST_NAME_ERROR, ENTRY_LAST_NAME_MIN_LENGTH));
                 }
                 break;
             case 'dob':
-                if ($this->scenario == self::SCENARIO_CHECKOUT && $this->useExtending) return;
+                if ($this->scenario == self::SCENARIO_CHECKOUT && $this->useExtending) {
+                    return;
+                }
                 if (!$this->gdpr) {
                     if (empty($this->$attribute)) {
                         if (in_array(ACCOUNT_DOB, $this->getRequired())) {
@@ -471,10 +496,10 @@ class CustomerRegistration extends Model {
                 break;
             case 'customs_number':
                 if ($cfg && in_array(ACCOUNT_CUSTOMS_NUMBER, $this->getRequired()) && empty($this->$attribute) && (
-                        ( in_array($cfg, ['required', 'required_register']) ) ||
-                        ( in_array($cfg, ['required_company']) && !empty($this->company) )
-                        )
-                    ) {
+                    (in_array($cfg, ['required', 'required_register'])) ||
+                        (in_array($cfg, ['required_company']) && !empty($this->company))
+                )
+                ) {
                     $this->addError($attribute, TEXT_CUSTOMS_NUMBER_ERROR);
                 }
                 break;
@@ -532,7 +557,8 @@ class CustomerRegistration extends Model {
         }
     }
 
-    public function afterValidate() {
+    public function afterValidate()
+    {
         if ($this->hasErrors()) {
             $this->dobTmp = DateHelper::datepicker_date($this->dob);
             if ($this->scenario != static::SCENARIO_CHECKOUT) {
@@ -542,7 +568,8 @@ class CustomerRegistration extends Model {
         return parent::afterValidate();
     }
 
-    public function defaultGeoValues() {
+    public function defaultGeoValues()
+    {
         if (is_null($this->country)) {
             $this->country = (int) STORE_COUNTRY;
         }
@@ -551,10 +578,11 @@ class CustomerRegistration extends Model {
         }
     }
 
-    public function defaultGroup($attribute, $params) {
+    public function defaultGroup($attribute, $params)
+    {
         if (empty($this->group)) {
             if (ENABLE_CUSTOMER_GROUP_CHOOSE == 'False') {
-                if (!defined("DEFAULT_USER_LOGIN_GROUP")) {
+                if (!defined('DEFAULT_USER_LOGIN_GROUP')) {
                     $this->group = 0;
                 } else {
                     $this->group = (int) DEFAULT_USER_LOGIN_GROUP;
@@ -567,7 +595,8 @@ class CustomerRegistration extends Model {
         }
     }
 
-    public function initParms() {
+    public function initParms()
+    {
         if (in_array($this->scenario, [static::SCENARIO_REGISTER])) {
             if (in_array('required_register', [ACCOUNT_POSTCODE, ACCOUNT_STREET_ADDRESS, ACCOUNT_SUBURB, ACCOUNT_CITY, ACCOUNT_STATE, ACCOUNT_COUNTRY])) {
                 $this->showAddress = true;
@@ -579,7 +608,8 @@ class CustomerRegistration extends Model {
         }
     }
 
-    public function scenarios() {
+    public function scenarios()
+    {
         return [
             static::SCENARIO_LOGIN => $this->collectFields(static::SCENARIO_LOGIN),
             static::SCENARIO_LOGIN_TOP => $this->collectFields(static::SCENARIO_LOGIN),
@@ -593,7 +623,8 @@ class CustomerRegistration extends Model {
         ];
     }
 
-    public function getAttributesByScenario() {
+    public function getAttributesByScenario()
+    {
         $attributes = $this->getAttributes();
         $list = [];
         foreach ($attributes as $attribute_name => $attribute_value) {
@@ -603,19 +634,21 @@ class CustomerRegistration extends Model {
         }
         return $list;
     }
-    
-    public function cleanupSafeFields() {
+
+    public function cleanupSafeFields()
+    {
         $this->email_address = '';
         $this->password = '';
         $this->confirmation = '';
         $this->captcha = '';
     }
 
-    public function collectFields($type) {
+    public function collectFields($type)
+    {
         $fields = [];
         switch ($type) {
-            case static::SCENARIO_LOGIN :
-            case static::SCENARIO_LOGIN_TOP :
+            case static::SCENARIO_LOGIN:
+            case static::SCENARIO_LOGIN_TOP:
                 $fields[] = 'password';
                 $fields[] = 'remember';
                 $fields[] = 'email_address';
@@ -631,7 +664,7 @@ class CustomerRegistration extends Model {
                     $fields[] = 'captcha_response';
                 }
                 break;
-            case static::SCENARIO_REGISTER :
+            case static::SCENARIO_REGISTER:
                 $fields[] = 'password';
                 $fields[] = 'confirmation';
                 if ($this->captha_enabled == 'captha') {
@@ -651,7 +684,7 @@ class CustomerRegistration extends Model {
                     $fields[] = 'company_vat';
                 }
                 if (defined('ACCOUNT_CUSTOMS_NUMBER') && in_array(ACCOUNT_CUSTOMS_NUMBER, ['required_register', 'visible_register']) ||
-                    (in_array('company', $fields) && ACCOUNT_CUSTOMS_NUMBER == 'required_company') ) {
+                    (in_array('company', $fields) && ACCOUNT_CUSTOMS_NUMBER == 'required_company')) {
                     $fields[] = 'customs_number';
                 }
                 if (in_array(ACCOUNT_GENDER, ['required_register', 'visible_register'])) {
@@ -698,13 +731,13 @@ class CustomerRegistration extends Model {
                 $fields[] = 'country';
                 $fields[] = 'zone_id';
                 break;
-            case static::SCENARIO_ENQUIRE :
+            case static::SCENARIO_ENQUIRE:
                 $fields[] = 'phone';
                 $fields[] = 'content';
                 $fields[] = 'name';
                 $fields[] = 'email_address';
                 break;
-            case static::SCENARIO_GUEST :
+            case static::SCENARIO_GUEST:
                 $fields[] = 'terms';
                 $fields[] = 'email_address';
                 if (in_array(ACCOUNT_DOB, ['required_register', 'visible_register'])) {
@@ -713,7 +746,7 @@ class CustomerRegistration extends Model {
                     $fields[] = 'gdpr';
                 }
                 break;
-            case static::SCENARIO_FAST_ORDER :
+            case static::SCENARIO_FAST_ORDER:
                 $fields[] = 'country';
                 $fields[] = 'zone_id';
                 $fields[] = 'group';
@@ -748,7 +781,7 @@ class CustomerRegistration extends Model {
                         $fields[] = 'lastname';
                     }
                 }
-                if(!Yii::$app->storage->has('customer_id')){
+                if (!Yii::$app->storage->has('customer_id')) {
                     if (in_array(ACCOUNT_DOB, ['required', 'required_register', 'visible', 'visible_register'])) {
                         $fields[] = 'dob';
                         $fields[] = 'dobTmp';
@@ -793,10 +826,10 @@ class CustomerRegistration extends Model {
                 }
                 $fields[] = 'status';
 
-                if($ext = \common\helpers\Acl::checkExtensionAllowed('CustomerCode')) {
+                if ($ext = \common\helpers\Acl::checkExtensionAllowed('CustomerCode')) {
                     /* @var \common\extensions\CustomerCode */
                     if ($ext::isEnabledErpId()) {
-                        if ( \common\helpers\Acl::checkExtension($ext, 'readonlyInput') ) {
+                        if (\common\helpers\Acl::checkExtension($ext, 'readonlyInput')) {
                             if (!$ext::readonlyInput('erp_customer_id')) {
                                 $fields[] = 'erp_customer_id';
                             }
@@ -805,7 +838,7 @@ class CustomerRegistration extends Model {
                         }
                     }
                     if ($ext::isEnabledErpCode()) {
-                        if ( \common\helpers\Acl::checkExtension($ext, 'readonlyInput') ) {
+                        if (\common\helpers\Acl::checkExtension($ext, 'readonlyInput')) {
                             if (!$ext::readonlyInput('erp_customer_code')) {
                                 $fields[] = 'erp_customer_code';
                             }
@@ -826,7 +859,7 @@ class CustomerRegistration extends Model {
                 $fields[] = 'zone_id';
 
                 break;
-            case static::SCENARIO_EDIT :
+            case static::SCENARIO_EDIT:
                 if (in_array(ACCOUNT_GENDER, ['required', 'required_register', 'visible', 'visible_register'])) {
                     $fields[] = 'gender';
                 }
@@ -875,7 +908,8 @@ class CustomerRegistration extends Model {
         return $fields;
     }
 
-    public function getRegularOfferList() {
+    public function getRegularOfferList()
+    {
         return [
             '12' => '12 months',
             '24' => '24 months',
@@ -885,23 +919,27 @@ class CustomerRegistration extends Model {
         ];
     }
 
-    public function getGenderList() {
+    public function getGenderList()
+    {
         return \common\helpers\Address::getGendersList();
     }
 
-    public function getDefaultCountryId() {
+    public function getDefaultCountryId()
+    {
         return $this->country ? $this->country : STORE_COUNTRY;
     }
 
-    public function isShowAddress() {
+    public function isShowAddress()
+    {
         return $this->showAddress;
     }
 
-    public function processCustomerAuth() {
+    public function processCustomerAuth()
+    {
         //get success result
         switch ($this->scenario) {
-            case static::SCENARIO_LOGIN :
-            case static::SCENARIO_LOGIN_TOP :
+            case static::SCENARIO_LOGIN:
+            case static::SCENARIO_LOGIN_TOP:
                 if (\common\models\Fraud::blockAddress()) {
                     $this->addError('email_address', TEXT_LOGIN_BLOCKED);
                     return false;
@@ -919,14 +957,14 @@ class CustomerRegistration extends Model {
                     return false;
                 }
                 break;
-            case static::SCENARIO_REGISTER :
+            case static::SCENARIO_REGISTER:
                 $customer = new Customer();
                 return $customer->registerCustomer($this);
                 break;
-            case static::SCENARIO_ENQUIRE :
+            case static::SCENARIO_ENQUIRE:
                 $name = STORE_OWNER;
                 $email_address = STORE_OWNER_EMAIL_ADDRESS;
-                $email_params = array();
+                $email_params = [];
                 $email_params['USER_NAME'] = $this->name;
                 $email_params['COMPANY_NAME'] = $this->company;
                 $email_params['USER_EMAIL'] = $this->email_address;
@@ -952,7 +990,7 @@ class CustomerRegistration extends Model {
             case static::SCENARIO_CHECKOUT:
 
                 break;
-            case static::SCENARIO_EDIT :
+            case static::SCENARIO_EDIT:
                 $vars = func_get_args();
                 if (is_object($vars[0]) && $vars[0] instanceof Customer) {
                     $customer = $vars[0];
@@ -971,7 +1009,8 @@ class CustomerRegistration extends Model {
         return false;
     }
 
-    public function preloadCustomersData($customer = null) {
+    public function preloadCustomersData($customer = null)
+    {
         if ($customer instanceof Customer) {
             if ($this->scenario == static::SCENARIO_REGISTER) {
                 $this->gender = $customer->customers_gender;
@@ -995,12 +1034,12 @@ class CustomerRegistration extends Model {
                         $this->state = $address->entry_state;
                     }
                 }
-            } else if ($this->scenario == static::SCENARIO_CHECKOUT) {
+            } elseif ($this->scenario == static::SCENARIO_CHECKOUT) {
                 $this->email_address = $customer->customers_email_address;
                 $this->telephone = $customer->customers_telephone;
                 $this->landline = $customer->customers_landline;
                 $this->company = $customer->customers_company;
-//                $this->company_vat = $customer->customers_company_vat;
+                //                $this->company_vat = $customer->customers_company_vat;
                 if ($this->useExtending) {
                     $this->gender = $customer->customers_gender;
                     $this->firstname = $customer->customers_firstname;
@@ -1008,8 +1047,9 @@ class CustomerRegistration extends Model {
                 }
             } elseif ($this->scenario == static::SCENARIO_EDIT) {
                 $this->gender = $customer->customers_gender;
-                if (empty($this->gender))
+                if (empty($this->gender)) {
                     $this->gender = 'm';
+                }
                 $this->email_address = $customer->customers_email_address;
                 $this->telephone = $customer->customers_telephone;
                 $this->landline = $customer->customers_landline;
@@ -1043,7 +1083,7 @@ class CustomerRegistration extends Model {
                 $this->platform_id = \common\classes\platform::defaultId();
                 $this->language_id = $languageId;
                 if ((int) Yii::$app->session->get('login_id')) {
-                  $this->admin_id = (int) Yii::$app->session->get('login_id');
+                    $this->admin_id = (int) Yii::$app->session->get('login_id');
                 }
                 $this->status = true;
             }

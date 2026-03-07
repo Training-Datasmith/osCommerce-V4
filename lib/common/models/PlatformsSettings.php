@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
 use yii\db\ActiveRecord;
@@ -10,17 +12,20 @@ class PlatformsSettings extends ActiveRecord
     {
         return '{{platforms_settings}}';
     }
-    
-    public function beforeDelete() {
-        //2do: delete prices for this platform 
+
+    public function beforeDelete()
+    {
+        //2do: delete prices for this platform
         return parent::beforeDelete();
     }
-    
-    public function getPlatform(){
+
+    public function getPlatform()
+    {
         return $this->hasOne(Platforms::className(), ['platform_id' => 'platform_id']);
     }
 
-    public function afterSave($insert, $changedAttributes) {
+    public function afterSave($insert, $changedAttributes)
+    {
         if (!empty($changedAttributes)) {
             $newAttributes = $this->getAttributes();
             foreach (\common\helpers\Hooks::getList('platforms-settings/after-save') as $filename) {
@@ -30,5 +35,5 @@ class PlatformsSettings extends ActiveRecord
         return parent::afterSave($insert, $changedAttributes);
 
     }
-   
+
 }

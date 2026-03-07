@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,13 +12,10 @@
  */
 declare(strict_types=1);
 
-
 namespace common\services;
-
 
 class FileService
 {
-
     /**
      * @param array $paths
      * @param \Closure $callback

@@ -1,30 +1,32 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\helpers;
 
+use common\models\MenuItems;
+use common\models\Menus;
 use common\models\MenuTitles;
 use Yii;
-use common\models\Menus;
-use common\models\MenuItems;
 
-
-class MenuHelper {
-
+class MenuHelper
+{
     public const MENU_CACHE_LIFETIME = 5;
     private static $countDisabledMenuItem = 0;
 
-    public static function getUrlByLinkId($link_id, $link_type) {
+    public static function getUrlByLinkId($link_id, $link_type)
+    {
         switch ($link_type) {
             case 'default':
                 if ($link_id == '8888886') {
@@ -55,7 +57,7 @@ class MenuHelper {
                     return tep_href_link('catalog/gift-card');
                 } elseif ($link_id == '8888878') {
                     return tep_href_link('catalog/all-products');
-                }  elseif ($link_id == '8888877') {
+                } elseif ($link_id == '8888877') {
                     return tep_href_link('sitemap');
                 } elseif ($link_id == '8888876') {
                     return tep_href_link('promotions');
@@ -68,7 +70,7 @@ class MenuHelper {
                 }
                 break;
             case 'custom':
-                $link = tep_db_fetch_array(tep_db_query("select link from " . TABLE_MENU_ITEMS . " where platform_id = '" . \common\classes\platform::currentId() . "' and link_id = '" . (int) $link_id . "'"));
+                $link = tep_db_fetch_array(tep_db_query('select link from ' . TABLE_MENU_ITEMS . " where platform_id = '" . \common\classes\platform::currentId() . "' and link_id = '" . (int) $link_id . "'"));
                 if ($link) {
                     return tep_href_link($link['link']);
                 }
@@ -76,21 +78,25 @@ class MenuHelper {
         }
         return false;
     }
-    
-    public static function getAllCustomPages($platform_id){
-        $cusom_pages_query = tep_db_query("select ts.id, ts.setting_value from " . TABLE_THEMES_SETTINGS . " ts left join " . TABLE_THEMES . " t on ts.theme_name = t.theme_name inner join " . TABLE_PLATFORMS_TO_THEMES . " pt on pt.is_default = 1 and pt.theme_id = t.id where pt.platform_id = '" . (int)$platform_id . "' and ts.setting_group = 'added_page' and ts.setting_name='custom' order by ts.setting_value");
+
+    public static function getAllCustomPages($platform_id)
+    {
+        $cusom_pages_query = tep_db_query('select ts.id, ts.setting_value from ' . TABLE_THEMES_SETTINGS . ' ts left join ' . TABLE_THEMES . ' t on ts.theme_name = t.theme_name inner join ' . TABLE_PLATFORMS_TO_THEMES . " pt on pt.is_default = 1 and pt.theme_id = t.id where pt.platform_id = '" . (int)$platform_id . "' and ts.setting_group = 'added_page' and ts.setting_name='custom' order by ts.setting_value");
         $custom_pages = [];
-        if (tep_db_num_rows($cusom_pages_query)){
-            while($custom = tep_db_fetch_array($cusom_pages_query)){
+        if (tep_db_num_rows($cusom_pages_query)) {
+            while ($custom = tep_db_fetch_array($cusom_pages_query)) {
                 $custom_pages[$custom['id']] = $custom['setting_value'];
             }
         }
         return $custom_pages;
     }
 
-    public static function getBrandsList() {
+    public static function getBrandsList()
+    {
         static $brands;
-        if ( is_array($brands) ) return $brands;
+        if (is_array($brands)) {
+            return $brands;
+        }
 
         /*
         $manufacturers_query = tep_db_query("select manufacturers_id, manufacturers_name, manufacturers_image from " . TABLE_MANUFACTURERS ." order by manufacturers_name asc");
@@ -99,7 +105,7 @@ class MenuHelper {
         while ($item = tep_db_fetch_array($manufacturers_query)) {
             $brands[$item['manufacturers_id']] = $item;
         }*/
-        
+
         $manufacturersQuery = \common\models\Manufacturers::find()->alias('m')->select('m.manufacturers_id, manufacturers_name, manufacturers_image')->orderBy('manufacturers_name');
 
         foreach (\common\helpers\Hooks::getList('menu-helper/get-brands-list') as $filename) {
@@ -110,9 +116,10 @@ class MenuHelper {
         return $brands;
     }
 
-    public static function getExtensionsTreeItems() {
+    public static function getExtensionsTreeItems()
+    {
         $path = \Yii::getAlias('@common') . DIRECTORY_SEPARATOR . 'extensions' . DIRECTORY_SEPARATOR;
-        $exItems = array();
+        $exItems = [];
         if ($dir = @dir($path)) {
             while ($file = $dir->read()) {
                 if ($ext = \common\helpers\Acl::checkExtensionInstalled($file, 'getAdminMenu')) {
@@ -130,7 +137,8 @@ class MenuHelper {
         return $exItems;
     }
 
-    public static function prepareAdminTree($data, $exItems) {
+    public static function prepareAdminTree($data, $exItems)
+    {
         $response = [];
         foreach ($data->item as $item) {
             $row = [
@@ -181,7 +189,9 @@ class MenuHelper {
     private static function forceAclForMenu($menuId)
     {
         $menuChain = self::getAdminMenuChain($menuId);
-        if (empty($menuChain)) return;
+        if (empty($menuChain)) {
+            return;
+        }
         $parentId = 0;
         foreach ($menuChain as $menuTitle) {
             $acl = \common\models\AccessControlList::findOne(['access_control_list_key' => $menuTitle, 'parent_id' => $parentId]);
@@ -222,7 +232,7 @@ class MenuHelper {
         $object->save(false);
         //--- update acl
         $cnt = \common\models\AccessControlList::find()->where(['access_control_list_key' => $object->title])->count();
-        if ( $cnt != 1) {
+        if ($cnt != 1) {
             $acl = self::forceAclForMenu($object->box_id);
         } else {
             $acl = \common\models\AccessControlList::findOne(['access_control_list_key' => $object->title]);
@@ -232,12 +242,13 @@ class MenuHelper {
         return $object;
     }
 
-    public static function importAdminTree($data, $parent = 0) {
+    public static function importAdminTree($data, $parent = 0)
+    {
         foreach ($data as $item) {
             $item['parent_id'] = $parent;
             $object = self::createAdminMenuItemAndCheckAcl($item);
             //--- update acl
-            if (isset($item['child']) && is_array($item['child']) && (int)($item['box_type']??0) == 1) {
+            if (isset($item['child']) && is_array($item['child']) && (int)($item['box_type'] ?? 0) == 1) {
                 self::importAdminTree($item['child'], $object->box_id);
             }
         }
@@ -303,8 +314,9 @@ class MenuHelper {
      */
     public static function removeAdminMenuItem($array_or_title)
     {
-        if (is_array($array_or_title['child'] ?? null))
+        if (is_array($array_or_title['child'] ?? null)) {
             self::removeAdminMenuItems($array_or_title['child']);
+        }
 
         $row = self::getAdminMenuItemByTitle($array_or_title);
         if (empty($row)) {
@@ -319,9 +331,9 @@ class MenuHelper {
     public static function resortAdminMenu($parent_id, $resort_after_id)
     {
         \common\models\AdminBoxes::updateAll(
-                ['sort_order' => new \yii\db\Expression('sort_order+1')],
-                'parent_id = :parent_id AND sort_order >= :shift_sort_order',
-                ['parent_id' => $parent_id, 'shift_sort_order' => $resort_after_id++]
+            ['sort_order' => new \yii\db\Expression('sort_order+1')],
+            'parent_id = :parent_id AND sort_order >= :shift_sort_order',
+            ['parent_id' => $parent_id, 'shift_sort_order' => $resort_after_id++]
         );
     }
 
@@ -336,20 +348,20 @@ class MenuHelper {
         }
     }
 
-    private static function array_to_xml( $data, &$xml_data ) {
-        foreach( $data as $key => $value ) {
-            if( is_array($value) ) {
-                if( is_numeric($key) ){
+    private static function array_to_xml($data, &$xml_data)
+    {
+        foreach ($data as $key => $value) {
+            if (is_array($value)) {
+                if (is_numeric($key)) {
                     $key = 'item'; //dealing with <0/>..<n/> issues
                 }
                 $subnode = $xml_data->addChild($key);
                 self::array_to_xml($value, $subnode);
             } else {
-                $xml_data->addChild("$key",htmlspecialchars("$value"));
+                $xml_data->addChild("$key", htmlspecialchars("$value"));
             }
         }
     }
-
 
     public static function resetAdminMenu()
     {
@@ -357,7 +369,7 @@ class MenuHelper {
         $filename = $path . DIRECTORY_SEPARATOR . 'includes' .DIRECTORY_SEPARATOR . 'default_menu.xml';
 
         $xmlfile = file_get_contents($filename);
-        $ob= simplexml_load_string($xmlfile);
+        $ob = simplexml_load_string($xmlfile);
         if (isset($ob)) {
             $exItems = \common\helpers\MenuHelper::getExtensionsTreeItems();
             // add first level menus like MarketPlaces
@@ -384,7 +396,7 @@ class MenuHelper {
                 }
             }
             $obPrepared = \common\helpers\MenuHelper::prepareAdminTree($ob, $exItems);
-            tep_db_query("TRUNCATE TABLE admin_boxes;");
+            tep_db_query('TRUNCATE TABLE admin_boxes;');
             \common\helpers\MenuHelper::importAdminTree($obPrepared);
         }
     }
@@ -403,7 +415,7 @@ class MenuHelper {
 
         // find parent_id
         if (!empty($array['parent'])) {
-            $parent = self::getAdminMenuItemByTitle ($array['parent']);
+            $parent = self::getAdminMenuItemByTitle($array['parent']);
             if (!empty($parent)) {
                 $array['parent_id'] = $parent->box_id;
             }
@@ -413,7 +425,7 @@ class MenuHelper {
         // if already exists
         if ($array['removeIfExists'] ?? true) {
             self::removeAdminMenuItem($array);
-        } 
+        }
         if (empty(self::getAdminMenuItemByTitle($array))) {
 
             // resort
@@ -434,7 +446,7 @@ class MenuHelper {
         }
         if (is_array($array['child'] ?? null)) {
 
-            foreach($array['child'] as $key => $child) {
+            foreach ($array['child'] as $key => $child) {
                 if (!empty($res) && $res->box_id > 0) {
                     $array['child'][$key]['parent_id'] = $res->box_id;
                 } else { // $res->box_id = 0 if parent was already exist
@@ -445,26 +457,29 @@ class MenuHelper {
         }
     }
 
-    public static function categoriesToMenuMessage() {
-        if (!\common\helpers\Acl::rule(['BOX_HEADING_DESIGN_CONTROLS', 'FILENAME_CMS_MENUS'])){
+    public static function categoriesToMenuMessage()
+    {
+        if (!\common\helpers\Acl::rule(['BOX_HEADING_DESIGN_CONTROLS', 'FILENAME_CMS_MENUS'])) {
             return '';
         }
-        
+
         $lastModifiedBrands = \common\models\Manufacturers::find()->max('date_added');
 
         $platforms = \common\classes\platform::getList(false);
         foreach ($platforms as $platform) {
 
             $lastModifiedCategories = \common\models\Categories::find()
-                ->alias('c')->leftJoin(['pc' => \common\models\PlatformsCategories::tableName()],
-                    "c.categories_id = pc.categories_id")
+                ->alias('c')->leftJoin(
+                    ['pc' => \common\models\PlatformsCategories::tableName()],
+                    'c.categories_id = pc.categories_id'
+                )
                 ->where(['pc.platform_id' => $platform['id']])
                 ->max('date_added');
 
             $category = Menus::find()
                 ->alias('m')
                 ->select(['m.id', 'mi.platform_id', 'm.last_modified'])
-                ->leftJoin(['mi' => \common\models\MenuItems::tableName()], "m.id = mi.menu_id")
+                ->leftJoin(['mi' => \common\models\MenuItems::tableName()], 'm.id = mi.menu_id')
                 ->where(['mi.link_id' => '999999999', 'mi.platform_id' => $platform['id']])
                 ->andWhere(['<', 'm.last_modified', $lastModifiedCategories])
                 ->asArray()
@@ -476,7 +491,7 @@ class MenuHelper {
                 $brand = Menus::find()
                     ->alias('m')
                     ->select(['m.id', 'mi.platform_id', 'm.last_modified'])
-                    ->leftJoin(['mi' => \common\models\MenuItems::tableName()], "m.id = mi.menu_id")
+                    ->leftJoin(['mi' => \common\models\MenuItems::tableName()], 'm.id = mi.menu_id')
                     ->where(['mi.link_id' => '999999998', 'mi.platform_id' => $platform['id']])
                     ->andWhere(['<', 'm.last_modified', $lastModifiedBrands])
                     ->asArray()
@@ -490,8 +505,8 @@ class MenuHelper {
 
             $message = sprintf($message, Yii::$app->urlManager->createUrl([
                 'menus',
-                'menu' => $category['id']??false,
-                'platform_id' => $platform['id']??false,
+                'menu' => $category['id'] ?? false,
+                'platform_id' => $platform['id'] ?? false,
             ]));
             \Yii::$container->get('message_stack')->add($message, 'alert', 'info menu-message', 'menu-message');
             return '';
@@ -500,7 +515,9 @@ class MenuHelper {
 
     public static function createMenu($menuName, $data = [], $platformId = false)
     {
-        if (Menus::findOne(['menu_name' => $menuName])) return '';
+        if (Menus::findOne(['menu_name' => $menuName])) {
+            return '';
+        }
 
         if ($platformId === false) {
             $platformId = \common\classes\platform::defaultId();
@@ -519,11 +536,13 @@ class MenuHelper {
 
     public static function createMenuItems($data, $menuId, $platformId, $parentId = 0, $local = false)
     {
-        if (!is_array($data)) return false;
+        if (!is_array($data)) {
+            return false;
+        }
 
         $languageId = Language::get_default_language_id();
 
-        foreach ($data as $item){
+        foreach ($data as $item) {
             $menuItem = new MenuItems();
 
             $link_type = $item['link_type'];
@@ -545,7 +564,7 @@ class MenuHelper {
                 if ($item['link_type'] == 'categories' && $link_id != '999999999') {
                     $link_id = \common\models\CategoriesDescription::findOne([
                         'categories_seo_page_name' => $link_id,
-                        'language_id' => $languageId
+                        'language_id' => $languageId,
                     ])->categories_id;
                 }
                 if ($item['link_type'] == 'brands' && $link_id != '999999998') {
@@ -580,18 +599,19 @@ class MenuHelper {
             $menuItem->save();
             $menuItemId = $menuItem->getPrimaryKey();
 
-            if (is_array($item['titles']))
-            foreach ($item['titles'] as $langeageKey => $vals) {
+            if (is_array($item['titles'])) {
+                foreach ($item['titles'] as $langeageKey => $vals) {
 
-                $language = Language::get_language_id($langeageKey);
-                $menuTitles = new \common\models\MenuTitles();
-                $menuTitles->attributes = [
-                    'language_id' => (int)$language['languages_id'],
-                    'item_id' => (int)$menuItemId,
-                    'title' => $vals['title'],
-                    'link' => $vals['link'],
-                ];
-                $menuTitles->save();
+                    $language = Language::get_language_id($langeageKey);
+                    $menuTitles = new \common\models\MenuTitles();
+                    $menuTitles->attributes = [
+                        'language_id' => (int)$language['languages_id'],
+                        'item_id' => (int)$menuItemId,
+                        'title' => $vals['title'],
+                        'link' => $vals['link'],
+                    ];
+                    $menuTitles->save();
+                }
             }
 
             if ($item['children']) {
@@ -605,7 +625,6 @@ class MenuHelper {
         if ($platformId === false) {
             $platformId = \common\classes\platform::defaultId();
         }
-
 
         $languages = [];
         $menuId = Menus::findOne(['menu_name' => $menuName])->id;
@@ -639,7 +658,9 @@ class MenuHelper {
 
         $tree = [];
         foreach ($menuData as $item) {
-            if ($item['parent_id'] != $parentId) continue;
+            if ($item['parent_id'] != $parentId) {
+                continue;
+            }
 
             $link_id = $item['link_id'];
             $link_id_local = $item['link_id'];
@@ -653,7 +674,7 @@ class MenuHelper {
             if ($item['link_type'] == 'categories') {
                 $link_id = \common\models\CategoriesDescription::findOne([
                         'categories_id' => $item['link_id'],
-                        'language_id' => $languageId
+                        'language_id' => $languageId,
                     ])->categories_seo_page_name ?? $link_id;
             }
             if ($item['link_type'] == 'brands') {
@@ -691,8 +712,8 @@ class MenuHelper {
         $accountPages = [];
         foreach ($pages as $page) {
             $accountPages[] = [
-                'type_id' => hexdec(substr( md5($page['setting_value']), 0, 7 )),
-                'name' => $page['setting_value']
+                'type_id' => hexdec(substr(md5($page['setting_value']), 0, 7)),
+                'name' => $page['setting_value'],
             ];
         }
 
@@ -742,7 +763,7 @@ class MenuHelper {
         $menus = MenuItems::find()->select('id')->where($conditions)->asArray()->all();
         foreach ($menus as $menu) {
             MenuTitles::deleteAll(['item_id' => $menu['id']]);
-            if ($ext = \common\helpers\Acl::checkExtensionAllowed('SeoRedirectsNamed', 'allowed')){
+            if ($ext = \common\helpers\Acl::checkExtensionAllowed('SeoRedirectsNamed', 'allowed')) {
                 $ext::deleteMenuLinks((int)$menu['id']);
             }
         }
@@ -767,7 +788,7 @@ class MenuHelper {
 
     public static function menuItemsToHtml($menuItems, $itemClass = 'extension-menu-item')
     {
-        $htmlItems = "";
+        $htmlItems = '';
         foreach (array_unique($menuItems, SORT_REGULAR) as $menuItem) {
             if (is_array($menuItem)) {
                 $htmlItems .= self::menuItemsToHtml($menuItem, $itemClass);
@@ -777,7 +798,6 @@ class MenuHelper {
         }
         return $htmlItems;
     }
-
 
     /**
      * @param $adminMenu array this is a result of {@see $module::getAdminMenu()}
@@ -789,36 +809,36 @@ class MenuHelper {
 
         \common\helpers\Translation::init('admin/main');
         $indent = '&nbsp;&nbsp;&nbsp;&nbsp;';
-        if(!is_array($adminMenu)){ // If empty $adminMenu then return nothing
+        if (!is_array($adminMenu)) { // If empty $adminMenu then return nothing
             return [];
         }
         $res = [];
         foreach ($adminMenu as $item) {
-            if(isset($item['parent']) && !$ignoreRoot) {
+            if (isset($item['parent']) && !$ignoreRoot) {
                 $rootLevel = 0;
-                foreach (array_reverse(self::buildRootMenu($item['parent'])??[]) as $root) {
+                foreach (array_reverse(self::buildRootMenu($item['parent']) ?? []) as $root) {
                     $res[] = str_repeat($indent, $rootLevel).$root; // Adding a visual shift
                     $rootLevel++;
                 }
                 $level = $rootLevel; // End work with root menu items. Transferring the shift level to the extension menu items
             }
-//            $title = (defined($item['title'])) ? constant($item['title']) : $item['title'];  // Replacing the title with a translation
+            //            $title = (defined($item['title'])) ? constant($item['title']) : $item['title'];  // Replacing the title with a translation
             $title = \common\helpers\Translation::getValue($item['title'], 'admin/main', $item['title']);  // Replacing the title with a translation
-            if( !isset($item['path']) ||
+            if (!isset($item['path']) ||
                 empty($item['path']) ||
-                is_array($item['child']??null) ||
+                is_array($item['child'] ?? null) ||
                 !self::isMenuItemEnabled($item['title']) ||
                 !self::isMenuItemAllowed($item['title'])
             ) {
                 $res[] = str_repeat($indent, $level) . '<button class="btn btn-disabled" style="background: dimgrey; border-color: dimgrey" href="#" disabled="disabled">' . $title . '</button>';
-                if( !self::isMenuItemEnabled($item['title'])) {
+                if (!self::isMenuItemEnabled($item['title'])) {
                     self::$countDisabledMenuItem++;
                 }
-            }else{
+            } else {
                 $res[] = str_repeat($indent, $level).'<a class="btn btn-primary" href="'.\Yii::$app->urlManager->createUrl([$item['path']]).'">'.$title.'</a>';
             }
-            if(isset($item['child'])) {
-                $res[] = self::buildHierarchyHtmlArray($item['child'],$level+1, true);
+            if (isset($item['child'])) {
+                $res[] = self::buildHierarchyHtmlArray($item['child'], $level + 1, true);
             }
 
         }
@@ -836,12 +856,11 @@ class MenuHelper {
     {
         $root = [];
         $item = self::getMenuItemRecord($id_or_title);
-        if(is_object($item)) {
+        if (is_object($item)) {
             $title = (defined($item->title)) ? constant($item->title) : $item->title; // Replacing the title with a translation
             $root[] = '<button class="btn btn-disabled" style="background: dimgrey; border-color: dimgrey" href="#" disabled="disabled">'.$title.'</button>';
-            if($item->parent_id > 0)
-            {
-                $root = array_merge($root, self::buildRootMenu($item->parent_id, $level+1));
+            if ($item->parent_id > 0) {
+                $root = array_merge($root, self::buildRootMenu($item->parent_id, $level + 1));
             }
             return $root;
         }
@@ -870,10 +889,10 @@ class MenuHelper {
     private static function isMenuItemAllowed($id_or_title)
     {
         $item = self::getMenuItemRecord($id_or_title);
-        if(is_object($item)) {
+        if (is_object($item)) {
             $acl = explode(',', $item->acl_check);
             $check = \common\helpers\Extensions::callIfAllowed($acl[0], $acl[1]);
-//            return empty($item->acl_check) ? true : \common\helpers\Extensions::callIfAllowed($acl[0], $acl[1]);
+            //            return empty($item->acl_check) ? true : \common\helpers\Extensions::callIfAllowed($acl[0], $acl[1]);
             return empty($item->acl_check) ? true : $check;
         }
         return false;
@@ -887,18 +906,18 @@ class MenuHelper {
     private static function getMenuItemChain($menuItem)
     {
         $item = self::getMenuItemRecord($menuItem);
-        if(is_object($item)) {
+        if (is_object($item)) {
             return self::getAdminMenuChain($item->box_id);
         }
     }
 
     private static function getMenuItemRecord($menuTitleOrId)
     {
-        if(is_string($menuTitleOrId)) {
+        if (is_string($menuTitleOrId)) {
             $item = self::getAdminMenuItemByTitle($menuTitleOrId);
-        }elseif (is_int($menuTitleOrId)) {
+        } elseif (is_int($menuTitleOrId)) {
             $item = \common\models\AdminBoxes::findOne(['box_id' => $menuTitleOrId]);
         }
-        return $item??null;
+        return $item ?? null;
     }
 }

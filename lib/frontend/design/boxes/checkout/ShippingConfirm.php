@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,13 +15,12 @@
 namespace frontend\design\boxes\checkout;
 
 use common\services\storages\StorageInterface;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class ShippingConfirm extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -42,17 +43,17 @@ class ShippingConfirm extends Widget
         $manager = $this->params['manager'];
         $_shipping = $manager->getShipping();
         $module = $manager->getShippingCollection()->get($_shipping['module']);
-        if (is_object($module) && method_exists($module, 'getAdditionalOrderParams')){
+        if (is_object($module) && method_exists($module, 'getAdditionalOrderParams')) {
             $params = $this->storage->get('shippingparam');
             if (is_array($params)) {
                 $this->params['shipping_additional_info_block'] = $module->getAdditionalOrderParams($params);
             }
         }
-        
-        if (is_object($module) && method_exists($module, 'getCollectAddress')){
+
+        if (is_object($module) && method_exists($module, 'getCollectAddress')) {
             $this->params['shipping_additional_info_block'] = $module->getCollectAddress($_shipping['id']);
         }
-        
+
         return IncludeTpl::widget(['file' => 'boxes/checkout/shipping-confirm.tpl', 'params' => $this->params]);
     }
 }

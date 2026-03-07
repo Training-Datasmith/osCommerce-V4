@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -33,14 +35,14 @@ class LogReader
 
     public function __construct($file)
     {
-        $sourceList = array('backend', 'frontend', 'console');
-        $tmp = explode("/", $file);
-        if(count($tmp) > 2 or !in_array($tmp[0], $sourceList)){
-            throw new \Exception("Undefined source/file");
+        $sourceList = ['backend', 'frontend', 'console'];
+        $tmp = explode('/', $file);
+        if (count($tmp) > 2 or !in_array($tmp[0], $sourceList)) {
+            throw new \Exception('Undefined source/file');
         }
         $source = trim($tmp[0]);
         $fileName = trim($tmp[1]);
-        $this->file = \Yii::getAlias('@'.$source).DIRECTORY_SEPARATOR."runtime".DIRECTORY_SEPARATOR."logs".DIRECTORY_SEPARATOR.$fileName;
+        $this->file = \Yii::getAlias('@'.$source).DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'logs'.DIRECTORY_SEPARATOR.$fileName;
         $this->open();
     }
 
@@ -52,10 +54,8 @@ class LogReader
     private function open()
     {
         $this->handle = file($this->file);
-        foreach ($this->handle as $id => $line)
-        {
-            if($this->isHeader($line))
-            {
+        foreach ($this->handle as $id => $line) {
+            if ($this->isHeader($line)) {
                 $this->collectHeaders($id, $line);
             }
         }
@@ -63,9 +63,11 @@ class LogReader
 
     public function getDetails($id)
     {
-        $data = "";
-        for($i = (int)$id+1; $i < count($this->handle); $i++){
-            if($this->isHeader($this->handle[$i])) break;
+        $data = '';
+        for ($i = (int)$id + 1; $i < count($this->handle); $i++) {
+            if ($this->isHeader($this->handle[$i])) {
+                break;
+            }
             $data .= htmlspecialchars($this->handle[$i]);
         }
         return $data;
@@ -79,10 +81,11 @@ class LogReader
 
     private function collectHeaders($id, $line)
     {
-        if(!preg_match($this->pattern, $line, $matches)) return false;
+        if (!preg_match($this->pattern, $line, $matches)) {
+            return false;
+        }
         $this->headers[$id] = $matches;
     }
-
 
     private static function str_starts_with($haystack, $needle) // for support php v7
     {

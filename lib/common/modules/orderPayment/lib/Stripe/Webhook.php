@@ -1,10 +1,12 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Stripe;
 
 abstract class Webhook
 {
-    const DEFAULT_TOLERANCE = 300;
+    public const DEFAULT_TOLERANCE = 300;
 
     /**
      * Returns an Event instance using the provided JSON payload. Throws an

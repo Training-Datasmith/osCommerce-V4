@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,9 +14,7 @@
 
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
-
 
 /**
  * This is the model class for table "platforms_address_book".
@@ -56,10 +56,11 @@ class PlatformsAddressBook extends ActiveRecord
         return $this->hasOne(Platforms::className(), ['platform_id' => 'platform_id']);
     }
 
-	/**
-	 * @return \yii\db\ActiveQuery
-	 */
-    public function getCountry(){
-	    return $this->hasOne(Countries::className(), ['countries_id' => 'entry_country_id']);
+    /**
+     * @return \yii\db\ActiveQuery
+     */
+    public function getCountry()
+    {
+        return $this->hasOne(Countries::className(), ['countries_id' => 'entry_country_id']);
     }
 }

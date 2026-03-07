@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe;
@@ -31,28 +33,27 @@ namespace Stripe;
  */
 class Refund extends ApiResource
 {
-    const OBJECT_NAME = 'refund';
-
     use ApiOperations\All;
     use ApiOperations\Create;
     use ApiOperations\Retrieve;
     use ApiOperations\Update;
+    public const OBJECT_NAME = 'refund';
 
-    const FAILURE_REASON_EXPIRED_OR_CANCELED_CARD = 'expired_or_canceled_card';
-    const FAILURE_REASON_LOST_OR_STOLEN_CARD = 'lost_or_stolen_card';
-    const FAILURE_REASON_UNKNOWN = 'unknown';
+    public const FAILURE_REASON_EXPIRED_OR_CANCELED_CARD = 'expired_or_canceled_card';
+    public const FAILURE_REASON_LOST_OR_STOLEN_CARD = 'lost_or_stolen_card';
+    public const FAILURE_REASON_UNKNOWN = 'unknown';
 
-    const REASON_DUPLICATE = 'duplicate';
-    const REASON_FRAUDULENT = 'fraudulent';
-    const REASON_REQUESTED_BY_CUSTOMER = 'requested_by_customer';
+    public const REASON_DUPLICATE = 'duplicate';
+    public const REASON_FRAUDULENT = 'fraudulent';
+    public const REASON_REQUESTED_BY_CUSTOMER = 'requested_by_customer';
 
-    const STATUS_CANCELED = 'canceled';
-    const STATUS_FAILED = 'failed';
-    const STATUS_PENDING = 'pending';
-    const STATUS_SUCCEEDED = 'succeeded';
+    public const STATUS_CANCELED = 'canceled';
+    public const STATUS_FAILED = 'failed';
+    public const STATUS_PENDING = 'pending';
+    public const STATUS_SUCCEEDED = 'succeeded';
 
     /**
      * @deprecated use FAILURE_REASON_EXPIRED_OR_CANCELED_CARD instead
      */
-    const FAILURE_REASON = 'expired_or_canceled_card';
+    public const FAILURE_REASON = 'expired_or_canceled_card';
 }

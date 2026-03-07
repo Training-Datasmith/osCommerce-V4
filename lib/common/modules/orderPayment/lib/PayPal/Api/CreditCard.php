@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalResourceModel;
@@ -434,8 +436,8 @@ class CreditCard extends PayPalResourceModel
     {
         $payLoad = $this->toJSON();
         $json = self::executeCall(
-            "/v1/vault/credit-cards",
-            "POST",
+            '/v1/vault/credit-cards',
+            'POST',
             $payLoad,
             null,
             $apiContext,
@@ -456,10 +458,10 @@ class CreditCard extends PayPalResourceModel
     public static function get($creditCardId, $apiContext = null, $restCall = null)
     {
         ArgumentValidator::validate($creditCardId, 'creditCardId');
-        $payLoad = "";
+        $payLoad = '';
         $json = self::executeCall(
             "/v1/vault/credit-cards/$creditCardId",
-            "GET",
+            'GET',
             $payLoad,
             null,
             $apiContext,
@@ -479,11 +481,11 @@ class CreditCard extends PayPalResourceModel
      */
     public function delete($apiContext = null, $restCall = null)
     {
-        ArgumentValidator::validate($this->getId(), "Id");
-        $payLoad = "";
+        ArgumentValidator::validate($this->getId(), 'Id');
+        $payLoad = '';
         self::executeCall(
             "/v1/vault/credit-cards/{$this->getId()}",
-            "DELETE",
+            'DELETE',
             $payLoad,
             null,
             $apiContext,
@@ -502,12 +504,12 @@ class CreditCard extends PayPalResourceModel
      */
     public function update($patchRequest, $apiContext = null, $restCall = null)
     {
-        ArgumentValidator::validate($this->getId(), "Id");
+        ArgumentValidator::validate($this->getId(), 'Id');
         ArgumentValidator::validate($patchRequest, 'patch');
         $payload = $patchRequest->toJSON();
         $json = self::executeCall(
             "/v1/vault/credit-cards/{$this->getId()}",
-            "PATCH",
+            'PATCH',
             $payload,
             null,
             $apiContext,
@@ -528,11 +530,11 @@ class CreditCard extends PayPalResourceModel
     public static function all($params, $apiContext = null, $restCall = null)
     {
         if (is_null($params)) {
-            $params = array();
+            $params = [];
         }
         ArgumentValidator::validate($params, 'params');
-        $payLoad = "";
-        $allowedParams = array(
+        $payLoad = '';
+        $allowedParams = [
             'page_size' => 1,
             'page' => 1,
             'start_time' => 1,
@@ -542,11 +544,11 @@ class CreditCard extends PayPalResourceModel
             'merchant_id' => 1,
             'external_card_id' => 1,
             'external_customer_id' => 1,
-            'total_required' => 1
-        );
+            'total_required' => 1,
+        ];
         $json = self::executeCall(
-            "/v1/vault/credit-cards" . "?" . http_build_query(array_intersect_key($params, $allowedParams)),
-            "GET",
+            '/v1/vault/credit-cards' . '?' . http_build_query(array_intersect_key($params, $allowedParams)),
+            'GET',
             $payLoad,
             null,
             $apiContext,

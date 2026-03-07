@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -35,14 +37,14 @@ class View extends \yii\web\View
 
         if (!empty($this->jsFiles[self::POS_END])) {
             $jsFilesEnd = $this->jsFiles[self::POS_END];
-            $conditionalFiles = preg_grep('#^<!--\[if#i',$this->jsFiles[self::POS_END]);
-            if ( count($conditionalFiles)>0 ) {
-                foreach (array_keys($conditionalFiles) as $conditionalKey){
+            $conditionalFiles = preg_grep('#^<!--\[if#i', $this->jsFiles[self::POS_END]);
+            if (count($conditionalFiles) > 0) {
+                foreach (array_keys($conditionalFiles) as $conditionalKey) {
                     unset($jsFilesEnd[$conditionalKey]);
                 }
-                $jsFiles = implode('',$conditionalFiles)."\n";
+                $jsFiles = implode('', $conditionalFiles)."\n";
             }
-            if ( count($jsFilesEnd)>0 ) {
+            if (count($jsFilesEnd) > 0) {
                 $files = "['" . implode("', '", array_keys($jsFilesEnd)) . "'], ";
             }
         }
@@ -73,6 +75,6 @@ class View extends \yii\web\View
             return $jsFiles;
         }
 
-        return $jsFiles.Html::script("tl(" . $files . "function(){\n" . implode("\n", $lines) . "\n})");
+        return $jsFiles.Html::script('tl(' . $files . "function(){\n" . implode("\n", $lines) . "\n})");
     }
 }

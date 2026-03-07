@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -17,30 +19,26 @@ use common\classes\Migration;
  */
 class m230320_164537_order_status_for_purchase_orders extends Migration
 {
-    const POES_PENDING = 5;
-    const POES_PROCESSING = 15;
-    const POES_RECEIVED = 25;
-    const POES_DISPATCHED = 35;
-    const POES_CANCELLED = 55;
+    public const POES_PENDING = 5;
+    public const POES_PROCESSING = 15;
+    public const POES_RECEIVED = 25;
+    public const POES_DISPATCHED = 35;
+    public const POES_CANCELLED = 55;
     /**
      * @inheritdoc
      */
     public function safeUp()
     {
 
-        if (method_exists($this, 'isOldExtension'))
-        {
-            if (!$this->isOldExtension('PurchaseOrders'))
-            {
+        if (method_exists($this, 'isOldExtension')) {
+            if (!$this->isOldExtension('PurchaseOrders')) {
                 \common\models\OrdersStatus::updateAll(['order_evaluation_state_id' => self::POES_PENDING], 'orders_status_id = 33 AND orders_status_groups_id = 9');
                 \common\models\OrdersStatus::updateAll(['order_evaluation_state_id' => self::POES_PROCESSING], 'orders_status_id = 34 AND orders_status_groups_id = 9');
                 \common\models\OrdersStatus::updateAll(['order_evaluation_state_id' => self::POES_RECEIVED], 'orders_status_id = 35 AND orders_status_groups_id = 9');
-                if (!\common\models\OrdersStatus::findOne('orders_status_groups_id = 9 AND order_evaluation_state_id = '.self::POES_CANCELLED))
-                {
+                if (!\common\models\OrdersStatus::findOne('orders_status_groups_id = 9 AND order_evaluation_state_id = '.self::POES_CANCELLED)) {
                     \common\models\OrdersStatus::insertNew(9, 'Canceled', ['order_evaluation_state_id' => self::POES_CANCELLED]);
                 }
-                if (!\common\models\OrdersStatus::findOne('orders_status_groups_id = 9 AND order_evaluation_state_id = '.self::POES_DISPATCHED))
-                {
+                if (!\common\models\OrdersStatus::findOne('orders_status_groups_id = 9 AND order_evaluation_state_id = '.self::POES_DISPATCHED)) {
                     \common\models\OrdersStatus::insertNew(9, 'Completed', ['order_evaluation_state_id' => self::POES_DISPATCHED]);
                 }
             }

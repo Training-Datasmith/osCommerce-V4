@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\checkout;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class ContactConfirm extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -30,7 +30,7 @@ class ContactConfirm extends Widget
 
     public function run()
     {
-        if (!$this->params['manager']){
+        if (!$this->params['manager']) {
             return '';
         }
 

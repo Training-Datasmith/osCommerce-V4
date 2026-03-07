@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace backend\design\boxes;
 
-use Yii;
 use yii\base\Widget;
 
 class Sale extends Widget
 {
-
     public $id;
     public $params;
     public $settings;
@@ -33,18 +33,17 @@ class Sale extends Widget
 
         global $languages_id;
 
-        $product = tep_db_fetch_array(tep_db_query("
+        $product = tep_db_fetch_array(tep_db_query('
               select products_name
-              from " . TABLE_PRODUCTS_DESCRIPTION . "
+              from ' . TABLE_PRODUCTS_DESCRIPTION . "
               where products_id = '" . (int)$this->settings[0]['products_id'] . "' and language_id = '" . (int)$languages_id . "'"));
-
 
         return $this->render('sale.tpl', [
             'id' => $this->id,
             'params' => $this->params,
             'settings' => $this->settings,
             'visibility' => $this->visibility,
-            'productName' => $product['products_name']
+            'productName' => $product['products_name'],
         ]);
     }
 }

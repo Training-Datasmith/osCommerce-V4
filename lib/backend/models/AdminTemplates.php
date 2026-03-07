@@ -1,8 +1,8 @@
 <?php
 
-namespace app\models;
+declare(strict_types=1);
 
-use Yii;
+namespace app\models;
 
 /**
  * This is the model class for table "admin_templates".

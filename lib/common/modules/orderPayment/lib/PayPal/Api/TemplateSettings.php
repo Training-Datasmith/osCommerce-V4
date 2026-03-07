@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -20,7 +22,7 @@ class TemplateSettings extends PayPalModel
      * The field name (for any field in template_data) for which the corresponding display preferences will be mapped to.
      *
      * @param string $field_name
-     * 
+     *
      * @return $this
      */
     public function setFieldName($field_name)
@@ -43,7 +45,7 @@ class TemplateSettings extends PayPalModel
      * Settings metadata for each field.
      *
      * @param \PayPal\Api\TemplateSettingsMetadata $display_preference
-     * 
+     *
      * @return $this
      */
     public function setDisplayPreference($display_preference)

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +13,6 @@
  */
 
 namespace common\api\models\AR\Products\Inventory;
-
 
 use common\api\models\AR\EPMap;
 
@@ -39,14 +40,14 @@ class Prices extends EPMap
     {
         $keyCodes = [];
         if (defined('USE_MARKET_PRICES') && USE_MARKET_PRICES == 'True') {
-            foreach (\common\helpers\Currencies::get_currencies() as $currency){
+            foreach (\common\helpers\Currencies::get_currencies() as $currency) {
                 $keyCode = $currency['code'] . '_0';
                 $keyCodes[$keyCode] = [
                     'inventory_id' => null,
                     'groups_id' => 0,
                     'currencies_id' => (int)$currency['currencies_id'],
                 ];
-                if ( \common\helpers\Extensions::isCustomerGroupsAllowed() ) {
+                if (\common\helpers\Extensions::isCustomerGroupsAllowed()) {
                     foreach (\common\helpers\Group::get_customer_groups() as $groupInfo) {
                         $keyCode = $currency['code'] . '_' . $groupInfo['groups_id'];
                         $keyCodes[$keyCode] = [
@@ -57,8 +58,8 @@ class Prices extends EPMap
                     }
                 }
             }
-        }else{
-            if ( \common\helpers\Extensions::isCustomerGroupsAllowed() ) {
+        } else {
+            if (\common\helpers\Extensions::isCustomerGroupsAllowed()) {
                 $keyCodes[\common\helpers\Currencies::systemCurrencyCode().'_0'] = [
                     'inventory_id' => null,
                     'groups_id' => 0,
@@ -84,6 +85,5 @@ class Prices extends EPMap
         $this->prid = $parentObject->prid;
         parent::parentEPMap($parentObject);
     }
-
 
 }

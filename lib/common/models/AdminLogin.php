@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
 use Yii;
@@ -15,7 +17,7 @@ use Yii;
  */
 class AdminLogin extends \yii\db\ActiveRecord
 {
-    const SECURITY_MASK_DEFAULT = 'NN-NN-NN-NN';
+    public const SECURITY_MASK_DEFAULT = 'NN-NN-NN-NN';
     /**
      * {@inheritdoc}
      */
@@ -69,7 +71,7 @@ class AdminLogin extends \yii\db\ActiveRecord
         }
         $randomSymbolCount = 0;
         $letterArray = range('A', 'Z');
-        $symbolArray = array('N', 'a', 'A');
+        $symbolArray = ['N', 'a', 'A'];
         mt_srand();
         $mask = str_split($mask, 1);
         foreach ($mask as &$symbol) {
@@ -77,17 +79,17 @@ class AdminLogin extends \yii\db\ActiveRecord
             switch ($symbol) {
                 case 'n':
                 case 'N':
-                    $randomSymbolCount ++;
+                    $randomSymbolCount++;
                     $symbol = mt_rand(0, 9);
-                break;
+                    break;
                 case 'a':
-                    $randomSymbolCount ++;
+                    $randomSymbolCount++;
                     $symbol = strtolower($letterArray[mt_rand(0, (count($letterArray) - 1))]);
-                break;
+                    break;
                 case 'A':
-                    $randomSymbolCount ++;
+                    $randomSymbolCount++;
                     $symbol = strtoupper($letterArray[mt_rand(0, (count($letterArray) - 1))]);
-                break;
+                    break;
             }
         }
         unset($letterArray);
@@ -113,19 +115,19 @@ class AdminLogin extends \yii\db\ActiveRecord
         return $geoInformation;
     }
 
-    public static function securityKeyEmail($adminRecord = array(), $alSecurityKey = '')
+    public static function securityKeyEmail($adminRecord = [], $alSecurityKey = '')
     {
         $ip = \common\helpers\System::get_ip_address();
         $alSecurityKey = trim($alSecurityKey);
-        if (defined('ADMIN_TWO_STEP_AUTH_MASK_SIMPLE_EMAIL') AND (strtolower(constant('ADMIN_TWO_STEP_AUTH_MASK_SIMPLE_EMAIL'))) == 'true') {
+        if (defined('ADMIN_TWO_STEP_AUTH_MASK_SIMPLE_EMAIL') and (strtolower(constant('ADMIN_TWO_STEP_AUTH_MASK_SIMPLE_EMAIL'))) == 'true') {
             $alSecurityKey = trim(preg_replace('/[^a-z0-9]/i', '', $alSecurityKey));
         }
-        $parameterArray = array(
+        $parameterArray = [
             'SECURITY_KEY' => $alSecurityKey,
             'DEVICE_AGENT' => $_SERVER['HTTP_USER_AGENT'],
             'DEVICE_IP' => ($ip . self::getIpGeoInformation($ip)),
-            'LOGIN_URL' => Yii::$app->urlManager->createAbsoluteUrl(['login'])
-        );
+            'LOGIN_URL' => Yii::$app->urlManager->createAbsoluteUrl(['login']),
+        ];
         $adminEmail = trim($adminRecord['admin_email_address']);
         $adminName = trim(trim($adminRecord['admin_firstname']) . ' ' . trim($adminRecord['admin_lastname']));
         list($emailSubject, $emailMessage) = \common\helpers\Mail::get_parsed_email_template('Admin Login Security Key', $parameterArray);
@@ -133,19 +135,19 @@ class AdminLogin extends \yii\db\ActiveRecord
         return true;
     }
 
-    public static function securityKeySms($adminRecord = array(), $alSecurityKey = '')
+    public static function securityKeySms($adminRecord = [], $alSecurityKey = '')
     {
-        if (defined('ADMIN_TWO_STEP_AUTH_SERVICE_SMS') AND (ADMIN_TWO_STEP_AUTH_SERVICE_SMS != '')) {
+        if (defined('ADMIN_TWO_STEP_AUTH_SERVICE_SMS') and (ADMIN_TWO_STEP_AUTH_SERVICE_SMS != '')) {
             if ($smsService = \common\helpers\Acl::checkExtensionAllowed('SmsService', 'allowed')) {
-                $parameterArray = array(
-                    'SECURITY_KEY' => $alSecurityKey
-                );
+                $parameterArray = [
+                    'SECURITY_KEY' => $alSecurityKey,
+                ];
                 $smsMessage = \common\helpers\Mail::get_sms_template_parsed('Admin Login Security Key', $parameterArray);
-                $parameterArray = array(
+                $parameterArray = [
                     'phone' => $adminRecord['admin_phone_number'],
                     'message' => $smsMessage,
-                    'sender' => null
-                );
+                    'sender' => null,
+                ];
                 return $smsService::sendSms(ADMIN_TWO_STEP_AUTH_SERVICE_SMS, $parameterArray);
             }
         }
@@ -156,9 +158,8 @@ class AdminLogin extends \yii\db\ActiveRecord
     {
         $languageId = (int)((int)$languageId <= 0 ? \Yii::$app->settings->get('languages_id') : $languageId);
         $languageId = ($languageId <= 0 ? 1 : $languageId);
-        $return = array();
-        foreach (\common\models\AdminLoginExpire::find()->where(['ale_language_id' => $languageId])->orderBy(['ale_order' => SORT_ASC])->asArray(true)->all()
-            as $loginExpireArray
+        $return = [];
+        foreach (\common\models\AdminLoginExpire::find()->where(['ale_language_id' => $languageId])->orderBy(['ale_order' => SORT_ASC])->asArray(true)->all() as $loginExpireArray
         ) {
             $return[$loginExpireArray['ale_id']] = $loginExpireArray;
         }
@@ -177,12 +178,11 @@ class AdminLogin extends \yii\db\ActiveRecord
             $adminDeviceRecord->ad_admin_id = $adminId;
             $adminDeviceRecord->ad_date_add = date('Y-m-d H:i:s');
             $adminRecord = \common\models\Admin::findOne($adminId);
-            if (!($adminRecord instanceof \common\models\Admin) OR (int)$adminRecord->login_failture > 2) {
+            if (!($adminRecord instanceof \common\models\Admin) or (int)$adminRecord->login_failture > 2) {
                 return false;
             }
             $adminEmail = trim($adminRecord->admin_email_address);
             $adminName = trim(trim($adminRecord->admin_firstname) . ' ' . trim($adminRecord->admin_lastname));
-
 
             $ip = \common\helpers\System::get_ip_address();
             $alslHash = '';
@@ -203,12 +203,12 @@ class AdminLogin extends \yii\db\ActiveRecord
             }
             unset($alslRecord);
 
-            $parameterArray = array(
+            $parameterArray = [
                 'AD_DEVICE_DATE' => date('Y-m-d H:i:s'),
                 'AD_DEVICE_ID' => $_SERVER['HTTP_USER_AGENT'] . ' (' . $deviceId . ')',
                 'AD_DEVICE_IP' => $ip . self::getIpGeoInformation($ip),
-                'AD_DEVICE_LOGOFF_URL' => Yii::$app->urlManager->createAbsoluteUrl(['login'])
-            );
+                'AD_DEVICE_LOGOFF_URL' => Yii::$app->urlManager->createAbsoluteUrl(['login']),
+            ];
 
             if ($alslHash != '') {
                 $parameterArray['AD_DEVICE_LOGOFF_URL'] = Yii::$app->urlManager->createAbsoluteUrl(['logout', 'hash' => $alslHash]);
@@ -222,7 +222,7 @@ class AdminLogin extends \yii\db\ActiveRecord
         }
         $adminDeviceRecord->ad_date_login = date('Y-m-d H:i:s');
         $adminDeviceRecord->ad_login_count += 1;
-        if (($isGuest != true) OR ($adminDeviceRecord->isNewRecord != true)) {
+        if (($isGuest != true) or ($adminDeviceRecord->isNewRecord != true)) {
             $adminDeviceRecord->save(false);
         }
         return true;

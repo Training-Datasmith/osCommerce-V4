@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,12 @@
 
 namespace frontend\design\boxes\checkout;
 
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
 
 class ShippingChoice extends Widget
 {
-
-
     public $manager;
     public $params;
     public $settings;
@@ -39,7 +39,7 @@ class ShippingChoice extends Widget
 
         $pickupShippingQuote = $this->manager->getPickupShippingQuotes();
 
-        if (!$_shippingChoice || !$pickupShippingQuote){
+        if (!$_shippingChoice || !$pickupShippingQuote) {
             return '';
         }
 
@@ -49,7 +49,7 @@ class ShippingChoice extends Widget
                 'params' => $this->params,
                 'model' => $_shippingChoice,
                 'url' => Yii::$app->getUrlManager()->createUrl('checkout/worker'),
-                'manager' => $this->manager
+                'manager' => $this->manager,
             ],
         ]);
 

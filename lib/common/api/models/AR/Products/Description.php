@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,10 @@
 
 namespace common\api\models\AR\Products;
 
-
 use common\api\models\AR\EPMap;
-use common\helpers\Seo;
 
 class Description extends EPMap
 {
-
     /**
      * @var EPMap
      */
@@ -36,9 +35,9 @@ class Description extends EPMap
     public static function getAllKeyCodes()
     {
         $keyCodes = [];
-        $platforms = \common\models\Platforms::getPlatformsByType("non-virtual")->all();
-        foreach($platforms as $platform){
-            foreach (\common\classes\language::get_all() as $lang){
+        $platforms = \common\models\Platforms::getPlatformsByType('non-virtual')->all();
+        foreach ($platforms as $platform) {
+            foreach (\common\classes\language::get_all() as $lang) {
                 $keyCode = $lang['code'].'_'.$platform->platform_id;
                 $keyCodes[$keyCode] = [
                     'products_id' => null,
@@ -48,10 +47,12 @@ class Description extends EPMap
                 ];
             }
         }
-        if (defined('SUPERADMIN_ENABLED') && SUPERADMIN_ENABLED && \Yii::$app->has('department')){
+        if (defined('SUPERADMIN_ENABLED') && SUPERADMIN_ENABLED && \Yii::$app->has('department')) {
             $active_department = \Yii::$app->get('department')->getActiveDepartmentId();
             foreach (\common\classes\department::getCatalogAssignList() as $department) {
-                if ($department['id'] != $active_department) continue;
+                if ($department['id'] != $active_department) {
+                    continue;
+                }
                 $keyCode = $lang['code'].'_0_'.$department['id'];
                 $keyCodes[$keyCode] = [
                     'products_id' => null,
@@ -93,15 +94,17 @@ class Description extends EPMap
     {
         parent::afterSave($insert, $changedAttributes);
 
-        if ( isset($changedAttributes['products_seo_page_name']) ) {
+        if (isset($changedAttributes['products_seo_page_name'])) {
             if ($ext = \common\helpers\Acl::checkExtensionAllowed('SeoRedirectsNamed', 'allowed')) {
-                $ext::trackProductLinks($this->products_id, $this->language_id, $this->platform_id,
-                    ['products_seo_page_name'=>$this->products_seo_page_name],
-                    ['products_seo_page_name'=>$changedAttributes['products_seo_page_name']]
+                $ext::trackProductLinks(
+                    $this->products_id,
+                    $this->language_id,
+                    $this->platform_id,
+                    ['products_seo_page_name' => $this->products_seo_page_name],
+                    ['products_seo_page_name' => $changedAttributes['products_seo_page_name']]
                 );
             }
         }
     }
-
 
 }

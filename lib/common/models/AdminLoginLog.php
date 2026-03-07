@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "admin_login_log".
@@ -18,15 +18,15 @@ use Yii;
  */
 class AdminLoginLog extends \yii\db\ActiveRecord
 {
-    public static $eventList = array(
+    public static $eventList = [
         1 => 'error_user',
         2 => 'error_password',
         3 => 'error_autorize',
         4 => 'error_email_token',
         10 => 'login',
         20 => 'logout',
-        21 => 'logout_multi'
-    );
+        21 => 'logout_multi',
+    ];
 
     /**
      * {@inheritdoc}

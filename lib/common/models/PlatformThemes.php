@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "platforms_to_themes".
@@ -29,7 +29,7 @@ class PlatformThemes extends \yii\db\ActiveRecord
         return [
             [['platform_id', 'theme_id', 'is_default'], 'required'],
             [['platform_id', 'theme_id', 'is_default'], 'integer'],
-            [['platform_id', 'theme_id'], 'unique', 'targetAttribute' => ['platform_id', 'theme_id'], 'message' => 'The combination of Platform ID and Theme ID has already been taken.']
+            [['platform_id', 'theme_id'], 'unique', 'targetAttribute' => ['platform_id', 'theme_id'], 'message' => 'The combination of Platform ID and Theme ID has already been taken.'],
         ];
     }
 

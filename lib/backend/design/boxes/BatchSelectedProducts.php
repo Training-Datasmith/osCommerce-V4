@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +14,10 @@
 
 namespace backend\design\boxes;
 
-use Yii;
 use yii\base\Widget;
 
 class BatchSelectedProducts extends Widget
 {
-
     public $id;
     public $params;
     public $settings;
@@ -32,10 +32,12 @@ class BatchSelectedProducts extends Widget
     {
         $sortingOptions = \common\helpers\Sorting::getPossibleSortOptions();
         $sortingOptions[''] = TEXT_RANDOM;
-        $sorting = \common\helpers\Html::dropDownList('setting[0][sort_order]',
+        $sorting = \common\helpers\Html::dropDownList(
+            'setting[0][sort_order]',
             $this->settings[0]['sort_order'],
             $sortingOptions,
-            ['class' => 'form-control']);
+            ['class' => 'form-control']
+        );
 
         return $this->render('batch-selected-products.tpl', [
             'id' => $this->id,

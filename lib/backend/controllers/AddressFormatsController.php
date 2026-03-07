@@ -1,33 +1,36 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace backend\controllers;
 
-use Yii;
-use yii\helpers\Html;
 use common\helpers\Address;
+use Yii;
 
-class AddressFormatsController extends Sceleton {
-
+class AddressFormatsController extends Sceleton
+{
     public $acl = ['BOX_HEADING_CONFIGURATION', 'BOX_ADDRESS_FORMATS'];
 
-    public function __construct($id, $module = null) {
+    public function __construct($id, $module = null)
+    {
         \common\helpers\Translation::init('admin/address-formats');
-        $this->navigation[] = array('link' => \Yii::$app->urlManager->createUrl('address-formats/index'), 'title' => BOX_ADDRESS_FORMATS);
+        $this->navigation[] = ['link' => \Yii::$app->urlManager->createUrl('address-formats/index'), 'title' => BOX_ADDRESS_FORMATS];
         parent::__construct($id, $module);
     }
 
-    public function actionIndex() {
+    public function actionIndex()
+    {
 
         $this->topButtons[] = '<span class="btn btn-confirm" onclick="$(\'#frmMain\').trigger(\'submit\')">' . TEXT_APPLY . '</span>';
 
@@ -75,16 +78,17 @@ class AddressFormatsController extends Sceleton {
         }
 
         return $this->render('index', [
-                    'formats' => $formats
+                    'formats' => $formats,
         ]);
     }
 
-    public function actionNew() {
+    public function actionNew()
+    {
         $format = new \common\models\AddressFormat();
         $format->address_format_title = 'Untitled Format';
         $format->save();
         return $this->renderAjax('format', [
-                    'format' => $format
+                    'format' => $format,
         ]);
     }
 

@@ -1,27 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of True Loaded.
- * 
+ *
  * @link http://www.holbi.co.uk
  * @copyright Copyright (c) 2005 Holbi Group LTD
- * 
+ *
  * For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
  */
 
 namespace common\modules\analytic;
 
-use common\classes\platform;
 use common\components\google\modules\AbstractGoogle;
 
-final class analytics extends AbstractGoogle {
-
+final class analytics extends AbstractGoogle
+{
     use adTrait;
 
     public $config;
     public $code = 'analytics';
 
-    public function getParams() {
+    public function getParams()
+    {
 
         $this->config = [
             $this->code => [
@@ -31,29 +33,31 @@ final class analytics extends AbstractGoogle {
                         'comment' => 'Universal Analytics (analytics.js)',
                         'name' => 'code',
                         'value' => 'UA-',
-                        'type' => 'text'
+                        'type' => 'text',
                     ],
                     [
                         'comment' => 'Google Analytics 4 (gtag.js)',
                         'name' => 'code_',
                         'value' => 'G-',
-                        'type' => 'text'
+                        'type' => 'text',
                     ],
                 ],
                 'pages' => [
                     'all',
                 ],
                 'priority' => 1,
-                'example' => true
+                'example' => true,
             ],
         ];
         return $this->config;
     }
 
-    public function renderWidget($example = false) {
+    public function renderWidget($example = false)
+    {
         global $request_type;
-        if (\Yii::$app->response->getIsNotFound())
+        if (\Yii::$app->response->getIsNotFound()) {
             return;
+        }
         $elements = $this->config[$this->code];
         if ($request_type == 'SSL') {
             $_server = HTTPS_SERVER;
@@ -72,17 +76,26 @@ final class analytics extends AbstractGoogle {
         $ua_code = $elements['fields'][0]['value'];
         $ga4_code = $elements['fields'][1]['value'];
         if ($example) {
-            if ($ga4_code == 'G-') $ga4_code = 'G-XXXXXXXX';
-            if ($ua_code == 'UA-') $ua_code = 'UA-XXXXXXXX';
+            if ($ga4_code == 'G-') {
+                $ga4_code = 'G-XXXXXXXX';
+            }
+            if ($ua_code == 'UA-') {
+                $ua_code = 'UA-XXXXXXXX';
+            }
             return htmlspecialchars($this->getSelectedCode($ga4_code, $ua_code, $path));
         } else {
-            if ($ga4_code == 'G-') $ga4_code = '';
-            if ($ua_code == 'UA-') $ua_code = '';
+            if ($ga4_code == 'G-') {
+                $ga4_code = '';
+            }
+            if ($ua_code == 'UA-') {
+                $ua_code = '';
+            }
             return $this->getSelectedCode($ga4_code, $ua_code, $path);
         }
     }
 
-    private function getSelectedCode($ga4_code, $ua_code, $path) {
+    private function getSelectedCode($ga4_code, $ua_code, $path)
+    {
         $return = '';
         if ($ga4_code) {
             $return .= <<<EOD
@@ -97,7 +110,7 @@ final class analytics extends AbstractGoogle {
 </script>
 
 EOD;
-        } 
+        }
         if ($ua_code) {
             $return .= <<<EOD
 <!-- Universal analytics (analytics.js) - Google Analytics -->
@@ -120,8 +133,9 @@ EOD;
         return $return;
     }
 
-    public function renderExample() {
-        return "<pre>" . $this->renderWidget(true) . "</pre>";
+    public function renderExample()
+    {
+        return '<pre>' . $this->renderWidget(true) . '</pre>';
     }
 
 }

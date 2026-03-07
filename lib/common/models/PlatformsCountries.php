@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
 use yii\db\ActiveRecord;
@@ -16,7 +18,7 @@ class PlatformsCountries extends ActiveRecord
     {
         return '{{platforms_countries}}';
     }
-    
+
     public static function create($array, $platformId)
     {
         $platformsCountries = [];

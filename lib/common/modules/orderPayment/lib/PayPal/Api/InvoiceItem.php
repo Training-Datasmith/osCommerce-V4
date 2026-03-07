@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -29,7 +31,7 @@ class InvoiceItem extends PayPalModel
      * Name of the item. 200 characters max.
      *
      * @param string $name
-     * 
+     *
      * @return $this
      */
     public function setName($name)
@@ -52,7 +54,7 @@ class InvoiceItem extends PayPalModel
      * Description of the item. 1000 characters max.
      *
      * @param string $description
-     * 
+     *
      * @return $this
      */
     public function setDescription($description)
@@ -75,12 +77,12 @@ class InvoiceItem extends PayPalModel
      * Quantity of the item. Range of -10000 to 10000.
      *
      * @param string|double $quantity
-     * 
+     *
      * @return $this
      */
     public function setQuantity($quantity)
     {
-        NumericValidator::validate($quantity, "Quantity");
+        NumericValidator::validate($quantity, 'Quantity');
         $quantity = FormatConverter::formatToPrice($quantity);
         $this->quantity = $quantity;
         return $this;
@@ -100,7 +102,7 @@ class InvoiceItem extends PayPalModel
      * Unit price of the item. Range of -1,000,000 to 1,000,000.
      *
      * @param \PayPal\Api\Currency $unit_price
-     * 
+     *
      * @return $this
      */
     public function setUnitPrice($unit_price)
@@ -123,7 +125,7 @@ class InvoiceItem extends PayPalModel
      * Tax associated with the item.
      *
      * @param \PayPal\Api\Tax $tax
-     * 
+     *
      * @return $this
      */
     public function setTax($tax)
@@ -146,7 +148,7 @@ class InvoiceItem extends PayPalModel
      * The date when the item or service was provided. The date format is *yyyy*-*MM*-*dd* *z* as defined in [Internet Date/Time Format](http://tools.ietf.org/html/rfc3339#section-5.6).
      *
      * @param string $date
-     * 
+     *
      * @return $this
      */
     public function setDate($date)
@@ -169,7 +171,7 @@ class InvoiceItem extends PayPalModel
      * The item discount, as a percent or an amount value.
      *
      * @param \PayPal\Api\Cost $discount
-     * 
+     *
      * @return $this
      */
     public function setDiscount($discount)
@@ -197,7 +199,7 @@ class InvoiceItem extends PayPalModel
      */
     public function setImageUrl($image_url)
     {
-        UrlValidator::validate($image_url, "ImageUrl");
+        UrlValidator::validate($image_url, 'ImageUrl');
         $this->image_url = $image_url;
         return $this;
     }
@@ -217,7 +219,7 @@ class InvoiceItem extends PayPalModel
      * Valid Values: ["QUANTITY", "HOURS", "AMOUNT"]
      *
      * @param string $unit_of_measure
-     * 
+     *
      * @return $this
      */
     public function setUnitOfMeasure($unit_of_measure)

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace backend\controllers;
 
 use Yii;
@@ -8,14 +10,15 @@ use yii\web\Controller;
 /**
  * Password forgotten controller to handle user requests.
  */
-class PasswordForgottenNewPasswordController extends Controller {
-
+class PasswordForgottenNewPasswordController extends Controller
+{
     /**
      * Disable layout for the controller view
      */
     public $layout = false;
 
-    public function actionIndex() {
+    public function actionIndex()
+    {
         if (\Yii::$app->request->isAjax) {
             if (\Yii::$app->request->get('action', null) == 'gp') {
                 \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
@@ -29,8 +32,8 @@ class PasswordForgottenNewPasswordController extends Controller {
         \common\models\Admin::updateAll(
             ['token' => '', 'token_date' => '0000-00-00 00:00:00'],
             ['<=', 'token_date', date('Y-m-d H:i:s', strtotime(
-                    '-' . (int)trim(defined('FORGOTTEN_PASSWORD_TOKEN_EXPIRE_MIN') ? constant('FORGOTTEN_PASSWORD_TOKEN_EXPIRE_MIN') : 5) . ' minutes'
-                ))
+                '-' . (int)trim(defined('FORGOTTEN_PASSWORD_TOKEN_EXPIRE_MIN') ? constant('FORGOTTEN_PASSWORD_TOKEN_EXPIRE_MIN') : 5) . ' minutes'
+            )),
             ]
         );
         foreach (\common\models\Admin::find()
@@ -39,7 +42,7 @@ class PasswordForgottenNewPasswordController extends Controller {
             ->asArray(false)->each(10) as $aRecord
         ) {
             if (\common\helpers\Password::validate_password($token, $aRecord->getToken(), 'backend')
-                AND \common\helpers\Password::validate_password($aRecord->admin_email_address, $aRecord->admin_email_token, 'backend')
+                and \common\helpers\Password::validate_password($aRecord->admin_email_address, $aRecord->admin_email_token, 'backend')
             ) {
                 $adminInfo = $aRecord;
                 break;
@@ -58,7 +61,7 @@ class PasswordForgottenNewPasswordController extends Controller {
         $message_account_password = '';
         if (empty($token)) {
             $message_account_password = TEXT_INVALID_TOKEN;
-        } else if (\Yii::$app->request->isPost) {
+        } elseif (\Yii::$app->request->isPost) {
             $save = true;
             $postToken = \Yii::$app->request->post('token', null);
             if ($token != $postToken) {
@@ -139,6 +142,5 @@ class PasswordForgottenNewPasswordController extends Controller {
            'message_account_password' => $message_account_password,
         ]);
     }
-
 
 }

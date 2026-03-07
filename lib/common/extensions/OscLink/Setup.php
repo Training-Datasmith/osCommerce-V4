@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,9 +15,9 @@
 
 namespace common\extensions\OscLink;
 
-class Setup extends \common\classes\modules\SetupExtensions {
-
-    const TRANSLATION = [
+class Setup extends \common\classes\modules\SetupExtensions
+{
+    public const TRANSLATION = [
                 'EXTENSION_OSCLINK_CONFIGURATION_KEY'   => 'Key',
                 'EXTENSION_OSCLINK_CONFIGURATION_VALUE' => 'Value',
 
@@ -56,13 +58,13 @@ class Setup extends \common\classes\modules\SetupExtensions {
                 'EXTENSION_OSCLINK_TEXT_GROUP_PRODUCTS'  => 'Products',
                 'EXTENSION_OSCLINK_TEXT_GROUP_CUSTOMERS' => 'Customers & Orders',
 
-                'EXTENSION_OSCLINK_TEXT_MAPPING_ITEM_SKIPPED'     => "Will be skipped",
-                'EXTENSION_OSCLINK_TEXT_MAPPING_ORDER_STATUS_DESC_OSC' => "OSCommerce order status",
-                'EXTENSION_OSCLINK_TEXT_MAPPING_ORDER_STATUS_DESC_OUR' => "Will be mapped to:",
+                'EXTENSION_OSCLINK_TEXT_MAPPING_ITEM_SKIPPED'     => 'Will be skipped',
+                'EXTENSION_OSCLINK_TEXT_MAPPING_ORDER_STATUS_DESC_OSC' => 'OSCommerce order status',
+                'EXTENSION_OSCLINK_TEXT_MAPPING_ORDER_STATUS_DESC_OUR' => 'Will be mapped to:',
 
-                'EXTENSION_OSCLINK_TEXT_DESCRIPTION_IMPORT_ALL'     => "Download and import all entities from OSCommerce",
+                'EXTENSION_OSCLINK_TEXT_DESCRIPTION_IMPORT_ALL'     => 'Download and import all entities from OSCommerce',
                 'EXTENSION_OSCLINK_TEXT_DESCRIPTION_COMMON'         => "If you always imported the some records before, they will be updated. The process won't affect any existing not-imported records.",
-                'EXTENSION_OSCLINK_TEXT_IMPORT_BY_PARTS'            => "or import entities by parts:",
+                'EXTENSION_OSCLINK_TEXT_IMPORT_BY_PARTS'            => 'or import entities by parts:',
 
                 'EXTENSION_OSCLINK_TEXT_CLEAN_RADIO_ALL'        => 'Remove all imported entities and mapped data',
                 'EXTENSION_OSCLINK_TEXT_CLEAN_RADIO_SELECTED'   => 'Remove only selected imported entities:',
@@ -105,7 +107,7 @@ class Setup extends \common\classes\modules\SetupExtensions {
                         'path' => 'extensions?module=OscLink',
                         'title' => 'BOX_MODULES_CONNECTORS_OSCLINK',
                     ],
-                ]
+                ],
             ],
         ];
     }
@@ -129,7 +131,7 @@ class Setup extends \common\classes\modules\SetupExtensions {
                 'BOX_MODULES_CONNECTORS' => 'Connectors',
                 'BOX_MODULES_CONNECTORS_OSCLINK' => 'OSCommerce Connector Service',
             ],
-            'extensions/osclink' => $translation
+            'extensions/osclink' => $translation,
         ];
     }
 
@@ -142,7 +144,9 @@ class Setup extends \common\classes\modules\SetupExtensions {
             'cmc_upd_admin' => $migrate->integer(10)->unsigned()->notNull(),
         ]);
 
-        $migrate->createTableIfNotExists('connector_osclink_entity', [
+        $migrate->createTableIfNotExists(
+            'connector_osclink_entity',
+            [
                 'id'          => $migrate->primaryKey(11)->append('AUTO_INCREMENT'),
                 'project_id'  => $migrate->integer(11)->unsigned()->notNull(),
                 'entity_name' => $migrate->string(128)->notNull(),
@@ -151,7 +155,9 @@ class Setup extends \common\classes\modules\SetupExtensions {
             ['project_id', 'entity_name']
         );
 
-        $migrate->createTableIfNotExists('connector_osclink_mapping', [
+        $migrate->createTableIfNotExists(
+            'connector_osclink_mapping',
+            [
                 'entity_id'     => $migrate->integer(11)->unsigned()->notNull(),
                 'external_id'   => $migrate->integer(11)->unsigned()->notNull(),
                 'internal_id'   => $migrate->integer(11)->unsigned()->notNull(),

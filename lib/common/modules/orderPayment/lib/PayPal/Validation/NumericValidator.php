@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Validation;
 
 /**
@@ -9,7 +11,6 @@ namespace PayPal\Validation;
  */
 class NumericValidator
 {
-
     /**
      * Helper method for validating an argument if it is numeric
      *

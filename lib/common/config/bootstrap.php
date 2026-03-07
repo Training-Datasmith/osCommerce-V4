@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 Yii::setAlias('site_root', dirname(dirname(dirname(__DIR__))));
 Yii::setAlias('common', dirname(__DIR__));
 Yii::setAlias('frontend', dirname(dirname(__DIR__)) . '/frontend');

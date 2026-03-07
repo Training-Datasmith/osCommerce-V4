@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,9 +24,9 @@ class m221018_131607_translate_login_on_form extends Migration
      */
     public function safeUp()
     {
-       $this->addTranslation('main',[
-            'ALREADY_HAVE_AN_ACCOUNT' => 'Already have an account? Login',
-        ]);
+        $this->addTranslation('main', [
+             'ALREADY_HAVE_AN_ACCOUNT' => 'Already have an account? Login',
+         ]);
     }
 
     /**

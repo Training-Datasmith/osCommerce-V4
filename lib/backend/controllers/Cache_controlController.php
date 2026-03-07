@@ -2,49 +2,52 @@
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace backend\controllers;
 
-use common\models\Themes;
 use Yii;
 
 /**
  * default controller to handle user requests.
  */
-class Cache_controlController extends Sceleton  {
-
+class Cache_controlController extends Sceleton
+{
     public $acl = ['TEXT_SETTINGS', 'BOX_HEADING_CACHE_CONTROL'];
-    
-    public function actionIndex() {
-      
-        $this->selectedMenu = array('settings', 'cache_control');
-        $this->navigation[] = array('link' => Yii::$app->urlManager->createUrl('cache_control/index'), 'title' => HEADING_TITLE);
+
+    public function actionIndex()
+    {
+
+        $this->selectedMenu = ['settings', 'cache_control'];
+        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('cache_control/index'), 'title' => HEADING_TITLE];
 
         $this->view->headingTitle = HEADING_TITLE;
-      
+
         $messages = [];
         if (isset($_SESSION['messages'])) {
             $messages = $_SESSION['messages'];
             unset($_SESSION['messages']);
-            if (!is_array($messages)) $messages = [];
+            if (!is_array($messages)) {
+                $messages = [];
+            }
         }
-        return $this->render('index', array('messages' => $messages));
-      
+        return $this->render('index', ['messages' => $messages]);
+
     }
-    
-    public function actionFlush() {
+
+    public function actionFlush()
+    {
 
         set_time_limit(0);
 
         \common\helpers\Translation::init('admin/cache_control');
-        
+
         $runtimePath = Yii::getAlias('@runtime');
         $all_runtime_directories = [];
         $all_runtime_directories[] = $runtimePath;
@@ -60,9 +63,11 @@ class Cache_controlController extends Sceleton  {
             '@superadmin',
             '@rest',
         ];
-        foreach ( $other_apps_aliases as $_apps_alias ){
+        foreach ($other_apps_aliases as $_apps_alias) {
             $_app_runtime_dir = Yii::getAlias($_apps_alias . $runtime_dir_name, false);
-            if ( !$_app_runtime_dir || !is_dir($_app_runtime_dir) ) continue;
+            if (!$_app_runtime_dir || !is_dir($_app_runtime_dir)) {
+                continue;
+            }
 
             $all_runtime_directories[] = $_app_runtime_dir;
         }
@@ -70,17 +75,16 @@ class Cache_controlController extends Sceleton  {
         header('Content-Type: text/html');
         header('Content-Transfer-Encoding: utf-8');
         header('Pragma: no-cache');
-        
+
         ob_start();
 
         $messageType = 'warning';//success warning
 
-         /**
-          * System
-          */
+        /**
+         * System
+         */
         if (Yii::$app->request->post('system') == 1) {
             Yii::$app->getCache()->flush();
-
 
             $message = TEXT_SYSTEM_WARNING;
             ?>
@@ -95,7 +99,7 @@ class Cache_controlController extends Sceleton  {
          * Smarty
          */
         if (Yii::$app->request->post('smarty') == 1) {
-            foreach ($all_runtime_directories as $runtime_directory){
+            foreach ($all_runtime_directories as $runtime_directory) {
                 $smartyPath = $runtime_directory . DIRECTORY_SEPARATOR . 'Smarty' . DIRECTORY_SEPARATOR . 'compile' . DIRECTORY_SEPARATOR . '*.*';
                 array_map('unlink', glob($smartyPath));
             }
@@ -109,16 +113,15 @@ class Cache_controlController extends Sceleton  {
                 }
             }
 
-            
-        $message = TEXT_SMARTY_WARNING;
-?>
+            $message = TEXT_SMARTY_WARNING;
+            ?>
         <div class="pop-mess-cont pop-mess-cont-<?= $messageType?>">
             <?= $message?>
         </div>  
         
 <?php
         }
-        
+
         /**
          * Debug
          */
@@ -128,15 +131,14 @@ class Cache_controlController extends Sceleton  {
                 array_map('unlink', glob($debugPath));
             }
             $message = TEXT_DEBUG_WARNING;
-?>
+            ?>
         <div class="pop-mess-cont pop-mess-cont-<?= $messageType?>">
             <?= $message?>
         </div>  
         
 <?php
         }
-        
-        
+
         /**
          * Logs
          */
@@ -146,14 +148,13 @@ class Cache_controlController extends Sceleton  {
                 array_map('unlink', glob($logsPath));
             }
             $message = TEXT_LOGS_WARNING;
-?>
+            ?>
         <div class="pop-mess-cont pop-mess-cont-<?= $messageType?>">
             <?= $message?>
         </div>          
         
 <?php
         }
-
 
         /**
          * Image cache
@@ -170,7 +171,6 @@ class Cache_controlController extends Sceleton  {
 
             <?php
         }
-
 
         /**
          * Theme cache
@@ -201,7 +201,7 @@ class Cache_controlController extends Sceleton  {
 
             <?php
         }
-        
+
         if (Yii::$app->request->post('hooks') == 1) {
             \common\helpers\Hooks::rebuildHooks();
             $message = 'Hooks cache flushed';
@@ -212,7 +212,7 @@ class Cache_controlController extends Sceleton  {
 
             <?php
         }
-        
+
         if (Yii::$app->request->post('app_shop_cache') == 1) {
             \common\models\InstallListCache::deleteAll();
             $message = TEXT_INSTALL_CACHE . ' flushed';
@@ -242,7 +242,6 @@ class Cache_controlController extends Sceleton  {
             <?php
         }
 
-
         /**
          * Categories cache
          */
@@ -250,7 +249,7 @@ class Cache_controlController extends Sceleton  {
             \common\components\CategoriesCache::getCPC()::invalidateAll();
             echo '<div class="pop-mess-cont pop-mess-cont-' . $messageType . '">' . PRODUCTS_IN_CATEGORIES_FLUSHED . '</div>';
         }
-        
+
         if (Yii::$app->request->post('do_migrations') == 1) {
             defined('STDIN') or define('STDIN', fopen('php://input', 'r'));
             defined('STDOUT') or define('STDOUT', fopen('php://output', 'w'));
@@ -262,7 +261,7 @@ class Cache_controlController extends Sceleton  {
                     'db' => $oldApp->db,
                     'cache' => [
                         'class' => 'yii\caching\FileCache',
-                        'cachePath' => '@frontend/runtime/cache'
+                        'cachePath' => '@frontend/runtime/cache',
                     ],
                     'log' => [
                         'targets' => [
@@ -294,9 +293,9 @@ class Cache_controlController extends Sceleton  {
 
             <?php
         }
-        
+
         ob_end_flush();
-        
+
     }
 
 }

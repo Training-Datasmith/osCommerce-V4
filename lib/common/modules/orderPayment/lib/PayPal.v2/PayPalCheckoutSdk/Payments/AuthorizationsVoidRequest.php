@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // This class was generated on Wed, 01 Aug 2018 16:35:04 PDT by version 0.1.0-dev+0ee05a-dirty of Braintree SDK Generator
 // AuthorizationsVoidRequest.php
 // @version 0.1.0-dev+0ee05a-dirty
@@ -13,13 +15,12 @@ use PayPalHttp\HttpRequest;
 
 class AuthorizationsVoidRequest extends HttpRequest
 {
-    function __construct($authorizationId)
+    public function __construct($authorizationId)
     {
-        parent::__construct("/v2/payments/authorizations/{authorization_id}/void?", "POST");
+        parent::__construct('/v2/payments/authorizations/{authorization_id}/void?', 'POST');
 
-        $this->path = str_replace("{authorization_id}", urlencode($authorizationId), $this->path);
-        $this->headers["Content-Type"] = "application/json";
+        $this->path = str_replace('{authorization_id}', urlencode($authorizationId), $this->path);
+        $this->headers['Content-Type'] = 'application/json';
     }
-
 
 }

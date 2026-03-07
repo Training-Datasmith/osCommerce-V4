@@ -1,17 +1,19 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
-class admin_user extends install_generic {
-
+class admin_user extends install_generic
+{
     public static $before = 'inst_settings';
     public $next_button = 'create_user';
 
@@ -21,11 +23,13 @@ class admin_user extends install_generic {
     private $admin_firstname = '';
     private $admin_lastname = '';
 
-    public static function before() {
+    public static function before()
+    {
         return self::$before;
     }
 
-    public function get_output() {
+    public function get_output()
+    {
         $content = '<table width="100%" border="0" cellspacing="1" cellpadding="2" class="no-borders table-db-access">
                     <tr>
                         <td align="right" width="25%">' . $this->lang['admin_firstname'] . ':<span class="requared">*</span></td>
@@ -114,11 +118,13 @@ class admin_user extends install_generic {
         return $content;
     }
 
-    public function get_filled_output() {
+    public function get_filled_output()
+    {
         return $this->get_output();
     }
 
-    public function parse_input() {
+    public function parse_input()
+    {
         if (isset($_POST['prev']) && $_POST['prev'] == 'inst_settings') {
             return true;
         }
@@ -142,12 +148,11 @@ class admin_user extends install_generic {
             return false;
         }
         $db_selected = mysqli_select_db($link, DB_DATABASE);
-        if (!$db_selected)
-        {
+        if (!$db_selected) {
             $this->log('install_error', 'Wrong database name.');
             return false;
         }
-        
+
         $plain = $this->prepare_input($_POST['user_password1']);
         $secKeyBackend = '';
         $secKeyFrontend = '';
@@ -163,33 +168,33 @@ class admin_user extends install_generic {
         $secKeyGlobal = md5('mysql:host='.DB_SERVER.';dbname='.DB_DATABASE . INSTALLED_MICROTIME);
 
         $content  = '<?php' . "\n";
-        $content  .= "return [" . "\n";
+        $content  .= 'return [' . "\n";
         $content  .= "    'secKey.global' => '" . $secKeyGlobal . "'," . "\n";
         $content  .= "    'secKey.backend' => '" . $secKeyBackend . "'," . "\n";
         $content  .= "    'secKey.frontend' => '" . $secKeyFrontend . "'" . "\n";
-        $content  .= "];" . "\n";
+        $content  .= '];' . "\n";
         $result = file_put_contents($this->root_path . '/lib/common/config/params-local.php', $content);
         if ($result === false) {
-            $this->log('install_error', 'Can\'t save local params file.', error_get_last()['message']??null);
+            $this->log('install_error', 'Can\'t save local params file.', error_get_last()['message'] ?? null);
             return false;
         }
-        
+
         $query = "INSERT INTO `configuration` (`configuration_title`, `configuration_key`, `configuration_value`, `configuration_description`, `configuration_group_id`, `sort_order`, `last_modified`, `date_added`) VALUES ('Date of installation', 'INSTALLED_DATE', now(), '', '', NULL, NULL, now());";
         mysqli_query($link, $query);
-        
+
         $query = "INSERT INTO `configuration` (`configuration_title`, `configuration_key`, `configuration_value`, `configuration_description`, `configuration_group_id`, `sort_order`, `last_modified`, `date_added`) VALUES ('Date of last update', 'UPDATED_DATE', '', '', '', NULL, NULL, now());";
         mysqli_query($link, $query);
 
-        $query = "UPDATE admin SET " .
+        $query = 'UPDATE admin SET ' .
                 "admin_username='" . $this->prepare_input($this->username) . "'" .
                 ", admin_email_address='" . $this->prepare_input($this->useremail) . "'" .
                 ", admin_firstname='" . $this->prepare_input($this->admin_firstname) . "'" .
                 ", admin_lastname='" . $this->prepare_input($this->admin_lastname) . "'" .
                 ", admin_password='" . password_hash(($plain . $secKeyBackend), PASSWORD_BCRYPT, ['cost' => 13]) . "'" .
                 ", admin_email_token='" . password_hash(($this->useremail . $secKeyBackend), PASSWORD_BCRYPT, ['cost' => 13]) . "'" .
-                ", admin_created=now()" .
-                ", admin_modified=now()" .
-                " WHERE admin_id=28;";
+                ', admin_created=now()' .
+                ', admin_modified=now()' .
+                ' WHERE admin_id=28;';
         $result = mysqli_query($link, $query);
         if (!$result) {
             $this->log('install_error', 'Can\'t update settings.');

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -13,17 +15,16 @@
 
 namespace frontend\classes;
 
+use common\components\Socials;
 use frontend\design\Info;
 use Yii;
-use yii\web\Session;
-use common\components\Socials;
 
 /**
  * Abstract Checkout controller
  */
-abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton {
-
-/** @var \common\services\OrderManager $manager */
+abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
+{
+    /** @var \common\services\OrderManager $manager */
     public $manager;
     public $loginPage = 'checkout/login';
     public $indexPage = 'checkout/';
@@ -31,7 +32,8 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
     protected $use_social = false;
     private $initialized = false;
 
-    public function checkoutInit() {
+    public function checkoutInit()
+    {
         if (!$this->initialized) {
             $platform_config = new \common\classes\platform_config(PLATFORM_ID);
 
@@ -43,7 +45,8 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
         }
     }
 
-    protected function _actionLogin() {
+    protected function _actionLogin()
+    {
         if (!Yii::$app->user->isGuest) {
             tep_redirect(tep_href_link($this->indexPage, '', 'SSL'));
         }
@@ -77,9 +80,9 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
             } else {
                 foreach ($authContainer->getErrors($scenario) as $error) {
                     if (Yii::$app->request->isAjax) {
-                        $messageStack->add_session((is_array($error) ? implode("<br>", $error) : $error), $scenario);
+                        $messageStack->add_session((is_array($error) ? implode('<br>', $error) : $error), $scenario);
                     } else {
-                        $messageStack->add((is_array($error) ? implode("<br>", $error) : $error), $scenario);
+                        $messageStack->add((is_array($error) ? implode('<br>', $error) : $error), $scenario);
                     }
                 }
                 $messages = '';
@@ -101,7 +104,8 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
         return $this->render($tpl, ['params' => $params, 'settings' => ['tabsManually' => true]]);
     }
 
-    protected function _actionSuccess() {
+    protected function _actionSuccess()
+    {
         \common\helpers\Translation::init('checkout/success');
         \common\helpers\Translation::init('checkout');
 
@@ -119,20 +123,21 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
 
         $breadcrumb->add(NAVBAR_TITLE_CHECKOUT);
         $breadcrumb->add(NAVBAR_TITLE);
-        $order_info_data = array(
+        $order_info_data = [
             'order_id' => 0,
             'print_order_href' => (Info::isAdmin() ? '1111' : ''),
             'order' => false,
-        );
+        ];
 
         return $this->render('success.tpl', array_merge([
                     'products' => '',
                     'continue_href' => tep_href_link(FILENAME_DEFAULT, '', 'NONSSL'),
-                    'params' => $order_info_data
+                    'params' => $order_info_data,
                                 ], $order_info_data));
     }
 
-    public function actionNotifyAdmin() {
+    public function actionNotifyAdmin()
+    {
         $type = Yii::$app->request->post('type', null);
         if (!is_null($type)) {
             if ($type == 'need_analytics') {
@@ -144,9 +149,12 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
         exit();
     }
 
-    public function actions() {
+    public function actions()
+    {
         $actions = parent::actions();
-        if (!is_array($actions)) $actions = [];
+        if (!is_array($actions)) {
+            $actions = [];
+        }
         $actions['auth'] = [
             'class' => 'yii\authclient\AuthAction',
             'successCallback' => [$this, 'onAuthSuccess'],
@@ -162,12 +170,14 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
         return parent::beforeAction($action);
     }
 
-    public function onAuthSuccess($client) {
+    public function onAuthSuccess($client)
+    {
         \common\helpers\Translation::init('account/login');
         (new Socials($client))->handle();
     }
 
-    public function actionWorker($subAction) {
+    public function actionWorker($subAction)
+    {
         $data = [];
         $messageStack = \Yii::$container->get('message_stack');
         switch ($subAction) {
@@ -190,7 +200,7 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
                 $data['shipping'] = $this->manager->render('Shipping', ['manager' => $this->manager], 'json');
                 $data['order_totals'] = $this->manager->render('Totals', ['manager' => $this->manager], 'json');
                 break;
-             case 'set_bill_as_ship':
+            case 'set_bill_as_ship':
                 $_sendto = tep_db_prepare_input($this->manager->get('sendto'));
                 if ($_sendto) {
                     $this->manager->changeCustomerAddressSelection('billing', $_sendto);
@@ -228,7 +238,7 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
                 }
                 $this->manager->getShippingQuotesByChoice();
                 if ($type == 'shipping') {
-                $this->manager->checkoutOrder();
+                    $this->manager->checkoutOrder();
                 } else {
                     $this->manager->checkoutOrderWithAddresses();
                 }
@@ -310,9 +320,9 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
                 $data['order_totals'] = $this->manager->render('Totals', ['manager' => $this->manager], 'json');
                 $this->manager->totalPreConfirmationCheck(); // call for credit cover flag and covered_by_coupon payment
                 $data['payments'] = $this->manager->render('PaymentMethod', ['manager' => $this->manager], 'json');
-                if ( $this->manager->hasCart() && $this->manager->getCart() instanceof \common\extensions\Quotations\QuoteCart ){
+                if ($this->manager->hasCart() && $this->manager->getCart() instanceof \common\extensions\Quotations\QuoteCart) {
                     $this->manager->setRenderPath('\\frontend\\design\\boxes\\quote\\');
-                }else {
+                } else {
                     $this->manager->setRenderPath('\\frontend\\design\\boxes\\cart\\');
                 }
                 $data['products'] = $this->manager->render('Products', ['params' => ['manager' => $this->manager, 'sender' => 'worker']], 'json');
@@ -340,10 +350,10 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
                     $this->manager->resetDeliveryAddress();
                     $this->manager->resetBillingAddress();
                 }
-              /** @var common\forms\AddressForm $address */
+                /** @var common\forms\AddressForm $address */
                 $bAddress->preload(Yii::$app->request->post($modelName));
                 if ($bAddress->notEmpty(true)) {
-                    foreach( $_which as $_w) {
+                    foreach ($_which as $_w) {
                         $this->manager->set($_w, ['country_id' => $bAddress->country, 'postcode' => $bAddress->postcode, 'zone' => $bAddress->state, 'company_vat' => $bAddress->company_vat, 'company_vat_date' => $bAddress->company_vat_date, 'company_vat_status' => 0, 'customs_number' => $bAddress->customs_number, 'customs_number_date' => $bAddress->customs_number_date, 'customs_number_status' => 0]);
                     }
                 }
@@ -358,7 +368,7 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
                     list($customs_number_status, $customer_customs_number_status) = $ext::update_customs_number_status($bAddress, $modelName);
                 }
 
-                if ($subAction=='check_vat') {
+                if ($subAction == 'check_vat') {
                     $data = ['company_vat_status' => $customer_company_vat_status, 'field' => \yii\helpers\Html::getInputId($bAddress, 'company_vat')];
                 } elseif ($subAction == 'check_customs_number') {
                     $data = ['customs_number_status' => $customer_customs_number_status, 'field' => \yii\helpers\Html::getInputId($bAddress, 'customs_number')];
@@ -368,10 +378,10 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
                 $data['order_totals'] = $this->manager->render('Totals', ['manager' => $this->manager], 'json');
                 break;
             case 'recalculation':
-              /** @var \common\forms\AddressForm $sAddress */
+                /** @var \common\forms\AddressForm $sAddress */
                 $sAddress = $this->manager->getShippingForm(null, false);
                 $sAddress->load(Yii::$app->request->post());
-                if ($sAddress->notEmpty(true) && intval($sAddress->country)>0) {
+                if ($sAddress->notEmpty(true) && intval($sAddress->country) > 0) {
                     $this->manager->set('estimate_ship', [
                         'country_id' => $sAddress->country,
                         'postcode' => $sAddress->postcode,
@@ -385,7 +395,7 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
                         ,
                         'customs_number' => $sAddress->customs_number,
                         'customs_number_date' => $sAddress->customs_number_date,
-                        'customs_number_status' => $sAddress->customs_number_status
+                        'customs_number_status' => $sAddress->customs_number_status,
                     ]);
                     $this->manager->resetDeliveryAddress(); ///kostyl?? manager fills in delivery address in CartFactory during tax calculation for products in cart
                 }
@@ -393,7 +403,7 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
                 /** @var \common\forms\AddressForm $bAddress */
                 $bAddress = $this->manager->getBillingForm(null, false);
                 $bAddress->load(Yii::$app->request->post());
-                if ($bAddress->notEmpty(true)  && intval($bAddress->country)>0) {
+                if ($bAddress->notEmpty(true)  && intval($bAddress->country) > 0) {
                     $this->manager->set('estimate_bill', [
                         'country_id' => $bAddress->country,
                         'postcode' => $bAddress->postcode,
@@ -404,7 +414,7 @@ abstract class AbstractCheckoutController extends \frontend\controllers\Sceleton
                         ,
                         'customs_number' => $bAddress->customs_number,
                         'customs_number_date' => $bAddress->customs_number_date,
-                        'customs_number_status' => $bAddress->customs_number_status
+                        'customs_number_status' => $bAddress->customs_number_status,
                     ]);
                     $this->manager->resetBillingAddress();
                 }

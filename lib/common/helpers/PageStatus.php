@@ -1,29 +1,29 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace common\helpers;
 
-use Yii;
 use common\models\PageStatus as mPageStatus;
 use common\models\PageStatusSwitch;
-use common\helpers\Html;
 
-class PageStatus {
-
+class PageStatus
+{
     public const PAGESTATUS_CACHE_LIFETIME = 5;
     public const PAGE_STATUSES = [
         'public' => STATUS_PUBLIC,
-        'draft' => STATUS_DRAFT
+        'draft' => STATUS_DRAFT,
     ];
 
     public const PAGE_STATUS_PERIODS = [
@@ -31,7 +31,7 @@ class PageStatus {
         'year' => STATUS_PERIOD_EVERY_YEAR,
         'month' => STATUS_PERIOD_EVERY_MONTH,
         'week' => STATUS_PERIOD_EVERY_WEEK,
-        'day' => STATUS_PERIOD_EVERY_DAY
+        'day' => STATUS_PERIOD_EVERY_DAY,
     ];
 
     public static function getIds($status, $type)
@@ -40,10 +40,10 @@ class PageStatus {
 
         $query_key = (string)$status.'&'.(string)$type;
         static $page_status_ids = [];
-        if ( !isset($page_status_ids[$query_key]) ) {
+        if (!isset($page_status_ids[$query_key])) {
             $pageStatuses = mPageStatus::find()->where([
                 'type' => $type,
-                'status' => $status
+                'status' => $status,
             ])
                 ->cache(self::PAGESTATUS_CACHE_LIFETIME)
                 ->asArray()->all();
@@ -64,7 +64,7 @@ class PageStatus {
         $exists = mPageStatus::find()->where([
             'type' => $type,
             'page_id' => $pageId,
-            'status' => $status
+            'status' => $status,
         ])->exists();
 
         return $exists;
@@ -73,7 +73,9 @@ class PageStatus {
     public static function switchStatuses()
     {
         static $changed = false;
-        if ($changed) return;
+        if ($changed) {
+            return;
+        }
         $changed = true;
 
         $pageStatusSwitchers = PageStatusSwitch::find()
@@ -143,7 +145,9 @@ class PageStatus {
             $period = $statuses['period'][$key];
             $entryDate = $statuses['date'][$key];
             $day = $statuses['day'][$key];
-            if (!$entryDate) continue;
+            if (!$entryDate) {
+                continue;
+            }
 
             switch ($period) {
                 case 'year':
@@ -214,7 +218,7 @@ class PageStatus {
 
         $page = mPageStatus::find()->where([
             'type' => $type,
-            'page_id' => $pageId
+            'page_id' => $pageId,
         ])->asArray()->one();
 
         return Html::tag('span', self::PAGE_STATUSES[$page['status']], ['class' => 'current-page-status']);

@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace Stripe;
 
 /**
@@ -16,5 +18,5 @@ namespace Stripe;
  */
 class SourceTransaction extends ApiResource
 {
-    const OBJECT_NAME = 'source_transaction';
+    public const OBJECT_NAME = 'source_transaction';
 }

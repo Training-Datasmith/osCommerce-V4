@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -18,6 +20,6 @@ class JsonParser
     public function parse($jsonString, $asArray = true)
     {
         $jsonString = json_decode($jsonString, $asArray);
-        return ((is_array($jsonString) OR is_object($jsonString)) ? $jsonString : false);
+        return ((is_array($jsonString) or is_object($jsonString)) ? $jsonString : false);
     }
 }

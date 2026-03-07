@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Log;
 
 use PayPal\Core\PayPalConfigManager;
@@ -8,11 +10,10 @@ use Psr\Log\LogLevel;
 
 class PayPalLogger extends AbstractLogger
 {
-
     /**
      * @var array Indexed list of all log levels.
      */
-    private $loggingLevels = array(
+    private $loggingLevels = [
         LogLevel::EMERGENCY,
         LogLevel::ALERT,
         LogLevel::CRITICAL,
@@ -20,8 +21,8 @@ class PayPalLogger extends AbstractLogger
         LogLevel::WARNING,
         LogLevel::NOTICE,
         LogLevel::INFO,
-        LogLevel::DEBUG
-    );
+        LogLevel::DEBUG,
+    ];
 
     /**
      * Configured Logging Level
@@ -72,12 +73,12 @@ class PayPalLogger extends AbstractLogger
         }
     }
 
-    public function log($level, $message, array $context = array())
+    public function log($level, $message, array $context = [])
     {
         if ($this->isLoggingEnabled) {
             // Checks if the message is at level below configured logging level
             if (array_search($level, $this->loggingLevels) <= array_search($this->loggingLevel, $this->loggingLevels)) {
-                error_log("[" . date('d-m-Y H:i:s') . "] " . $this->loggerName . " : " . strtoupper($level) . ": $message\n", 3, $this->loggerFile);
+                error_log('[' . date('d-m-Y H:i:s') . '] ' . $this->loggerName . ' : ' . strtoupper($level) . ": $message\n", 3, $this->loggerFile);
             }
         }
     }

@@ -1,12 +1,14 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
@@ -15,14 +17,15 @@ namespace common\classes\modules;
 
 use common\classes\platform;
 
-class ModuleExtensions extends Module {
-
+class ModuleExtensions extends Module
+{
     public $isExtension = true;
     public $userConfirmedDropDatatables = false;// check this field in remove function if extention is able to drop own datatables into isAbleToDropDatatables()
     public $assign_to_access_levels = 1;
-    public $userConfirmedDeleteAcl = false; 
-    
-    public function __construct() {
+    public $userConfirmedDeleteAcl = false;
+
+    public function __construct()
+    {
         $ref = new \ReflectionClass(get_called_class());
         $this->code = $ref->getShortName();
         $this->namespace = $ref->getNamespaceName();
@@ -50,7 +53,7 @@ class ModuleExtensions extends Module {
             return $className;
         }
         if (is_array($methodName)) {
-            foreach($methodName as $name) {
+            foreach ($methodName as $name) {
                 if (!method_exists($className, $name)) {
                     return null;
                 }
@@ -59,7 +62,8 @@ class ModuleExtensions extends Module {
         }
     }
 
-    public static function getDescription() {
+    public static function getDescription()
+    {
         if ($setup = static::checkSetup('getDescription')) {
             return $setup::getDescription();
         }
@@ -118,7 +122,9 @@ class ModuleExtensions extends Module {
         static $arr = null;
         if (is_null($arr)) {
             $arr = self::getTranslationArray();
-            if (!is_array($arr)) $arr = [];
+            if (!is_array($arr)) {
+                $arr = [];
+            }
         }
         if (!empty($entity) && isset($arr[$entity][$key])) {
             return $arr[$entity][$key];
@@ -129,7 +135,9 @@ class ModuleExtensions extends Module {
                 }
             }
         }
-        if ($default == '##key##') return $key;
+        if ($default == '##key##') {
+            return $key;
+        }
         return $default;
     }
 
@@ -151,8 +159,8 @@ class ModuleExtensions extends Module {
         return $res;
     }
 
-
-    public static function getAdminMenu() {
+    public static function getAdminMenu()
+    {
         if ($setup = static::checkSetup('getAdminMenu')) {
             return $setup::getAdminMenu();
         }
@@ -173,7 +181,8 @@ class ModuleExtensions extends Module {
         }
     }
 
-    public static function getWidgets($type = 'general') {
+    public static function getWidgets($type = 'general')
+    {
         if (!self::allowed()) {
             return '';
         }
@@ -183,7 +192,7 @@ class ModuleExtensions extends Module {
                 return '';
             } else {
                 static::initTranslation('init_widget');
-                foreach($res as &$wd){
+                foreach ($res as &$wd) {
                     if (isset($wd['type']) && empty($wd['type'])) {
                         $wd['type'] = 'general';
                     }
@@ -193,7 +202,8 @@ class ModuleExtensions extends Module {
         }
     }
 
-    public static function getPages() {
+    public static function getPages()
+    {
         if (!self::allowed()) {
             return '';
         }
@@ -203,9 +213,9 @@ class ModuleExtensions extends Module {
         }
     }
 
+    public static function showSettings($settings)
+    {
 
-    public static function showSettings($settings) {
-        
     }
 
     public static function getEpDataSources()
@@ -231,13 +241,14 @@ class ModuleExtensions extends Module {
         return $res;
     }
     /* Not needed for overriding if Setup::install is implemented */
-    public function install($platform_id) {
+    public function install($platform_id)
+    {
         try {
             $migrate = new \common\classes\Migration();
             $migrate->compact = true;
             self::installTranslationArray($platform_id, $migrate);
             $this->appendAcl($platform_id, $migrate);
-            \common\helpers\MenuHelper::createAdminMenuItems( static::getAdminMenu() );
+            \common\helpers\MenuHelper::createAdminMenuItems(static::getAdminMenu());
             if ($setup = static::checkSetup('install')) {
                 $installed = self::getInstalled();
                 if (!empty($installed->version_db ?? null)) {
@@ -258,7 +269,8 @@ class ModuleExtensions extends Module {
     }
 
     /* Not needed for overriding if Setup::remove is implemented */
-    public function remove($platform_id) {
+    public function remove($platform_id)
+    {
         try {
             $migrate = new \common\classes\Migration();
             $migrate->compact = true;
@@ -287,18 +299,21 @@ class ModuleExtensions extends Module {
         }
     }
 
-    public static function isAbleToDeleteAcl() {
+    public static function isAbleToDeleteAcl()
+    {
 
-        return boolval( static::checkSetup(['getAclArray']) );
+        return boolval(static::checkSetup(['getAclArray']));
     }
-    
-    public static function isAbleToDropDatatables() {
 
-        return boolval( static::checkSetup(['getDropDatabasesArray']) );
+    public static function isAbleToDropDatatables()
+    {
+
+        return boolval(static::checkSetup(['getDropDatabasesArray']));
     }
 
     /* Not needed for overriding if Setup::getAclArray is implemented */
-    public static function acl() {
+    public static function acl()
+    {
         if ($setup = static::checkSetup('getAclArray')) {
             $acl = $setup::getAclArray();
             $acl_default = $acl['default'] ?? ($acl[0] ?? []);
@@ -311,21 +326,24 @@ class ModuleExtensions extends Module {
         return [];
     }
 
-    public function describe_status_key() {
+    public function describe_status_key()
+    {
         return new ModuleStatus($this->code . '_EXTENSION_STATUS', 'True', 'False');
     }
 
-    public function describe_sort_key() {
-        
+    public function describe_sort_key()
+    {
+
     }
 
-    public function configure_keys() {
+    public function configure_keys()
+    {
         $keys0 = [
             $this->code . '_EXTENSION_STATUS' => [
                 'title' => $this->title . ' status',
                 'value' => 'False',
                 'set_function' => 'tep_cfg_select_option(array(\'True\', \'False\'), ',
-            ]
+            ],
         ];
         $keys = $this->getConfigureKeysArea(true, 'restrictions', 'platform');
         if (is_array($keys)) {
@@ -334,13 +352,14 @@ class ModuleExtensions extends Module {
         return $keys0;
     }
 
-    public function configure_keys_platforms(){
+    public function configure_keys_platforms()
+    {
         return $keys = $this->getConfigureKeysArea(false, 'platforms');
     }
 
     public function add_platform_key($platform_id, $key, $data)
     {
-        $this->add_config_key($platform_id, $key, $data );
+        $this->add_config_key($platform_id, $key, $data);
     }
 
     public static function getSetupConfigureKeys()
@@ -348,8 +367,8 @@ class ModuleExtensions extends Module {
         if ($setup = static::checkSetup('getConfigureKeys')) {
             $keys = $setup::getConfigureKeys(self::getModuleCode());
             if (is_array($keys)) {
-                array_walk($keys, function(&$value, $key) {
-                    foreach(['title', 'description'] as $keyItem) {
+                array_walk($keys, function (&$value, $key) {
+                    foreach (['title', 'description'] as $keyItem) {
                         if (isset($value[$keyItem]) && preg_match('/##([\w_\-]*)##/', $value[$keyItem], $match)) {
                             $value[$keyItem] = static::getTranslationValue($match[1]);
                         }
@@ -366,7 +385,7 @@ class ModuleExtensions extends Module {
         if (is_array($keys) && !empty($keys)) {
             $includeArea = is_array($includeArea) ? $includeArea : explode(',', $includeArea ?? '');
             $excludeArea = is_array($excludeArea) ? $excludeArea : explode(',', $excludeArea ?? '');
-            return array_filter($keys, function($value) use ($includeEmptyArea, $includeArea, $excludeArea ) {
+            return array_filter($keys, function ($value) use ($includeEmptyArea, $includeArea, $excludeArea) {
                 if (empty($value['area'])) {
                     return $includeEmptyArea;
                 } else {
@@ -376,7 +395,8 @@ class ModuleExtensions extends Module {
         }
     }
 
-    public static function enabled() {
+    public static function enabled()
+    {
         $class = (new \ReflectionClass(get_called_class()))->getShortName();
         if (class_exists('\common\helpers\Extensions')) {
             return \common\helpers\Extensions::isEnabled($class);
@@ -387,7 +407,8 @@ class ModuleExtensions extends Module {
         }
     }
 
-    public static function getMetaTagKeys($meta_tags) {
+    public static function getMetaTagKeys($meta_tags)
+    {
         if (($setup = static::checkSetup('getMetaTagKeys')) && self::allowed()) {
             return $setup::getMetaTagKeys($meta_tags);
         } else {
@@ -421,7 +442,6 @@ class ModuleExtensions extends Module {
         return [];
     }
 
-
     public static function getCronJobs(bool $checkAllowed = true)
     {
         if ((!$checkAllowed || self::allowed()) && ($setup = static::checkSetup('getCronJobs'))) {
@@ -451,26 +471,29 @@ class ModuleExtensions extends Module {
         }
     }
 
-
-        private function appendAcl($platform_id, \common\classes\Migration $migrate) {
+    private function appendAcl($platform_id, \common\classes\Migration $migrate)
+    {
         if ($setup = static::checkSetup('getAclArray')) {
             $aclArray = $setup::getAclArray();
             if (is_array($aclArray) && count($aclArray) > 0) {
-                foreach($aclArray as $key => $acl) {
+                foreach ($aclArray as $key => $acl) {
                     $migrate->appendAcl($acl, $this->assign_to_access_levels);
                 }
             }
         }
     }
-    
-    private static function dropAcl($platform_id, $migrate) {
+
+    private static function dropAcl($platform_id, $migrate)
+    {
         if ($setup = static::checkSetup('getAclArray')) {
             $aclArray = $setup::getAclArray();
             if (is_array($aclArray) && count($aclArray) > 0) {
                 // place parent keys in the end to delete their later
-                uasort($aclArray, function($a, $b) { return count($b) <=> count($a); });
+                uasort($aclArray, function ($a, $b) {
+                    return count($b) <=> count($a);
+                });
 
-                foreach($aclArray as $key => $acl) {
+                foreach ($aclArray as $key => $acl) {
                     $migrate->dropAcl($acl);
                 }
                 if (isset($aclArray['default'])) {
@@ -493,9 +516,9 @@ class ModuleExtensions extends Module {
         if ($setup = static::checkSetup('getAclArray')) {
             $aclArray = $setup::getAclArray();
 
-            $actionSuffix = empty($action)? '' : "/$action";
+            $actionSuffix = empty($action) ? '' : "/$action";
 
-            foreach(["$entity$actionSuffix", $entity, $action, 'default'] as $key) {
+            foreach (["$entity$actionSuffix", $entity, $action, 'default'] as $key) {
                 if (!empty($key) && isset($aclArray[$key])) {
                     return $aclArray[$key];
                 } elseif (!$matchSimilar) {
@@ -509,9 +532,11 @@ class ModuleExtensions extends Module {
     {
         $translationArray = static::getTranslationArray();
         if (is_array($translationArray) && count($translationArray) > 0) {
-            foreach($translationArray as $entity => $keysArray) {
+            foreach ($translationArray as $entity => $keysArray) {
                 if (static::isProcessTranslationPair($entity, $keysArray, 'install')) {
-                    $withoutMagicKeys = array_filter($keysArray, function($key) { return is_string($key) && substr($key, 0, 2) != '__'; }, ARRAY_FILTER_USE_KEY);
+                    $withoutMagicKeys = array_filter($keysArray, function ($key) {
+                        return is_string($key) && substr($key, 0, 2) != '__';
+                    }, ARRAY_FILTER_USE_KEY);
                     $migrate->addTranslation($entity, $withoutMagicKeys, true);
                 }
             }
@@ -528,7 +553,7 @@ class ModuleExtensions extends Module {
     {
         $translationArray = static::getTranslationArray();
         if (is_array($translationArray) && count($translationArray) > 0) {
-            foreach($translationArray as $entity => $keysArray) {
+            foreach ($translationArray as $entity => $keysArray) {
                 if (static::isProcessTranslationPair($entity, $keysArray, 'remove_entity')) {
                     $migrate->removeTranslation($entity);
                 } elseif (static::isProcessTranslationPair($entity, $keysArray, 'remove_keys')) {
@@ -556,14 +581,16 @@ class ModuleExtensions extends Module {
     //use ::initTranslation() for custom initializing
     protected static function initTranslationArray($from = 'init_directcall')
     {
-        if (!\common\helpers\System::isYiiLoaded()) return;
+        if (!\common\helpers\System::isYiiLoaded()) {
+            return;
+        }
         if (is_bool($from)) {
             $from = 'init_directcall';
         }
         $transl = static::getTranslationArray();
         if (is_array($transl)) {
             // make sure 'main' gets initialized first
-            foreach($transl as $entity => $keysArray) {
+            foreach ($transl as $entity => $keysArray) {
                 if (in_array($entity, ['main', 'admin/main'])) {
                     if (static::isProcessTranslationPair($entity, $keysArray, $from)) {
                         \common\helpers\Translation::init($entity);
@@ -571,7 +598,7 @@ class ModuleExtensions extends Module {
                 }
             }
 
-            foreach($transl as $entity => $keysArray) {
+            foreach ($transl as $entity => $keysArray) {
                 if (static::isProcessTranslationPair($entity, $keysArray, $from)) {
                     \common\helpers\Translation::init($entity);
                 }
@@ -625,7 +652,6 @@ class ModuleExtensions extends Module {
         static::installTranslationArray(null, $migrate);
     }
 
-
     /*
      * Developer can use it to update translation constants by URL:
      * https://localhost/admin/extensions?module=YourExt&action=actionRefreshTranslation
@@ -636,7 +662,7 @@ class ModuleExtensions extends Module {
             $migrate = new \common\classes\Migration();
             $migrate->compact = true;
             static::reinstallTranslation($migrate);
-            echo "translation reinstalled<br>";
+            echo 'translation reinstalled<br>';
         }
     }
 
@@ -665,8 +691,6 @@ class ModuleExtensions extends Module {
         return '@common/extensions/' . self::getModuleCode() . '/views/' . $view;
     }
 
-
-
     public static function render($view, $params = [])
     {
         $params['_extension_render'] = static::getModuleCode();
@@ -690,7 +714,9 @@ class ModuleExtensions extends Module {
      * For example UsersGroups extensions and its models into common/models folder
      * @return null|string - yii\db\ActiveRecord class
      */
-    public static function getModel($modelName) {}
+    public static function getModel($modelName)
+    {
+    }
 
     /**
      * Get Dbg helper if consts DBG_ExtClassName === true
@@ -713,8 +739,8 @@ class ModuleExtensions extends Module {
             $cfgKeys = self::getSetupConfigureKeys();
             \common\helpers\Assert::keyExists($cfgKeys, $name, "The config key $name is not found in Setup::getConfigureKeys: %s");
 
-            $platformId = ($cfgKeys[$name]['area']??null) == 'platforms' ? ($platformId ?? platform::currentId()) : 0;
-            $defValue = $cfgKeys[$name]['value']??'';
+            $platformId = ($cfgKeys[$name]['area'] ?? null) == 'platforms' ? ($platformId ?? platform::currentId()) : 0;
+            $defValue = $cfgKeys[$name]['value'] ?? '';
 
             return \common\helpers\PlatformConfig::getVal($name, $defValue, $platformId);
 

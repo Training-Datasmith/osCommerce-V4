@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,12 +24,12 @@ class m230227_095742_themes_feb_upd extends Migration
      */
     public function Up()
     {
-		$this->updateTheme('deals', 'lib/console/migrations/themes/b2b-supermarket/migration-deals-1677490948365.json');
-		$this->updateTheme('printshop', 'lib/console/migrations/themes/printshop/migration-printshop-1677483151197.json');
-		$this->updateTheme('furniture', 'lib/console/migrations/themes/furniture/desktop/migration-furniture-1677483369210.json');
-		$this->updateTheme('furniture-mobile', 'lib/console/migrations/themes/furniture/mobile/migration-furniture-mobile-1677483418789.json');
-		$this->updateTheme('watch', 'lib/console/migrations/themes/watch/desktop/migration-watch-1677483604223.json');
-		$this->updateTheme('watch-mobile', 'lib/console/migrations/themes/watch/mobile/migration-watch-mobile-1677483767655.json');
+        $this->updateTheme('deals', 'lib/console/migrations/themes/b2b-supermarket/migration-deals-1677490948365.json');
+        $this->updateTheme('printshop', 'lib/console/migrations/themes/printshop/migration-printshop-1677483151197.json');
+        $this->updateTheme('furniture', 'lib/console/migrations/themes/furniture/desktop/migration-furniture-1677483369210.json');
+        $this->updateTheme('furniture-mobile', 'lib/console/migrations/themes/furniture/mobile/migration-furniture-mobile-1677483418789.json');
+        $this->updateTheme('watch', 'lib/console/migrations/themes/watch/desktop/migration-watch-1677483604223.json');
+        $this->updateTheme('watch-mobile', 'lib/console/migrations/themes/watch/mobile/migration-watch-mobile-1677483767655.json');
     }
 
     /**
@@ -35,7 +37,7 @@ class m230227_095742_themes_feb_upd extends Migration
      */
     public function safeDown()
     {
-      
+
     }
 
     /*

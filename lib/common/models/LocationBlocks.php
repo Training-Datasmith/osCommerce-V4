@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "location_blocks".
@@ -26,7 +26,7 @@ class LocationBlocks extends \yii\db\ActiveRecord
     public function rules()
     {
         return [
-            [['block_name'], 'string', 'max' => 32]
+            [['block_name'], 'string', 'max' => 32],
         ];
     }
 

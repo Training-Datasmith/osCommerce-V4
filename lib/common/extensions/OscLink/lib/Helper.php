@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,16 +14,13 @@
 
 namespace OscLink;
 
-use \common\helpers\Assert;
-
 class Helper
-{ 
-
+{
     public static function getIdentAR($ar)
     {
         if ($ar instanceof \yii\db\ActiveRecord) {
             $key = $ar->getPrimaryKey();
-            $key = is_array($key) ? implode('-', array_filter($key, "is_string")) : $key;
+            $key = is_array($key) ? implode('-', array_filter($key, 'is_string')) : $key;
             return $ar->tablename() . '(' . $key . ')';
         } elseif (is_object($ar)) {
             return $ar::classname();
@@ -35,7 +34,7 @@ class Helper
         if (empty($sum)) {
             $sum = $add;
         } else {
-            foreach($add as $key=>$val) {
+            foreach ($add as $key => $val) {
                 $sum[$key] += $val;
             }
         }
@@ -44,21 +43,20 @@ class Helper
     public static function formatArr(string $format, array $arr)
     {
         $temp_arr = [];
-        array_walk($arr, function (&$value,$key) use (&$temp_arr) {
-            $temp_arr["{".$key."}"] = $value;
-        } );
+        array_walk($arr, function (&$value, $key) use (&$temp_arr) {
+            $temp_arr['{'.$key.'}'] = $value;
+        });
         return strtr($format, $temp_arr);
     }
 
-
     public static function getFeedName($feed)
     {
-        return \common\helpers\Php8::getConst('EXTENSION_OSCLINK_TEXT_ENTITY_' . strtoupper($feed) );
+        return \common\helpers\Php8::getConst('EXTENSION_OSCLINK_TEXT_ENTITY_' . strtoupper($feed));
     }
-    
+
     public static function getGroupName($group)
     {
-        return \common\helpers\Php8::getConst('EXTENSION_OSCLINK_TEXT_GROUP_' . strtoupper($group) );
+        return \common\helpers\Php8::getConst('EXTENSION_OSCLINK_TEXT_GROUP_' . strtoupper($group));
     }
 
     public static function getFeedGroupInfo($feed)

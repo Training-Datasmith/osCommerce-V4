@@ -1,36 +1,39 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
- * 
+ *
  * @link https://www.oscommerce.com
  * @copyright Copyright (c) 2000-2022 osCommerce LTD
- * 
+ *
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
 
 namespace frontend\design\boxes\product;
 
+use common\helpers\Product;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use common\helpers\Tax;
-use common\helpers\Product;
 
-class PayPalPayLater extends Widget {
-
+class PayPalPayLater extends Widget
+{
     public $file;
     public $params;
     public $settings;
     public $frameUrl;
 
-    public function init() {
+    public function init()
+    {
         parent::init();
     }
 
-    public function run() {
+    public function run()
+    {
         if (!defined('MODULE_PAYMENT_PAYPAL_PARTNER_PAY_LATER') || MODULE_PAYMENT_PAYPAL_PARTNER_PAY_LATER != 'True') {
             return '';
         }
@@ -48,10 +51,10 @@ class PayPalPayLater extends Widget {
                 }
                 if (!$product->checkAttachedDetails($products::TYPE_STOCK)) {
                     $product_qty = Product::get_products_stock($params['products_id']);
-                    $stock_info = \common\classes\StockIndication::product_info(array(
+                    $stock_info = \common\classes\StockIndication::product_info([
                                 'products_id' => $params['products_id'],
                                 'products_quantity' => $product_qty,
-                    ));
+                    ]);
                     $product = $products->attachDetails($params['products_id'], [$products::TYPE_STOCK => $stock_info])->getProduct($params['products_id']);
                 } else {
                     $stock_info = $product[$products::TYPE_STOCK];
@@ -64,7 +67,7 @@ class PayPalPayLater extends Widget {
                  * 2 - hide if zero
                  */
                 /** @var \common\extensions\Quotations\Quotations $ext */
-                if (($stock_info['flags']['request_for_quote'] && ( ($ext = \common\helpers\Extensions::isAllowed('Quotations')) && !$ext::optionIsPriceShow() ) /* && $stock_info['flags']['display_price_options'] != 0 */) ||
+                if (($stock_info['flags']['request_for_quote'] && (($ext = \common\helpers\Extensions::isAllowed('Quotations')) && !$ext::optionIsPriceShow()) /* && $stock_info['flags']['display_price_options'] != 0 */) ||
                         ($stock_info['flags']['display_price_options'] == 1) ||
                         (abs($product['products_price']) < 0.01 && $stock_info['flags']['display_price_options'] == 2)) {
                     $return_price = false;
@@ -92,7 +95,7 @@ class PayPalPayLater extends Widget {
                 }
 
                 return IncludeTpl::widget(['file' => 'boxes/product/paypal_partner.tpl', 'params' => [
-                                'price' => round($actualPrice, 2)
+                                'price' => round($actualPrice, 2),
                 ]]);
             }
         }

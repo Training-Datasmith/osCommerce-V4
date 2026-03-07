@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -16,8 +18,7 @@ use Yii;
 
 class Hooks
 {
- 
-   public static function getList($pageName, $pageArea = '')
+    public static function getList($pageName, $pageArea = '')
     {
         self::checkHookExists($pageName, $pageArea, " in common/extensions/methodology.txt\nDear developer - don't forget add your hook into this file");
         self::rebuildHooksIfNeeded();
@@ -25,7 +26,7 @@ class Hooks
         $response = [];
         $queryRaw = \Yii::$app->getCache()->getOrSet($pageName . '|' . $pageArea, function () use ($pageName, $pageArea) {
             return \common\models\Hooks::find()->where(['page_name' => $pageName, 'page_area' => $pageArea])->orderBy('sort_order, hook_id')->asArray()->all();
-        },0, new \yii\caching\TagDependency(['tags'=>['hooks_all']]));
+        }, 0, new \yii\caching\TagDependency(['tags' => ['hooks_all']]));
 
         foreach ($queryRaw as $row) {
             if (\common\helpers\Extensions::isAllowed($row['extension_name'])) { // mostly for disabled
@@ -41,7 +42,6 @@ class Hooks
         }
         return $response;
     }
-
 
     private static $hasRecords = null;
 
@@ -82,7 +82,7 @@ class Hooks
                 $record->sort_order = ($item['sort_order'] ?? 100);
                 $record->extension_name = $extCode;
                 if (empty($item['extension_file'])) {
-                    $baseName = $item['page_name'] . '.' . (empty($item['page_area'])? 'php' : ($item['page_area'] . '.tpl'));
+                    $baseName = $item['page_name'] . '.' . (empty($item['page_area']) ? 'php' : ($item['page_area'] . '.tpl'));
                     $record->extension_file = $defPath . str_replace('/', '.', $baseName);
                 } else {
                     $record->extension_file = $item['extension_file'];
@@ -101,8 +101,8 @@ class Hooks
 
     public static function rebuildHooks()
     {
-          self::resetHooks();
-          self::buildHooks();
+        self::resetHooks();
+        self::buildHooks();
     }
 
     private static function buildHooks()
@@ -128,7 +128,7 @@ class Hooks
 
     public static function resetHooks()
     {
-        \Yii::$app->getDb()->createCommand("TRUNCATE " . \common\models\Hooks::tableName())->execute();
+        \Yii::$app->getDb()->createCommand('TRUNCATE ' . \common\models\Hooks::tableName())->execute();
     }
 
     private static function clearCache()
@@ -152,11 +152,15 @@ class Hooks
 
     public static function isHookExists($pageName, $pageArea = '')
     {
-        if (!empty(array_filter(self::$depricatedHooks, function($val) use($pageName, $pageArea) { return $val['page_name'] === $pageName && $val['page_area'] === $pageArea;} ))) {
+        if (!empty(array_filter(self::$depricatedHooks, function ($val) use ($pageName, $pageArea) {
+            return $val['page_name'] === $pageName && $val['page_area'] === $pageArea;
+        }))) {
             return true;
         }
         $hooks = self::getAvailableHooks();
-        return is_array($hooks) && !empty(array_filter($hooks, function($val) use($pageName, $pageArea) { return $val['page_name'] === $pageName && $val['page_area'] === $pageArea;} ));
+        return is_array($hooks) && !empty(array_filter($hooks, function ($val) use ($pageName, $pageArea) {
+            return $val['page_name'] === $pageName && $val['page_area'] === $pageArea;
+        }));
     }
     public static function checkHookExists($pageName, $pageArea = '', $suffixMessage = '')
     {
@@ -187,7 +191,7 @@ class Hooks
 
         $res = preg_match_all("#^'([-\w/]*)'\s*,\s*'([-\w/]*)'#mx", $find[1], $out/*, PREG_PATTERN_ORDER*/);
         if (!$res) {
-            throw new \Exception('Wrong structure inside tag HOOKS: ' . $res === false? \common\helpers\Php8::pregLastErrorMsg() : 'Hooks not found');
+            throw new \Exception('Wrong structure inside tag HOOKS: ' . $res === false ? \common\helpers\Php8::pregLastErrorMsg() : 'Hooks not found');
         }
 
         $res = [];

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,19 +13,19 @@
  */
 
 namespace common\classes\modules;
-use common\classes\modules\ModuleStatus;
-use common\classes\modules\ModuleSortOrder;
+
 use common\modules\orderShipping\np;
 use common\modules\orderTotal\ot_shipping;
+
 require_once __DIR__ . '/VersionTrait.php'; // thanks for require Module in configure.php
 
 #[\AllowDynamicProperties]
-abstract class Module{
-
+abstract class Module
+{
     use VersionTrait;
-/**
- * @var \common\services\OrderManager $manager
- */
+    /**
+     * @var \common\services\OrderManager $manager
+     */
     public $manager;
     public $code;
     public $sort_order = 0;
@@ -38,8 +40,9 @@ abstract class Module{
     {
         $this->_init();
     }
-    
-    public static function getDescription() {
+
+    public static function getDescription()
+    {
         return '';
     }
 
@@ -52,259 +55,288 @@ abstract class Module{
         }
     }
 
-    public function getTitle($method = '') {
+    public function getTitle($method = '')
+    {
         return $this->title;
     }
 
-    public function check( $platform_id ) {
-    $keys = $this->keys();
-    if ( count($keys)==0 || ((int)$platform_id==0 && !$this->isExtension)) return 0;
+    public function check($platform_id)
+    {
+        $keys = $this->keys();
+        if (count($keys) == 0 || ((int)$platform_id == 0 && !$this->isExtension)) {
+            return 0;
+        }
 
-    $check_keys_r = tep_db_query(
-      "SELECT configuration_key ".
-      "FROM " . TABLE_PLATFORMS_CONFIGURATION . " ".
-      "WHERE configuration_key IN('".implode("', '",array_map('tep_db_input',$keys))."') AND platform_id='".(int)$platform_id."'"
-    );
-    $installed_keys = array();
-    while( $check_key = tep_db_fetch_array($check_keys_r) ) {
-      $installed_keys[$check_key['configuration_key']] = $check_key['configuration_key'];
+        $check_keys_r = tep_db_query(
+            'SELECT configuration_key '.
+      'FROM ' . TABLE_PLATFORMS_CONFIGURATION . ' '.
+      "WHERE configuration_key IN('".implode("', '", array_map('tep_db_input', $keys))."') AND platform_id='".(int)$platform_id."'"
+        );
+        $installed_keys = [];
+        while ($check_key = tep_db_fetch_array($check_keys_r)) {
+            $installed_keys[$check_key['configuration_key']] = $check_key['configuration_key'];
+        }
+
+        $check_status = isset($installed_keys[$keys[0]]) ? 1 : 0;
+
+        $install_keys = false;
+        foreach ($keys as $idx => $module_key) {
+            if (!isset($installed_keys[$module_key]) && $check_status) {
+                // missing key
+                if (!is_array($install_keys)) {
+                    $install_keys = $this->get_install_keys($platform_id);
+                }
+                $this->add_config_key($platform_id, $module_key, $install_keys[$module_key]);
+            }
+        }
+
+        return $check_status;
     }
 
-    $check_status = isset($installed_keys[$keys[0]])?1:0;
+    public function install($platform_id)
+    {
+        $keys = $this->get_install_keys($platform_id);
+        if (count($keys) == 0 || ((int)$platform_id == 0 && !$this->isExtension)) {
+            return false;
+        }
 
-    $install_keys = false;
-    foreach( $keys as $idx=>$module_key ) {
-      if ( !isset($installed_keys[$module_key]) && $check_status ) {
-        // missing key
-        if ( !is_array($install_keys) ) $install_keys = $this->get_install_keys($platform_id);
-        $this->add_config_key($platform_id, $module_key, $install_keys[$module_key]);
-      }
-    }
-
-    return $check_status;
-  }
-
-  public function install( $platform_id ) {
-    $keys = $this->get_install_keys($platform_id);
-    if ( count($keys)==0 || ((int)$platform_id==0 && !$this->isExtension) ) return false;
-
-    foreach($keys as $key=>$data) {
-      $this->add_config_key($platform_id, $key, $data);
-    }
-    if (method_exists($this, 'configure_keys_platforms')) {
-        $platformKeys = $this->configure_keys_platforms();
-        if (is_array($platformKeys) && !empty($platformKeys)) {
-            $platformValues = \common\models\PlatformsConfiguration::find()
-                    ->where(['configuration_key' => array_keys($platformKeys)])
-                    ->indexBy(function($row) {
-                        return $row['platform_id'].$row['configuration_key'];
-                    })
-                    ->asArray()
-                    ->all();
-            $platforms = \common\classes\platform::getList(false);
-            foreach ($platformKeys as $key => $data) {
-                foreach ($platforms as $platformData) {
-                    $platform_id = $platformData['id'];
-                    if (!isset($platformValues[$platform_id . $key])) {
-                        $this->add_config_key($platform_id, $key, $data);
+        foreach ($keys as $key => $data) {
+            $this->add_config_key($platform_id, $key, $data);
+        }
+        if (method_exists($this, 'configure_keys_platforms')) {
+            $platformKeys = $this->configure_keys_platforms();
+            if (is_array($platformKeys) && !empty($platformKeys)) {
+                $platformValues = \common\models\PlatformsConfiguration::find()
+                        ->where(['configuration_key' => array_keys($platformKeys)])
+                        ->indexBy(function ($row) {
+                            return $row['platform_id'].$row['configuration_key'];
+                        })
+                        ->asArray()
+                        ->all();
+                $platforms = \common\classes\platform::getList(false);
+                foreach ($platformKeys as $key => $data) {
+                    foreach ($platforms as $platformData) {
+                        $platform_id = $platformData['id'];
+                        if (!isset($platformValues[$platform_id . $key])) {
+                            $this->add_config_key($platform_id, $key, $data);
+                        }
                     }
                 }
             }
         }
+
+        $installed = self::getInstalled();
+        if (empty($installed) || empty($installed->version_db)) {
+            \common\helpers\Modules::changeModule($this->code, 'install', [], self::getType(), $platform_id);
+        } else {
+            $this->upgrade();
+        }
+
+        if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
+            $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
+            (
+                $logUniversal
+                ->setRelation($this->code)
+                ->setType($logUniversal::ULT_EXTENSION_INSTALL)
+                ->setBeforeArray([$platform_id => 0])
+                ->setAfterArray([$platform_id => 1])
+                ->doSave(true)
+            );
+            unset($logUniversal);
+        }
     }
 
-    $installed = self::getInstalled();
-    if (empty($installed) || empty($installed->version_db)) {
-        \common\helpers\Modules::changeModule($this->code, 'install', [], self::getType(), $platform_id);
-    } else {
-        $this->upgrade();
+    protected function add_config_key($platform_id, $key, $data)
+    {
+        $sql_data = [
+          'platform_id' => (int)$platform_id,
+          'configuration_key' => $key,
+          'configuration_title' => isset($data['title']) ? $data['title'] : '',
+          'configuration_value' => isset($data['value']) ? $data['value'] : '',
+          'configuration_description' => isset($data['description']) ? $data['description'] : '',
+          'configuration_group_id' => isset($data['group_id']) ? $data['group_id'] : '6',
+          'sort_order' => isset($data['sort_order']) ? $data['sort_order'] : '0',
+          'date_added' => 'now()',
+        ];
+        if (isset($data['use_function'])) {
+            $sql_data['use_function'] = $data['use_function'];
+        }
+        if (isset($data['set_function'])) {
+            $sql_data['set_function'] = $data['set_function'];
+        }
+        $model = \common\models\PlatformsConfiguration::findOne(['platform_id' => (int)$platform_id, 'configuration_key' => $key]);
+        if (empty($model)) {
+            $model = new \common\models\PlatformsConfiguration();
+            $model->loadDefaultValues();
+        }
+        $model->setAttributes($sql_data, false);
+        $model->save(false);
     }
 
-    if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
-        $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-        ($logUniversal
-            ->setRelation($this->code)
-            ->setType($logUniversal::ULT_EXTENSION_INSTALL)
-            ->setBeforeArray([$platform_id => 0])
-            ->setAfterArray([$platform_id => 1])
-            ->doSave(true)
+    public function remove($platform_id)
+    {
+        $keys = $this->keys();
+
+        if ($this->userConfirmedDropDatatables ?? false) {
+            \common\helpers\Modules::changeModule($this->code, 'remove_drop', [], self::getType(), $platform_id);
+        } else {
+            \common\helpers\Modules::changeModule($this->code, 'remove', [], self::getType(), $platform_id);
+        }
+
+        if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
+            $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
+            (
+                $logUniversal
+                ->setRelation($this->code)
+                ->setType($logUniversal::ULT_EXTENSION_REMOVE)
+                ->setBeforeArray(
+                    \common\models\PlatformsConfiguration::find()
+                    ->select(['configuration_value', 'platform_id', 'configuration_key'])
+                    ->where(['IN', 'configuration_key', $keys])
+                    ->indexBy(function ($record) {
+                        return ($record['platform_id'] . '|' . $record['configuration_key']);
+                    })
+                    ->asArray(true)->column()
+                )
+            );
+        }
+
+        if (count($keys) > 0 && ((int)$platform_id != 0 || isset($this->isExtension))) {
+            tep_db_query(
+                'DELETE FROM '.TABLE_PLATFORMS_CONFIGURATION.' '.
+        "WHERE platform_id='".(int)$platform_id."' AND configuration_key IN('".implode("', '", $keys)."')"
+            );
+        }
+
+        if (isset($logUniversal)) {
+            (
+                $logUniversal
+                ->setAfterArray([])
+                ->doSave(true)
+            );
+            unset($logUniversal);
+        }
+    }
+
+    public function keys()
+    {
+        return array_keys($this->configure_keys());
+    }
+
+    /**
+     * @return ModuleStatus
+     */
+    abstract public function describe_status_key();
+
+    /**
+     * @return ModuleSortOrder
+     */
+    abstract public function describe_sort_key();
+    /**
+     * @return array
+     */
+
+    abstract public function configure_keys();
+
+    public function enable_module($platform_id, $flag)
+    {
+        $key_info = $this->describe_status_key();
+        if (!is_object($key_info) || !is_a($key_info, 'common\classes\modules\ModuleStatus')) {
+            return false;
+        }
+
+        if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
+            $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
+            (
+                $logUniversal
+                ->setRelation($this->code)
+                ->setType($logUniversal::ULT_EXTENSION_STATUS)
+                ->setBeforeArray([$platform_id => (int)$this->is_module_enabled($platform_id)])
+            );
+        }
+
+        $this->update_config_key(
+            $platform_id,
+            $key_info->key,
+            $flag ? $key_info->value_enabled : $key_info->value_disabled
         );
-        unset($logUniversal);
-    }
-  }
 
-  protected function add_config_key($platform_id, $key, $data )
-  {
-    $sql_data = array(
-      'platform_id' => (int)$platform_id,
-      'configuration_key' => $key,
-      'configuration_title' => isset($data['title'])?$data['title']:'',
-      'configuration_value' => isset($data['value'])?$data['value']:'',
-      'configuration_description' => isset($data['description'])?$data['description']:'',
-      'configuration_group_id' => isset($data['group_id'])?$data['group_id']:'6',
-      'sort_order' => isset($data['sort_order'])?$data['sort_order']:'0',
-      'date_added' => 'now()',
-    );
-    if ( isset($data['use_function']) ) {
-      $sql_data['use_function'] = $data['use_function'];
-    }
-    if ( isset($data['set_function']) ) {
-      $sql_data['set_function'] = $data['set_function'];
-    }
-    $model = \common\models\PlatformsConfiguration::findOne(['platform_id' => (int)$platform_id, 'configuration_key' => $key]);
-    if (empty($model))  {
-        $model = new \common\models\PlatformsConfiguration();
-        $model->loadDefaultValues();
-    }
-    $model->setAttributes($sql_data, false);
-    $model->save(false);
-  }
-
-  public function remove($platform_id) {
-    $keys = $this->keys();
-
-    if ($this->userConfirmedDropDatatables ?? false) {
-        \common\helpers\Modules::changeModule($this->code, 'remove_drop', [], self::getType(), $platform_id);
-    } else {
-        \common\helpers\Modules::changeModule($this->code, 'remove', [], self::getType(), $platform_id);
+        if (isset($logUniversal)) {
+            (
+                $logUniversal
+                ->setAfterArray([$platform_id => (int)$this->is_module_enabled($platform_id)])
+                ->doSave(true)
+            );
+            unset($logUniversal);
+        }
     }
 
+    /**
+     * @param $platform_id
+     * @return bool
+     */
+    public function is_module_enabled($platform_id)
+    {
+        $key_info = $this->describe_status_key();
+        if (!is_object($key_info) || !is_a($key_info, 'common\classes\modules\ModuleStatus')) {
+            return false;
+        }
 
-    if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
-        $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-        ($logUniversal
-            ->setRelation($this->code)
-            ->setType($logUniversal::ULT_EXTENSION_REMOVE)
-            ->setBeforeArray(\common\models\PlatformsConfiguration::find()
-                ->select(['configuration_value', 'platform_id', 'configuration_key'])
-                ->where(['IN', 'configuration_key', $keys])
-                ->indexBy(function($record) {
-                    return ($record['platform_id'] . '|' . $record['configuration_key']);
-                })
-                ->asArray(true)->column()
-            )
-        );
+        return $this->get_config_key($platform_id, $key_info->key) == $key_info->value_enabled;
     }
 
-    if ( count($keys)>0 && ((int)$platform_id!=0 || isset($this->isExtension) )) {
-      tep_db_query(
-        "DELETE FROM ".TABLE_PLATFORMS_CONFIGURATION." ".
-        "WHERE platform_id='".(int)$platform_id."' AND configuration_key IN('".implode("', '",$keys)."')"
-      );
+    public function update_sort_order($platform_id, $new_sort_order)
+    {
+        $key_info = $this->describe_sort_key();
+        if (!is_object($key_info) || !is_a($key_info, 'common\classes\modules\ModuleSortOrder')) {
+            return;
+        }
+        $this->update_config_key($platform_id, $key_info->key, (int)$new_sort_order);
     }
 
-    if (isset($logUniversal)) {
-        ($logUniversal
-            ->setAfterArray([])
-            ->doSave(true)
-        );
-        unset($logUniversal);
-    }
-  }
-
-  function keys(){
-    return array_keys($this->configure_keys());
-  }
-
-  /**
-   * @return ModuleStatus
-   */
-  abstract public function describe_status_key();
-
-  /**
-   * @return ModuleSortOrder
-   */
-  abstract public function describe_sort_key();
-  /**
-   * @return array
-   */
-
-  abstract public function configure_keys();
-
-  
-  public function enable_module($platform_id, $flag){
-    $key_info = $this->describe_status_key();
-    if ( !is_object($key_info) || !is_a($key_info,'common\classes\modules\ModuleStatus')) return false;
-
-    if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog')) {
-        $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance();
-        ($logUniversal
-            ->setRelation($this->code)
-            ->setType($logUniversal::ULT_EXTENSION_STATUS)
-            ->setBeforeArray([$platform_id => (int)$this->is_module_enabled($platform_id)])
-        );
-    }
-
-    $this->update_config_key(
-      $platform_id,
-      $key_info->key,
-      $flag?$key_info->value_enabled:$key_info->value_disabled
-    );
-
-    if (isset($logUniversal)) {
-        ($logUniversal
-            ->setAfterArray([$platform_id => (int)$this->is_module_enabled($platform_id)])
-            ->doSave(true)
-        );
-        unset($logUniversal);
-    }
-  }
-
-  /**
-   * @param $platform_id
-   * @return bool
-   */
-  public function is_module_enabled($platform_id){
-    $key_info = $this->describe_status_key();
-    if ( !is_object($key_info) || !is_a($key_info,'common\classes\modules\ModuleStatus')) return false;
-
-    return $this->get_config_key($platform_id,$key_info->key)==$key_info->value_enabled;
-  }
-
-
-  public function update_sort_order($platform_id, $new_sort_order){
-    $key_info = $this->describe_sort_key();
-    if ( !is_object($key_info) || !is_a($key_info,'common\classes\modules\ModuleSortOrder')) return;
-    $this->update_config_key($platform_id, $key_info->key, (int)$new_sort_order );
-  }
-
-  protected function update_config_key($platform_id, $key, $value){
-    tep_db_query(
-      "UPDATE ".TABLE_PLATFORMS_CONFIGURATION." ".
+    protected function update_config_key($platform_id, $key, $value)
+    {
+        tep_db_query(
+            'UPDATE '.TABLE_PLATFORMS_CONFIGURATION.' '.
       "SET configuration_value='".tep_db_input($value)."', last_modified=NOW() " .
       "WHERE configuration_key='".tep_db_input($key)."' AND platform_id='".(int)$platform_id."'"
-    );
-  }
+        );
+    }
 
-  protected function get_config_key($platform_id, $key){
-    $get_key_value_r = tep_db_query(
-      "SELECT configuration_value ".
-      "FROM ".TABLE_PLATFORMS_CONFIGURATION." ".
+    protected function get_config_key($platform_id, $key)
+    {
+        $get_key_value_r = tep_db_query(
+            'SELECT configuration_value '.
+      'FROM '.TABLE_PLATFORMS_CONFIGURATION.' '.
       "WHERE configuration_key='".tep_db_input($key)."' AND platform_id='".(int)$platform_id."'"
-    );
-    if ( tep_db_num_rows($get_key_value_r)>0 ) {
-      $key_value = tep_db_fetch_array($get_key_value_r);
-      return $key_value['configuration_value'];
+        );
+        if (tep_db_num_rows($get_key_value_r) > 0) {
+            $key_value = tep_db_fetch_array($get_key_value_r);
+            return $key_value['configuration_value'];
+        }
+        return false;
     }
-    return false;
-  }
 
-  public function save_config($platform_id, $new_data_array){
-    if (is_array($new_data_array)) {
-      $module_keys = $this->keys();
-      foreach( $new_data_array as $update_key=>$new_value ){
-        if ( !in_array($update_key,$module_keys) ) continue;
-        $this->update_config_key($platform_id, $update_key, $new_value);
-      }
+    public function save_config($platform_id, $new_data_array)
+    {
+        if (is_array($new_data_array)) {
+            $module_keys = $this->keys();
+            foreach ($new_data_array as $update_key => $new_value) {
+                if (!in_array($update_key, $module_keys)) {
+                    continue;
+                }
+                $this->update_config_key($platform_id, $update_key, $new_value);
+            }
+        }
     }
-  }
 
-  protected function get_install_keys($platform_id)
-  {
-    return $this->configure_keys();
-  }
+    protected function get_install_keys($platform_id)
+    {
+        return $this->configure_keys();
+    }
 
-    public function getCountries($platform_id) {
+    public function getCountries($platform_id)
+    {
         $modulesCountries = \common\models\ModulesCountries::findOne(['platform_id' => $platform_id, 'code' => $this->code]);
         if (is_object($modulesCountries)) {
             $countries = explode(',', $modulesCountries->countries);
@@ -313,21 +345,24 @@ abstract class Module{
         return $this->countries;
     }
 
-    public function getRestriction($platform_id, $languages_id, $ignoreVisibility = false) {
-        if ( (int)$platform_id==0 ) return '';
+    public function getRestriction($platform_id, $languages_id, $ignoreVisibility = false)
+    {
+        if ((int)$platform_id == 0) {
+            return '';
+        }
 
         $countriesAccess = $this->getCountries($platform_id);
 
         $variants = [];
         $variants[''] = 'Worldwide';
         global $languages_id;
-        $countries = tep_db_query("SELECT c.countries_name, c.countries_iso_code_3 FROM " . TABLE_PLATFORMS_ADDRESS_BOOK . " AS pab LEFT JOIN " . TABLE_COUNTRIES . " AS c ON (c.countries_id = pab.entry_country_id) where c.language_id = '" . (int) $languages_id . "' group by c.countries_id");
+        $countries = tep_db_query('SELECT c.countries_name, c.countries_iso_code_3 FROM ' . TABLE_PLATFORMS_ADDRESS_BOOK . ' AS pab LEFT JOIN ' . TABLE_COUNTRIES . " AS c ON (c.countries_id = pab.entry_country_id) where c.language_id = '" . (int) $languages_id . "' group by c.countries_id");
         while ($countriesValue = tep_db_fetch_array($countries)) {
             $variants[$countriesValue['countries_iso_code_3']] = $countriesValue['countries_name'];
         }
         foreach ($countriesAccess as $code) {
             if (!isset($variants[$code])) {
-            $country = \common\models\Countries::findOne(['countries_iso_code_3' => $code, 'language_id' => $languages_id]);
+                $country = \common\models\Countries::findOne(['countries_iso_code_3' => $code, 'language_id' => $languages_id]);
                 if (is_object($country)) {
                     $variants[$code] = $country->countries_name;
                 } else {
@@ -345,7 +380,7 @@ abstract class Module{
                 $params .= 'disabled';
             }
             $response .= '<label>';
-            $response .= tep_draw_checkbox_field('countries[' . $code . ']', '1', in_array($code, $countriesAccess), '', $params );
+            $response .= tep_draw_checkbox_field('countries[' . $code . ']', '1', in_array($code, $countriesAccess), '', $params);
             $response .= $name;
             $response .= '</label>';
             $response .= '</td></tr>';
@@ -363,14 +398,16 @@ abstract class Module{
             $visibilityAccess = array_merge($this->visibility, $visibility);
         }
         foreach ($variants as $code => $name) {
-            if (!\common\helpers\Extensions::isVisibilityVariant($code)) continue;
+            if (!\common\helpers\Extensions::isVisibilityVariant($code)) {
+                continue;
+            }
             $response .= '<tr><td>';
             $params = 'class="uniform" ';
             if (in_array($code, $this->visibility)) {
                 $params .= 'disabled';
             }
             $response .= '<label>';
-            $response .= tep_draw_checkbox_field('visibility_a[' . $code . ']', '1', in_array($code, $visibilityAccess), '', $params );
+            $response .= tep_draw_checkbox_field('visibility_a[' . $code . ']', '1', in_array($code, $visibilityAccess), '', $params);
             $response .= $name;
             $response .= '</label>';
             $response .= '</td></tr>';
@@ -379,9 +416,12 @@ abstract class Module{
         return $response;
     }
 
-    public function setRestriction() {
+    public function setRestriction()
+    {
         $platform_id = (int)\Yii::$app->request->post('platform_id');
-        if ( (int)$platform_id==0 ) return false;
+        if ((int)$platform_id == 0) {
+            return false;
+        }
 
         $countries = \Yii::$app->request->post('countries');
         $selectedCountries = [];
@@ -406,18 +446,19 @@ abstract class Module{
         if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog') && \common\extensions\ReportUniversalLog\classes\LogUniversal::isInstance($this->code)) {
             $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance($this->code);
             $logUniversal->mergeBeforeArray([
-                'restriction_country' => trim($modulesCountries->countries)
+                'restriction_country' => trim($modulesCountries->countries),
             ]);
         }
 
-        $modulesCountries->countries = implode(',' , $selectedCountries);
+        $modulesCountries->countries = implode(',', $selectedCountries);
         $modulesCountries->save();
 
         if (isset($logUniversal)) {
             $logUniversal->mergeAfterArray([
-                'restriction_country' => trim(array_shift(\common\models\ModulesCountries::find()->select('countries')
+                'restriction_country' => trim(
+                    array_shift(\common\models\ModulesCountries::find()->select('countries')
                     ->where(['platform_id' => $platform_id, 'code' => $this->code])->asArray(true)->column())
-                )
+                ),
             ]);
         }
 
@@ -443,30 +484,30 @@ abstract class Module{
 
         if (isset($logUniversal)) {
             $logUniversal->mergeBeforeArray([
-                'restriction_area' => trim($modulesVisibility->area)
+                'restriction_area' => trim($modulesVisibility->area),
             ]);
         }
 
-        $modulesVisibility->area = implode(',' , $selectedVisibility);
+        $modulesVisibility->area = implode(',', $selectedVisibility);
         $modulesVisibility->save();
 
         if (isset($logUniversal)) {
             $logUniversal->mergeAfterArray([
-                'restriction_area' => trim(array_shift(\common\models\ModulesVisibility::find()->select('area')
+                'restriction_area' => trim(
+                    array_shift(\common\models\ModulesVisibility::find()->select('area')
                     ->where(['platform_id' => $platform_id, 'code' => $this->code])->asArray(true)->column())
-                )
+                ),
             ]);
         }
 
         return true;
     }
 
-
     public function getVisibily($platform_id, $restrict = [])
     {
         $result = false;
         $modulesVisibility = \common\helpers\Modules::loadVisibility($platform_id, $this->code);
-        $modulesVisibility = (is_array($modulesVisibility) ? $modulesVisibility : array());
+        $modulesVisibility = (is_array($modulesVisibility) ? $modulesVisibility : []);
         if (is_array($this->visibility)) {
             $modulesVisibility = array_merge($modulesVisibility, $this->visibility);
         }
@@ -485,8 +526,11 @@ abstract class Module{
         */
     }
 
-    public function getGroupRestriction($platform_id) {
-        if ( (int)$platform_id==0 ) return '';
+    public function getGroupRestriction($platform_id)
+    {
+        if ((int)$platform_id == 0) {
+            return '';
+        }
 
         $groups = \common\helpers\Group::get_customer_groups_list();
 
@@ -497,7 +541,7 @@ abstract class Module{
             $visibilityAccess = explode(',', $modulesGroups->group_list);
         }
 
-        $response = '<table width="50%" id="module_group_restriction" style="max-height:350px"><thead><tr><th>' . TEXT_FOR_GROUPS . ' ' . tep_draw_checkbox_field('group_restriction', '1', !is_null($modulesGroups), '', 'onchange="return updateGroupRestriction(this);" class="uniform" ' ) . '</th></thead><tbody>';
+        $response = '<table width="50%" id="module_group_restriction" style="max-height:350px"><thead><tr><th>' . TEXT_FOR_GROUPS . ' ' . tep_draw_checkbox_field('group_restriction', '1', !is_null($modulesGroups), '', 'onchange="return updateGroupRestriction(this);" class="uniform" ') . '</th></thead><tbody>';
 
         foreach ($groups as $id => $name) {
             $response .= '<tr><td>';
@@ -506,7 +550,7 @@ abstract class Module{
                 $params .= 'disabled';
             }
             $response .= '<label>';
-            $response .= tep_draw_checkbox_field('group_visibility[]', $id, in_array($id, $visibilityAccess), '', $params );
+            $response .= tep_draw_checkbox_field('group_visibility[]', $id, in_array($id, $visibilityAccess), '', $params);
             $response .= $name;
             $response .= '</label>';
             $response .= '</td></tr>';
@@ -517,16 +561,20 @@ abstract class Module{
         return $response;
     }
 
-    public function setGroupRestriction() {
+    public function setGroupRestriction()
+    {
         $platform_id = (int)\Yii::$app->request->post('platform_id');
-        if ( (int)$platform_id==0 ) return false;
+        if ((int)$platform_id == 0) {
+            return false;
+        }
 
         if (\common\helpers\Acl::checkExtensionAllowed('ReportUniversalLog') && \common\extensions\ReportUniversalLog\classes\LogUniversal::isInstance($this->code)) {
             $logUniversal = \common\extensions\ReportUniversalLog\classes\LogUniversal::getInstance($this->code);
             $logUniversal->mergeBeforeArray([
-                'restriction_group' => trim(array_shift(\common\models\ModulesGroupsSettings::find()->select('group_list')
+                'restriction_group' => trim(
+                    array_shift(\common\models\ModulesGroupsSettings::find()->select('group_list')
                     ->where(['platform_id' => $platform_id, 'code' => $this->code])->asArray(true)->column())
-                )
+                ),
             ]);
         }
 
@@ -541,10 +589,10 @@ abstract class Module{
                 $modulesGroups->code = $this->code;
             }
             try {
-              $modulesGroups->group_list = implode(',', $group_visibility);
-              $modulesGroups->save(false);
+                $modulesGroups->group_list = implode(',', $group_visibility);
+                $modulesGroups->save(false);
             } catch (\Exception $e) {
-              \Yii::warning($e->getMessage() . ' ' . $e->getTraceAsString());
+                \Yii::warning($e->getMessage() . ' ' . $e->getTraceAsString());
             }
 
         } else {
@@ -555,25 +603,30 @@ abstract class Module{
 
         if (isset($logUniversal)) {
             $logUniversal->mergeAfterArray([
-                'restriction_group' => trim(array_shift(\common\models\ModulesGroupsSettings::find()->select('group_list')
+                'restriction_group' => trim(
+                    array_shift(\common\models\ModulesGroupsSettings::find()->select('group_list')
                     ->where(['platform_id' => $platform_id, 'code' => $this->code])->asArray(true)->column())
-                )
+                ),
             ]);
         }
     }
 
     public function getGroupVisibily($platform_id, $groups_id)
     {
-        if ( (int)$platform_id==0 ) return true;
-        if (\common\helpers\System::isBackend()) return true; // allow all modules in order edit
+        if ((int)$platform_id == 0) {
+            return true;
+        }
+        if (\common\helpers\System::isBackend()) {
+            return true;
+        } // allow all modules in order edit
         //allow to disable for all groups if ( (int)$groups_id==0 ) return true;
         $modulesGroups = \common\models\ModulesGroupsSettings::findOne(['platform_id' => $platform_id, 'code' => $this->code]);
         if (!is_null($modulesGroups)) {
-          if (!empty(trim($modulesGroups->group_list))) {
-            $visibilityAccess = explode(',', $modulesGroups->group_list);
-          } else {
-            $visibilityAccess = [];
-          }
+            if (!empty(trim($modulesGroups->group_list))) {
+                $visibilityAccess = explode(',', $modulesGroups->group_list);
+            } else {
+                $visibilityAccess = [];
+            }
             if (!in_array($groups_id, $visibilityAccess)) {
                 return false;
             }
@@ -581,56 +634,59 @@ abstract class Module{
         return true;
     }
 
-
     public $billing;
     public $delivery;
 
-    public function setBilling(array $billing){
+    public function setBilling(array $billing)
+    {
         $this->billing = $billing;
     }
 
-    public function setDelivery(array $delivery){
+    public function setDelivery(array $delivery)
+    {
         $this->delivery = $delivery;
     }
 
-/**
- * get tax rate and tax description by tax class id (for current order delivery/billing address)
- * @param int $tax_class_id
- * @return array [
-            'tax_class_id' => $tax_class_id,
- *
-            'tax' => $tax, //Tax::get_tax_rate
- *
-            'tax_description' => $tax_description
-        ];
- */
-    function getTaxValues($tax_class_id) {
+    /**
+     * get tax rate and tax description by tax class id (for current order delivery/billing address)
+     * @param int $tax_class_id
+     * @return array [
+                'tax_class_id' => $tax_class_id,
+     *
+                'tax' => $tax, //Tax::get_tax_rate
+     *
+                'tax_description' => $tax_description
+            ];
+     */
+    public function getTaxValues($tax_class_id)
+    {
 
-      if (defined('TAX_ADDRESS_OPTION') && (int)TAX_ADDRESS_OPTION == 1) {
-        if ($this->manager->isShippingNeeded()) {
-          $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->manager->getPlatformId(), $tax_class_id, $this->delivery['country']['id'] ?? null, $this->delivery['zone_id'] ?? null);
+        if (defined('TAX_ADDRESS_OPTION') && (int)TAX_ADDRESS_OPTION == 1) {
+            if ($this->manager->isShippingNeeded()) {
+                $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->manager->getPlatformId(), $tax_class_id, $this->delivery['country']['id'] ?? null, $this->delivery['zone_id'] ?? null);
+            } else {
+                $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->manager->getPlatformId(), $tax_class_id, $this->billing['country']['id'] ?? null, $this->billing['zone_id'] ?? null);
+            }
+        } elseif (defined('TAX_ADDRESS_OPTION') && (int)TAX_ADDRESS_OPTION == 0) {
+            $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->manager->getPlatformId(), $tax_class_id, $this->billing['country']['id'] ?? null, $this->billing['zone_id'] ?? null);
         } else {
-          $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->manager->getPlatformId(), $tax_class_id, $this->billing['country']['id'] ?? null, $this->billing['zone_id'] ?? null);
+            // Seems DAA specific - any of (on checkout only)
+            $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->manager->getPlatformId(), $tax_class_id, $this->delivery['country']['id'] ?? null, $this->delivery['zone_id'] ?? null);
+            if ($delivery_tax_values['tax'] > 0) {
+            } else {
+                $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->manager->getPlatformId(), $tax_class_id, $this->billing['country']['id'] ?? null, $this->billing['zone_id'] ?? null);
+            }
         }
-      } elseif (defined('TAX_ADDRESS_OPTION') && (int)TAX_ADDRESS_OPTION == 0) {
-        $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->manager->getPlatformId(), $tax_class_id, $this->billing['country']['id'] ?? null, $this->billing['zone_id'] ?? null);
-      } else {
-        // Seems DAA specific - any of (on checkout only)
-        $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->manager->getPlatformId(), $tax_class_id, $this->delivery['country']['id'] ?? null, $this->delivery['zone_id'] ?? null);
-        if ($delivery_tax_values['tax'] > 0) {
-        } else {
-          $delivery_tax_values = \common\helpers\Tax::getTaxValues($this->manager->getPlatformId(), $tax_class_id, $this->billing['country']['id'] ?? null, $this->billing['zone_id'] ?? null);
-        }
-      }
-      return $delivery_tax_values;
+        return $delivery_tax_values;
 
     }
 
-    public static function round($number, $precision) {
+    public static function round($number, $precision)
+    {
         if (abs($number) < (1 / pow(10, $precision + 1))) {
             $number = 0;
         }
-        if (strpos($number, '.') AND (strlen(substr($number, strpos($number, '.') + 1)) > $precision)) {
+        if (strpos($number, '.') and (strlen(substr($number, strpos($number, '.') + 1)) > $precision)) {
             $number = substr($number, 0, strpos($number, '.') + 1 + $precision + 1);
             if (substr($number, -1) >= 5) {
                 if ($precision > 1) {
@@ -658,62 +714,64 @@ abstract class Module{
         return false;
     }
 
+    /**
+     * get platform Id (in admin - from POST, GET; common - current)
+     * @return int
+     */
+    protected static function getPlatformId()
+    {
 
-  /**
-   * get platform Id (in admin - from POST, GET; common - current)
-   * @return int
-   */
-  protected static function getPlatformId() {
-
-    $platformId = null;
-    if (\Yii::$app->id == 'app-backend') {
-      $platformId = \Yii::$app->request->post('platform_id', false);
-      $gets = \Yii::$app->request->get();
-      if (!$platformId && intval($gets['platform_id'] ?? null)) {
-        $platformId = intval($gets['platform_id']);
-      }
-      if (!$platformId && !empty($gets['filter'])) {
-        $tmp = [];
-        parse_str($gets['filter'], $tmp);
-        if (intval($tmp['platform_id'])) {
-          $platformId = intval($tmp['platform_id']);
+        $platformId = null;
+        if (\Yii::$app->id == 'app-backend') {
+            $platformId = \Yii::$app->request->post('platform_id', false);
+            $gets = \Yii::$app->request->get();
+            if (!$platformId && intval($gets['platform_id'] ?? null)) {
+                $platformId = intval($gets['platform_id']);
+            }
+            if (!$platformId && !empty($gets['filter'])) {
+                $tmp = [];
+                parse_str($gets['filter'], $tmp);
+                if (intval($tmp['platform_id'])) {
+                    $platformId = intval($tmp['platform_id']);
+                }
+            }
         }
-      }
-    }
-    if ((isset($this) && $this instanceof self) ){
-        if (!$platformId && $this->manager && $this->manager->has('platform_id')) {
-            $platformId = $this->manager->get('platform_id');
+        if ((isset($this) && $this instanceof self)) {
+            if (!$platformId && $this->manager && $this->manager->has('platform_id')) {
+                $platformId = $this->manager->get('platform_id');
+            }
         }
+        if (!$platformId) {
+            $platformId = \common\classes\platform::currentId();
+        }
+        return $platformId;
     }
-    if (!$platformId) {
-      $platformId = \common\classes\platform::currentId();
+
+    /**
+     * get module encryption key from config or false
+     * @return string|false
+     */
+    protected function getEncryptionKey()
+    {
+        $val = false;
+        //this->code - to camel case
+        $key = lcfirst(str_replace(' ', '', ucwords($this->code, '_')));
+
+        if (!empty(\Yii::$app->params[$key . 'EncryptKey']) && strlen(trim(\Yii::$app->params[$key . 'EncryptKey'])) > 8) {
+            $val = \Yii::$app->params[$key . 'EncryptKey'];
+        }
+        return $val;
     }
-    return $platformId;
-  }
 
-/**
- * get module encryption key from config or false
- * @return string|false
- */
-  protected function getEncryptionKey(){
-    $val = false;
-    //this->code - to camel case
-    $key = lcfirst(str_replace(' ', '', ucwords($this->code, '_')));
-
-    if (!empty(\Yii::$app->params[$key . 'EncryptKey']) && strlen(trim(\Yii::$app->params[$key . 'EncryptKey']))>8) {
-      $val = \Yii::$app->params[$key . 'EncryptKey'];
-    }
-    return $val;
-  }
-
-/**
- * compare encrypted values in DB and parameters
- * @param string $key
- * @param string $value
- * @param int $platform_id
- * @return bool
- */
-    protected function confChanged($key, $value, $platform_id) {
+    /**
+     * compare encrypted values in DB and parameters
+     * @param string $key
+     * @param string $value
+     * @param int $platform_id
+     * @return bool
+     */
+    protected function confChanged($key, $value, $platform_id)
+    {
         $placeHolder = (defined('PASSWORD_HIDDEN') ? PASSWORD_HIDDEN : '--Encrypted--');
         $changed = false;
         if ($value != $placeHolder) {
@@ -731,7 +789,8 @@ abstract class Module{
      * @param int $platform_id
      * @return string
      */
-    public function confValueBeforeSave($key, $value, $platform_id) {
+    public function confValueBeforeSave($key, $value, $platform_id)
+    {
         if (in_array($key, $this->encrypted_keys)) {
             if ($this->confChanged($key, $value, $platform_id)) {
                 if (!empty($value)) {
@@ -744,7 +803,7 @@ abstract class Module{
             } else {
                 $pc = new \common\classes\platform_config($platform_id);
                 $value = $pc->const_value($key, '');
-//        $value = base64_decode($value );
+                //        $value = base64_decode($value );
             }
         }
         return $value;
@@ -756,37 +815,43 @@ abstract class Module{
      * @param string $key
      * @return string (HTML input element)
      */
-    public static function setConf($val, $key) {
+    public static function setConf($val, $key)
+    {
         //return \common\helpers\Html::textInput('configuration[' . $key .  ']', base64_encode($val));
-        return \common\helpers\Html::textInput('configuration[' . $key . ']', (empty($val)?'':(defined('PASSWORD_HIDDEN') ? PASSWORD_HIDDEN : '--Encrypted--')));
+        return \common\helpers\Html::textInput('configuration[' . $key . ']', (empty($val) ? '' : (defined('PASSWORD_HIDDEN') ? PASSWORD_HIDDEN : '--Encrypted--')));
     }
 
     /**
    * text encrypted instead of encrypted string
    * @return string
    */
-  public static function useConf() {
-    return defined('PASSWORD_HIDDEN')?PASSWORD_HIDDEN:'--Encrypted--';
-  }
-
-  /**
-   *
-   * @param string $key
-   * @return string
-   */
-  protected function decryptConst($key) {
-    $ret = defined($key) ? constant($key) : (new \common\classes\platform_config($this->getPlatformId()))->const_value($key);
-    if (!empty($ret)) {
-        $key = $this->getEncryptionKey();
-        if (empty($key)) {
-            $key = \Yii::$app->params['secKey.backend'];
-        }
-        $ret = \Yii::$app->security->decryptByKey( utf8_decode($ret), $key);
+    public static function useConf()
+    {
+        return defined('PASSWORD_HIDDEN') ? PASSWORD_HIDDEN : '--Encrypted--';
     }
-    return $ret;
-  }
 
-    public static function always() { return true; }
+    /**
+     *
+     * @param string $key
+     * @return string
+     */
+    protected function decryptConst($key)
+    {
+        $ret = defined($key) ? constant($key) : (new \common\classes\platform_config($this->getPlatformId()))->const_value($key);
+        if (!empty($ret)) {
+            $key = $this->getEncryptionKey();
+            if (empty($key)) {
+                $key = \Yii::$app->params['secKey.backend'];
+            }
+            $ret = \Yii::$app->security->decryptByKey(utf8_decode($ret), $key);
+        }
+        return $ret;
+    }
+
+    public static function always()
+    {
+        return true;
+    }
 
     public static function getModuleCode()
     {
@@ -817,14 +882,14 @@ abstract class Module{
 
     public static function getNamespace(string $type)
     {
-        \common\helpers\Assert::keyExists(self::MODULE_TYPES, $type, "Unknown module type: " . $type);
+        \common\helpers\Assert::keyExists(self::MODULE_TYPES, $type, 'Unknown module type: ' . $type);
         return self::MODULE_TYPES[$type]['namespace'];
     }
 
     public static function getClass(string $type, string $code)
     {
         $class = self::getNamespace($type) . '\\' . $code;
-        return class_exists($class)? $class : null;
+        return class_exists($class) ? $class : null;
     }
 
     public static function getInstalled($platform_id = 0)
@@ -858,9 +923,11 @@ abstract class Module{
         return $res;
     }
 
-    public static function getRevision() {}
+    public static function getRevision()
+    {
+    }
 
-    public static function getVersionRev() : string
+    public static function getVersionRev(): string
     {
         return static::getVersionObj()->toCommonFormat() . (is_null($rev = static::getRevision()) ? '' : ".$rev");
     }
@@ -874,13 +941,15 @@ abstract class Module{
     public static function getVersionRange($sinceVer, $toVer = null)
     {
         $sinceVer = \common\classes\modules\ModuleVer::parse($sinceVer);
-        $toVer = empty($toVer)? static::getVersion() : \common\classes\modules\ModuleVer::parse($toVer);
+        $toVer = empty($toVer) ? static::getVersion() : \common\classes\modules\ModuleVer::parse($toVer);
 
         $history = static::getVersionHistory();
         if (empty($history)) {
             return null;
         } else {
-            return array_filter($history, function ($ver) use ($sinceVer, $toVer) {
+            return array_filter(
+                $history,
+                function ($ver) use ($sinceVer, $toVer) {
                     return $sinceVer->compareTo($ver) < 0 && $toVer->compareTo($ver) >= 0;
                 },
                 ARRAY_FILTER_USE_KEY
@@ -888,13 +957,13 @@ abstract class Module{
         }
     }
 
-    public static function getMigrationDir() 
+    public static function getMigrationDir()
     {
         $ref = new \ReflectionClass(get_called_class());
         return dirname($ref->getFilename()) . '/migrations';
     }
 
-    public static function getMigrationClass() 
+    public static function getMigrationClass()
     {
         $ref = new \ReflectionClass(get_called_class());
         return $ref->getNamespaceName() . '\\migrations\\';
@@ -902,7 +971,7 @@ abstract class Module{
 
     public static function getMigrationFileMaskFull($code, $ver = null)
     {
-        $ver = empty($ver)? static::getVersion() : \common\classes\modules\ModuleVer::parse($ver);
+        $ver = empty($ver) ? static::getVersion() : \common\classes\modules\ModuleVer::parse($ver);
         return static::getMigrationDir() . '/' . static::getMigrationFileMask($code, $ver);
     }
 
@@ -916,8 +985,10 @@ abstract class Module{
         $mask = static::getMigrationFileMaskFull($code, $ver);
         $mask = str_replace('\\\\', '/', $mask);
         $mask = str_replace('\\', '/', $mask);
-        $files = glob($mask,  GLOB_NOESCAPE);
-        return array_map(function($file) { return self::getMigrationClass() . basename($file, '.php'); }, $files);
+        $files = glob($mask, GLOB_NOESCAPE);
+        return array_map(function ($file) {
+            return self::getMigrationClass() . basename($file, '.php');
+        }, $files);
     }
 
     public static function getMigrationsSince($code, $sinceVer, $up = true, $toVer = null)
@@ -925,7 +996,9 @@ abstract class Module{
         $range = static::getVersionRange($sinceVer, $toVer);
         if (!empty($range)) {
             $versions = array_keys($range);
-            if ($up) $versions = array_reverse($versions);
+            if ($up) {
+                $versions = array_reverse($versions);
+            }
             $res = [];
             foreach ($versions as $ver) {
                 $res = array_merge($res, static::getMigrations($code, $ver));
@@ -934,24 +1007,25 @@ abstract class Module{
         }
     }
 
-/**
- * use in your module's update_status() overwritten in modulePayment (status by billing address)
- * @param int $zone_id
- * @param string $which delivery|billing
- * @return bool true - ok false - switch off
- */
-    protected function checkStatusByZone($zone_id, $which = 'delivery') {
+    /**
+     * use in your module's update_status() overwritten in modulePayment (status by billing address)
+     * @param int $zone_id
+     * @param string $which delivery|billing
+     * @return bool true - ok false - switch off
+     */
+    protected function checkStatusByZone($zone_id, $which = 'delivery')
+    {
         $which = strtolower($which);
         if ($which != 'billing') {
             $which = 'delivery';
         }
         $check_flag = false;
-        $check_query = tep_db_query("select zone_id from " . TABLE_ZONES_TO_GEO_ZONES . " where geo_zone_id = '" . $zone_id . "' and zone_country_id = '" . ($this->$which['country']['id']??0) . "' order by zone_id");
+        $check_query = tep_db_query('select zone_id from ' . TABLE_ZONES_TO_GEO_ZONES . " where geo_zone_id = '" . $zone_id . "' and zone_country_id = '" . ($this->$which['country']['id'] ?? 0) . "' order by zone_id");
         while ($check = tep_db_fetch_array($check_query)) {
             if ($check['zone_id'] < 1) { // zone_id == 0  => all zones
                 $check_flag = true;
                 break;
-            } elseif ($check['zone_id'] == ($this->$which['zone_id']??0)) {
+            } elseif ($check['zone_id'] == ($this->$which['zone_id'] ?? 0)) {
                 $check_flag = true;
                 break;
             }
@@ -960,13 +1034,14 @@ abstract class Module{
         return $check_flag;
 
     }
-    
-/**
- * 
- * @param string|array $data [external_id => SSS, customers_id => NNNN]
- * @return boolean | true - success
- */
-    public function saveExternalCustomersId($data) {
+
+    /**
+     *
+     * @param string|array $data [external_id => SSS, customers_id => NNNN]
+     * @return boolean | true - success
+     */
+    public function saveExternalCustomersId($data)
+    {
         $ret = $extId = $cid = false;
         if (is_scalar($data)) {
             $extId = $data;
@@ -975,9 +1050,9 @@ abstract class Module{
             if (isset($data['customers_id'])) {
                 $cid = $data['customers_id'];
             }
-        } 
+        }
         if (empty($cid) && !empty($this->manager) && $this->manager->isCustomerAssigned()) {
-           $cid = $this->manager->getCustomerAssigned();
+            $cid = $this->manager->getCustomerAssigned();
         }
         if (!empty($extId) && !empty($cid)) {
             $model = \common\models\CustomersExternalIds::findOne([
@@ -988,7 +1063,7 @@ abstract class Module{
                 $model = new \common\models\CustomersExternalIds();
                 $model->setAttributes([
                     'customers_id' => $cid,
-                    'system_name' => $this->code
+                    'system_name' => $this->code,
                 ]);
             }
             $model->external_id = $extId;
@@ -996,7 +1071,7 @@ abstract class Module{
                 $model->save(false);
                 $ret = true;
             } catch (\Exception $e) {
-                \Yii::warning(" #### " .print_r($e->getMessage() . ' ' . $e->getTraceAsString(), true), 'TLDEBUG');
+                \Yii::warning(' #### ' .print_r($e->getMessage() . ' ' . $e->getTraceAsString(), true), 'TLDEBUG');
             }
 
         }
@@ -1004,10 +1079,11 @@ abstract class Module{
 
     }
 
-    public function getExternalCustomersId($cid = 0) {
+    public function getExternalCustomersId($cid = 0)
+    {
         $ret = false;
         if (empty($cid) && !empty($this->manager) && $this->manager->isCustomerAssigned()) {
-           $cid = $this->manager->getCustomerAssigned();
+            $cid = $this->manager->getCustomerAssigned();
         }
         if (!empty($cid)) {
             $model = \common\models\CustomersExternalIds::findOne([
@@ -1015,7 +1091,7 @@ abstract class Module{
                         'system_name' => $this->code,
                 ]);
             if (!empty($model->external_id)) {
-               $ret = $model->external_id;
+                $ret = $model->external_id;
             }
         }
         return $ret;

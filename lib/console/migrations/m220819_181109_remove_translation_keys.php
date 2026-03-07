@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -25,7 +27,7 @@ class m220819_181109_remove_translation_keys extends Migration
         $this->removeTranslation('wedding');
         $this->removeTranslation('testimonials');
         $this->removeTranslation('admin/main', [
-            'BOX_REPORT_VOLO_BATCH_DETAIL', 
+            'BOX_REPORT_VOLO_BATCH_DETAIL',
             'BOX_REPORT_VOLO_BATCH_SUMMARY',
             'BOX_CATALOG_COMPETITORS',
             'BOX_AFFILIATES',

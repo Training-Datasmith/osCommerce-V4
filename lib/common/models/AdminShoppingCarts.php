@@ -1,16 +1,18 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
-use yii\db\ActiveRecord;
 use yii\behaviors\TimestampBehavior;
+use yii\db\ActiveRecord;
 
 /**
  * This is the model class for table "admin_shopping_carts".
  *
  * @property integer $admin_id
  * @property integer $basket_id
- * @property integer $customers_id 
+ * @property integer $customers_id
  * @property integer $platform_id
  * @property integer $order_id
  * @property integer $status
@@ -25,8 +27,9 @@ class AdminShoppingCarts extends ActiveRecord
     {
         return '{{admin_shopping_carts}}';
     }
-    
-    public function behaviors() {
+
+    public function behaviors()
+    {
         return [
             [
                 'class' => TimestampBehavior::className(),

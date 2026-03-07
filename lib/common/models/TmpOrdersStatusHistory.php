@@ -1,8 +1,8 @@
 <?php
 
-namespace common\models;
+declare(strict_types=1);
 
-use Yii;
+namespace common\models;
 
 /**
  * This is the model class for table "tmp_orders_status_history".
@@ -55,12 +55,13 @@ class TmpOrdersStatusHistory extends \yii\db\ActiveRecord
         ];
     }
 
-
-    public function getStatus() {
+    public function getStatus()
+    {
         return $this->hasOne(OrdersStatus::className(), ['orders_status_id' => 'orders_status_id']);
     }
 
-    public function getGroup() {
+    public function getGroup()
+    {
         return $this->hasOne(OrdersStatusGroups::className(), ['orders_status_groups_id' => 'orders_status_groups_id'])->via('status');
     }
 }

@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,13 @@
 
 namespace frontend\design\boxes\account;
 
+use common\forms\AddressForm;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use common\forms\AddressForm;
 
 class EditAddress extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -41,14 +42,14 @@ class EditAddress extends Widget
         }
         $messageStack = \Yii::$container->get('message_stack');
 
-// error checking when updating or adding an entry
+        // error checking when updating or adding an entry
         $process = false;
-        
+
         $deleteAction = (int)Yii::$app->request->get('delete', 0);
         $editAction = (int)Yii::$app->request->get('edit', 0);
-        
+
         $customer = Yii::$app->user->getIdentity();
-        
+
         $type = Yii::$app->request->get('type', '');
         switch ($type) {
             case 'billing':
@@ -62,13 +63,13 @@ class EditAddress extends Widget
                 $type = '';
                 break;
         }
-        
+
         $bookModel = new AddressForm(['scenario' => $scenario]);
         $bookModel->type = $bookModel->addressType;
 
         if ($editAction > 0) {
             $entry = $customer->getAddressBook((int) $editAction);
-            
+
             if (!$entry) {
                 $messageStack->add_session(ERROR_NONEXISTING_ADDRESS_BOOK_ENTRY, 'addressbook');
 
@@ -78,7 +79,6 @@ class EditAddress extends Widget
         } else {
             $bookModel->preloadDefault();
         }
-
 
         $action = tep_href_link('account/address-book-process', ($editAction > 0 ? 'edit=' . $editAction : ''), 'SSL');
         $title = ($editAction > 0 ? HEADING_TITLE_MODIFY_ENTRY : ($deleteAction > 0 ? HEADING_TITLE_DELETE_ENTRY : HEADING_TITLE_ADD_ENTRY));
@@ -92,15 +92,15 @@ class EditAddress extends Widget
         }
         $link_address_book = tep_href_link('account/address-book', '', 'SSL');
         $link_address_delete = tep_href_link('account/address-book-process', 'delete=' . $deleteAction . '&action=deleteconfirm', 'SSL');
-                
-        $links = array();
+
+        $links = [];
         if ($editAction > 0) {
             $links['back_url'] = tep_href_link('account/address-book', '', 'SSL');
             $links['back_text'] = IMAGE_BUTTON_BACK;
             $links['update'] = tep_draw_hidden_field('action', 'update') . tep_draw_hidden_field('edit', $editAction) . '<button class="btn-2">' . IMAGE_BUTTON_UPDATE . '</button>';
         } else {
             if (sizeof($navigation->snapshot) > 0) {
-                $back_link = tep_href_link($navigation->snapshot['page'], \common\helpers\Output::array_to_string($navigation->snapshot['get'], array(tep_session_name())), $navigation->snapshot['mode']);
+                $back_link = tep_href_link($navigation->snapshot['page'], \common\helpers\Output::array_to_string($navigation->snapshot['get'], [tep_session_name()]), $navigation->snapshot['mode']);
             } else {
                 $back_link = tep_href_link('account/address-book', '', 'SSL');
             }
@@ -119,7 +119,7 @@ class EditAddress extends Widget
         } else {
             $breadcrumb->add(NAVBAR_TITLE_ADD_ENTRY, tep_href_link(FILENAME_ADDRESS_BOOK_PROCESS, '', 'SSL'));
         }
-        
+
         $postcoder = ($ext = \common\helpers\Acl::checkExtensionAllowed('AddressLookup')) ? $ext::getTool() : null;
 
         return IncludeTpl::widget(['file' => 'boxes/account/edit-address.tpl', 'params' => [

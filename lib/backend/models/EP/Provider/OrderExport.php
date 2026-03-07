@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +14,13 @@
 
 namespace backend\models\EP\Provider;
 
-use backend\models\EP\Formatter;
 use backend\models\EP;
 use backend\models\EP\Messages;
 use common\classes\Order;
 
 class OrderExport extends ProviderAbstract implements ExportInterface, ImportInterface
 {
-    protected $fields = array();
+    protected $fields = [];
     protected $export_query;
 
     /**
@@ -27,7 +28,7 @@ class OrderExport extends ProviderAbstract implements ExportInterface, ImportInt
      */
     protected $EPtools;
 
-    function __construct( )
+    public function __construct()
     {
         parent::__construct();
         $this->initFields();
@@ -58,7 +59,7 @@ class OrderExport extends ProviderAbstract implements ExportInterface, ImportInt
         количество клиентов
         общая сумма заказов - брать только из группы Completed Orders)
          */
-        $this->fields[] = array( 'name' => 'result', 'value' => 'row', 'is_key'=>true );
+        $this->fields[] = [ 'name' => 'result', 'value' => 'row', 'is_key' => true ];
     }
 
     public function prepareExport($useColumns, $filter)
@@ -68,30 +69,24 @@ class OrderExport extends ProviderAbstract implements ExportInterface, ImportInt
         $main_source = $this->main_source;
 
         $filter_sql = '';
-        if ( is_array($filter) ) {
-            $order_filter = (isset($filter['order']) && is_array($filter['order']))?$filter['order']:[];
+        if (is_array($filter)) {
+            $order_filter = (isset($filter['order']) && is_array($filter['order'])) ? $filter['order'] : [];
 
-            if (isset($order_filter['date_type_range']) && $order_filter['date_type_range']=='exact')
-            {
+            if (isset($order_filter['date_type_range']) && $order_filter['date_type_range'] == 'exact') {
                 if (!empty($order_filter['date_from'])) {
                     $filter_sql .= " AND o.date_purchased >= '" . tep_db_input(substr($order_filter['date_from'], 0, 10)) . " 00:00:00' ";
                 }
                 if (!empty($order_filter['date_to'])) {
                     $filter_sql .= " AND o.date_purchased <= '" . tep_db_input(substr($order_filter['date_to'], 0, 10)) . " 23:59:59' ";
                 }
-            }
-            elseif(isset($order_filter['date_type_range']) && $order_filter['date_type_range']=='year/month')
-            {
+            } elseif (isset($order_filter['date_type_range']) && $order_filter['date_type_range'] == 'year/month') {
                 $year = $order_filter['year'];
                 $filter_sql .= " AND YEAR(o.date_purchased)='" . tep_db_input($year) . "' ";
                 $month = $order_filter['month'];
-                if ( !empty($month) ) {
-                    $filter_sql .= " AND DATE_FORMAT(o.date_purchased,'%Y%m')='".tep_db_input($year.sprintf('%02s',(int)$month))."' ";
+                if (!empty($month)) {
+                    $filter_sql .= " AND DATE_FORMAT(o.date_purchased,'%Y%m')='".tep_db_input($year.sprintf('%02s', (int)$month))."' ";
                 }
-            }
-            elseif(isset($order_filter['date_type_range']) && $order_filter['date_type_range']=='presel')
-            {
-
+            } elseif (isset($order_filter['date_type_range']) && $order_filter['date_type_range'] == 'presel') {
 
                 switch ($order_filter['interval']) {
                     case 'week':
@@ -101,7 +96,7 @@ class OrderExport extends ProviderAbstract implements ExportInterface, ImportInt
                         $filter_sql .= " AND o.date_purchased >= '" . date('Y-m-d', strtotime('first day of this month')) . "' ";
                         break;
                     case 'year':
-                        $filter_sql .= " AND o.date_purchased >= '" . date("Y") . "-01-01" . "' ";
+                        $filter_sql .= " AND o.date_purchased >= '" . date('Y') . '-01-01' . "' ";
                         break;
                     case '1':
                         $filter_sql .= " AND o.date_purchased >= '" . date('Y-m-d') . "' ";
@@ -110,7 +105,7 @@ class OrderExport extends ProviderAbstract implements ExportInterface, ImportInt
                     case '7':
                     case '14':
                     case '30':
-                        $filter_sql .= " AND o.date_purchased >= '".date('Y-m-d',strtotime('-'.$filters['interval'].' days'))."' ";
+                        $filter_sql .= " AND o.date_purchased >= '".date('Y-m-d', strtotime('-'.$filters['interval'].' days'))."' ";
                         break;
                 }
             }
@@ -118,12 +113,12 @@ class OrderExport extends ProviderAbstract implements ExportInterface, ImportInt
         $this->export_arrays = [];
 
         $main_sql =
-            "SELECT o.orders_id ".
-            "FROM ".TABLE_ORDERS." o ".
+            'SELECT o.orders_id '.
+            'FROM '.TABLE_ORDERS.' o '.
             "WHERE 1 {$filter_sql} ";
-        $sql = tep_db_query( $main_sql );
+        $sql = tep_db_query($main_sql);
 
-        $this->export_query = tep_db_query( $main_sql );
+        $this->export_query = tep_db_query($main_sql);
         return $this->export_query;
 
     }
@@ -131,14 +126,16 @@ class OrderExport extends ProviderAbstract implements ExportInterface, ImportInt
     public function exportRow()
     {
         $order_id = tep_db_fetch_array($this->export_query);
-        if ( !is_array($order_id) ) return false;
+        if (!is_array($order_id)) {
+            return false;
+        }
 
         $data_sources = $this->data_sources;
         $export_columns = $this->export_columns;
 
         $order = new Order((int)$order_id['orders_id']);
 
-        $this->data = array('data'=>$order);
+        $this->data = ['data' => $order];
         return $this->data;
     }
     public function importRow($data, Messages $message)
@@ -146,7 +143,7 @@ class OrderExport extends ProviderAbstract implements ExportInterface, ImportInt
         //print_r($message);
 
         $data = $data['result'];
-        $sql_data_array = array(
+        $sql_data_array = [
             'customers_id' => 0,
             'basket_id' => 0,
             'customers_name' => $data['Ship-to_Firstname'] . ' ' . $data['Ship-to_Lastname'],
@@ -215,40 +212,39 @@ class OrderExport extends ProviderAbstract implements ExportInterface, ImportInt
             'shipping_weight' => 0,
             'adjusted' => 0,
             'reference_id' => 0,
-            'delivery_date' =>$this->info['delivery_date'],
-        );
-
+            'delivery_date' => $this->info['delivery_date'],
+        ];
 
         tep_db_perform(TABLE_ORDERS, $sql_data_array);
         $order_id = (int)tep_db_insert_id();
-        if($order_id<0){
+        if ($order_id < 0) {
             return false;
         }
         $total = 0.0;
 
-        if(is_array($data['OrderLine'])){
+        if (is_array($data['OrderLine'])) {
 
-            if(!(count($data['OrderLine'], COUNT_RECURSIVE) - count($data['OrderLine'])) ){
+            if (!(count($data['OrderLine'], COUNT_RECURSIVE) - count($data['OrderLine']))) {
                 $tmp = $data['OrderLine'];
-                $data['OrderLine'] = array();
-                $data['OrderLine'][0]= $tmp;
+                $data['OrderLine'] = [];
+                $data['OrderLine'][0] = $tmp;
                 unset($tmp);
             }
 
             foreach ($data['OrderLine'] as $product) {
-                $total = $total + round(floatval($product['Unit_Price'])*floatval($product['Quantity']),2);
+                $total = $total + round(floatval($product['Unit_Price']) * floatval($product['Quantity']), 2);
 
-                $sql = "select * from " . TABLE_PRODUCTS . " as p LEFT JOIN ". TABLE_PRODUCTS_DESCRIPTION." as pd ON pd.products_id=p.products_id where products_model = '".$product['Item'] ."' or products_model = '".$product['Item'] ."' LIMIT 1";
+                $sql = 'select * from ' . TABLE_PRODUCTS . ' as p LEFT JOIN '. TABLE_PRODUCTS_DESCRIPTION." as pd ON pd.products_id=p.products_id where products_model = '".$product['Item'] ."' or products_model = '".$product['Item'] ."' LIMIT 1";
                 $query = tep_db_query($sql);
                 $row = false;
                 if (tep_db_num_rows($query)) {
                     $row = tep_db_fetch_array($query);
                 }
 
-                $sql_data_array = array('orders_id' => $order_id,
+                $sql_data_array = ['orders_id' => $order_id,
                                         'products_quantity' => $product['Quantity'],
-                                        'products_price' => round($product['Unit_Price'],2),
-                                        'final_price' => round($product['Unit_Price'],2),
+                                        'products_price' => round($product['Unit_Price'], 2),
+                                        'final_price' => round($product['Unit_Price'], 2),
                                         'products_tax' => 0,
                                         'is_giveaway' => 0,
                                         'gift_wrap_price' => 0,
@@ -259,33 +255,32 @@ class OrderExport extends ProviderAbstract implements ExportInterface, ImportInt
                                         'parent_product' => '',
                                         'sub_products' => '',
                                         /* PC configurator addon end */
-                                        'overwritten' => ''
-                );
+                                        'overwritten' => '',
+                ];
 
-
-                if($row !== false){
-                    $sql_data_array_add = array(
+                if ($row !== false) {
+                    $sql_data_array_add = [
                         'products_id' => $row['products_id'],
                         'products_model' => $row['products_model'],
                         'products_name' => $row['products_name'],
                         'uprid' => \common\helpers\Inventory::normalize_id($row['products_id']),
                         'is_virtual' => $row['is_virtual'],
-                    );
-                }else{
-                    $sql_data_array_add = array(
+                    ];
+                } else {
+                    $sql_data_array_add = [
                         'products_id' => 0,
                         'products_model' => $product['Item'],
                         'products_name' => $product['Item'],
                         'uprid' => 0,
                         'is_virtual' => 0,
-                    );
+                    ];
                 }
                 $sql_data_array = array_merge($sql_data_array_add, $sql_data_array);
                 tep_db_perform(TABLE_ORDERS_PRODUCTS, $sql_data_array);
 
             }
             $currencies = new \common\classes\Currencies();
-            $sql_data_array = array(
+            $sql_data_array = [
                 'orders_id' => $order_id,
                 'title' => 'Total:',
                 'text' => $currencies->format($total, true, 'EUR', 1),
@@ -300,14 +295,14 @@ class OrderExport extends ProviderAbstract implements ExportInterface, ImportInt
                 'is_removed' => 0,
                 'currency' => 'EUR',
                 'currency_value' => 1,
-            );
+            ];
             tep_db_perform(TABLE_ORDERS_TOTAL, $sql_data_array);
 
-            $sql_data_array = array('orders_id' => $order_id,
+            $sql_data_array = ['orders_id' => $order_id,
                                     'orders_status_id' => 100006,
                                     'date_added' => 'now()',
                                     'customer_notified' => '0',
-                                    'comments' => 'Imported Order');
+                                    'comments' => 'Imported Order'];
 
             tep_db_perform(TABLE_ORDERS_STATUS_HISTORY, $sql_data_array);
         }

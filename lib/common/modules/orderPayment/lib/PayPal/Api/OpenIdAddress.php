@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -128,6 +130,5 @@ class OpenIdAddress extends PayPalModel
     {
         return $this->country;
     }
-
 
 }

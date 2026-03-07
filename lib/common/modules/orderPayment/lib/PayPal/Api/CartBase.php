@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -32,7 +34,7 @@ class CartBase extends PayPalModel
      * Merchant identifier to the purchase unit. Optional parameter
      *
      * @param string $reference_id
-     * 
+     *
      * @return $this
      */
     public function setReferenceId($reference_id)
@@ -55,7 +57,7 @@ class CartBase extends PayPalModel
      * Amount being collected.
      *
      * @param \PayPal\Api\Amount $amount
-     * 
+     *
      * @return $this
      */
     public function setAmount($amount)
@@ -78,7 +80,7 @@ class CartBase extends PayPalModel
      * Recipient of the funds in this transaction.
      *
      * @param \PayPal\Api\Payee $payee
-     * 
+     *
      * @return $this
      */
     public function setPayee($payee)
@@ -101,7 +103,7 @@ class CartBase extends PayPalModel
      * Description of what is being paid for.
      *
      * @param string $description
-     * 
+     *
      * @return $this
      */
     public function setDescription($description)
@@ -124,7 +126,7 @@ class CartBase extends PayPalModel
      * Note to the recipient of the funds in this transaction.
      *
      * @param string $note_to_payee
-     * 
+     *
      * @return $this
      */
     public function setNoteToPayee($note_to_payee)
@@ -147,7 +149,7 @@ class CartBase extends PayPalModel
      * free-form field for the use of clients
      *
      * @param string $custom
-     * 
+     *
      * @return $this
      */
     public function setCustom($custom)
@@ -170,7 +172,7 @@ class CartBase extends PayPalModel
      * invoice number to track this payment
      *
      * @param string $invoice_number
-     * 
+     *
      * @return $this
      */
     public function setInvoiceNumber($invoice_number)
@@ -193,7 +195,7 @@ class CartBase extends PayPalModel
      * purchase order is number or id specific to this payment
      *
      * @param string $purchase_order
-     * 
+     *
      * @return $this
      */
     public function setPurchaseOrder($purchase_order)
@@ -216,7 +218,7 @@ class CartBase extends PayPalModel
      * Soft descriptor used when charging this funding source. If length exceeds max length, the value will be truncated
      *
      * @param string $soft_descriptor
-     * 
+     *
      * @return $this
      */
     public function setSoftDescriptor($soft_descriptor)
@@ -239,7 +241,7 @@ class CartBase extends PayPalModel
      * Soft descriptor city used when charging this funding source. If length exceeds max length, the value will be truncated. Only supported when the `payment_method` is set to `credit_card`
      * @deprecated Not publicly available
      * @param string $soft_descriptor_city
-     * 
+     *
      * @return $this
      */
     public function setSoftDescriptorCity($soft_descriptor_city)
@@ -262,7 +264,7 @@ class CartBase extends PayPalModel
      * Payment options requested for this purchase unit
      *
      * @param \PayPal\Api\PaymentOptions $payment_options
-     * 
+     *
      * @return $this
      */
     public function setPaymentOptions($payment_options)
@@ -285,7 +287,7 @@ class CartBase extends PayPalModel
      * List of items being paid for.
      *
      * @param \PayPal\Api\ItemList $item_list
-     * 
+     *
      * @return $this
      */
     public function setItemList($item_list)
@@ -313,7 +315,7 @@ class CartBase extends PayPalModel
      */
     public function setNotifyUrl($notify_url)
     {
-        UrlValidator::validate($notify_url, "NotifyUrl");
+        UrlValidator::validate($notify_url, 'NotifyUrl');
         $this->notify_url = $notify_url;
         return $this;
     }
@@ -337,7 +339,7 @@ class CartBase extends PayPalModel
      */
     public function setOrderUrl($order_url)
     {
-        UrlValidator::validate($order_url, "OrderUrl");
+        UrlValidator::validate($order_url, 'OrderUrl');
         $this->order_url = $order_url;
         return $this;
     }
@@ -384,10 +386,10 @@ class CartBase extends PayPalModel
     public function addExternalFunding($externalFunding)
     {
         if (!$this->getExternalFunding()) {
-            return $this->setExternalFunding(array($externalFunding));
+            return $this->setExternalFunding([$externalFunding]);
         } else {
             return $this->setExternalFunding(
-                array_merge($this->getExternalFunding(), array($externalFunding))
+                array_merge($this->getExternalFunding(), [$externalFunding])
             );
         }
     }
@@ -401,7 +403,7 @@ class CartBase extends PayPalModel
     public function removeExternalFunding($externalFunding)
     {
         return $this->setExternalFunding(
-            array_diff($this->getExternalFunding(), array($externalFunding))
+            array_diff($this->getExternalFunding(), [$externalFunding])
         );
     }
 

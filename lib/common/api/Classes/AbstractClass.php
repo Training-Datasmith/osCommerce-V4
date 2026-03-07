@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -15,7 +17,7 @@ namespace common\api\Classes;
 
 abstract class AbstractClass
 {
-    protected $messageArray = array();
+    protected $messageArray = [];
     /**
      * Returns a object property names
      * @return array
@@ -24,8 +26,8 @@ abstract class AbstractClass
     {
         static $properties;
         $className = get_class($this);
-        if (!isset($properties) OR !is_array($properties) OR !isset($properties[$className])) {
-            $properties = (is_array($properties) ? $properties : array());
+        if (!isset($properties) or !is_array($properties) or !isset($properties[$className])) {
+            $properties = (is_array($properties) ? $properties : []);
             foreach ((new \ReflectionObject($this))->getProperties(\ReflectionProperty::IS_PUBLIC) as $property) {
                 $properties[$className][] = $property->name;
             }
@@ -179,7 +181,7 @@ abstract class AbstractClass
     {
         $return = $this->messageArray;
         if ((int)$isClear > 0) {
-            $this->messageArray = array();
+            $this->messageArray = [];
         }
         return $return;
     }
@@ -192,7 +194,7 @@ abstract class AbstractClass
         } else {
             $languageId = (int)$defaultLanguageId;
         }
-        if (((int)$returnSystemDefaultIfZero > 0) AND ($languageId <= 0)) {
+        if (((int)$returnSystemDefaultIfZero > 0) and ($languageId <= 0)) {
             $languageId = (int)\common\classes\language::defaultId();
         }
         return $languageId;

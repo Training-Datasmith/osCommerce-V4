@@ -1,8 +1,9 @@
 <?php
 
+declare(strict_types=1);
+
 namespace common\models;
 
-use Yii;
 use yii\db\ActiveRecord;
 
 /**
@@ -32,7 +33,7 @@ class TaxZonesZones extends ActiveRecord
     {
         return [
             [['zone_country_id', 'zone_id', 'geo_zone_id'], 'integer'],
-            [['last_modified', 'date_added'], 'safe']
+            [['last_modified', 'date_added'], 'safe'],
         ];
     }
 

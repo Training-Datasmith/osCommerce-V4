@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +14,11 @@
 
 namespace frontend\design\boxes\login;
 
-use Yii;
-use yii\base\Widget;
 use frontend\design\IncludeTpl;
+use yii\base\Widget;
 
 class Socials extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -30,10 +30,10 @@ class Socials extends Widget
 
     public function run()
     {
-        if (!$this->params['show_socials']){
+        if (!$this->params['show_socials']) {
             return \frontend\design\Info::hideBox($this->id, $this->settings[0]['hide_parents'] ?? null);
         }
-        
+
         return IncludeTpl::widget(['file' => 'boxes/login/socials.tpl', 'params' => array_merge($this->params, [
             'settings' => $this->settings,
             'id' => $this->id,

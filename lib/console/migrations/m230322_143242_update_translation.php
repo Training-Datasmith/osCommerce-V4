@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m230322_143242_update_translation extends Migration
      */
     public function safeUp()
     {
-	$this->execute("UPDATE translation SET translation_value = REPLACE(translation_value, 'TrueLoaded','Powerful commerce') WHERE translation_key='TEXT_FOOTER_BOTTOM'");
+        $this->execute("UPDATE translation SET translation_value = REPLACE(translation_value, 'TrueLoaded','Powerful commerce') WHERE translation_key='TEXT_FOOTER_BOTTOM'");
         $this->execute("UPDATE translation SET translation_value = REPLACE(translation_value, 'Wolq','Powerful commerce') WHERE translation_key='TEXT_FOOTER_BOTTOM'");
         $this->execute("UPDATE translation SET translation_value = REPLACE(translation_value, 'Trueloaded','Powerful commerce') WHERE translation_key='TEXT_FOOTER_COPYRIGHT'");
     }

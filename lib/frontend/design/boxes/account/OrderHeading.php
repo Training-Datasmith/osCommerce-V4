@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,15 +14,13 @@
 
 namespace frontend\design\boxes\account;
 
+use common\helpers\Date as DateHelper;
+use frontend\design\IncludeTpl;
 use Yii;
 use yii\base\Widget;
-use frontend\design\IncludeTpl;
-use frontend\design\SplitPageResults;
-use common\helpers\Date as DateHelper;
 
 class OrderHeading extends Widget
 {
-
     public $file;
     public $params;
     public $settings;
@@ -38,7 +38,7 @@ class OrderHeading extends Widget
 
         return IncludeTpl::widget(['file' => 'boxes/account/order-heading.tpl', 'params' => [
             'settings' => $this->settings,
-            'orderId' => method_exists($order, 'getOrderNumber')?$order->getOrderNumber():$orderId,
+            'orderId' => method_exists($order, 'getOrderNumber') ? $order->getOrderNumber() : $orderId,
             'status' => $order->info['orders_status_name'],
             'date' => DateHelper::date_long($order->info['date_purchased']),
         ]]);

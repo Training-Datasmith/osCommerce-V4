@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 namespace PayPal\Api;
 
 use PayPal\Common\PayPalModel;
@@ -22,7 +24,7 @@ class InstallmentInfo extends PayPalModel
      * Installment id.
      *
      * @param string $installment_id
-     * 
+     *
      * @return $this
      */
     public function setInstallmentId($installment_id)
@@ -46,7 +48,7 @@ class InstallmentInfo extends PayPalModel
      * Valid Values: ["VISA", "MASTERCARD"]
      *
      * @param string $network
-     * 
+     *
      * @return $this
      */
     public function setNetwork($network)
@@ -69,7 +71,7 @@ class InstallmentInfo extends PayPalModel
      * Credit card issuer.
      *
      * @param string $issuer
-     * 
+     *
      * @return $this
      */
     public function setIssuer($issuer)
@@ -92,7 +94,7 @@ class InstallmentInfo extends PayPalModel
      * List of available installment options and the cost associated with each one.
      *
      * @param \PayPal\Api\InstallmentOption[] $installment_options
-     * 
+     *
      * @return $this
      */
     public function setInstallmentOptions($installment_options)
@@ -120,10 +122,10 @@ class InstallmentInfo extends PayPalModel
     public function addInstallmentOption($installmentOption)
     {
         if (!$this->getInstallmentOptions()) {
-            return $this->setInstallmentOptions(array($installmentOption));
+            return $this->setInstallmentOptions([$installmentOption]);
         } else {
             return $this->setInstallmentOptions(
-                array_merge($this->getInstallmentOptions(), array($installmentOption))
+                array_merge($this->getInstallmentOptions(), [$installmentOption])
             );
         }
     }
@@ -137,7 +139,7 @@ class InstallmentInfo extends PayPalModel
     public function removeInstallmentOption($installmentOption)
     {
         return $this->setInstallmentOptions(
-            array_diff($this->getInstallmentOptions(), array($installmentOption))
+            array_diff($this->getInstallmentOptions(), [$installmentOption])
         );
     }
 

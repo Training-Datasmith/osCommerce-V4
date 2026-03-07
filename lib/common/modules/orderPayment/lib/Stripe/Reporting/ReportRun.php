@@ -1,5 +1,7 @@
 <?php
 
+declare(strict_types=1);
+
 // File generated from our OpenAPI spec
 
 namespace Stripe\Reporting;
@@ -29,9 +31,8 @@ namespace Stripe\Reporting;
  */
 class ReportRun extends \Stripe\ApiResource
 {
-    const OBJECT_NAME = 'reporting.report_run';
-
     use \Stripe\ApiOperations\All;
     use \Stripe\ApiOperations\Create;
     use \Stripe\ApiOperations\Retrieve;
+    public const OBJECT_NAME = 'reporting.report_run';
 }

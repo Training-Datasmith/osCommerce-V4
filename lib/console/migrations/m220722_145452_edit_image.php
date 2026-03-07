@@ -1,4 +1,6 @@
 <?php
+
+declare(strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -22,7 +24,7 @@ class m220722_145452_edit_image extends Migration
      */
     public function safeUp()
     {
-        $this->addTranslation('admin/main',[
+        $this->addTranslation('admin/main', [
             'TEXT_EDIT_IMAGE' => 'Edit image',
             'TEXT_AFTER_SAVING' => 'After saving, paints the side space',
             'TEXT_CHOOSE_SIDE_COLOR' => 'Choose side space color',
