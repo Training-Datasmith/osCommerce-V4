@@ -122,7 +122,7 @@ class CustomersService
 
     public function generateLoginToken()
     {
-        return 'CT-' . strtoupper(substr(md5(microtime()), 0, 45));
+        return 'CT-' . strtoupper(bin2hex(random_bytes(32)));
     }
 
     /**

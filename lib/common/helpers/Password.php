@@ -60,10 +60,9 @@ class Password
 
             $checkPassed = false;
 
-            srand((float) microtime() * 1000000);
             $pass = '';
             while (strlen($pass) < $passwordLength) {
-                $num = rand() % $charsLen;
+                $num = random_int(0, $charsLen - 1);
                 $tmp = substr($chars, $num, 1);
                 $pass = $pass . $tmp;
             }
@@ -115,7 +114,7 @@ class Password
                     return false;
                 }
 
-                if ((md5($stack[1] . $plain) == $stack[0]) || (md5($stack[1] . $plain . self::getSecurityKeyByType($secKeyType)) == $stack[0])) {
+                if (hash_equals($stack[0], md5($stack[1] . $plain)) || hash_equals($stack[0], md5($stack[1] . $plain . self::getSecurityKeyByType($secKeyType)))) {
                     return 0;
                 }
             } elseif ($type == 'phpass') {

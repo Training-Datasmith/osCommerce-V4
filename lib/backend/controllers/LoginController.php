@@ -247,7 +247,7 @@ class LoginController extends Controller
 
                         \common\models\Fraud::registerAddress();
                         $loginModel = new \backend\forms\Login();
-                        tep_db_query('update ' . TABLE_ADMIN . " set login_failture = login_failture + 1, login_failture_ip='" . tep_db_input(\common\helpers\System::get_ip_address()) . "', login_failture_date = now() where admin_id = '" . (int) $check_admin['admin_id'] . "' and admin_email_address!='vlad@holbi.co.uk'");
+                        tep_db_query('update ' . TABLE_ADMIN . " set login_failture = login_failture + 1, login_failture_ip='" . tep_db_input(\common\helpers\System::get_ip_address()) . "', login_failture_date = now() where admin_id = '" . (int) $check_admin['admin_id'] . "'");
                         $login_failture = 3 - ($check_admin['login_failture'] + 1);
                         if ($login_failture < 0) {
                             $login_failture = 0;
@@ -264,7 +264,6 @@ class LoginController extends Controller
                             ];
                             switch ($adminLoginLogRecord->all_event) {
                                 case 2:
-                                    $parameterArray['PASSWORD_INVALID'] = $password;
                                     list($emailSubject, $emailMessage) = \common\helpers\Mail::get_parsed_email_template('Admin Login Password Error', $parameterArray);
                                     break;
                                 case 3:

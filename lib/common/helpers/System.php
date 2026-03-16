@@ -80,7 +80,14 @@ class System
         if (is_null($secure)) {
             $secure = $common_params['secure'] ? $common_params['secure'] : false;
         }
-        setcookie($name, $value, $expire, $path, (tep_not_null($domain) ? $domain : ''), $secure);
+        setcookie($name, $value, [
+            'expires'  => $expire,
+            'path'     => $path,
+            'domain'   => (tep_not_null($domain) ? $domain : ''),
+            'secure'   => $secure,
+            'httponly' => true,
+            'samesite' => 'Lax',
+        ]);
     }
 
     public static function getcookie($name)
