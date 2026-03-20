@@ -78,15 +78,28 @@ class Customers extends ActiveRecord
     public $cart_uid = 0;
 
     /**
-     * set table name
-     * @return string
+     * Returns the database table name for this model.
+     *
+     * @return string  Always 'customers'.
+     * @since  1.0
      */
-    public static function tableName()
+    public static function tableName(): string
     {
         return 'customers';
     }
 
-    public static function findByVar($customerOrModelOrId)
+    /**
+     * Resolves a Customers model from a variety of input types.
+     *
+     * Accepts a Customers instance (returned as-is), a Customer component (looked
+     * up by its customers_id), or a numeric ID (looked up via findIdentity).
+     * Returns null if the input does not match any of these forms.
+     *
+     * @param  mixed  $customerOrModelOrId  A Customers instance, Customer component, or numeric ID.
+     * @return static|null                  The resolved Customers model, or null.
+     * @since  1.0
+     */
+    public static function findByVar(mixed $customerOrModelOrId): ?static
     {
         if ($customerOrModelOrId instanceof self) {
             return $customerOrModelOrId;
@@ -95,9 +108,20 @@ class Customers extends ActiveRecord
         } elseif (is_numeric($customerOrModelOrId)) {
             return self::findIdentity($customerOrModelOrId);
         }
+        return null;
     }
 
-    public static function findByVarCheck($customerOrModelOrId)
+    /**
+     * Like findByVar() but asserts that the result is a valid Customers instance with a positive ID.
+     *
+     * Throws an assertion error if the customer cannot be found or has an invalid ID.
+     *
+     * @param  mixed   $customerOrModelOrId  A Customers instance, Customer component, or numeric ID.
+     * @return static                        The resolved Customers model (never null).
+     * @throws \InvalidArgumentException     If the result is not a valid customer.
+     * @since  1.0
+     */
+    public static function findByVarCheck(mixed $customerOrModelOrId): static
     {
         $res = self::findByVar($customerOrModelOrId);
         \common\helpers\Assert::instanceOf($res, self::class);
@@ -105,17 +129,41 @@ class Customers extends ActiveRecord
         return $res;
     }
 
-    public static function findIdentity($id)
+    /**
+     * Finds a customer record by its primary key (customers_id).
+     *
+     * @param  int|string  $id  The customers_id to look up.
+     * @return static|null      The matching Customers model, or null if not found.
+     * @since  1.0
+     */
+    public static function findIdentity(mixed $id): ?static
     {
         return static::findOne(['customers_id' => $id]);
     }
 
-    public static function findIdentityByAccessToken($token, $type = null)
+    /**
+     * Finds a customer by an access token (for token-based authentication).
+     *
+     * @param  string       $token  The access token to search for.
+     * @param  string|null  $type   Token type hint (unused, for interface compatibility).
+     * @return static|null          The matching Customers model, or null if not found.
+     * @since  1.0
+     */
+    public static function findIdentityByAccessToken(mixed $token, mixed $type = null): ?static
     {
         return static::findOne(['access_token' => $token]);
     }
 
-    public function getAuthKey()
+    /**
+     * Returns the auth key used for cookie-based remember-me authentication.
+     *
+     * Generates and persists a new auth_key if auto-login is enabled and the
+     * current auth_key is empty.
+     *
+     * @return string|null  The auth key string, or null if auth_key is not set.
+     * @since  1.0
+     */
+    public function getAuthKey(): ?string
     {
         if (!empty(\Yii::$app->params['enableAutoLogin']) && isset($this->auth_key) && empty($this->auth_key)) {
             $this->auth_key = \Yii::$app->security->generateRandomString();
@@ -128,12 +176,29 @@ class Customers extends ActiveRecord
         return $this->auth_key;
     }
 
-    public function validateAuthKey($authKey)
+    /**
+     * Validates that the provided auth key matches the stored one.
+     *
+     * @param  string  $authKey  The auth key to validate.
+     * @return bool              True if the keys match, false otherwise.
+     * @since  1.0
+     */
+    public function validateAuthKey(mixed $authKey): bool
     {
         return $this->auth_key === $authKey;
     }
 
-    public function findIdentityByEmail($email)
+    /**
+     * Finds an active customer by email address or ERP customer code.
+     *
+     * Searches both customers_email_address and erp_customer_code columns.
+     * Excludes disabled accounts and temporary guest accounts.
+     *
+     * @param  string       $email  The email address or ERP code to search for.
+     * @return static|null          The matching customer, or null.
+     * @since  1.0
+     */
+    public function findIdentityByEmail(string $email): ?static
     {
         return static::find()
                 ->where(['or', ['customers_email_address' => $email], ['erp_customer_code' => $email] ])
@@ -186,11 +251,19 @@ class Customers extends ActiveRecord
     }
 
     /**
-     * @deprecated all subscribed customers are in subscribers table now use it (subscribersToLists) instead
-     * @return type
+     * Returns the relation between this customer and their mailing list subscriptions.
+     *
+     * @deprecated since 2022 — Subscribed customers are now managed via the Subscribers extension.
+     *             Use getSubscribersLists() (via the subscribersToLists relation) instead.
+     *             This method is retained for backward compatibility only.
+     * @return \yii\db\ActiveQuery
      */
     public function getSubscribersToLists()
     {
+        trigger_error(
+            'Customers::getSubscribersToLists() is deprecated. Use getSubscribersLists() instead.',
+            E_USER_DEPRECATED
+        );
         /** @var \common\extensions\Subscribers\Subscribers $subscr  */
         if ($subscr = \common\helpers\Acl::checkExtensionAllowed('Subscribers', 'allowed')) {
             return $this->hasMany(\common\extensions\Subscribers\models\CustomersToLists::class, ['customers_id' => 'customers_id']);
