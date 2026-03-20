@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,56 +11,42 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
-use yii\helpers\ArrayHelper;
-
-class SubProduct
+use yii\helpers\Array_Helper;
+class Sub_Product
 {
-    public static function getChildrenIds($productId)
+    public static function get_children_ids($product_id)
     {
-        return ArrayHelper::map(
-            \common\models\Products::find()
-                ->where(['parent_products_id' => $productId])
-                ->select(['products_id'])
-                ->asArray()
-                ->all(),
-            'products_id',
-            'products_id'
-        );
+        return Array_Helper::map(\common\models\Products::find()->where(['parent_products_id' => $product_id])->select(['products_id'])->as_array()->all(), 'products_id', 'products_id');
     }
-
-    public static function copyParentAttributesToChildren($product_id)
+    public static function copy_parent_attributes_to_children($product_id)
     {
-        $invList = static::copyInventoryAttributesList();
-        $inventory_attributes = array_merge($invList['common'], $invList['price']);
-
+        $inv_list = static::copy_inventory_attributes_list();
+        $inventory_attributes = array_merge($inv_list['common'], $inv_list['price']);
         // parent
-        $parentModel = \common\api\models\AR\Products::findOne($product_id);
-        $data = $parentModel->exportArray(['attributes' => ['*' => ['options_id','options_values_id','is_virtual', 'products_options_sort_order']],'inventory' => ['*' => $inventory_attributes],]);
-        $parentAttributes = array_filter($data['attributes'], function ($item) {
+        $parent_model = \common\api\models\AR\Products::find_one($product_id);
+        $data = $parent_model->export_array(['attributes' => ['*' => ['options_id', 'options_values_id', 'is_virtual', 'products_options_sort_order']], 'inventory' => ['*' => $inventory_attributes]]);
+        $parent_attributes = array_filter($data['attributes'], function ($item) {
             return !$item['is_virtual'];
         });
-
-        $children_ids = static::getChildrenIds($product_id);
+        $children_ids = static::get_children_ids($product_id);
         foreach ($children_ids as $children_id) {
-            if ($childProduct = \common\api\models\AR\Products::findOne($children_id)) {
-                $childData = $childProduct->exportArray(['attributes' => ['*' => ['options_id','options_values_id','is_virtual', 'products_options_sort_order']]]);
-                $childAttributes = array_filter($childData['attributes'], function ($item) {
+            if ($child_product = \common\api\models\AR\Products::find_one($children_id)) {
+                $child_data = $child_product->export_array(['attributes' => ['*' => ['options_id', 'options_values_id', 'is_virtual', 'products_options_sort_order']]]);
+                $child_attributes = array_filter($child_data['attributes'], function ($item) {
                     return !!$item['is_virtual'];
                 });
-                $applyAttributes = array_merge($parentAttributes, $childAttributes);
-
-                if ($childProduct->products_id_price == $childProduct->parent_products_id) {
+                $apply_attributes = array_merge($parent_attributes, $child_attributes);
+                if ($child_product->products_id_price == $child_product->parent_products_id) {
                     // child use parent price
-                    $childProduct->importArray(['attributes' => $applyAttributes, 'inventory' => $data['inventory'] ?? null]);
+                    $child_product->import_array(['attributes' => $apply_attributes, 'inventory' => $data['inventory'] ?? null]);
                 } else {
                     // child with own price
                     $common_inventory = [];
                     foreach ($data['inventory'] as $_inv_idx => $_inventory_row) {
                         $common_inventory[$_inv_idx] = [];
-                        foreach ($invList['common'] as $_copy_key1 => $_copy_key2) {
+                        foreach ($inv_list['common'] as $_copy_key1 => $_copy_key2) {
                             if (is_numeric($_copy_key1)) {
                                 $common_inventory[$_inv_idx][$_copy_key2] = $_inventory_row[$_copy_key2];
                             } else {
@@ -68,38 +54,32 @@ class SubProduct
                             }
                         }
                     }
-                    $childProduct->importArray(['attributes' => $applyAttributes, 'inventory' => $common_inventory]);
+                    $child_product->import_array(['attributes' => $apply_attributes, 'inventory' => $common_inventory]);
                 }
-                $childProduct->save();
+                $child_product->save();
             }
         }
     }
-
-    protected static function copyInventoryAttributesList()
+    protected static function copy_inventory_attributes_list()
     {
-        return [
-            'price' => ['inventory_price', 'inventory_discount_price', 'price_prefix', 'inventory_full_price','inventory_discount_full_price','inventory_tax_class_id','price' => ['*' => ['*']]],
-            'common' => ['inventory_weight','stock_indication_id','stock_delivery_terms_id','stock_control','non_existent','attribute_map'],
-        ];
+        return ['price' => ['inventory_price', 'inventory_discount_price', 'price_prefix', 'inventory_full_price', 'inventory_discount_full_price', 'inventory_tax_class_id', 'price' => ['*' => ['*']]], 'common' => ['inventory_weight', 'stock_indication_id', 'stock_delivery_terms_id', 'stock_control', 'non_existent', 'attribute_map']];
     }
-
-    public static function copyAttributesFromParent($child_product_id)
+    public static function copy_attributes_from_parent($child_product_id)
     {
-        $invList = static::copyInventoryAttributesList();
-        $inventory_attributes = array_merge($invList['common'], $invList['price']);
-
-        if ($childProduct = \common\api\models\AR\Products::findOne($child_product_id)) {
-            if ($childProduct->parent_products_id > 0 && $parentModel = \common\api\models\AR\Products::findOne($childProduct->parent_products_id)) {
-                $data = $parentModel->exportArray(['attributes' => ['*' => ['options_id', 'options_values_id', 'is_virtual']],'inventory' => ['*' => $inventory_attributes],]);
-                if ($childProduct->products_id_price == $childProduct->parent_products_id) {
+        $inv_list = static::copy_inventory_attributes_list();
+        $inventory_attributes = array_merge($inv_list['common'], $inv_list['price']);
+        if ($child_product = \common\api\models\AR\Products::find_one($child_product_id)) {
+            if ($child_product->parent_products_id > 0 && $parent_model = \common\api\models\AR\Products::find_one($child_product->parent_products_id)) {
+                $data = $parent_model->export_array(['attributes' => ['*' => ['options_id', 'options_values_id', 'is_virtual']], 'inventory' => ['*' => $inventory_attributes]]);
+                if ($child_product->products_id_price == $child_product->parent_products_id) {
                     // child use parent price
-                    $childProduct->importArray(['attributes' => $data['attributes'], 'inventory' => $data['inventory']]);
+                    $child_product->import_array(['attributes' => $data['attributes'], 'inventory' => $data['inventory']]);
                 } else {
                     // child with own price
                     $common_inventory = [];
                     foreach ($data['inventory'] as $_inv_idx => $_inventory_row) {
                         $common_inventory[$_inv_idx] = [];
-                        foreach ($invList['common'] as $_copy_key1 => $_copy_key2) {
+                        foreach ($inv_list['common'] as $_copy_key1 => $_copy_key2) {
                             if (is_numeric($_copy_key1)) {
                                 $common_inventory[$_inv_idx][$_copy_key2] = $_inventory_row[$_copy_key2];
                             } else {
@@ -107,19 +87,16 @@ class SubProduct
                             }
                         }
                     }
-                    $childProduct->importArray(['attributes' => $data['attributes'],'inventory' => $common_inventory]);
+                    $child_product->import_array(['attributes' => $data['attributes'], 'inventory' => $common_inventory]);
                 }
-
-                $childProduct->save();
+                $child_product->save();
             }
         }
     }
-
-    public static function afterProductSave(\common\models\Products $product)
+    public static function after_product_save(\common\models\Products $product)
     {
         if (empty($product->parent_products_id) && $product->sub_product_children_count > 0) {
-            static::copyParentAttributesToChildren($product->products_id);
+            static::copy_parent_attributes_to_children($product->products_id);
         }
     }
-
 }

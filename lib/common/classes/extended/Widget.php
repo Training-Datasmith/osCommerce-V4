@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +11,6 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes\extended;
 
 class Widget extends \yii\base\Widget
@@ -22,14 +20,13 @@ class Widget extends \yii\base\Widget
         $response = parent::render($view, $params);
         if (!empty($response) && \Yii::$app->id == 'app-backend') {
             if (defined('SHOW_EXTENSION_INFO') && SHOW_EXTENSION_INFO == 'True') {
-
                 if (isset($params['_extension_render']) && !isset($params['_exclude_information_icon'])) {
                     $module = $params['_extension_render'];
                 } else {
                     $module = \common\helpers\Output::mb_basename(trim(str_replace('Render', '', get_class($this)), '/\\'));
                 }
-                if (\common\helpers\Acl::checkExtension($module)) {
-                    $response = \common\helpers\Modules::getInfoLinkForExtension($module) . $response;
+                if (\common\helpers\Acl::check_extension($module)) {
+                    $response = \common\helpers\Modules::get_info_link_for_extension($module) . $response;
                 }
             }
         }

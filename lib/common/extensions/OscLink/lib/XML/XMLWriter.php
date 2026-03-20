@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,108 +11,100 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+namespace Osc_Link\XML;
 
-namespace OscLink\XML;
-
-class XMLWriter
+class Xml_Writer
 {
-    protected $firstOutput = true;
-
-    protected $fileName = '';
-    protected $fileHandle;
-    protected $rootTag = '';
-
+    protected $first_output = true;
+    protected $file_name = '';
+    protected $file_handle;
+    protected $root_tag = '';
     protected $xslt;
     /**
      * IOProject constructor.
      * @param string $fileName
      */
-    public function __construct($fileName)
+    public function __construct($file_name)
     {
-        $this->fileName = $fileName;
+        $this->file_name = $file_name;
     }
-
-    public function applyXSLT($filename)
+    public function apply_xslt($filename)
     {
-        $this->xslt = new \XSLTProcessor();
-        $this->xslt->importStylesheet(simplexml_load_file($filename));
+        $this->xslt = new \Xslt_Processor();
+        $this->xslt->import_stylesheet(simplexml_load_file($filename));
     }
-
-    public function exportBegin($header)
+    public function export_begin($header)
     {
-        $this->fileHandle = fopen($this->fileName, 'w+');
-        fwrite($this->fileHandle, '<?xml version="1.0" encoding="UTF-8"?'.'>'."\n");
-        fwrite($this->fileHandle, '<data>'."\n");
+        $this->file_handle = fopen($this->file_name, 'w+');
+        fwrite($this->file_handle, '<?xml version="1.0" encoding="UTF-8"?' . '>' . "\n");
+        fwrite($this->file_handle, '<data>' . "\n");
         if (is_string($header) && !empty($header)) {
-            $header = ['type' => $header,'projectCode' => IOCore::get()->getProjectCode()];
+            $header = ['type' => $header, 'projectCode' => Io_Core::get()->get_project_code()];
         }
         if (is_array($header) && count($header) > 0) {
-            $header['projectCode'] = IOCore::get()->getProjectCode();
-            $xmlHeader = $this->serializeToXML(IOData::fromArray($header), 'Header');
-            fwrite($this->fileHandle, $xmlHeader);
+            $header['projectCode'] = Io_Core::get()->get_project_code();
+            $xml_header = $this->serialize_to_xml(Io_Data::from_array($header), 'Header');
+            fwrite($this->file_handle, $xml_header);
         }
     }
-
-    public function exportData($data)
+    public function export_data($data)
     {
-        $recordTag = '';
+        $record_tag = '';
         if (isset($data->meta['xmlCollection'])) {
-            $rootTag = '';
+            $root_tag = '';
             if (strpos($data->meta['xmlCollection'], '>') !== false) {
-                list($rootTag, $recordTag) = explode('>', $data->meta['xmlCollection'], 2);
+                list($root_tag, $record_tag) = explode('>', $data->meta['xmlCollection'], 2);
             } else {
-                $recordTag = $data->meta['xmlCollection'];
+                $record_tag = $data->meta['xmlCollection'];
             }
-            if ($this->firstOutput) {
-                $this->rootTag = $rootTag;
-                fwrite($this->fileHandle, "<{$this->rootTag}>"."\n");
+            if ($this->first_output) {
+                $this->root_tag = $root_tag;
+                fwrite($this->file_handle, "<{$this->root_tag}>" . "\n");
             }
         }
-        if ($recordTag) {
-            $xml = $this->serializeToXML($data, $recordTag);
-            fwrite($this->fileHandle, $xml);
+        if ($record_tag) {
+            $xml = $this->serialize_to_xml($data, $record_tag);
+            fwrite($this->file_handle, $xml);
         }
-        $this->firstOutput = false;
+        $this->first_output = false;
     }
-
-    protected function serializeToXML(IOData $data, $recordTag, $rootElement = null)
+    protected function serialize_to_xml(Io_Data $data, $record_tag, $root_element = null)
     {
-        $element = IOData::serializeToSimpleXml($data, $recordTag, $rootElement);
+        $element = Io_Data::serialize_to_simple_xml($data, $record_tag, $root_element);
         $xml = '';
         if (is_object($element)) {
             if ($this->xslt) {
                 if (true) {
-                    $xml = $this->xslt->transformToXML($element);
+                    $xml = $this->xslt->transform_to_xml($element);
                 } else {
-                    $doc = $this->xslt->transformToDoc($element);
+                    $doc = $this->xslt->transform_to_doc($element);
                     //echo '<pre>'; var_dump(json_encode(simplexml_import_dom($doc))); echo '</pre>';
-                    $xml = $doc->saveXML($doc);
+                    $xml = $doc->save_xml($doc);
                 }
             } else {
-                $xml = $element->asXML();
+                $xml = $element->as_xml();
             }
-            $headPos = strpos($xml, "?>\n");
-            if ($headPos !== false) {
-                $xml = substr($xml, $headPos + 3);
+            $head_pos = strpos($xml, "?>\n");
+            if ($head_pos !== false) {
+                $xml = substr($xml, $head_pos + 3);
             } else {
-                $headPos = strpos($xml, '?>');
-                if ($headPos !== false) {
-                    $xml = substr($xml, $headPos + 2);
+                $head_pos = strpos($xml, '?>');
+                if ($head_pos !== false) {
+                    $xml = substr($xml, $head_pos + 2);
                 }
             }
         }
         return $xml;
     }
-
-    public function exportEnd()
+    public function export_end()
     {
-        if (!empty($this->rootTag)) {
-            fwrite($this->fileHandle, "</{$this->rootTag}>" . "\n");
+        if (!empty($this->root_tag)) {
+            fwrite($this->file_handle, "</{$this->root_tag}>" . "\n");
         }
-        fwrite($this->fileHandle, '</data>'."\n");
-        fclose($this->fileHandle);
-        if (is_file($this->fileName)) {
-            @chmod($this->fileName, 0666);
+        fwrite($this->file_handle, '</data>' . "\n");
+        fclose($this->file_handle);
+        if (is_file($this->file_name)) {
+            @chmod($this->file_name, 0666);
         }
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +11,6 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
 class Output
@@ -20,7 +19,6 @@ class Output
     {
         return strtr(trim($data), $parse);
     }
-
     public static function output_string($string, $translate = false, $protected = false)
     {
         if (!is_scalar($string)) {
@@ -31,20 +29,16 @@ class Output
         //$string = self::xss_clean(stripslashes(strip_tags($string)));
         if ($protected == true) {
             return htmlspecialchars($string);
+        } else if ($translate == false) {
+            return self::parse_input_field_data($string, ['"' => '&quot;']);
         } else {
-            if ($translate == false) {
-                return self::parse_input_field_data($string, ['"' => '&quot;']);
-            } else {
-                return self::parse_input_field_data($string, $translate);
-            }
+            return self::parse_input_field_data($string, $translate);
         }
     }
-
     public static function output_string_protected($string)
     {
         return self::output_string($string, false, true);
     }
-
     public static function break_string($string, $len, $break_char = '-')
     {
         $l = 0;
@@ -62,64 +56,53 @@ class Output
             }
             $output .= $char;
         }
-
         return $output;
     }
-
     public static function xss_clean($data)
     {
         // Fix &entity\n;
-        $data = str_replace(['&amp;','&lt;','&gt;'], ['&amp;amp;','&amp;lt;','&amp;gt;'], $data);
+        $data = str_replace(['&amp;', '&lt;', '&gt;'], ['&amp;amp;', '&amp;lt;', '&amp;gt;'], $data);
         $data = preg_replace('/(&#*\w+)[\x00-\x20]+;/u', '$1;', $data);
         $data = preg_replace('/(&#x*[0-9A-F]+);*/iu', '$1;', $data);
         $data = html_entity_decode($data, ENT_COMPAT, 'UTF-8');
-
         // Remove any attribute starting with "on" or xmlns
         $data = preg_replace('#(<[^>]+?[\x00-\x20"\'])(?:on|xmlns)[^>]*+>#iu', '$1>', $data);
-
         // Remove javascript: and vbscript: protocols
         $data = preg_replace('#([a-z]*)[\x00-\x20]*=[\x00-\x20]*([`\'"]*)[\x00-\x20]*j[\x00-\x20]*a[\x00-\x20]*v[\x00-\x20]*a[\x00-\x20]*s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:#iu', '$1=$2nojavascript...', $data);
         $data = preg_replace('#([a-z]*)[\x00-\x20]*=([\'"]*)[\x00-\x20]*v[\x00-\x20]*b[\x00-\x20]*s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:#iu', '$1=$2novbscript...', $data);
         $data = preg_replace('#([a-z]*)[\x00-\x20]*=([\'"]*)[\x00-\x20]*-moz-binding[\x00-\x20]*:#u', '$1=$2nomozbinding...', $data);
-
         // Only works in IE: <span style="width: expression(alert('Ping!'));"></span>
         $data = preg_replace('#(<[^>]+?)style[\x00-\x20]*=[\x00-\x20]*[`\'"]*.*?expression[\x00-\x20]*\([^>]*+>#i', '$1>', $data);
         $data = preg_replace('#(<[^>]+?)style[\x00-\x20]*=[\x00-\x20]*[`\'"]*.*?behaviour[\x00-\x20]*\([^>]*+>#i', '$1>', $data);
         $data = preg_replace('#(<[^>]+?)style[\x00-\x20]*=[\x00-\x20]*[`\'"]*.*?s[\x00-\x20]*c[\x00-\x20]*r[\x00-\x20]*i[\x00-\x20]*p[\x00-\x20]*t[\x00-\x20]*:*[^>]*+>#iu', '$1>', $data);
-
         // Remove namespaced elements (we do not need them)
         $data = preg_replace('#</*\w+:\w[^>]*+>#i', '', $data);
-
         do {
             // Remove really unwanted tags
             $old_data = $data;
             $data = preg_replace('#</*(?:applet|b(?:ase|gsound|link)|embed|frame(?:set)?|i(?:frame|layer)|l(?:ayer|ink)|meta|object|s(?:cript|tyle)|title|xml)[^>]*+>#i', '', $data);
         } while ($old_data !== $data);
-
         return $data;
     }
-
     public static function get_all_get_params($exclude_array = '', $as_fields = false)
     {
         if (!is_array($exclude_array)) {
             $exclude_array = [];
         }
-
         $get_url = '';
-        if (is_array($_GET) && (sizeof($_GET) > 0)) {
+        if (is_array($_GET) && sizeof($_GET) > 0) {
             foreach ($_GET as $key => $value) {
                 if (strpos($key, '<') !== false || strpos($key, '>') !== false) {
                     continue;
                 }
-
                 // key XSS prevention
                 $key = \yii\helpers\Html::encode($key);
                 $key = rawurlencode(self::xss_clean(stripslashes(strip_tags($key))));
-
-                if (((!is_array($value) && strlen($value) > 0) || (is_array($value) && sizeof($value) > 0)) && ($key != session_name()) && ($key != 'error') && (!in_array($key, $exclude_array)) && ($key != 'x') && ($key != 'y')) {
+                if ((!is_array($value) && strlen($value) > 0 || is_array($value) && sizeof($value) > 0) && $key != session_name() && $key != 'error' && !in_array($key, $exclude_array) && $key != 'x' && $key != 'y') {
                     if (is_array($value)) {
                         for ($i = 0, $n = sizeof($value); $i < $n; $i++) {
-                            if (preg_match('/javascript:/', $value[$i])) {// XSS prevention
+                            if (preg_match('/javascript:/', $value[$i])) {
+                                // XSS prevention
                                 $value[$i] = '';
                             }
                             $value[$i] = \yii\helpers\Html::encode($value[$i]);
@@ -133,7 +116,8 @@ class Output
                         }
                     } else {
                         $value = \yii\helpers\Html::encode($value);
-                        if (preg_match('/javascript:/', $value)) {// XSS prevention
+                        if (preg_match('/javascript:/', $value)) {
+                            // XSS prevention
                             $value = '';
                         }
                         if ($as_fields) {
@@ -147,13 +131,11 @@ class Output
         }
         return $get_url;
     }
-
     public static function parse_search_string($search_str, &$objects, $msearch_enable = MSEARCH_ENABLE)
     {
         $search_str = trim(strtolower($search_str));
         $search_str = preg_replace(['/(\S)(\()/', '/(\))(\S)/', '/\(\s+/', '/\s+\)/'], ['$1 $2', '$1 $2', '(', ')'], $search_str);
         $pieces = preg_split('/[\s]+/', $search_str, -1, PREG_SPLIT_NO_EMPTY);
-
         $objects = [];
         $tmpstring = '';
         $flag = '';
@@ -175,7 +157,7 @@ class Output
                     $pieces[$k] = '';
                 }
             }
-            if ((substr($pieces[$k], -1) != '"') && (substr($pieces[$k], 0, 1) != '"')) {
+            if (substr($pieces[$k], -1) != '"' && substr($pieces[$k], 0, 1) != '"') {
                 $objects[] = trim($pieces[$k]);
                 for ($j = 0; $j < count($post_objects); $j++) {
                     $objects[] = $post_objects[$j];
@@ -193,7 +175,7 @@ class Output
                 }
                 $flag = 'on';
                 $k++;
-                while (($flag == 'on') && ($k < count($pieces))) {
+                while ($flag == 'on' && $k < count($pieces)) {
                     while (substr($pieces[$k], -1) == ')') {
                         $post_objects[] = ')';
                         if (strlen($pieces[$k]) > 1) {
@@ -220,15 +202,15 @@ class Output
         }
         if ($msearch_enable == 'true') {
             $pares = [];
-            $_tmpMinLenght = ((defined('BACKEND_MSEARCH_WORD_LENGTH') && \frontend\design\Info::isTotallyAdmin()) ? (int)BACKEND_MSEARCH_WORD_LENGTH : (int)MSEARCH_WORD_LENGTH);
+            $_tmp_min_lenght = defined('BACKEND_MSEARCH_WORD_LENGTH') && \frontend\design\Info::is_totally_admin() ? (int) BACKEND_MSEARCH_WORD_LENGTH : (int) MSEARCH_WORD_LENGTH;
             for ($i = 0; $i < sizeof($objects); $i++) {
                 $objects[$i] = str_replace([',', ';', '.', '&', '!', ':', '"'], ['', '', '', '', '', '', ''], $objects[$i]);
-                if (($objects[$i] == 'and') || ($objects[$i] == 'or') || ($objects[$i] == '(') || ($objects[$i] == ')')) {
+                if ($objects[$i] == 'and' || $objects[$i] == 'or' || $objects[$i] == '(' || $objects[$i] == ')') {
                     $pares[] = $objects[$i];
                 } else {
                     $pieces = preg_split('/[\s]+/', $objects[$i]);
                     foreach ($pieces as $piece) {
-                        if (strlen($piece) >= $_tmpMinLenght) {
+                        if (strlen($piece) >= $_tmp_min_lenght) {
                             $ks_hash = tep_db_fetch_array(tep_db_query("select soundex('" . addslashes($piece) . "') as sx"));
                             $pares[] = $ks_hash['sx'];
                         } else {
@@ -240,14 +222,9 @@ class Output
             $objects = $pares;
         }
         $temp = [];
-        for ($i = 0; $i < (count($objects) - 1); $i++) {
+        for ($i = 0; $i < count($objects) - 1; $i++) {
             $temp[] = $objects[$i];
-            if (($objects[$i] != 'and') &&
-                    ($objects[$i] != 'or') &&
-                    ($objects[$i] != '(') &&
-                    ($objects[$i + 1] != 'and') &&
-                    ($objects[$i + 1] != 'or') &&
-                    ($objects[$i + 1] != ')')) {
+            if ($objects[$i] != 'and' && $objects[$i] != 'or' && $objects[$i] != '(' && $objects[$i + 1] != 'and' && $objects[$i + 1] != 'or' && $objects[$i + 1] != ')') {
                 $temp[] = ADVANCED_SEARCH_DEFAULT_OPERATOR;
             }
         }
@@ -263,29 +240,27 @@ class Output
             if ($objects[$i] == ')') {
                 $balance++;
             }
-            if (($objects[$i] == 'and') || ($objects[$i] == 'or')) {
+            if ($objects[$i] == 'and' || $objects[$i] == 'or') {
                 $operator_count++;
-            } elseif (($objects[$i]) && ($objects[$i] != '(') && ($objects[$i] != ')')) {
+            } elseif ($objects[$i] && $objects[$i] != '(' && $objects[$i] != ')') {
                 $keyword_count++;
             }
         }
-        if (($operator_count < $keyword_count) && ($balance == 0)) {
+        if ($operator_count < $keyword_count && $balance == 0) {
             return true;
         } else {
             return false;
         }
     }
-
     public static function array_to_string($array, $exclude = '', $equals = '=', $separator = '&')
     {
         if (!is_array($exclude)) {
             $exclude = [];
         }
-
         $get_string = '';
         if (is_array($array) && count($array) > 0) {
             foreach ($array as $key => $value) {
-                if ((!in_array($key, $exclude)) && ($key != 'x') && ($key != 'y')) {
+                if (!in_array($key, $exclude) && $key != 'x' && $key != 'y') {
                     if (is_array($value)) {
                         $value = self::array_to_string($value, $exclude, $equals, $separator);
                     }
@@ -295,10 +270,8 @@ class Output
             $remove_chars = strlen($separator);
             $get_string = substr($get_string, 0, -$remove_chars);
         }
-
         return $get_string;
     }
-
     /**
      *
      * @param string $text
@@ -315,23 +288,17 @@ class Output
                 }
             }
             if (!empty($re)) {
-                $text = preg_replace(
-                    '/(' . join('|', $re) . ')/iu',
-                    '<span ' . (defined('MSEARCH_HIGHLIGHT_BGCOLOR') ? 'style="background:' . MSEARCH_HIGHLIGHT_BGCOLOR . '"' : '') . ' class="typed">\1</span>',
-                    $text
-                );
+                $text = preg_replace('/(' . join('|', $re) . ')/iu', '<span ' . (defined('MSEARCH_HIGHLIGHT_BGCOLOR') ? 'style="background:' . MSEARCH_HIGHLIGHT_BGCOLOR . '"' : '') . ' class="typed">\1</span>', $text);
             }
         }
         return $text;
     }
-
     public static function unhtmlentities($string)
     {
         $trans_tbl = get_html_translation_table(HTML_ENTITIES);
         $trans_tbl = array_flip($trans_tbl);
         return strtr($string, $trans_tbl);
     }
-
     public static function get_clickable_link($tep_href_link, $text = '')
     {
         if (EMAIL_USE_HTML == 'true') {
@@ -351,7 +318,6 @@ class Output
         }
         return $tep_href_link;
     }
-
     public static function recursive_array_intersect_key(array $array1, array $array2)
     {
         $array1 = array_intersect_key($array1, $array2);
@@ -362,7 +328,6 @@ class Output
         }
         return $array1;
     }
-
     public static function truncate($string, $length, $trail = '...')
     {
         $out = '';
@@ -378,18 +343,15 @@ class Output
                     }
                 }
             }
-
         } else {
             $out = $string;
         }
         return $out;
     }
-
     public static function percent($number, $sign = '%')
     {
-        return rtrim(rtrim(number_format($number, 2, '.', ''), '0'), '.').$sign;
+        return rtrim(rtrim(number_format($number, 2, '.', ''), '0'), '.') . $sign;
     }
-
     public static function strip_tags($text, $allowable_tags = null)
     {
         $text = preg_replace('/>(\w)/', '> $1', $text);
@@ -403,7 +365,6 @@ class Output
         $text = trim($text);
         return $text;
     }
-
     public static function mb_basename($path)
     {
         if (preg_match('@^.*[\\\\/]([^\\\\/]+)$@s', $path, $matches)) {
@@ -413,11 +374,10 @@ class Output
         }
         return '';
     }
-
     public static function sanitize($value)
     {
         if (is_string($value)) {
-            return (PHP_VERSION_ID >= 80100) ? htmlspecialchars($value) : filter_var($value, FILTER_SANITIZE_STRING);
+            return PHP_VERSION_ID >= 80100 ? htmlspecialchars($value) : filter_var($value, FILTER_SANITIZE_STRING);
         } elseif (is_array($value)) {
             foreach ($value as &$item) {
                 $item = self::sanitize($item);
@@ -427,5 +387,4 @@ class Output
             return $value;
         }
     }
-
 }

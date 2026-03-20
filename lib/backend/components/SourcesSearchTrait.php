@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,35 +11,18 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\components;
 
-trait SourcesSearchTrait
+trait Sources_Search_Trait
 {
-    public function actionSources()
+    public function action_sources()
     {
         $this->layout = false;
         $term = \Yii::$app->request->get('term');
-
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-        $query1 = (new \yii\db\Query())
-            ->select('source as `text`, source AS label')
-            ->from(\common\models\Products::tableName())
-            ->where(['!=','source',''])
-            ->andFilterWhere(['LIKE', 'source', $term]);
-
-        $query2 = (new \yii\db\Query())
-            ->select('source as `text`, source AS label')
-            ->from(\common\models\SuppliersProducts::tableName())
-            ->where(['!=','source',''])
-            ->andFilterWhere(['LIKE', 'source', $term]);
-
-        $unionQuery = (new \yii\db\Query())
-            ->from(['dummy_name' => $query1->union($query2)])
-            ->orderBy(['label' => SORT_ASC]);
-
-        \Yii::$app->response->data = $unionQuery->all();
+        $query1 = (new \yii\db\Query())->select('source as `text`, source AS label')->from(\common\models\Products::table_name())->where(['!=', 'source', ''])->and_filter_where(['LIKE', 'source', $term]);
+        $query2 = (new \yii\db\Query())->select('source as `text`, source AS label')->from(\common\models\Suppliers_Products::table_name())->where(['!=', 'source', ''])->and_filter_where(['LIKE', 'source', $term]);
+        $union_query = (new \yii\db\Query())->from(['dummy_name' => $query1->union($query2)])->order_by(['label' => SORT_ASC]);
+        \Yii::$app->response->data = $union_query->all();
     }
-
 }

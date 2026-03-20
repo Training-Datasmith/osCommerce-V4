@@ -1,12 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace common\classes\CPC;
 
 /**
  * Used for base CPC class
  */
-interface CPCInterface extends CPCGetInterface, CPCCacheInterface
+interface Cpc_Interface extends Cpc_Get_Interface, Cpc_Cache_Interface
 {
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,34 +11,26 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
 class Compare
 {
-    public static function getCategoryId($productId)
+    public static function get_category_id($product_id)
     {
-        $categoryId = \common\models\Products2Categories::find()
-            ->where(['products_id' => $productId])
-            ->andWhere(['!=', 'categories_id', 0])
-            ->one()
-            ->categories_id ?? null;
-
-        return self::getCategoryIdByCategory($categoryId);
+        $category_id = \common\models\Products2Categories::find()->where(['products_id' => $product_id])->and_where(['!=', 'categories_id', 0])->one()->categories_id ?? null;
+        return self::get_category_id_by_category($category_id);
     }
-
-    public static function getCategoryIdByCategory($categoryId)
+    public static function get_category_id_by_category($category_id)
     {
-        $parentId = true;
+        $parent_id = true;
         $cutout = 20;
-        while ($categoryId && $parentId && $cutout) {
-            $parentId = \common\models\Categories::findOne(['categories_id' => $categoryId])->parent_id ?? null;
-            if ($parentId) {
-                $categoryId = $parentId;
+        while ($category_id && $parent_id && $cutout) {
+            $parent_id = \common\models\Categories::find_one(['categories_id' => $category_id])->parent_id ?? null;
+            if ($parent_id) {
+                $category_id = $parent_id;
             }
             $cutout--;
         }
-
-        return $categoryId;
+        return $category_id;
     }
 }

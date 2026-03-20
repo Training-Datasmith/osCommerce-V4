@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,91 +11,74 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components\google;
 
-use common\models\repositories\GoogleSettingsRepository;
-
-class MapProvider extends Providers implements GoogleProviderInterface
+use common\models\repositories\Google_Settings_Repository;
+class Map_Provider extends Providers implements Google_Provider_Interface
 {
-    private $gsRepository;
-
+    private $gs_repository;
     private $code = 'mapskey';
-
-    public function getName()
+    public function get_name()
     {
         return 'Map Key API';
     }
-
-    public function getCode()
+    public function get_code()
     {
         return $this->code;
     }
-
-    public function getDescription()
+    public function get_description()
     {
         return 'This key is used to make requests with right access to Google Libraries like Maps JavaScript API. It can be obtained at <a href="https://console.developers.google.com/apis/credentials" target="_blank">Google Console</a>';
     }
-
-    public function __construct(GoogleSettingsRepository $gsRepository)
+    public function __construct(Google_Settings_Repository $gs_repository)
     {
-        $this->gsRepository = $gsRepository;
+        $this->gs_repository = $gs_repository;
     }
-
-    public function getSetting()
+    public function get_setting()
     {
-        return $this->gsRepository->getSetting($this->code, 0, 0);
+        return $this->gs_repository->get_setting($this->code, 0, 0);
     }
-
-    public function updateSetting($setting, $data)
+    public function update_setting($setting, $data)
     {
         if (is_array($data) && isset($data['key'])) {
             $key = $data['key'];
-            return $this->gsRepository->updateSetting($setting, [ $this->gsRepository->getConfigHolder() => (string)$key ]);
+            return $this->gs_repository->update_setting($setting, [$this->gs_repository->get_config_holder() => (string) $key]);
         }
         return false;
     }
-
-    public function createSetting($data)
+    public function create_setting($data)
     {
         if (is_array($data) && isset($data['key'])) {
-            return $this->gsRepository->createSetting($this->getCode(), $this->getName(), $data['key'], 0, 0);
+            return $this->gs_repository->create_setting($this->get_code(), $this->get_name(), $data['key'], 0, 0);
         }
         return false;
     }
-
-    public function getConfig()
+    public function get_config()
     {
-        $setting = $this->getSetting();
+        $setting = $this->get_setting();
         if ($setting) {
-            $value = $setting->getValue();
+            $value = $setting->get_value();
             return $value ? $value : false;
         }
         return false;
     }
-
-    public function getMapsKey()
+    public function get_maps_key()
     {
-        return $this->getConfig();
+        return $this->get_config();
     }
-
-    public function drawConfigTemplate()
+    public function draw_config_template()
     {
-        return widgets\MapWidget::widget(['value' => $this->getConfig(), 'owner' => $this->getClassName(), 'description' => $this->getDescription() ]);
+        return widgets\Map_Widget::widget(['value' => $this->get_config(), 'owner' => $this->get_class_name(), 'description' => $this->get_description()]);
     }
-
-    public function getLocationByAddress(string $address)
+    public function get_location_by_address(string $address)
     {
-        if ($key = $this->getMapsKey()) {
-            $query = http_build_query([
-                'address' => $address,
-                'key' => $key,
-            ]);
-            $client = new \GuzzleHttp\Client(['base_uri' => 'https://maps.googleapis.com/']);
+        if ($key = $this->get_maps_key()) {
+            $query = http_build_query(['address' => $address, 'key' => $key]);
+            $client = new \Guzzle_Http\Client(['base_uri' => 'https://maps.googleapis.com/']);
             try {
-                $response = $client->get('maps/api/geocode/json?'.$query);
+                $response = $client->get('maps/api/geocode/json?' . $query);
                 if ($response) {
-                    $content = json_decode($response->getBody()->getContents());
+                    $content = json_decode($response->get_body()->get_contents());
                     if (is_object($response) && !empty($response->results) && $response->status == 'OK') {
                         $response = $response->results[0];
                         if (is_object($response) && property_exists($response, 'geometry')) {
@@ -104,10 +86,7 @@ class MapProvider extends Providers implements GoogleProviderInterface
                             if (property_exists($detail, 'location')) {
                                 $detail = $detail->location;
                                 if (property_exists($detail, 'lat') && property_exists($detail, 'lng')) {
-                                    return [
-                                        'lat' => (float) $detail->lat,
-                                        'lng' => (float) $detail->lng,
-                                    ];
+                                    return ['lat' => (float) $detail->lat, 'lng' => (float) $detail->lng];
                                 }
                             }
                         }

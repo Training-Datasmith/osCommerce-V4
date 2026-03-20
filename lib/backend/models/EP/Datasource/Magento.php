@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,26 +11,21 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Datasource;
 
-use backend\models\EP\DatasourceBase;
-
-class Magento extends DatasourceBase
+use backend\models\EP\Datasource_Base;
+class Magento extends Datasource_Base
 {
-    public function getName()
+    public function get_name()
     {
         return 'Magento SOAP';
     }
-
-    public function prepareConfigForView($configArray)
+    public function prepare_config_for_view($config_array)
     {
-        return parent::prepareConfigForView($configArray);
+        return parent::prepare_config_for_view($config_array);
     }
-
-    public function getViewTemplate()
+    public function get_view_template()
     {
         return 'datasource/magento.tpl';
     }
-
 }

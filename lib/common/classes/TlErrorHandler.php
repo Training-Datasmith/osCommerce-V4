@@ -1,10 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace common\classes;
 
-class TlErrorHandler extends \yii\web\ErrorHandler
+class Tl_Error_Handler extends \yii\web\Error_Handler
 {
-    use TlErrorHandlerTrait;
+    use Tl_Error_Handler_Trait;
 }

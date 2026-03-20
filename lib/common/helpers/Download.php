@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +11,6 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
 class Download
@@ -28,14 +26,13 @@ class Download
         $letters = 'abcdefghijklmnopqrstuvwxyz';
         $len = strlen($letters);
         $dirname = '.';
-        $length = (int)floor(mt_rand(16, 20));
+        $length = (int) floor(mt_rand(16, 20));
         for ($i = 1; $i <= $length; $i++) {
-            $q = (int)floor(mt_rand(0, $len - 1));
+            $q = (int) floor(mt_rand(0, $len - 1));
             $dirname .= $letters[$q];
         }
         return $dirname;
     }
-
     /**
      * Unlinks all subdirectories and files in $dir
      * Works only on one subdir level, will not recurse
@@ -66,16 +63,8 @@ class Download
         }
         closedir($h1);
     }
-
-    public static function updateOrderedFile($product_id, $new_filename)
+    public static function update_ordered_file($product_id, $new_filename)
     {
-        \Yii::$app->getDb()->createCommand(
-            'UPDATE ' . \common\models\OrdersProductsDownload::tableName() . ' opd ' .
-            'INNER JOIN ' . \common\models\OrdersProducts::tableName() . ' op ON opd.orders_id=op.orders_id AND opd.orders_products_id=op.orders_products_id ' .
-            'SET opd.orders_products_filename=:new_filename ' .
-            'WHERE op.products_id=:product_id',
-            [':product_id' => (int)$product_id, ':new_filename' => (string)$new_filename]
-        )->execute();
+        \Yii::$app->get_db()->create_command('UPDATE ' . \common\models\Orders_Products_Download::table_name() . ' opd ' . 'INNER JOIN ' . \common\models\Orders_Products::table_name() . ' op ON opd.orders_id=op.orders_id AND opd.orders_products_id=op.orders_products_id ' . 'SET opd.orders_products_filename=:new_filename ' . 'WHERE op.products_id=:product_id', [':product_id' => (int) $product_id, ':new_filename' => (string) $new_filename])->execute();
     }
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,28 +11,19 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\orders;
 
 use yii\base\Widget;
-
-class AddressDetailsHolder extends Widget
+class Address_Details_Holder extends Widget
 {
     public $manager;
     public $order;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
-
-        return $this->render('address-details-holder', [
-            'order' => $this->order,
-            'sameAddress' => ($this->order->delivery == $this->order->billing && $this->order->delivery['format_id'] == $this->order->billing['format_id']),
-            'manager' => $this->manager,
-            ]);
+        return $this->render('address-details-holder', ['order' => $this->order, 'sameAddress' => $this->order->delivery == $this->order->billing && $this->order->delivery['format_id'] == $this->order->billing['format_id'], 'manager' => $this->manager]);
     }
 }

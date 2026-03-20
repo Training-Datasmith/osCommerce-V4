@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,331 +11,297 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\Classes;
 
-class Property extends AbstractClass
+class Property extends Abstract_Class
 {
-    public $propertyId = 0;
-    public $propertyRecord = [];
-    public $descriptionRecordArray = [];
-    public $valueRecordArray = [];
-    public $productRecordArray = [];
-
-    private static $valueDescriptionRecordFieldList = [
-        'language_id' => true,
-        'values_text' => true,
-    ];
-
-    public function getId()
+    public $property_id = 0;
+    public $property_record = [];
+    public $description_record_array = [];
+    public $value_record_array = [];
+    public $product_record_array = [];
+    private static $value_description_record_field_list = ['language_id' => true, 'values_text' => true];
+    public function get_id()
     {
-        return $this->propertyId;
+        return $this->property_id;
     }
-
-    public function setId($propertyId)
+    public function set_id($property_id)
     {
-        $propertyId = (int)$propertyId;
-        if ($propertyId >= 0) {
-            $this->propertyId = $propertyId;
+        $property_id = (int) $property_id;
+        if ($property_id >= 0) {
+            $this->property_id = $property_id;
             return true;
         }
         return false;
     }
-
-    public function load($propertyId)
+    public function load($property_id)
     {
         $this->clear();
-        $propertyId = (int)$propertyId;
-        $propertyRecord = \common\models\Properties::find()->where(['properties_id' => $propertyId])->asArray(true)->one();
-        unset($propertyId);
-        if (is_array($propertyRecord)) {
-            $this->propertyId = (int)$propertyRecord['properties_id'];
-            $this->propertyRecord = $propertyRecord;
+        $property_id = (int) $property_id;
+        $property_record = \common\models\Properties::find()->where(['properties_id' => $property_id])->as_array(true)->one();
+        unset($property_id);
+        if (is_array($property_record)) {
+            $this->property_id = (int) $property_record['properties_id'];
+            $this->property_record = $property_record;
         }
-        unset($propertyRecord);
-        if ($this->propertyId > 0) {
+        unset($property_record);
+        if ($this->property_id > 0) {
             // DESCRIPTION
-            foreach (\common\models\PropertiesDescription::find()->where(['properties_id' => $this->propertyId])
-                ->asArray(true)->all() as $propertyDescriptionRecord
-            ) {
-                $propertyDescriptionRecord['properties_name'] = trim($propertyDescriptionRecord['properties_name']);
-                $propertyDescriptionRecord['properties_description'] = trim($propertyDescriptionRecord['properties_description']);
-                $this->descriptionRecordArray[] = $propertyDescriptionRecord;
+            foreach (\common\models\Properties_Description::find()->where(['properties_id' => $this->property_id])->as_array(true)->all() as $property_description_record) {
+                $property_description_record['properties_name'] = trim($property_description_record['properties_name']);
+                $property_description_record['properties_description'] = trim($property_description_record['properties_description']);
+                $this->description_record_array[] = $property_description_record;
             }
-            unset($propertyDescriptionRecord);
+            unset($property_description_record);
             // EOF DESCRIPTION
             // VALUE
-            foreach (\common\models\PropertiesValues::find()->where(['properties_id' => $this->propertyId])
-                ->asArray(true)->all() as $valueRecord
-            ) {
-                $valueRecord['values_text'] = trim($valueRecord['values_text']);
-                $valueRecord['descriptionRecordArray'] = (isset($this->valueRecordArray[$valueRecord['values_id']]['descriptionRecordArray'])
-                    ? $this->valueRecordArray[$valueRecord['values_id']]['descriptionRecordArray'] : []);
-                if (!isset($this->valueRecordArray[$valueRecord['values_id']])
-                    or ($this->valueRecordArray[$valueRecord['values_id']]['values_text'] == '')
-                    or (($valueRecord['language_id'] == \common\classes\language::defaultId()) and ($valueRecord['values_text'] != ''))
-                ) {
-                    $this->valueRecordArray[$valueRecord['values_id']] = $valueRecord;
+            foreach (\common\models\Properties_Values::find()->where(['properties_id' => $this->property_id])->as_array(true)->all() as $value_record) {
+                $value_record['values_text'] = trim($value_record['values_text']);
+                $value_record['descriptionRecordArray'] = isset($this->value_record_array[$value_record['values_id']]['descriptionRecordArray']) ? $this->value_record_array[$value_record['values_id']]['descriptionRecordArray'] : [];
+                if (!isset($this->value_record_array[$value_record['values_id']]) or $this->value_record_array[$value_record['values_id']]['values_text'] == '' or $value_record['language_id'] == \common\classes\language::default_id() and $value_record['values_text'] != '') {
+                    $this->value_record_array[$value_record['values_id']] = $value_record;
                 }
-                unset($valueRecord['descriptionRecordArray']);
-                $this->valueRecordArray[$valueRecord['values_id']]['descriptionRecordArray'][] = $valueRecord;
+                unset($value_record['descriptionRecordArray']);
+                $this->value_record_array[$value_record['values_id']]['descriptionRecordArray'][] = $value_record;
             }
             // EOF VALUE
             // PRODUCT
-            $this->productRecordArray = (\common\models\Properties2Propducts::find()->alias('pp')
-                ->leftJoin(\common\models\Products::tableName() . ' AS p', 'p.products_id = pp.products_id')
-                ->where(['pp.properties_id' => $this->propertyId])->select(['pp.*', 'p.products_model'])
-                ->asArray(true)->all());
+            $this->product_record_array = \common\models\Properties2Propducts::find()->alias('pp')->left_join(\common\models\Products::table_name() . ' AS p', 'p.products_id = pp.products_id')->where(['pp.properties_id' => $this->property_id])->select(['pp.*', 'p.products_model'])->as_array(true)->all();
             // EOF PRODUCT
             return true;
         }
         return false;
     }
-
     public function unrelate()
     {
-        if (is_array($this->valueRecordArray)) {
-            foreach ($this->valueRecordArray as &$valueRecord) {
-                unset($valueRecord['values_id']);
+        if (is_array($this->value_record_array)) {
+            foreach ($this->value_record_array as &$value_record) {
+                unset($value_record['values_id']);
             }
-            unset($valueRecord);
+            unset($value_record);
         }
         return parent::unrelate();
     }
-
     public function validate()
     {
-        $this->propertyId = (int)(((int)$this->propertyId > 0) ? $this->propertyId : 0);
-        if (!is_array($this->propertyRecord)) {
-            $this->messageAdd('Property Record is invalid!');
+        $this->property_id = (int) ((int) $this->property_id > 0 ? $this->property_id : 0);
+        if (!is_array($this->property_record)) {
+            $this->message_add('Property Record is invalid!');
             return false;
         }
         if (!parent::validate()) {
-            $this->messageAdd('Property is invalid!');
+            $this->message_add('Property is invalid!');
             return false;
         }
-        $defaultName = '';
+        $default_name = '';
         // DESCRIPTION
-        $this->descriptionRecordArray = (is_array($this->descriptionRecordArray) ? $this->descriptionRecordArray : []);
-        foreach ($this->descriptionRecordArray as $keyD => &$descriptionRecord) {
-            $descriptionRecord['language_id'] = (int)(isset($descriptionRecord['language_id']) ? $descriptionRecord['language_id'] : 0);
-            if (isset($descriptionRecord['language_code'])) {
-                $descriptionRecord['language_id'] = $this->getLanguageIdByCode($descriptionRecord['language_code'], $descriptionRecord['language_id']);
+        $this->description_record_array = is_array($this->description_record_array) ? $this->description_record_array : [];
+        foreach ($this->description_record_array as $key_d => &$description_record) {
+            $description_record['language_id'] = (int) (isset($description_record['language_id']) ? $description_record['language_id'] : 0);
+            if (isset($description_record['language_code'])) {
+                $description_record['language_id'] = $this->get_language_id_by_code($description_record['language_code'], $description_record['language_id']);
             }
-            if ($descriptionRecord['language_id'] > 0) {
-                $descriptionRecord['properties_name'] = trim(
-                    isset($descriptionRecord['properties_name'])
-                    ? $descriptionRecord['properties_name'] : ''
-                );
-                $defaultName = (($defaultName == '') ? $descriptionRecord['properties_name'] : $defaultName);
+            if ($description_record['language_id'] > 0) {
+                $description_record['properties_name'] = trim(isset($description_record['properties_name']) ? $description_record['properties_name'] : '');
+                $default_name = $default_name == '' ? $description_record['properties_name'] : $default_name;
                 continue;
             }
-            unset($this->descriptionRecordArray[$keyD]);
+            unset($this->description_record_array[$key_d]);
         }
-        unset($descriptionRecord);
-        unset($keyD);
+        unset($description_record);
+        unset($key_d);
         // EOF DESCRIPTION
-        if (($defaultName == '') or (count($this->descriptionRecordArray) == 0)) {
-            $this->messageAdd('Property Description is invalid!');
+        if ($default_name == '' or count($this->description_record_array) == 0) {
+            $this->message_add('Property Description is invalid!');
             return false;
         }
-        unset($this->propertyRecord['properties_id']);
-        $this->propertyRecord['properties_name_default'] = $defaultName;
-        unset($defaultName);
+        unset($this->property_record['properties_id']);
+        $this->property_record['properties_name_default'] = $default_name;
+        unset($default_name);
         // VALUE
-        $this->valueRecordArray = (is_array($this->valueRecordArray) ? $this->valueRecordArray : []);
-        foreach ($this->valueRecordArray as $keyV => &$valueRecord) {
-            unset($valueRecord['properties_id']);
-            $defaultValueName = trim(isset($valueRecord['values_text']) ? $valueRecord['values_text'] : '');
+        $this->value_record_array = is_array($this->value_record_array) ? $this->value_record_array : [];
+        foreach ($this->value_record_array as $key_v => &$value_record) {
+            unset($value_record['properties_id']);
+            $default_value_name = trim(isset($value_record['values_text']) ? $value_record['values_text'] : '');
             // VALUE DESCRIPTION
-            $valueRecord['descriptionRecordArray'] = (
-                (isset($valueRecord['descriptionRecordArray']) and is_array($valueRecord['descriptionRecordArray']))
-                ? $valueRecord['descriptionRecordArray'] : []
-            );
-            foreach ($valueRecord['descriptionRecordArray'] as $keyVD => &$descriptionRecord) {
-                $descriptionRecord['language_id'] = (int)(isset($descriptionRecord['language_id']) ? $descriptionRecord['language_id'] : 0);
-                if (isset($descriptionRecord['language_code'])) {
-                    $descriptionRecord['language_id'] = $this->getLanguageIdByCode($descriptionRecord['language_code'], $descriptionRecord['language_id']);
+            $value_record['descriptionRecordArray'] = (isset($value_record['descriptionRecordArray']) and is_array($value_record['descriptionRecordArray'])) ? $value_record['descriptionRecordArray'] : [];
+            foreach ($value_record['descriptionRecordArray'] as $key_vd => &$description_record) {
+                $description_record['language_id'] = (int) (isset($description_record['language_id']) ? $description_record['language_id'] : 0);
+                if (isset($description_record['language_code'])) {
+                    $description_record['language_id'] = $this->get_language_id_by_code($description_record['language_code'], $description_record['language_id']);
                 }
-                if ($descriptionRecord['language_id'] > 0) {
-                    $descriptionRecord['values_text'] = trim(
-                        isset($descriptionRecord['values_text'])
-                        ? $descriptionRecord['values_text'] : ''
-                    );
-                    $defaultValueName = (($defaultValueName == '') ? $descriptionRecord['values_text'] : $defaultValueName);
-                    foreach ($descriptionRecord as $field => $null) {
-                        if (!isset(self::$valueDescriptionRecordFieldList[$field])) {
-                            unset($descriptionRecord[$field]);
+                if ($description_record['language_id'] > 0) {
+                    $description_record['values_text'] = trim(isset($description_record['values_text']) ? $description_record['values_text'] : '');
+                    $default_value_name = $default_value_name == '' ? $description_record['values_text'] : $default_value_name;
+                    foreach ($description_record as $field => $null) {
+                        if (!isset(self::$value_description_record_field_list[$field])) {
+                            unset($description_record[$field]);
                         }
                     }
                     unset($field);
                     unset($null);
                     continue;
                 }
-                unset($valueRecord['descriptionRecordArray'][$keyVD]);
+                unset($value_record['descriptionRecordArray'][$key_vd]);
             }
-            unset($descriptionRecord);
-            unset($keyVD);
+            unset($description_record);
+            unset($key_vd);
             // EOF VALUE DESCRIPTION
-            if (($defaultValueName != '') and (count($valueRecord['descriptionRecordArray']) > 0)) {
-                $valueRecord['values_text_default'] = $defaultValueName;
-                foreach ($valueRecord as $field => $null) {
-                    if (isset(self::$valueDescriptionRecordFieldList[$field])) {
-                        unset($valueRecord[$field]);
+            if ($default_value_name != '' and count($value_record['descriptionRecordArray']) > 0) {
+                $value_record['values_text_default'] = $default_value_name;
+                foreach ($value_record as $field => $null) {
+                    if (isset(self::$value_description_record_field_list[$field])) {
+                        unset($value_record[$field]);
                     }
                 }
                 unset($field);
                 unset($null);
                 continue;
             }
-            unset($this->valueRecordArray[$keyV]);
+            unset($this->value_record_array[$key_v]);
         }
-        unset($defaultValueName);
-        unset($valueRecord);
-        unset($keyV);
+        unset($default_value_name);
+        unset($value_record);
+        unset($key_v);
         // VALUE
-        $this->productRecordArray = (is_array($this->productRecordArray) ? $this->productRecordArray : []);
+        $this->product_record_array = is_array($this->product_record_array) ? $this->product_record_array : [];
         return true;
     }
-
     public function create()
     {
-        $this->propertyId = 0;
+        $this->property_id = 0;
         return $this->save();
     }
-
-    public function save($isReplace = false)
+    public function save($is_replace = false)
     {
         $return = false;
         if (!$this->validate()) {
             return $return;
         }
         try {
-            $propertyClass = \common\models\Properties::find()->where(['properties_id' => $this->propertyId])->one();
-            if (!($propertyClass instanceof \common\models\Properties)) {
-                $propertyClass = new \common\models\Properties();
-                $propertyClass->loadDefaultValues();
-                if ($this->propertyId > 0) {
-                    $propertyClass->properties_id = $this->propertyId;
+            $property_class = \common\models\Properties::find()->where(['properties_id' => $this->property_id])->one();
+            if (!$property_class instanceof \common\models\Properties) {
+                $property_class = new \common\models\Properties();
+                $property_class->load_default_values();
+                if ($this->property_id > 0) {
+                    $property_class->properties_id = $this->property_id;
                 } else {
                     $this->unrelate();
                 }
             }
-            $propertyClass->setAttributes($this->propertyRecord, false);
-            if ($propertyClass->save(false)) {
-                $defaultName = $this->propertyRecord['properties_name_default'];
-                $this->propertyId = $propertyClass->properties_id;
-                $this->propertyRecord = $propertyClass->toArray();
-                unset($propertyClass);
-                $return = $this->propertyId;
+            $property_class->set_attributes($this->property_record, false);
+            if ($property_class->save(false)) {
+                $default_name = $this->property_record['properties_name_default'];
+                $this->property_id = $property_class->properties_id;
+                $this->property_record = $property_class->to_array();
+                unset($property_class);
+                $return = $this->property_id;
                 // DESCRIPTION
-                foreach ($this->descriptionRecordArray as $keyD => &$descriptionRecord) {
-                    $isSaveD = false;
-                    if ($descriptionRecord['properties_name'] == '') {
-                        $descriptionRecord['properties_name'] = $defaultName;
+                foreach ($this->description_record_array as $key_d => &$description_record) {
+                    $is_save_d = false;
+                    if ($description_record['properties_name'] == '') {
+                        $description_record['properties_name'] = $default_name;
                     }
                     try {
-                        $descriptionRecord['properties_id'] = $this->propertyId;
-                        $propertyDescriptionClass = \common\models\PropertiesDescription::find()
-                            ->where(['properties_id' => $this->propertyId, 'language_id' => $descriptionRecord['language_id']])->one();
-                        if (!($propertyDescriptionClass instanceof \common\models\PropertiesDescription)) {
-                            $propertyDescriptionClass = new \common\models\PropertiesDescription();
-                            $propertyDescriptionClass->loadDefaultValues();
+                        $description_record['properties_id'] = $this->property_id;
+                        $property_description_class = \common\models\Properties_Description::find()->where(['properties_id' => $this->property_id, 'language_id' => $description_record['language_id']])->one();
+                        if (!$property_description_class instanceof \common\models\Properties_Description) {
+                            $property_description_class = new \common\models\Properties_Description();
+                            $property_description_class->load_default_values();
                         }
-                        $propertyDescriptionClass->setAttributes($descriptionRecord, false);
-                        if ($propertyDescriptionClass->save(false)) {
-                            $isSaveD = true;
-                            $descriptionRecord = $propertyDescriptionClass->toArray();
+                        $property_description_class->set_attributes($description_record, false);
+                        if ($property_description_class->save(false)) {
+                            $is_save_d = true;
+                            $description_record = $property_description_class->to_array();
                         } else {
-                            $this->messageAdd($propertyDescriptionClass->getErrorSummary(true));
+                            $this->message_add($property_description_class->get_error_summary(true));
                         }
                     } catch (\Exception $exc) {
-                        $this->messageAdd($exc->getMessage());
+                        $this->message_add($exc->get_message());
                     }
-                    unset($propertyDescriptionClass);
-                    if ($isSaveD != true) {
-                        unset($this->descriptionRecordArray[$keyD]);
+                    unset($property_description_class);
+                    if ($is_save_d != true) {
+                        unset($this->description_record_array[$key_d]);
                     }
-                    unset($isSaveD);
+                    unset($is_save_d);
                 }
-                unset($descriptionRecord);
-                unset($defaultName);
-                unset($keyD);
+                unset($description_record);
+                unset($default_name);
+                unset($key_d);
                 // EOF DESCRIPTION
                 // VALUE
-                foreach ($this->valueRecordArray as $keyV => &$valueRecord) {
-                    $valueRecord['properties_id'] = $this->propertyId;
-                    $propertyValueId = (int)(isset($valueRecord['values_id']) ? $valueRecord['values_id'] : 0);
-                    unset($valueRecord['values_id']);
+                foreach ($this->value_record_array as $key_v => &$value_record) {
+                    $value_record['properties_id'] = $this->property_id;
+                    $property_value_id = (int) (isset($value_record['values_id']) ? $value_record['values_id'] : 0);
+                    unset($value_record['values_id']);
                     // VALUE DESCRIPTION
-                    foreach ($valueRecord['descriptionRecordArray'] as $keyVD => &$valueDescriptionRecord) {
-                        $isSaveVD = false;
-                        $valueDescriptionRecord['values_text'] = trim($valueDescriptionRecord['values_text']);
-                        if ($valueDescriptionRecord['values_text'] == '') {
-                            $valueDescriptionRecord['values_text'] = $valueRecord['values_text_default'];
+                    foreach ($value_record['descriptionRecordArray'] as $key_vd => &$value_description_record) {
+                        $is_save_vd = false;
+                        $value_description_record['values_text'] = trim($value_description_record['values_text']);
+                        if ($value_description_record['values_text'] == '') {
+                            $value_description_record['values_text'] = $value_record['values_text_default'];
                         }
                         try {
-                            $propertyValueClass = \common\models\PropertiesValues::find()
-                                ->where(['properties_id' => $this->propertyId, 'language_id' => $valueDescriptionRecord['language_id']]);
-                            if ($propertyValueId > 0) {
-                                $propertyValueClass->andWhere(['values_id' => $propertyValueId]);
+                            $property_value_class = \common\models\Properties_Values::find()->where(['properties_id' => $this->property_id, 'language_id' => $value_description_record['language_id']]);
+                            if ($property_value_id > 0) {
+                                $property_value_class->and_where(['values_id' => $property_value_id]);
                             } else {
-                                $propertyValueClass->andWhere(['values_text' => $valueDescriptionRecord['values_text']]);
+                                $property_value_class->and_where(['values_text' => $value_description_record['values_text']]);
                             }
-                            $propertyValueClass = $propertyValueClass->one();
-                            if (!($propertyValueClass instanceof \common\models\PropertiesValues)) {
-                                $propertyValueClass = new \common\models\PropertiesValues();
-                                $propertyValueClass->loadDefaultValues();
-                                if ($propertyValueId <= 0) {
-                                    $propertyValueIdMax = (int)\common\models\PropertiesValues::find()->max('values_id');
-                                    if ($propertyValueIdMax > 0) {
-                                        $propertyValueId = ($propertyValueIdMax + 1);
+                            $property_value_class = $property_value_class->one();
+                            if (!$property_value_class instanceof \common\models\Properties_Values) {
+                                $property_value_class = new \common\models\Properties_Values();
+                                $property_value_class->load_default_values();
+                                if ($property_value_id <= 0) {
+                                    $property_value_id_max = (int) \common\models\Properties_Values::find()->max('values_id');
+                                    if ($property_value_id_max > 0) {
+                                        $property_value_id = $property_value_id_max + 1;
                                     }
-                                    unset($propertyValueIdMax);
+                                    unset($property_value_id_max);
                                 }
-                                if ($propertyValueId > 0) {
-                                    $propertyValueClass->values_id = $propertyValueId;
+                                if ($property_value_id > 0) {
+                                    $property_value_class->values_id = $property_value_id;
                                 }
                             }
-                            $propertyValueClass->setAttributes($valueRecord, false);
-                            $propertyValueClass->setAttributes($valueDescriptionRecord, false);
-                            if ($propertyValueClass->save(false)) {
-                                $isSaveVD = true;
-                                $propertyValueId = (int)$propertyValueClass->values_id;
-                                $valueDescriptionRecord = $propertyValueClass->toArray();
+                            $property_value_class->set_attributes($value_record, false);
+                            $property_value_class->set_attributes($value_description_record, false);
+                            if ($property_value_class->save(false)) {
+                                $is_save_vd = true;
+                                $property_value_id = (int) $property_value_class->values_id;
+                                $value_description_record = $property_value_class->to_array();
                             } else {
-                                $this->messageAdd($propertyValueClass->getErrorSummary(true));
+                                $this->message_add($property_value_class->get_error_summary(true));
                             }
                         } catch (\Exception $exc) {
-                            $this->messageAdd($exc->getMessage());
+                            $this->message_add($exc->get_message());
                         }
-                        unset($propertyValueClass);
-                        if ($isSaveVD != true) {
-                            unset($valueRecord['descriptionRecordArray'][$keyVD]);
+                        unset($property_value_class);
+                        if ($is_save_vd != true) {
+                            unset($value_record['descriptionRecordArray'][$key_vd]);
                         }
-                        unset($isSaveVD);
+                        unset($is_save_vd);
                     }
-                    unset($valueDescriptionRecord);
-                    unset($keyVD);
+                    unset($value_description_record);
+                    unset($key_vd);
                     // EOF VALUE DESCRIPTION
-                    if (($propertyValueId > 0) and (count($valueRecord['descriptionRecordArray']) > 0)) {
-                        $valueRecord['descriptionRecordArray'] = array_values($valueRecord['descriptionRecordArray']);
-                        $valueRecord = ($valueRecord + $valueRecord['descriptionRecordArray'][0]);
+                    if ($property_value_id > 0 and count($value_record['descriptionRecordArray']) > 0) {
+                        $value_record['descriptionRecordArray'] = array_values($value_record['descriptionRecordArray']);
+                        $value_record = $value_record + $value_record['descriptionRecordArray'][0];
                     } else {
-                        unset($this->valueRecordArray[$keyV]);
+                        unset($this->value_record_array[$key_v]);
                     }
-                    unset($valueRecord['values_text_default']);
-                    unset($propertyValueId);
+                    unset($value_record['values_text_default']);
+                    unset($property_value_id);
                 }
-                unset($valueRecord);
-                unset($keyV);
+                unset($value_record);
+                unset($key_v);
                 // EOF VALUE
-                unset($isReplace);
+                unset($is_replace);
             } else {
-                $this->messageAdd($propertyClass->getErrorSummary(true));
+                $this->message_add($property_class->get_error_summary(true));
             }
         } catch (\Exception $exc) {
-            $this->messageAdd($exc->getMessage());
+            $this->message_add($exc->get_message());
         }
         return $return;
     }

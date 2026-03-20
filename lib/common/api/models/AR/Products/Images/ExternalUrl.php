@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,74 +11,59 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\AR\Products\Images;
 
-use common\api\models\AR\EPMap;
+use common\api\models\AR\Ep_Map;
 use common\classes\Images;
-
-class ExternalUrl extends EPMap
+class External_Url extends Ep_Map
 {
-    protected $hideFields = [
-        'products_images_id',
-        'language_id',
-        'image_types_id',
-    ];
-
-    protected $parentObject;
-
-    public static function tableName()
+    protected $hide_fields = ['products_images_id', 'language_id', 'image_types_id'];
+    protected $parent_object;
+    public static function table_name()
     {
         return TABLE_PRODUCTS_IMAGES_EXTERNAL_URL;
     }
-
-    public static function primaryKey()
+    public static function primary_key()
     {
         return ['products_images_id', 'language_id', 'image_types_id'];
     }
-
-    public function parentEPMap(EPMap $parentObject)
+    public function parent_ep_map(Ep_Map $parent_object)
     {
-        $this->products_images_id = $parentObject->products_images_id;
-        $this->language_id = $parentObject->language_id;
-        $this->parentObject = $parentObject;
+        $this->products_images_id = $parent_object->products_images_id;
+        $this->language_id = $parent_object->language_id;
+        $this->parent_object = $parent_object;
     }
-
-    public function exportArray(array $fields = [])
+    public function export_array(array $fields = [])
     {
-        static $typeIdToName = false;
-        if (!is_array($typeIdToName)) {
-            $typeIdToName = [];
-            foreach (Images::getImageTypes() as $imageType) {
-                $typeIdToName[$imageType['image_types_id']] = $imageType['image_types_name'];
+        static $type_id_to_name = false;
+        if (!is_array($type_id_to_name)) {
+            $type_id_to_name = [];
+            foreach (Images::get_image_types() as $image_type) {
+                $type_id_to_name[$image_type['image_types_id']] = $image_type['image_types_name'];
             }
         }
-        $data = parent::exportArray($fields);
-        $data['image_types_name'] = $typeIdToName[$this->image_types_id];
+        $data = parent::export_array($fields);
+        $data['image_types_name'] = $type_id_to_name[$this->image_types_id];
         return $data;
     }
-
-    public function importArray($data)
+    public function import_array($data)
     {
-
         if (isset($data['image_types_name'])) {
-            $typeArray = Images::getImageTypes($data['image_types_name']);
-            if (!is_array($typeArray)) {
+            $type_array = Images::get_image_types($data['image_types_name']);
+            if (!is_array($type_array)) {
                 return false;
             }
-            $data['image_types_id'] = $typeArray['image_types_id'];
+            $data['image_types_id'] = $type_array['image_types_id'];
         } else {
             return false;
         }
-
-        $result = parent::importArray($data);
+        $result = parent::import_array($data);
         return $result;
     }
-
-    public function matchIndexedValue(EPMap $importedObject)
+    public function match_indexed_value(Ep_Map $imported_object)
     {
-        if (!is_null($importedObject->image_types_id) && !is_null($this->image_types_id) && $importedObject->image_types_id == $this->image_types_id) {
-            $this->pendingRemoval = false;
+        if (!is_null($imported_object->image_types_id) && !is_null($this->image_types_id) && $imported_object->image_types_id == $this->image_types_id) {
+            $this->pending_removal = false;
             return true;
         }
         return false;

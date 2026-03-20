@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,12 +11,10 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\editor;
 
 use Yii;
 use yii\base\Widget;
-
 class Price extends Widget
 {
     public $manager;
@@ -27,8 +25,7 @@ class Price extends Widget
     public $currency;
     public $field;
     public $classname;
-    public $isEditInGrid = false;
-
+    public $is_edit_in_grid = false;
     public function init()
     {
         parent::init();
@@ -38,23 +35,9 @@ class Price extends Widget
             }
         }
     }
-
     public function run()
     {
-
         $currencies = Yii::$container->get('currencies');
-
-        return $this->render('price', [
-            'isEditInGrid' => $this->isEditInGrid,
-            'currencies' => $currencies,
-            'price' => $this->price,
-            'tax' => $this->tax,
-            'qty' => $this->qty,
-            'currency' => $this->currency,
-            'field' => $this->field,
-            'class' => $this->classname,
-            'currency_value' => $currencies->currencies[$this->currency]['value'],
-        ]);
+        return $this->render('price', ['isEditInGrid' => $this->is_edit_in_grid, 'currencies' => $currencies, 'price' => $this->price, 'tax' => $this->tax, 'qty' => $this->qty, 'currency' => $this->currency, 'field' => $this->field, 'class' => $this->classname, 'currency_value' => $currencies->currencies[$this->currency]['value']]);
     }
-
 }

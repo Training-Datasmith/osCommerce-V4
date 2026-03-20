@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,49 +11,36 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\boxes;
 
 use common\models\Banners;
-use common\models\BannersGroups;
+use common\models\Banners_Groups;
 use yii\base\Widget;
-
 class Banner extends Widget
 {
     public $id;
     public $params;
     public $settings;
     public $visibility;
-
     public function init()
     {
         \common\helpers\Translation::init('admin/banner_manager');
         parent::init();
     }
-
     public function run()
     {
-        $bannersGroups = BannersGroups::find()
-            ->orderBy('banners_group')
-            ->asArray()->all();
-
-        foreach ($bannersGroups as $key => $bannersGroup) {
-            $bannersGroups[$key]['count'] = Banners::find()
-                ->where(['group_id' => $bannersGroup['id']/*, 'status' => 1*/])->count();
+        $banners_groups = Banners_Groups::find()->order_by('banners_group')->as_array()->all();
+        foreach ($banners_groups as $key => $banners_group) {
+            $banners_groups[$key]['count'] = Banners::find()->where(['group_id' => $banners_group['id']])->count();
         }
-
         /* support old versions */
         $this->settings[0]['banners_group'] = $this->settings[0]['banners_group'] ?? null;
         $this->settings[0]['banners_type'] = $this->settings[0]['banners_type'] ?? null;
         if (!$this->settings[0]['banners_group'] && $this->params) {
             $this->settings[0]['banners_group'] = $this->params;
         }
-
         if (!$this->settings[0]['banners_type'] && $this->settings[0]['banners_group']) {
-            $banner = Banners::find()->alias('b')
-                ->leftJoin(BannersGroups::tableName() . ' bg', 'bg.id = b.group_id')
-                ->where(['bg.banners_group' => $this->settings[0]['banners_group']])
-                ->asArray()->one();
+            $banner = Banners::find()->alias('b')->left_join(Banners_Groups::table_name() . ' bg', 'bg.id = b.group_id')->where(['bg.banners_group' => $this->settings[0]['banners_group']])->as_array()->one();
             if ($banner && $banner['banner_type']) {
                 $type_array = $banner['banner_type'];
                 $type_exp = explode(';', $type_array);
@@ -65,29 +52,12 @@ class Banner extends Widget
             }
         }
         /* /support old versions */
-
-        $microtime = \common\models\DesignBoxesTmp::findOne($this->id)->microtime ?? '';
+        $microtime = \common\models\Design_Boxes_Tmp::find_one($this->id)->microtime ?? '';
         $microtime = substr($microtime, 0, strripos($microtime, '.'));
-
-        $content = $this->render('banner.tpl', [
-            'id' => $this->id,
-            'params' => $this->params,
-            'bannersGroups' => $bannersGroups,
-            'settings' => $this->settings,
-            'visibility' => $this->visibility,
-            'microtime' => $microtime,
-        ]);
-
+        $content = $this->render('banner.tpl', ['id' => $this->id, 'params' => $this->params, 'bannersGroups' => $banners_groups, 'settings' => $this->settings, 'visibility' => $this->visibility, 'microtime' => $microtime]);
         if ($this->params && $this->params['main_content']) {
             return $content;
         }
-
-        return $this->render('settings.tpl', [
-            'content' => $content,
-            'id' => $this->id,
-            'params' => $this->params,
-            'settings' => $this->settings,
-            'visibility' => $this->visibility,
-        ]);
+        return $this->render('settings.tpl', ['content' => $content, 'id' => $this->id, 'params' => $this->params, 'settings' => $this->settings, 'visibility' => $this->visibility]);
     }
 }

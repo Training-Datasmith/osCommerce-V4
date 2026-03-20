@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,100 +11,75 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design;
 
 class Migration
 {
-    protected $themeName;
+    protected $theme_name;
     protected $migration;
-
-    public function __construct($themeName)
+    public function __construct($theme_name)
     {
-        $this->themeName = $themeName;
+        $this->theme_name = $theme_name;
     }
-
-    public function create($stepsIDs)
+    public function create($steps_i_ds)
     {
-        if (!isset($this->themeName) || !isset($stepsIDs) || !is_array($stepsIDs)) {
+        if (!isset($this->theme_name) || !isset($steps_i_ds) || !is_array($steps_i_ds)) {
             return 'error';
         }
-
-        $steps = \common\models\ThemesSteps::find()
-            ->where(['IN', 'steps_id', $stepsIDs])
-            ->andWhere(['theme_name' => $this->themeName])
-            ->asArray()->all();
-
+        $steps = \common\models\Themes_Steps::find()->where(['IN', 'steps_id', $steps_i_ds])->and_where(['theme_name' => $this->theme_name])->as_array()->all();
         $migration = [];
         foreach ($steps as $step) {
             $step['data'] = json_decode($step['data'], true);
             $migration[] = $step;
         }
-
         return $migration;
     }
-
     public function apply($migration)
     {
     }
-
-    protected function cssSave($step)
+    protected function css_save($step)
     {
     }
-
-    protected function boxSave($step)
+    protected function box_save($step)
     {
     }
-
-    protected function boxAdd($step)
+    protected function box_add($step)
     {
     }
-
-    protected function blocksMove($step)
+    protected function blocks_move($step)
     {
     }
-
-    protected function boxDelete($step)
+    protected function box_delete($step)
     {
     }
-
-    protected function importBlock($step)
+    protected function import_block($step)
     {
     }
-
-    protected function styleSave($step)
+    protected function style_save($step)
     {
     }
-
     protected function settings($step)
     {
     }
-
-    protected function extendRemove($step)
+    protected function extend_remove($step)
     {
     }
-
-    protected function extendAdd($step)
+    protected function extend_add($step)
     {
     }
-
-    protected function javascriptSave($step)
+    protected function javascript_save($step)
     {
     }
-
-    protected function addPage($step)
+    protected function add_page($step)
     {
     }
-
-    protected function addPageSettings($step)
+    protected function add_page_settings($step)
     {
     }
-
-    protected function stylesChange($step)
+    protected function styles_change($step)
     {
     }
-
-    protected function removeClass($step)
+    protected function remove_class($step)
     {
     }
 }

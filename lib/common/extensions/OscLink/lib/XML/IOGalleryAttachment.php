@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,50 +11,42 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+namespace Osc_Link\XML;
 
-namespace OscLink\XML;
-
-class IOGalleryAttachment extends IOAttachment
+class Io_Gallery_Attachment extends Io_Attachment
 {
     public $record;
-    public $archiveFileName;
-
-    public static function canUseArchiveName($name, $physicalFile)
+    public $archive_file_name;
+    public static function can_use_archive_name($name, $physical_file)
     {
         static $pool = [];
-        $checkFile_sha1 = '';
+        $check_file_sha1 = '';
         if (isset($pool[$name])) {
             if (empty($pool[$name]['sha1'])) {
                 $pool[$name]['sha1'] = sha1_file($pool[$name]['file']);
             }
-            $checkFile_sha1 = sha1_file($physicalFile);
-            if ($checkFile_sha1 !== $pool[$name]['sha1']) {
+            $check_file_sha1 = sha1_file($physical_file);
+            if ($check_file_sha1 !== $pool[$name]['sha1']) {
                 return false;
             } else {
                 return true;
             }
         }
-
-        $pool[$name] = ['file' => $physicalFile,'sha1' => $checkFile_sha1];
-
+        $pool[$name] = ['file' => $physical_file, 'sha1' => $check_file_sha1];
         return true;
     }
-
-    public function getAttachmentFileName()
+    public function get_attachment_file_name()
     {
-        $AttachmentFileName = parent::getAttachmentFileName();
-
-        if (!empty($this->value) && $AttachmentFileName) {
-            $this->archiveFileName = $this->value;
+        $attachment_file_name = parent::get_attachment_file_name();
+        if (!empty($this->value) && $attachment_file_name) {
+            $this->archive_file_name = $this->value;
             if (is_object($this->record) && !empty($this->record->orig_file_name)) {
-                $this->archiveFileName = $this->record->orig_file_name;
-                if (!static::canUseArchiveName($this->archiveFileName, $AttachmentFileName)) {
-                    $this->archiveFileName = implode('_', $this->record->getPrimaryKey(true)).'_'.$this->record->orig_file_name;
+                $this->archive_file_name = $this->record->orig_file_name;
+                if (!static::can_use_archive_name($this->archive_file_name, $attachment_file_name)) {
+                    $this->archive_file_name = implode('_', $this->record->get_primary_key(true)) . '_' . $this->record->orig_file_name;
                 }
             }
         }
-
-        return $AttachmentFileName;
+        return $attachment_file_name;
     }
-
 }

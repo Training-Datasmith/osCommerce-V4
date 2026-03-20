@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,67 +11,58 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\controllers;
 
 use common\helpers\Translation;
 use Yii;
 use yii\web\Controller;
-
 /**
  * default controller to handle user requests.
  */
-class LogoutController extends Controller
+class Logout_Controller extends Controller
 {
     /**
      * Index action is the default action in a controller.
      */
-    public function actionIndex()
+    public function action_index()
     {
         global $login_id, $device_hash;
-
-        $alslHash = trim(Yii::$app->request->get('hash'));
-        if (!empty($alslHash)) {
+        $alsl_hash = trim(Yii::$app->request->get('hash'));
+        if (!empty($alsl_hash)) {
             Translation::init('admin/logout');
             $this->layout = false;
-            return $this->render('sessions', [
-                'formAction' => \yii\helpers\Url::to(['logout/', 'hash' => null]),
-                'alslHash' => $alslHash,
-            ]);
+            return $this->render('sessions', ['formAction' => \yii\helpers\Url::to(['logout/', 'hash' => null]), 'alslHash' => $alsl_hash]);
         }
-        $alslHash = trim(Yii::$app->request->post('hash'), '');
-        if ($alslHash != '') {
-            \common\models\AdminLoginSessionLogoff::deleteAll(['<', 'alsl_date_expire', date('Y-m-d H:i:s')]);
-            $alslRecord = \common\models\AdminLoginSessionLogoff::findOne(['alsl_hash' => $alslHash]);
-            if ($alslRecord instanceof \common\models\AdminLoginSessionLogoff) {
-                $login_id = (int)$alslRecord->alsl_admin_id;
-                $device_hash = $alslRecord->alsl_device_id;
-                \common\models\AdminLogin::deleteAll(['al_admin_id' => $login_id]);
-                \common\models\AdminLoginSession::deleteAll(['als_admin_id' => $login_id]);
-                \common\models\AdminDevice::deleteAll(['ad_admin_id' => $login_id, 'ad_device_id' => $device_hash]);
-                $alslRecord->delete();
+        $alsl_hash = trim(Yii::$app->request->post('hash'), '');
+        if ($alsl_hash != '') {
+            \common\models\Admin_Login_Session_Logoff::delete_all(['<', 'alsl_date_expire', date('Y-m-d H:i:s')]);
+            $alsl_record = \common\models\Admin_Login_Session_Logoff::find_one(['alsl_hash' => $alsl_hash]);
+            if ($alsl_record instanceof \common\models\Admin_Login_Session_Logoff) {
+                $login_id = (int) $alsl_record->alsl_admin_id;
+                $device_hash = $alsl_record->alsl_device_id;
+                \common\models\Admin_Login::delete_all(['al_admin_id' => $login_id]);
+                \common\models\Admin_Login_Session::delete_all(['als_admin_id' => $login_id]);
+                \common\models\Admin_Device::delete_all(['ad_admin_id' => $login_id, 'ad_device_id' => $device_hash]);
+                $alsl_record->delete();
             }
-            unset($alslRecord);
+            unset($alsl_record);
         }
-        unset($alslHash);
-
+        unset($alsl_hash);
         if (!tep_session_is_registered('admin_multi_session_error')) {
-            $adminLoginLogRecord = new \common\models\AdminLoginLog();
-            $adminLoginLogRecord->all_event = 20;
-            $adminLoginLogRecord->all_device_id = $device_hash;
-            $adminLoginLogRecord->all_ip = '';
-            $adminLoginLogRecord->all_agent = '';
-            $adminLoginLogRecord->all_user_id = $login_id;
-            $adminLoginLogRecord->all_user = \common\models\AdminLoginLog::getAdminEmail($login_id);
-            $adminLoginLogRecord->all_date = date('Y-m-d H:i:s');
+            $admin_login_log_record = new \common\models\Admin_Login_Log();
+            $admin_login_log_record->all_event = 20;
+            $admin_login_log_record->all_device_id = $device_hash;
+            $admin_login_log_record->all_ip = '';
+            $admin_login_log_record->all_agent = '';
+            $admin_login_log_record->all_user_id = $login_id;
+            $admin_login_log_record->all_user = \common\models\Admin_Login_Log::get_admin_email($login_id);
+            $admin_login_log_record->all_date = date('Y-m-d H:i:s');
             try {
-                $adminLoginLogRecord->save();
+                $admin_login_log_record->save();
             } catch (\Exception $exc) {
             }
         }
-
-        \common\models\AdminLoginSession::deleteAll(['als_admin_id' => (int)$login_id, 'als_device_id' => trim($device_hash)]);
-
+        \common\models\Admin_Login_Session::delete_all(['als_admin_id' => (int) $login_id, 'als_device_id' => trim($device_hash)]);
         //tep_session_destroy();
         tep_session_unregister('login_id');
         tep_session_unregister('login_firstname');
@@ -79,12 +70,9 @@ class LogoutController extends Controller
         tep_session_unregister('login_affiliate');
         tep_session_unregister('login_vendor');
         tep_session_unregister('device_hash');
-
         session_regenerate_id();
-
         $session = Yii::$app->session;
         $session->destroy();
-
         return $this->redirect(['login/']);
     }
 }

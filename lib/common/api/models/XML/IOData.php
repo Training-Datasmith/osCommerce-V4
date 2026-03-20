@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,103 +11,95 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\XML;
 
-class IOData
+class Io_Data
 {
-    public $exportPK = [];
+    public $export_pk = [];
     public $meta = [];
     public $data = [];
-
-    public static function fromArray($dataArray)
+    public static function from_array($data_array)
     {
         $obj = new self();
-        $obj->data = $dataArray;
+        $obj->data = $data_array;
         return $obj;
     }
-
-    public function getAttachmentList()
+    public function get_attachment_list()
     {
-        $attachmentObjects = [];
-        foreach ($this->data as $dataValue) {
-            if (!is_object($dataValue)) {
+        $attachment_objects = [];
+        foreach ($this->data as $data_value) {
+            if (!is_object($data_value)) {
                 continue;
             }
-            if ($dataValue instanceof IOAttachment) {
-                $attachmentObjects[] = $dataValue;
-            } elseif ($dataValue instanceof IOData) {
-                $attachmentObjects = array_merge($attachmentObjects, $dataValue->getAttachmentList());
+            if ($data_value instanceof Io_Attachment) {
+                $attachment_objects[] = $data_value;
+            } elseif ($data_value instanceof Io_Data) {
+                $attachment_objects = array_merge($attachment_objects, $data_value->get_attachment_list());
             }
         }
-        return $attachmentObjects;
+        return $attachment_objects;
     }
-
-    public function isImportable($processModel)
+    public function is_importable($process_model)
     {
-        $isValid = true;
+        $is_valid = true;
         /*foreach ( $this->data as $name=>$value ) {
-            if ( is_object($value) && $value instanceof IOMap ) {
-                $value->isMapValid();
-                echo '<pre>'; var_dump($value); echo '</pre>'; die;
-            }
-            //IOMap
-        }*/
-        return $isValid;
+              if ( is_object($value) && $value instanceof IOMap ) {
+                  $value->isMapValid();
+                  echo '<pre>'; var_dump($value); echo '</pre>'; die;
+              }
+              //IOMap
+          }*/
+        return $is_valid;
     }
-
-    public static function serializeToSimpleXml(IOData $data, $recordTag, $rootElement = null)
+    public static function serialize_to_simple_xml(Io_Data $data, $record_tag, $root_element = null)
     {
-        if (is_object($recordTag) && $recordTag instanceof \SimpleXMLElement) {
-            $element = $recordTag;
+        if (is_object($record_tag) && $record_tag instanceof \Simple_Xml_Element) {
+            $element = $record_tag;
         } else {
-            $element = new \SimpleXMLElement("<?xml version=\"1.0\" encoding=\"UTF-8\"?><{$recordTag} />");
+            $element = new \Simple_Xml_Element("<?xml version=\"1.0\" encoding=\"UTF-8\"?><{$record_tag} />");
         }
         foreach ($data->data as $name => $val) {
-            if (false && in_array($name, $data->exportPK)) {
+            if (false && in_array($name, $data->export_pk)) {
                 if (is_object($val) && $val instanceof Complex) {
-                    $element->addAttribute('type', Helper::getClassShortName(get_class($val)));
-                    $val->serializeTo($element);
+                    $element->add_attribute('type', Helper::get_class_short_name(get_class($val)));
+                    $val->serialize_to($element);
                     //$element->addAttribute($name, $val);
                 } else {
-                    $element->addAttribute($name, $val);
+                    $element->add_attribute($name, $val);
                 }
                 continue;
             }
             if (is_array($val)) {
                 //echo '<pre>'; var_dump($name, $val); echo '</pre>'; die;
-            } elseif (is_object($val) && $val instanceof IOData) {
-                $rootTag = '';
+            } elseif (is_object($val) && $val instanceof Io_Data) {
+                $root_tag = '';
                 if (strpos($val->meta['xmlCollection'], '>') !== false) {
-                    list($rootTag, $recordTag) = explode('>', $val->meta['xmlCollection'], 2);
+                    list($root_tag, $record_tag) = explode('>', $val->meta['xmlCollection'], 2);
                 } else {
-                    $recordTag = $val->meta['xmlCollection'];
+                    $record_tag = $val->meta['xmlCollection'];
                 }
-                $childElement = $element->addChild($rootTag);
-                foreach ($val->data as $nestedData) {
-                    $childCollectionElement = $childElement->addChild($recordTag);
-                    static::serializeToSimpleXml($nestedData, $childCollectionElement, $childElement);
+                $child_element = $element->add_child($root_tag);
+                foreach ($val->data as $nested_data) {
+                    $child_collection_element = $child_element->add_child($record_tag);
+                    static::serialize_to_simple_xml($nested_data, $child_collection_element, $child_element);
                 }
             } elseif (is_object($val)) {
                 if ($val instanceof Complex) {
-                    $complexObject = $element->addChild($name);
-                    $complexObject->addAttribute('type', Helper::getClassShortName(get_class($val)));
-                    $val->serializeTo($complexObject);
+                    $complex_object = $element->add_child($name);
+                    $complex_object->add_attribute('type', Helper::get_class_short_name(get_class($val)));
+                    $val->serialize_to($complex_object);
                 }
+            } else if (is_null($val)) {
+                $element->add_child($name)->add_attribute('type', 'nil');
             } else {
-                if (is_null($val)) {
-                    $element->addChild($name)->addAttribute('type', 'nil');
-                } else {
-                    //$element->{$name} = $val;
-                    $valStripedInvalid = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', '', $val);
-                    $element->{$name} = $valStripedInvalid;
-                }
+                //$element->{$name} = $val;
+                $val_striped_invalid = preg_replace('/[^\x{0009}\x{000a}\x{000d}\x{0020}-\x{D7FF}\x{E000}-\x{FFFD}]+/u', '', $val);
+                $element->{$name} = $val_striped_invalid;
             }
         }
-        if ($rootElement && is_object($rootElement)) {
+        if ($root_element && is_object($root_element)) {
             return null;
         }
         return $element;
     }
-
 }

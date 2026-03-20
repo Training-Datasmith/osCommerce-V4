@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,39 +11,31 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\orders;
 
 use yii\base\Widget;
-
 class Request extends Widget
 {
     public $order;
     public $manager;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
         if (!\common\helpers\Acl::rule(['ACL_ORDER', 'TEXT_SEND_CUSTOMER_REQUEST'])) {
             return '';
         }
-
         $ot_paid_exist = false;
-        $paid = $this->manager->getTotalCollection()->get('ot_paid');
+        $paid = $this->manager->get_total_collection()->get('ot_paid');
         if ($paid) {
-            $totals = \yii\helpers\ArrayHelper::map($this->order->totals, 'class', 'value_inc_tax');
-            $ot_paid_exist = number_format($totals['ot_total'], 2) > number_format($totals['ot_paid'], 2) || (isset($totals['ot_due']) && (float)$totals['ot_due'] > 0);
+            $totals = \yii\helpers\Array_Helper::map($this->order->totals, 'class', 'value_inc_tax');
+            $ot_paid_exist = number_format($totals['ot_total'], 2) > number_format($totals['ot_paid'], 2) || isset($totals['ot_due']) && (float) $totals['ot_due'] > 0;
         }
-
-        if ($ot_paid_exist && \common\helpers\Acl::checkExtensionAllowed('UpdateAndPay', 'allowed')) {
+        if ($ot_paid_exist && \common\helpers\Acl::check_extension_allowed('UpdateAndPay', 'allowed')) {
             \common\helpers\Translation::init('admin/orders/order-edit');
-            return $this->render('request', [
-                'order_id' => $this->order->order_id,
-            ]);
+            return $this->render('request', ['order_id' => $this->order->order_id]);
         }
     }
 }

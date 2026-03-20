@@ -10,27 +10,23 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-declare(strict_types=1);
+declare (strict_types=1);
+namespace common\components\Event_Dispatcher\Provider;
 
-namespace common\components\EventDispatcher\Provider;
-
-use common\components\EventDispatcher\ListenerProviderInterface;
-
-class ProvidersAggregate implements ListenerProviderInterface
+use common\components\Event_Dispatcher\Listener_Provider_Interface;
+class Providers_Aggregate implements Listener_Provider_Interface
 {
     /**
      * @var ListenerProviderInterface[]
      */
     private $providers;
-
-    public function getListenersForEvent($event)
+    public function get_listeners_for_event($event)
     {
         foreach ($this->providers as $provider) {
-            yield from $provider->getListenersForEvent($event);
+            yield from $provider->get_listeners_for_event($event);
         }
     }
-
-    public function attach(ListenerProviderInterface $provider)
+    public function attach(Listener_Provider_Interface $provider)
     {
         $this->providers[] = $provider;
     }

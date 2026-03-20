@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,18 +11,12 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+namespace common\extensions\User_Groups\assets;
 
-namespace common\extensions\UserGroups\assets;
-
-class BannerEditAsset extends \yii\web\AssetBundle
+class Banner_Edit_Asset extends \yii\web\Asset_Bundle
 {
-    public $sourcePath = '@common/extensions/UserGroups/assets';
-    public $js = [
-        'banner-edit.js',
-    ];
-    public $css = [
-    ];
-    public $publishOptions = [
-        //'forceCopy'=>true,
-    ];
+    public $source_path = '@common/extensions/UserGroups/assets';
+    public $js = ['banner-edit.js'];
+    public $css = [];
+    public $publish_options = [];
 }

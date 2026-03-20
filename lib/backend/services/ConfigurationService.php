@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,47 +11,39 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\services;
 
-use common\models\repositories\ConfigurationRepository;
-use common\services\PlatformsConfigurationService;
-
-final class ConfigurationService
+use common\models\repositories\Configuration_Repository;
+use common\services\Platforms_Configuration_Service;
+final class Configuration_Service
 {
     /** @var ConfigurationRepository */
-    private $configurationRepository;
+    private $configuration_repository;
     /** @var PlatformsConfigurationService */
-    private $platformsConfigurationService;
-
-    public function __construct(
-        ConfigurationRepository $configurationRepository,
-        PlatformsConfigurationService $platformsConfigurationService
-    ) {
-        $this->configurationRepository = $configurationRepository;
-        $this->platformsConfigurationService = $platformsConfigurationService;
+    private $platforms_configuration_service;
+    public function __construct(Configuration_Repository $configuration_repository, Platforms_Configuration_Service $platforms_configuration_service)
+    {
+        $this->configuration_repository = $configuration_repository;
+        $this->platforms_configuration_service = $platforms_configuration_service;
     }
-
-    public function isDefaultOrderStatusIdForOnlinePayment(int $orderStatusId)
+    public function is_default_order_status_id_for_online_payment(int $order_status_id)
     {
         if (defined('DEFAULT_ONLINE_PAYMENT_ORDERS_STATUS_ID')) {
-            if ((int) DEFAULT_ONLINE_PAYMENT_ORDERS_STATUS_ID === $orderStatusId) {
+            if ((int) DEFAULT_ONLINE_PAYMENT_ORDERS_STATUS_ID === $order_status_id) {
                 return true;
             }
         }
         return false;
     }
-
-    public function isDefaultOrderStatusIdForOnlinePaymentSuccess(int $orderStatusId)
+    public function is_default_order_status_id_for_online_payment_success(int $order_status_id)
     {
         if (defined('DEFAULT_ONLINE_PAYMENT_SUCCESS_ORDERS_STATUS_ID')) {
-            if ((int)DEFAULT_ONLINE_PAYMENT_SUCCESS_ORDERS_STATUS_ID === $orderStatusId) {
+            if ((int) DEFAULT_ONLINE_PAYMENT_SUCCESS_ORDERS_STATUS_ID === $order_status_id) {
                 return true;
             }
         }
         return false;
     }
-
     /**
      * @param string $key
      * @param string $value
@@ -59,53 +51,49 @@ final class ConfigurationService
      * @throws \Throwable
      * @throws \yii\db\StaleObjectException
      */
-    public function updateByKey(string $key, string $value)
+    public function update_by_key(string $key, string $value)
     {
-        return $this->configurationRepository->updateByKey($key, $value);
+        return $this->configuration_repository->update_by_key($key, $value);
     }
-
     /**
      * @param int $orderStatusId
      * @return array|bool
      * @throws \Throwable
      * @throws \yii\db\StaleObjectException
      */
-    public function setDefaultOrderStatusIdForOnlinePayment(int $orderStatusId)
+    public function set_default_order_status_id_for_online_payment(int $order_status_id)
     {
-        return $this->configurationRepository->updateByKey('DEFAULT_ONLINE_PAYMENT_ORDERS_STATUS_ID', (string) $orderStatusId);
+        return $this->configuration_repository->update_by_key('DEFAULT_ONLINE_PAYMENT_ORDERS_STATUS_ID', (string) $order_status_id);
     }
-
-    public function setDefaultOrderStatusIdForOnlinePaymentSuccess(int $orderStatusId)
+    public function set_default_order_status_id_for_online_payment_success(int $order_status_id)
     {
-        return $this->configurationRepository->updateByKey('DEFAULT_ONLINE_PAYMENT_SUCCESS_ORDERS_STATUS_ID', (string) $orderStatusId);
+        return $this->configuration_repository->update_by_key('DEFAULT_ONLINE_PAYMENT_SUCCESS_ORDERS_STATUS_ID', (string) $order_status_id);
     }
-
     /**
      * @param string $key
      * @param bool $asArray
      * @return array|\common\models\Configuration|null
      */
-    public function findByKey(string $key, bool $asArray = false)
+    public function find_by_key(string $key, bool $as_array = false)
     {
-        return $this->configurationRepository->findByKey($key, $asArray);
+        return $this->configuration_repository->find_by_key($key, $as_array);
     }
-
     /**
      * @param string $key
      * @param int|null $platformId
      * @return string
      */
-    public function findValue(string $key, ?int $platformId = null): string
+    public function find_value(string $key, ?int $platform_id = null): string
     {
         $value = '';
-        $siteValue = $this->findByKey($key, true);
-        if ($siteValue) {
-            $value = $siteValue['configuration_value'];
+        $site_value = $this->find_by_key($key, true);
+        if ($site_value) {
+            $value = $site_value['configuration_value'];
         }
-        if ($platformId !== null) {
-            $platformValue = $this->platformsConfigurationService->findByKey($key, $platformId, true);
-            if ($platformValue) {
-                $value = $platformValue['configuration_value'];
+        if ($platform_id !== null) {
+            $platform_value = $this->platforms_configuration_service->find_by_key($key, $platform_id, true);
+            if ($platform_value) {
+                $value = $platform_value['configuration_value'];
             }
         }
         return $value;

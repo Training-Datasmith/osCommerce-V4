@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,92 +11,83 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
-use common\classes\PasswordHash;
-
+use common\classes\Password_Hash;
 class Password
 {
     public static function randomize($frontend = false)
     {
-        $passwordLength = 8;
+        $password_length = 8;
         $chars = 'abchefghjkmnpqrstuvwxyz0123456789';
-        $checkType = 'None';
+        $check_type = 'None';
         if ($frontend) {
             if (defined('ENTRY_PASSWORD_MIN_LENGTH')) {
-                $passwordLength = (int) ENTRY_PASSWORD_MIN_LENGTH;
+                $password_length = (int) ENTRY_PASSWORD_MIN_LENGTH;
             }
             if (defined('PASSWORD_STRONG_REQUIRED')) {
-                $checkType = PASSWORD_STRONG_REQUIRED;
-                switch ($checkType) {
+                $check_type = PASSWORD_STRONG_REQUIRED;
+                switch ($check_type) {
                     case 'ULN':
                         $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
                         break;
                     case 'ULNS':
-                        $chars =  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`-=~!@#$%^&*()_+,./<>?;:[]{}\|';
+                        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`-=~!@#$%^&*()_+,./<>?;:[]{}\|';
                         break;
                 }
             }
         } else {
             if (defined('ADMIN_PASSWORD_MIN_LENGTH')) {
-                $passwordLength = (int) ADMIN_PASSWORD_MIN_LENGTH;
+                $password_length = (int) ADMIN_PASSWORD_MIN_LENGTH;
             }
             if (defined('ADMIN_PASSWORD_STRONG')) {
-                $checkType = ADMIN_PASSWORD_STRONG;
-                switch ($checkType) {
+                $check_type = ADMIN_PASSWORD_STRONG;
+                switch ($check_type) {
                     case 'ULN':
                         $chars = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789';
                         break;
                     case 'ULNS':
-                        $chars =  'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`-=~!@#$%^&*()_+,./<>?;:[]{}\|';
+                        $chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789`-=~!@#$%^&*()_+,./<>?;:[]{}\|';
                         break;
                 }
             }
         }
-        $charsLen = strlen($chars);
-
+        $chars_len = strlen($chars);
         do {
-
-            $checkPassed = false;
-
+            $check_passed = false;
             $pass = '';
-            while (strlen($pass) < $passwordLength) {
-                $num = random_int(0, $charsLen - 1);
+            while (strlen($pass) < $password_length) {
+                $num = random_int(0, $chars_len - 1);
                 $tmp = substr($chars, $num, 1);
                 $pass = $pass . $tmp;
             }
-
-            switch ($checkType) {
+            switch ($check_type) {
                 case 'ULN':
-                    if (preg_match('/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{' . $passwordLength . ',}/', $pass)) {
-                        $checkPassed = true;
+                    if (preg_match('/(?=.*\d)(?=.*[a-z])(?=.*[A-Z]).{' . $password_length . ',}/', $pass)) {
+                        $check_passed = true;
                     }
                     break;
                 case 'ULNS':
-                    if (preg_match('/(?=.*\d)(?=.*\W+)(?=.*[a-z])(?=.*[A-Z]).{' . $passwordLength . ',}/', $pass)) {
-                        $checkPassed = true;
+                    if (preg_match('/(?=.*\d)(?=.*\W+)(?=.*[a-z])(?=.*[A-Z]).{' . $password_length . ',}/', $pass)) {
+                        $check_passed = true;
                     }
                     break;
                 default:
-                    $checkPassed = true;
+                    $check_passed = true;
                     break;
             }
-        } while (!$checkPassed);
-
+        } while (!$check_passed);
         return $pass;
     }
-
-    private static function getSecurityKeyByType($secKeyType = '')
+    private static function get_security_key_by_type($sec_key_type = '')
     {
         $return = '';
-        $secKeyType = ((trim($secKeyType) != '') ? ('secKey.' . strtolower(trim($secKeyType))) : '');
-        if (($secKeyType != '') and isset(\Yii::$app->params[$secKeyType])) {
-            $return = trim(\Yii::$app->params[$secKeyType]);
+        $sec_key_type = trim($sec_key_type) != '' ? 'secKey.' . strtolower(trim($sec_key_type)) : '';
+        if ($sec_key_type != '' and isset(\Yii::$app->params[$sec_key_type])) {
+            $return = trim(\Yii::$app->params[$sec_key_type]);
         }
         return $return;
     }
-
     /**
      * validate password hash using appropriate hash method (by hash format)
      * @param string $plain
@@ -104,42 +95,37 @@ class Password
      * @param string $secKeyType
      * @return boolean|0
      */
-    public static function validate_password($plain, $encrypted, $secKeyType = 'frontend')
+    public static function validate_password($plain, $encrypted, $sec_key_type = 'frontend')
     {
         if (tep_not_null($plain) && tep_not_null($encrypted)) {
             $type = static::password_type($encrypted);
-            if ($type  == 'salt') {
+            if ($type == 'salt') {
                 $stack = explode(':', $encrypted);
                 if (sizeof($stack) != 2) {
                     return false;
                 }
-
-                if (hash_equals($stack[0], md5($stack[1] . $plain)) || hash_equals($stack[0], md5($stack[1] . $plain . self::getSecurityKeyByType($secKeyType)))) {
+                if (hash_equals($stack[0], md5($stack[1] . $plain)) || hash_equals($stack[0], md5($stack[1] . $plain . self::get_security_key_by_type($sec_key_type)))) {
                     return 0;
                 }
             } elseif ($type == 'phpass') {
-                $hasher = new PasswordHash(10, true);
-                if ($hasher->CheckPassword($plain, $encrypted)) {
+                $hasher = new Password_Hash(10, true);
+                if ($hasher->check_password($plain, $encrypted)) {
                     return 0;
                 }
                 return false;
-
             } else {
-                return password_verify(($plain . self::getSecurityKeyByType($secKeyType)), $encrypted);
+                return password_verify($plain . self::get_security_key_by_type($sec_key_type), $encrypted);
             }
         }
         return false;
     }
-
     public static function rand($min = null, $max = null)
     {
         static $seeded;
-
         if (!isset($seeded)) {
             mt_srand(intval(microtime(true) * 1000000));
             $seeded = true;
         }
-
         if (isset($min) && isset($max)) {
             if ($min >= $max) {
                 return $min;
@@ -150,33 +136,29 @@ class Password
             return mt_rand();
         }
     }
-
-    public static function encrypt_password($plain, $secKeyType = 'frontend')
+    public static function encrypt_password($plain, $sec_key_type = 'frontend')
     {
-        return static::encrypt_password_p4($plain, $secKeyType);
+        return static::encrypt_password_p4($plain, $sec_key_type);
     }
-
-    public static function encrypt_password_p4($plain, $secKeyType = 'frontend')
+    public static function encrypt_password_p4($plain, $sec_key_type = 'frontend')
     {
-        $secKey = self::getSecurityKeyByType($secKeyType);
-        if ($secKey == '') {
+        $sec_key = self::get_security_key_by_type($sec_key_type);
+        if ($sec_key == '') {
             throw new \InvalidArgumentException('Encryption error! Security key cannot be empty!');
         }
         //Caution! Using the PASSWORD_BCRYPT as the algorithm, will result in the password parameter being truncated to a maximum length of 72 bytes.
-        $password = password_hash(($plain . $secKey), PASSWORD_BCRYPT, ['cost' => 13]);
+        $password = password_hash($plain . $sec_key, PASSWORD_BCRYPT, ['cost' => 13]);
         return $password;
     }
-
     public static function encrypt_password_phpass($plain)
     {
-        $hasher = new PasswordHash(10, true);
-        return $hasher->HashPassword($plain, 'phpass');
+        $hasher = new Password_Hash(10, true);
+        return $hasher->hash_password($plain, 'phpass');
     }
-
-    public static function encrypt_password_salt($plain, $secKeyType = 'frontend')
+    public static function encrypt_password_salt($plain, $sec_key_type = 'frontend')
     {
-        $secKey = self::getSecurityKeyByType($secKeyType);
-        if ($secKey == '') {
+        $sec_key = self::get_security_key_by_type($sec_key_type);
+        if ($sec_key == '') {
             throw new \InvalidArgumentException('Encryption error! Security key cannot be empty!');
         }
         $password = '';
@@ -184,21 +166,19 @@ class Password
             $password .= self::rand();
         }
         $salt = substr(md5($password), 0, 2);
-        $password = md5($salt . $plain . $secKey) . ':' . $salt;
+        $password = md5($salt . $plain . $sec_key) . ':' . $salt;
         return $password;
     }
-
     public static function create_random_value($length, $type = 'mixed')
     {
-        if (($type != 'mixed') && ($type != 'chars') && ($type != 'digits')) {
+        if ($type != 'mixed' && $type != 'chars' && $type != 'digits') {
             return false;
         }
-
         $rand_value = '';
         while (strlen($rand_value) < $length) {
             if ($type == 'digits') {
                 if (empty($rand_value)) {
-                    $char = self::checkFirst(self::rand(0, 9));
+                    $char = self::check_first(self::rand(0, 9));
                 } else {
                     $char = self::rand(0, 9);
                 }
@@ -219,11 +199,9 @@ class Password
                 }
             }
         }
-
         return $rand_value;
     }
-
-    public static function checkFirst($value)
+    public static function check_first($value)
     {
         if (!$value) {
             do {
@@ -232,32 +210,20 @@ class Password
         }
         return $value;
     }
-
-    public static function decryptAuthUserParam($auth_param)
+    public static function decrypt_auth_user_param($auth_param)
     {
         $encrypted = false;
         $sc = new \yii\base\Security();
-        if ($aup = $sc->decryptByKey($auth_param, gmdate('\s\me\c\rYkd\ey'))) {
+        if ($aup = $sc->decrypt_by_key($auth_param, gmdate('\s\me\c\rYkd\ey'))) {
             $aup = explode("\t", $aup, 4);
-            $encrypted = [
-                'customers_id' => $aup[0],
-                'customers_email' => $aup[1],
-                'auth_type' => $aup[2],
-                'auth_key' => $aup[3],
-            ];
+            $encrypted = ['customers_id' => $aup[0], 'customers_email' => $aup[1], 'auth_type' => $aup[2], 'auth_key' => $aup[3]];
         }
         return $encrypted;
     }
-    public static function encryptAuthUserParam($customer_id, $customers_email_address, $auth_type = 'login', $auth_key = '')
+    public static function encrypt_auth_user_param($customer_id, $customers_email_address, $auth_type = 'login', $auth_key = '')
     {
         $sc = new \yii\base\Security();
-        $aup = base64_encode($sc->encryptByKey(
-            strval($customer_id)."\t".
-            strval($customers_email_address)."\t".
-            strval($auth_type)."\t".
-            strval($auth_key),
-            gmdate('\s\me\c\rYkd\ey')
-        ));
+        $aup = base64_encode($sc->encrypt_by_key(strval($customer_id) . "\t" . strval($customers_email_address) . "\t" . strval($auth_type) . "\t" . strval($auth_key), gmdate('\s\me\c\rYkd\ey')));
         return $aup;
     }
     /**
@@ -272,8 +238,6 @@ class Password
         if (substr($encrypted, 0, 3) === '$P$') {
             return 'phpass';
         }
-
         return 'p4';
     }
-
 }

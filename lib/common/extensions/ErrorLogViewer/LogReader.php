@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,82 +11,63 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+namespace common\extensions\Error_Log_Viewer;
 
-namespace common\extensions\ErrorLogViewer;
-
-class LogReader
+class Log_Reader
 {
     private $file;
     private $handle;
     private $headers;
-
     protected $pattern = '|^([\d\-: ]{19}) \[([\d\.\-]*)\]\[([\d\-]*)\]\[([\d\w\-]*)\]\[(.*)\]\[(.*)\] (.*$)|u';
-    protected $matches = [
-        0 => 'origin',
-        1 => 'date',
-        2 => 'ip',
-        3 => 'user_id',
-        4 => 'session_id',
-        5 => 'level',
-        6 => 'category',
-        7 => 'text',
-    ];
-
+    protected $matches = [0 => 'origin', 1 => 'date', 2 => 'ip', 3 => 'user_id', 4 => 'session_id', 5 => 'level', 6 => 'category', 7 => 'text'];
     public function __construct($file)
     {
-        $sourceList = ['backend', 'frontend', 'console'];
+        $source_list = ['backend', 'frontend', 'console'];
         $tmp = explode('/', $file);
-        if (count($tmp) > 2 or !in_array($tmp[0], $sourceList)) {
+        if (count($tmp) > 2 or !in_array($tmp[0], $source_list)) {
             throw new \Exception('Undefined source/file');
         }
         $source = trim($tmp[0]);
-        $fileName = trim($tmp[1]);
-        $this->file = \Yii::getAlias('@'.$source).DIRECTORY_SEPARATOR.'runtime'.DIRECTORY_SEPARATOR.'logs'.DIRECTORY_SEPARATOR.$fileName;
+        $file_name = trim($tmp[1]);
+        $this->file = \Yii::get_alias('@' . $source) . DIRECTORY_SEPARATOR . 'runtime' . DIRECTORY_SEPARATOR . 'logs' . DIRECTORY_SEPARATOR . $file_name;
         $this->open();
     }
-
-    public function getHeaders()
+    public function get_headers()
     {
         return $this->headers;
     }
-
     private function open()
     {
         $this->handle = file($this->file);
         foreach ($this->handle as $id => $line) {
-            if ($this->isHeader($line)) {
-                $this->collectHeaders($id, $line);
+            if ($this->is_header($line)) {
+                $this->collect_headers($id, $line);
             }
         }
     }
-
-    public function getDetails($id)
+    public function get_details($id)
     {
         $data = '';
-        for ($i = (int)$id + 1; $i < count($this->handle); $i++) {
-            if ($this->isHeader($this->handle[$i])) {
+        for ($i = (int) $id + 1; $i < count($this->handle); $i++) {
+            if ($this->is_header($this->handle[$i])) {
                 break;
             }
             $data .= htmlspecialchars($this->handle[$i]);
         }
         return $data;
-
     }
-
-    private function isHeader($line)
+    private function is_header($line)
     {
         return preg_match($this->pattern, $line);
     }
-
-    private function collectHeaders($id, $line)
+    private function collect_headers($id, $line)
     {
         if (!preg_match($this->pattern, $line, $matches)) {
             return false;
         }
         $this->headers[$id] = $matches;
     }
-
-    private static function str_starts_with($haystack, $needle) // for support php v7
+    private static function str_starts_with($haystack, $needle)
     {
         return substr($haystack, 0, strlen($needle)) === $needle;
     }

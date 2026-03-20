@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,25 +11,19 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Provider\Trueloaded;
 
-use common\api\models\XML\IOCore;
-
-class OrdersStatuses extends XmlBase
+use common\api\models\XML\Io_Core;
+class Orders_Statuses extends Xml_Base
 {
     public function init()
     {
-
-        $this->ConfigureMap = IOCore::getExportStructure('order_statuses');
+        $this->configure_map = Io_Core::get_export_structure('order_statuses');
         parent::init();
-
     }
-
-    public function clearLocalData()
+    public function clear_local_data()
     {
         // Delete orders status only
         tep_db_query('DELETE FROM `orders_status` WHERE `orders_status_groups_id` IN (SELECT DISTINCT `orders_status_groups_id` FROM `orders_status_groups` WHERE `orders_status_type_id` = 1)');
     }
-
 }

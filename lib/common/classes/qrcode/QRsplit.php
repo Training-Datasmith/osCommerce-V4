@@ -1,12 +1,10 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace common\classes\qrcode;
 
-require_once('init.php');
+require_once 'init.php';
 //---- qrsplit.php -----------------------------
-
 /*
  * PHP QR Code encoder
  *
@@ -38,124 +36,100 @@ require_once('init.php');
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-class QRsplit
+class Q_Rsplit
 {
-    public $dataStr = '';
+    public $data_str = '';
     public $input;
-    public $modeHint;
-
+    public $mode_hint;
     //----------------------------------------------------------------------
-    public function __construct($dataStr, $input, $modeHint)
+    public function __construct($data_str, $input, $mode_hint)
     {
-        $this->dataStr  = $dataStr;
-        $this->input    = $input;
-        $this->modeHint = $modeHint;
+        $this->data_str = $data_str;
+        $this->input = $input;
+        $this->mode_hint = $mode_hint;
     }
-
     //----------------------------------------------------------------------
     public static function isdigitat($str, $pos)
     {
         if ($pos >= strlen($str)) {
             return false;
         }
-
-        return ((ord($str[$pos]) >= ord('0')) && (ord($str[$pos]) <= ord('9')));
+        return ord($str[$pos]) >= ord('0') && ord($str[$pos]) <= ord('9');
     }
-
     //----------------------------------------------------------------------
     public static function isalnumat($str, $pos)
     {
         if ($pos >= strlen($str)) {
             return false;
         }
-
-        return (QRinput::lookAnTable(ord($str[$pos])) >= 0);
+        return Q_Rinput::look_an_table(ord($str[$pos])) >= 0;
     }
-
     //----------------------------------------------------------------------
-    public function identifyMode($pos)
+    public function identify_mode($pos)
     {
-        if ($pos >= strlen($this->dataStr)) {
+        if ($pos >= strlen($this->data_str)) {
             return QR_MODE_NUL;
         }
-
-        $c = $this->dataStr[$pos];
-
-        if (self::isdigitat($this->dataStr, $pos)) {
+        $c = $this->data_str[$pos];
+        if (self::isdigitat($this->data_str, $pos)) {
             return QR_MODE_NUM;
-        } elseif (self::isalnumat($this->dataStr, $pos)) {
+        } elseif (self::isalnumat($this->data_str, $pos)) {
             return QR_MODE_AN;
-        } elseif ($this->modeHint == QR_MODE_KANJI) {
-
-            if ($pos + 1 < strlen($this->dataStr)) {
-                $d = $this->dataStr[$pos + 1];
-                $word = (ord($c) << 8) | ord($d);
-                if (($word >= 0x8140 && $word <= 0x9ffc) || ($word >= 0xe040 && $word <= 0xebbf)) {
+        } elseif ($this->mode_hint == QR_MODE_KANJI) {
+            if ($pos + 1 < strlen($this->data_str)) {
+                $d = $this->data_str[$pos + 1];
+                $word = ord($c) << 8 | ord($d);
+                if ($word >= 0x8140 && $word <= 0x9ffc || $word >= 0xe040 && $word <= 0xebbf) {
                     return QR_MODE_KANJI;
                 }
             }
         }
-
         return QR_MODE_8;
     }
-
     //----------------------------------------------------------------------
-    public function eatNum()
+    public function eat_num()
     {
-        $ln = QRspec::lengthIndicator(QR_MODE_NUM, $this->input->getVersion());
-
+        $ln = Q_Rspec::length_indicator(QR_MODE_NUM, $this->input->get_version());
         $p = 0;
-        while (self::isdigitat($this->dataStr, $p)) {
+        while (self::isdigitat($this->data_str, $p)) {
             $p++;
         }
-
         $run = $p;
-        $mode = $this->identifyMode($p);
-
+        $mode = $this->identify_mode($p);
         if ($mode == QR_MODE_8) {
-            $dif = QRinput::estimateBitsModeNum($run) + 4 + $ln
-                 + QRinput::estimateBitsMode8(1)         // + 4 + l8
-                 - QRinput::estimateBitsMode8($run + 1); // - 4 - l8
+            $dif = Q_Rinput::estimate_bits_mode_num($run) + 4 + $ln + Q_Rinput::estimate_bits_mode8(1) - Q_Rinput::estimate_bits_mode8($run + 1);
+            // - 4 - l8
             if ($dif > 0) {
                 return $this->eat8();
             }
         }
         if ($mode == QR_MODE_AN) {
-            $dif = QRinput::estimateBitsModeNum($run) + 4 + $ln
-                 + QRinput::estimateBitsModeAn(1)        // + 4 + la
-                 - QRinput::estimateBitsModeAn($run + 1);// - 4 - la
+            $dif = Q_Rinput::estimate_bits_mode_num($run) + 4 + $ln + Q_Rinput::estimate_bits_mode_an(1) - Q_Rinput::estimate_bits_mode_an($run + 1);
+            // - 4 - la
             if ($dif > 0) {
-                return $this->eatAn();
+                return $this->eat_an();
             }
         }
-
-        $ret = $this->input->append(QR_MODE_NUM, $run, str_split($this->dataStr));
+        $ret = $this->input->append(QR_MODE_NUM, $run, str_split($this->data_str));
         if ($ret < 0) {
             return -1;
         }
-
         return $run;
     }
-
     //----------------------------------------------------------------------
-    public function eatAn()
+    public function eat_an()
     {
-        $la = QRspec::lengthIndicator(QR_MODE_AN, $this->input->getVersion());
-        $ln = QRspec::lengthIndicator(QR_MODE_NUM, $this->input->getVersion());
-
+        $la = Q_Rspec::length_indicator(QR_MODE_AN, $this->input->get_version());
+        $ln = Q_Rspec::length_indicator(QR_MODE_NUM, $this->input->get_version());
         $p = 0;
-
-        while (self::isalnumat($this->dataStr, $p)) {
-            if (self::isdigitat($this->dataStr, $p)) {
+        while (self::isalnumat($this->data_str, $p)) {
+            if (self::isdigitat($this->data_str, $p)) {
                 $q = $p;
-                while (self::isdigitat($this->dataStr, $q)) {
+                while (self::isdigitat($this->data_str, $q)) {
                     $q++;
                 }
-
-                $dif = QRinput::estimateBitsModeAn($p) // + 4 + la
-                     + QRinput::estimateBitsModeNum($q - $p) + 4 + $ln
-                     - QRinput::estimateBitsModeAn($q); // - 4 - la
-
+                $dif = Q_Rinput::estimate_bits_mode_an($p) + Q_Rinput::estimate_bits_mode_num($q - $p) + 4 + $ln - Q_Rinput::estimate_bits_mode_an($q);
+                // - 4 - la
                 if ($dif < 0) {
                     break;
                 } else {
@@ -165,66 +139,52 @@ class QRsplit
                 $p++;
             }
         }
-
         $run = $p;
-
-        if (!self::isalnumat($this->dataStr, $p)) {
-            $dif = QRinput::estimateBitsModeAn($run) + 4 + $la
-                 + QRinput::estimateBitsMode8(1) // + 4 + l8
-                  - QRinput::estimateBitsMode8($run + 1); // - 4 - l8
+        if (!self::isalnumat($this->data_str, $p)) {
+            $dif = Q_Rinput::estimate_bits_mode_an($run) + 4 + $la + Q_Rinput::estimate_bits_mode8(1) - Q_Rinput::estimate_bits_mode8($run + 1);
+            // - 4 - l8
             if ($dif > 0) {
                 return $this->eat8();
             }
         }
-
-        $ret = $this->input->append(QR_MODE_AN, $run, str_split($this->dataStr));
+        $ret = $this->input->append(QR_MODE_AN, $run, str_split($this->data_str));
         if ($ret < 0) {
             return -1;
         }
-
         return $run;
     }
-
     //----------------------------------------------------------------------
-    public function eatKanji()
+    public function eat_kanji()
     {
         $p = 0;
-
-        while ($this->identifyMode($p) == QR_MODE_KANJI) {
+        while ($this->identify_mode($p) == QR_MODE_KANJI) {
             $p += 2;
         }
-
-        $ret = $this->input->append(QR_MODE_KANJI, $p, str_split($this->dataStr));
+        $ret = $this->input->append(QR_MODE_KANJI, $p, str_split($this->data_str));
         if ($ret < 0) {
             return -1;
         }
-
         return $run;
     }
-
     //----------------------------------------------------------------------
     public function eat8()
     {
-        $la = QRspec::lengthIndicator(QR_MODE_AN, $this->input->getVersion());
-        $ln = QRspec::lengthIndicator(QR_MODE_NUM, $this->input->getVersion());
-
+        $la = Q_Rspec::length_indicator(QR_MODE_AN, $this->input->get_version());
+        $ln = Q_Rspec::length_indicator(QR_MODE_NUM, $this->input->get_version());
         $p = 1;
-        $dataStrLen = strlen($this->dataStr);
-
-        while ($p < $dataStrLen) {
-
-            $mode = $this->identifyMode($p);
+        $data_str_len = strlen($this->data_str);
+        while ($p < $data_str_len) {
+            $mode = $this->identify_mode($p);
             if ($mode == QR_MODE_KANJI) {
                 break;
             }
             if ($mode == QR_MODE_NUM) {
                 $q = $p;
-                while (self::isdigitat($this->dataStr, $q)) {
+                while (self::isdigitat($this->data_str, $q)) {
                     $q++;
                 }
-                $dif = QRinput::estimateBitsMode8($p) // + 4 + l8
-                     + QRinput::estimateBitsModeNum($q - $p) + 4 + $ln
-                     - QRinput::estimateBitsMode8($q); // - 4 - l8
+                $dif = Q_Rinput::estimate_bits_mode8($p) + Q_Rinput::estimate_bits_mode_num($q - $p) + 4 + $ln - Q_Rinput::estimate_bits_mode8($q);
+                // - 4 - l8
                 if ($dif < 0) {
                     break;
                 } else {
@@ -232,12 +192,11 @@ class QRsplit
                 }
             } elseif ($mode == QR_MODE_AN) {
                 $q = $p;
-                while (self::isalnumat($this->dataStr, $q)) {
+                while (self::isalnumat($this->data_str, $q)) {
                     $q++;
                 }
-                $dif = QRinput::estimateBitsMode8($p)  // + 4 + l8
-                     + QRinput::estimateBitsModeAn($q - $p) + 4 + $la
-                     - QRinput::estimateBitsMode8($q); // - 4 - l8
+                $dif = Q_Rinput::estimate_bits_mode8($p) + Q_Rinput::estimate_bits_mode_an($q - $p) + 4 + $la - Q_Rinput::estimate_bits_mode8($q);
+                // - 4 - l8
                 if ($dif < 0) {
                     break;
                 } else {
@@ -247,89 +206,76 @@ class QRsplit
                 $p++;
             }
         }
-
         $run = $p;
-        $ret = $this->input->append(QR_MODE_8, $run, str_split($this->dataStr));
-
+        $ret = $this->input->append(QR_MODE_8, $run, str_split($this->data_str));
         if ($ret < 0) {
             return -1;
         }
-
         return $run;
     }
-
     //----------------------------------------------------------------------
-    public function splitString()
+    public function split_string()
     {
-        while (strlen($this->dataStr) > 0) {
-            if ($this->dataStr == '') {
+        while (strlen($this->data_str) > 0) {
+            if ($this->data_str == '') {
                 return 0;
             }
-
-            $mode = $this->identifyMode(0);
-
+            $mode = $this->identify_mode(0);
             switch ($mode) {
-                case QR_MODE_NUM: $length = $this->eatNum();
+                case QR_MODE_NUM:
+                    $length = $this->eat_num();
                     break;
-                case QR_MODE_AN:  $length = $this->eatAn();
+                case QR_MODE_AN:
+                    $length = $this->eat_an();
                     break;
                 case QR_MODE_KANJI:
                     if ($hint == QR_MODE_KANJI) {
-                        $length = $this->eatKanji();
+                        $length = $this->eat_kanji();
                     } else {
                         $length = $this->eat8();
                     }
                     break;
-                default: $length = $this->eat8();
+                default:
+                    $length = $this->eat8();
                     break;
-
             }
-
             if ($length == 0) {
                 return 0;
             }
             if ($length < 0) {
                 return -1;
             }
-
-            $this->dataStr = substr($this->dataStr, $length);
+            $this->data_str = substr($this->data_str, $length);
         }
     }
-
     //----------------------------------------------------------------------
-    public function toUpper()
+    public function to_upper()
     {
-        $stringLen = strlen($this->dataStr);
+        $string_len = strlen($this->data_str);
         $p = 0;
-
-        while ($p < $stringLen) {
-            $mode = self::identifyMode(substr($this->dataStr, $p), $this->modeHint);
+        while ($p < $string_len) {
+            $mode = self::identify_mode(substr($this->data_str, $p), $this->mode_hint);
             if ($mode == QR_MODE_KANJI) {
                 $p += 2;
             } else {
-                if (ord($this->dataStr[$p]) >= ord('a') && ord($this->dataStr[$p]) <= ord('z')) {
-                    $this->dataStr[$p] = chr(ord($this->dataStr[$p]) - 32);
+                if (ord($this->data_str[$p]) >= ord('a') && ord($this->data_str[$p]) <= ord('z')) {
+                    $this->data_str[$p] = chr(ord($this->data_str[$p]) - 32);
                 }
                 $p++;
             }
         }
-
-        return $this->dataStr;
+        return $this->data_str;
     }
-
     //----------------------------------------------------------------------
-    public static function splitStringToQRinput($string, QRinput $input, $modeHint, $casesensitive = true)
+    public static function split_string_to_q_rinput($string, Q_Rinput $input, $mode_hint, $casesensitive = true)
     {
         if (is_null($string) || $string == '\0' || $string == '') {
             throw new \Exception('empty string!!!');
         }
-
-        $split = new QRsplit($string, $input, $modeHint);
-
+        $split = new Q_Rsplit($string, $input, $mode_hint);
         if (!$casesensitive) {
-            $split->toUpper();
+            $split->to_upper();
         }
-
-        return $split->splitString();
+        return $split->split_string();
     }
 }

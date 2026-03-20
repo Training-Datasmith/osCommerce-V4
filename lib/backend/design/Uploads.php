@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,11 +11,9 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design;
 
-use common\models\ProductsImagesDescription;
-
+use common\models\Products_Images_Description;
 class Uploads
 {
     public static function move($file_name, $folder = DIR_WS_IMAGES, $show_path = true)
@@ -24,16 +22,14 @@ class Uploads
         if (in_array(substr($file_name, 0, 7), ['images/', 'themes/'])) {
             $path = DIR_FS_CATALOG;
         } else {
-            $path = \Yii::getAlias('@webroot');
+            $path = \Yii::get_alias('@webroot');
             $path .= DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
             $uploaded = true;
         }
-
         $upload_file = $path . $file_name;
-
         if (is_file($upload_file)) {
             $folders_arr = explode('/', $folder);
-            $path2 = \Yii::getAlias('@webroot');
+            $path2 = \Yii::get_alias('@webroot');
             $path2 .= DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR;
             $path3 = trim(str_replace('\\', '/', $folder), '/') . '/';
             foreach ($folders_arr as $item) {
@@ -46,17 +42,13 @@ class Uploads
                     @chmod($path2, 0777);
                 }
             }
-
-            $splitFileName = explode('/', $file_name);
-            if ($splitFileName[0] == 'products') {
-                $img = ProductsImagesDescription::find()->where([
-                    'hash_file_name' => end($splitFileName),
-                ])->asArray()->one();
-                $copy_file = (isset($img['orig_file_name']) ? $img['orig_file_name'] : end($splitFileName));
+            $split_file_name = explode('/', $file_name);
+            if ($split_file_name[0] == 'products') {
+                $img = Products_Images_Description::find()->where(['hash_file_name' => end($split_file_name)])->as_array()->one();
+                $copy_file = isset($img['orig_file_name']) ? $img['orig_file_name'] : end($split_file_name);
             } else {
                 $copy_file = basename($file_name);
             }
-
             $i = 1;
             $dot_pos = strrpos($copy_file, '.');
             $end = substr($copy_file, $dot_pos);
@@ -66,26 +58,20 @@ class Uploads
                 $temp_name = str_replace(' ', '_', $temp_name);
                 $i++;
             }
-
             @copy($upload_file, $path2 . $temp_name);
             @chmod($path2 . $temp_name, 0666);
             if ($uploaded) {
                 @unlink($upload_file);
             }
-
-            \common\classes\Images::createWebp($path3 . $temp_name, true);
-
+            \common\classes\Images::create_webp($path3 . $temp_name, true);
             return ($show_path ? $path3 : '') . $temp_name;
         } else {
             return false;
         }
     }
-
-    public static $archiveImages = [];
-
-    public static function addArchiveImages($name, $value)
+    public static $archive_images = [];
+    public static function add_archive_images($name, $value)
     {
-
         $image = $value;
         $image_ = $value;
         if ($name == 'background_image' || $name == 'logo') {
@@ -97,10 +83,8 @@ class Uploads
             } else {
                 $old = $value;
             }
-
             $change = false;
-
-            foreach (self::$archiveImages as $item) {
+            foreach (self::$archive_images as $item) {
                 if ($old == $item['old']) {
                     return '$$' . $item['new'];
                 }
@@ -108,14 +92,13 @@ class Uploads
                     $change = true;
                 }
             }
-
             $i = 1;
             $dot_pos = strrpos($image, '.');
             $end = substr($image, $dot_pos);
             $temp_name = $image;
             while ($change) {
                 $has_name = false;
-                foreach (self::$archiveImages as $item) {
+                foreach (self::$archive_images as $item) {
                     if ($temp_name == $item['new']) {
                         $has_name = true;
                         break;
@@ -129,10 +112,8 @@ class Uploads
                 $temp_name = substr($image, 0, $dot_pos) . '-' . $i . $end;
                 $i++;
             }
-            self::$archiveImages[] = ['old' => $old, 'new' => $image];
+            self::$archive_images[] = ['old' => $old, 'new' => $image];
         }
-
         return $image_;
     }
-
 }

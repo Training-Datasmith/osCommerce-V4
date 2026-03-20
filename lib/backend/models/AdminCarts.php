@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,145 +11,106 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models;
 
-use common\models\AdminShoppingCarts;
+use common\models\Admin_Shopping_Carts;
 use Yii;
-
-class AdminCarts extends Admin
+class Admin_Carts extends Admin
 {
     protected $info;
     private $carts = [];
-    private $currentCart = null;
-    public $newCartCreated = false;
-
+    private $current_cart = null;
+    public $new_cart_created = false;
     public function __construct($id = 0)
     {
         parent::__construct($id);
     }
-
-    public function loadCustomersBasketsShort($type = 'cart')
+    public function load_customers_baskets_short($type = 'cart')
     {
-        return $this->loadCustomersBaskets($type, false);
+        return $this->load_customers_baskets($type, false);
     }
-
-    public function createCart($instanceType, $order, $basket_id, $customers_id = null)
+    public function create_cart($instance_type, $order, $basket_id, $customers_id = null)
     {
         try {
             $orders_id = $order->orders_id ?? null;
-            $cart = new $instanceType($orders_id);
+            $cart = new $instance_type($orders_id);
             if ($orders_id) {
-                $cartType = $this->getCartType($cart);
-                $aCart = AdminShoppingCarts::find()
-                                ->where(['admin_id' => $this->info['admin_id'], 'cart_type' => $cartType, 'order_id' => $orders_id])->one();
-                if ($aCart) {
-                    $index = $cartType . '|' . (int) $aCart->customers_id . '-' . (int) $aCart->basket_id;
-                    $cart = $this->getCartById($index);
+                $cart_type = $this->get_cart_type($cart);
+                $a_cart = Admin_Shopping_Carts::find()->where(['admin_id' => $this->info['admin_id'], 'cart_type' => $cart_type, 'order_id' => $orders_id])->one();
+                if ($a_cart) {
+                    $index = $cart_type . '|' . (int) $a_cart->customers_id . '-' . (int) $a_cart->basket_id;
+                    $cart = $this->get_cart_by_id($index);
                     if ($cart) {
                         if (!$cart->admin_id) {
-                            $cart->setAdmin($this->info['admin_id']);
+                            $cart->set_admin($this->info['admin_id']);
                         }
-                        $this->setCurrentCartID($index, ($orders_id ? false : true));
+                        $this->set_current_cart_id($index, $orders_id ? false : true);
                         return $cart;
                     }
                 }
             }
             if ($order) {
-                $customer = $order->getCustomer()->one();
+                $customer = $order->get_customer()->one();
                 if ($customer) {
-                    $cart->setCustomer($customer->customers_id);
+                    $cart->set_customer($customer->customers_id);
                 }
-            } elseif (!empty($customers_id) && !empty(\common\models\Customers::findOne($customers_id))) {
-                $cart->setCustomer($customers_id);
+            } elseif (!empty($customers_id) && !empty(\common\models\Customers::find_one($customers_id))) {
+                $cart->set_customer($customers_id);
             }
-            $cart->setBasketId($basket_id);
-            $cart->setAdmin($this->info['admin_id']);
-            $index = $this->getCartType($cart) . '|' . (int) $cart->customer_id . '-' . (int) $cart->basketID;
-            $this->carts[$index] = [
-                'customers_id' => $cart->customers_id ?? null,
-                'basket_id' => $cart->basketID ?? null,
-                'order_id' => (int) $orders_id,
-                'updated_at' => '',
-                'cart_details' => $cart,
-                'checkout_details' => '',
-                'status' => 1,
-            ];
-            $this->setCurrentCartID($index, ($orders_id ? false : true));
-            if ($basket_id != $cart->basketID) {
-                $this->newCartCreated = true;
+            $cart->set_basket_id($basket_id);
+            $cart->set_admin($this->info['admin_id']);
+            $index = $this->get_cart_type($cart) . '|' . (int) $cart->customer_id . '-' . (int) $cart->basket_id;
+            $this->carts[$index] = ['customers_id' => $cart->customers_id ?? null, 'basket_id' => $cart->basket_id ?? null, 'order_id' => (int) $orders_id, 'updated_at' => '', 'cart_details' => $cart, 'checkout_details' => '', 'status' => 1];
+            $this->set_current_cart_id($index, $orders_id ? false : true);
+            if ($basket_id != $cart->basket_id) {
+                $this->new_cart_created = true;
             }
         } catch (Exception $ex) {
             throw new \Exception('incorrent class instance');
         }
         return $cart;
     }
-
-    private function _getCartById($cartId)
+    private function _get_cart_by_id($cart_id)
     {
-        if ($details = \common\helpers\Cart::decodeId($cartId)) {
+        if ($details = \common\helpers\Cart::decode_id($cart_id)) {
             $details['admin_id'] = $this->info['admin_id'];
-            return AdminShoppingCarts::find()->where($details)->one();
+            return Admin_Shopping_Carts::find()->where($details)->one();
         }
         return false;
     }
-
-    public function getCartById($cartId)
+    public function get_cart_by_id($cart_id)
     {
-        if (isset($this->carts[$cartId])) {
-            if ($this->carts[$cartId]['cart_details']) {
-                return $this->carts[$cartId]['cart_details'];
+        if (isset($this->carts[$cart_id])) {
+            if ($this->carts[$cart_id]['cart_details']) {
+                return $this->carts[$cart_id]['cart_details'];
             }
         }
-        $cart = $this->_getCartById($cartId);
+        $cart = $this->_get_cart_by_id($cart_id);
         if ($cart) {
-            $this->carts[$cartId] = [
-                'customers_id' => $cart->customers_id,
-                'basket_id' => $cart->basket_id,
-                'order_id' => $cart->order_id,
-                'updated_at' => $cart->updated_at,
-                'cart_details' => unserialize(base64_decode($cart->customer_basket)),
-                'checkout_details' => unserialize(base64_decode($cart->checkout_details)),
-                'status' => $cart->status,
-            ];
-            return $this->carts[$cartId]['cart_details'];
+            $this->carts[$cart_id] = ['customers_id' => $cart->customers_id, 'basket_id' => $cart->basket_id, 'order_id' => $cart->order_id, 'updated_at' => $cart->updated_at, 'cart_details' => unserialize(base64_decode($cart->customer_basket)), 'checkout_details' => unserialize(base64_decode($cart->checkout_details)), 'status' => $cart->status];
+            return $this->carts[$cart_id]['cart_details'];
         }
         return false;
     }
-
-    public function hasCheckoutDetails()
+    public function has_checkout_details()
     {
-        return isset($this->carts[$this->currentCart]['checkout_details']) && !empty($this->carts[$this->currentCart]['checkout_details']);
+        return isset($this->carts[$this->current_cart]['checkout_details']) && !empty($this->carts[$this->current_cart]['checkout_details']);
     }
-
-    public function getCheckoutDetails()
+    public function get_checkout_details()
     {
-        return $this->carts[$this->currentCart]['checkout_details'];
+        return $this->carts[$this->current_cart]['checkout_details'];
     }
-
-    public function loadCustomersBaskets($type = 'cart', $full = true, $superUserPlatformId = false)
+    public function load_customers_baskets($type = 'cart', $full = true, $super_user_platform_id = false)
     {
         $this->carts = [];
-        $cartsQuery = AdminShoppingCarts::find()
-                        ->where(['cart_type' => $type])->orderBy('updated_at DESC');
-        if (!empty($superUserPlatformId)) {
-            $cartsQuery->andWhere(['platform_id' => $superUserPlatformId]);
+        $carts_query = Admin_Shopping_Carts::find()->where(['cart_type' => $type])->order_by('updated_at DESC');
+        if (!empty($super_user_platform_id)) {
+            $carts_query->and_where(['platform_id' => $super_user_platform_id]);
         } else {
-            $cartsQuery->andWhere(['admin_id' => $this->info['admin_id']]);
+            $carts_query->and_where(['admin_id' => $this->info['admin_id']]);
         }
-        foreach ($cartsQuery->all() as $cart) {
-            $this->carts[$type . '|' . $cart->customers_id . '-' . $cart->basket_id] = [
-                'admin_id' => $cart->admin_id,
-                'my_id' => $this->info['admin_id'],
-                'platform_id' => $cart->platform_id,
-                'customers_id' => $cart->customers_id,
-                'basket_id' => $cart->basket_id,
-                'order_id' => $cart->order_id,
-                'updated_at' => $cart->updated_at,
-                'cart_details' => [],
-                'checkout_details' => [],
-                'status' => $cart->status,
-            ];
+        foreach ($carts_query->all() as $cart) {
+            $this->carts[$type . '|' . $cart->customers_id . '-' . $cart->basket_id] = ['admin_id' => $cart->admin_id, 'my_id' => $this->info['admin_id'], 'platform_id' => $cart->platform_id, 'customers_id' => $cart->customers_id, 'basket_id' => $cart->basket_id, 'order_id' => $cart->order_id, 'updated_at' => $cart->updated_at, 'cart_details' => [], 'checkout_details' => [], 'status' => $cart->status];
             if ($full) {
                 $this->carts[$type . '|' . $cart->customers_id . '-' . $cart->basket_id]['cart_details'] = unserialize(base64_decode($cart->customer_basket));
                 $this->carts[$type . '|' . $cart->customers_id . '-' . $cart->basket_id]['checkout_details'] = unserialize(base64_decode($cart->checkout_details));
@@ -158,22 +118,15 @@ class AdminCarts extends Admin
         }
         return $this;
     }
-
-    public function checkCartOwnerClear($cart)
+    public function check_cart_owner_clear($cart)
     {
-        $check = AdminShoppingCarts::find()->where(['and',
-                    ['<>', 'admin_id', $this->info['admin_id']],
-                    ['customers_id' => $cart->customer_id ?? null],
-                    ['order_id' => $cart->order_id ?? null],
-                    ['cart_type' => $this->getCartType($cart)],
-                ])->one();
+        $check = Admin_Shopping_Carts::find()->where(['and', ['<>', 'admin_id', $this->info['admin_id']], ['customers_id' => $cart->customer_id ?? null], ['order_id' => $cart->order_id ?? null], ['cart_type' => $this->get_cart_type($cart)]])->one();
         if ($check && $check->status) {
             return false;
         }
         return true;
     }
-
-    public function getCartType($cart)
+    public function get_cart_type($cart)
     {
         $cart_prefix = $cart->table_prefix ?? null;
         if ($cart_prefix == 'sample_') {
@@ -184,118 +137,98 @@ class AdminCarts extends Admin
             return 'cart';
         }
     }
-
-    public function updateCustomersBasket($cart)
+    public function update_customers_basket($cart)
     {
-        if (!isset($this->carts[$cart->customer_id . '-' . $cart->basketID])) {
-            if (!$this->checkCartOwnerClear($cart)) {
+        if (!isset($this->carts[$cart->customer_id . '-' . $cart->basket_id])) {
+            if (!$this->check_cart_owner_clear($cart)) {
                 return false;
             }
-            $this->saveCustomerBasket($cart);
-
-            $this->setCurrentCartID($cart->customer_id . '-' . $cart->basketID);
+            $this->save_customer_basket($cart);
+            $this->set_current_cart_id($cart->customer_id . '-' . $cart->basket_id);
         } else {
-            $this->setCurrentCartID($cart->customer_id . '-' . $cart->basketID);
+            $this->set_current_cart_id($cart->customer_id . '-' . $cart->basket_id);
         }
     }
-
-    public function saveCustomerBasket($cart)
+    public function save_customer_basket($cart)
     {
-        $adCart = $this->findCart($cart);
-
-        $adCart->customer_basket = base64_encode(serialize($cart));
-        $adCart->status = 1;
-        $adCart->order_id = (int) $cart->order_id;
-        return $adCart->save(false);
+        $ad_cart = $this->find_cart($cart);
+        $ad_cart->customer_basket = base64_encode(serialize($cart));
+        $ad_cart->status = 1;
+        $ad_cart->order_id = (int) $cart->order_id;
+        return $ad_cart->save(false);
     }
-
-    public function saveCheckoutDetails($cart, \common\services\storages\StorageInterface $storage)
+    public function save_checkout_details($cart, \common\services\storages\Storage_Interface $storage)
     {
-        $adCart = $this->_getCartById($this->getCurrentCartID());
-        if (!$adCart) {
-            $adCart = AdminShoppingCarts::find()
-                    ->where(['admin_id' => $this->info['admin_id'], 'basket_id' => $cart->basketID, 'customers_id' => (int)$cart->customer_id])
-                    ->one();
+        $ad_cart = $this->_get_cart_by_id($this->get_current_cart_id());
+        if (!$ad_cart) {
+            $ad_cart = Admin_Shopping_Carts::find()->where(['admin_id' => $this->info['admin_id'], 'basket_id' => $cart->basket_id, 'customers_id' => (int) $cart->customer_id])->one();
         }
-        if (!$adCart) {
-            $adCart = new AdminShoppingCarts();
-            $adCart->admin_id = $this->info['admin_id'];
-            $adCart->platform_id = (int) $cart->platform_id;
-            $adCart->customers_id = (int) $cart->customer_id;
-            $adCart->basket_id = $cart->basketID;
-            $adCart->cart_type = $this->getCartType($cart);
+        if (!$ad_cart) {
+            $ad_cart = new Admin_Shopping_Carts();
+            $ad_cart->admin_id = $this->info['admin_id'];
+            $ad_cart->platform_id = (int) $cart->platform_id;
+            $ad_cart->customers_id = (int) $cart->customer_id;
+            $ad_cart->basket_id = $cart->basket_id;
+            $ad_cart->cart_type = $this->get_cart_type($cart);
         }
-        if ($adCart) {
-            $data = $storage->getAll();
+        if ($ad_cart) {
+            $data = $storage->get_all();
             unset($data['cart']);
-            $adCart->checkout_details = base64_encode(serialize($data));
-            $adCart->status = 1;
-            $adCart->customers_id = (int) $cart->customer_id;
-            $adCart->order_id = (int) $cart->order_id;
-
-            $index = $this->getCartType($cart) . '|' . (int) $cart->customer_id . '-' . (int) $cart->basketID;
-            $this->setCurrentCartID($index);
-            if ($adCart->save(false)) {
-                return $this->saveCustomerBasket($cart);
+            $ad_cart->checkout_details = base64_encode(serialize($data));
+            $ad_cart->status = 1;
+            $ad_cart->customers_id = (int) $cart->customer_id;
+            $ad_cart->order_id = (int) $cart->order_id;
+            $index = $this->get_cart_type($cart) . '|' . (int) $cart->customer_id . '-' . (int) $cart->basket_id;
+            $this->set_current_cart_id($index);
+            if ($ad_cart->save(false)) {
+                return $this->save_customer_basket($cart);
             }
         }
         return false;
     }
-
-    private function findCart($cart)
+    private function find_cart($cart)
     {
-        $adCart = AdminShoppingCarts::find()->where([
-                    'admin_id' => $this->info['admin_id'],
-                    'customers_id' => (int) $cart->customer_id,
-                    'basket_id' => $cart->basketID,
-                    'cart_type' => $this->getCartType($cart),
-                ])->one();
-        if (!$adCart) {
-            $adCart = new AdminShoppingCarts();
-            $adCart->admin_id = $this->info['admin_id'];
-            $adCart->platform_id = (int) $cart->platform_id;
-            $adCart->customers_id = (int) $cart->customer_id;
-            $adCart->basket_id = $cart->basketID;
-            $adCart->cart_type = $this->getCartType($cart);
+        $ad_cart = Admin_Shopping_Carts::find()->where(['admin_id' => $this->info['admin_id'], 'customers_id' => (int) $cart->customer_id, 'basket_id' => $cart->basket_id, 'cart_type' => $this->get_cart_type($cart)])->one();
+        if (!$ad_cart) {
+            $ad_cart = new Admin_Shopping_Carts();
+            $ad_cart->admin_id = $this->info['admin_id'];
+            $ad_cart->platform_id = (int) $cart->platform_id;
+            $ad_cart->customers_id = (int) $cart->customer_id;
+            $ad_cart->basket_id = $cart->basket_id;
+            $ad_cart->cart_type = $this->get_cart_type($cart);
         }
-        return $adCart;
+        return $ad_cart;
     }
-
-    public function removeCart($cartId)
+    public function remove_cart($cart_id)
     {
-        $AdCart = $this->_getCartById($cartId);
-        if ($AdCart) {
-            $AdCart->delete();
+        $ad_cart = $this->_get_cart_by_id($cart_id);
+        if ($ad_cart) {
+            $ad_cart->delete();
         }
     }
-
-    public function setCurrentCartID($cartID, $is_virtual = false)
+    public function set_current_cart_id($cart_id, $is_virtual = false)
     {
-        $this->currentCart = $cartID;
+        $this->current_cart = $cart_id;
         if ($is_virtual) {
-            $this->setLastVirtualID($cartID);
+            $this->set_last_virtual_id($cart_id);
         }
     }
-
-    public function setLastVirtualID($cartID)
+    public function set_last_virtual_id($cart_id)
     {
-        Yii::$app->session->set('lastVirtual', $cartID);
+        Yii::$app->session->set('lastVirtual', $cart_id);
     }
-
-    public function getLastVirtualID($set_main = false)
+    public function get_last_virtual_id($set_main = false)
     {
         if ($set_main) {
-            $this->currentCart = Yii::$app->session->get('lastVirtual');
+            $this->current_cart = Yii::$app->session->get('lastVirtual');
         }
         return Yii::$app->session->get('lastVirtual');
     }
-
-    public function getCurrentCartID()
+    public function get_current_cart_id()
     {
-        return $this->currentCart;
+        return $this->current_cart;
     }
-
-    public function getVirtualCartIDs()
+    public function get_virtual_cart_i_ds()
     {
         $ids = [];
         if (is_array($this->carts)) {
@@ -303,86 +236,77 @@ class AdminCarts extends Admin
             //foreach ($this->carts as $_id => $_cart) {
             //    $ids[] = $_id;
             /* if (!$_cart['order_id'] || $_cart['order_id'] <= 0) {
-              $ids[] = $_id;
-              } */
+               $ids[] = $_id;
+               } */
             //}
-            return (count($ids) ? $ids : false);
+            return count($ids) ? $ids : false;
         }
         return false;
     }
-
-    public function loadCurrentCart()
+    public function load_current_cart()
     {
         /* global $cart, $quote, $payment, $shipping, $select_shipping, $adress_details, $sendto, $billto, $cot_gv, $cc_id;
-
-          if (!is_null($this->currentCart)) {
-          if (is_array($this->carts[$this->currentCart]['cart_details'])) {
-          foreach ($this->carts[$this->currentCart]['cart_details'] as $item => $value) {
-          if (!tep_session_is_registered($item))
-          tep_session_register($item);
-          unset($GLOBALS[$item]);
-          $_SESSION[$item] = $value;
-          $GLOBALS[$item] = &$_SESSION[$item];
-          }
-          }
-          } */
+        
+                  if (!is_null($this->currentCart)) {
+                  if (is_array($this->carts[$this->currentCart]['cart_details'])) {
+                  foreach ($this->carts[$this->currentCart]['cart_details'] as $item => $value) {
+                  if (!tep_session_is_registered($item))
+                  tep_session_register($item);
+                  unset($GLOBALS[$item]);
+                  $_SESSION[$item] = $value;
+                  $GLOBALS[$item] = &$_SESSION[$item];
+                  }
+                  }
+                  } */
     }
-
-    public function getAdminByCart($cart)
+    public function get_admin_by_cart($cart)
     {
         $name = '';
-        $type = $this->getCartType($cart);
+        $type = $this->get_cart_type($cart);
         $admin = tep_db_fetch_array(tep_db_query('select admin_id from ' . TABLE_ADMIN_SHOPPING_CARTS . " where customers_id ='" . (int) $cart->customer_id . "' and order_id = '" . (int) $cart->order_id . "' and cart_type='{$type}'"));
         if ($admin) {
             $_admin = new Admin($admin['admin_id']);
-            $name = $_admin->getInfo('admin_firstname') . ' ' . $_admin->getInfo('admin_lastname');
+            $name = $_admin->get_info('admin_firstname') . ' ' . $_admin->get_info('admin_lastname');
         }
         return $name;
     }
-
-    public function relocateCart($basket_id, $customer_id, $type = 'cart')
+    public function relocate_cart($basket_id, $customer_id, $type = 'cart')
     {
         if ($basket_id && $customer_id) {
             tep_db_query('update ' . TABLE_ADMIN_SHOPPING_CARTS . " set admin_id = '" . (int) $this->info['admin_id'] . "' where customers_id ='" . (int) $customer_id . "' and basket_id = '" . (int) $basket_id . "' and cart_type = '{$type}'");
         }
     }
-
-    public function reassignMe($basket_id, $customer_id, $type = 'cart')
+    public function reassign_me($basket_id, $customer_id, $type = 'cart')
     {
         tep_db_query('update ' . TABLE_ADMIN_SHOPPING_CARTS . " set admin_id = '" . (int) $this->info['admin_id'] . "' where customers_id ='" . (int) $customer_id . "' and basket_id = '" . (int) $basket_id . "' and cart_type = '{$type}'");
     }
-
-    public function reassignCart($cart)
+    public function reassign_cart($cart)
     {
         if ($cart) {
-            tep_db_query('update ' . TABLE_ADMIN_SHOPPING_CARTS . " set admin_id = '" . (int) $this->info['admin_id'] . "' where customers_id ='" . (int)$cart->customer_id . "' and order_id = '" . (int) $cart->order_id . "' and cart_type = '{$this->getCartType($cart)}'");
+            tep_db_query('update ' . TABLE_ADMIN_SHOPPING_CARTS . " set admin_id = '" . (int) $this->info['admin_id'] . "' where customers_id ='" . (int) $cart->customer_id . "' and order_id = '" . (int) $cart->order_id . "' and cart_type = '{$this->get_cart_type($cart)}'");
             return true;
         }
         return false;
     }
-
-    public function deleteCartByOrder($orders_id)
+    public function delete_cart_by_order($orders_id)
     {
         tep_db_query('delete from ' . TABLE_ADMIN_SHOPPING_CARTS . " where order_id = '" . (int) $orders_id . "'");
     }
-
-    public function deleteCartByBC($customer_id, $basket_id)
+    public function delete_cart_by_bc($customer_id, $basket_id)
     {
         tep_db_query('delete from ' . TABLE_ADMIN_SHOPPING_CARTS . " where basket_id = '" . (int) $basket_id . "' and customers_id = '" . (int) $customer_id . "'");
-        $this->loadCustomersBaskets();
+        $this->load_customers_baskets();
         return true;
     }
-
-    public function getCarts()
+    public function get_carts()
     {
         return $this->carts;
     }
-
-    public function isCartSaved($cartId)
+    public function is_cart_saved($cart_id)
     {
-        if (preg_match("/(.*)\|([\d]*)\-([\d]*)/", $cartId, $mas)) {
+        if (preg_match("/(.*)\\|([\\d]*)\\-([\\d]*)/", $cart_id, $mas)) {
             if (is_array($mas) && isset($mas[1])) {
-                $cart = AdminShoppingCarts::find()->where(['cart_type' => $mas[1], 'customers_id' => $mas[2], 'basket_id' => $mas[3]])->one();
+                $cart = Admin_Shopping_Carts::find()->where(['cart_type' => $mas[1], 'customers_id' => $mas[2], 'basket_id' => $mas[3]])->one();
                 if ($cart) {
                     return true;
                 }
@@ -390,5 +314,4 @@ class AdminCarts extends Admin
         }
         return false;
     }
-
 }

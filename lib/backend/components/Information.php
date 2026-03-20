@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -9,12 +10,10 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\components;
 
 use common\helpers\Seo;
 use Yii;
-
 class Information
 {
     /**
@@ -23,7 +22,6 @@ class Information
     public static function form($adgrafics_information, $information_id, $title): array
     {
         global $language;
-
         $dir_listing = [['id' => '', 'text' => TEXT_NONE]];
         if ($dir = @dir(DIR_FS_CATALOG)) {
             while ($file = $dir->read()) {
@@ -36,15 +34,13 @@ class Information
             sort($dir_listing);
             $dir->close();
         }
-
-        $tabList = $tabLang = [];
+        $tab_list = $tab_lang = [];
         ob_start();
         ?> 
 <div class="tab-pane" id="mainTabPane">
-<?php
+<?php 
         $page = ob_get_contents();
         ob_end_clean();
-
         $languages = \common\helpers\Language::get_languages();
         for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
             ob_start();
@@ -52,30 +48,56 @@ class Information
                 $edit = self::read_data($information_id, $languages[$i]['id']);
             }
             ?>
-      <div class="tab-page" id="tabDescriptionLanguages_<?php echo $languages[$i]['code']; ?>">
+      <div class="tab-page" id="tabDescriptionLanguages_<?php 
+            echo $languages[$i]['code'];
+            ?>">
 
         <script type="text/javascript"><!--
-//        mainTabPane.addTabPage( document.getElementById( "tabDescriptionLanguages_<?php echo $languages[$i]['code']; ?>" ) );
+//        mainTabPane.addTabPage( document.getElementById( "tabDescriptionLanguages_<?php 
+            echo $languages[$i]['code'];
+            ?>" ) );
         //-->
         </script>  
         <div class="edp-line">
-            <label><?php echo TITLE_PAGE_TITLE;?></label>
-            <?php echo tep_draw_input_field('page_title[' . $languages[$i]['id'] . '][0]', "$edit[page_title]", 'maxlength=255 class="form-control form-control-small"'); ?>
+            <label><?php 
+            echo TITLE_PAGE_TITLE;
+            ?></label>
+            <?php 
+            echo tep_draw_input_field('page_title[' . $languages[$i]['id'] . '][0]', "{$edit['page_title']}", 'maxlength=255 class="form-control form-control-small"');
+            ?>
         </div>
         <div class="edp-line">
-            <label><?php echo TEXT_NAME_IN_MENU;?></label>
-            <?php echo tep_draw_input_field('info_title[' . $languages[$i]['id'] . '][0]', "$edit[info_title]", 'maxlength=255 class="form-control form-control-small"'); ?>
+            <label><?php 
+            echo TEXT_NAME_IN_MENU;
+            ?></label>
+            <?php 
+            echo tep_draw_input_field('info_title[' . $languages[$i]['id'] . '][0]', "{$edit['info_title']}", 'maxlength=255 class="form-control form-control-small"');
+            ?>
         </div>
         <div class="edp-line">
-            <label><?php echo DESCRIPTION_INFORMATION;?>:</label>
-            <?php if (WYSIWYG_EDITOR_POPUP_INLINE == 'popup') { ?>
-            <?php echo tep_image(DIR_WS_ICONS . 'icon_edit.gif', TEXT_OPEN_WYSIWYG_EDITOR, 16, 16, 'onclick="loadedHTMLAREA(\'edit_info\',\'description[' . $languages[$i]['id'] . '][0]\');"'); ?>
-            <?php } ?>
-            <?php echo tep_draw_textarea_field('description[' . $languages[$i]['id'] . '][0]', '', '', '', "$edit[description]", 'class="form-control ckeditor text-dox-01" id="description[' . $languages[$i]['id'] . '][0]"'); ?>
+            <label><?php 
+            echo DESCRIPTION_INFORMATION;
+            ?>:</label>
+            <?php 
+            if (WYSIWYG_EDITOR_POPUP_INLINE == 'popup') {
+                ?>
+            <?php 
+                echo tep_image(DIR_WS_ICONS . 'icon_edit.gif', TEXT_OPEN_WYSIWYG_EDITOR, 16, 16, 'onclick="loadedHTMLAREA(\'edit_info\',\'description[' . $languages[$i]['id'] . '][0]\');"');
+                ?>
+            <?php 
+            }
+            ?>
+            <?php 
+            echo tep_draw_textarea_field('description[' . $languages[$i]['id'] . '][0]', '', '', '', "{$edit['description']}", 'class="form-control ckeditor text-dox-01" id="description[' . $languages[$i]['id'] . '][0]"');
+            ?>
         </div>
         <div class="edp-line">
-            <label><?php echo TITLE_PAGE_TYPE;?></label>
-            <?php echo '<div class="edp-line-wra"><label>'.tep_draw_radio_field('page_type[' . $languages[$i]['id'] . ']', 'SSL', $edit['page_type'] == 'SSL') . '&nbsp;' . TEXT_SSL . '</label>&nbsp;&nbsp;&nbsp;<label>' . tep_draw_radio_field('page_type[' . $languages[$i]['id'] . ']', 'NONSSL', ($edit['page_type'] == 'NONSSL' || $edit['page_type'] == '')) . '&nbsp;' . TEXT_NONSSL.'</label></div>';?>
+            <label><?php 
+            echo TITLE_PAGE_TYPE;
+            ?></label>
+            <?php 
+            echo '<div class="edp-line-wra"><label>' . tep_draw_radio_field('page_type[' . $languages[$i]['id'] . ']', 'SSL', $edit['page_type'] == 'SSL') . '&nbsp;' . TEXT_SSL . '</label>&nbsp;&nbsp;&nbsp;<label>' . tep_draw_radio_field('page_type[' . $languages[$i]['id'] . ']', 'NONSSL', $edit['page_type'] == 'NONSSL' || $edit['page_type'] == '') . '&nbsp;' . TEXT_NONSSL . '</label></div>';
+            ?>
         </div>
      
         
@@ -88,51 +110,41 @@ class Information
                     
         </table>
        </div>
-<?php
-                $tabLang[] = ['title' => $languages[$i]['name'],'content' => ob_get_contents(), 'id' => $languages[$i]['code'], 'active' => ($i == 0 ? true : false)];
+<?php 
+            $tab_lang[] = ['title' => $languages[$i]['name'], 'content' => ob_get_contents(), 'id' => $languages[$i]['code'], 'active' => $i == 0 ? true : false];
             ob_end_clean();
         }
         ob_start();
         ?>       
 </div>
-<?php
-          $page .= ob_get_contents();
+<?php 
+        $page .= ob_get_contents();
         ob_end_clean();
-
-        $tabList[] = [
-            'title' => $title,
-            'id' => 'mainTabPane',
-            'content' => $page,
-            'langtabs' => $tabLang,
-            'active' => 1,
-        ];
-        return $tabList;
+        $tab_list[] = ['title' => $title, 'id' => 'mainTabPane', 'content' => $page, 'langtabs' => $tab_lang, 'active' => 1];
+        return $tab_list;
     }
-
     /**
      * @return mixed[]
      */
     public static function browse_information($where = '1'): array
     {
         $languages_id = \Yii::$app->settings->get('languages_id');
-        $daftar = tep_db_query('SELECT * FROM ' . TABLE_INFORMATION . " WHERE languages_id='".$languages_id."' and affiliate_id = 0 and {$where} ORDER BY v_order");
+        $daftar = tep_db_query('SELECT * FROM ' . TABLE_INFORMATION . " WHERE languages_id='" . $languages_id . "' and affiliate_id = 0 and {$where} ORDER BY v_order");
         $result = [];
         while ($buffer = tep_db_fetch_array($daftar)) {
             $result[] = $buffer;
         }
         return $result;
     }
-
     public static function read_data(string $information_id, string $language_id, $platform_id, $affiliate_id = 0)
     {
-        return tep_db_fetch_array(tep_db_query('SELECT * FROM ' . TABLE_INFORMATION . " WHERE information_id='".$information_id."' and languages_id = '" . $language_id . "' and platform_id='".(int)$platform_id."' and affiliate_id = '" . $affiliate_id . "'"));
+        return tep_db_fetch_array(tep_db_query('SELECT * FROM ' . TABLE_INFORMATION . " WHERE information_id='" . $information_id . "' and languages_id = '" . $language_id . "' and platform_id='" . (int) $platform_id . "' and affiliate_id = '" . $affiliate_id . "'"));
     }
-
     public static function add_information(array $data, string $language_id, $platform_id, $affiliate_id = 0): void
     {
         global $insert_id;
         if (!tep_not_null($data['seo_page_name'][$language_id])) {
-            $data['seo_page_name'][$language_id] = Seo::makeSlug($data['info_title'][$language_id][$affiliate_id]);
+            $data['seo_page_name'][$language_id] = Seo::make_slug($data['info_title'][$language_id][$affiliate_id]);
         }
         $query = 'INSERT INTO ' . TABLE_INFORMATION . " (information_id, visible, v_order, info_title, description, languages_id, page_title, page, scope, seo_page_name, old_seo_page_name, meta_description, meta_key, affiliate_id, page_type, noindex_option, nofollow_option, rel_canonical) VALUES('" . $insert_id . "', '" . $data['visible'][$language_id] . "', '" . $data['v_order'][$language_id] . "', '" . tep_db_input($data['info_title'][$language_id][$affiliate_id]) . "', '" . tep_db_input($data['description'][$language_id][$affiliate_id]) . "','" . $language_id . "', '" . tep_db_input($data['page_title'][$language_id][$affiliate_id]) . "', '" . $data['page'][$language_id] . "', '" . (is_array($data['scope'][$language_id]) ? implode(',', $data['scope'][$language_id]) : '') . "', '" . tep_db_input($data['seo_page_name'][$language_id]) . "', '" . tep_db_input($data['old_seo_page_name'][$language_id]) . "', '" . tep_db_input($data['meta_description'][$language_id]) . "', '" . tep_db_input($data['meta_key'][$language_id]) . "', '" . $affiliate_id . "', '" . $data['page_type'][$language_id] . "', '" . $data['noindex_option'][$language_id] . "', '" . $data['nofollow_option'][$language_id] . "', '" . $data['rel_canonical'][$language_id] . "')";
         tep_db_query($query);
@@ -140,20 +152,17 @@ class Information
             $insert_id = tep_db_insert_id();
         }
     }
-
     public static function update_information(array $data, string $language_id, $platform_id, $affiliate_id = 0)
     {
         $info_id = $data['information_id'];
-
         if (is_array($data['information_h2_tag'][$language_id][$platform_id] ?? null)) {
             $data['information_h2_tag'][$language_id][$platform_id] = implode("\n", $data['information_h2_tag'][$language_id][$platform_id]);
         }
         if (is_array($data['information_h3_tag'][$language_id][$platform_id] ?? null)) {
             $data['information_h3_tag'][$language_id][$platform_id] = implode("\n", $data['information_h3_tag'][$language_id][$platform_id]);
         }
-
         $sql_data = [];
-        foreach (['v_order', 'meta_title', 'info_title', 'description', 'page_title', 'page', 'scope', 'seo_page_name', 'old_seo_page_name', 'meta_description', 'meta_key', 'information_h1_tag', 'information_h2_tag', 'information_h3_tag', 'page_type', 'noindex_option', 'nofollow_option', 'rel_canonical','description_short'] as $field) {
+        foreach (['v_order', 'meta_title', 'info_title', 'description', 'page_title', 'page', 'scope', 'seo_page_name', 'old_seo_page_name', 'meta_description', 'meta_key', 'information_h1_tag', 'information_h2_tag', 'information_h3_tag', 'page_type', 'noindex_option', 'nofollow_option', 'rel_canonical', 'description_short'] as $field) {
             if (array_key_exists($field, $data)) {
                 if (isset($data[$field][$language_id][$platform_id]) && !is_array($data[$field][$language_id][$platform_id])) {
                     $sql_data[$field] = $data[$field][$language_id][$platform_id];
@@ -171,18 +180,16 @@ class Information
         if (!isset($data['nofollow_option'])) {
             $sql_data['nofollow_option'] = 0;
         }
-
         if (empty($sql_data['seo_page_name']) && !empty($sql_data['page_title'])) {
-            $sql_data['seo_page_name'] = Seo::makeSlug($sql_data['page_title']);
+            $sql_data['seo_page_name'] = Seo::make_slug($sql_data['page_title']);
         }
         if (empty($sql_data['seo_page_name']) && !empty($sql_data['info_title'])) {
-            $sql_data['seo_page_name'] = Seo::makeSlug($sql_data['info_title']);
+            $sql_data['seo_page_name'] = Seo::make_slug($sql_data['info_title']);
         }
-
-        $check = tep_db_fetch_array(tep_db_query('select count(*) as c from ' . TABLE_INFORMATION . " where information_id= '" . $info_id . "' and languages_id = '" . $language_id . "' and platform_id='".(int)$platform_id."' and affiliate_id = '" . $affiliate_id . "'"));
+        $check = tep_db_fetch_array(tep_db_query('select count(*) as c from ' . TABLE_INFORMATION . " where information_id= '" . $info_id . "' and languages_id = '" . $language_id . "' and platform_id='" . (int) $platform_id . "' and affiliate_id = '" . $affiliate_id . "'"));
         if ($check['c'] > 0) {
             $sql_data['last_modified'] = 'now()';
-            tep_db_perform(TABLE_INFORMATION, $sql_data, 'update', "information_id= '" . $info_id . "' and languages_id = '" . $language_id . "' and platform_id='".(int)$platform_id."' and affiliate_id = '" . $affiliate_id . "'");
+            tep_db_perform(TABLE_INFORMATION, $sql_data, 'update', "information_id= '" . $info_id . "' and languages_id = '" . $language_id . "' and platform_id='" . (int) $platform_id . "' and affiliate_id = '" . $affiliate_id . "'");
         } else {
             $sql_data['information_id'] = $info_id;
             $sql_data['languages_id'] = $language_id;
@@ -194,92 +201,56 @@ class Information
         }
         return $info_id;
     }
-
-    public static function updateAdditionalField($info_id): void
+    public static function update_additional_field($info_id): void
     {
         $date_added = Yii::$app->request->post('date_added', date('Y-m-d H:i:s'));
         if (strtotime((string) $date_added) === false) {
             $date_added = date('Y-m-d H:i:s');
         }
-        $maps_id = (int)Yii::$app->request->post('maps_id', 0);
-        $type = (int)Yii::$app->request->post('type', 0);
+        $maps_id = (int) Yii::$app->request->post('maps_id', 0);
+        $type = (int) Yii::$app->request->post('type', 0);
         $hide_on_xml = Yii::$app->request->post('hide_on_xml') ? 1 : 0;
-
         $image = Yii::$app->request->post('image', '');
-        $imageGallery = Yii::$app->request->post('imageGallery', '');
-        $imageDelete = (int)Yii::$app->request->post('image_delete', 0);
-        $oldImage = \common\models\Information::find()->select(['image'])->where(['information_id' => $info_id])->limit(1)->column();
-        $oldImage = $oldImage[0] ?? null;
-
-        $newImage = \common\helpers\Image::prepareSavingImage(
-            $oldImage,
-            $imageGallery,
-            $image,
-            trim((string) self::imagesLocation(), DIRECTORY_SEPARATOR),
-            $imageDelete
-        );
-
-        \common\models\Information::updateAll(
-            [
-            'image' => $newImage,
-            'type' => $type,
-            'hide_on_xml' => $hide_on_xml,
-            'date_added' => $date_added,
-            'maps_id' => $maps_id],
-            ['information_id' => $info_id]
-        );
+        $image_gallery = Yii::$app->request->post('imageGallery', '');
+        $image_delete = (int) Yii::$app->request->post('image_delete', 0);
+        $old_image = \common\models\Information::find()->select(['image'])->where(['information_id' => $info_id])->limit(1)->column();
+        $old_image = $old_image[0] ?? null;
+        $new_image = \common\helpers\Image::prepare_saving_image($old_image, $image_gallery, $image, trim((string) self::images_location(), DIRECTORY_SEPARATOR), $image_delete);
+        \common\models\Information::update_all(['image' => $new_image, 'type' => $type, 'hide_on_xml' => $hide_on_xml, 'date_added' => $date_added, 'maps_id' => $maps_id], ['information_id' => $info_id]);
     }
-
     public static function slugify($string): string
     {
         $string = transliterator_transliterate('Any-Latin; NFD; [:Nonspacing Mark:] Remove; NFC; [:Punctuation:] Remove; Lower();', (string) $string);
         $string = preg_replace('/[-\s]+/', '-', $string);
         return trim((string) $string, '-');
     }
-
-    public static function imagesLocation(): string
+    public static function images_location(): string
     {
-        return 'information'.DIRECTORY_SEPARATOR;
+        return 'information' . DIRECTORY_SEPARATOR;
     }
-
     public static function update_no_logged(array $data, string $language_id, $platform_id, string $info_id, $affiliate_id = 0): string
     {
-
         $no_logged = 0;
         if (isset($data[$platform_id]) && !is_array($data[$platform_id])) {
-            $no_logged = ($data[$platform_id] ? '1' : '0');
+            $no_logged = $data[$platform_id] ? '1' : '0';
         } elseif (isset($data[$platform_id][$affiliate_id]) && !is_array($data[$platform_id][$affiliate_id])) {
-            $no_logged = ($data[$platform_id][$affiliate_id] ? '1' : '0');
+            $no_logged = $data[$platform_id][$affiliate_id] ? '1' : '0';
         }
-
-        tep_db_query('update ' . TABLE_INFORMATION . " set no_logged = '" . $no_logged . "' where information_id= '" . $info_id . "' and languages_id = '" . $language_id . "' and platform_id='".(int)$platform_id."' and affiliate_id = '" . $affiliate_id . "'");
-
+        tep_db_query('update ' . TABLE_INFORMATION . " set no_logged = '" . $no_logged . "' where information_id= '" . $info_id . "' and languages_id = '" . $language_id . "' and platform_id='" . (int) $platform_id . "' and affiliate_id = '" . $affiliate_id . "'");
         return $info_id;
     }
-
     public static function update_visible_status(string $information_id, $visible, $platform_id = null): void
     {
         if (is_null($platform_id)) {
             tep_db_query('update ' . TABLE_INFORMATION . " set visible = '" . ($visible ? '1' : '0') . "' where information_id = '" . $information_id . "'");
         } else {
             foreach (\common\helpers\Language::get_languages() as $language) {
-                $pages = \common\models\Information::find()
-                    ->where(['information_id' => $information_id, 'platform_id' => (int)$platform_id, ])
-                    ->andWhere(['languages_id' => $language['id']])
-                    ->all();
+                $pages = \common\models\Information::find()->where(['information_id' => $information_id, 'platform_id' => (int) $platform_id])->and_where(['languages_id' => $language['id']])->all();
                 if (count($pages) == 0) {
-                    $pages[] = new \common\models\Information([
-                        'information_id' => $information_id,
-                        'platform_id' => (int)$platform_id,
-                        'languages_id' => $language['id'],
-                        'date_added' => new \yii\db\Expression('NOW()'),
-                    ]);
+                    $pages[] = new \common\models\Information(['information_id' => $information_id, 'platform_id' => (int) $platform_id, 'languages_id' => $language['id'], 'date_added' => new \yii\db\Expression('NOW()')]);
                 }
                 foreach ($pages as $page) {
-                    $page->setAttributes([
-                        'visible' => $visible ? 1 : 0,
-                        'last_modified' => new \yii\db\Expression('NOW()'),
-                    ], false);
+                    $page->set_attributes(['visible' => $visible ? 1 : 0, 'last_modified' => new \yii\db\Expression('NOW()')], false);
                     $page->save(false);
                 }
             }
@@ -292,13 +263,11 @@ class Information
         }
         return tep_db_query('update ' . TABLE_INFORMATION . " set visible = '1' where information_id = '" . $information_id . "'");
     }
-
-    public static function updateHideStatus(string $info_id, $hide): void
+    public static function update_hide_status(string $info_id, $hide): void
     {
-        tep_db_perform(TABLE_INFORMATION, ['hide' => ($hide ? 1 : 0)], 'update', "information_id= '" . $info_id . "'");
+        tep_db_perform(TABLE_INFORMATION, ['hide' => $hide ? 1 : 0], 'update', "information_id= '" . $info_id . "'");
     }
-
-    public static function showHidePage()
+    public static function show_hide_page()
     {
         global $login_id;
         $show = false;
@@ -309,7 +278,6 @@ class Information
         }
         return $show;
     }
-
     public static function template($info_id = 0)
     {
         if ($info_id) {
@@ -317,9 +285,7 @@ class Information
             SELECT DISTINCT i.platform_id, t.theme_name, t.title
             FROM ' . TABLE_INFORMATION . ' i
                 left join ' . TABLE_PLATFORMS_TO_THEMES . ' p2t on p2t.is_default = 1 and i.platform_id = p2t.platform_id
-                left join ' . TABLE_THEMES . " t on t.id = p2t.theme_id
-            WHERE i.information_id = '" . $info_id . "'
-            ");
+                left join ' . TABLE_THEMES . " t on t.id = p2t.theme_id\r\n            WHERE i.information_id = '" . $info_id . "'\r\n            ");
         } else {
             $platforms = tep_db_query('
             SELECT DISTINCT p2t.platform_id, t.theme_name, t.title
@@ -327,88 +293,57 @@ class Information
                 left join ' . TABLE_THEMES . ' t on t.id = p2t.theme_id');
         }
         $themes = [];
-        $showBlock = false;
+        $show_block = false;
         while ($platform = tep_db_fetch_array($platforms)) {
             $templates = tep_db_query('
                 select setting_value
-                from ' . TABLE_THEMES_SETTINGS . "
-                where
-                    theme_name = '" . $platform['theme_name'] . "' and
-                    setting_group = 'added_page' and
-                    (setting_name = 'info' or setting_name = 'inform')
-            ");
+                from ' . TABLE_THEMES_SETTINGS . "\r\n                where\r\n                    theme_name = '" . $platform['theme_name'] . "' and\r\n                    setting_group = 'added_page' and\r\n                    (setting_name = 'info' or setting_name = 'inform')\r\n            ");
             if (tep_db_num_rows($templates) > 0) {
                 while ($item = tep_db_fetch_array($templates)) {
                     $platform['themes'][] = $item['setting_value'];
                 }
-                $showBlock = true;
+                $show_block = true;
             }
             $themes[$platform['platform_id']] = $platform;
         }
-
-        $list = \common\classes\platform::getList(false);
+        $list = \common\classes\platform::get_list(false);
         foreach ($list as $key => $item) {
-
             if ($themes[$item['id']] ?? null) {
-
-                $styles = \common\models\ThemesStyles::find()
-                    ->select(['name' => 'accessibility'])->distinct()
-                    ->where(['theme_name' => $themes[$item['id']]['theme_name']])
-                    ->andWhere(['like', 'accessibility', '.s-'])
-                    ->asArray()->all();
-
+                $styles = \common\models\Themes_Styles::find()->select(['name' => 'accessibility'])->distinct()->where(['theme_name' => $themes[$item['id']]['theme_name']])->and_where(['like', 'accessibility', '.s-'])->as_array()->all();
                 if ($info_id) {
-                    $pageStyles = \common\models\PageStyles::find()->where([
-                        'type' => 'info',
-                        'page_id' => $info_id,
-                        'platform_id' => $item['id'],
-                    ])->asArray()->one();
-                    if ($pageStyles['style'] ?? null) {
-                        $list[$key]['page_style'] = $pageStyles['style'];
+                    $page_styles = \common\models\Page_Styles::find()->where(['type' => 'info', 'page_id' => $info_id, 'platform_id' => $item['id']])->as_array()->one();
+                    if ($page_styles['style'] ?? null) {
+                        $list[$key]['page_style'] = $page_styles['style'];
                     }
                 }
-
                 $list[$key]['styles'] = $styles;
                 $list[$key]['active'] = 1;
                 $list[$key]['theme_name'] = $themes[$item['id']]['theme_name'];
                 $list[$key]['theme_title'] = $themes[$item['id']]['title'];
-
                 $list[$key]['templates'] = $themes[$item['id']]['themes'] ?? '';
-
-                $setTemplate = tep_db_fetch_array(tep_db_query('
+                $set_template = tep_db_fetch_array(tep_db_query('
                       select template_name
-                      from ' . TABLE_INFORMATION . "
-                      where
-                          information_id = '" . $info_id . "' and
-                          platform_id = '" . $item['id'] . "'
-                  "));
-                if ($setTemplate['template_name'] ?? null) {
-                    $list[$key]['template'] = $setTemplate['template_name'];
+                      from ' . TABLE_INFORMATION . "\r\n                      where\r\n                          information_id = '" . $info_id . "' and\r\n                          platform_id = '" . $item['id'] . "'\r\n                  "));
+                if ($set_template['template_name'] ?? null) {
+                    $list[$key]['template'] = $set_template['template_name'];
                 } else {
                     $list[$key]['template'] = '';
                 }
-
             } else {
                 $list[$key]['active'] = 0;
             }
         }
-
         $template['list'] = $list;
-        $template['show_block'] = $showBlock;
-
+        $template['show_block'] = $show_block;
         return $template;
     }
-
-    public static function templateSave($info_id, $pageTemplates, $pageStyle): void
+    public static function template_save($info_id, $page_templates, $page_style): void
     {
-        if (!is_array($pageTemplates)) {
-            $pageTemplates = [];
+        if (!is_array($page_templates)) {
+            $page_templates = [];
         }
-        foreach ($pageTemplates as $id => $template) {
-            $informations = \common\models\Information::find()->where([
-                    'information_id' => $info_id,
-                    'platform_id' => $id,
-            ])->all();
+        foreach ($page_templates as $id => $template) {
+            $informations = \common\models\Information::find()->where(['information_id' => $info_id, 'platform_id' => $id])->all();
             if (is_array($informations)) {
                 foreach ($informations as $information) {
                     $information->template_name = $template;
@@ -416,40 +351,30 @@ class Information
                 }
             }
         }
-
-        if (!is_array($pageStyle)) {
-            $pageStyle = [];
+        if (!is_array($page_style)) {
+            $page_style = [];
         }
-        foreach ($pageStyle as $id => $style) {
-            $pageStyles = \common\models\PageStyles::findOne([
-                'type' => 'info',
-                'page_id' => $info_id,
-                'platform_id' => $id,
-            ]);
+        foreach ($page_style as $id => $style) {
+            $page_styles = \common\models\Page_Styles::find_one(['type' => 'info', 'page_id' => $info_id, 'platform_id' => $id]);
             if (!$style) {
-                if ($pageStyles) {
-                    $pageStyles->delete();
+                if ($page_styles) {
+                    $page_styles->delete();
                 }
                 continue;
             }
-            if (!$pageStyles) {
-                $pageStyles = new \common\models\PageStyles();
-                $pageStyles->type = 'info';
-                $pageStyles->page_id = $info_id;
-                $pageStyles->platform_id = $id;
+            if (!$page_styles) {
+                $page_styles = new \common\models\Page_Styles();
+                $page_styles->type = 'info';
+                $page_styles->page_id = $info_id;
+                $page_styles->platform_id = $id;
             }
-            $pageStyles->style = $style;
-            $pageStyles->save();
+            $page_styles->style = $style;
+            $page_styles->save();
         }
     }
-
     public static function delete_information($information_id): void
     {
-        tep_db_query('DELETE FROM ' . TABLE_INFORMATION . " WHERE information_id='".(int)$information_id."'");
-
-        \common\models\PageStyles::deleteAll([
-            'type' => 'info',
-            'page_id' => $information_id,
-        ]);
+        tep_db_query('DELETE FROM ' . TABLE_INFORMATION . " WHERE information_id='" . (int) $information_id . "'");
+        \common\models\Page_Styles::delete_all(['type' => 'info', 'page_id' => $information_id]);
     }
 }

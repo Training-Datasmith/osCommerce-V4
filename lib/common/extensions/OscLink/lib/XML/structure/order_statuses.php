@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,21 +11,6 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
-return [
-    'Header' => 'site/order_statuses',
-    'dependsOn' => ['site/languages', 'site/order_status_group',],
-    'Data' => [
-        'common\\models\\OrdersStatus' => [
-            'xmlCollection' => 'OrdersStatuses>OrdersStatus',
-            'properties' => [
-                'orders_status_groups_id' => ['class' => 'IOMap', 'table' => 'orders_status_groups', 'attribute' => 'orders_status_groups_id'],
-                'language_id' => ['class' => 'IOLanguageMap'],
-            ],
-            'afterImport' => function ($model, $data) {
-                \common\models\OrdersStatus::updateAll(['orders_status_groups_id' => 1, 'orders_status_allocate_allow' => 1], 'orders_status_groups_id = 0');
-            },
-        ],
-    ],
-    'covered_tables' => ['orders_status',],
-];
+return ['Header' => 'site/order_statuses', 'dependsOn' => ['site/languages', 'site/order_status_group'], 'Data' => ['common\models\OrdersStatus' => ['xmlCollection' => 'OrdersStatuses>OrdersStatus', 'properties' => ['orders_status_groups_id' => ['class' => 'IOMap', 'table' => 'orders_status_groups', 'attribute' => 'orders_status_groups_id'], 'language_id' => ['class' => 'IOLanguageMap']], 'afterImport' => function ($model, $data) {
+    \common\models\Orders_Status::update_all(['orders_status_groups_id' => 1, 'orders_status_allocate_allow' => 1], 'orders_status_groups_id = 0');
+}]], 'covered_tables' => ['orders_status']];

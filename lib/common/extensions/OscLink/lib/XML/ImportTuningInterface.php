@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,18 +11,13 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+namespace Osc_Link\XML;
 
-namespace OscLink\XML;
-
-interface ImportTuningInterface
+interface Import_Tuning_Interface
 {
-    public function beforeImportSave($updateObject, $data);
-
-    public function afterImport($updateObject, $data, $isNewRecord);
-
-    public function afterImportEntity($updateObject, $data, $res);
-
-    public function afterClean($model, $id, $res);
-
-    public function afterCleanEntity($model, $id, $res);
+    public function before_import_save($update_object, $data);
+    public function after_import($update_object, $data, $is_new_record);
+    public function after_import_entity($update_object, $data, $res);
+    public function after_clean($model, $id, $res);
+    public function after_clean_entity($model, $id, $res);
 }

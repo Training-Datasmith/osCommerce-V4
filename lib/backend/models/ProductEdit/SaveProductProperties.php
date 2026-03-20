@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,34 +11,28 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
-namespace backend\models\ProductEdit;
+namespace backend\models\Product_Edit;
 
 use common\models\Products;
 use yii;
-
-class SaveProductProperties
+class Save_Product_Properties
 {
     protected $product;
-
     public function __construct(Products $product)
     {
         $this->product = $product;
     }
-
     public function save()
     {
         $products_id = $this->product->products_id;
-
         tep_db_query('delete from ' . TABLE_PROPERTIES_TO_PRODUCTS . " where products_id  = '" . (int) $products_id . "'");
         $prop_ids = Yii::$app->request->post('prop_ids', []);
         $val_ids = Yii::$app->request->post('val_ids', []);
         $val_extra = Yii::$app->request->post('val_extra', []);
-
         foreach ($prop_ids as $properties_id) {
             if (is_array($val_ids[$properties_id] ?? null)) {
                 $property = tep_db_fetch_array(tep_db_query('select properties_id, properties_type, extra_values from ' . TABLE_PROPERTIES . " where properties_id = '" . (int) $properties_id . "'"));
-                foreach ($val_ids[$properties_id] as $values_key =>  $values_id) {
+                foreach ($val_ids[$properties_id] as $values_key => $values_id) {
                     $sql_data_array = [];
                     $sql_data_array['products_id'] = (int) $products_id;
                     $sql_data_array['properties_id'] = (int) $properties_id;

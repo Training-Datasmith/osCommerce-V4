@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,60 +11,47 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes;
 
-class ReCaptcha
+class Re_Captcha
 {
     private $public_key;
     private $secret_key;
     private $version;
     private $url = 'https://www.google.com/recaptcha/api/siteverify';
     private $enabled;
-
     public function __construct()
     {
         $this->enabled = true;
-
-        $provider = \common\components\GoogleTools::instance()->getCaptchaProvider();
-        $platformId = \common\classes\platform::activeId();
-
-        $this->public_key = $provider->getPublickey($platformId);
-        $this->secret_key = $provider->getPrivateKey($platformId);
-        $this->version = $provider->getVersion($platformId);
-
-        if ($platformId > 0) {
-            if (
-                (empty($this->public_key) || $this->public_key === false) ||
-                (empty($this->secret_key) || $this->secret_key === false)
-            ) {
-                $this->public_key = $provider->getPublickey(0);
-                $this->secret_key = $provider->getPrivateKey(0);
-                $this->version = $provider->getVersion(0);
+        $provider = \common\components\Google_Tools::instance()->get_captcha_provider();
+        $platform_id = \common\classes\platform::active_id();
+        $this->public_key = $provider->get_publickey($platform_id);
+        $this->secret_key = $provider->get_private_key($platform_id);
+        $this->version = $provider->get_version($platform_id);
+        if ($platform_id > 0) {
+            if (empty($this->public_key) || $this->public_key === false || (empty($this->secret_key) || $this->secret_key === false)) {
+                $this->public_key = $provider->get_publickey(0);
+                $this->secret_key = $provider->get_private_key(0);
+                $this->version = $provider->get_version(0);
             }
         }
-
         if (empty($this->public_key) || empty($this->secret_key)) {
             $this->enabled = false;
         }
     }
-
-    public function isEnabled()
+    public function is_enabled()
     {
         return $this->enabled;
     }
-
-    public function getPublicKey()
+    public function get_public_key()
     {
         return $this->public_key;
     }
-
-    public function getVersion()
+    public function get_version()
     {
         return $this->version;
     }
-
-    public function checkVerification($user_value)
+    public function check_verification($user_value)
     {
         if (empty($user_value) || !$this->enabled) {
             return false;
@@ -86,5 +72,4 @@ class ReCaptcha
         }
         return false;
     }
-
 }

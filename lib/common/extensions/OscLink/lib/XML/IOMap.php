@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,89 +11,78 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+namespace Osc_Link\XML;
 
-namespace OscLink\XML;
-
-class IOMap extends Complex
+class Io_Map extends Complex
 {
-    public $internalId;
-    public $externalId;
-
-    public function serializeTo(\SimpleXMLElement $parent)
+    public $internal_id;
+    public $external_id;
+    public function serialize_to(\Simple_Xml_Element $parent)
     {
-        if (IOCore::get()->isLocalProject()) {
-            $parent->addAttribute('internalId', $this->value);
-            $externalId = IOCore::get()->getAttributeMapper()->externalId($this);
-            if (is_numeric($externalId)) {
-                $parent->addAttribute('externalId', $externalId);
+        if (Io_Core::get()->is_local_project()) {
+            $parent->add_attribute('internalId', $this->value);
+            $external_id = Io_Core::get()->get_attribute_mapper()->external_id($this);
+            if (is_numeric($external_id)) {
+                $parent->add_attribute('externalId', $external_id);
             }
         } else {
-            $parent->addAttribute('externalId', $this->value);
-            $externalId = IOCore::get()->getAttributeMapper()->externalId($this);
-            if (is_numeric($externalId)) {
-                $parent->addAttribute('internalId', $externalId);
+            $parent->add_attribute('externalId', $this->value);
+            $external_id = Io_Core::get()->get_attribute_mapper()->external_id($this);
+            if (is_numeric($external_id)) {
+                $parent->add_attribute('internalId', $external_id);
             }
         }
     }
-
-    public static function restoreFrom(\SimpleXMLElement $node, $obj)
+    public static function restore_from(\Simple_Xml_Element $node, $obj)
     {
-        if (!is_object($obj) || !($obj instanceof Complex)) {
+        if (!is_object($obj) || !$obj instanceof Complex) {
             $obj = new self();
         }
-        $objProperties = \Yii::getObjectVars($obj);
-        foreach ($node->attributes() as $attrName => $attrValue) {
-            if (array_key_exists($attrName, $objProperties)) {
-                $obj->{$attrName} = strval($attrValue);
+        $obj_properties = \Yii::get_object_vars($obj);
+        foreach ($node->attributes() as $attr_name => $attr_value) {
+            if (array_key_exists($attr_name, $obj_properties)) {
+                $obj->{$attr_name} = strval($attr_value);
             }
         }
-
-        if (empty($obj->internalId) && empty($obj->externalId) && trim($node) != '') {
+        if (empty($obj->internal_id) && empty($obj->external_id) && trim($node) != '') {
             // imported XML without type : <tag>value</tag>
-            $obj->internalId = trim($node);
+            $obj->internal_id = trim($node);
         }
-
-        if ($obj->internalId) {
-            $obj->internalId = intval($obj->internalId);
+        if ($obj->internal_id) {
+            $obj->internal_id = intval($obj->internal_id);
         }
-        if ($obj->externalId) {
-            $obj->externalId = intval($obj->externalId);
+        if ($obj->external_id) {
+            $obj->external_id = intval($obj->external_id);
         }
-
-        if (!IOCore::get()->isLocalProject()) {
-            $externalId = $obj->externalId;
-            $obj->externalId = $obj->internalId;
-            $obj->internalId = $externalId;
+        if (!Io_Core::get()->is_local_project()) {
+            $external_id = $obj->external_id;
+            $obj->external_id = $obj->internal_id;
+            $obj->internal_id = $external_id;
         }
         //if ( is_numeric($map->internalId) ) {
-        $obj->value = $obj->internalId;
+        $obj->value = $obj->internal_id;
         //}else{
-
         //}
         return $obj;
     }
-
-    public function isMapValid()
+    public function is_map_valid()
     {
-
     }
-
-    public function toImportModel()
+    public function to_import_model()
     {
-        if (!IOCore::get()->isLocalProject() && empty($this->internalId) && !empty($this->externalId)) {
-            $mappedId = IOCore::get()->getAttributeMapper()->internalId($this);
-            if ($mappedId) {
-                $this->internalId = $mappedId;
-                $this->value = $mappedId;
+        if (!Io_Core::get()->is_local_project() && empty($this->internal_id) && !empty($this->external_id)) {
+            $mapped_id = Io_Core::get()->get_attribute_mapper()->internal_id($this);
+            if ($mapped_id) {
+                $this->internal_id = $mapped_id;
+                $this->value = $mapped_id;
             }
         }
         return $this->value;
     }
-
-    public function afterImportModel($value)
+    public function after_import_model($value)
     {
-        if (!empty($this->externalId) && !IOCore::get()->isLocalProject()) {
-            IOCore::get()->getAttributeMapper()->mapIds($this, $value, $this->externalId);
+        if (!empty($this->external_id) && !Io_Core::get()->is_local_project()) {
+            Io_Core::get()->get_attribute_mapper()->map_ids($this, $value, $this->external_id);
         }
         //echo '<pre>afterImportModel '; var_dump($this->table, $this->attribute, $value); echo '</pre>';
     }

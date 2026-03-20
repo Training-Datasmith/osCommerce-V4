@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,376 +11,294 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\Classes;
 
-class Stock extends AbstractClass
+class Stock extends Abstract_Class
 {
-    public $stockRecordArray = [];
-
-    private static $allowFieldList = [
-        'prid' => true,
-        'products_id' => true,
-        'products_status' => true,
-        'manual_control_status' => true,
-        'manual_stock_unlimited' => true,
-        'stock_indication_id' => true,
-        'stock_delivery_terms_id' => true,
-        'stock_reorder_level' => true,
-        'stock_reorder_quantity' => true,
-        'stock_control' => true,
-        'products_id_stock' => true,
-        'reorder_auto' => true,
-        'without_inventory' => true,
-        'attributeRecordArray' => true,
-        'warehouseRecordArray' => true,
-    ];
-
-    private function loadInventory($uProductId = '')
+    public $stock_record_array = [];
+    private static $allow_field_list = ['prid' => true, 'products_id' => true, 'products_status' => true, 'manual_control_status' => true, 'manual_stock_unlimited' => true, 'stock_indication_id' => true, 'stock_delivery_terms_id' => true, 'stock_reorder_level' => true, 'stock_reorder_quantity' => true, 'stock_control' => true, 'products_id_stock' => true, 'reorder_auto' => true, 'without_inventory' => true, 'attributeRecordArray' => true, 'warehouseRecordArray' => true];
+    private function load_inventory($u_product_id = '')
     {
-        $uProductId = trim(\common\helpers\Inventory::normalize_id_excl_virtual($uProductId));
-        if (\common\helpers\Inventory::isInventory($uProductId) == true) {
-            $inventoryRecord = \common\helpers\Inventory::getRecord($uProductId);
-            if ($inventoryRecord instanceof \common\models\Inventory) {
-                if (!isset($this->stockRecordArray[trim($inventoryRecord->products_id)])) {
-                    $attributeRecordArray = [];
-                    $languageId = \common\classes\language::defaultId();
-                    $languageCode = \common\classes\language::get_code($languageId, true);
-                    \common\helpers\Inventory::normalizeInventoryId($inventoryRecord->products_id, $attributeArray);
-                    $attributeArray = (is_array($attributeArray) ? $attributeArray : []);
-                    foreach ($attributeArray as $attributeId => $attributeValueId) {
-                        $attributeRecord = \common\models\ProductsOptions2ProductsOptionsValues::find()->alias('atv')
-                            ->leftJoin(\common\models\ProductsOptions::tableName() . ' a', 'a.products_options_id = atv.products_options_id')
-                            ->leftJoin(\common\models\ProductsOptionsValues::tableName() . ' av', 'av.products_options_values_id = atv.products_options_values_id')
-                            ->where(['atv.products_options_id' => $attributeId, 'atv.products_options_values_id' => $attributeValueId,
-                                'a.language_id' => $languageId, 'av.language_id' => $languageId,
-                            ])->select('*')->asArray(true)->one();
-                        if (!is_array($attributeRecord)) {
+        $u_product_id = trim(\common\helpers\Inventory::normalize_id_excl_virtual($u_product_id));
+        if (\common\helpers\Inventory::is_inventory($u_product_id) == true) {
+            $inventory_record = \common\helpers\Inventory::get_record($u_product_id);
+            if ($inventory_record instanceof \common\models\Inventory) {
+                if (!isset($this->stock_record_array[trim($inventory_record->products_id)])) {
+                    $attribute_record_array = [];
+                    $language_id = \common\classes\language::default_id();
+                    $language_code = \common\classes\language::get_code($language_id, true);
+                    \common\helpers\Inventory::normalize_inventory_id($inventory_record->products_id, $attribute_array);
+                    $attribute_array = is_array($attribute_array) ? $attribute_array : [];
+                    foreach ($attribute_array as $attribute_id => $attribute_value_id) {
+                        $attribute_record = \common\models\Products_Options2products_Options_Values::find()->alias('atv')->left_join(\common\models\Products_Options::table_name() . ' a', 'a.products_options_id = atv.products_options_id')->left_join(\common\models\Products_Options_Values::table_name() . ' av', 'av.products_options_values_id = atv.products_options_values_id')->where(['atv.products_options_id' => $attribute_id, 'atv.products_options_values_id' => $attribute_value_id, 'a.language_id' => $language_id, 'av.language_id' => $language_id])->select('*')->as_array(true)->one();
+                        if (!is_array($attribute_record)) {
                             return false;
                         }
-                        $attributeRecord['language_code'] = $languageCode;
-                        $attributeRecordArray[] = $attributeRecord;
-                        unset($attributeRecord);
+                        $attribute_record['language_code'] = $language_code;
+                        $attribute_record_array[] = $attribute_record;
+                        unset($attribute_record);
                     }
-                    unset($attributeValueId);
-                    unset($attributeArray);
-                    unset($languageCode);
-                    unset($attributeId);
-                    unset($languageId);
-                    $this->stockRecordArray[trim($inventoryRecord->products_id)] = [
-                        'inventory_id' => (int)$inventoryRecord->inventory_id,
-                        'prid' => (int)$inventoryRecord->prid,
-                        'products_id' => trim($inventoryRecord->products_id),
-                        'products_model' => trim($inventoryRecord->products_model),
-                        'stock_indication_id' => (int)$inventoryRecord->stock_indication_id,
-                        'stock_delivery_terms_id' => (int)$inventoryRecord->stock_delivery_terms_id,
-                        'stock_control' => (int)$inventoryRecord->stock_control,
-                        'attributeRecordArray' => $attributeRecordArray,
-                        'warehouseRecordArray' => (
-                            \common\models\WarehousesProducts::find()->alias('p')
-                            ->leftJoin(\common\models\Warehouses::tableName() . ' w', 'w.warehouse_id = p.warehouse_id')
-                            ->leftJoin(\common\models\Suppliers::tableName() . ' s', 's.suppliers_id = p.suppliers_id')
-                            ->leftJoin(\common\models\Locations::tableName() . ' l', 'l.location_id = p.location_id')
-                            ->leftJoin(\common\models\LocationBlocks::tableName() . ' lb', 'l.block_id = lb.block_id')
-                            ->where(['prid' => (int)$inventoryRecord->prid, 'products_id' => trim($inventoryRecord->products_id)])
-                            ->select(['p.*', 'w.warehouse_name', 's.suppliers_name', 'l.location_name', 'lb.block_name'])->asArray(true)->all()
-                        ),
-                    ];
-                    unset($attributeRecordArray);
+                    unset($attribute_value_id);
+                    unset($attribute_array);
+                    unset($language_code);
+                    unset($attribute_id);
+                    unset($language_id);
+                    $this->stock_record_array[trim($inventory_record->products_id)] = ['inventory_id' => (int) $inventory_record->inventory_id, 'prid' => (int) $inventory_record->prid, 'products_id' => trim($inventory_record->products_id), 'products_model' => trim($inventory_record->products_model), 'stock_indication_id' => (int) $inventory_record->stock_indication_id, 'stock_delivery_terms_id' => (int) $inventory_record->stock_delivery_terms_id, 'stock_control' => (int) $inventory_record->stock_control, 'attributeRecordArray' => $attribute_record_array, 'warehouseRecordArray' => \common\models\Warehouses_Products::find()->alias('p')->left_join(\common\models\Warehouses::table_name() . ' w', 'w.warehouse_id = p.warehouse_id')->left_join(\common\models\Suppliers::table_name() . ' s', 's.suppliers_id = p.suppliers_id')->left_join(\common\models\Locations::table_name() . ' l', 'l.location_id = p.location_id')->left_join(\common\models\Location_Blocks::table_name() . ' lb', 'l.block_id = lb.block_id')->where(['prid' => (int) $inventory_record->prid, 'products_id' => trim($inventory_record->products_id)])->select(['p.*', 'w.warehouse_name', 's.suppliers_name', 'l.location_name', 'lb.block_name'])->as_array(true)->all()];
+                    unset($attribute_record_array);
                 }
-                unset($inventoryRecord);
-                unset($uProductId);
+                unset($inventory_record);
+                unset($u_product_id);
                 return true;
             }
         }
         return false;
     }
-
-    private function loadProduct($productId = 0)
+    private function load_product($product_id = 0)
     {
-        $productId = (int)$productId;
-        $productRecord = \common\helpers\Product::getRecord($productId);
-        if ($productRecord instanceof \common\models\Products) {
-            if (!isset($this->stockRecordArray[trim($productRecord->products_id)])) {
-                $this->stockRecordArray[trim($productRecord->products_id)] = [
-                    'inventory_id' => 0,
-                    'prid' => (int)$productRecord->products_id,
-                    'products_id' => trim($productRecord->products_id),
-                    'products_model' => trim($productRecord->products_model),
-                    'products_status' => (int)$productRecord->products_status,
-                    'manual_control_status' => (int)$productRecord->manual_control_status,
-                    'manual_stock_unlimited' => (int)$productRecord->manual_stock_unlimited,
-                    'stock_indication_id' => (int)$productRecord->stock_indication_id,
-                    'stock_delivery_terms_id' => (int)$productRecord->stock_delivery_terms_id,
-                    'stock_reorder_level' => (int)$productRecord->stock_reorder_level,
-                    'stock_reorder_quantity' => (int)$productRecord->stock_reorder_quantity,
-                    'stock_control' => (int)$productRecord->stock_control,
-                    'products_id_stock' => (int)$productRecord->products_id_stock,
-                    'reorder_auto' => (int)$productRecord->reorder_auto,
-                    'without_inventory' => (int)$productRecord->without_inventory,
-                    'warehouseRecordArray' => (
-                        \common\models\WarehousesProducts::find()->alias('p')
-                        ->leftJoin(\common\models\Warehouses::tableName() . ' w', 'w.warehouse_id = p.warehouse_id')
-                        ->leftJoin(\common\models\Suppliers::tableName() . ' s', 's.suppliers_id = p.suppliers_id')
-                        ->leftJoin(\common\models\Locations::tableName() . ' l', 'l.location_id = p.location_id')
-                        ->leftJoin(\common\models\LocationBlocks::tableName() . ' lb', 'l.block_id = lb.block_id')
-                        ->where(['prid' => (int)$productRecord->products_id, 'products_id' => trim((int)$productRecord->products_id)])
-                        ->select(['p.*', 'w.warehouse_name', 's.suppliers_name', 'l.location_name', 'lb.block_name'])->asArray(true)->all()
-                    ),
-                ];
+        $product_id = (int) $product_id;
+        $product_record = \common\helpers\Product::get_record($product_id);
+        if ($product_record instanceof \common\models\Products) {
+            if (!isset($this->stock_record_array[trim($product_record->products_id)])) {
+                $this->stock_record_array[trim($product_record->products_id)] = ['inventory_id' => 0, 'prid' => (int) $product_record->products_id, 'products_id' => trim($product_record->products_id), 'products_model' => trim($product_record->products_model), 'products_status' => (int) $product_record->products_status, 'manual_control_status' => (int) $product_record->manual_control_status, 'manual_stock_unlimited' => (int) $product_record->manual_stock_unlimited, 'stock_indication_id' => (int) $product_record->stock_indication_id, 'stock_delivery_terms_id' => (int) $product_record->stock_delivery_terms_id, 'stock_reorder_level' => (int) $product_record->stock_reorder_level, 'stock_reorder_quantity' => (int) $product_record->stock_reorder_quantity, 'stock_control' => (int) $product_record->stock_control, 'products_id_stock' => (int) $product_record->products_id_stock, 'reorder_auto' => (int) $product_record->reorder_auto, 'without_inventory' => (int) $product_record->without_inventory, 'warehouseRecordArray' => \common\models\Warehouses_Products::find()->alias('p')->left_join(\common\models\Warehouses::table_name() . ' w', 'w.warehouse_id = p.warehouse_id')->left_join(\common\models\Suppliers::table_name() . ' s', 's.suppliers_id = p.suppliers_id')->left_join(\common\models\Locations::table_name() . ' l', 'l.location_id = p.location_id')->left_join(\common\models\Location_Blocks::table_name() . ' lb', 'l.block_id = lb.block_id')->where(['prid' => (int) $product_record->products_id, 'products_id' => trim((int) $product_record->products_id)])->select(['p.*', 'w.warehouse_name', 's.suppliers_name', 'l.location_name', 'lb.block_name'])->as_array(true)->all()];
             }
-            $childArray = \common\helpers\Product::getChildArray($productId);
-            if (count($childArray) > 0) {
-                foreach ($childArray as $child) {
-                    if (!isset($this->stockRecordArray[trim($child['product_id'])])) {
-                        $this->loadProduct($child['product_id']);
+            $child_array = \common\helpers\Product::get_child_array($product_id);
+            if (count($child_array) > 0) {
+                foreach ($child_array as $child) {
+                    if (!isset($this->stock_record_array[trim($child['product_id'])])) {
+                        $this->load_product($child['product_id']);
                     }
                 }
                 unset($child);
-            } elseif (\common\helpers\Acl::checkExtensionAllowed('Inventory', 'allowed')) {
-                foreach (\common\models\Inventory::find()->where(['prid' => (int)$productRecord->products_id])->asArray(true)->all() as $inventoryRecord) {
-                    if (!isset($this->stockRecordArray[trim($inventoryRecord['products_id'])])) {
-                        $this->loadInventory($inventoryRecord['products_id']);
+            } elseif (\common\helpers\Acl::check_extension_allowed('Inventory', 'allowed')) {
+                foreach (\common\models\Inventory::find()->where(['prid' => (int) $product_record->products_id])->as_array(true)->all() as $inventory_record) {
+                    if (!isset($this->stock_record_array[trim($inventory_record['products_id'])])) {
+                        $this->load_inventory($inventory_record['products_id']);
                     }
                 }
-                unset($inventoryRecord);
+                unset($inventory_record);
             }
-            unset($productRecord);
-            unset($childArray);
-            unset($productId);
+            unset($product_record);
+            unset($child_array);
+            unset($product_id);
             return true;
         }
         return false;
     }
-
-    public function load($uProductIdArray = [])
+    public function load($u_product_id_array = [])
     {
         $this->clear();
-        if (!is_array($uProductIdArray)) {
-            $uProductIdArray = \common\models\Products::find()->select('products_id')->asArray(true)->column();
+        if (!is_array($u_product_id_array)) {
+            $u_product_id_array = \common\models\Products::find()->select('products_id')->as_array(true)->column();
         }
-        foreach ($uProductIdArray as $uProductId) {
-            if ((trim((int)$uProductId) == trim($uProductId)) or !\common\helpers\Extensions::isAllowed('Inventory')) {
-                $this->loadProduct($uProductId);
+        foreach ($u_product_id_array as $u_product_id) {
+            if (trim((int) $u_product_id) == trim($u_product_id) or !\common\helpers\Extensions::is_allowed('Inventory')) {
+                $this->load_product($u_product_id);
             }
-            $this->loadInventory($uProductId);
+            $this->load_inventory($u_product_id);
         }
-        unset($uProductIdArray);
-        unset($uProductId);
+        unset($u_product_id_array);
+        unset($u_product_id);
         return true;
     }
-
     public function validate()
     {
-        if (!is_array($this->stockRecordArray)) {
+        if (!is_array($this->stock_record_array)) {
             return false;
         }
         if (!parent::validate()) {
             return false;
         }
-        $warehouseNameList = [];
-        foreach (\common\models\Warehouses::find()->asArray(true)->all() as $warehouseRecord) {
-            $warehouseNameList[$warehouseRecord['warehouse_id']] = $warehouseRecord['warehouse_name'];
+        $warehouse_name_list = [];
+        foreach (\common\models\Warehouses::find()->as_array(true)->all() as $warehouse_record) {
+            $warehouse_name_list[$warehouse_record['warehouse_id']] = $warehouse_record['warehouse_name'];
         }
-        unset($warehouseRecord);
-        $supplierNameList = [];
-        foreach (\common\models\Suppliers::find()->asArray(true)->all() as $supplierRecord) {
-            $supplierNameList[$supplierRecord['suppliers_id']] = $supplierRecord['suppliers_name'];
+        unset($warehouse_record);
+        $supplier_name_list = [];
+        foreach (\common\models\Suppliers::find()->as_array(true)->all() as $supplier_record) {
+            $supplier_name_list[$supplier_record['suppliers_id']] = $supplier_record['suppliers_name'];
         }
-        unset($supplierRecord);
-        $locationList = [];
-        foreach (\common\models\Locations::find()->asArray(true)->all() as $locationRecord) {
-            $locationList[$locationRecord['location_id']] = $locationRecord['location_name'];
+        unset($supplier_record);
+        $location_list = [];
+        foreach (\common\models\Locations::find()->as_array(true)->all() as $location_record) {
+            $location_list[$location_record['location_id']] = $location_record['location_name'];
         }
-        unset($locationRecord);
+        unset($location_record);
         /*$locationBlockList = [];
-        foreach (\common\models\LocationBlocks::find()->asArray(true)->all() as $locationBlockRecord) {
-            $locationBlockList[$locationBlockRecord['block_id']] = $locationBlockRecord['block_name'];
-        }
-        unset($locationBlockRecord);*/
-        foreach ($this->stockRecordArray as $key => &$stockRecord) {
-            $stockRecord['products_model'] = trim(isset($stockRecord['products_model']) ? $stockRecord['products_model'] : '');
-            $stockRecord['attributeRecordArray'] = (
-                (isset($stockRecord['attributeRecordArray']) and is_array($stockRecord['attributeRecordArray']))
-                ? $stockRecord['attributeRecordArray'] : []
-            );
-            $stockRecord['warehouseRecordArray'] = (
-                (isset($stockRecord['warehouseRecordArray']) and is_array($stockRecord['warehouseRecordArray']))
-                ? $stockRecord['warehouseRecordArray'] : []
-            );
-            if ($stockRecord['products_model'] != '') {
+          foreach (\common\models\LocationBlocks::find()->asArray(true)->all() as $locationBlockRecord) {
+              $locationBlockList[$locationBlockRecord['block_id']] = $locationBlockRecord['block_name'];
+          }
+          unset($locationBlockRecord);*/
+        foreach ($this->stock_record_array as $key => &$stock_record) {
+            $stock_record['products_model'] = trim(isset($stock_record['products_model']) ? $stock_record['products_model'] : '');
+            $stock_record['attributeRecordArray'] = (isset($stock_record['attributeRecordArray']) and is_array($stock_record['attributeRecordArray'])) ? $stock_record['attributeRecordArray'] : [];
+            $stock_record['warehouseRecordArray'] = (isset($stock_record['warehouseRecordArray']) and is_array($stock_record['warehouseRecordArray'])) ? $stock_record['warehouseRecordArray'] : [];
+            if ($stock_record['products_model'] != '') {
                 /*if ((count($stockRecord['attributeRecordArray']) > 0) == true) {}*/
-                $searchRecord = \common\models\Inventory::find()->where(['products_model' => $stockRecord['products_model']])->asArray(true)->all();
-                if (count($searchRecord) == 0) {
-                    $searchRecord = \common\models\Products::find()->where(['products_model' => $stockRecord['products_model']])->asArray(true)->all();
+                $search_record = \common\models\Inventory::find()->where(['products_model' => $stock_record['products_model']])->as_array(true)->all();
+                if (count($search_record) == 0) {
+                    $search_record = \common\models\Products::find()->where(['products_model' => $stock_record['products_model']])->as_array(true)->all();
                 }
-                $uProductId = trim(isset($stockRecord['products_id']) ? $stockRecord['products_id'] : '');
-                if (($uProductId != '') and (count($searchRecord) > 1)) {
-                    foreach ($searchRecord as $exactRecord) {
-                        if ($uProductId === trim($exactRecord['products_id'])) {
-                            $searchRecord = [$exactRecord];
+                $u_product_id = trim(isset($stock_record['products_id']) ? $stock_record['products_id'] : '');
+                if ($u_product_id != '' and count($search_record) > 1) {
+                    foreach ($search_record as $exact_record) {
+                        if ($u_product_id === trim($exact_record['products_id'])) {
+                            $search_record = [$exact_record];
                             break;
                         }
                     }
-                    unset($exactRecord);
+                    unset($exact_record);
                 }
-                unset($uProductId);
-                if (count($searchRecord) != 1) {
-                    unset($this->stockRecordArray[$key]);
+                unset($u_product_id);
+                if (count($search_record) != 1) {
+                    unset($this->stock_record_array[$key]);
                     continue;
                 }
-                $searchRecord = $searchRecord[0];
-                $stockRecord['prid'] = (int)(isset($searchRecord['prid']) ? $searchRecord['prid'] : $searchRecord['products_id']);
-                $stockRecord['products_id'] = trim($searchRecord['products_id']);
-                unset($searchRecord);
+                $search_record = $search_record[0];
+                $stock_record['prid'] = (int) (isset($search_record['prid']) ? $search_record['prid'] : $search_record['products_id']);
+                $stock_record['products_id'] = trim($search_record['products_id']);
+                unset($search_record);
             }
-            $stockRecord['products_id'] = trim(isset($stockRecord['products_id']) ? $stockRecord['products_id'] : '0');
-            $stockRecord['prid'] = (int)(isset($stockRecord['prid']) ? $stockRecord['prid'] : $stockRecord['products_id']);
-            if (($stockRecord['prid'] <= 0) or ($stockRecord['prid'] != (int)$stockRecord['products_id'])) {
-                unset($this->stockRecordArray[$key]);
+            $stock_record['products_id'] = trim(isset($stock_record['products_id']) ? $stock_record['products_id'] : '0');
+            $stock_record['prid'] = (int) (isset($stock_record['prid']) ? $stock_record['prid'] : $stock_record['products_id']);
+            if ($stock_record['prid'] <= 0 or $stock_record['prid'] != (int) $stock_record['products_id']) {
+                unset($this->stock_record_array[$key]);
                 continue;
             }
-            foreach ($stockRecord as $field => $null) {
-                if (!isset(self::$allowFieldList[$field])) {
-                    unset($stockRecord[$field]);
+            foreach ($stock_record as $field => $null) {
+                if (!isset(self::$allow_field_list[$field])) {
+                    unset($stock_record[$field]);
                 }
             }
             unset($field);
             unset($null);
-            foreach ($stockRecord['warehouseRecordArray'] as $keyW => &$warehouseRecord) {
-                $warehouseRecord['prid'] = $stockRecord['prid'];
-                $warehouseRecord['products_id'] = $stockRecord['products_id'];
-                if (isset($warehouseRecord['products_model'])) {
-                    $warehouseRecord['products_model'] = trim($warehouseRecord['products_model']);
+            foreach ($stock_record['warehouseRecordArray'] as $key_w => &$warehouse_record) {
+                $warehouse_record['prid'] = $stock_record['prid'];
+                $warehouse_record['products_id'] = $stock_record['products_id'];
+                if (isset($warehouse_record['products_model'])) {
+                    $warehouse_record['products_model'] = trim($warehouse_record['products_model']);
                 }
-                if (isset($warehouseRecord['warehouse_name']) and (trim($warehouseRecord['warehouse_name']) != '')) {
-                    $warehouseRecord['warehouse_id'] = (int)array_search($warehouseRecord['warehouse_name'], $warehouseNameList);
+                if (isset($warehouse_record['warehouse_name']) and trim($warehouse_record['warehouse_name']) != '') {
+                    $warehouse_record['warehouse_id'] = (int) array_search($warehouse_record['warehouse_name'], $warehouse_name_list);
                 }
-                if (isset($warehouseRecord['suppliers_name']) and (trim($warehouseRecord['suppliers_name']) != '')) {
-                    $warehouseRecord['suppliers_id'] = (int)array_search($warehouseRecord['suppliers_name'], $supplierNameList);
+                if (isset($warehouse_record['suppliers_name']) and trim($warehouse_record['suppliers_name']) != '') {
+                    $warehouse_record['suppliers_id'] = (int) array_search($warehouse_record['suppliers_name'], $supplier_name_list);
                 }
-                if (isset($warehouseRecord['location_name'])) {
-                    $warehouseRecord['location_id'] = (int)array_search($warehouseRecord['location_name'], $locationList);
+                if (isset($warehouse_record['location_name'])) {
+                    $warehouse_record['location_id'] = (int) array_search($warehouse_record['location_name'], $location_list);
                 }
                 /*if (isset($warehouseRecord['block_name']) AND (trim($warehouseRecord['block_name']) != '')) {
-                    $warehouseRecord['block_id'] = (int)array_search($warehouseRecord['block_name'], $locationBlockList);
-                }*/
-                $warehouseRecord['warehouse_id'] = (int)(isset($warehouseRecord['warehouse_id']) ? $warehouseRecord['warehouse_id'] : 0);
-                $warehouseRecord['suppliers_id'] = (int)(isset($warehouseRecord['suppliers_id']) ? $warehouseRecord['suppliers_id'] : 0);
-                $warehouseRecord['location_id'] = (int)(isset($warehouseRecord['location_id']) ? $warehouseRecord['location_id'] : 0);
-                $warehouseRecord['block_id'] = (int)(isset($warehouseRecord['block_id']) ? $warehouseRecord['block_id'] : 0);
-                $warehouseRecord['warehouse_id'] = (int)(($warehouseRecord['warehouse_id'] <= 0) ? \common\helpers\Warehouses::get_default_warehouse() : $warehouseRecord['warehouse_id']);
-                $warehouseRecord['suppliers_id'] = (int)(($warehouseRecord['suppliers_id'] <= 0) ? \common\helpers\Suppliers::getDefaultSupplierId() : $warehouseRecord['suppliers_id']);
-                $warehouseRecord['location_id'] = (int)(($warehouseRecord['location_id'] <= 0) ? 0 : $warehouseRecord['location_id']);
-                $warehouseRecord['block_id'] = (int)(($warehouseRecord['block_id'] <= 0) ? 0 : $warehouseRecord['block_id']);
+                      $warehouseRecord['block_id'] = (int)array_search($warehouseRecord['block_name'], $locationBlockList);
+                  }*/
+                $warehouse_record['warehouse_id'] = (int) (isset($warehouse_record['warehouse_id']) ? $warehouse_record['warehouse_id'] : 0);
+                $warehouse_record['suppliers_id'] = (int) (isset($warehouse_record['suppliers_id']) ? $warehouse_record['suppliers_id'] : 0);
+                $warehouse_record['location_id'] = (int) (isset($warehouse_record['location_id']) ? $warehouse_record['location_id'] : 0);
+                $warehouse_record['block_id'] = (int) (isset($warehouse_record['block_id']) ? $warehouse_record['block_id'] : 0);
+                $warehouse_record['warehouse_id'] = (int) ($warehouse_record['warehouse_id'] <= 0 ? \common\helpers\Warehouses::get_default_warehouse() : $warehouse_record['warehouse_id']);
+                $warehouse_record['suppliers_id'] = (int) ($warehouse_record['suppliers_id'] <= 0 ? \common\helpers\Suppliers::get_default_supplier_id() : $warehouse_record['suppliers_id']);
+                $warehouse_record['location_id'] = (int) ($warehouse_record['location_id'] <= 0 ? 0 : $warehouse_record['location_id']);
+                $warehouse_record['block_id'] = (int) ($warehouse_record['block_id'] <= 0 ? 0 : $warehouse_record['block_id']);
             }
-            unset($warehouseRecord);
-            unset($keyW);
+            unset($warehouse_record);
+            unset($key_w);
         }
-        unset($warehouseNameList);
+        unset($warehouse_name_list);
         //unset($locationBlockList);
-        unset($supplierNameList);
-        unset($locationList);
-        unset($stockRecord);
+        unset($supplier_name_list);
+        unset($location_list);
+        unset($stock_record);
         unset($key);
-        if (count($this->stockRecordArray) == 0) {
+        if (count($this->stock_record_array) == 0) {
             return false;
         }
         return true;
     }
-
     public function create()
     {
         return $this->save();
     }
-
-    public function save($isReplace = false)
+    public function save($is_replace = false)
     {
         $return = false;
         if (!$this->validate()) {
             return $return;
         }
-        $doCacheList = [];
-        foreach ($this->stockRecordArray as $key => &$stockRecord) {
-            $isSave = false;
+        $do_cache_list = [];
+        foreach ($this->stock_record_array as $key => &$stock_record) {
+            $is_save = false;
             try {
-                $searchRecord = \common\models\Inventory::find()->where(['products_id' => $stockRecord['products_id']])->asArray(false)->all();
-                if (count($searchRecord) == 0) {
-                    $searchRecord = \common\models\Products::find()->where(['products_id' => $stockRecord['prid']])->asArray(false)->all();
+                $search_record = \common\models\Inventory::find()->where(['products_id' => $stock_record['products_id']])->as_array(false)->all();
+                if (count($search_record) == 0) {
+                    $search_record = \common\models\Products::find()->where(['products_id' => $stock_record['prid']])->as_array(false)->all();
                 }
-                if (count($searchRecord) == 1) {
-                    $searchRecord = $searchRecord[0];
-                    $searchRecord->setAttributes($stockRecord, false);
-                    if ($searchRecord->save(false)) {
-                        $isSave = true;
-                        foreach ($stockRecord['warehouseRecordArray'] as $keyW => &$warehouseRecord) {
-                            $isSaveW = false;
+                if (count($search_record) == 1) {
+                    $search_record = $search_record[0];
+                    $search_record->set_attributes($stock_record, false);
+                    if ($search_record->save(false)) {
+                        $is_save = true;
+                        foreach ($stock_record['warehouseRecordArray'] as $key_w => &$warehouse_record) {
+                            $is_save_w = false;
                             try {
-                                $warehouseClass = \common\models\WarehousesProducts::find()
-                                ->where(['prid' => $warehouseRecord['prid'], 'products_id' => $warehouseRecord['products_id'],
-                                    'warehouse_id' => $warehouseRecord['warehouse_id'], 'suppliers_id' => $warehouseRecord['suppliers_id'],
-                                    'location_id' => $warehouseRecord['location_id'],
-                                ])->asArray(false)->one();
-                                if (!($warehouseClass instanceof \common\models\WarehousesProducts)) {
-                                    $warehouseClass = new \common\models\WarehousesProducts();
-                                    $warehouseClass->loadDefaultValues();
+                                $warehouse_class = \common\models\Warehouses_Products::find()->where(['prid' => $warehouse_record['prid'], 'products_id' => $warehouse_record['products_id'], 'warehouse_id' => $warehouse_record['warehouse_id'], 'suppliers_id' => $warehouse_record['suppliers_id'], 'location_id' => $warehouse_record['location_id']])->as_array(false)->one();
+                                if (!$warehouse_class instanceof \common\models\Warehouses_Products) {
+                                    $warehouse_class = new \common\models\Warehouses_Products();
+                                    $warehouse_class->load_default_values();
                                 }
-                                $warehouseClass->setAttributes($warehouseRecord, false);
-                                if ($warehouseClass->save() == true) {
-                                    $isSaveW = true;
-                                    if ((float)$warehouseClass->warehouse_stock_quantity <= 0) {
-                                        unset($stockRecord['warehouseRecordArray'][$keyW]);
-                                        $warehouseClass->delete();
+                                $warehouse_class->set_attributes($warehouse_record, false);
+                                if ($warehouse_class->save() == true) {
+                                    $is_save_w = true;
+                                    if ((float) $warehouse_class->warehouse_stock_quantity <= 0) {
+                                        unset($stock_record['warehouseRecordArray'][$key_w]);
+                                        $warehouse_class->delete();
                                     } else {
-                                        $warehouseRecord = ($warehouseClass->toArray() + $warehouseRecord);
+                                        $warehouse_record = $warehouse_class->to_array() + $warehouse_record;
                                     }
                                 } else {
-                                    $this->messageAdd($warehouseClass->getErrorSummary(true));
+                                    $this->message_add($warehouse_class->get_error_summary(true));
                                 }
                             } catch (\Exception $exc) {
-                                $this->messageAdd($exc->getMessage());
+                                $this->message_add($exc->get_message());
                             }
-                            unset($warehouseClass);
-                            if ($isSaveW != true) {
-                                unset($stockRecord['warehouseRecordArray'][$keyW]);
+                            unset($warehouse_class);
+                            if ($is_save_w != true) {
+                                unset($stock_record['warehouseRecordArray'][$key_w]);
                             }
-                            unset($isSaveW);
+                            unset($is_save_w);
                         }
-                        unset($warehouseRecord);
-                        unset($keyW);
-                        foreach ($stockRecord as $field => $null) {
-                            if (isset($searchRecord->{$field})) {
-                                $stockRecord[$field] = $searchRecord->{$field};
-                            } elseif (!is_array($stockRecord[$field])) {
-                                unset($stockRecord[$field]);
+                        unset($warehouse_record);
+                        unset($key_w);
+                        foreach ($stock_record as $field => $null) {
+                            if (isset($search_record->{$field})) {
+                                $stock_record[$field] = $search_record->{$field};
+                            } elseif (!is_array($stock_record[$field])) {
+                                unset($stock_record[$field]);
                             }
                         }
                         unset($field);
                         unset($null);
                     } else {
-                        $this->messageAdd($searchRecord->getErrorSummary(true));
+                        $this->message_add($search_record->get_error_summary(true));
                     }
                 }
             } catch (\Exception $exc) {
-                $this->messageAdd($exc->getMessage());
+                $this->message_add($exc->get_message());
             }
-            unset($searchRecord);
-            if ($isSave != true) {
-                unset($this->stockRecordArray[$key]);
+            unset($search_record);
+            if ($is_save != true) {
+                unset($this->stock_record_array[$key]);
             } else {
-                $doCacheList[(int)$stockRecord['products_id']] = (int)$stockRecord['products_id'];
+                $do_cache_list[(int) $stock_record['products_id']] = (int) $stock_record['products_id'];
             }
-            unset($isSave);
+            unset($is_save);
         }
-        unset($stockRecord);
+        unset($stock_record);
         unset($key);
         $return = true;
-        foreach ($doCacheList as $productId) {
-            $return = (\common\helpers\Product::doCache($productId) and $return);
+        foreach ($do_cache_list as $product_id) {
+            $return = (\common\helpers\Product::do_cache($product_id) and $return);
         }
-        unset($doCacheList);
-        unset($productId);
-        unset($isReplace);
+        unset($do_cache_list);
+        unset($product_id);
+        unset($is_replace);
         return $return;
     }
 }

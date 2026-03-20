@@ -1,16 +1,13 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace backend\models\Report;
 
 use Yii;
-
-class DailyReport extends BasicReport implements ReportInterface
+class Daily_Report extends Basic_Report implements Report_Interface
 {
     public const DELIMETER = '/';
     public const SHOW_ROWS = -1;
-
     protected $start_day = '01';
     protected $end_day;
     protected $start_month;
@@ -18,7 +15,6 @@ class DailyReport extends BasicReport implements ReportInterface
     protected $start_year;
     protected $end_year;
     protected $month_year;
-
     protected $start_day_cmp;
     protected $end_day_cmp;
     protected $start_month_cmp;
@@ -26,30 +22,23 @@ class DailyReport extends BasicReport implements ReportInterface
     protected $start_year_cmp;
     protected $end_year_cmp;
     protected $month_year_cmp;
-
     protected $start_custom;
     protected $end_custom;
     protected $all_params = [];
     private $name = 'daily';
-    protected $sql_params = [
-        'group' => ['dayofmonth', 'month', 'year'],
-        'select_period' => 'date',
-    ];
-    protected $range = [
-        'month' => TEXT_MONTH_COMMON, 'year' => TITLE_YEAR, 'custom' => TEXT_CUSTOM,
-    ];
+    protected $sql_params = ['group' => ['dayofmonth', 'month', 'year'], 'select_period' => 'date'];
+    protected $range = ['month' => TEXT_MONTH_COMMON, 'year' => TITLE_YEAR, 'custom' => TEXT_CUSTOM];
     protected $current_range;
-
     public function __construct($data)
     {
         if (isset($data['range'])) {
             switch ($data['range']) {
                 case 'month':
                     if (isset($data['month_year']) && !empty($data['month_year'])) {
-                        $this->predefineMonthYear($data['month_year']);
-                        if (isset($data['month_year_cmp']) and ($data['month_year'] != $data['month_year_cmp'])) {
-                            $month_year_cmp = $this->parseDate($data['month_year_cmp'], false);
-                            if ((int)$month_year_cmp['year'] > 0) {
+                        $this->predefine_month_year($data['month_year']);
+                        if (isset($data['month_year_cmp']) and $data['month_year'] != $data['month_year_cmp']) {
+                            $month_year_cmp = $this->parse_date($data['month_year_cmp'], false);
+                            if ((int) $month_year_cmp['year'] > 0) {
                                 $this->month_year_cmp = $data['month_year_cmp'];
                                 $this->start_month_cmp = $month_year_cmp['month'];
                                 $this->start_year_cmp = $month_year_cmp['year'];
@@ -70,10 +59,10 @@ class DailyReport extends BasicReport implements ReportInterface
                     break;
                 case 'custom':
                     if (isset($data['start_custom']) && !empty($data['start_custom'])) {
-                        $this->predefineStartCustomMonthYear($data['start_custom']);
+                        $this->predefine_start_custom_month_year($data['start_custom']);
                     }
                     if (isset($data['end_custom']) && !empty($data['end_custom'])) {
-                        $this->predefineEndCustomMonthYear($data['end_custom']);
+                        $this->predefine_end_custom_month_year($data['end_custom']);
                     }
                     break;
             }
@@ -94,48 +83,34 @@ class DailyReport extends BasicReport implements ReportInterface
         if (empty($this->end_day)) {
             $this->end_day = date('t');
         }
-
         if (empty($this->start_custom)) {
             $this->month_year = $this->start_month . self::DELIMETER . $this->start_year;
         } else {
             $this->month_year = '';
         }
-
-        $this->checkMonthDayYear();
+        $this->check_month_day_year();
         $this->start_day = '01';
         $this->end_day = date('t', mktime(0, 0, 0, $this->end_month, 1, $this->end_year));
-
         parent::__construct($data);
     }
-
-    public function getOptions($range)
+    public function get_options($range)
     {
         switch ($range) {
             case 'month':
-                return Yii::$app->controller->renderAjax('month_year', [
-                            'month_year' => $this->month_year,
-                            'month_year_cmp' => trim($this->month_year_cmp),
-                ]);
+                return Yii::$app->controller->render_ajax('month_year', ['month_year' => $this->month_year, 'month_year_cmp' => trim($this->month_year_cmp)]);
                 break;
             case 'year':
-                return Yii::$app->controller->renderAjax('year', [
-                            'year' => $this->start_year,
-                            'years' => $this->getYearsList(),
-                ]);
+                return Yii::$app->controller->render_ajax('year', ['year' => $this->start_year, 'years' => $this->get_years_list()]);
                 break;
             case 'custom':
-                return Yii::$app->controller->renderAjax('custom_month_year', [
-                            'start_custom' => $this->start_custom,
-                            'end_custom' => $this->end_custom,
-                ]);
+                return Yii::$app->controller->render_ajax('custom_month_year', ['start_custom' => $this->start_custom, 'end_custom' => $this->end_custom]);
                 break;
         }
     }
-
-    public function loadPurchases($for_map = false)
+    public function load_purchases($for_map = false)
     {
         $where = " ( o.date_purchased between '" . $this->start_year . '-' . $this->start_month . "-01 00:00:00' and '" . $this->end_year . '-' . $this->end_month . "-31 23:59:59' ) ";
-        $data = $this->getRawData($where, $for_map);
+        $data = $this->get_raw_data($where, $for_map);
         if ($for_map) {
             return $data;
         }
@@ -150,7 +125,7 @@ class DailyReport extends BasicReport implements ReportInterface
                             $template[$key] = '';
                         }
                     }
-                    $new_data = $this->prepareDaysRange($template, 'd M Y', $this->class_range);
+                    $new_data = $this->prepare_days_range($template, 'd M Y', $this->class_range);
                     //if (count($class_range)) $this->setClassRange($class_range);
                     //echo '<pre>';print_r($new_data);die;
                     $filled = true;
@@ -162,58 +137,44 @@ class DailyReport extends BasicReport implements ReportInterface
                     $new_data[date('d-m-Y', strtotime($v['period']))] = $data[$k];
                 }
             }
-
             $_temp = [];
             foreach ($new_data as $kday => $vday) {
                 $_temp[] = $vday;
             }
             $data = $_temp;
-
-            if (($this->current_range == 'month') and ((int)$this->start_year_cmp > 0)) {
-                $data = $this->comparePurchases($data);
+            if ($this->current_range == 'month' and (int) $this->start_year_cmp > 0) {
+                $data = $this->compare_purchases($data);
             }
         }
         return $data;
     }
-
-    public function getRange()
+    public function get_range()
     {
         if ($this->start_month == $this->end_month && $this->start_year == $this->end_year) {
             return date('M, Y', mktime(0, 0, 0, $this->start_month, 1, $this->start_year));
         }
         return date('M, Y', mktime(0, 0, 0, $this->start_month, 1, $this->start_year)) . ' - ' . date('M, Y', mktime(0, 0, 0, $this->end_month, 1, $this->end_year));
     }
-
-    public function getTableTitle()
+    public function get_table_title()
     {
         return TEXT_SALES_DAILY_STATISTICS;
     }
-
-    public function convertColumnTitle($value)
+    public function convert_column_title($value)
     {
         if ($value == 'period') {
             return TEXT_DAY;
         }
-        return parent::convertColumnTitle($value);
+        return parent::convert_column_title($value);
     }
-
-    public function getRowsCount()
+    public function get_rows_count()
     {
-        if (($this->start_month != $this->end_month &&
-                $this->start_year == $this->end_year) ||
-                ($this->start_month == $this->end_month &&
-                $this->start_year != $this->end_year) ||
-                ($this->start_month != $this->end_month &&
-                $this->start_year != $this->end_year)
-        ) {
+        if ($this->start_month != $this->end_month && $this->start_year == $this->end_year || $this->start_month == $this->end_month && $this->start_year != $this->end_year || $this->start_month != $this->end_month && $this->start_year != $this->end_year) {
             return 25;
         }
         return self::SHOW_ROWS;
     }
-
-    public function hasDailyItems()
+    public function has_daily_items()
     {
         return true;
     }
-
 }

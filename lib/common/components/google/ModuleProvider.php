@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,151 +11,134 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components\google;
 
-use common\models\repositories\GoogleSettingsRepository;
-
-class ModuleProvider extends Providers
+use common\models\repositories\Google_Settings_Repository;
+class Module_Provider extends Providers
 {
     private static $modules = ['analytics', 'adwords', 'ecommerce', 'verification', 'tagmanger', 'reviews', 'klaviyo_analytics', 'klaviyo_ecommerce', 'facebook_pixel', 'twitter_pixel', 'tiktok_pixel', 'bing', 'gtag', 'hotjar'];
-    private $gsRepository;
-
-    public function __construct(GoogleSettingsRepository $gsRepository)
+    private $gs_repository;
+    public function __construct(Google_Settings_Repository $gs_repository)
     {
-        $this->gsRepository = $gsRepository;
+        $this->gs_repository = $gs_repository;
     }
-
-    public function getInstalledModules($platform_id, $console = false)
+    public function get_installed_modules($platform_id, $console = false)
     {
         static $front_active_cache = [];
-        if (!$console && \frontend\design\Info::isTotallyAdmin()) {
-            $modules = $this->gsRepository->getSettings(self::$modules, $platform_id);
+        if (!$console && \frontend\design\Info::is_totally_admin()) {
+            $modules = $this->gs_repository->get_settings(self::$modules, $platform_id);
         } else {
             if (isset($front_active_cache[(int) $platform_id])) {
                 return $front_active_cache[(int) $platform_id];
             }
-            $modules = $this->gsRepository->getSettings(self::$modules, $platform_id, true);
+            $modules = $this->gs_repository->get_settings(self::$modules, $platform_id, true);
         }
         $mods = [];
         if (is_array($modules)) {
             foreach ($modules as $mod) {
-                $module = $this->_describeSetting($mod, true);
+                $module = $this->_describe_setting($mod, true);
                 if (!is_object($module)) {
                     continue;
                 }
                 $mods[$mod['module']] = $module;
             }
         }
-
         $front_active_cache[(int) $platform_id] = $mods;
-
         return $mods;
     }
-
-    private function getModuleObject($module)
+    private function get_module_object($module)
     {
         $class = "common\\modules\\analytic\\{$module}";
         if (class_exists($class)) {
             $object = new $class();
-            $object->setProvider($this);
-            $object->getParams();
+            $object->set_provider($this);
+            $object->get_params();
             return $object;
         }
         return false;
     }
-
-    public function getUninstalledModules($platform_id) // return all modules
-    {$mods = [];
-        $installed = $this->getInstalledModules($platform_id);
+    public function get_uninstalled_modules($platform_id)
+    {
+        $mods = [];
+        $installed = $this->get_installed_modules($platform_id);
         foreach (self::$modules as $_mod) {
             if (!isset($installed[$_mod])) {
-                if ($module = $this->getModuleObject($_mod)) {
-                    $params = $module->getParams();
+                if ($module = $this->get_module_object($_mod)) {
+                    $params = $module->get_params();
                     $mods = array_merge($mods, $params);
                 }
             }
         }
         return $mods;
     }
-
-    public function getInstalledById($id, $overload = true)
+    public function get_installed_by_id($id, $overload = true)
     {
-        $setting = $this->gsRepository->findById($id);
+        $setting = $this->gs_repository->find_by_id($id);
         if ($setting) {
-            return $this->_describeSetting($setting, $overload);
+            return $this->_describe_setting($setting, $overload);
         }
         return false;
     }
-
-    public function getActiveByCode($code, $platform_id)
+    public function get_active_by_code($code, $platform_id)
     {
-        $setting = $this->gsRepository->getSetting($code, $platform_id, 1);
+        $setting = $this->gs_repository->get_setting($code, $platform_id, 1);
         if ($setting) {
-            return $this->_describeSetting($setting, true);
+            return $this->_describe_setting($setting, true);
         }
         return false;
     }
-
-    private function _describeSetting($setting, $overload = true)
+    private function _describe_setting($setting, $overload = true)
     {
-        if ($module = $this->getModuleObject($setting->module)) {
+        if ($module = $this->get_module_object($setting->module)) {
             if (tep_not_null($setting->info)) {
-                $module->overloadConfig($setting->info);
+                $module->overload_config($setting->info);
             }
-            $module->params = (array) $setting->getAttributes();
+            $module->params = (array) $setting->get_attributes();
             return $module;
         }
         return false;
     }
-
-    public function overloadConfig($config)
+    public function overload_config($config)
     {
         $this->config = unserialize($config);
         return $this;
     }
-
     public function save($module)
     {
-        $setting = $this->gsRepository->findById($module->params['google_settings_id']);
+        $setting = $this->gs_repository->find_by_id($module->params['google_settings_id']);
         if ($setting) {
-            $this->gsRepository->updateSetting($setting, [$this->gsRepository->getConfigHolder() => serialize($module->config)]);
+            $this->gs_repository->update_setting($setting, [$this->gs_repository->get_config_holder() => serialize($module->config)]);
         }
     }
-
     public function perform($module, $action, $platform_id, $status = 0)
     {
-        if ($object = $this->getModuleObject($module)) {
+        if ($object = $this->get_module_object($module)) {
             if (method_exists($this, $action)) {
-                $this->$action($object, $platform_id, $status);
+                $this->{$action}($object, $platform_id, $status);
             }
         }
     }
-
-    public function remove(modules\AbstractGoogle $module, $platform_id, $status)
+    public function remove(modules\Abstract_Google $module, $platform_id, $status)
     {
-        $installed = $this->gsRepository->getSetting($module->code, $platform_id);
-        return $installed ? $this->gsRepository->delete($installed->google_settings_id) : false;
+        $installed = $this->gs_repository->get_setting($module->code, $platform_id);
+        return $installed ? $this->gs_repository->delete($installed->google_settings_id) : false;
     }
-
-    public function install(modules\AbstractGoogle $module, $platform_id, $status)
+    public function install(modules\Abstract_Google $module, $platform_id, $status)
     {
-        $installed = $this->gsRepository->getSetting($module->code, $platform_id);
+        $installed = $this->gs_repository->get_setting($module->code, $platform_id);
         if (!$installed) {
-            return $this->gsRepository->createSetting($module->code, (string) $module->config[$module->code]['name'], serialize($module->config), $platform_id, $status);
+            return $this->gs_repository->create_setting($module->code, (string) $module->config[$module->code]['name'], serialize($module->config), $platform_id, $status);
         }
         return false;
     }
-
-    public function status(modules\AbstractGoogle $module, $platform_id, $status)
+    public function status(modules\Abstract_Google $module, $platform_id, $status)
     {
-        $setting = $this->gsRepository->getSetting($module->code, $platform_id);
+        $setting = $this->gs_repository->get_setting($module->code, $platform_id);
         if ($setting) {
-            return $this->gsRepository->updateSetting($setting, ['status' => (int) $status]);
+            return $this->gs_repository->update_setting($setting, ['status' => (int) $status]);
         }
         return false;
     }
-
     public static function notify()
     {
         \common\helpers\Translation::init('checkout/success');
@@ -164,13 +146,11 @@ class ModuleProvider extends Providers
             \common\helpers\Mail::send(STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS, IMAGE_BUTTON_NOTIFICATIONS, TEXT_NEED_SETUP_ANALYTICS, STORE_OWNER, STORE_OWNER_EMAIL_ADDRESS);
         }
     }
-
-    public function getApiResult($url, $method, $params = [])
+    public function get_api_result($url, $method, $params = [])
     {
         //??what for
         $data = http_build_query($params);
         $fp = @file_get_contents($url . '?' . $data, false);
         return $fp;
     }
-
 }

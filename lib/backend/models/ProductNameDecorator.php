@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,20 +11,15 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models;
 
 use frontend\design\Info;
-
-class ProductNameDecorator
+class Product_Name_Decorator
 {
     protected $config = [];
-
     private function __construct()
     {
-
     }
-
     /**
      * @return null|self
      */
@@ -39,24 +34,16 @@ class ProductNameDecorator
         }
         return $obj;
     }
-
-    public static function getInternalName($products_id, $language_id, $platformId = null)
+    public static function get_internal_name($products_id, $language_id, $platform_id = null)
     {
-        if (empty($platformId)) {
-            $platformId = \common\classes\platform::defaultId();
+        if (empty($platform_id)) {
+            $platform_id = \common\classes\platform::default_id();
         }
-        $descriptionPlatformId = intval(\Yii::$app->get('platform')->getConfig($platformId)->getPlatformToDescription());
+        $description_platform_id = intval(\Yii::$app->get('platform')->get_config($platform_id)->get_platform_to_description());
         if (empty($language_id)) {
-            $language_id = \common\classes\language::get_id(\Yii::$app->get('platform')->getConfig($platformId)->getDefaultLanguage());
+            $language_id = \common\classes\language::get_id(\Yii::$app->get('platform')->get_config($platform_id)->get_default_language());
         }
-
-        $products_internal_name_query = tep_db_query(
-            'select if(length(pd1.products_internal_name), pd1.products_internal_name, pd.products_internal_name) as products_internal_name, '.
-            ' if(length(pd1.products_name), pd1.products_name, pd.products_name) as products_name '.
-            'from ' . TABLE_PRODUCTS_DESCRIPTION . ' pd '.
-            '  left join ' . TABLE_PRODUCTS_DESCRIPTION . " pd1 on pd1.products_id = pd.products_id and pd1.language_id='" . (int)$language_id . "' and pd1.platform_id = '" . (int)$descriptionPlatformId . "' ".
-            "where pd.products_id = '" . (int)$products_id . "' and pd.platform_id = '".(int)$platformId."' and pd.language_id = '" . (int)$language_id . "'"
-        );
+        $products_internal_name_query = tep_db_query('select if(length(pd1.products_internal_name), pd1.products_internal_name, pd.products_internal_name) as products_internal_name, ' . ' if(length(pd1.products_name), pd1.products_name, pd.products_name) as products_name ' . 'from ' . TABLE_PRODUCTS_DESCRIPTION . ' pd ' . '  left join ' . TABLE_PRODUCTS_DESCRIPTION . " pd1 on pd1.products_id = pd.products_id and pd1.language_id='" . (int) $language_id . "' and pd1.platform_id = '" . (int) $description_platform_id . "' " . "where pd.products_id = '" . (int) $products_id . "' and pd.platform_id = '" . (int) $platform_id . "' and pd.language_id = '" . (int) $language_id . "'");
         if (tep_db_num_rows($products_internal_name_query) > 0) {
             $products_internal_name = tep_db_fetch_array($products_internal_name_query);
             if (!empty($products_internal_name['products_internal_name'])) {
@@ -66,68 +53,60 @@ class ProductNameDecorator
         }
         return false;
     }
-
-    public function useInternalNameForListing()
+    public function use_internal_name_for_listing()
     {
         return in_array('Listing', $this->config);
     }
-
-    public function useInternalNameForOrder()
+    public function use_internal_name_for_order()
     {
         return in_array('Orders', $this->config);
     }
-
-    public function useInternalNameForPackingSlip()
+    public function use_internal_name_for_packing_slip()
     {
         return in_array('PackingSlip', $this->config);
     }
-
-    public function useInternalNameForInvoice()
+    public function use_internal_name_for_invoice()
     {
         return in_array('Invoice', $this->config);
     }
-
-    public function getUpdatedOrderProducts($products, $languageId, $platformId)
+    public function get_updated_order_products($products, $language_id, $platform_id)
     {
-        foreach ($products as $idx => $orderProduct) {
+        foreach ($products as $idx => $order_product) {
             $products[$idx]['_name'] = $products[$idx]['name'];
-            $internal_name = static::getInternalName($orderProduct['id'], $languageId, $platformId);
+            $internal_name = static::get_internal_name($order_product['id'], $language_id, $platform_id);
             if (!empty($internal_name)) {
                 $products[$idx]['name'] = $internal_name;
             }
         }
         return $products;
     }
-
-    public function listingQueryExpression($mainTableAlias = 'pd', $extraTableAlias = 'pd1')
+    public function listing_query_expression($main_table_alias = 'pd', $extra_table_alias = 'pd1')
     {
-        if (Info::isTotallyAdmin() && $this->useInternalNameForListing()) {
-            $internalColumn = "IF(LENGTH({$extraTableAlias}.products_internal_name), {$extraTableAlias}.products_internal_name, {$mainTableAlias}.products_internal_name)";
-            $mainColumn = "IF(LENGTH({$extraTableAlias}.products_name), {$extraTableAlias}.products_name, {$mainTableAlias}.products_name)";
-            if (empty($extraTableAlias)) {
-                if (!empty($mainTableAlias)) {
-                    $mainTableAlias = $mainTableAlias.'.';
+        if (Info::is_totally_admin() && $this->use_internal_name_for_listing()) {
+            $internal_column = "IF(LENGTH({$extra_table_alias}.products_internal_name), {$extra_table_alias}.products_internal_name, {$main_table_alias}.products_internal_name)";
+            $main_column = "IF(LENGTH({$extra_table_alias}.products_name), {$extra_table_alias}.products_name, {$main_table_alias}.products_name)";
+            if (empty($extra_table_alias)) {
+                if (!empty($main_table_alias)) {
+                    $main_table_alias = $main_table_alias . '.';
                 }
-                $internalColumn = $mainTableAlias.'products_internal_name';
-                $mainColumn = $mainTableAlias.'products_name';
+                $internal_column = $main_table_alias . 'products_internal_name';
+                $main_column = $main_table_alias . 'products_name';
             }
-            return "IF(LENGTH({$internalColumn}), {$internalColumn}, {$mainColumn})";
+            return "IF(LENGTH({$internal_column}), {$internal_column}, {$main_column})";
         } else {
-            $mainColumn = "IF(LENGTH({$extraTableAlias}.products_name), {$extraTableAlias}.products_name, {$mainTableAlias}.products_name)";
-            if (empty($extraTableAlias)) {
-                if (!empty($mainTableAlias)) {
-                    $mainTableAlias = $mainTableAlias.'.';
+            $main_column = "IF(LENGTH({$extra_table_alias}.products_name), {$extra_table_alias}.products_name, {$main_table_alias}.products_name)";
+            if (empty($extra_table_alias)) {
+                if (!empty($main_table_alias)) {
+                    $main_table_alias = $main_table_alias . '.';
                 }
-                $mainColumn = $mainTableAlias.'products_name';
+                $main_column = $main_table_alias . 'products_name';
             }
-            return $mainColumn;
+            return $main_column;
         }
     }
-
-    public static function descriptionExpr($alias = 'pd')
+    public static function description_expr($alias = 'pd')
     {
-        $alias = is_null($alias) ? \common\models\ProductsDescription::tableName() : $alias;
-        return new \yii\db\Expression(self::instance()->listingQueryExpression($alias, ''));
+        $alias = is_null($alias) ? \common\models\Products_Description::table_name() : $alias;
+        return new \yii\db\Expression(self::instance()->listing_query_expression($alias, ''));
     }
-
 }

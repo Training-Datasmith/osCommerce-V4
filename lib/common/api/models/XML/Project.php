@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +11,6 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\XML;
 
 class Project
@@ -21,105 +20,83 @@ class Project
      * @var RelatedSerialize
      */
     protected $Serializer;
-
     /**
      * IOProject constructor.
      * @param string $fileName
      */
-    public function __construct($fileName)
+    public function __construct($file_name)
     {
-        $this->fileName = $fileName;
-        $this->Serializer = new RelatedSerialize();
-        static::checkLocalProjects();
+        $this->file_name = $file_name;
+        $this->Serializer = new Related_Serialize();
+        static::check_local_projects();
     }
-
-    public static function checkLocalProjects()
+    public static function check_local_projects()
     {
-        $checkPrimaryProject = tep_db_fetch_array(tep_db_query(
-            'SELECT COUNT(*) AS c FROM io_project WHERE is_local=1 AND department_id=0 AND platform_id=0'
-        ));
-        if ($checkPrimaryProject['c'] == 0) {
-            $project_code = static::allocateCode(defined('STORE_NAME') ? STORE_NAME : \Yii::$app->name);
-            static::createProject($project_code, [
-                'is_local' => 1,
-                'department_id' => 0,
-                'platform_id' => 0,
-            ]);
+        $check_primary_project = tep_db_fetch_array(tep_db_query('SELECT COUNT(*) AS c FROM io_project WHERE is_local=1 AND department_id=0 AND platform_id=0'));
+        if ($check_primary_project['c'] == 0) {
+            $project_code = static::allocate_code(defined('STORE_NAME') ? STORE_NAME : \Yii::$app->name);
+            static::create_project($project_code, ['is_local' => 1, 'department_id' => 0, 'platform_id' => 0]);
         }
     }
-
-    public static function allocateCode($prefix)
+    public static function allocate_code($prefix)
     {
         do {
-            $getServerUuid = tep_db_fetch_array(tep_db_query('SELECT HEX(UUID_SHORT()) AS short_u'));
-            $prefixT = substr(strtoupper(preg_replace('/[^\da-z]/i', '', $prefix)), 0, 11) . '_' .$getServerUuid['short_u'] . date('ymd');
-            $checkUniq = tep_db_fetch_array(tep_db_query(
-                "SELECT COUNT(*) AS c FROM io_project WHERE project_code='".tep_db_input($prefixT)."'"
-            ));
-        } while ($checkUniq['c'] > 0);
-
-        return $prefixT;
+            $get_server_uuid = tep_db_fetch_array(tep_db_query('SELECT HEX(UUID_SHORT()) AS short_u'));
+            $prefix_t = substr(strtoupper(preg_replace('/[^\da-z]/i', '', $prefix)), 0, 11) . '_' . $get_server_uuid['short_u'] . date('ymd');
+            $check_uniq = tep_db_fetch_array(tep_db_query("SELECT COUNT(*) AS c FROM io_project WHERE project_code='" . tep_db_input($prefix_t) . "'"));
+        } while ($check_uniq['c'] > 0);
+        return $prefix_t;
     }
-
-    public static function createProject($projectCode, $extraData)
+    public static function create_project($project_code, $extra_data)
     {
-        $data = [
-            'project_code' => $projectCode,
-        ];
-        if (is_array($extraData)) {
-            $data = array_merge($data, $extraData);
+        $data = ['project_code' => $project_code];
+        if (is_array($extra_data)) {
+            $data = array_merge($data, $extra_data);
         }
         tep_db_perform('io_project', $data);
         return tep_db_insert_id();
     }
-
-    public function setStructure($structure)
+    public function set_structure($structure)
     {
         $this->structure = $structure;
-        $this->Serializer->setConfigureMap($this->structure);
+        $this->Serializer->set_configure_map($this->structure);
     }
-
-    public function detectStructure()
+    public function detect_structure()
     {
-        $detectedStructure = false;
-        $xmlParser = new XMLtoArrayParser();
-        $xmlParser->parseFile($this->fileName);
-        $xmlParser->setCollectPath('/data/Header');
-        $xmlHeader = $xmlParser->read();
-
-        if (is_array($xmlHeader) && !empty($xmlHeader['type'])) {
-            foreach (glob(dirname(__FILE__).'/structure/*.php') as $structureFile) {
-                $testArray = include($structureFile);
-                if (is_array($testArray) && isset($testArray['Header'])) {
-                    $checkHeader = $testArray['Header'];
-                    if (!is_array($checkHeader)) {
-                        $checkHeader = ['type' => $checkHeader];
+        $detected_structure = false;
+        $xml_parser = new Xm_Lto_Array_Parser();
+        $xml_parser->parse_file($this->file_name);
+        $xml_parser->set_collect_path('/data/Header');
+        $xml_header = $xml_parser->read();
+        if (is_array($xml_header) && !empty($xml_header['type'])) {
+            foreach (glob(dirname(__FILE__) . '/structure/*.php') as $structure_file) {
+                $test_array = include $structure_file;
+                if (is_array($test_array) && isset($test_array['Header'])) {
+                    $check_header = $test_array['Header'];
+                    if (!is_array($check_header)) {
+                        $check_header = ['type' => $check_header];
                     }
-                    if ($checkHeader['type'] == $xmlHeader['type']) {
-                        $detectedStructure = pathinfo($structureFile, PATHINFO_FILENAME);
+                    if ($check_header['type'] == $xml_header['type']) {
+                        $detected_structure = pathinfo($structure_file, PATHINFO_FILENAME);
                         break;
                     }
                 }
             }
         }
-
-        return $detectedStructure;
+        return $detected_structure;
     }
-
     public function export()
     {
-        $writer = new XMLWriter($this->fileName);
+        $writer = new Xml_Writer($this->file_name);
         if (isset($this->structure['XSL']) && is_array($this->structure['XSL']) && !empty($this->structure['XSL']['export'])) {
             if (is_file($this->structure['XSL']['export'])) {
-                $writer->applyXSLT($this->structure['XSL']['export']);
+                $writer->apply_xslt($this->structure['XSL']['export']);
             }
         }
         $this->Serializer->export($writer);
     }
-
     public function import()
     {
-        $this->Serializer->import($this->fileName);
+        $this->Serializer->import($this->file_name);
     }
-
 }

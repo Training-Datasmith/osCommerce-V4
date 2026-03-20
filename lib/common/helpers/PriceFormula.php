@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,12 +11,11 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
-class PriceFormula
+class Price_Formula
 {
-    public static function defaultFormula()
+    public static function default_formula()
     {
         static $price_formula;
         if (!is_array($price_formula)) {
@@ -25,31 +23,29 @@ class PriceFormula
         }
         return $price_formula;
     }
-
-    public static function getSupplierFormula($supplierId)
+    public static function get_supplier_formula($supplier_id)
     {
         static $cached = [];
-        if (!isset($cached[intval($supplierId)])) {
-            $cached[intval($supplierId)] = static::defaultFormula();
+        if (!isset($cached[intval($supplier_id)])) {
+            $cached[intval($supplier_id)] = static::default_formula();
             /*            $get_suppliers_data_r = tep_db_query("SELECT price_formula FROM suppliers WHERE suppliers_id='" . (int) $supplierId . "'");
-                        if (tep_db_num_rows($get_suppliers_data_r) > 0) {
-                            $suppliers_data = tep_db_fetch_array($get_suppliers_data_r);
-                            if (!empty($suppliers_data['price_formula'])) {
-                                $supplierFormula = json_decode($suppliers_data['price_formula'], true);
-                                if (is_array($supplierFormula) && isset($supplierFormula['formula'])) {
-                                    $cached[intval($supplierId)] = $supplierFormula;
-                                }
-                            }
-                        }*/
+                          if (tep_db_num_rows($get_suppliers_data_r) > 0) {
+                              $suppliers_data = tep_db_fetch_array($get_suppliers_data_r);
+                              if (!empty($suppliers_data['price_formula'])) {
+                                  $supplierFormula = json_decode($suppliers_data['price_formula'], true);
+                                  if (is_array($supplierFormula) && isset($supplierFormula['formula'])) {
+                                      $cached[intval($supplierId)] = $supplierFormula;
+                                  }
+                              }
+                          }*/
         }
-        return $cached[intval($supplierId)];
+        return $cached[intval($supplier_id)];
     }
-
-    protected static function normalizeParams($paramsIn)
+    protected static function normalize_params($params_in)
     {
         $params = [];
-        if (is_array($paramsIn)) {
-            foreach ($paramsIn as $k => $v) {
+        if (is_array($params_in)) {
+            foreach ($params_in as $k => $v) {
                 $k = strtoupper($k);
                 if (in_array($k, ['PRICE', 'MARGIN', 'SURCHARGE', 'DISCOUNT', 'TAX_RATE'])) {
                     $v = (float) $v;
@@ -57,72 +53,60 @@ class PriceFormula
                 $params[$k] = $v;
             }
         }
-
         return $params;
     }
-
-    protected static function replaceParam($formulaArray, $params, $forPhp = true)
+    protected static function replace_param($formula_array, $params, $for_php = true)
     {
-
-        foreach ($formulaArray as $idx => $value) {
+        foreach ($formula_array as $idx => $value) {
             if (is_array($value)) {
-                $formulaArray[$idx] = static::replaceParam($value, $params, $forPhp);
+                $formula_array[$idx] = static::replace_param($value, $params, $for_php);
             } elseif ($value == '()M' && isset($params['MARGIN'])) {
-                $formulaArray[$idx] = '(' . $params['MARGIN'] . ' + 1) *';
+                $formula_array[$idx] = '(' . $params['MARGIN'] . ' + 1) *';
             } elseif (isset($params[$value])) {
-                $formulaArray[$idx] = $params[$value];
+                $formula_array[$idx] = $params[$value];
             } elseif (substr($value, -1) == '%') {
                 if (isset($params['PRICE'])) {
-                    if ($forPhp) {
-                        $formulaArray[$idx] = $params['PRICE'] * substr($value, 0, -1) / 100;
+                    if ($for_php) {
+                        $formula_array[$idx] = $params['PRICE'] * substr($value, 0, -1) / 100;
                     } else {
-                        $formulaArray[$idx] = $params['PRICE'] . '*' . substr($value, 0, -1) . '/100';
+                        $formula_array[$idx] = $params['PRICE'] . '*' . substr($value, 0, -1) . '/100';
                     }
                 } else {
-                    $formulaArray[$idx] = 0;
+                    $formula_array[$idx] = 0;
                 }
             }
         }
-
-        return $formulaArray;
+        return $formula_array;
     }
-
-    public static function arrayToFlatPhp($formulaArray)
+    public static function array_to_flat_php($formula_array)
     {
-        $implodeParts = [];
-        foreach ($formulaArray as $formulaChunk) {
-            if (is_array($formulaChunk)) {
-                $implodeParts[] = '(' . static::arrayToFlatPhp($formulaChunk) . ')';
+        $implode_parts = [];
+        foreach ($formula_array as $formula_chunk) {
+            if (is_array($formula_chunk)) {
+                $implode_parts[] = '(' . static::array_to_flat_php($formula_chunk) . ')';
             } else {
-                $implodeParts[] = $formulaChunk;
+                $implode_parts[] = $formula_chunk;
             }
         }
-
-        return implode(' ', $implodeParts);
+        return implode(' ', $implode_parts);
     }
-
-    public static function calculatePhp($formulaArray, $params)
+    public static function calculate_php($formula_array, $params)
     {
-        $formulaArray = static::replaceParam($formulaArray, $params);
-
-        $evalCode = static::arrayToFlatPhp($formulaArray);
-
-        eval("\$result=$evalCode;");
-
+        $formula_array = static::replace_param($formula_array, $params);
+        $eval_code = static::array_to_flat_php($formula_array);
+        eval("\$result={$eval_code};");
         if (!isset($result) || !is_numeric($result) || $result < 0) {
             $result = false;
         }
-
         return $result;
     }
-
-    public static function getJs($formulaArray, $params)
+    public static function get_js($formula_array, $params)
     {
-        $params = static::normalizeParams($params);
-        if (isset($formulaArray['formula'])) {
-            $formulaArray = $formulaArray['formula'];
+        $params = static::normalize_params($params);
+        if (isset($formula_array['formula'])) {
+            $formula_array = $formula_array['formula'];
         }
-        if (!is_array($formulaArray) || count($formulaArray) == 0) {
+        if (!is_array($formula_array) || count($formula_array) == 0) {
             return false;
         }
         if (isset($params['DISCOUNT']) && isset($params['PRICE'])) {
@@ -131,176 +115,131 @@ class PriceFormula
         if (isset($params['MARGIN'])) {
             $params['MARGIN'] = '(' . $params['MARGIN'] . '/100)';
         }
-        $formulaArray = static::replaceParam($formulaArray, $params, false);
-
-        $evalCode = static::arrayToFlatPhp($formulaArray);
-        if (empty($evalCode)) {
+        $formula_array = static::replace_param($formula_array, $params, false);
+        $eval_code = static::array_to_flat_php($formula_array);
+        if (empty($eval_code)) {
             return false;
         }
-        return $evalCode;
+        return $eval_code;
     }
-
-    public static function getProductEditJs($params)
+    public static function get_product_edit_js($params)
     {
-        $params = static::normalizeParams($params);
-
+        $params = static::normalize_params($params);
         $js = '';
-
         foreach (\common\models\Suppliers::find()->all() as $supplier) {
             $price_formula = json_decode($supplier->price_formula, true);
             if (!is_array($price_formula)) {
-                $price_formula = static::defaultFormula();
+                $price_formula = static::default_formula();
             }
-
-            $priceRules = $supplier->getSupplierPriceRules()->orderBy(['supplier_price_from' => SORT_ASC])->all();
-            if (count($priceRules) > 0) {
-                $rulesJs = '';
-                foreach ($priceRules as $priceRule) {
-                    if (empty($priceRule->rule_condition)) {
-                        if (!is_null($priceRule->supplier_discount)) {
+            $price_rules = $supplier->get_supplier_price_rules()->order_by(['supplier_price_from' => SORT_ASC])->all();
+            if (count($price_rules) > 0) {
+                $rules_js = '';
+                foreach ($price_rules as $price_rule) {
+                    if (empty($price_rule->rule_condition)) {
+                        if (!is_null($price_rule->supplier_discount)) {
                             //$params['DISCOUNT'] = $priceRule->supplier_discount;
                         }
-                        if (!is_null($priceRule->surcharge_amount)) {
+                        if (!is_null($price_rule->surcharge_amount)) {
                             //$params['SURCHARGE'] = $priceRule->surcharge_amount;
                         }
-                        if (!is_null($priceRule->margin_percentage)) {
+                        if (!is_null($price_rule->margin_percentage)) {
                             //$params['MARGIN'] = $priceRule->margin_percentage;
                         }
-                        if (!empty($priceRule->price_formula)) {
-                            $price_formula = json_decode($priceRule->price_formula, true);
+                        if (!empty($price_rule->price_formula)) {
+                            $price_formula = json_decode($price_rule->price_formula, true);
                         }
-                        $rulesJs = static::getJs($price_formula, $params);
+                        $rules_js = static::get_js($price_formula, $params);
                     } else {
-                        $rule_condition = ',' . $priceRule->rule_condition . ',';
+                        $rule_condition = ',' . $price_rule->rule_condition . ',';
                         if (strpos($rule_condition, ',fromTo,') !== false) {
-                            if (!is_null($priceRule->supplier_discount)) {
+                            if (!is_null($price_rule->supplier_discount)) {
                                 //$params['DISCOUNT'] = $priceRule->supplier_discount;
                             }
-                            if (!is_null($priceRule->surcharge_amount)) {
+                            if (!is_null($price_rule->surcharge_amount)) {
                                 //$params['SURCHARGE'] = $priceRule->surcharge_amount;
                             }
-                            if (!is_null($priceRule->margin_percentage)) {
+                            if (!is_null($price_rule->margin_percentage)) {
                                 //$params['MARGIN'] = $priceRule->margin_percentage;
                             }
-                            if (!empty($priceRule->price_formula)) {
-                                $price_formula = json_decode($priceRule->price_formula, true);
+                            if (!empty($price_rule->price_formula)) {
+                                $price_formula = json_decode($price_rule->price_formula, true);
                             }
-
-                            $supplierFormula = static::getJs($price_formula, $params);
-                            if (!empty($rulesJs)) {
-                                $rulesJs .= 'else ';
+                            $supplier_formula = static::get_js($price_formula, $params);
+                            if (!empty($rules_js)) {
+                                $rules_js .= 'else ';
                             }
-
-                            $lowLimit = '';
-                            $topLimit = '';
-                            if (!is_null($priceRule->supplier_price_from)) {
-                                $lowLimit = $params['PRICE'].'>='.number_format(floatval($priceRule->supplier_price_from), 2, '.', '');
+                            $low_limit = '';
+                            $top_limit = '';
+                            if (!is_null($price_rule->supplier_price_from)) {
+                                $low_limit = $params['PRICE'] . '>=' . number_format(floatval($price_rule->supplier_price_from), 2, '.', '');
                             }
-                            if (!is_null($priceRule->supplier_price_to)) {
-                                $topLimit = $params['PRICE'].'<='.number_format(floatval($priceRule->supplier_price_to), 2, '.', '');
+                            if (!is_null($price_rule->supplier_price_to)) {
+                                $top_limit = $params['PRICE'] . '<=' . number_format(floatval($price_rule->supplier_price_to), 2, '.', '');
                             }
-                            if (!empty($lowLimit) && !empty($topLimit)) {
-                                $rulesJs .= 'if ('.$lowLimit.' && '. $topLimit.'){ return ' . $supplierFormula . '; }';
-                            } elseif (!empty($lowLimit) && empty($topLimit)) {
-                                $rulesJs .= 'if ('.$lowLimit.'){ return ' . $supplierFormula . '; }';
-                            } elseif (empty($lowLimit) && !empty($topLimit)) {
-                                $rulesJs .= 'if ('.$topLimit.'){ return ' . $supplierFormula . '; }';
+                            if (!empty($low_limit) && !empty($top_limit)) {
+                                $rules_js .= 'if (' . $low_limit . ' && ' . $top_limit . '){ return ' . $supplier_formula . '; }';
+                            } elseif (!empty($low_limit) && empty($top_limit)) {
+                                $rules_js .= 'if (' . $low_limit . '){ return ' . $supplier_formula . '; }';
+                            } elseif (empty($low_limit) && !empty($top_limit)) {
+                                $rules_js .= 'if (' . $top_limit . '){ return ' . $supplier_formula . '; }';
                             }
                         }
                     }
                 }
-                $supplierFormula = $rulesJs;
+                $supplier_formula = $rules_js;
             } else {
-                $supplierFormula = static::getJs($price_formula, $params);
+                $supplier_formula = static::get_js($price_formula, $params);
             }
-
-            if (empty($supplierFormula)) {
+            if (empty($supplier_formula)) {
                 continue;
             }
             if (!empty($js)) {
                 $js .= 'else ';
             }
             $js .= "if (id=={$supplier->suppliers_id}){\n";
-            $js .= ' calcNetPrice = (function(){ '. (strpos($supplierFormula, 'if') === 0 ? '' : 'return ') . $supplierFormula . "; })();\n";
+            $js .= ' calcNetPrice = (function(){ ' . (strpos($supplier_formula, 'if') === 0 ? '' : 'return ') . $supplier_formula . "; })();\n";
             $js .= '}';
         }
-
         return $js;
     }
-
-    public static function apply($formulaArray, $params)
+    public static function apply($formula_array, $params)
     {
-        $params = static::normalizeParams($params);
-        if (isset($formulaArray['formula'])) {
-            $formulaArray = $formulaArray['formula'];
+        $params = static::normalize_params($params);
+        if (isset($formula_array['formula'])) {
+            $formula_array = $formula_array['formula'];
         }
-        if (!is_array($formulaArray) || count($formulaArray) == 0) {
+        if (!is_array($formula_array) || count($formula_array) == 0) {
             return false;
         }
-
         if (isset($params['DISCOUNT']) && isset($params['PRICE'])) {
-            $params['DISCOUNT'] = (((float)$params['DISCOUNT']) / 100) * ((float)$params['PRICE']);
+            $params['DISCOUNT'] = (float) $params['DISCOUNT'] / 100 * (float) $params['PRICE'];
         }
         if (isset($params['MARGIN'])) {
-            $params['MARGIN'] = ((float)$params['MARGIN']) / 100;
+            $params['MARGIN'] = (float) $params['MARGIN'] / 100;
         }
-
-        $result = static::calculatePhp($formulaArray, $params);
-
+        $result = static::calculate_php($formula_array, $params);
         return $result;
         /*
-          PRICE
-          DISCOUNT
-          SURCHARGE
-          MARGIN
-          %
-          +
-          -
-         *
-          /
-          ()
-         */
+         PRICE
+         DISCOUNT
+         SURCHARGE
+         MARGIN
+         %
+         +
+         -
+        *
+         /
+         ()
+        */
     }
-
-    public static function calculateSupplierProducts($productId)
+    public static function calculate_supplier_products($product_id)
     {
         $currencies = \Yii::$container->get('currencies');
-        $perSupplier = [];
-        if (strpos($productId, '{') !== false) {
-            $get_product_info_r = tep_db_query(
-                'SELECT sp.suppliers_id, ' .
-                '  sp.suppliers_quantity, sp.is_default, sp.status, ' .
-                '  sp.suppliers_price, sp.currencies_id, ' .
-                '  sp.supplier_discount, sp.suppliers_surcharge_amount, sp.suppliers_margin_percentage, ' .
-                '  sp.tax_rate, sp.price_with_tax, '.
-                '  i.products_id, p.manufacturers_id, ' .
-                "  GROUP_CONCAT(DISTINCT p2c.categories_id SEPARATOR ',') AS assigned_categories " .
-                'FROM ' . TABLE_PRODUCTS . ' p ' .
-                '  INNER JOIN ' . TABLE_INVENTORY.' i ON i.prid=p.products_id '.
-                '  INNER JOIN ' . TABLE_SUPPLIERS_PRODUCTS . ' sp ON sp.products_id=p.products_id AND sp.uprid=i.products_id AND sp.suppliers_price>0 ' .
-                '  LEFT JOIN ' . TABLE_PRODUCTS_TO_CATEGORIES . ' p2c ON p.products_id=p2c.products_id ' .
-                "WHERE p.products_id='" . (int)$productId . "' AND i.products_id='" . tep_db_input($productId) . "' " .
-                'GROUP BY i.products_id, sp.suppliers_id ' .
-                'ORDER BY IF(sp.suppliers_quantity>0,0,1), IF(sp.is_default=1,0,1) '
-            );
+        $per_supplier = [];
+        if (strpos($product_id, '{') !== false) {
+            $get_product_info_r = tep_db_query('SELECT sp.suppliers_id, ' . '  sp.suppliers_quantity, sp.is_default, sp.status, ' . '  sp.suppliers_price, sp.currencies_id, ' . '  sp.supplier_discount, sp.suppliers_surcharge_amount, sp.suppliers_margin_percentage, ' . '  sp.tax_rate, sp.price_with_tax, ' . '  i.products_id, p.manufacturers_id, ' . "  GROUP_CONCAT(DISTINCT p2c.categories_id SEPARATOR ',') AS assigned_categories " . 'FROM ' . TABLE_PRODUCTS . ' p ' . '  INNER JOIN ' . TABLE_INVENTORY . ' i ON i.prid=p.products_id ' . '  INNER JOIN ' . TABLE_SUPPLIERS_PRODUCTS . ' sp ON sp.products_id=p.products_id AND sp.uprid=i.products_id AND sp.suppliers_price>0 ' . '  LEFT JOIN ' . TABLE_PRODUCTS_TO_CATEGORIES . ' p2c ON p.products_id=p2c.products_id ' . "WHERE p.products_id='" . (int) $product_id . "' AND i.products_id='" . tep_db_input($product_id) . "' " . 'GROUP BY i.products_id, sp.suppliers_id ' . 'ORDER BY IF(sp.suppliers_quantity>0,0,1), IF(sp.is_default=1,0,1) ');
         } else {
-            $get_product_info_r = tep_db_query(
-                'SELECT sp.suppliers_id, ' .
-                '  sp.suppliers_quantity, sp.is_default, sp.status, ' .
-                '  sp.suppliers_price, sp.currencies_id, ' .
-                '  sp.supplier_discount, sp.suppliers_surcharge_amount, sp.suppliers_margin_percentage, ' .
-                '  sp.tax_rate, sp.price_with_tax, '.
-                '  p.products_id, p.manufacturers_id, ' .
-                "  GROUP_CONCAT(DISTINCT p2c.categories_id SEPARATOR ',') AS assigned_categories " .
-                'FROM ' . TABLE_PRODUCTS . ' p ' .
-                '  INNER JOIN ' . TABLE_SUPPLIERS_PRODUCTS . " sp ON sp.products_id=p.products_id AND sp.uprid=CONCAT('',p.products_id) AND sp.suppliers_price>=0 AND status=1" .
-                '  LEFT JOIN ' . TABLE_PRODUCTS_TO_CATEGORIES . ' p2c ON p.products_id=p2c.products_id ' .
-                '  LEFT JOIN ' . TABLE_SUPPLIERS . ' s ON s.suppliers_id=sp.suppliers_id ' .
-                "WHERE p.products_id='" . (int)$productId . "' " .
-                'GROUP BY p.products_id, sp.suppliers_id ' .
-                'ORDER BY IF(sp.sort_order IS NULL,s.sort_order,sp.sort_order)'
-                //                "ORDER BY IF(sp.suppliers_quantity>0,0,1), IF(sp.is_default=1,0,1) "
-            );
+            $get_product_info_r = tep_db_query('SELECT sp.suppliers_id, ' . '  sp.suppliers_quantity, sp.is_default, sp.status, ' . '  sp.suppliers_price, sp.currencies_id, ' . '  sp.supplier_discount, sp.suppliers_surcharge_amount, sp.suppliers_margin_percentage, ' . '  sp.tax_rate, sp.price_with_tax, ' . '  p.products_id, p.manufacturers_id, ' . "  GROUP_CONCAT(DISTINCT p2c.categories_id SEPARATOR ',') AS assigned_categories " . 'FROM ' . TABLE_PRODUCTS . ' p ' . '  INNER JOIN ' . TABLE_SUPPLIERS_PRODUCTS . " sp ON sp.products_id=p.products_id AND sp.uprid=CONCAT('',p.products_id) AND sp.suppliers_price>=0 AND status=1" . '  LEFT JOIN ' . TABLE_PRODUCTS_TO_CATEGORIES . ' p2c ON p.products_id=p2c.products_id ' . '  LEFT JOIN ' . TABLE_SUPPLIERS . ' s ON s.suppliers_id=sp.suppliers_id ' . "WHERE p.products_id='" . (int) $product_id . "' " . 'GROUP BY p.products_id, sp.suppliers_id ' . 'ORDER BY IF(sp.sort_order IS NULL,s.sort_order,sp.sort_order)');
         }
         if (tep_db_num_rows($get_product_info_r) > 0) {
             while ($product_data = tep_db_fetch_array($get_product_info_r)) {
@@ -309,438 +248,359 @@ class PriceFormula
                     'categories_id' => preg_split('/,/', $product_data['assigned_categories'], -1, PREG_SPLIT_NO_EMPTY),
                     'manufacturers_id' => $product_data['manufacturers_id'],
                     'currencies_id' => $product_data['currencies_id'],
-                    'PRICE' => $product_data['suppliers_price'],// * $currencies->get_market_price_rate(\common\helpers\Currencies::getCurrencyCode($product_data['currencies_id']), \common\helpers\Currencies::systemCurrencyCode()),
+                    'PRICE' => $product_data['suppliers_price'],
+                    // * $currencies->get_market_price_rate(\common\helpers\Currencies::getCurrencyCode($product_data['currencies_id']), \common\helpers\Currencies::systemCurrencyCode()),
                     'DISCOUNT' => $product_data['supplier_discount'],
                     'SURCHARGE' => $product_data['suppliers_surcharge_amount'],
                     'MARGIN' => $product_data['suppliers_margin_percentage'],
                     'tax_rate' => $product_data['tax_rate'],
                     'price_with_tax' => $product_data['price_with_tax'],
-                    'product' => [
-                        'suppliers_id' => $product_data['suppliers_id'],
-                        'qty' => $product_data['suppliers_quantity'],
-                        'status' => $product_data['status'],
-                        'is_default' => $product_data['is_default'],
-                    ],
+                    'product' => ['suppliers_id' => $product_data['suppliers_id'], 'qty' => $product_data['suppliers_quantity'], 'status' => $product_data['status'], 'is_default' => $product_data['is_default']],
                 ];
-
-                $appliedRules = self::applyRules($params, $product_data['suppliers_id']);
-                $perSupplier[$product_data['suppliers_id']] = $appliedRules;
+                $applied_rules = self::apply_rules($params, $product_data['suppliers_id']);
+                $per_supplier[$product_data['suppliers_id']] = $applied_rules;
             }
         }
-
-        return $perSupplier;
+        return $per_supplier;
     }
-
-    private static function autoSelectSupplier($productId)
+    private static function auto_select_supplier($product_id)
     {
         if (!defined('SUPPLIER_PRICE_SELECTION') || SUPPLIER_PRICE_SELECTION == 'Disabled') {
             return;
         }
-
         $product_price = false;
         $selected_supplier_id = false;
-
-        $calculatedPrices = self::calculateSupplierProducts($productId);
+        $calculated_prices = self::calculate_supplier_products($product_id);
         if (SUPPLIER_PRICE_SELECTION == 'Cheapest, In stock' || SUPPLIER_PRICE_SELECTION == 'Supplier order') {
             // filter in stock with price
             $in_stock_sort = [];
-            foreach ($calculatedPrices as $_supplierId => $calculatedPrice) {
-                if (!is_array($calculatedPrice['product']) /*|| $calculatedPrice['product']['qty']<1*/) {
+            foreach ($calculated_prices as $_supplier_id => $calculated_price) {
+                if (!is_array($calculated_price['product'])) {
                     continue;
                 }
-                if ($calculatedPrice['resultPrice'] > 0) {
-                    $in_stock_sort[$_supplierId] = (float)$calculatedPrice['resultPrice'];
+                if ($calculated_price['resultPrice'] > 0) {
+                    $in_stock_sort[$_supplier_id] = (float) $calculated_price['resultPrice'];
                 }
             }
-
             if (count($in_stock_sort) > 0) {
                 if (SUPPLIER_PRICE_SELECTION == 'Supplier order') {
-                    foreach (\common\helpers\Suppliers::orderedIdsForProduct($productId) as $orderedSupplierId) {
-                        if (isset($in_stock_sort[$orderedSupplierId])) {
-                            $selected_supplier_id = (int)$orderedSupplierId;
-                            $product_price = $calculatedPrices[$orderedSupplierId]['resultPrice'];
+                    foreach (\common\helpers\Suppliers::ordered_ids_for_product($product_id) as $ordered_supplier_id) {
+                        if (isset($in_stock_sort[$ordered_supplier_id])) {
+                            $selected_supplier_id = (int) $ordered_supplier_id;
+                            $product_price = $calculated_prices[$ordered_supplier_id]['resultPrice'];
                             break;
                         }
                     }
                 } else {
                     asort($in_stock_sort, SORT_NUMERIC);
                     $selected_supplier_id = key($in_stock_sort);
-                    $product_price = $calculatedPrices[$selected_supplier_id]['resultPrice'];
+                    $product_price = $calculated_prices[$selected_supplier_id]['resultPrice'];
                 }
             }
-
         } elseif (SUPPLIER_PRICE_SELECTION == 'Based on priority rules') {
-            if (count($calculatedPrices) > 0) {
-                if ($ext = \common\helpers\Acl::checkExtensionAllowed('SupplierPriority', 'getInstance')) {
-                    $calculatedPrices = $ext::getInstance()->arrangeVariants($calculatedPrices);
-                    foreach ($calculatedPrices as $_supplierId => $calculatedPrice) {
-                        if ($calculatedPrice['priority'] && $calculatedPrice['priority']['is_preferred']) {
-                            $selected_supplier_id = $_supplierId;
-                            $product_price = $calculatedPrice['resultPrice'];
+            if (count($calculated_prices) > 0) {
+                if ($ext = \common\helpers\Acl::check_extension_allowed('SupplierPriority', 'getInstance')) {
+                    $calculated_prices = $ext::get_instance()->arrange_variants($calculated_prices);
+                    foreach ($calculated_prices as $_supplier_id => $calculated_price) {
+                        if ($calculated_price['priority'] && $calculated_price['priority']['is_preferred']) {
+                            $selected_supplier_id = $_supplier_id;
+                            $product_price = $calculated_price['resultPrice'];
                             break;
                         }
                     }
                 } else {
-                    self::logAutoUpdateProduct($productId, "Error: extension SupplierPriority is needed to use '" . SUPPLIER_PRICE_SELECTION . "'");
+                    self::log_auto_update_product($product_id, "Error: extension SupplierPriority is needed to use '" . SUPPLIER_PRICE_SELECTION . "'");
                 }
             }
         }
-
-        return ['product_price' => $product_price, 'selected_supplier_id' => $selected_supplier_id ?? null, 'calculatedPrice' => $calculatedPrice ?? null];
+        return ['product_price' => $product_price, 'selected_supplier_id' => $selected_supplier_id ?? null, 'calculatedPrice' => $calculated_price ?? null];
     }
-
-    private static function addAutoUpdateWhere($productQuery)
+    private static function add_auto_update_where($product_query)
     {
         if (SUPPLIER_UPDATE_PRICE_MODE == 'Auto') {
-            $productQuery->andWhere(['OR', ['IS', 'supplier_price_manual', new \yii\db\Expression('NULL')], ['supplier_price_manual' => 0]]);
+            $product_query->and_where(['OR', ['IS', 'supplier_price_manual', new \yii\db\Expression('NULL')], ['supplier_price_manual' => 0]]);
         } else {
-            $productQuery->andWhere(['supplier_price_manual' => 0]);
+            $product_query->and_where(['supplier_price_manual' => 0]);
         }
-        return $productQuery;
+        return $product_query;
     }
-
     /**
      * Checks if product ready for auto update
      * @param $productId
      * @return \common\models\Products|\yii\db\ActiveRecord|null
      */
-    public static function getProductModelForAutoUpdate($productId)
+    public static function get_product_model_for_auto_update($product_id)
     {
-        $productQuery = \common\models\Products::find()
-            ->select(['products_price', 'products_id', 'supplier_price_manual', 'products_price_full'])
-            ->where(['products_id' => (int)$productId, 'products_id_price' => [(int)$productId, 0]]);
-        return self::addAutoUpdateWhere($productQuery)->one();
+        $product_query = \common\models\Products::find()->select(['products_price', 'products_id', 'supplier_price_manual', 'products_price_full'])->where(['products_id' => (int) $product_id, 'products_id_price' => [(int) $product_id, 0]]);
+        return self::add_auto_update_where($product_query)->one();
     }
-
-    private static function logAutoUpdate($msg, $echoForConsole = true)
+    private static function log_auto_update($msg, $echo_for_console = true)
     {
         \Yii::info($msg, 'suppliers/auto-update-price');
-        if (\common\helpers\System::isConsole() && $echoForConsole) {
+        if (\common\helpers\System::is_console() && $echo_for_console) {
             echo $msg . "\n";
         }
     }
-
-    private static function logAutoUpdateProduct($productId, $msg)
+    private static function log_auto_update_product($product_id, $msg)
     {
-        self::logAutoUpdate("Autoupdate price for product #{$productId}: #{$msg}", false);
+        self::log_auto_update("Autoupdate price for product #{$product_id}: #{$msg}", false);
     }
-
-    public static function applyDb($productId, $checkAutoField = true)
+    public static function apply_db($product_id, $check_auto_field = true)
     {
-        if ($checkAutoField) {
-            $productModel = self::getProductModelForAutoUpdate($productId);
-            if (empty($productModel)) {
-                self::logAutoUpdateProduct($productId, 'Canceled - product does not meet auto the update conditions');
+        if ($check_auto_field) {
+            $product_model = self::get_product_model_for_auto_update($product_id);
+            if (empty($product_model)) {
+                self::log_auto_update_product($product_id, 'Canceled - product does not meet auto the update conditions');
                 return;
             }
         } else {
-            $productModel = \common\models\Products::findOne($productId);
-            if (empty($productModel)) {
-                self::logAutoUpdateProduct($productId, 'Product does not exists');
+            $product_model = \common\models\Products::find_one($product_id);
+            if (empty($product_model)) {
+                self::log_auto_update_product($product_id, 'Product does not exists');
                 return;
             }
         }
-
-        extract(self::autoSelectSupplier($productId));
+        extract(self::auto_select_supplier($product_id));
         if ($product_price === false) {
-            self::logAutoUpdateProduct($productId, 'Canceled - supplier price is empty');
+            self::log_auto_update_product($product_id, 'Canceled - supplier price is empty');
             return;
         }
-
-        $log_string = "result_price={$product_price}; SupplierId={$selected_supplier_id}; config [".SUPPLIER_PRICE_SELECTION.']; ';
-        if (is_array($calculatedPrice)) {
-            $log_string .= "Applied {$calculatedPrice['label']} ".\json_encode($calculatedPrice['applyParams']);
-            $log_string .= ' DATA='.\json_encode($calculatedPrice);
+        $log_string = "result_price={$product_price}; SupplierId={$selected_supplier_id}; config [" . SUPPLIER_PRICE_SELECTION . ']; ';
+        if (is_array($calculated_price)) {
+            $log_string .= "Applied {$calculated_price['label']} " . \json_encode($calculated_price['applyParams']);
+            $log_string .= ' DATA=' . \json_encode($calculated_price);
         }
-        self::logAutoUpdateProduct($productId, $log_string);
-
-        return self::updateProductPriceByModel($productModel, $product_price, $selected_supplier_id);
+        self::log_auto_update_product($product_id, $log_string);
+        return self::update_product_price_by_model($product_model, $product_price, $selected_supplier_id);
     }
-
-    public static function batchProductAutoCalcPriceBySupplier($LIMIT_RECORDS = 1000, $LIMIT_TIME = 3000)
+    public static function batch_product_auto_calc_price_by_supplier($LIMIT_RECORDS = 1000, $LIMIT_TIME = 3000)
     {
-        self::logAutoUpdate('Batch update started for ' . (int)$LIMIT_RECORDS . ' products');
-        $productQuery = \common\models\Products::find()->alias('p')
-            ->select('products_id')
-            ->where("auto_price_modified IS NULL OR auto_price_modified < COALESCE(last_xml_import, '1000-01-01 00:00:00') OR auto_price_modified < COALESCE(products_last_modified, '1000-01-01 00:00:00')");
+        self::log_auto_update('Batch update started for ' . (int) $LIMIT_RECORDS . ' products');
+        $product_query = \common\models\Products::find()->alias('p')->select('products_id')->where("auto_price_modified IS NULL OR auto_price_modified < COALESCE(last_xml_import, '1000-01-01 00:00:00') OR auto_price_modified < COALESCE(products_last_modified, '1000-01-01 00:00:00')");
         if ($LIMIT_RECORDS > 0) {
-            $productQuery->limit($LIMIT_RECORDS);
+            $product_query->limit($LIMIT_RECORDS);
         }
-        $startTime = microtime(true);
+        $start_time = microtime(true);
         $count = $updated = 0;
-        foreach (self::addAutoUpdateWhere($productQuery)->column() as $pid) {
-            $updated += self::applyDb($pid, false) ? 1 : 0;
+        foreach (self::add_auto_update_where($product_query)->column() as $pid) {
+            $updated += self::apply_db($pid, false) ? 1 : 0;
             $count++;
-            if ($LIMIT_TIME > 0 && (microtime(true) - $startTime) > $LIMIT_TIME) {
-                self::logAutoUpdate('Batch update is interrupted due time limit');
+            if ($LIMIT_TIME > 0 && microtime(true) - $start_time > $LIMIT_TIME) {
+                self::log_auto_update('Batch update is interrupted due time limit');
                 break;
             }
         }
-        $elapsedTime = microtime(true) - $startTime;
-        self::logAutoUpdate("Batch update finished. Products reviewed: $count updated: $updated. Elapsed time: $elapsedTime");
+        $elapsed_time = microtime(true) - $start_time;
+        self::log_auto_update("Batch update finished. Products reviewed: {$count} updated: {$updated}. Elapsed time: {$elapsed_time}");
     }
-
-    public static function getSupplierRulesCollection($supplierId)
+    public static function get_supplier_rules_collection($supplier_id)
     {
-        $supplier = \common\models\Suppliers::findOne($supplierId);
-
-        $rules = [
-            'category' => [],
-            'brand' => [],
-            'supplier' => [],
-        ];
-        $allRules = \common\models\SuppliersCatalogPriceRules::find()->where(['suppliers_id' => $supplier->suppliers_id])->orderBy(['currencies_id' => SORT_DESC]);
-
-        foreach ($allRules->all() as $rule) {
+        $supplier = \common\models\Suppliers::find_one($supplier_id);
+        $rules = ['category' => [], 'brand' => [], 'supplier' => []];
+        $all_rules = \common\models\Suppliers_Catalog_Price_Rules::find()->where(['suppliers_id' => $supplier->suppliers_id])->order_by(['currencies_id' => SORT_DESC]);
+        foreach ($all_rules->all() as $rule) {
             $formula = is_null($rule->price_formula) ? false : json_decode($rule->price_formula, true);
             if (!is_array($formula)) {
-                $formula = static::defaultFormula();
+                $formula = static::default_formula();
             }
-            $ruleArray = [
-                'category_id' => $rule->category_id,
-                'manufacturer_id' => $rule->manufacturer_id,
-                'currencies_id' => $rule->currencies_id,
-                'rule_condition' => $rule->rule_condition,
-                'cost_from' => $rule->supplier_price_from,
-                'cost_to' => $rule->supplier_price_to,
-                'result_price_not_below' => $rule->supplier_price_not_below,
-                'DISCOUNT' => is_null($rule->supplier_discount) ? 0.00 : $rule->supplier_discount,
-                'SURCHARGE' => is_null($rule->surcharge_amount) ? 0.00 : $rule->surcharge_amount,
-                'MARGIN' => is_null($rule->margin_percentage) ? 0.00 : $rule->margin_percentage,
-                'tax_rate' => $supplier->tax_rate,
-                'price_with_tax' => $supplier->supplier_prices_with_tax,
-                'formula' => $formula,
-            ];
+            $rule_array = ['category_id' => $rule->category_id, 'manufacturer_id' => $rule->manufacturer_id, 'currencies_id' => $rule->currencies_id, 'rule_condition' => $rule->rule_condition, 'cost_from' => $rule->supplier_price_from, 'cost_to' => $rule->supplier_price_to, 'result_price_not_below' => $rule->supplier_price_not_below, 'DISCOUNT' => is_null($rule->supplier_discount) ? 0.0 : $rule->supplier_discount, 'SURCHARGE' => is_null($rule->surcharge_amount) ? 0.0 : $rule->surcharge_amount, 'MARGIN' => is_null($rule->margin_percentage) ? 0.0 : $rule->margin_percentage, 'tax_rate' => $supplier->tax_rate, 'price_with_tax' => $supplier->supplier_prices_with_tax, 'formula' => $formula];
             if (!empty($rule->category_id)) {
                 if (!is_array($rules['category'][$rule->category_id] ?? null)) {
                     $rules['category'][$rule->category_id] = [];
                 }
-                $ruleArray['appliedToCategories'] = [];
-
-                $subcategoriesQuery = \common\models\Categories::find()
-                    ->select([\common\models\Categories::tableName().'.categories_id',\common\models\Categories::tableName().'.categories_level'])
-                    ->innerJoin(\common\models\Categories::tableName().' cc', 'cc.categories_id=:catId AND '.\common\models\Categories::tableName().'.categories_left>=cc.categories_left AND '.\common\models\Categories::tableName().'.categories_right<=cc.categories_right', ['catId' => $rule->category_id])
-                    ->orderBy([\common\models\Categories::tableName().'.categories_left' => SORT_ASC]);
-
-                foreach ($subcategoriesQuery->all() as $cat) {
-                    $ruleArray['appliedToCategories'][(int)$cat['categories_id']] = (int)$cat['categories_level'];
+                $rule_array['appliedToCategories'] = [];
+                $subcategories_query = \common\models\Categories::find()->select([\common\models\Categories::table_name() . '.categories_id', \common\models\Categories::table_name() . '.categories_level'])->inner_join(\common\models\Categories::table_name() . ' cc', 'cc.categories_id=:catId AND ' . \common\models\Categories::table_name() . '.categories_left>=cc.categories_left AND ' . \common\models\Categories::table_name() . '.categories_right<=cc.categories_right', ['catId' => $rule->category_id])->order_by([\common\models\Categories::table_name() . '.categories_left' => SORT_ASC]);
+                foreach ($subcategories_query->all() as $cat) {
+                    $rule_array['appliedToCategories'][(int) $cat['categories_id']] = (int) $cat['categories_level'];
                 }
-                $ruleArray['label'] = 'Category "'. \common\helpers\Categories::output_generated_category_path($rule->category_id) .'" rule';
-                $rules['category'][$rule->category_id][] = $ruleArray;
+                $rule_array['label'] = 'Category "' . \common\helpers\Categories::output_generated_category_path($rule->category_id) . '" rule';
+                $rules['category'][$rule->category_id][] = $rule_array;
             } elseif (!empty($rule->manufacturer_id)) {
                 if (!is_array($rules['brand'][$rule->manufacturer_id])) {
                     $rules['brand'][$rule->manufacturer_id] = [];
                 }
-                $rules['brand'][$rule->manufacturer_id][] = $ruleArray;
+                $rules['brand'][$rule->manufacturer_id][] = $rule_array;
             } else {
-                $ruleArray['label'] = 'Supplier rule';
-                $rules['supplier'][] = $ruleArray;
+                $rule_array['label'] = 'Supplier rule';
+                $rules['supplier'][] = $rule_array;
             }
         }
         if (count($rules['supplier']) == 0) {
-            $formula = static::defaultFormula();
+            $formula = static::default_formula();
             $rules['supplier'][] = [
-                'currencies_id' => 0, // any currency for default formula
+                'currencies_id' => 0,
+                // any currency for default formula
                 'label' => 'Default supplier rule',
-                'DISCOUNT' => 0.00,
-                'SURCHARGE' => 0.00,
-                'MARGIN' => 0.00,
+                'DISCOUNT' => 0.0,
+                'SURCHARGE' => 0.0,
+                'MARGIN' => 0.0,
                 'tax_rate' => $supplier->tax_rate,
                 'price_with_tax' => $supplier->supplier_prices_with_tax,
                 'formula' => $formula,
             ];
         }
-
         return $rules;
     }
-
-    public static function correctSupplierValueByCurrencyRisks($suppliers_id, $currencyId, $value)
+    public static function correct_supplier_value_by_currency_risks($suppliers_id, $currency_id, $value)
     {
-        $sCurrency = \common\models\SuppliersCurrencies::find()->alias('s')->where(['suppliers_id' => $suppliers_id, 's.currencies_id' => $currencyId])
-            ->joinWith('currencies c')->one();
-        if ($sCurrency) {
-            if ($sCurrency['use_custom_currency_value']) {
-                $value /= $sCurrency['currency_value'];
+        $s_currency = \common\models\Suppliers_Currencies::find()->alias('s')->where(['suppliers_id' => $suppliers_id, 's.currencies_id' => $currency_id])->join_with('currencies c')->one();
+        if ($s_currency) {
+            if ($s_currency['use_custom_currency_value']) {
+                $value /= $s_currency['currency_value'];
             } else {
-                $value /= $sCurrency->currencies->value;
+                $value /= $s_currency->currencies->value;
             }
-            if ($sCurrency['margin_value']) {
-                if ($sCurrency['margin_type'] == '%') {
-                    $value += ($sCurrency['margin_value'] / 100) * $value;
+            if ($s_currency['margin_value']) {
+                if ($s_currency['margin_type'] == '%') {
+                    $value += $s_currency['margin_value'] / 100 * $value;
                 } else {
-                    $value += $sCurrency['margin_value'];
+                    $value += $s_currency['margin_value'];
                 }
             }
         }
         return $value;
     }
-
-    protected static function correctSupplierPriceByCurrencyRisks($suppliers_id, $data)
+    protected static function correct_supplier_price_by_currency_risks($suppliers_id, $data)
     {
-        return self::correctSupplierValueByCurrencyRisks($suppliers_id, $data['currencies_id'], $data['PRICE']);
+        return self::correct_supplier_value_by_currency_risks($suppliers_id, $data['currencies_id'], $data['PRICE']);
     }
-
-    protected static function addTaxRate($amount, $taxRate = 0)
+    protected static function add_tax_rate($amount, $tax_rate = 0)
     {
-        return round($amount * ((100 + $taxRate) / 100), 6);
+        return round($amount * ((100 + $tax_rate) / 100), 6);
     }
-
-    protected static function applySupplierRule($priceRule, $data, $onlySupplierId)
+    protected static function apply_supplier_rule($price_rule, $data, $only_supplier_id)
     {
-        $resultCost = false;
-
-        if (isset($priceRule['currencies_id']) && $priceRule['currencies_id'] != 0 && $priceRule['currencies_id'] != $data['currencies_id']) {
+        $result_cost = false;
+        if (isset($price_rule['currencies_id']) && $price_rule['currencies_id'] != 0 && $price_rule['currencies_id'] != $data['currencies_id']) {
             return false;
         }
-
-        $params = [
-            'PRICE' => static::correctSupplierPriceByCurrencyRisks($onlySupplierId, $data),
-            'MARGIN' => isset($data['MARGIN']) ? $data['MARGIN'] : $priceRule['MARGIN'],
-            'SURCHARGE' => isset($data['SURCHARGE']) ? $data['SURCHARGE'] : $priceRule['SURCHARGE'],
-            'DISCOUNT' => isset($data['DISCOUNT']) ? $data['DISCOUNT'] : $priceRule['DISCOUNT'],
-            'tax_rate' => isset($data['tax_rate']) ? $data['tax_rate'] : $priceRule['tax_rate'],
-            'price_with_tax' => isset($data['price_with_tax']) ? $data['price_with_tax'] : $priceRule['price_with_tax'],
-        ];
+        $params = ['PRICE' => static::correct_supplier_price_by_currency_risks($only_supplier_id, $data), 'MARGIN' => isset($data['MARGIN']) ? $data['MARGIN'] : $price_rule['MARGIN'], 'SURCHARGE' => isset($data['SURCHARGE']) ? $data['SURCHARGE'] : $price_rule['SURCHARGE'], 'DISCOUNT' => isset($data['DISCOUNT']) ? $data['DISCOUNT'] : $price_rule['DISCOUNT'], 'tax_rate' => isset($data['tax_rate']) ? $data['tax_rate'] : $price_rule['tax_rate'], 'price_with_tax' => isset($data['price_with_tax']) ? $data['price_with_tax'] : $price_rule['price_with_tax']];
         if (isset($params['tax_rate']) && !$params['price_with_tax']) {
-            $params['PRICE'] = static::addTaxRate($params['PRICE'], $params['tax_rate']);
+            $params['PRICE'] = static::add_tax_rate($params['PRICE'], $params['tax_rate']);
         }
-
         // check restrict
-        if (!empty($priceRule['category_id'])) {
+        if (!empty($price_rule['category_id'])) {
             // category not match
-            $matchedCategoryLevel = -1;
-            foreach ($data['categories_id'] as $checkAssignedId) {
-                if (isset($priceRule['appliedToCategories'][$checkAssignedId])) {
-                    $matchedCategoryLevel = max($matchedCategoryLevel, $priceRule['appliedToCategories'][$checkAssignedId]);
+            $matched_category_level = -1;
+            foreach ($data['categories_id'] as $check_assigned_id) {
+                if (isset($price_rule['appliedToCategories'][$check_assigned_id])) {
+                    $matched_category_level = max($matched_category_level, $price_rule['appliedToCategories'][$check_assigned_id]);
                 }
             }
-            if ($matchedCategoryLevel == -1) {
+            if ($matched_category_level == -1) {
                 return false;
             }
-            $priceRule['categoryLevel'] = $matchedCategoryLevel;
+            $price_rule['categoryLevel'] = $matched_category_level;
         }
-
         // limited rule
-        if (!empty($priceRule['rule_condition']) && strpos(",{$priceRule['rule_condition']},", ',fromTo,') !== false) {
-            $passLo = null;
-            $passHi = null;
-            if (!is_null($priceRule['cost_from'])) {
-                $passLo = ($params['PRICE'] >= number_format(floatval($priceRule['cost_from']), 2, '.', ''));
+        if (!empty($price_rule['rule_condition']) && strpos(",{$price_rule['rule_condition']},", ',fromTo,') !== false) {
+            $pass_lo = null;
+            $pass_hi = null;
+            if (!is_null($price_rule['cost_from'])) {
+                $pass_lo = $params['PRICE'] >= number_format(floatval($price_rule['cost_from']), 2, '.', '');
             }
-            if (!is_null($priceRule['cost_to'])) {
-                $passHi = ($params['PRICE'] <= number_format(floatval($priceRule['cost_to']), 2, '.', ''));
+            if (!is_null($price_rule['cost_to'])) {
+                $pass_hi = $params['PRICE'] <= number_format(floatval($price_rule['cost_to']), 2, '.', '');
             }
-
-            if (!is_null($passLo) && is_null($passHi)) {
+            if (!is_null($pass_lo) && is_null($pass_hi)) {
                 // only low limit
-                if (!$passLo) {
+                if (!$pass_lo) {
                     return false;
                 }
-            } elseif (is_null($passLo) && !is_null($passHi)) {
+            } elseif (is_null($pass_lo) && !is_null($pass_hi)) {
                 // only high limit
-                if (!$passHi) {
+                if (!$pass_hi) {
                     return false;
                 }
-            } else {
-                if ($passLo !== true && $passHi !== true) {
-                    return false;
-                }
+            } else if ($pass_lo !== true && $pass_hi !== true) {
+                return false;
             }
         }
-
-        $resultCost = \common\helpers\PriceFormula::apply($priceRule['formula'], $params);
-        if ($resultCost !== false && !empty($priceRule['rule_condition']) && strpos(",{$priceRule['rule_condition']},", ',notBelow,') !== false) {
+        $result_cost = \common\helpers\Price_Formula::apply($price_rule['formula'], $params);
+        if ($result_cost !== false && !empty($price_rule['rule_condition']) && strpos(",{$price_rule['rule_condition']},", ',notBelow,') !== false) {
             // result price must be greater then not_below
-            if ($resultCost < ($priceRule['result_price_not_below'] ?? 0)) {
-                $resultCost = false;
+            if ($result_cost < ($price_rule['result_price_not_below'] ?? 0)) {
+                $result_cost = false;
             }
         }
-
-        if ($resultCost !== false) {
-            $priceRule['resultPrice'] = $resultCost;
-            $priceRule['applyParams'] = $params;
+        if ($result_cost !== false) {
+            $price_rule['resultPrice'] = $result_cost;
+            $price_rule['applyParams'] = $params;
             if (isset($data['product'])) {
-                $priceRule['product'] = $data['product'];
+                $price_rule['product'] = $data['product'];
             }
-            return $priceRule;
+            return $price_rule;
         }
-
         return false;
     }
-
     /**
-     * @param $data
-     * $apply = [
-        'products_id' => 0,
-        'categories_id' => [276],
-        'manufacturers_id' => 0,
-        'currencies_id' => 15,
-        'PRICE' => 100.01,
-        'MARGIN' => null,
-        'SURCHARGE' => 5,
-        ];
-     * @param null $onlySupplierId
-     */
-    public static function applyRules($data, $onlySupplierId)
+    * @param $data
+    * $apply = [
+       'products_id' => 0,
+       'categories_id' => [276],
+       'manufacturers_id' => 0,
+       'currencies_id' => 15,
+       'PRICE' => 100.01,
+       'MARGIN' => null,
+       'SURCHARGE' => 5,
+       ];
+    * @param null $onlySupplierId
+    */
+    public static function apply_rules($data, $only_supplier_id)
     {
-
-        $supplierRules = \common\helpers\PriceFormula::getSupplierRulesCollection($onlySupplierId);
-
-        $rulesPriority = ['Category', 'Brand', 'Supplier'];
+        $supplier_rules = \common\helpers\Price_Formula::get_supplier_rules_collection($only_supplier_id);
+        $rules_priority = ['Category', 'Brand', 'Supplier'];
         if (defined('SUPPLIER_PRICE_RULE_PRIORITY') && SUPPLIER_PRICE_RULE_PRIORITY != '') {
-            $rulesPriority = explode(',', SUPPLIER_PRICE_RULE_PRIORITY);
+            $rules_priority = explode(',', SUPPLIER_PRICE_RULE_PRIORITY);
         }
-
-        $applyResult = false;
-        foreach ($rulesPriority as $ruleProcess) {
-            if ($ruleProcess == 'Category') {
-                $appliedCategoriesGroup = [];
-                foreach ($supplierRules['category'] as $categoryRules) {
-                    foreach ($categoryRules as $categoryRule) {
-                        $applyResult = static::applySupplierRule($categoryRule, $data, $onlySupplierId);
-                        if ($applyResult !== false) {
-                            $appliedCategoriesGroup[] = $applyResult;
+        $apply_result = false;
+        foreach ($rules_priority as $rule_process) {
+            if ($rule_process == 'Category') {
+                $applied_categories_group = [];
+                foreach ($supplier_rules['category'] as $category_rules) {
+                    foreach ($category_rules as $category_rule) {
+                        $apply_result = static::apply_supplier_rule($category_rule, $data, $only_supplier_id);
+                        if ($apply_result !== false) {
+                            $applied_categories_group[] = $apply_result;
                         }
                     }
                 }
-                if ($applyResult !== false && count($appliedCategoriesGroup) > 1) {
-                    foreach ($appliedCategoriesGroup as $appliedInGroupItem) {
-                        if ($appliedInGroupItem['categoryLevel'] > $applyResult['categoryLevel']) {
-                            $applyResult = $appliedInGroupItem;
-                        } elseif ($appliedInGroupItem['categoryLevel'] == $applyResult['categoryLevel'] && $appliedInGroupItem['resultPrice'] > $applyResult['resultPrice']) {
-                            $applyResult = $appliedInGroupItem;
+                if ($apply_result !== false && count($applied_categories_group) > 1) {
+                    foreach ($applied_categories_group as $applied_in_group_item) {
+                        if ($applied_in_group_item['categoryLevel'] > $apply_result['categoryLevel']) {
+                            $apply_result = $applied_in_group_item;
+                        } elseif ($applied_in_group_item['categoryLevel'] == $apply_result['categoryLevel'] && $applied_in_group_item['resultPrice'] > $apply_result['resultPrice']) {
+                            $apply_result = $applied_in_group_item;
                         }
                     }
                 }
-            } elseif ($ruleProcess == 'Brand') {
-                if (!empty($data['manufacturers_id']) && isset($supplierRules['brand'][$data['manufacturers_id']])) {
-                    $brandRules = $supplierRules['brand'][$data['manufacturers_id']];
+            } elseif ($rule_process == 'Brand') {
+                if (!empty($data['manufacturers_id']) && isset($supplier_rules['brand'][$data['manufacturers_id']])) {
+                    $brand_rules = $supplier_rules['brand'][$data['manufacturers_id']];
                     //foreach ($supplierRules['brand'] as $brandId => $brandRules) {
-                    foreach ($brandRules as $brandRule) {
-                        $applyResult = static::applySupplierRule($brandRule, $data, $onlySupplierId);
-                        if (is_array($applyResult)) {
+                    foreach ($brand_rules as $brand_rule) {
+                        $apply_result = static::apply_supplier_rule($brand_rule, $data, $only_supplier_id);
+                        if (is_array($apply_result)) {
                             break;
                         }
                     }
                     //}
                 }
-            } elseif ($ruleProcess == 'Supplier') {
-                foreach ($supplierRules['supplier'] as $supplierRule) {
-                    $applyResult = static::applySupplierRule($supplierRule, $data, $onlySupplierId);
-                    if (is_array($applyResult)) {
+            } elseif ($rule_process == 'Supplier') {
+                foreach ($supplier_rules['supplier'] as $supplier_rule) {
+                    $apply_result = static::apply_supplier_rule($supplier_rule, $data, $only_supplier_id);
+                    if (is_array($apply_result)) {
                         break;
                     }
                 }
             }
-            if ($applyResult !== false) {
+            if ($apply_result !== false) {
                 break;
             }
         }
-
-        return $applyResult;
+        return $apply_result;
     }
-
-    public static function isValidFormula($formula)
+    public static function is_valid_formula($formula)
     {
         $formula = json_decode($formula, true);
         $valid = true;
@@ -751,30 +611,24 @@ class PriceFormula
         }
         return $valid;
     }
-
-    public static function calculateExtraOrderPrice()
+    public static function calculate_extra_order_price()
     {
         $args = func_get_args();
-        if ((isset($args[0])) && isset($args[1])) {// 0=> fields, 1=> obtained data
+        if (isset($args[0]) && isset($args[1])) {
+            // 0=> fields, 1=> obtained data
             $field = $args[0];
             if (is_array($args[1])) {
                 $params = $args[1];
                 if (isset($params['action'])) {
                     switch ($params['action']) {
                         case 'extra_charge':
-                            $response = str_replace(
-                                array_map(function ($i) {
-                                    return '{'.$i.'}';
-                                }, array_keys($params['vars'])),
-                                array_values($params['vars']),
-                                $params['formula']
-                            );
+                            $response = str_replace(array_map(function ($i) {
+                                return '{' . $i . '}';
+                            }, array_keys($params['vars'])), array_values($params['vars']), $params['formula']);
                             $response = str_replace('--', '+', $response);
-
                             try {
-                                eval("\$result=$response;");
+                                eval("\$result={$response};");
                             } catch (\Exception $ex) {
-
                             }
                             if (is_scalar($result)) {
                                 return $result;
@@ -787,7 +641,6 @@ class PriceFormula
             }
         }
     }
-
     /**
      * @param \common\models\Products $productModel
      * @param $product_price
@@ -795,15 +648,12 @@ class PriceFormula
      * @return true
      * @throws \yii\db\Exception
      */
-    public static function updateProductPriceByModel($productModel, $product_price, $supplierId = null): bool
+    public static function update_product_price_by_model($product_model, $product_price, $supplier_id = null): bool
     {
-        $productId = $productModel->products_id;
-
-        $currencyId = (int)((USE_MARKET_PRICES == 'True' ? \common\helpers\currencies::getCurrencyId(DEFAULT_CURRENCY) : 0));
-
-        if (strpos($productId, '{') !== false) {
-            $_main_price = $productModel->getAttributes(['products_price', 'products_price_full']);
-
+        $product_id = $product_model->products_id;
+        $currency_id = (int) (USE_MARKET_PRICES == 'True' ? \common\helpers\currencies::get_currency_id(DEFAULT_CURRENCY) : 0);
+        if (strpos($product_id, '{') !== false) {
+            $_main_price = $product_model->get_attributes(['products_price', 'products_price_full']);
             //inventory_group_price
             //inventory_full_price
             $update_inventory = "price_prefix = '+', inventory_full_price='" . tep_db_input($product_price) . "'";
@@ -814,45 +664,29 @@ class PriceFormula
                 $update_inventory = "price_prefix = '{$_prefix}', inventory_full_price='" . tep_db_input($_price_delta) . "'";
                 $update_inventory_prices = "price_prefix = '{$_prefix}', inventory_full_price='" . tep_db_input($_price_delta) . "'";
             }
-
-            \Yii::$app->db->createCommand(
-                'UPDATE ' . TABLE_INVENTORY_PRICES . ' ' .
-                "SET {$update_inventory_prices} " .
-                "WHERE prid='" . (int)$productId . "' AND products_id='" . tep_db_input($productId) . "' " .
-                " AND groups_id='0' AND currencies_id='" . $currencyId .
-                ' AND products_group_price!=-1 '
-            )->execute();
+            \Yii::$app->db->create_command('UPDATE ' . TABLE_INVENTORY_PRICES . ' ' . "SET {$update_inventory_prices} " . "WHERE prid='" . (int) $product_id . "' AND products_id='" . tep_db_input($product_id) . "' " . " AND groups_id='0' AND currencies_id='" . $currency_id . ' AND products_group_price!=-1 ')->execute();
             //inventory_full_price
             //inventory_price
-            \Yii::$app->db->createCommand(
-                'UPDATE ' . TABLE_INVENTORY . ' ' .
-                "SET {$update_inventory} " .
-                "WHERE prid='" . (int)$productId . "' AND products_id='" . tep_db_input($productId) . "'"
-            )->execute();
+            \Yii::$app->db->create_command('UPDATE ' . TABLE_INVENTORY . ' ' . "SET {$update_inventory} " . "WHERE prid='" . (int) $product_id . "' AND products_id='" . tep_db_input($product_id) . "'")->execute();
         } else {
-            \common\models\ProductsPrices::updateAll(
-                ['products_group_price' => $product_price],
-                "products_id='" . (int)$productId . "' AND groups_id=0 AND currencies_id='" . $currencyId . "' AND products_group_price!=-1"
-            );
-            $productModel->products_price = $product_price;
-            $productModel->auto_price_modified = (new \DateTime())->format(\DateTime::ATOM);
-            $productModel->save(false);
-
+            \common\models\Products_Prices::update_all(['products_group_price' => $product_price], "products_id='" . (int) $product_id . "' AND groups_id=0 AND currencies_id='" . $currency_id . "' AND products_group_price!=-1");
+            $product_model->products_price = $product_price;
+            $product_model->auto_price_modified = (new \DateTime())->format(\DateTime::ATOM);
+            $product_model->save(false);
             /** @var $extP \common\extensions\ProductPriceIndex\ProductPriceIndex */
-            if ($extP = \common\helpers\Extensions::isAllowed('ProductPriceIndex')) {
-                $extP::reindex((int)$productId);
+            if ($ext_p = \common\helpers\Extensions::is_allowed('ProductPriceIndex')) {
+                $ext_p::reindex((int) $product_id);
             }
         }
-        self::logAutoUpdateProduct($productId, "Price changed: price={$product_price}; supplierId={$supplierId}");
+        self::log_auto_update_product($product_id, "Price changed: price={$product_price}; supplierId={$supplier_id}");
         return true;
     }
-
-    public static function updateProductPriceById($productId, $productPrice, $supplierId = null): bool
+    public static function update_product_price_by_id($product_id, $product_price, $supplier_id = null): bool
     {
-        if ($productId > 0) {
-            $productModel = \common\models\Products::findOne($productId);
-            if (!empty($productModel)) {
-                return self::updateProductPriceByModel($productModel, $productPrice, $supplierId);
+        if ($product_id > 0) {
+            $product_model = \common\models\Products::find_one($product_id);
+            if (!empty($product_model)) {
+                return self::update_product_price_by_model($product_model, $product_price, $supplier_id);
             }
         }
         return false;

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,11 +11,9 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components;
 
 use yii\helpers\Html;
-
 /**
  * configured in lib\frontend\config\main.php
  */
@@ -29,27 +27,25 @@ class View extends \yii\web\View
      * will be rendered at the end of the view like normal scripts.
      * @return string the rendered content
      */
-    protected function renderBodyEndHtml($ajaxMode)
+    protected function render_body_end_html($ajax_mode)
     {
         $lines = [];
         $files = '';
-        $jsFiles = '';
-
-        if (!empty($this->jsFiles[self::POS_END])) {
-            $jsFilesEnd = $this->jsFiles[self::POS_END];
-            $conditionalFiles = preg_grep('#^<!--\[if#i', $this->jsFiles[self::POS_END]);
-            if (count($conditionalFiles) > 0) {
-                foreach (array_keys($conditionalFiles) as $conditionalKey) {
-                    unset($jsFilesEnd[$conditionalKey]);
+        $js_files = '';
+        if (!empty($this->js_files[self::POS_END])) {
+            $js_files_end = $this->js_files[self::POS_END];
+            $conditional_files = preg_grep('#^<!--\[if#i', $this->js_files[self::POS_END]);
+            if (count($conditional_files) > 0) {
+                foreach (array_keys($conditional_files) as $conditional_key) {
+                    unset($js_files_end[$conditional_key]);
                 }
-                $jsFiles = implode('', $conditionalFiles)."\n";
+                $js_files = implode('', $conditional_files) . "\n";
             }
-            if (count($jsFilesEnd) > 0) {
-                $files = "['" . implode("', '", array_keys($jsFilesEnd)) . "'], ";
+            if (count($js_files_end) > 0) {
+                $files = "['" . implode("', '", array_keys($js_files_end)) . "'], ";
             }
         }
-
-        if ($ajaxMode) {
+        if ($ajax_mode) {
             if (!empty($this->js[self::POS_END])) {
                 $lines[] = implode("\n", $this->js[self::POS_END]);
             }
@@ -70,11 +66,9 @@ class View extends \yii\web\View
                 $lines[] = implode("\n", $this->js[self::POS_LOAD]);
             }
         }
-
         if (!$files && empty($lines)) {
-            return $jsFiles;
+            return $js_files;
         }
-
-        return $jsFiles.Html::script('tl(' . $files . "function(){\n" . implode("\n", $lines) . "\n})");
+        return $js_files . Html::script('tl(' . $files . "function(){\n" . implode("\n", $lines) . "\n})");
     }
 }

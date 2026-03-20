@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,55 +11,50 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\XML;
 
-class XMLtoArrayParser extends XMLtoSimpleParser
+class Xm_Lto_Array_Parser extends Xm_Lto_Simple_Parser
 {
     public function read()
     {
-        $xmlElement = parent::read();
-        if (is_object($xmlElement) && $xmlElement instanceof \SimpleXMLElement) {
-            return $this->simpleXmlElementToArray($xmlElement);
+        $xml_element = parent::read();
+        if (is_object($xml_element) && $xml_element instanceof \Simple_Xml_Element) {
+            return $this->simple_xml_element_to_array($xml_element);
         }
-        return $xmlElement;
+        return $xml_element;
     }
-
-    protected function simpleXmlElementToArray(\SimpleXMLElement $element)
+    protected function simple_xml_element_to_array(\Simple_Xml_Element $element)
     {
         $result = [];
-
-        foreach ($element->attributes() as $attributeName => $attributeValue) {
-            $result['@'.$attributeName] = (string)$attributeValue;
+        foreach ($element->attributes() as $attribute_name => $attribute_value) {
+            $result['@' . $attribute_name] = (string) $attribute_value;
         }
-
         foreach ($element->children() as $child) {
             /**
              * @var $child \SimpleXMLElement
              */
-            $nodeName = $child->getName();
+            $node_name = $child->get_name();
             if ($child->count() > 0) {
-                if (isset($result[$nodeName])) {
-                    if (\yii\helpers\ArrayHelper::isAssociative($result[$nodeName])) {
-                        $result[$nodeName] = [$result[$nodeName]];
+                if (isset($result[$node_name])) {
+                    if (\yii\helpers\Array_Helper::is_associative($result[$node_name])) {
+                        $result[$node_name] = [$result[$node_name]];
                     }
-                    $result[$nodeName][] = $this->simpleXmlElementToArray($child);
+                    $result[$node_name][] = $this->simple_xml_element_to_array($child);
                 } else {
-                    $result[$nodeName] = $this->simpleXmlElementToArray($child);
+                    $result[$node_name] = $this->simple_xml_element_to_array($child);
                 }
             } else {
-                $childValue = (string)$child;
+                $child_value = (string) $child;
                 if ($child->attributes()) {
-                    foreach ($child->attributes() as $childAttrName => $childAttrValue) {
-                        if ($childAttrName == 'nil') {
-                            $childValue = null;
+                    foreach ($child->attributes() as $child_attr_name => $child_attr_value) {
+                        if ($child_attr_name == 'nil') {
+                            $child_value = null;
                         }
                     }
                 }
-                $result[$nodeName] = $childValue;
+                $result[$node_name] = $child_value;
             }
         }
         return $result;
     }
-
 }

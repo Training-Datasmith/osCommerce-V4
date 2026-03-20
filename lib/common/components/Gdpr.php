@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,80 +11,68 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components;
 
-use common\models\GdprCheck;
+use common\models\Gdpr_Check;
 use Yii;
-
 class Gdpr
 {
     private $entity = null;
-    private $gdprCheck = null;
-    private $todayDate;
-    private $dobDate;
-    private $todayDateTime = null;
-    private $dobDateTime = null;
+    private $gdpr_check = null;
+    private $today_date;
+    private $dob_date;
+    private $today_date_time = null;
+    private $dob_date_time = null;
     private $error = false;
     private $mistake = false;
     private $message = '';
     private $email = null;
-
-    public function __construct($userIdentity = null)
+    public function __construct($user_identity = null)
     {
-        if ($userIdentity instanceof \common\models\Customers) {
-            $this->entity = $userIdentity;
-            $this->setDobDate($this->entity->customers_dob);
+        if ($user_identity instanceof \common\models\Customers) {
+            $this->entity = $user_identity;
+            $this->set_dob_date($this->entity->customers_dob);
         }
-        $this->setTodayDate();
+        $this->set_today_date();
     }
-
-    public function validToken($token)
+    public function valid_token($token)
     {
-        $this->gdprCheck = GdprCheck::findOne(['token' => $token]);
-        return $this->gdprCheck;
+        $this->gdpr_check = Gdpr_Check::find_one(['token' => $token]);
+        return $this->gdpr_check;
     }
-
-    public function getTokenEntity()
+    public function get_token_entity()
     {
-        return $this->gdprCheck;
+        return $this->gdpr_check;
     }
-
-    public function getEntity()
+    public function get_entity()
     {
         return $this->entity;
     }
-
-    public function isValidGdpr()
+    public function is_valid_gdpr()
     {
-        return ;
+        return;
     }
-
-    public function getError()
+    public function get_error()
     {
         return $this->error;
     }
-
-    public function getMessage()
+    public function get_message()
     {
         return $this->message;
     }
-
-    public function hasMistake()
+    public function has_mistake()
     {
         return $this->mistake;
     }
-
-    public function setEmail($email)
+    public function set_email($email)
     {
         $this->email = $email;
     }
-
-    public function setDobDate($date)
+    public function set_dob_date($date)
     {
         if (!empty($date) && $date != '0000-00-00 00:00:00') {
             if (checkdate(date('m', strtotime($date)), date('d', strtotime($date)), date('Y', strtotime($date)))) {
-                $this->dobDate = date('Y-m-d', strtotime($date));
+                $this->dob_date = date('Y-m-d', strtotime($date));
                 return true;
             }
         }
@@ -93,156 +80,136 @@ class Gdpr
         $this->message = ENTRY_DATE_OF_BIRTH_ERROR;
         return false;
     }
-
-    public function setTodayDate()
+    public function set_today_date()
     {
-        $this->todayDate = date('Y-m-d');
+        $this->today_date = date('Y-m-d');
     }
-
-    public function getTDifference()
+    public function get_t_difference()
     {
-        if (is_null($this->dobDateTime)) {
-            $this->dobDateTime = new \DateTime($this->dobDate);
+        if (is_null($this->dob_date_time)) {
+            $this->dob_date_time = new \DateTime($this->dob_date);
         }
-        if (is_null($this->todayDateTime)) {
-            $this->todayDateTime = new \DateTime($this->todayDate);
+        if (is_null($this->today_date_time)) {
+            $this->today_date_time = new \DateTime($this->today_date);
         }
-        return $this->dobDateTime->diff($this->todayDateTime);
+        return $this->dob_date_time->diff($this->today_date_time);
     }
-
-    public function isFraud()
+    public function is_fraud()
     {
         $fraud = false;
-        if (!empty($this->dobDate) && $this->dobDate != '0000-00-00 00:00:00') {
-            $difference = $this->getTDifference();
+        if (!empty($this->dob_date) && $this->dob_date != '0000-00-00 00:00:00') {
+            $difference = $this->get_t_difference();
             $fraud = $difference->invert == 1 || $difference->y < 13 ? true : false;
         }
         return $fraud;
     }
-
-    public function generateToken()
+    public function generate_token()
     {
         do {
             $new_token = \common\helpers\Password::create_random_value(32);
-            $checkToken = GdprCheck::find()->where(['token' => $new_token])->one();
-        } while ($checkToken);
+            $check_token = Gdpr_Check::find()->where(['token' => $new_token])->one();
+        } while ($check_token);
         return $new_token;
     }
-
-    public function saveGdprCheck()
+    public function save_gdpr_check()
     {
         if ($this->entity) {
-            $uGdpr = new GdprCheck();
-            $token = $this->generateToken();
-            $uGdpr->setAttributes([
-                'customers_id' => $this->entity->customers_id,
-                'email' => $this->entity->customers_email_address,
-                'token' => $token,
-            ], false);
-            $uGdpr->save(false);
+            $u_gdpr = new Gdpr_Check();
+            $token = $this->generate_token();
+            $u_gdpr->set_attributes(['customers_id' => $this->entity->customers_id, 'email' => $this->entity->customers_email_address, 'token' => $token], false);
+            $u_gdpr->save(false);
             return $token;
         }
         return false;
     }
-
-    public function getGdprToken()
+    public function get_gdpr_token()
     {
         if ($this->entity) {
-            $gdprCheck = GdprCheck::findOne($this->entity->customers_id);
-            if (!$gdprCheck) {
-                $token = $this->saveGdprCheck();
+            $gdpr_check = Gdpr_Check::find_one($this->entity->customers_id);
+            if (!$gdpr_check) {
+                $token = $this->save_gdpr_check();
             } else {
-                $token = $gdprCheck->token;
+                $token = $gdpr_check->token;
             }
             return $token;
         }
         return false;
     }
-
     //account login
-    public function processGdprChecking()
+    public function process_gdpr_checking()
     {
         if (ACCOUNT_GDPR == 'true' && in_array(ACCOUNT_DOB, ['required_register', 'visible_register']) && !$this->entity->dob_flag) {
-            if (empty($this->entity->customers_dob) || $this->entity->customers_dob == '0000-00-00 00:00:00' || $this->isFraud()) {
-                $new_token = $this->getGdprToken();
-                if (Yii::$app->request->isAjax) {
-                    global $messageStack;
-                    if (is_object($messageStack)) {
-                        $messageStack->add_session('login', ENTRY_DATE_OF_BIRTH_ERROR);
+            if (empty($this->entity->customers_dob) || $this->entity->customers_dob == '0000-00-00 00:00:00' || $this->is_fraud()) {
+                $new_token = $this->get_gdpr_token();
+                if (Yii::$app->request->is_ajax) {
+                    global $message_stack;
+                    if (is_object($message_stack)) {
+                        $message_stack->add_session('login', ENTRY_DATE_OF_BIRTH_ERROR);
                     }
                     tep_redirect(tep_href_link('account/update', 'token=' . $new_token, 'SSL'));
                 } else {
                     tep_redirect(tep_href_link('account/update', 'token=' . $new_token, 'SSL'));
                 }
-                exit();
+                exit;
             }
         }
     }
-
-    private function addInterval(\DateTime $date, $period)
+    private function add_interval(\DateTime $date, $period)
     {
         $date->add($period);
     }
-
-    public function validateGdpr()
+    public function validate_gdpr()
     {
-        if (ACCOUNT_GDPR == 'true' && $this->dobDate) {
-            $difference = $this->getTDifference();
+        if (ACCOUNT_GDPR == 'true' && $this->dob_date) {
+            $difference = $this->get_t_difference();
             if ($difference->invert == 1) {
                 $this->message = ENTRY_DATE_OF_BIRTH_ERROR;
                 $this->mistake = true;
             } elseif ($difference->y < 13) {
-                $this->addInterval($this->dobDateTime, new \DateInterval('P13Y'));
-                $this->addInterval($this->todayDateTime, new \DateInterval('P1Y'));
-                $difference = $this->getTDifference();
+                $this->add_interval($this->dob_date_time, new \DateInterval('P13Y'));
+                $this->add_interval($this->today_date_time, new \DateInterval('P1Y'));
+                $difference = $this->get_t_difference();
                 if ($difference->invert == 1) {
-                    $ban_period = $this->todayDateTime->format('Y-m-d');
+                    $ban_period = $this->today_date_time->format('Y-m-d');
                 } else {
-                    $ban_period = $this->dobDateTime->format('Y-m-d');
+                    $ban_period = $this->dob_date_time->format('Y-m-d');
                 }
                 $this->error = true;
                 $this->message = ENTRY_DATE_OF_BIRTH_RESTRICTION;
-                if ($this->gdprCheck) {
-                    \common\models\YoungCustomers::deleteAll(['email' => md5($this->gdprCheck->email)]);
-                    $this->banUser($this->gdprCheck->email, $ban_period);
-                    \common\helpers\Customer::deleteCustomer($this->gdprCheck->customers_id);
-                    $this->gdprCheck->delete();
-                } else {
-                    if (!is_null($this->email)) {
-                        \common\models\YoungCustomers::deleteAll(['email' => md5($this->email)]);
-                        $this->banUser($this->email, $ban_period);
-                    }
+                if ($this->gdpr_check) {
+                    \common\models\Young_Customers::delete_all(['email' => md5($this->gdpr_check->email)]);
+                    $this->ban_user($this->gdpr_check->email, $ban_period);
+                    \common\helpers\Customer::delete_customer($this->gdpr_check->customers_id);
+                    $this->gdpr_check->delete();
+                } else if (!is_null($this->email)) {
+                    \common\models\Young_Customers::delete_all(['email' => md5($this->email)]);
+                    $this->ban_user($this->email, $ban_period);
                 }
             }
         }
-        $this->afterValidation();
+        $this->after_validation();
     }
-
-    public function afterValidation()
+    public function after_validation()
     {
         if (!$this->error && !$this->mistake) {
-            if ($this->gdprCheck) {
-                \common\models\YoungCustomers::deleteAll(['email' => md5($this->gdprCheck->email)]);
-                $this->gdprCheck->delete();
+            if ($this->gdpr_check) {
+                \common\models\Young_Customers::delete_all(['email' => md5($this->gdpr_check->email)]);
+                $this->gdpr_check->delete();
             }
         }
     }
-
-    public function banUser($email, $period)
+    public function ban_user($email, $period)
     {
-        $ban = new \common\models\YoungCustomers();
+        $ban = new \common\models\Young_Customers();
         $ban->email = md5($email);
         $ban->expiration_date = $period;
         $ban->save();
     }
-
-    public function isBanned()
+    public function is_banned()
     {
-        if ($this->gdprCheck) {
-            return is_object(\common\models\YoungCustomers::find()
-                    ->where(['and', ['email' =>  md5($this->gdprCheck->email)] , ['>', 'expiration_date', date('Y-m-d')]])->one());
+        if ($this->gdpr_check) {
+            return is_object(\common\models\Young_Customers::find()->where(['and', ['email' => md5($this->gdpr_check->email)], ['>', 'expiration_date', date('Y-m-d')]])->one());
         }
         return false;
     }
-
 }

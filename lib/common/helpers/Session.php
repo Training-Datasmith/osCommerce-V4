@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /*
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,11 +11,9 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
 use Yii;
-
 /**
  * Description of Session
  *
@@ -26,13 +23,12 @@ class Session
 {
     public static function get($key)
     {
-        return static::getSession()->get($key);
+        return static::get_session()->get($key);
     }
-
-    public static function getSession()
+    public static function get_session()
     {
         if (method_exists(Yii::$app, 'getSession')) {
-            return Yii::$app->getSession();
+            return Yii::$app->get_session();
         } else {
             //console workaround
             $storage = Yii::$app->get('storage');
@@ -43,21 +39,17 @@ class Session
             }
         }
     }
-
-    public static function deleteCustomerSessions($customer_id, $excludeSID = '')
+    public static function delete_customer_sessions($customer_id, $exclude_sid = '')
     {
-        $whosRows = \common\models\WhosOnline::find()
-                ->where(['customer_id' => $customer_id])
-                ->asArray()
-                ->all();
-        foreach ($whosRows as $whos) {
-            if ($excludeSID == $whos['session_id']) {
+        $whos_rows = \common\models\Whos_Online::find()->where(['customer_id' => $customer_id])->as_array()->all();
+        foreach ($whos_rows as $whos) {
+            if ($exclude_sid == $whos['session_id']) {
                 continue;
             }
             if (STORE_SESSIONS == 'mysql') {
-                $sessionRow = \common\models\Sessions::find()->where(['sesskey' => $whos['session_id']])->one();
-                if ($sessionRow instanceof \common\models\Sessions) {
-                    $sessionRow->delete();
+                $session_row = \common\models\Sessions::find()->where(['sesskey' => $whos['session_id']])->one();
+                if ($session_row instanceof \common\models\Sessions) {
+                    $session_row->delete();
                 }
             } else {
                 $file = tep_session_save_path() . '/' . $whos['session_id'];
@@ -66,7 +58,6 @@ class Session
                 }
             }
         }
-        \common\models\WhosOnline::deleteAll(['customer_id' => $customer_id]);
+        \common\models\Whos_Online::delete_all(['customer_id' => $customer_id]);
     }
-
 }

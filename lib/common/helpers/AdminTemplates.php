@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,63 +11,44 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
-class AdminTemplates
+class Admin_Templates
 {
-    public static $pages = [
-        'backendOrder' => TABLE_HEADING_ORDER,
-        'backendOrdersList' => ORDERS_LIST,
-    ];
-
-    public static function templatesList($accessLevelsId)
+    public static $pages = ['backendOrder' => TABLE_HEADING_ORDER, 'backendOrdersList' => ORDERS_LIST];
+    public static function templates_list($access_levels_id)
     {
-        $templatesList = [];
-        $adminTemplates = [];
-        $adminTemplatesData = \common\models\AdminTemplates::find()->where(['access_levels_id' => $accessLevelsId])->asArray()->all();
-        foreach ($adminTemplatesData as $template) {
-            $adminTemplates[$template['page']] = $template['template'];
+        $templates_list = [];
+        $admin_templates = [];
+        $admin_templates_data = \common\models\Admin_Templates::find()->where(['access_levels_id' => $access_levels_id])->as_array()->all();
+        foreach ($admin_templates_data as $template) {
+            $admin_templates[$template['page']] = $template['template'];
         }
-
         foreach (self::$pages as $page => $title) {
-            $themesSettings = \common\models\ThemesSettings::find()->where([
-                'theme_name' => \common\classes\design::pageName(BACKEND_THEME_NAME),
-                'setting_group' => 'added_page',
-                'setting_name' => $page,
-            ])->asArray()->all();
-
+            $themes_settings = \common\models\Themes_Settings::find()->where(['theme_name' => \common\classes\design::page_name(BACKEND_THEME_NAME), 'setting_group' => 'added_page', 'setting_name' => $page])->as_array()->all();
             $templates = ['' => TEXT_DEFAULT];
-            if (is_array($themesSettings)) {
-                foreach ($themesSettings as $setting) {
-                    $templates[\common\classes\design::pageName($setting['setting_value'])] = $setting['setting_value'];
+            if (is_array($themes_settings)) {
+                foreach ($themes_settings as $setting) {
+                    $templates[\common\classes\design::page_name($setting['setting_value'])] = $setting['setting_value'];
                 }
             }
-            $templatesList[] = [
-                'name' => $page,
-                'title' => $title,
-                'selectedTemplate' => $adminTemplates[$page] ?? null,
-                'templates' => $templates,
-            ];
+            $templates_list[] = ['name' => $page, 'title' => $title, 'selectedTemplate' => $admin_templates[$page] ?? null, 'templates' => $templates];
         }
-
-        return $templatesList;
+        return $templates_list;
     }
-
-    public static function save($pages, $accessLevelsId)
+    public static function save($pages, $access_levels_id)
     {
         if (is_array($pages)) {
             foreach ($pages as $page => $template) {
-                $pageTemplate = \common\models\AdminTemplates::findOne(['page' => $page, 'access_levels_id' => $accessLevelsId]);
-                if (!$pageTemplate) {
-                    $pageTemplate = new \common\models\AdminTemplates();
-                    $pageTemplate->access_levels_id = $accessLevelsId;
-                    $pageTemplate->page = $page;
+                $page_template = \common\models\Admin_Templates::find_one(['page' => $page, 'access_levels_id' => $access_levels_id]);
+                if (!$page_template) {
+                    $page_template = new \common\models\Admin_Templates();
+                    $page_template->access_levels_id = $access_levels_id;
+                    $page_template->page = $page;
                 }
-                $pageTemplate->template = $template;
-                $pageTemplate->save();
+                $page_template->template = $template;
+                $page_template->save();
             }
         }
     }
-
 }

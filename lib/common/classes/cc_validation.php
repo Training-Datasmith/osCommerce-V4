@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +11,6 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes;
 
 class cc_validation
@@ -20,11 +19,9 @@ class cc_validation
     public $cc_number;
     public $cc_expiry_month;
     public $cc_expiry_year;
-
     public function validate($number, $expiry_m, $expiry_y)
     {
         $this->cc_number = preg_replace('/[^0-9]/', '', $number);
-
         if (preg_match('/^4[0-9]{12}([0-9]{3})?$/', $this->cc_number)) {
             $this->cc_type = 'Visa';
         } elseif (preg_match('/^5[1-5][0-9]{14}$/', $this->cc_number)) {
@@ -42,54 +39,44 @@ class cc_validation
         } else {
             return -1;
         }
-
-        if (is_numeric($expiry_m) && ($expiry_m > 0) && ($expiry_m < 13)) {
+        if (is_numeric($expiry_m) && $expiry_m > 0 && $expiry_m < 13) {
             $this->cc_expiry_month = $expiry_m;
         } else {
             return -2;
         }
-
         $current_year = date('Y');
         $expiry_y = substr($current_year, 0, 2) . $expiry_y;
-        if (is_numeric($expiry_y) && ($expiry_y >= $current_year) && ($expiry_y <= ($current_year + 10))) {
+        if (is_numeric($expiry_y) && $expiry_y >= $current_year && $expiry_y <= $current_year + 10) {
             $this->cc_expiry_year = $expiry_y;
         } else {
             return -3;
         }
-
         if ($expiry_y == $current_year) {
             if ($expiry_m < date('n')) {
                 return -4;
             }
         }
-
         return $this->is_valid();
     }
-
     public function is_valid()
     {
-        $cardNumber = strrev($this->cc_number);
-        $numSum = 0;
-
-        for ($i = 0; $i < strlen($cardNumber); $i++) {
-            $currentNum = substr($cardNumber, $i, 1);
-
+        $card_number = strrev($this->cc_number);
+        $num_sum = 0;
+        for ($i = 0; $i < strlen($card_number); $i++) {
+            $current_num = substr($card_number, $i, 1);
             // Double every second digit
             if ($i % 2 == 1) {
-                $currentNum *= 2;
+                $current_num *= 2;
             }
-
             // Add digits of 2-digit numbers together
-            if ($currentNum > 9) {
-                $firstNum = $currentNum % 10;
-                $secondNum = ($currentNum - $firstNum) / 10;
-                $currentNum = $firstNum + $secondNum;
+            if ($current_num > 9) {
+                $first_num = $current_num % 10;
+                $second_num = ($current_num - $first_num) / 10;
+                $current_num = $first_num + $second_num;
             }
-
-            $numSum += $currentNum;
+            $num_sum += $current_num;
         }
-
         // If the total has no remainder it's OK
-        return ($numSum % 10 == 0);
+        return $num_sum % 10 == 0;
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,16 +11,14 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components\google;
 
-#[\AllowDynamicProperties]
+#[\Allow_Dynamic_Properties]
 class Providers
 {
-    public $hasConfigFile = false;
-
-    public function getClassName()
+    public $has_config_file = false;
+    public function get_class_name()
     {
-        return (new \ReflectionClass($this))->getShortName();
+        return (new \ReflectionClass($this))->get_short_name();
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,27 +11,21 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\orders;
 
 use yii\base\Widget;
-
 class Trustpilot extends Widget
 {
     public $order;
     public $manager;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
-        if ($TrustpilotClass = \common\helpers\Acl::checkExtensionAllowed('Trustpilot', 'allowed')) {
-            return $this->render('trustpilot', [
-                'block' => $TrustpilotClass::viewOrder($this->order),
-            ]);
+        if ($trustpilot_class = \common\helpers\Acl::check_extension_allowed('Trustpilot', 'allowed')) {
+            return $this->render('trustpilot', ['block' => $trustpilot_class::view_order($this->order)]);
         }
     }
 }

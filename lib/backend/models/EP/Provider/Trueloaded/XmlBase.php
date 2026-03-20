@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,31 +11,27 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Provider\Trueloaded;
 
 use backend\models\EP\Messages;
-use backend\models\EP\Provider\ExportInterface;
-use backend\models\EP\Provider\ImportInterface;
-use backend\models\EP\Provider\ProviderAbstract;
-use common\api\models\XML\IOAttachment;
-use common\api\models\XML\IOCore;
-use common\api\models\XML\IOData;
+use backend\models\EP\Provider\Export_Interface;
+use backend\models\EP\Provider\Import_Interface;
+use backend\models\EP\Provider\Provider_Abstract;
+use common\api\models\XML\Io_Attachment;
+use common\api\models\XML\Io_Core;
+use common\api\models\XML\Io_Data;
 use common\api\models\XML\Project;
-use common\api\models\XML\RelatedSerialize;
-use common\api\models\XML\XMLtoDataParser;
-use yii\db\ActiveQuery;
-use yii\db\BatchQueryResult;
-
-class XmlBase extends ProviderAbstract implements ImportInterface, ExportInterface
+use common\api\models\XML\Related_Serialize;
+use common\api\models\XML\Xm_Lto_Data_Parser;
+use yii\db\Active_Query;
+use yii\db\Batch_Query_Result;
+class Xml_Base extends Provider_Abstract implements Import_Interface, Export_Interface
 {
     /**
      * @var BatchQueryResult
      */
-    protected $batchQuery;
-
-    protected $processQueue = [];
-
+    protected $batch_query;
+    protected $process_queue = [];
     /**
      * @var RelatedSerialize
      */
@@ -43,177 +39,131 @@ class XmlBase extends ProviderAbstract implements ImportInterface, ExportInterfa
     /**
      * @var  XMLtoDataParser
      */
-    protected $xmlParser;
-    protected $ConfigureMap = [];
-
-    private $firstWrite = true;
-
+    protected $xml_parser;
+    protected $configure_map = [];
+    private $first_write = true;
     /**
      * @var ActiveQuery
      */
-    protected $activeQuery;
-    protected $withImages = false;
-
+    protected $active_query;
+    protected $with_images = false;
     public $job_configure;
-
     public function init()
     {
-        $this->firstWrite = true;
-
-        $this->xmlParser = new XMLtoDataParser();
-        $this->xmlParser->setConfigureMap($this->ConfigureMap);
-
-        $this->serializer = new RelatedSerialize();
-        $this->serializer->setConfigureMap($this->ConfigureMap);
-
-        Project::checkLocalProjects();
-        IOCore::get();
+        $this->first_write = true;
+        $this->xml_parser = new Xm_Lto_Data_Parser();
+        $this->xml_parser->set_configure_map($this->configure_map);
+        $this->serializer = new Related_Serialize();
+        $this->serializer->set_configure_map($this->configure_map);
+        Project::check_local_projects();
+        Io_Core::get();
         if (is_array($this->job_configure) && isset($this->job_configure['import'])) {
             if (!empty($this->job_configure['import']['projectCode'])) {
-                IOCore::get()->setProjectByCode($this->job_configure['import']['projectCode']);
+                Io_Core::get()->set_project_by_code($this->job_configure['import']['projectCode']);
             }
         }
-
-        if ($this->directoryObj) {
-            $this->setImagesDirectory($this->directoryObj->filesRoot());
+        if ($this->directory_obj) {
+            $this->set_images_directory($this->directory_obj->files_root());
         }
-
-        \common\api\models\XML\Project::checkLocalProjects();
-        $Data = $this->ConfigureMap['Data'];
+        \common\api\models\XML\Project::check_local_projects();
+        $Data = $this->configure_map['Data'];
         $collection = key($Data);
-
-        $this->activeQuery = $collection::find()->where([]);
-
+        $this->active_query = $collection::find()->where([]);
         if (!empty($Data[$collection]['where'])) {
-            $this->activeQuery->andWhere($Data[$collection]['where']);
+            $this->active_query->and_where($Data[$collection]['where']);
         }
         if (!empty($Data[$collection]['orderBy'])) {
-            $this->activeQuery->orderBy($Data[$collection]['orderBy']);
+            $this->active_query->order_by($Data[$collection]['orderBy']);
         }
-
         parent::init();
     }
-
-    public function setImagesDirectory($imagesFolder)
+    public function set_images_directory($images_folder)
     {
-        $this->import_folder = $imagesFolder;
-        IOCore::get()->appendLocation('@attachment_root', $this->import_folder);
-
+        $this->import_folder = $images_folder;
+        Io_Core::get()->append_location('@attachment_root', $this->import_folder);
     }
-
-    public function clearLocalData()
+    public function clear_local_data()
     {
-        if (is_array($this->ConfigureMap['covered_tables'] ?? null)) {
-            foreach ($this->ConfigureMap['covered_tables'] as $table) {
+        if (is_array($this->configure_map['covered_tables'] ?? null)) {
+            foreach ($this->configure_map['covered_tables'] as $table) {
                 tep_db_query('TRUNCATE TABLE ' . $table);
             }
         }
     }
-
-    public function exchangeXml()
+    public function exchange_xml()
     {
-        $rootConfig = current($this->ConfigureMap['Data']);
-        list($rowsTag, $rowTag) = explode('>', $rootConfig['xmlCollection'], 2);
-        $header = $this->ConfigureMap['Header'];
+        $root_config = current($this->configure_map['Data']);
+        list($rows_tag, $row_tag) = explode('>', $root_config['xmlCollection'], 2);
+        $header = $this->configure_map['Header'];
         if (!is_array($header)) {
             $header = ['type' => $header];
         }
-        return [
-            [
-                'Header' => $header,
-                'rowsTag' => $rowsTag,
-                'rowTag' => $rowTag,
-                'importData' => 'SimpleXml',
-            ],
-        ];
+        return [['Header' => $header, 'rowsTag' => $rows_tag, 'rowTag' => $row_tag, 'importData' => 'SimpleXml']];
     }
-
-    public function prepareExport($useColumns, $filter)
+    public function prepare_export($use_columns, $filter)
     {
-        IOCore::get()->setProjectId(1);
+        Io_Core::get()->set_project_id(1);
         if (is_array($filter)) {
             if (isset($filter['projectId']) && $filter['projectId'] > 0) {
-                IOCore::get()->setProjectId((int)$filter['projectId']);
+                Io_Core::get()->set_project_id((int) $filter['projectId']);
             }
-
-            $this->withImages = (isset($filter['with_images']) && $filter['with_images']);
-            if ($this->withImages) {
-                IOCore::get()->setAttachmentMode(['attach_file']);
+            $this->with_images = isset($filter['with_images']) && $filter['with_images'];
+            if ($this->with_images) {
+                Io_Core::get()->set_attachment_mode(['attach_file']);
             }
         }
-
         //echo $this->activeQuery->createCommand()->rawSql; die;
-
-        $this->batchQuery = $this->activeQuery->each();
-        $this->batchQuery->rewind();
+        $this->batch_query = $this->active_query->each();
+        $this->batch_query->rewind();
     }
-
-    public function exportRow()
+    public function export_row()
     {
-        $data = $this->batchQuery->current();
+        $data = $this->batch_query->current();
         if (is_object($data)) {
-            $this->batchQuery->next();
-
-            $collectionConfig = current($this->ConfigureMap['Data']);
-            list($_dummy, $elementTag) = explode('>', $collectionConfig['xmlCollection'], 2);
-
-            $iodata = $this->serializer->exportModel($data, $collectionConfig);
-
-            $writeData = [
-                ':xmlConfig' => [],
-                ':feed_data' => [],
-            ];
-            if ($this->firstWrite) {
-                $writeData[':xmlConfig'] = current($this->exchangeXml());
-                if (empty($writeData[':xmlConfig']['Header']['projectCode'])) {
-                    $writeData[':xmlConfig']['Header']['projectCode'] = IOCore::get()->getProjectCode();
+            $this->batch_query->next();
+            $collection_config = current($this->configure_map['Data']);
+            list($_dummy, $element_tag) = explode('>', $collection_config['xmlCollection'], 2);
+            $iodata = $this->serializer->export_model($data, $collection_config);
+            $write_data = [':xmlConfig' => [], ':feed_data' => []];
+            if ($this->first_write) {
+                $write_data[':xmlConfig'] = current($this->exchange_xml());
+                if (empty($write_data[':xmlConfig']['Header']['projectCode'])) {
+                    $write_data[':xmlConfig']['Header']['projectCode'] = Io_Core::get()->get_project_code();
                 }
             }
-
-            foreach ($iodata->getAttachmentList() as $IOAttachment) {
+            foreach ($iodata->get_attachment_list() as $io_attachment) {
                 /**
                  * @var IOAttachment $IOAttachment
                  */
-                if ($file = $IOAttachment->getAttachmentFileName()) {
-                    if (!isset($writeData[':attachments'])) {
-                        $writeData[':attachments'] = [];
+                if ($file = $io_attachment->get_attachment_file_name()) {
+                    if (!isset($write_data[':attachments'])) {
+                        $write_data[':attachments'] = [];
                     }
-                    $inArchiveName = 'images/' .  (($IOAttachment->archiveFileName) ? $IOAttachment->archiveFileName : $IOAttachment->value);
+                    $in_archive_name = 'images/' . ($io_attachment->archive_file_name ? $io_attachment->archive_file_name : $io_attachment->value);
                     // {{ themes archive hack
-                    if (strpos($IOAttachment->value, '/') === 0) {
-                        $inArchiveName = 'images/' . substr($IOAttachment->value, strrpos($IOAttachment->value, '/'));
+                    if (strpos($io_attachment->value, '/') === 0) {
+                        $in_archive_name = 'images/' . substr($io_attachment->value, strrpos($io_attachment->value, '/'));
                     }
                     // }} themes archive hack
-                    $writeData[':attachments'][] = [
-                        'filename' => $file,
-                        'localname' => $inArchiveName,
-                    ];
-                    $IOAttachment->attach_file = $inArchiveName;
+                    $write_data[':attachments'][] = ['filename' => $file, 'localname' => $in_archive_name];
+                    $io_attachment->attach_file = $in_archive_name;
                 }
             }
-            $writeData[':feed_data'][0] = IOData::serializeToSimpleXml($iodata, $elementTag);
-
-            return $writeData;
+            $write_data[':feed_data'][0] = Io_Data::serialize_to_simple_xml($iodata, $element_tag);
+            return $write_data;
         }
         return false;
     }
-
-    public function importRow($data, Messages $message)
+    public function import_row($data, Messages $message)
     {
-        if (!($data instanceof \SimpleXMLElement)) {
+        if (!$data instanceof \Simple_Xml_Element) {
             return;
         }
-
-        $ioData = $this->xmlParser->makeIoData($data);
-
-        $processModel = key($this->ConfigureMap['Data']);
-        $this->serializer->importModel($processModel, $ioData, current($this->ConfigureMap['Data']));
-
+        $io_data = $this->xml_parser->make_io_data($data);
+        $process_model = key($this->configure_map['Data']);
+        $this->serializer->import_model($process_model, $io_data, current($this->configure_map['Data']));
     }
-
-    public function postProcess(Messages $message)
+    public function post_process(Messages $message)
     {
-
     }
-
 }

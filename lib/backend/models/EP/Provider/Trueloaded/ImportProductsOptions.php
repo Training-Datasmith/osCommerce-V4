@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,11 +11,10 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Provider\Trueloaded;
 
-class ImportProductsOptions extends ImportXmlBase
+class Import_Products_Options extends Import_Xml_Base
 {
     protected $feed = 'products_options';
-    protected $providerClass = 'backend\\models\\EP\\Provider\\Trueloaded\\ProductsOptions';
+    protected $provider_class = 'backend\models\EP\Provider\Trueloaded\ProductsOptions';
 }

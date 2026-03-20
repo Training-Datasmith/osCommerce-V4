@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,29 +11,20 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design;
 
 use yii\base\Widget;
-
-class QuantityDiscount extends Widget
+class Quantity_Discount extends Widget
 {
     public $name;
     public $value;
     public $gross;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
-        return $this->render('quantity-discount.tpl', [
-            'name' => $this->name,
-            'value' => isset($this->value) ? json_encode($this->value) : json_encode([]),
-            'gross' => isset($this->gross) ? $this->gross : false,
-            'idSuffix' => preg_replace('/[\[\]]+/', '', $this->name),
-        ]);
+        return $this->render('quantity-discount.tpl', ['name' => $this->name, 'value' => isset($this->value) ? json_encode($this->value) : json_encode([]), 'gross' => isset($this->gross) ? $this->gross : false, 'idSuffix' => preg_replace('/[\[\]]+/', '', $this->name)]);
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,196 +11,157 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\forms;
 
 use common\helpers\Country;
 use yii\base\Model;
-
-class AddressForm extends Model
+class Address_Form extends Model
 {
     public const CUSTOM_ADDRESS = 1;
     public const SHIPPING_ADDRESS = 2;
     public const BILLING_ADDRESS = 3;
-
-    private $_addressesTypes = [];
-
-    public $addressType  = null;
-
-    private $formName = null;
+    private $_addresses_types = [];
+    public $address_type = null;
+    private $form_name = null;
     private $reflector;
-
     protected $_prefix;
-
     public function __construct($config = [])
     {
         $this->reflector = new \ReflectionClass($this);
-
-        $this->loadAddressTypes();
-
-        if (!in_array($config['scenario'], $this->_addressesTypes)) {
+        $this->load_address_types();
+        if (!in_array($config['scenario'], $this->_addresses_types)) {
             throw new \Exception('Undefined address type');
         }
-        $this->addressType = $config['scenario'];
-
-        $this->setFormName();
-
-        $this->definePrefix();
-
+        $this->address_type = $config['scenario'];
+        $this->set_form_name();
+        $this->define_prefix();
         parent::__construct($config);
     }
-
-    protected function setFormName()
+    protected function set_form_name()
     {
-        if ($this->addressType) {
-            $const = array_flip($this->reflector->getConstants());
-            $this->formName = \yii\helpers\Inflector::id2camel(strtolower($const[$this->addressType]));
+        if ($this->address_type) {
+            $const = array_flip($this->reflector->get_constants());
+            $this->form_name = \yii\helpers\Inflector::id2camel(strtolower($const[$this->address_type]));
         }
     }
-
-    public function formName()
+    public function form_name()
     {
-        return $this->formName;
+        return $this->form_name;
     }
-
-    public function beforeValidate()
+    public function before_validate()
     {
         foreach ($this->attributes as $attribute_name => $attribute_value) {
             if (is_string($attribute_value)) {
-                $this->$attribute_name = \yii\helpers\HtmlPurifier::process($attribute_value);
-                $this->$attribute_name = str_replace('&amp;', '&', $this->$attribute_name);
+                $this->{$attribute_name} = \yii\helpers\Html_Purifier::process($attribute_value);
+                $this->{$attribute_name} = str_replace('&amp;', '&', $this->{$attribute_name});
             }
         }
-        return parent::beforeValidate();
+        return parent::before_validate();
     }
-
-    private function loadAddressTypes()
+    private function load_address_types()
     {
-        $this->_addressesTypes = $this->_getDefinedScenarios();
+        $this->_addresses_types = $this->_get_defined_scenarios();
     }
-
     public function rules()
     {
-        return [
-            [['address_book_id', 'company', 'company_vat', 'customs_number', 'gender', 'firstname', 'lastname', 'telephone', 'email_address', 'postcode', 'street_address', 'suburb', 'city', 'state', 'country', 'zone_id', 'drop_ship', 'type'], 'stronglyRequired', 'skipOnEmpty' => false],
-            [['country', 'zone_id'], 'defaultGeoValues', 'skipOnEmpty' => false],
-            ['as_preferred', 'default', 'value' => 0],
-            //['postcode', 'inExtensions', 'skipOnEmpty' => false, 'on' => [static::SHIPPING_ADDRESS]],
-        ];
+        return [[['address_book_id', 'company', 'company_vat', 'customs_number', 'gender', 'firstname', 'lastname', 'telephone', 'email_address', 'postcode', 'street_address', 'suburb', 'city', 'state', 'country', 'zone_id', 'drop_ship', 'type'], 'stronglyRequired', 'skipOnEmpty' => false], [['country', 'zone_id'], 'defaultGeoValues', 'skipOnEmpty' => false], ['as_preferred', 'default', 'value' => 0]];
     }
-
-    private function getEntryLabel($label)
+    private function get_entry_label($label)
     {
         $label = strtoupper($label);
-        return ($this->addressType == static::SHIPPING_ADDRESS && defined('SHIP_'.$label) ? constant('SHIP_'.$label) : constant('ENTRY_'.$label));
+        return $this->address_type == static::SHIPPING_ADDRESS && defined('SHIP_' . $label) ? constant('SHIP_' . $label) : constant('ENTRY_' . $label);
     }
-
-    private $isLightCheck = false;
-    public function setLightCheck(bool $value)
+    private $is_light_check = false;
+    public function set_light_check(bool $value)
     {
-        $this->isLightCheck = $value;
+        $this->is_light_check = $value;
     }
-
-    public function isLightCheck()
+    public function is_light_check()
     {
-        return $this->isLightCheck;
+        return $this->is_light_check;
     }
-
-    private function checkSpamHack($val, $capitals = false)
+    private function check_spam_hack($val, $capitals = false)
     {
-        return (//$capitals ||
-            strpos($val, '<') !== false ||
-            strpos($val, 'https://') !== false ||
-            strpos($val, 'http://') !== false ||
-            strip_tags($val) != $val
-        );
+        return strpos($val, '<') !== false || strpos($val, 'https://') !== false || strpos($val, 'http://') !== false || strip_tags($val) != $val;
     }
-    public function stronglyRequired($attribute, $params)
+    public function strongly_required($attribute, $params)
     {
-        if (!$this->isLightCheck && $this->has($attribute, false)) {
+        if (!$this->is_light_check && $this->has($attribute, false)) {
             switch ($attribute) {
                 case 'gender':
-                    if (!in_array($this->$attribute, array_keys($this->getGendersList()))) {
-                        $this->addError($attribute, ENTRY_GENDER_ERROR);
+                    if (!in_array($this->{$attribute}, array_keys($this->get_genders_list()))) {
+                        $this->add_error($attribute, ENTRY_GENDER_ERROR);
                     }
                     break;
                 case 'firstname':
-                    if ($this->checkSpamHack($this->$attribute, true) || strlen($this->$attribute) < ENTRY_FIRST_NAME_MIN_LENGTH) {
-                        $this->addError($attribute, sprintf($this->getEntryLabel('FIRST_NAME_ERROR'), ENTRY_FIRST_NAME_MIN_LENGTH));
+                    if ($this->check_spam_hack($this->{$attribute}, true) || strlen($this->{$attribute}) < ENTRY_FIRST_NAME_MIN_LENGTH) {
+                        $this->add_error($attribute, sprintf($this->get_entry_label('FIRST_NAME_ERROR'), ENTRY_FIRST_NAME_MIN_LENGTH));
                     }
                     break;
                 case 'lastname':
-                    if ($this->checkSpamHack($this->$attribute, true) || strlen($this->$attribute) < ENTRY_LAST_NAME_MIN_LENGTH) {
-                        $this->addError($attribute, sprintf($this->getEntryLabel('LAST_NAME_ERROR'), ENTRY_LAST_NAME_MIN_LENGTH));
+                    if ($this->check_spam_hack($this->{$attribute}, true) || strlen($this->{$attribute}) < ENTRY_LAST_NAME_MIN_LENGTH) {
+                        $this->add_error($attribute, sprintf($this->get_entry_label('LAST_NAME_ERROR'), ENTRY_LAST_NAME_MIN_LENGTH));
                     }
                     break;
                 case 'company':
-                    if ($this->checkSpamHack($this->$attribute) || empty($this->$attribute)) {
-                        $this->addError($attribute, ENTRY_COMPANY_ERROR);
+                    if ($this->check_spam_hack($this->{$attribute}) || empty($this->{$attribute})) {
+                        $this->add_error($attribute, ENTRY_COMPANY_ERROR);
                     }
                     break;
                 case 'company_vat':
-                    if ($this->checkSpamHack($this->$attribute) || (empty($this->$attribute) || !\common\helpers\Validations::checkVAT($this->$attribute))) {
-                        $this->addError($attribute, ENTRY_VAT_ID_ERROR);
+                    if ($this->check_spam_hack($this->{$attribute}) || (empty($this->{$attribute}) || !\common\helpers\Validations::check_vat($this->{$attribute}))) {
+                        $this->add_error($attribute, ENTRY_VAT_ID_ERROR);
                     }
                     break;
                 case 'customs_number':
                     $cfg = $this->up('CUSTOMS_NUMBER');
-                    if ($cfg && empty($this->$attribute) && (
-                        (in_array($cfg, ['required', 'required_register'])) ||
-                        (in_array($cfg, ['required_company']) && !empty($this->company))
-                    )) {
-                        $this->addError($attribute, TEXT_CUSTOMS_NUMBER_ERROR);
+                    if ($cfg && empty($this->{$attribute}) && (in_array($cfg, ['required', 'required_register']) || in_array($cfg, ['required_company']) && !empty($this->company))) {
+                        $this->add_error($attribute, TEXT_CUSTOMS_NUMBER_ERROR);
                     }
                     break;
                 case 'postcode':
-                    if ($this->checkSpamHack($this->$attribute) || strlen($this->$attribute) < ENTRY_POSTCODE_MIN_LENGTH) {
-                        $this->addError($attribute, sprintf($this->getEntryLabel('POST_CODE_ERROR'), ENTRY_POSTCODE_MIN_LENGTH));
+                    if ($this->check_spam_hack($this->{$attribute}) || strlen($this->{$attribute}) < ENTRY_POSTCODE_MIN_LENGTH) {
+                        $this->add_error($attribute, sprintf($this->get_entry_label('POST_CODE_ERROR'), ENTRY_POSTCODE_MIN_LENGTH));
                     }
                     break;
                 case 'street_address':
-                    if ($this->checkSpamHack($this->$attribute) || strlen($this->$attribute) < ENTRY_STREET_ADDRESS_MIN_LENGTH) {
-                        $this->addError($attribute, sprintf($this->getEntryLabel('STREET_ADDRESS_ERROR'), ENTRY_STREET_ADDRESS_MIN_LENGTH));
+                    if ($this->check_spam_hack($this->{$attribute}) || strlen($this->{$attribute}) < ENTRY_STREET_ADDRESS_MIN_LENGTH) {
+                        $this->add_error($attribute, sprintf($this->get_entry_label('STREET_ADDRESS_ERROR'), ENTRY_STREET_ADDRESS_MIN_LENGTH));
                     }
                     break;
                 case 'suburb':
-                    if ($this->checkSpamHack($this->$attribute) || empty($this->$attribute)) {
-                        $this->addError($attribute, $this->getEntryLabel('SUBURB_ERROR'));
+                    if ($this->check_spam_hack($this->{$attribute}) || empty($this->{$attribute})) {
+                        $this->add_error($attribute, $this->get_entry_label('SUBURB_ERROR'));
                     }
                     break;
                 case 'city':
-                    if ($this->checkSpamHack($this->$attribute) || strlen($this->$attribute) < ENTRY_CITY_MIN_LENGTH) {
-                        $this->addError($attribute, sprintf($this->getEntryLabel('CITY_ERROR'), ENTRY_STREET_ADDRESS_MIN_LENGTH));
+                    if ($this->check_spam_hack($this->{$attribute}) || strlen($this->{$attribute}) < ENTRY_CITY_MIN_LENGTH) {
+                        $this->add_error($attribute, sprintf($this->get_entry_label('CITY_ERROR'), ENTRY_STREET_ADDRESS_MIN_LENGTH));
                     }
                     break;
                 case 'country':
-                    if (!is_numeric($this->$attribute)) {
-                        $this->addError($attribute, ENTRY_COUNTRY_ERROR);
+                    if (!is_numeric($this->{$attribute})) {
+                        $this->add_error($attribute, ENTRY_COUNTRY_ERROR);
                     }
                     break;
             }
         }
         if ($attribute == 'state') {
             $this->zone_id = 0;
-            $qZones = \common\models\Zones::find()->where(['zone_country_id' => $this->country]);
-            if ($qZones->count() > 0) {
-                $qZones = \common\models\Zones::find()->where(['zone_country_id' => $this->country, 'zone_name' => $this->$attribute])->all();
-                if (count($qZones) == 1) {
-                    $this->zone_id = $qZones[0]->zone_id;
-                } else {
-                    if ($this->has($attribute, $this->isLightCheck)) {
-                        $this->addError($attribute, ENTRY_STATE_ERROR_SELECT);
-                    }
+            $q_zones = \common\models\Zones::find()->where(['zone_country_id' => $this->country]);
+            if ($q_zones->count() > 0) {
+                $q_zones = \common\models\Zones::find()->where(['zone_country_id' => $this->country, 'zone_name' => $this->{$attribute}])->all();
+                if (count($q_zones) == 1) {
+                    $this->zone_id = $q_zones[0]->zone_id;
+                } else if ($this->has($attribute, $this->is_light_check)) {
+                    $this->add_error($attribute, ENTRY_STATE_ERROR_SELECT);
                 }
-            } else {
-                if (strlen($this->$attribute) < ENTRY_STATE_MIN_LENGTH && $this->has($attribute, $this->isLightCheck)) {
-                    $this->addError($attribute, sprintf(ENTRY_STATE_ERROR, ENTRY_STATE_MIN_LENGTH));
-                }
+            } else if (strlen($this->{$attribute}) < ENTRY_STATE_MIN_LENGTH && $this->has($attribute, $this->is_light_check)) {
+                $this->add_error($attribute, sprintf(ENTRY_STATE_ERROR, ENTRY_STATE_MIN_LENGTH));
             }
         }
     }
-
-    public function defaultGeoValues()
+    public function default_geo_values()
     {
         if (is_null($this->country)) {
             $this->country = (int) STORE_COUNTRY;
@@ -210,21 +170,18 @@ class AddressForm extends Model
             //$this->zone_id = (int) STORE_ZONE;
         }
     }
-
-    private function _getDefinedScenarios()
+    private function _get_defined_scenarios()
     {
         return [static::CUSTOM_ADDRESS, static::SHIPPING_ADDRESS, static::BILLING_ADDRESS];
     }
-
     public function scenarios()
     {
         $_sc = [];
-        foreach ($this->_getDefinedScenarios() as $scena) {
-            $_sc[$scena] = $this->collectFields();
+        foreach ($this->_get_defined_scenarios() as $scena) {
+            $_sc[$scena] = $this->collect_fields();
         }
         return $_sc;
     }
-
     public $address_book_id;
     public $company;
     public $company_vat;
@@ -247,51 +204,43 @@ class AddressForm extends Model
     public $zone_id;
     public $drop_ship;
     public $type;
-
     public $as_preferred;
-
-    public function getActiveAttributes()
+    public function get_active_attributes()
     {
-        return $this->getAttributes(null, ['addressType', 'as_preferred']);
+        return $this->get_attributes(null, ['addressType', 'as_preferred']);
     }
-
-    public function collectConfigurableFields($includeVisible = true)
+    public function collect_configurable_fields($include_visible = true)
     {
-        if ($includeVisible) {
+        if ($include_visible) {
             $fields = ['telephone', 'email_address', 'drop_ship'];
-            if (\common\helpers\Acl::checkExtensionAllowed('SplitCustomerAddresses', 'allowed')) {
+            if (\common\helpers\Acl::check_extension_allowed('SplitCustomerAddresses', 'allowed')) {
                 $fields[] = 'type';
             }
         } else {
             $fields = [];
         }
-        $publicFields = $this->reflector->getProperties(\ReflectionProperty::IS_PUBLIC);
-        if (is_array($publicFields)) {
-            foreach ($publicFields as $_field) {
-                if ($this->has($_field->name, $includeVisible)) {
+        $public_fields = $this->reflector->get_properties(\ReflectionProperty::IS_PUBLIC);
+        if (is_array($public_fields)) {
+            foreach ($public_fields as $_field) {
+                if ($this->has($_field->name, $include_visible)) {
                     $fields[] = $_field->name;
                 }
             }
         }
         return $fields;
     }
-
-    public function collectFields()
+    public function collect_fields()
     {
         $fields = ['address_book_id', 'as_preferred', 'telephone', 'email_address', 'drop_ship'];
-        if (\common\helpers\Acl::checkExtensionAllowed('SplitCustomerAddresses', 'allowed')) {
+        if (\common\helpers\Acl::check_extension_allowed('SplitCustomerAddresses', 'allowed')) {
             $fields[] = 'type';
         }
-
-        $fields = array_merge($fields, $this->collectConfigurableFields(true));
-
+        $fields = array_merge($fields, $this->collect_configurable_fields(true));
         return $fields;
     }
-
-    public function definePrefix()
+    public function define_prefix()
     {
-
-        switch ($this->addressType) {
+        switch ($this->address_type) {
             case static::SHIPPING_ADDRESS:
                 $this->_prefix = 'SHIPPING_';
                 break;
@@ -303,55 +252,45 @@ class AddressForm extends Model
                 break;
         }
     }
-
-    public function getPrefix()
+    public function get_prefix()
     {
         return $this->_prefix;
     }
-
     public function up($postfix)
     {
         return defined($this->_prefix . strtoupper($postfix)) ? constant($this->_prefix . strtoupper($postfix)) : false;
     }
-
     public function get($postfix)
     {
         return $this->_prefix . $postfix;
     }
-
-    public function has($postfix, $includeVisible = true)
+    public function has($postfix, $include_visible = true)
     {
-        if ($includeVisible) {
+        if ($include_visible) {
             if ($_c = $this->up($postfix)) {
                 return in_array($_c, ['required', 'required_register', 'visible', 'visible_register', 'required_company']);
             }
-        } else {
-            if ($_c = $this->up($postfix)) {
-                return in_array($_c, ['required', 'required_register', 'required_company']);
-            }
+        } else if ($_c = $this->up($postfix)) {
+            return in_array($_c, ['required', 'required_register', 'required_company']);
         }
         return false;
     }
-
-    public function getGendersList()
+    public function get_genders_list()
     {
-        return \common\helpers\Address::getGendersList();
+        return \common\helpers\Address::get_genders_list();
     }
-
-    public function getAllowedCountries()
+    public function get_allowed_countries()
     {
         $_countries = Country::get_countries('', false, '', strtolower(substr($this->_prefix, 0, 4)));
-        $_countries = \yii\helpers\ArrayHelper::map($_countries, 'countries_id', 'text');
+        $_countries = \yii\helpers\Array_Helper::map($_countries, 'countries_id', 'text');
         return $_countries;
     }
-
-    public function getAllowedCountriesISO($iso = 'iso_code_2')
+    public function get_allowed_countries_iso($iso = 'iso_code_2')
     {
         $_countries = Country::get_countries('', false, '', strtolower(substr($this->_prefix, 0, 4)));
-        $_countries = \yii\helpers\ArrayHelper::map($_countries, 'countries_id', 'countries_'.$iso);
+        $_countries = \yii\helpers\Array_Helper::map($_countries, 'countries_id', 'countries_' . $iso);
         return $_countries;
     }
-
     public function preload($data = [])
     {
         if (is_array($data) || is_object($data)) {
@@ -360,9 +299,9 @@ class AddressForm extends Model
                     $this->preload($value);
                 } else {
                     try {
-                        if ($this->hasProperty($name)) {
+                        if ($this->has_property($name)) {
                             $this->{$name} = $value;
-                        } elseif (strlen(substr($name, 6)) > 0 &&  $this->hasProperty(substr($name, 6))) {
+                        } elseif (strlen(substr($name, 6)) > 0 && $this->has_property(substr($name, 6))) {
                             $this->{substr($name, 6)} = $value;
                         }
                         if ($name == 'country_id' || substr($name, 6) == 'country_id') {
@@ -370,48 +309,44 @@ class AddressForm extends Model
                         }
                     } catch (\Exception $ex) {
                         //var_dump($ex->getMessage(), $name, $value);
-                        \Yii::error($ex->getMessage() . ' $name ' . $name . ' $value ' .  $value);
+                        \Yii::error($ex->get_message() . ' $name ' . $name . ' $value ' . $value);
                     }
                 }
             }
-            $this->obtainState();
+            $this->obtain_state();
         }
-        $this->preloadDefault();
+        $this->preload_default();
     }
-
-    public function preloadDefault()
+    public function preload_default()
     {
         if (empty($this->gender)) {
             $this->gender = 'm';
         }
         if (!is_numeric($this->country)) {
-            $this->country = (int)STORE_COUNTRY;
+            $this->country = (int) STORE_COUNTRY;
         }
     }
-
-    public function obtainState()
+    public function obtain_state()
     {
         if ($this->zone_id) {
-            $qZones = \common\models\Zones::find()->where(['zone_country_id' => $this->country]);
-            if ($qZones->count() > 0) {
-                $qZones = \common\models\Zones::find()->where(['zone_country_id' => $this->country, 'zone_id' => $this->zone_id])->one();
-                if ($qZones) {
-                    $this->state = $qZones->zone_name;
+            $q_zones = \common\models\Zones::find()->where(['zone_country_id' => $this->country]);
+            if ($q_zones->count() > 0) {
+                $q_zones = \common\models\Zones::find()->where(['zone_country_id' => $this->country, 'zone_id' => $this->zone_id])->one();
+                if ($q_zones) {
+                    $this->state = $q_zones->zone_name;
                 }
             }
         }
     }
-
-    public function notEmpty($withCountry = false)
+    public function not_empty($with_country = false)
     {
-        return !empty($this->company) || !empty($this->firstname) || !empty($this->lastname) || !empty($this->postcode) || !empty($this->street_address) || !empty($this->city) || !empty($this->state) || ($withCountry && !empty($this->country));
+        return !empty($this->company) || !empty($this->firstname) || !empty($this->lastname) || !empty($this->postcode) || !empty($this->street_address) || !empty($this->city) || !empty($this->state) || $with_country && !empty($this->country);
     }
-
-    public function customerAddressIsReady()
+    public function customer_address_is_ready()
     {
         $ready = true;
-        foreach ($this->collectConfigurableFields(false) as $field) {
-            if (empty($this->$field)) {
+        foreach ($this->collect_configurable_fields(false) as $field) {
+            if (empty($this->{$field})) {
                 $ready = false;
             }
         }

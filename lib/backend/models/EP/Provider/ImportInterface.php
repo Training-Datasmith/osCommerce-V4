@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,14 +11,11 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Provider;
 
 use backend\models\EP\Messages;
-
-interface ImportInterface
+interface Import_Interface
 {
-    public function importRow($data, Messages $message);
-
-    public function postProcess(Messages $message);
+    public function import_row($data, Messages $message);
+    public function post_process(Messages $message);
 }

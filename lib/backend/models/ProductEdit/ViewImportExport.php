@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,58 +11,42 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
-namespace backend\models\ProductEdit;
+namespace backend\models\Product_Edit;
 
 use backend\models\EP\Directory;
-
-class ViewImportExport
+class View_Import_Export
 {
     /**
      * @var \objectInfo
      */
-    protected $productInfoRef;
-
+    protected $product_info_ref;
     protected $list = [];
-
-    public function __construct($productInfo)
+    public function __construct($product_info)
     {
-        $this->productInfoRef = $productInfo;
+        $this->product_info_ref = $product_info;
         //$this->wrap($this->productInfoRef);
-
-        $directories = Directory::getAll();
+        $directories = Directory::get_all();
         foreach ($directories as $directory) {
             /**
              * @var Directory $directory
              */
-            if ($directory->directory_type == 'datasource' && $datasource = $directory->getDatasource()) {
-                if (!$datasource->allowProductView()) {
+            if ($directory->directory_type == 'datasource' && $datasource = $directory->get_datasource()) {
+                if (!$datasource->allow_product_view()) {
                     continue;
                 }
-                $view = $datasource->productView([
-                    'directory' => $directory,
-                    'productInfo' => $productInfo,
-                ]);
+                $view = $datasource->product_view(['directory' => $directory, 'productInfo' => $product_info]);
                 if ($view) {
-                    $this->list[] = [
-                        'datasource' => $datasource,
-                        'directory_name' => $directory->directory,
-                        'title' => $datasource->getName(),
-                        'content' => $view,
-                    ];
+                    $this->list[] = ['datasource' => $datasource, 'directory_name' => $directory->directory, 'title' => $datasource->get_name(), 'content' => $view];
                 }
             }
         }
     }
-
-    public function hasTabs()
+    public function has_tabs()
     {
         return count($this->list);
     }
-
-    public function tabList()
+    public function tab_list()
     {
         return $this->list;
     }
-
 }

@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace app\models;
 
 /**
@@ -12,37 +11,27 @@ namespace app\models;
  * @property string|null $page
  * @property string|null $template
  */
-class AdminTemplates extends \yii\db\ActiveRecord
+class Admin_Templates extends \yii\db\Active_Record
 {
     /**
      * {@inheritdoc}
      */
-    public static function tableName()
+    public static function table_name()
     {
         return 'admin_templates';
     }
-
     /**
      * {@inheritdoc}
      */
     public function rules()
     {
-        return [
-            [['access_levels_id'], 'integer'],
-            [['page', 'template'], 'string', 'max' => 255],
-        ];
+        return [[['access_levels_id'], 'integer'], [['page', 'template'], 'string', 'max' => 255]];
     }
-
     /**
      * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attribute_labels()
     {
-        return [
-            'admin_template_id' => 'Admin Template ID',
-            'access_levels_id' => 'Access Levels ID',
-            'page' => 'Page',
-            'template' => 'Template',
-        ];
+        return ['admin_template_id' => 'Admin Template ID', 'access_levels_id' => 'Access Levels ID', 'page' => 'Page', 'template' => 'Template'];
     }
 }

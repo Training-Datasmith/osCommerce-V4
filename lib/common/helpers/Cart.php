@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of True Loaded.
  *
@@ -9,14 +9,13 @@ declare(strict_types=1);
  *
  * For the full copyright and license information, please view the LICENSE file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
 class Cart
 {
-    public static function decodeId($cartId)
+    public static function decode_id($cart_id)
     {
-        if (preg_match("/(.*)\|([\d]*)\-([\d]*)/", $cartId, $mas)) {
+        if (preg_match("/(.*)\\|([\\d]*)\\-([\\d]*)/", $cart_id, $mas)) {
             return ['cart_type' => $mas[1], 'customers_id' => $mas[2], 'basket_id' => $mas[3]];
         }
     }

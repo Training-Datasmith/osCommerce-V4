@@ -1,48 +1,33 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace common\classes;
 
-trait TlErrorHandlerTrait
+trait Tl_Error_Handler_Trait
 {
-    public function handleError($code, $message, $file, $line)
+    public function handle_error($code, $message, $file, $line)
     {
-        if (error_reporting() & $code) { // also for suppress operator @
+        if (error_reporting() & $code) {
+            // also for suppress operator @
             if (PHP_VERSION_ID >= 80000) {
-                if (YII_ENV == 'prod' || (defined('PHP8WARN_OFF') && PHP8WARN_OFF)) {
-                    if ($code == E_WARNING && (
-                        preg_match('/^(Attempt to read property|Undefined property|Undefined variable|Undefined array key)/', $message) ||
-                            preg_match('/^Trying to access array offset on value of type (null|bool|int)/', $message) ||
-                            preg_match('/^Trying to access array offset on null/', $message) ||
-                            preg_match('/^Constant [\w_]* already defined/', $message)
-                    )) {
-                        \Yii::warning("$message at $file:$line", 'PHP8Warning');
+                if (YII_ENV == 'prod' || defined('PHP8WARN_OFF') && PHP8WARN_OFF) {
+                    if ($code == E_WARNING && (preg_match('/^(Attempt to read property|Undefined property|Undefined variable|Undefined array key)/', $message) || preg_match('/^Trying to access array offset on value of type (null|bool|int)/', $message) || preg_match('/^Trying to access array offset on null/', $message) || preg_match('/^Constant [\w_]* already defined/', $message))) {
+                        \Yii::warning("{$message} at {$file}:{$line}", 'PHP8Warning');
                         return true;
                     }
                     if (PHP_VERSION_ID >= 80200) {
-                        if ($code == E_DEPRECATED && (
-                            preg_match('/^Creation of dynamic property .* is deprecated/', $message) ||
-                                str_starts_with($message, 'Use of "self" in callables is deprecated')
-                        )) {
-                            \Yii::warning("$message at $file:$line", 'PHP82Warning');
+                        if ($code == E_DEPRECATED && (preg_match('/^Creation of dynamic property .* is deprecated/', $message) || str_starts_with($message, 'Use of "self" in callables is deprecated'))) {
+                            \Yii::warning("{$message} at {$file}:{$line}", 'PHP82Warning');
                         }
                     }
                     if ($code == E_DEPRECATED) {
                         return true;
                     }
-
-                } else { // development
-
+                } else {
+                    // development
                     if (PHP_VERSION_ID >= 80200) {
                         if ($code == E_DEPRECATED) {
-                            if (str_starts_with($message, 'Using ${var} in strings is deprecated, use {$var} instead') ||
-                                str_starts_with($message, 'Using ${expr} (variable variables) in strings is deprecated, use {${expr}} instead') ||
-                                str_starts_with($message, 'Use of "self" in callables is deprecated') ||
-                                str_starts_with($message, 'Function utf8_decode() is deprecated') ||
-                                str_starts_with($message, 'Function utf8_encode() is deprecated') ||
-                                preg_match('/^Creation of dynamic property .* is deprecated/', $message)
-                            ) {
+                            if (str_starts_with($message, 'Using ${var} in strings is deprecated, use {$var} instead') || str_starts_with($message, 'Using ${expr} (variable variables) in strings is deprecated, use {${expr}} instead') || str_starts_with($message, 'Use of "self" in callables is deprecated') || str_starts_with($message, 'Function utf8_decode() is deprecated') || str_starts_with($message, 'Function utf8_encode() is deprecated') || preg_match('/^Creation of dynamic property .* is deprecated/', $message)) {
                                 \Yii::warning($message, 'PHP82Warning');
                                 return true;
                             }
@@ -57,14 +42,9 @@ trait TlErrorHandlerTrait
                                 }
                                 return true;
                             }
-                            if (str_starts_with($message, 'Function strftime() is deprecated') ||
-                                str_starts_with($message, 'Constant FILTER_SANITIZE_STRING is deprecated') ||
-                                str_starts_with($message, 'Automatic conversion of false to array is deprecated') ||
-                                str_starts_with($message, 'auto_detect_line_endings is deprecated')
-                            ) {
+                            if (str_starts_with($message, 'Function strftime() is deprecated') || str_starts_with($message, 'Constant FILTER_SANITIZE_STRING is deprecated') || str_starts_with($message, 'Automatic conversion of false to array is deprecated') || str_starts_with($message, 'auto_detect_line_endings is deprecated')) {
                                 return true;
                             }
-
                             if (preg_match('/([\w\\\\]*) implements the Serializable interface, which is deprecated/', $message, $match)) {
                                 if (str_contains($match[1], 'Opis\Closure\SerializableClosure')) {
                                     //                                    \Yii::warning($message, 'PHP81WarningOPIS');
@@ -79,6 +59,6 @@ trait TlErrorHandlerTrait
                 }
             }
         }
-        return parent::handleError($code, $message, $file, $line);
+        return parent::handle_error($code, $message, $file, $line);
     }
 }

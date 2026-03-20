@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,37 +11,25 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\AR;
 
 use yii;
 use yii\db\Expression;
 use yii\db\Query;
-
-class Group extends EPMap
+class Group extends Ep_Map
 {
-    protected $hideFields = [
-        'image_active',
-        'image_inactive',
-    ];
-
-    protected $childCollections = [
-    ];
-
-    protected $indexedCollections = [
-    ];
-
-    public static function tableName()
+    protected $hide_fields = ['image_active', 'image_inactive'];
+    protected $child_collections = [];
+    protected $indexed_collections = [];
+    public static function table_name()
     {
         return TABLE_GROUPS;
     }
-
-    public static function primaryKey()
+    public static function primary_key()
     {
         return ['groups_id'];
     }
-
-    public function beforeSave($insert)
+    public function before_save($insert)
     {
         if ($insert) {
             //            Yii::$app->getDb()->createCommand("alter table " . self::tableName() . " change groups_id groups_id int(11)")->query();
@@ -49,13 +37,11 @@ class Group extends EPMap
                 $this->date_added = new Expression('NOW()');
             }
         }
-        return parent::beforeSave($insert);
+        return parent::before_save($insert);
     }
-
-    public function afterSave($insert, $changedAttributes)
+    public function after_save($insert, $changed_attributes)
     {
         //      Yii::$app->getDb()->createCommand("alter table " . self::tableName() . " change groups_id groups_id int(11) auto_increment")->query();
-        parent::afterSave($insert, $changedAttributes);
+        parent::after_save($insert, $changed_attributes);
     }
-
 }

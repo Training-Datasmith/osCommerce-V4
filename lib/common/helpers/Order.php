@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,13 +11,11 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
 class Order
 {
-    use StatusTrait;
-
+    use Status_Trait;
     public const OES_PENDING = 1;
     public const OES_PROCESSING = 10;
     public const OES_RECEIVED = 20;
@@ -25,28 +23,20 @@ class Order
     public const OES_DELIVERED = 40;
     public const OES_CANCELLED = 50;
     public const OES_PARTIAL_CANCELLED = 60;
-
-    public static function getStatusTypeId()
+    public static function get_status_type_id()
     {
         return 1;
     }
-
-    public static function isExist($order_id)
+    public static function is_exist($order_id)
     {
-        $_status = tep_db_fetch_array(tep_db_query(
-            'SELECT COUNT(*) AS check_exist FROM ' . TABLE_ORDERS . " WHERE orders_id = '" . (int) $order_id . "'"
-        ));
+        $_status = tep_db_fetch_array(tep_db_query('SELECT COUNT(*) AS check_exist FROM ' . TABLE_ORDERS . " WHERE orders_id = '" . (int) $order_id . "'"));
         return !!$_status['check_exist'];
     }
-
     public static function is_stock_updated($order_id)
     {
-        $get_stock_status = tep_db_fetch_array(tep_db_query(
-            'SELECT stock_updated FROM ' . TABLE_ORDERS . " WHERE orders_id = '" . (int) $order_id . "'"
-        ));
+        $get_stock_status = tep_db_fetch_array(tep_db_query('SELECT stock_updated FROM ' . TABLE_ORDERS . " WHERE orders_id = '" . (int) $order_id . "'"));
         return !!($get_stock_status['stock_updated'] ?? null);
     }
-
     public static function restock($order_id)
     {
         if (!self::is_stock_updated($order_id)) {
@@ -62,16 +52,14 @@ class Order
                         \common\helpers\Product::update_stock($order['uprid'], $order['products_quantity'], 0);
                         \common\helpers\Product::get_allocated_stock_quantity($order['uprid']);
             */
-            \common\helpers\Warehouses::update_stock_of_order($order_id, (strlen($order['template_uprid']) > 0 ? $order['template_uprid'] : $order['uprid']), 0);
+            \common\helpers\Warehouses::update_stock_of_order($order_id, strlen($order['template_uprid']) > 0 ? $order['template_uprid'] : $order['uprid'], 0);
         }
     }
-
     public static function remove_order($order_id, $restock = false, $reason = '')
     {
         if ($restock == 'on') {
             self::restock($order_id);
         }
-
         tep_db_query('delete from ' . TABLE_ORDERS . " where orders_id = '" . (int) $order_id . "'");
         tep_db_query('delete from ' . TABLE_ORDERS_PRODUCTS . " where orders_id = '" . (int) $order_id . "'");
         tep_db_query('delete from ' . TABLE_ORDERS_PRODUCTS_ATTRIBUTES . " where orders_id = '" . (int) $order_id . "'");
@@ -79,38 +67,32 @@ class Order
         tep_db_query('delete from ' . TABLE_ORDERS_HISTORY . " where orders_id = '" . (int) $order_id . "'");
         tep_db_query('delete from ' . TABLE_ORDERS_STATUS_HISTORY . " where orders_id = '" . (int) $order_id . "'");
         tep_db_query('delete from ' . TABLE_ORDERS_TOTAL . " where orders_id = '" . (int) $order_id . "'");
-        \common\models\OrdersProductsAllocate::deleteAll(['orders_id' => (int)$order_id]);
-        \common\models\OrdersSplinters::deleteAll(['orders_id' => (int)$order_id]);
-        \common\models\OrdersTransactionsChildren::deleteAll(['orders_id' => (int)$order_id]);
-        \common\models\OrdersTransactions::deleteAll(['orders_id' => (int)$order_id]);
-        \common\models\EcommerceTracking::deleteAll(['orders_id' => (int)$order_id]);
-        \common\models\OrdersPayment::deleteAll(['orders_payment_order_id' => (int)$order_id]);
-
+        \common\models\Orders_Products_Allocate::delete_all(['orders_id' => (int) $order_id]);
+        \common\models\Orders_Splinters::delete_all(['orders_id' => (int) $order_id]);
+        \common\models\Orders_Transactions_Children::delete_all(['orders_id' => (int) $order_id]);
+        \common\models\Orders_Transactions::delete_all(['orders_id' => (int) $order_id]);
+        \common\models\Ecommerce_Tracking::delete_all(['orders_id' => (int) $order_id]);
+        \common\models\Orders_Payment::delete_all(['orders_payment_order_id' => (int) $order_id]);
         tep_db_query("delete from tracking_numbers where orders_id = '" . (int) $order_id . "'");
         tep_db_query("delete from tracking_numbers_to_orders_products where orders_id = '" . (int) $order_id . "'");
-
-        foreach (\common\helpers\Hooks::getList('orders/after-delete') as $filename) {
-            include($filename);
+        foreach (\common\helpers\Hooks::get_list('orders/after-delete') as $filename) {
+            include $filename;
         }
-
-        $OrdersDeleteHistory = new \common\models\OrdersDeleteHistory();
-        $OrdersDeleteHistory->loadDefaultValues();
-        $OrdersDeleteHistory->orders_id = (int) $order_id;
-        $OrdersDeleteHistory->comments = 'Deleted ' . ($restock !== false ? 'with' : 'without') . ' restock.' . (!empty($reason) ? ' Reason:' . $reason : '');
-        $OrdersDeleteHistory->admin_id = \Yii::$app->session->get('login_id');
-        $OrdersDeleteHistory->date_added = date('Y-m-d H:i:s');
-        $OrdersDeleteHistory->save(false);
-
+        $orders_delete_history = new \common\models\Orders_Delete_History();
+        $orders_delete_history->load_default_values();
+        $orders_delete_history->orders_id = (int) $order_id;
+        $orders_delete_history->comments = 'Deleted ' . ($restock !== false ? 'with' : 'without') . ' restock.' . (!empty($reason) ? ' Reason:' . $reason : '');
+        $orders_delete_history->admin_id = \Yii::$app->session->get('login_id');
+        $orders_delete_history->date_added = date('Y-m-d H:i:s');
+        $orders_delete_history->save(false);
     }
-
     public static function remove_tmp_order($order_id)
     {
         // 2do TABLE_PRODUCTS . " set products_ordered = products_ordered -
-        $t_o = \common\models\TmpOrders::findOne((int) $order_id);
+        $t_o = \common\models\Tmp_Orders::find_one((int) $order_id);
         if (!empty($t_o->child_id)) {
             return false;
         }
-
         tep_db_query("delete from tmp_orders where orders_id = '" . (int) $order_id . "'");
         tep_db_query("delete from tmp_orders_products where orders_id = '" . (int) $order_id . "'");
         tep_db_query("delete from tmp_orders_products_attributes where orders_id = '" . (int) $order_id . "'");
@@ -118,72 +100,54 @@ class Order
         tep_db_query("delete from tmp_orders_history where orders_id = '" . (int) $order_id . "'");
         tep_db_query("delete from tmp_orders_status_history where orders_id = '" . (int) $order_id . "'");
         tep_db_query("delete from tmp_orders_total where orders_id = '" . (int) $order_id . "'");
-
     }
-
     public static function get_order_status_name($order_status_id, $language_id = '')
     {
         global $languages_id;
-
         if ($order_status_id < 1) {
             if (!defined('TEXT_DEFAULT')) {
-                \common\helpers\Translation::getTranslationValue('TEXT_DEFAULT', 'admin/main');
+                \common\helpers\Translation::get_translation_value('TEXT_DEFAULT', 'admin/main');
             } else {
                 $TEXT_DEFAULT = TEXT_DEFAULT;
             }
             return $TEXT_DEFAULT;
         }
-
         if (!is_numeric($language_id)) {
             $language_id = $languages_id;
         }
-
         static $status_names = [];
-        $key = (int) $order_status_id .'@'. (int) $language_id;
+        $key = (int) $order_status_id . '@' . (int) $language_id;
         if (!isset($status_names[$key])) {
             $status_query = tep_db_query('select orders_status_name from ' . TABLE_ORDERS_STATUS . " where orders_status_id = '" . (int) $order_status_id . "' and language_id = '" . (int) $language_id . "'");
             $status = tep_db_fetch_array($status_query);
-
             $status_names[$key] = $status['orders_status_name'] ?? null;
         }
         return $status_names[$key];
     }
-
-    public static function get_orders_products_status_name($order_products_status_id, $language_id = '', $isLong = true)
+    public static function get_orders_products_status_name($order_products_status_id, $language_id = '', $is_long = true)
     {
         global $languages_id;
         if (!is_numeric($language_id)) {
             $language_id = $languages_id;
         }
-        $status = \common\models\OrdersProductsStatus::findOne([
-            'orders_products_status_id' => $order_products_status_id,
-            'language_id' => $language_id,
-        ]);
-        return ($status ? ($isLong == true ? $status->orders_products_status_name_long : $status->orders_products_status_name) : '');
+        $status = \common\models\Orders_Products_Status::find_one(['orders_products_status_id' => $order_products_status_id, 'language_id' => $language_id]);
+        return $status ? $is_long == true ? $status->orders_products_status_name_long : $status->orders_products_status_name : '';
     }
-
-    public static function get_orders_products_status_manual_name($order_products_status_manual_id, $language_id = '', $isLong = true)
+    public static function get_orders_products_status_manual_name($order_products_status_manual_id, $language_id = '', $is_long = true)
     {
         global $languages_id;
         if (!is_numeric($language_id)) {
             $language_id = $languages_id;
         }
-        $status = \common\models\OrdersProductsStatusManual::findOne([
-            'orders_products_status_manual_id' => $order_products_status_manual_id,
-            'language_id' => $language_id,
-        ]);
-        return ($status ? ($isLong == true ? $status->orders_products_status_manual_name_long : $status->orders_products_status_manual_name) : '');
+        $status = \common\models\Orders_Products_Status_Manual::find_one(['orders_products_status_manual_id' => $order_products_status_manual_id, 'language_id' => $language_id]);
+        return $status ? $is_long == true ? $status->orders_products_status_manual_name_long : $status->orders_products_status_manual_name : '';
     }
-
     public static function get_status($default = '', $show_group = false)
     {
         global $languages_id;
-
         $status_array = [];
         if (!empty($default)) {
-            $status_array[] = [
-                'id' => '',
-                'text' => $default];
+            $status_array[] = ['id' => '', 'text' => $default];
         }
         if ($show_group) {
             $status_query = tep_db_query("select os.orders_status_id, concat(osg.orders_status_groups_name, ' / ', os.orders_status_name) as orders_status_name from " . TABLE_ORDERS_STATUS . ' os left join ' . TABLE_ORDERS_STATUS_GROUPS . " osg on osg.orders_status_groups_id = os.orders_status_groups_id and osg.language_id = '" . $languages_id . "' where os.language_id = '" . $languages_id . "' order by orders_status_name");
@@ -191,86 +155,69 @@ class Order
             $status_query = tep_db_query('select orders_status_id, orders_status_name from ' . TABLE_ORDERS_STATUS . " where language_id = '" . $languages_id . "' order by orders_status_name");
         }
         while ($status = tep_db_fetch_array($status_query)) {
-            $status_array[] = [
-                'id' => $status['orders_status_id'],
-                'text' => $status['orders_status_name']];
+            $status_array[] = ['id' => $status['orders_status_id'], 'text' => $status['orders_status_name']];
         }
         return $status_array;
     }
-
-    public static function getStatusesGrouped($includeAutomated = false)
+    public static function get_statuses_grouped($include_automated = false)
     {
         $status = [];
-
-        $list = self::getStatuses(!$includeAutomated);
+        $list = self::get_statuses(!$include_automated);
         if (!empty($list) && is_array($list)) {
             foreach ($list as $group) {
                 if (!empty($group->statuses) && is_array($group->statuses)) {
                     $orders_status_groups = $group->attributes;
-                    $status[] = [
-                        'text' => $orders_status_groups['orders_status_groups_name'],
-                        'id' => 'group_' . $orders_status_groups['orders_status_groups_id'],
-                        'group_color' => $orders_status_groups['orders_status_groups_color'],
-                        'status_id' => 0,
-                        'group_id' => $orders_status_groups['orders_status_groups_id'],
-                    ];
+                    $status[] = ['text' => $orders_status_groups['orders_status_groups_name'], 'id' => 'group_' . $orders_status_groups['orders_status_groups_id'], 'group_color' => $orders_status_groups['orders_status_groups_color'], 'status_id' => 0, 'group_id' => $orders_status_groups['orders_status_groups_id']];
                     foreach ($group->statuses as $st) {
                         $orders_status = $st->attributes;
-                        $status[] = [
-                            'text' => '&nbsp;&nbsp;&nbsp;&nbsp;' . $orders_status['orders_status_name'],
-                            'id' => 'status_' . $orders_status['orders_status_id'],
-                            'status_id' => $orders_status['orders_status_id'],
-                            'group_id' => $orders_status_groups['orders_status_groups_id'],
-                        ];
+                        $status[] = ['text' => '&nbsp;&nbsp;&nbsp;&nbsp;' . $orders_status['orders_status_name'], 'id' => 'status_' . $orders_status['orders_status_id'], 'status_id' => $orders_status['orders_status_id'], 'group_id' => $orders_status_groups['orders_status_groups_id']];
                     }
                 }
             }
         }
-
         return $status;
         /*
-                $languages_id = \Yii::$app->settings->get('languages_id');
-                $orders_status_groups_query = tep_db_query(
-                    "select orders_status_groups_id, orders_status_groups_name, orders_status_groups_color ".
-                    "from " . TABLE_ORDERS_STATUS_GROUPS . " ".
-                    "where language_id = '" . (int)$languages_id . "' ".
-                    " AND orders_status_type_id = '".intval(self::getStatusTypeId())."' ".
-                    "order by orders_status_groups_id"
-                );
-                while ($orders_status_groups = tep_db_fetch_array($orders_status_groups_query)) {
-                    $status[] = [
-                        'text' => $orders_status_groups['orders_status_groups_name'],
-                        'id' => 'group_' . $orders_status_groups['orders_status_groups_id'],
-                        'group_color' => $orders_status_groups['orders_status_groups_color'],
-                        'status_id' => 0,
-                        'group_id' => $orders_status_groups['orders_status_groups_id'],
-                    ];
-                    $orders_status_query = tep_db_query(
-                        "select orders_status_id, orders_status_name ".
-                        "from " . TABLE_ORDERS_STATUS . " ".
-                        "where language_id = '" . (int)$languages_id . "' and orders_status_groups_id='" . $orders_status_groups['orders_status_groups_id'] . "' ".
-                        " ".($includeAutomated?"":"AND automated=0 ")." ".
-                        "order by orders_status_name"
-                    );
-                    if ( tep_db_num_rows($orders_status_query)>0 ) {
-                        while ($orders_status = tep_db_fetch_array($orders_status_query)) {
-                            $status[] = [
-                                'text' => '&nbsp;&nbsp;&nbsp;&nbsp;' . $orders_status['orders_status_name'],
-                                'id' => 'status_' . $orders_status['orders_status_id'],
-                                'status_id' => $orders_status['orders_status_id'],
-                                'group_id' => $orders_status_groups['orders_status_groups_id'],
-                            ];
-                        }
-                    }elseif($status[ count($status)-1 ]['id']=='group_' . $orders_status_groups['orders_status_groups_id']){
-                        unset($status[ count($status)-1 ]);
-                        $status = array_values($status);
-                    }
-                }
-                return $status;
-         */
+               $languages_id = \Yii::$app->settings->get('languages_id');
+               $orders_status_groups_query = tep_db_query(
+                   "select orders_status_groups_id, orders_status_groups_name, orders_status_groups_color ".
+                   "from " . TABLE_ORDERS_STATUS_GROUPS . " ".
+                   "where language_id = '" . (int)$languages_id . "' ".
+                   " AND orders_status_type_id = '".intval(self::getStatusTypeId())."' ".
+                   "order by orders_status_groups_id"
+               );
+               while ($orders_status_groups = tep_db_fetch_array($orders_status_groups_query)) {
+                   $status[] = [
+                       'text' => $orders_status_groups['orders_status_groups_name'],
+                       'id' => 'group_' . $orders_status_groups['orders_status_groups_id'],
+                       'group_color' => $orders_status_groups['orders_status_groups_color'],
+                       'status_id' => 0,
+                       'group_id' => $orders_status_groups['orders_status_groups_id'],
+                   ];
+                   $orders_status_query = tep_db_query(
+                       "select orders_status_id, orders_status_name ".
+                       "from " . TABLE_ORDERS_STATUS . " ".
+                       "where language_id = '" . (int)$languages_id . "' and orders_status_groups_id='" . $orders_status_groups['orders_status_groups_id'] . "' ".
+                       " ".($includeAutomated?"":"AND automated=0 ")." ".
+                       "order by orders_status_name"
+                   );
+                   if ( tep_db_num_rows($orders_status_query)>0 ) {
+                       while ($orders_status = tep_db_fetch_array($orders_status_query)) {
+                           $status[] = [
+                               'text' => '&nbsp;&nbsp;&nbsp;&nbsp;' . $orders_status['orders_status_name'],
+                               'id' => 'status_' . $orders_status['orders_status_id'],
+                               'status_id' => $orders_status['orders_status_id'],
+                               'group_id' => $orders_status_groups['orders_status_groups_id'],
+                           ];
+                       }
+                   }elseif($status[ count($status)-1 ]['id']=='group_' . $orders_status_groups['orders_status_groups_id']){
+                       unset($status[ count($status)-1 ]);
+                       $status = array_values($status);
+                   }
+               }
+               return $status;
+        */
     }
-
-    public static function extractStatuses($statuses_string)
+    public static function extract_statuses($statuses_string)
     {
         $statuses = [];
         foreach (explode(',', $statuses_string) as $check_status) {
@@ -278,32 +225,27 @@ class Order
             if (strpos($check_status, 'group_') === 0) {
                 $orders_status_query = tep_db_query('select distinct orders_status_id from ' . TABLE_ORDERS_STATUS . " where orders_status_groups_id='" . intval(str_replace('group_', '', $check_status)) . "' ");
                 while ($orders_status = tep_db_fetch_array($orders_status_query)) {
-                    $statuses[(int)$orders_status['orders_status_id']] = (int)$orders_status['orders_status_id'];
+                    $statuses[(int) $orders_status['orders_status_id']] = (int) $orders_status['orders_status_id'];
                 }
             } elseif (strpos($check_status, 'status_') === 0) {
                 $status_id = intval(str_replace('status_', '', $check_status));
-                $statuses[ (int)$status_id ] = (int)$status_id;
-            } elseif ((int)$check_status != 0) {
-                $statuses[ (int)$check_status ] = (int)$check_status;
+                $statuses[(int) $status_id] = (int) $status_id;
+            } elseif ((int) $check_status != 0) {
+                $statuses[(int) $check_status] = (int) $check_status;
             }
         }
-
         return array_values($statuses);
     }
-
     public static function orders_status_groups_name($orders_status_groups_id, $language_id = '')
     {
         global $languages_id;
-
         if (!$language_id) {
             $language_id = $languages_id;
         }
         $orders_status_groups_query = tep_db_query('select orders_status_groups_name from ' . TABLE_ORDERS_STATUS_GROUPS . " where orders_status_groups_id = '" . (int) $orders_status_groups_id . "' and language_id = '" . (int) $language_id . "'");
         $orders_status_groups = tep_db_fetch_array($orders_status_groups_query);
-
         return $orders_status_groups['orders_status_groups_name'] ?? null;
     }
-
     public static function get_status_name($id_status)
     {
         global $languages_id;
@@ -319,7 +261,6 @@ class Order
             return implode(', ', $status_name);
         }
     }
-
     public static function trunk_orders($prefix = '')
     {
         tep_db_query('TRUNCATE ' . $prefix . TABLE_ORDERS);
@@ -330,28 +271,22 @@ class Order
         tep_db_query('TRUNCATE ' . $prefix . TABLE_ORDERS_STATUS_HISTORY);
         tep_db_query('TRUNCATE ' . $prefix . TABLE_ORDERS_TOTAL);
         if (empty($prefix)) {
-            $schemaCheck = \Yii::$app->get('db')->schema->getTableSchema('admin_shopping_carts');
-            if ($schemaCheck) {
+            $schema_check = \Yii::$app->get('db')->schema->get_table_schema('admin_shopping_carts');
+            if ($schema_check) {
                 tep_db_query('TRUNCATE TABLE admin_shopping_carts');
             }
-            \common\models\OrdersSplinters::deleteAll();
+            \common\models\Orders_Splinters::delete_all();
         }
-        foreach (\common\helpers\Hooks::getList('orders/after-trunk') as $filename) {
-            include($filename);
+        foreach (\common\helpers\Hooks::get_list('orders/after-trunk') as $filename) {
+            include $filename;
         }
     }
-
     public static function parse_tracking_number($tracking_number)
     {
-        if ($tracking_number instanceof \common\classes\OrderTrackingNumber) {
-            return [
-                'number' => $tracking_number->number,
-                'url' => $tracking_number->tracking_url,
-                'carrier' => $tracking_number->carrier,
-            ];
+        if ($tracking_number instanceof \common\classes\Order_Tracking_Number) {
+            return ['number' => $tracking_number->number, 'url' => $tracking_number->tracking_url, 'carrier' => $tracking_number->carrier];
         }
-        $tracking_number = trim($tracking_number, " ,\t\n\r\0\x0B");
-
+        $tracking_number = trim($tracking_number, " ,\t\n\r\x00\v");
         $carrier = '';
         if (strpos($tracking_number, ',') !== false && strpos($tracking_number, ',') < 10) {
             list($carrier, $tracking_number) = explode(',', $tracking_number, 2);
@@ -370,11 +305,7 @@ class Order
                 $url_path = parse_url($tracking_number, PHP_URL_FRAGMENT);
                 $_url_tracking_number = substr($url_path, ($pos = strrpos($url_path, '/')) > 0 ? $pos + 1 : 0);
             }
-            return [
-                'number' => $_url_tracking_number,
-                'url' => $tracking_number,
-                'carrier' => $carrier,
-            ];
+            return ['number' => $_url_tracking_number, 'url' => $tracking_number, 'carrier' => $carrier];
         } else {
             $tracking_url = TRACKING_NUMBER_URL . str_replace(' ', '', $tracking_number);
             if (stripos($tracking_url, '17track') !== false && strtolower($carrier) == 'fedex') {
@@ -383,45 +314,39 @@ class Order
             if (stripos($tracking_url, '17track') !== false && strtolower($carrier) == 'dhl') {
                 $tracking_url .= '&fc=100001';
             }
-            if ($carrier && ($carrierRecord = \common\helpers\Extensions::callIfAllowed('TrackingCarriers', 'getTrackingCarriersRecord', [$carrier]))) {
-                if ($carrierRecord->tracking_carriers_url) {
-                    $tracking_url = $carrierRecord->tracking_carriers_url . $tracking_number;
+            if ($carrier && $carrier_record = \common\helpers\Extensions::call_if_allowed('TrackingCarriers', 'getTrackingCarriersRecord', [$carrier])) {
+                if ($carrier_record->tracking_carriers_url) {
+                    $tracking_url = $carrier_record->tracking_carriers_url . $tracking_number;
                 }
-                $carrier = $carrierRecord->tracking_carriers_name;
+                $carrier = $carrier_record->tracking_carriers_name;
             }
-            return [
-                'number' => $tracking_number,
-                'url' => $tracking_url,
-                'carrier' => $carrier,
-            ];
+            return ['number' => $tracking_number, 'url' => $tracking_url, 'carrier' => $carrier];
         }
     }
-
-    public static function getUsedTotalClassList($selected = '')
+    public static function get_used_total_class_list($selected = '')
     {
         if ($selected == '') {
             $selected = 'ot_total';
         }
-        $totals = \common\models\OrdersTotal::find()->select('class')->distinct()->orderBy('class')->all();
+        $totals = \common\models\Orders_Total::find()->select('class')->distinct()->order_by('class')->all();
         $ret = [];
-
         if (is_array($totals)) {
             foreach ($totals as $total) {
-                $name = \common\helpers\Translation::getTranslationValue('MODULE_ORDER_TOTAL_' . strtoupper(str_replace('ot_', '', $total->class)) . '_TITLE', 'ordertotal');
+                $name = \common\helpers\Translation::get_translation_value('MODULE_ORDER_TOTAL_' . strtoupper(str_replace('ot_', '', $total->class)) . '_TITLE', 'ordertotal');
                 if ($name === false) {
                     $name = ucfirst(str_replace(['ot_', '_'], ['', ' '], $total->class));
                 }
                 $ret[] = [
-                  'name' => $name, //full_name,
-                  'value' => $total->class,
-                  'selected' => ($selected && $selected == $total->class ? 'selected' : ''),
+                    'name' => $name,
+                    //full_name,
+                    'value' => $total->class,
+                    'selected' => $selected && $selected == $total->class ? 'selected' : '',
                 ];
             }
         }
         unset($totals);
         return $ret;
     }
-
     /**
      * Dispatch Order
      * @param mixed $orderRecord Order Id or instance of Orders model
@@ -429,28 +354,27 @@ class Order
      * @param integer $orderStatusPreferred try to search for preferred Order Status binded to Order Evaluation State and use it as Default Order Status
      * @return boolean false on any error, true on success
      */
-    public static function doDispatch($orderRecord = 0, $isForced = false, $orderStatusPreferred = 0)
+    public static function do_dispatch($order_record = 0, $is_forced = false, $order_status_preferred = 0)
     {
         $return = false;
-        $orderRecord = self::getRecord($orderRecord);
-        $isForced = (((int)$isForced > 0) ? true : false);
-        if ($orderRecord instanceof \common\models\Orders) {
-            if (self::isValidAllocated($orderRecord) != true) {
+        $order_record = self::get_record($order_record);
+        $is_forced = (int) $is_forced > 0 ? true : false;
+        if ($order_record instanceof \common\models\Orders) {
+            if (self::is_valid_allocated($order_record) != true) {
                 return $return;
             }
             $return = true;
-            foreach (\common\models\OrdersProducts::findAll(['orders_id' => (int)$orderRecord->orders_id]) as $orderProductRecord) {
-                $return = (\common\helpers\OrderProduct::doDispatch($orderProductRecord, $isForced) and $return);
+            foreach (\common\models\Orders_Products::find_all(['orders_id' => (int) $order_record->orders_id]) as $order_product_record) {
+                $return = (\common\helpers\Order_Product::do_dispatch($order_product_record, $is_forced) and $return);
             }
-            unset($orderProductRecord);
-            self::evaluate($orderRecord, $orderStatusPreferred);
+            unset($order_product_record);
+            self::evaluate($order_record, $order_status_preferred);
         }
-        unset($orderStatusPreferred);
-        unset($orderRecord);
-        unset($isForced);
+        unset($order_status_preferred);
+        unset($order_record);
+        unset($is_forced);
         return $return;
     }
-
     /**
      * Deliver Order
      * @param mixed $orderRecord Order Id or instance of Orders model
@@ -458,28 +382,27 @@ class Order
      * @param integer $orderStatusPreferred try to search for preferred Order Status binded to Order Evaluation State and use it as Default Order Status
      * @return boolean false on any error, true on success
      */
-    public static function doDeliver($orderRecord = 0, $isForced = false, $orderStatusPreferred = 0)
+    public static function do_deliver($order_record = 0, $is_forced = false, $order_status_preferred = 0)
     {
         $return = false;
-        $orderRecord = self::getRecord($orderRecord);
-        $isForced = (((int)$isForced > 0) ? true : false);
-        if ($orderRecord instanceof \common\models\Orders) {
-            if (self::isValidAllocated($orderRecord) != true) {
+        $order_record = self::get_record($order_record);
+        $is_forced = (int) $is_forced > 0 ? true : false;
+        if ($order_record instanceof \common\models\Orders) {
+            if (self::is_valid_allocated($order_record) != true) {
                 return $return;
             }
             $return = true;
-            foreach (\common\models\OrdersProducts::findAll(['orders_id' => (int)$orderRecord->orders_id]) as $orderProductRecord) {
-                $return = (\common\helpers\OrderProduct::doDeliver($orderProductRecord, $isForced) and $return);
+            foreach (\common\models\Orders_Products::find_all(['orders_id' => (int) $order_record->orders_id]) as $order_product_record) {
+                $return = (\common\helpers\Order_Product::do_deliver($order_product_record, $is_forced) and $return);
             }
-            unset($orderProductRecord);
-            self::evaluate($orderRecord, $orderStatusPreferred);
+            unset($order_product_record);
+            self::evaluate($order_record, $order_status_preferred);
         }
-        unset($orderStatusPreferred);
-        unset($orderRecord);
-        unset($isForced);
+        unset($order_status_preferred);
+        unset($order_record);
+        unset($is_forced);
         return $return;
     }
-
     /**
      * Cancel Order
      * @param mixed $orderRecord Order Id or instance of Orders model
@@ -487,28 +410,27 @@ class Order
      * @param integer $orderStatusPreferred try to search for preferred Order Status binded to Order Evaluation State and use it as Default Order Status
      * @return boolean false on any error, true on success
      */
-    public static function doCancel($orderRecord = 0, $isRestock = false, $orderStatusPreferred = 0)
+    public static function do_cancel($order_record = 0, $is_restock = false, $order_status_preferred = 0)
     {
         $return = false;
-        $orderRecord = self::getRecord($orderRecord);
-        $isRestock = (((int)$isRestock > 0) ? true : false);
-        if ($orderRecord instanceof \common\models\Orders) {
-            if (self::isValidAllocated($orderRecord) != true) {
+        $order_record = self::get_record($order_record);
+        $is_restock = (int) $is_restock > 0 ? true : false;
+        if ($order_record instanceof \common\models\Orders) {
+            if (self::is_valid_allocated($order_record) != true) {
                 return $return;
             }
             $return = true;
-            foreach (\common\models\OrdersProducts::findAll(['orders_id' => (int)$orderRecord->orders_id]) as $orderProductRecord) {
-                $return = (\common\helpers\OrderProduct::doCancel($orderProductRecord, $isRestock) and $return);
+            foreach (\common\models\Orders_Products::find_all(['orders_id' => (int) $order_record->orders_id]) as $order_product_record) {
+                $return = (\common\helpers\Order_Product::do_cancel($order_product_record, $is_restock) and $return);
             }
-            unset($orderProductRecord);
-            self::evaluate($orderRecord, $orderStatusPreferred);
+            unset($order_product_record);
+            self::evaluate($order_record, $order_status_preferred);
         }
-        unset($orderStatusPreferred);
-        unset($orderRecord);
-        unset($isRestock);
+        unset($order_status_preferred);
+        unset($order_record);
+        unset($is_restock);
         return $return;
     }
-
     /**
      * Pend Order
      * @param mixed $orderRecord Order Id or instance of Orders model
@@ -516,28 +438,27 @@ class Order
      * @param integer $orderStatusPreferred try to search for preferred Order Status binded to Order Evaluation State and use it as Default Order Status
      * @return boolean false on any error, true on success
      */
-    public static function doPendent($orderRecord = 0, $isReset = false, $orderStatusPreferred = 0)
+    public static function do_pendent($order_record = 0, $is_reset = false, $order_status_preferred = 0)
     {
         $return = false;
-        $orderRecord = self::getRecord($orderRecord);
-        if ($orderRecord instanceof \common\models\Orders) {
-            if (self::isValidAllocated($orderRecord) != true) {
+        $order_record = self::get_record($order_record);
+        if ($order_record instanceof \common\models\Orders) {
+            if (self::is_valid_allocated($order_record) != true) {
                 return $return;
             }
             $return = true;
-            self::updateAllocateAllow($orderRecord, 0);
-            foreach (\common\models\OrdersProducts::findAll(['orders_id' => (int)$orderRecord->orders_id]) as $orderProductRecord) {
-                $return = (\common\helpers\OrderProduct::doQuote($orderProductRecord, $isReset) and $return);
+            self::update_allocate_allow($order_record, 0);
+            foreach (\common\models\Orders_Products::find_all(['orders_id' => (int) $order_record->orders_id]) as $order_product_record) {
+                $return = (\common\helpers\Order_Product::do_quote($order_product_record, $is_reset) and $return);
             }
-            unset($orderProductRecord);
-            self::evaluate($orderRecord, $orderStatusPreferred);
+            unset($order_product_record);
+            self::evaluate($order_record, $order_status_preferred);
         }
-        unset($orderStatusPreferred);
-        unset($orderRecord);
-        unset($isReset);
+        unset($order_status_preferred);
+        unset($order_record);
+        unset($is_reset);
         return $return;
     }
-
     /**
      * Process Order
      * @param mixed $orderRecord Order Id or instance of Orders model
@@ -545,27 +466,26 @@ class Order
      * @param integer $orderStatusPreferred try to search for preferred Order Status binded to Order Evaluation State and use it as Default Order Status
      * @return boolean false on any error, true on success
      */
-    public static function doProcess($orderRecord = 0, $_null = null, $orderStatusPreferred = 0)
+    public static function do_process($order_record = 0, $_null = null, $order_status_preferred = 0)
     {
         $return = false;
-        $orderRecord = self::getRecord($orderRecord);
-        if ($orderRecord instanceof \common\models\Orders) {
-            if (self::isValidAllocated($orderRecord) != true) {
+        $order_record = self::get_record($order_record);
+        if ($order_record instanceof \common\models\Orders) {
+            if (self::is_valid_allocated($order_record) != true) {
                 return $return;
             }
             $return = true;
-            self::updateAllocateAllow($orderRecord, 1);
-            foreach (\common\models\OrdersProducts::findAll(['orders_id' => (int)$orderRecord->orders_id]) as $orderProductRecord) {
-                $return = (\common\helpers\OrderProduct::doAllocateAutomatic($orderProductRecord) and $return);
+            self::update_allocate_allow($order_record, 1);
+            foreach (\common\models\Orders_Products::find_all(['orders_id' => (int) $order_record->orders_id]) as $order_product_record) {
+                $return = (\common\helpers\Order_Product::do_allocate_automatic($order_product_record) and $return);
             }
-            unset($orderProductRecord);
-            self::evaluate($orderRecord, $orderStatusPreferred);
+            unset($order_product_record);
+            self::evaluate($order_record, $order_status_preferred);
         }
-        unset($orderStatusPreferred);
-        unset($orderRecord);
+        unset($order_status_preferred);
+        unset($order_record);
         return $return;
     }
-
     /**
      * Refresh Order
      * @param mixed $orderRecord Order Id or instance of Orders model
@@ -573,26 +493,25 @@ class Order
      * @param integer $orderStatusPreferred try to search for preferred Order Status binded to Order Evaluation State and use it as Default Order Status
      * @return boolean false on any error, true on success
      */
-    public static function doRefresh($orderRecord = 0, $_null = null, $orderStatusPreferred = 0)
+    public static function do_refresh($order_record = 0, $_null = null, $order_status_preferred = 0)
     {
         $return = false;
-        $orderRecord = self::getRecord($orderRecord);
-        if ($orderRecord instanceof \common\models\Orders) {
-            if (self::isValidAllocated($orderRecord) != true) {
+        $order_record = self::get_record($order_record);
+        if ($order_record instanceof \common\models\Orders) {
+            if (self::is_valid_allocated($order_record) != true) {
                 return $return;
             }
             $return = true;
-            foreach (\common\models\OrdersProducts::findAll(['orders_id' => (int)$orderRecord->orders_id]) as $orderProductRecord) {
-                $return = (\common\helpers\OrderProduct::doAllocateAutomatic($orderProductRecord, true) and $return);
+            foreach (\common\models\Orders_Products::find_all(['orders_id' => (int) $order_record->orders_id]) as $order_product_record) {
+                $return = (\common\helpers\Order_Product::do_allocate_automatic($order_product_record, true) and $return);
             }
-            unset($orderProductRecord);
-            self::evaluate($orderRecord, $orderStatusPreferred);
+            unset($order_product_record);
+            self::evaluate($order_record, $order_status_preferred);
         }
-        unset($orderStatusPreferred);
-        unset($orderRecord);
+        unset($order_status_preferred);
+        unset($order_record);
         return $return;
     }
-
     /**
      * Validate and updating Product Allocation records.
      * Updating Dispatched based on Delivered and Received based on Disptached.
@@ -601,215 +520,199 @@ class Order
      * @param mixed $orderRecord Order Id or instance of Orders model
      * @return boolean false on error, true - if validation is passed
      */
-    public static function isValidAllocated($orderRecord = 0)
+    public static function is_valid_allocated($order_record = 0)
     {
-        $orderRecord = self::getRecord($orderRecord);
-        if ($orderRecord instanceof \common\models\Orders) {
-            $orderProductSkipList = [];
-            foreach (self::getAllocatedArray($orderRecord, false) as $productAllocated) {
-                if (!isset($orderProductSkipList[$productAllocated->orders_products_id])) {
-                    $orderProductSkipList[$productAllocated->orders_products_id] = $productAllocated->orders_products_id;
-                    $orderProductRecord = \common\helpers\OrderProduct::getRecord($productAllocated->orders_products_id);
-                    if ($orderProductRecord instanceof \common\models\OrdersProducts and $orderProductRecord->orders_id == $orderRecord->orders_id) {
-                        if (\common\helpers\OrderProduct::isValidAllocated($orderProductRecord) != true) {
-                            unset($orderProductRecord);
+        $order_record = self::get_record($order_record);
+        if ($order_record instanceof \common\models\Orders) {
+            $order_product_skip_list = [];
+            foreach (self::get_allocated_array($order_record, false) as $product_allocated) {
+                if (!isset($order_product_skip_list[$product_allocated->orders_products_id])) {
+                    $order_product_skip_list[$product_allocated->orders_products_id] = $product_allocated->orders_products_id;
+                    $order_product_record = \common\helpers\Order_Product::get_record($product_allocated->orders_products_id);
+                    if ($order_product_record instanceof \common\models\Orders_Products and $order_product_record->orders_id == $order_record->orders_id) {
+                        if (\common\helpers\Order_Product::is_valid_allocated($order_product_record) != true) {
+                            unset($order_product_record);
                             return false;
                         }
                     } else {
-                        $productAllocated->delete();
+                        $product_allocated->delete();
                     }
-                    unset($orderProductRecord);
+                    unset($order_product_record);
                 }
             }
-            unset($orderProductSkipList);
-            unset($productAllocated);
+            unset($order_product_skip_list);
+            unset($product_allocated);
         }
-        unset($orderRecord);
+        unset($order_record);
         return true;
     }
-
     /**
      * Get Order Product Allocation array
      * @param mixed $orderRecord Order Id or instance of Orders model
      * @param boolean $asArray switching return type between array of arrays or array of instances of OrdersProductsAllocate
      * @return array array of mixed depending on $asArray parameter
      */
-    public static function getAllocatedArray($orderRecord = 0, $asArray = true)
+    public static function get_allocated_array($order_record = 0, $as_array = true)
     {
         $return = [];
-        $orderRecord = self::getRecord($orderRecord);
-        if ($orderRecord instanceof \common\models\Orders) {
-            foreach ((\common\models\OrdersProductsAllocate::find()
-                ->where(['orders_id' => (int)$orderRecord->orders_id])
-                ->asArray($asArray)->all()) as $opAllocateRecord
-            ) {
-                $return[] = $opAllocateRecord;
+        $order_record = self::get_record($order_record);
+        if ($order_record instanceof \common\models\Orders) {
+            foreach (\common\models\Orders_Products_Allocate::find()->where(['orders_id' => (int) $order_record->orders_id])->as_array($as_array)->all() as $op_allocate_record) {
+                $return[] = $op_allocate_record;
             }
-            unset($opAllocateRecord);
+            unset($op_allocate_record);
         }
-        unset($orderRecord);
-        unset($asArray);
+        unset($order_record);
+        unset($as_array);
         return $return;
     }
-
     /**
      * Automatically update Order Status based on Order Product statuses
      * @param mixed $orderRecord Order Id or instance of Orders model
      * @param int $orderStatusPreferred preferred order status if two or more statuses are bonded to same order evaluation state. Default to current order status
      * @return mixed false on error or current Order Status Id
      */
-    public static function evaluate($orderRecord = 0, $orderStatusPreferred = 0)
+    public static function evaluate($order_record = 0, $order_status_preferred = 0)
     {
         $return = false;
-        $orderRecord = self::getRecord($orderRecord);
-        if ($orderRecord instanceof \common\models\Orders) {
-            if (self::isValidAllocated($orderRecord) != true) {
+        $order_record = self::get_record($order_record);
+        if ($order_record instanceof \common\models\Orders) {
+            if (self::is_valid_allocated($order_record) != true) {
                 return $return;
             }
-            $orderStatus = (int)$orderRecord->orders_status;
-            $orderStatusPreferred = (int)(((int)$orderStatusPreferred <= 0) ? $orderStatus : $orderStatusPreferred);
-            $orderProductStatusArray = array_fill_keys(array_keys(\common\helpers\OrderProduct::getStatusArray()), 0);
-            foreach (\common\models\OrdersProducts::findAll(['orders_id' => $orderRecord->orders_id]) as $orderProductRecord) {
-                $orderProductStatusArray[$orderProductRecord->orders_products_status] += (int)$orderProductRecord->products_quantity;
+            $order_status = (int) $order_record->orders_status;
+            $order_status_preferred = (int) ((int) $order_status_preferred <= 0 ? $order_status : $order_status_preferred);
+            $order_product_status_array = array_fill_keys(array_keys(\common\helpers\Order_Product::get_status_array()), 0);
+            foreach (\common\models\Orders_Products::find_all(['orders_id' => $order_record->orders_id]) as $order_product_record) {
+                $order_product_status_array[$order_product_record->orders_products_status] += (int) $order_product_record->products_quantity;
             }
-            unset($orderProductRecord);
-            if ($orderProductStatusArray[\common\helpers\OrderProduct::OPS_CANCELLED] > 0) {
+            unset($order_product_record);
+            if ($order_product_status_array[\common\helpers\Order_Product::OPS_CANCELLED] > 0) {
                 $return = self::OES_CANCELLED;
             }
-            if ($orderProductStatusArray[\common\helpers\OrderProduct::OPS_DELIVERED] > 0) {
+            if ($order_product_status_array[\common\helpers\Order_Product::OPS_DELIVERED] > 0) {
                 $return = self::OES_DELIVERED;
             }
-            if ($orderProductStatusArray[\common\helpers\OrderProduct::OPS_DISPATCHED] > 0) {
+            if ($order_product_status_array[\common\helpers\Order_Product::OPS_DISPATCHED] > 0) {
                 $return = self::OES_DISPATCHED;
             }
-            if ($orderProductStatusArray[\common\helpers\OrderProduct::OPS_RECEIVED] > 0) {
+            if ($order_product_status_array[\common\helpers\Order_Product::OPS_RECEIVED] > 0) {
                 $return = self::OES_RECEIVED;
             }
-            if ($orderProductStatusArray[\common\helpers\OrderProduct::OPS_STOCK_DEFICIT] > 0
-                or $orderProductStatusArray[\common\helpers\OrderProduct::OPS_STOCK_ORDERED] > 0
-            ) {
+            if ($order_product_status_array[\common\helpers\Order_Product::OPS_STOCK_DEFICIT] > 0 or $order_product_status_array[\common\helpers\Order_Product::OPS_STOCK_ORDERED] > 0) {
                 $return = self::OES_PROCESSING;
             }
-            if ($orderProductStatusArray[\common\helpers\OrderProduct::OPS_QUOTED] > 0) {
+            if ($order_product_status_array[\common\helpers\Order_Product::OPS_QUOTED] > 0) {
                 if ($return == false) {
                     $return = self::OES_PENDING;
                 } else {
                     $return = self::OES_PROCESSING;
                 }
             }
-            unset($orderProductStatusArray);
-            $orderStatusRecord = \common\models\OrdersStatus::getDefaultByOrderEvaluationState($return, $orderStatusPreferred);
-            if (!($orderStatusRecord instanceof \common\models\OrdersStatus) and $return == self::OES_DELIVERED) {
+            unset($order_product_status_array);
+            $order_status_record = \common\models\Orders_Status::get_default_by_order_evaluation_state($return, $order_status_preferred);
+            if (!$order_status_record instanceof \common\models\Orders_Status and $return == self::OES_DELIVERED) {
                 $return = self::OES_DISPATCHED;
-                $orderStatusRecord = \common\models\OrdersStatus::getDefaultByOrderEvaluationState($return, $orderStatusPreferred);
+                $order_status_record = \common\models\Orders_Status::get_default_by_order_evaluation_state($return, $order_status_preferred);
             }
-            if (!($orderStatusRecord instanceof \common\models\OrdersStatus) and $return == self::OES_DISPATCHED) {
+            if (!$order_status_record instanceof \common\models\Orders_Status and $return == self::OES_DISPATCHED) {
                 $return = self::OES_RECEIVED;
-                $orderStatusRecord = \common\models\OrdersStatus::getDefaultByOrderEvaluationState($return, $orderStatusPreferred);
+                $order_status_record = \common\models\Orders_Status::get_default_by_order_evaluation_state($return, $order_status_preferred);
             }
-            if (!($orderStatusRecord instanceof \common\models\OrdersStatus) and $return == self::OES_RECEIVED) {
+            if (!$order_status_record instanceof \common\models\Orders_Status and $return == self::OES_RECEIVED) {
                 $return = self::OES_PROCESSING;
-                $orderStatusRecord = \common\models\OrdersStatus::getDefaultByOrderEvaluationState($return, $orderStatusPreferred);
+                $order_status_record = \common\models\Orders_Status::get_default_by_order_evaluation_state($return, $order_status_preferred);
             }
             /* UNCOMMENT IN CASE OF FULLY AUTOMATIC STATUS CHANGE MODE ONLY!
-            if (!($orderStatusRecord instanceof \common\models\OrdersStatus) AND $return == self::OES_PROCESSING) {
-                $return = self::OES_PENDING;
-                $orderStatusRecord = \common\models\OrdersStatus::getDefaultByOrderEvaluationState($return, $orderStatusPreferred);
-            }
-            EOF UNCOMMENT IN CASE OF FULLY AUTOMATIC STATUS CHANGE MODE ONLY! */
-            $return = $orderStatus;
-            if (($orderStatusRecord instanceof \common\models\OrdersStatus) and $orderStatusRecord->orders_status_id != $return) {
-                $isHistory = false;
+               if (!($orderStatusRecord instanceof \common\models\OrdersStatus) AND $return == self::OES_PROCESSING) {
+                   $return = self::OES_PENDING;
+                   $orderStatusRecord = \common\models\OrdersStatus::getDefaultByOrderEvaluationState($return, $orderStatusPreferred);
+               }
+               EOF UNCOMMENT IN CASE OF FULLY AUTOMATIC STATUS CHANGE MODE ONLY! */
+            $return = $order_status;
+            if ($order_status_record instanceof \common\models\Orders_Status and $order_status_record->orders_status_id != $return) {
+                $is_history = false;
                 try {
-                    $orderRecord->orders_status = (int)$orderStatusRecord->orders_status_id;
-                    $orderRecord->last_modified = date('Y-m-d H:i:s');
-                    $orderRecord->save();
-                    $isHistory = true;
+                    $order_record->orders_status = (int) $order_status_record->orders_status_id;
+                    $order_record->last_modified = date('Y-m-d H:i:s');
+                    $order_record->save();
+                    $is_history = true;
                 } catch (\Exception $exc) {
-                    $orderRecord->orders_status = $return;
+                    $order_record->orders_status = $return;
                 }
-                $return = (int)$orderRecord->orders_status;
-                if ($isHistory == true) {
-                    \common\models\OrdersStatusHistory::write(
-                        $orderRecord,
-                        $return,
-                        TEXT_ORDER_STATUS_AUTO_EVALUATE,
-                        0,
-                        ''
-                    );
+                $return = (int) $order_record->orders_status;
+                if ($is_history == true) {
+                    \common\models\Orders_Status_History::write($order_record, $return, TEXT_ORDER_STATUS_AUTO_EVALUATE, 0, '');
                 }
-                unset($isHistory);
+                unset($is_history);
             }
-            unset($orderStatusRecord);
-            unset($orderStatus);
+            unset($order_status_record);
+            unset($order_status);
         }
-        unset($orderRecord);
+        unset($order_record);
         return $return;
     }
-
     /**
      * Update allocation allowance status for Order
      * @param mixed $orderRecord Order Id or instance of Orders model
      * @param integer $allocateAllow allowance status value or based on Order Status value by default
      * @return mixed allocation allowance status or false on error
      */
-    public static function updateAllocateAllow($orderRecord = 0, $allocateAllow = -1)
+    public static function update_allocate_allow($order_record = 0, $allocate_allow = -1)
     {
         $return = false;
-        $allocateAllow = (int)$allocateAllow;
-        $orderRecord = self::getRecord($orderRecord);
-        if ($orderRecord instanceof \common\models\Orders) {
-            $return = $orderRecord->orders_allocate_allow;
-            if ($allocateAllow < 0) {
-                $orderStatusRecord = \common\models\OrdersStatus::findOne(['orders_status_id' => $orderRecord->orders_status]);
-                if ($orderStatusRecord instanceof \common\models\OrdersStatus) {
-                    if ($orderStatusRecord->orders_status_allocate_allow > 0 and $orderRecord->orders_allocate_allow != $orderStatusRecord->orders_status_allocate_allow) {
+        $allocate_allow = (int) $allocate_allow;
+        $order_record = self::get_record($order_record);
+        if ($order_record instanceof \common\models\Orders) {
+            $return = $order_record->orders_allocate_allow;
+            if ($allocate_allow < 0) {
+                $order_status_record = \common\models\Orders_Status::find_one(['orders_status_id' => $order_record->orders_status]);
+                if ($order_status_record instanceof \common\models\Orders_Status) {
+                    if ($order_status_record->orders_status_allocate_allow > 0 and $order_record->orders_allocate_allow != $order_status_record->orders_status_allocate_allow) {
                         try {
-                            $orderRecord->orders_allocate_allow = $orderStatusRecord->orders_status_allocate_allow;
-                            $orderRecord->save();
-                            $return = $orderRecord->orders_allocate_allow;
+                            $order_record->orders_allocate_allow = $order_status_record->orders_status_allocate_allow;
+                            $order_record->save();
+                            $return = $order_record->orders_allocate_allow;
                         } catch (\Exception $exc) {
                         }
                     }
                 }
-                unset($orderStatusRecord);
-            } elseif ($orderRecord->orders_allocate_allow != $allocateAllow) {
+                unset($order_status_record);
+            } elseif ($order_record->orders_allocate_allow != $allocate_allow) {
                 try {
-                    $orderRecord->orders_allocate_allow = $allocateAllow;
-                    $orderRecord->save();
-                    $return = $orderRecord->orders_allocate_allow;
+                    $order_record->orders_allocate_allow = $allocate_allow;
+                    $order_record->save();
+                    $return = $order_record->orders_allocate_allow;
                 } catch (\Exception $exc) {
                 }
             }
         }
-        unset($allocateAllow);
-        unset($orderRecord);
+        unset($allocate_allow);
+        unset($order_record);
         return $return;
     }
-
     /**
      * Check is order stock should be allocated as temporary
      * @param mixed $orderRecord Order Id or instance of Orders model
      * @return boolean allocate as temporary
      */
-    public static function isAllocateTemporary($orderRecord = 0)
+    public static function is_allocate_temporary($order_record = 0)
     {
         $return = false;
-        $orderRecord = self::getRecord($orderRecord);
-        if ($orderRecord instanceof \common\models\Orders) {
-            $orderStatusRecord = \common\models\OrdersStatus::findOne(['orders_status_id' => $orderRecord->orders_status]);
-            if ($orderStatusRecord instanceof \common\models\OrdersStatus) {
-                $orderStatusGroupRecord = \common\models\OrdersStatusGroups::findOne(['orders_status_groups_id' => $orderStatusRecord->orders_status_groups_id]);
-                if ($orderStatusGroupRecord instanceof \common\models\OrdersStatusGroups) {
-                    $return = ((int)$orderStatusGroupRecord->orders_status_groups_store_temporary > 0);
+        $order_record = self::get_record($order_record);
+        if ($order_record instanceof \common\models\Orders) {
+            $order_status_record = \common\models\Orders_Status::find_one(['orders_status_id' => $order_record->orders_status]);
+            if ($order_status_record instanceof \common\models\Orders_Status) {
+                $order_status_group_record = \common\models\Orders_Status_Groups::find_one(['orders_status_groups_id' => $order_status_record->orders_status_groups_id]);
+                if ($order_status_group_record instanceof \common\models\Orders_Status_Groups) {
+                    $return = (int) $order_status_group_record->orders_status_groups_store_temporary > 0;
                 }
             }
-            unset($orderStatusRecord);
+            unset($order_status_record);
         }
-        unset($orderRecord);
+        unset($order_record);
         return $return;
     }
-
     /**
      * Set Order status (triggering binded order evaluation state update).
      * Behaviour $isAlternativeBehaviour:
@@ -825,394 +728,274 @@ class Order
      * @param boolean $isAlternativeBehaviour switch order processing behaviour depending on binded order status evaluation state
      * @return mixed false on error or current order status
      */
-    public static function setStatus($orderRecord = 0, $orderStatus = 0, $historyArray = [], $isIgnoreBindEvaluationState = false, $isAlternativeBehaviour = false)
+    public static function set_status($order_record = 0, $order_status = 0, $history_array = [], $is_ignore_bind_evaluation_state = false, $is_alternative_behaviour = false)
     {
         $__orders_id = 0;
         $return = false;
-        $orderRecord = self::getRecord($orderRecord);
-        if ($orderRecord instanceof \common\models\Orders) {
-            $__orders_id = $orderRecord->orders_id;
-            $isHistory = false;
-            $orderStatus = (int)$orderStatus;
-            $return = (int)$orderRecord->orders_status;
-            $prevStatus = (int)$orderRecord->orders_status;
-            $isAlternativeBehaviour = ((int)$isAlternativeBehaviour > 0);
-            $historyArray = (is_array($historyArray) ? $historyArray : []);
-            $isIgnoreBindEvaluationState = ((int)$isIgnoreBindEvaluationState > 0);
-            $orderStatusRecord = \common\models\OrdersStatus::findOne(['orders_status_id' => $orderStatus]);
-            if ($orderStatusRecord instanceof \common\models\OrdersStatus) {
-                if ($isIgnoreBindEvaluationState == false) {
-                    if ($orderStatusRecord->order_evaluation_state_id == self::OES_PENDING) {
-                        self::doPendent($orderRecord, $isAlternativeBehaviour, $orderStatus);
-                    } elseif ($orderStatusRecord->order_evaluation_state_id == self::OES_PROCESSING) {
-                        self::doProcess($orderRecord, $isAlternativeBehaviour, $orderStatus);
-                    } elseif ($orderStatusRecord->order_evaluation_state_id == self::OES_CANCELLED) {
-                        self::doCancel($orderRecord, $isAlternativeBehaviour, $orderStatus);
-                    } elseif ($orderStatusRecord->order_evaluation_state_id == self::OES_DISPATCHED) {
-                        self::doDispatch($orderRecord, $isAlternativeBehaviour, $orderStatus);
-                    } elseif ($orderStatusRecord->order_evaluation_state_id == self::OES_DELIVERED) {
-                        self::doDeliver($orderRecord, $isAlternativeBehaviour, $orderStatus);
+        $order_record = self::get_record($order_record);
+        if ($order_record instanceof \common\models\Orders) {
+            $__orders_id = $order_record->orders_id;
+            $is_history = false;
+            $order_status = (int) $order_status;
+            $return = (int) $order_record->orders_status;
+            $prev_status = (int) $order_record->orders_status;
+            $is_alternative_behaviour = (int) $is_alternative_behaviour > 0;
+            $history_array = is_array($history_array) ? $history_array : [];
+            $is_ignore_bind_evaluation_state = (int) $is_ignore_bind_evaluation_state > 0;
+            $order_status_record = \common\models\Orders_Status::find_one(['orders_status_id' => $order_status]);
+            if ($order_status_record instanceof \common\models\Orders_Status) {
+                if ($is_ignore_bind_evaluation_state == false) {
+                    if ($order_status_record->order_evaluation_state_id == self::OES_PENDING) {
+                        self::do_pendent($order_record, $is_alternative_behaviour, $order_status);
+                    } elseif ($order_status_record->order_evaluation_state_id == self::OES_PROCESSING) {
+                        self::do_process($order_record, $is_alternative_behaviour, $order_status);
+                    } elseif ($order_status_record->order_evaluation_state_id == self::OES_CANCELLED) {
+                        self::do_cancel($order_record, $is_alternative_behaviour, $order_status);
+                    } elseif ($order_status_record->order_evaluation_state_id == self::OES_DISPATCHED) {
+                        self::do_dispatch($order_record, $is_alternative_behaviour, $order_status);
+                    } elseif ($order_status_record->order_evaluation_state_id == self::OES_DELIVERED) {
+                        self::do_deliver($order_record, $is_alternative_behaviour, $order_status);
                     }
                 }
-                self::doRefresh($orderRecord, $isAlternativeBehaviour, $orderStatus);
-                $return = (int)$orderRecord->orders_status;
-                if ($return != $orderStatus) {
+                self::do_refresh($order_record, $is_alternative_behaviour, $order_status);
+                $return = (int) $order_record->orders_status;
+                if ($return != $order_status) {
                     try {
-                        $orderRecord->orders_status = $orderStatus;
-                        $orderRecord->last_modified = date('Y-m-d H:i:s');
-                        $orderRecord->save();
-                        $isHistory = true;
+                        $order_record->orders_status = $order_status;
+                        $order_record->last_modified = date('Y-m-d H:i:s');
+                        $order_record->save();
+                        $is_history = true;
                     } catch (\Exception $exc) {
-                        $orderRecord->orders_status = $return;
-                        \Yii::warning($exc->getMessage() . ' ' . $exc->getTraceAsString());
+                        $order_record->orders_status = $return;
+                        \Yii::warning($exc->get_message() . ' ' . $exc->get_trace_as_string());
                     }
-                    $return = (int)$orderRecord->orders_status;
+                    $return = (int) $order_record->orders_status;
                 }
-
-                if ($orderStatusRecord->orders_status_release_deferred == 1) {
+                if ($order_status_record->orders_status_release_deferred == 1) {
                     try {
-                        $orderPaymentRecordArray = \common\models\OrdersPayment::find()
-                            ->where(['orders_payment_order_id' => $__orders_id])
-                            ->andWhere(['deferred' => 1])
-                            ->orderBy(['orders_payment_date_create' => SORT_DESC, 'orders_payment_id' => SORT_DESC])
-                            ->all();
-                        if (is_array($orderPaymentRecordArray) && count($orderPaymentRecordArray) > 0) {
-                            $manager = \common\services\OrderManager::loadManager();
-                            foreach ($orderPaymentRecordArray as $orderPaymentRecord) {
-                                $payment = $manager->getPaymentCollection($orderPaymentRecord['orders_payment_module'])->getSelectedPayment();
+                        $order_payment_record_array = \common\models\Orders_Payment::find()->where(['orders_payment_order_id' => $__orders_id])->and_where(['deferred' => 1])->order_by(['orders_payment_date_create' => SORT_DESC, 'orders_payment_id' => SORT_DESC])->all();
+                        if (is_array($order_payment_record_array) && count($order_payment_record_array) > 0) {
+                            $manager = \common\services\Order_Manager::load_manager();
+                            foreach ($order_payment_record_array as $order_payment_record) {
+                                $payment = $manager->get_payment_collection($order_payment_record['orders_payment_module'])->get_selected_payment();
                                 if (is_object($payment) && method_exists($payment, 'release')) {
-                                    $payment->release($orderPaymentRecord['orders_payment_transaction_id'], $orderStatus);
+                                    $payment->release($order_payment_record['orders_payment_transaction_id'], $order_status);
                                 }
                                 unset($payment);
                             }
-                            unset($orderPaymentRecord);
+                            unset($order_payment_record);
                             unset($manager);
                         }
-                        unset($orderPaymentRecordArray);
+                        unset($order_payment_record_array);
                     } catch (\Exception $exc) {
-                        \Yii::warning($exc->getMessage() . ' ' . $exc->getTraceAsString());
+                        \Yii::warning($exc->get_message() . ' ' . $exc->get_trace_as_string());
                     }
                 }
             }
-            unset($orderStatusRecord);
-            $comments = trim(isset($historyArray['comments']) ? $historyArray['comments'] : '');
-            $smscomments = trim(isset($historyArray['smscomments']) ? $historyArray['smscomments'] : '');
-            $dateAdded = isset($historyArray['date_added']) ? $historyArray['date_added'] : null;
-            $isNotified = (isset($historyArray['customer_notified']) ? (((int)$historyArray['customer_notified'] > 0) ? 1 : 0) : 0);
-            if (($isHistory == true) or ($comments != '') or ($smscomments != '') or ($isNotified > 0)) {
-                \common\models\OrdersStatusHistory::write(
-                    $orderRecord,
-                    $return,
-                    $comments,
-                    $isNotified,
-                    $smscomments,
-                    $dateAdded
-                );
+            unset($order_status_record);
+            $comments = trim(isset($history_array['comments']) ? $history_array['comments'] : '');
+            $smscomments = trim(isset($history_array['smscomments']) ? $history_array['smscomments'] : '');
+            $date_added = isset($history_array['date_added']) ? $history_array['date_added'] : null;
+            $is_notified = isset($history_array['customer_notified']) ? (int) $history_array['customer_notified'] > 0 ? 1 : 0 : 0;
+            if ($is_history == true or $comments != '' or $smscomments != '' or $is_notified > 0) {
+                \common\models\Orders_Status_History::write($order_record, $return, $comments, $is_notified, $smscomments, $date_added);
             }
-            unset($isNotified);
-            unset($isHistory);
+            unset($is_notified);
+            unset($is_history);
             unset($comments);
-            self::doRefresh($orderRecord, $isAlternativeBehaviour, $return);
-
+            self::do_refresh($order_record, $is_alternative_behaviour, $return);
             try {
-                $newStatus = (\common\models\Orders::find()->select('orders_status')->where(['orders_id' => $__orders_id])->one()->orders_status ?? 0);
-                if (!Status::isCanceledGroup($prevStatus) && Status::isCanceledGroup($newStatus)) {
+                $new_status = \common\models\Orders::find()->select('orders_status')->where(['orders_id' => $__orders_id])->one()->orders_status ?? 0;
+                if (!Status::is_canceled_group($prev_status) && Status::is_canceled_group($new_status)) {
                     // Credit amount used on a cancelled order is returned to the customer automatically
-                    $creditAmount = \common\models\OrdersTotal::find()->where(['orders_id' => $__orders_id, 'class' => 'ot_gv'])->sum('value_inc_tax');
-                    if ($creditAmount > 0) {
-                        $check = \common\models\CustomersCreditHistory::find()
-                            ->andWhere(
-                                new \yii\db\Expression('abs(credit_amount - ' . (float) $creditAmount . ') < 0.2')
-                            )
-                            ->andWhere(['like', 'comments', $__orders_id])
-                            ->andWhere([
-                                'customers_id' => (int) $orderRecord->customers_id,
-                                'credit_prefix' => '-',
-                            ])->exists();
+                    $credit_amount = \common\models\Orders_Total::find()->where(['orders_id' => $__orders_id, 'class' => 'ot_gv'])->sum('value_inc_tax');
+                    if ($credit_amount > 0) {
+                        $check = \common\models\Customers_Credit_History::find()->and_where(new \yii\db\Expression('abs(credit_amount - ' . (float) $credit_amount . ') < 0.2'))->and_where(['like', 'comments', $__orders_id])->and_where(['customers_id' => (int) $order_record->customers_id, 'credit_prefix' => '-'])->exists();
                         if ($check) {
-                            if ($customer = \common\components\Customer::findOne(['customers_id' => $orderRecord->customers_id])) {
-                                $customer->credit_amount += $creditAmount;
+                            if ($customer = \common\components\Customer::find_one(['customers_id' => $order_record->customers_id])) {
+                                $customer->credit_amount += $credit_amount;
                                 $customer->save();
-                                $customer->saveCreditHistory($orderRecord->customers_id, $creditAmount, '+', $orderRecord->currency, $orderRecord->currency_value, 'Cancel Order #' . $__orders_id);
+                                $customer->save_credit_history($order_record->customers_id, $credit_amount, '+', $order_record->currency, $order_record->currency_value, 'Cancel Order #' . $__orders_id);
                             }
                         }
                     }
-                } elseif (Status::isCanceledGroup($prevStatus) && !Status::isCanceledGroup($newStatus)) {
+                } elseif (Status::is_canceled_group($prev_status) && !Status::is_canceled_group($new_status)) {
                     // Undo - Credit amount used on a cancelled order is returned to the customer automatically
-                    $creditAmount = \common\models\OrdersTotal::find()->where(['orders_id' => $__orders_id, 'class' => 'ot_gv'])->sum('value_inc_tax');
-                    if ($creditAmount > 0) {
-                        $check = \common\models\CustomersCreditHistory::find()
-                            ->andWhere(
-                                new \yii\db\Expression('abs(credit_amount - ' . (float) $creditAmount . ') < 0.2')
-                            )
-                            ->andWhere(['like', 'comments', $__orders_id])
-                            ->andWhere([
-                                'customers_id' => (int) $orderRecord->customers_id,
-                                'credit_prefix' => '+',
-                            ])->exists();
+                    $credit_amount = \common\models\Orders_Total::find()->where(['orders_id' => $__orders_id, 'class' => 'ot_gv'])->sum('value_inc_tax');
+                    if ($credit_amount > 0) {
+                        $check = \common\models\Customers_Credit_History::find()->and_where(new \yii\db\Expression('abs(credit_amount - ' . (float) $credit_amount . ') < 0.2'))->and_where(['like', 'comments', $__orders_id])->and_where(['customers_id' => (int) $order_record->customers_id, 'credit_prefix' => '+'])->exists();
                         if ($check) {
-                            if ($customer = \common\components\Customer::findOne(['customers_id' => $orderRecord->customers_id])) {
-                                $customer->credit_amount -= $creditAmount;
+                            if ($customer = \common\components\Customer::find_one(['customers_id' => $order_record->customers_id])) {
+                                $customer->credit_amount -= $credit_amount;
                                 $customer->save();
-                                $customer->saveCreditHistory($orderRecord->customers_id, $creditAmount, '-', $orderRecord->currency, $orderRecord->currency_value, 'Undo Cancel Order #' . $__orders_id);
+                                $customer->save_credit_history($order_record->customers_id, $credit_amount, '-', $order_record->currency, $order_record->currency_value, 'Undo Cancel Order #' . $__orders_id);
                             }
                         }
                     }
                 }
             } catch (\Exception $e) {
-                \Yii::warning(print_r($e->getMessage(), true), 'TLDEBUG');
+                \Yii::warning(print_r($e->get_message(), true), 'TLDEBUG');
             }
-
-            foreach (\common\helpers\Hooks::getList('orders/after-setstatus') as $filename) {
-                include($filename);
+            foreach (\common\helpers\Hooks::get_list('orders/after-setstatus') as $filename) {
+                include $filename;
             }
         }
-        unset($isIgnoreBindEvaluationState);
-        unset($isAlternativeBehaviour);
-        unset($historyArray);
-        unset($orderStatus);
-        unset($orderRecord);
-
+        unset($is_ignore_bind_evaluation_state);
+        unset($is_alternative_behaviour);
+        unset($history_array);
+        unset($order_status);
+        unset($order_record);
         return $return;
     }
-
     /**
      * Search and cancel expired temporary stock allocation. Order is cancelled too if possible.
      * Cancel expired orders in status from "Temporary allocate order products" flag enabled status groups.
      * Behaviour: ORDER_STATUS_TEMPORARY_ALLOCATION_EXPIRED_DURATION >= 1
      * @return boolean always true
      */
-    public static function doCancelAllocatedTemporaryExpired()
+    public static function do_cancel_allocated_temporary_expired()
     {
         \common\helpers\Translation::init('admin/main');
-        $orderStatusExpired = (int)\common\helpers\Configuration::get_configuration_key_value('ORDER_STATUS_TEMPORARY_ALLOCATION_EXPIRED');
-        $orderStatusExpiredDurationHours = (int)\common\helpers\Configuration::get_configuration_key_value('ORDER_STATUS_TEMPORARY_ALLOCATION_EXPIRED_DURATION');
-        if ($orderStatusExpiredDurationHours < 1) {
-            $orderStatusExpiredDurationHours = 1;
+        $order_status_expired = (int) \common\helpers\Configuration::get_configuration_key_value('ORDER_STATUS_TEMPORARY_ALLOCATION_EXPIRED');
+        $order_status_expired_duration_hours = (int) \common\helpers\Configuration::get_configuration_key_value('ORDER_STATUS_TEMPORARY_ALLOCATION_EXPIRED_DURATION');
+        if ($order_status_expired_duration_hours < 1) {
+            $order_status_expired_duration_hours = 1;
         }
-        foreach (\common\models\OrdersProductsAllocate::find()
-            ->select(['orders_id'])
-            ->where(['is_temporary' => 1])
-            ->andWhere(['<', 'datetime', date('Y-m-d H:i:s', strtotime("-{$orderStatusExpiredDurationHours} hours"))])
-            ->groupBy('orders_id')
-            ->asArray(true)
-            ->all() as $orderId
-        ) {
-            $orderId = (int)$orderId['orders_id'];
-            $isExpired = null;
-            $isTemporary = null;
-            $opaRecordArray = [];
-            foreach (\common\models\OrdersProductsAllocate::find()
-                ->andWhere(['orders_id' => $orderId])
-                ->asArray(false)
-                ->all() as $opaRecord
-            ) {
-                $isTemporary = (is_null($isTemporary) ? true : $isTemporary);
-                if ($opaRecord->is_temporary <= 0) {
-                    $isTemporary = false;
+        foreach (\common\models\Orders_Products_Allocate::find()->select(['orders_id'])->where(['is_temporary' => 1])->and_where(['<', 'datetime', date('Y-m-d H:i:s', strtotime("-{$order_status_expired_duration_hours} hours"))])->group_by('orders_id')->as_array(true)->all() as $order_id) {
+            $order_id = (int) $order_id['orders_id'];
+            $is_expired = null;
+            $is_temporary = null;
+            $opa_record_array = [];
+            foreach (\common\models\Orders_Products_Allocate::find()->and_where(['orders_id' => $order_id])->as_array(false)->all() as $opa_record) {
+                $is_temporary = is_null($is_temporary) ? true : $is_temporary;
+                if ($opa_record->is_temporary <= 0) {
+                    $is_temporary = false;
                     continue;
                 }
-                $isExpired = false;
-                if (strtotime($opaRecord->datetime) < strtotime("-{$orderStatusExpiredDurationHours} hours")) {
-                    $isExpired = true;
+                $is_expired = false;
+                if (strtotime($opa_record->datetime) < strtotime("-{$order_status_expired_duration_hours} hours")) {
+                    $is_expired = true;
                 }
-                if ($isExpired === false) {
+                if ($is_expired === false) {
                     break;
                 }
-                $opaRecordArray[] = $opaRecord;
+                $opa_record_array[] = $opa_record;
             }
-            unset($opaRecord);
-            if ($isExpired === true) {
+            unset($opa_record);
+            if ($is_expired === true) {
                 try {
-                    foreach ($opaRecordArray as $opaRecord) {
-                        \common\helpers\OrderProduct::doCancel($opaRecord->orders_products_id, false);
+                    foreach ($opa_record_array as $opa_record) {
+                        \common\helpers\Order_Product::do_cancel($opa_record->orders_products_id, false);
                     }
                 } catch (\Exception $exc) {
                 }
-                unset($opaRecord);
+                unset($opa_record);
                 try {
-                    if ($isTemporary === true and $orderStatusExpired > 0) {
-                        self::setStatus($orderId, $orderStatusExpired, [], false, false);
+                    if ($is_temporary === true and $order_status_expired > 0) {
+                        self::set_status($order_id, $order_status_expired, [], false, false);
                     } else {
-                        self::evaluate($orderId);
+                        self::evaluate($order_id);
                     }
                 } catch (\Exception $exc) {
                 }
             }
-            unset($opaRecordArray);
-            unset($isTemporary);
-            unset($isExpired);
+            unset($opa_record_array);
+            unset($is_temporary);
+            unset($is_expired);
         }
-        unset($orderId);
-        $temporaryAllocateOrderStatusIdList = \common\models\OrdersStatusGroups::find()->alias('osg')
-            ->leftJoin(\common\models\OrdersStatus::tableName() . ' os', 'os.orders_status_groups_id = osg.orders_status_groups_id AND os.language_id = osg.language_id')
-            ->where(['osg.orders_status_groups_store_temporary' => 1])
-            ->groupBy(['os.orders_status_id'])->asArray(true)->select('os.orders_status_id')->column();
-        foreach (\common\models\Orders::find()
-            ->where(['in', 'orders_status', $temporaryAllocateOrderStatusIdList])
-            ->andWhere(['or',
-                ['and',
-                    ['!=', 'last_modified', '0000-00-00 00:00:00'],
-                    ['<', 'last_modified', date('Y-m-d H:i:s', strtotime("-{$orderStatusExpiredDurationHours} hours"))],
-                ],
-                ['and',
-                    ['last_modified' => '0000-00-00 00:00:00'],
-                    ['<', 'date_purchased', date('Y-m-d H:i:s', strtotime("-{$orderStatusExpiredDurationHours} hours"))],
-                ],
-            ])
-            ->asArray(true)->select('orders_id')->column() as $orderId
-        ) {
+        unset($order_id);
+        $temporary_allocate_order_status_id_list = \common\models\Orders_Status_Groups::find()->alias('osg')->left_join(\common\models\Orders_Status::table_name() . ' os', 'os.orders_status_groups_id = osg.orders_status_groups_id AND os.language_id = osg.language_id')->where(['osg.orders_status_groups_store_temporary' => 1])->group_by(['os.orders_status_id'])->as_array(true)->select('os.orders_status_id')->column();
+        foreach (\common\models\Orders::find()->where(['in', 'orders_status', $temporary_allocate_order_status_id_list])->and_where(['or', ['and', ['!=', 'last_modified', '0000-00-00 00:00:00'], ['<', 'last_modified', date('Y-m-d H:i:s', strtotime("-{$order_status_expired_duration_hours} hours"))]], ['and', ['last_modified' => '0000-00-00 00:00:00'], ['<', 'date_purchased', date('Y-m-d H:i:s', strtotime("-{$order_status_expired_duration_hours} hours"))]]])->as_array(true)->select('orders_id')->column() as $order_id) {
             try {
-                if ($orderStatusExpired > 0) {
-                    self::setStatus($orderId, $orderStatusExpired, [], false, false);
+                if ($order_status_expired > 0) {
+                    self::set_status($order_id, $order_status_expired, [], false, false);
                 } else {
-                    \common\helpers\Order::doCancel($orderId, false, 0);
+                    \common\helpers\Order::do_cancel($order_id, false, 0);
                 }
             } catch (\Exception $exc) {
             }
         }
-        unset($temporaryAllocateOrderStatusIdList);
-        unset($orderId);
+        unset($temporary_allocate_order_status_id_list);
+        unset($order_id);
         return true;
     }
-
     /**
      * Get Order record
      * @param mixed $orderId Order Id or instance of Orders model
      * @return mixed instance of Orders model or null
      */
-    public static function getRecord($orderId = 0)
+    public static function get_record($order_id = 0)
     {
-        return ($orderId instanceof \common\models\Orders
-            ? $orderId
-            : \common\models\Orders::findOne(['orders_id' => (int)$orderId])
-        );
+        return $order_id instanceof \common\models\Orders ? $order_id : \common\models\Orders::find_one(['orders_id' => (int) $order_id]);
     }
-
     /**
      * Get Order Product array
      * @param mixed $orderRecord Order Id or instance of Orders model
      * @param boolean $asArray switching return type between array of arrays or array of instances of OrdersProducts
      * @return array array of mixed depending on $asArray parameter
      */
-    public static function getProductArray($orderRecord = 0, $asArray = true)
+    public static function get_product_array($order_record = 0, $as_array = true)
     {
         $return = [];
-        $orderRecord = self::getRecord($orderRecord);
-        if ($orderRecord instanceof \common\models\Orders) {
-            foreach ((\common\models\OrdersProducts::find()
-                ->where(['orders_id' => (int)$orderRecord->orders_id])
-                ->asArray($asArray)->all()) as $opRecord
-            ) {
-                $return[] = $opRecord;
+        $order_record = self::get_record($order_record);
+        if ($order_record instanceof \common\models\Orders) {
+            foreach (\common\models\Orders_Products::find()->where(['orders_id' => (int) $order_record->orders_id])->as_array($as_array)->all() as $op_record) {
+                $return[] = $op_record;
             }
-            unset($opRecord);
+            unset($op_record);
         }
-        unset($orderRecord);
-        unset($asArray);
+        unset($order_record);
+        unset($as_array);
         return $return;
     }
-
     /**
      * Get configuration array of possible automated evaluation states
      * @return array configuration array of possible automated evaluation states
      */
-    public static function getEvaluationStateArray()
+    public static function get_evaluation_state_array()
     {
-        return [
-            self::OES_PENDING => [
-                'long' => 'Pending',
-                'short' => 'Pndg',
-                'key' => 'OES_PENDING',
-            ],
-            self::OES_PROCESSING => [
-                'long' => 'Processing',
-                'short' => 'Proc',
-                'key' => 'OES_PROCESSING',
-            ],
-            self::OES_RECEIVED => [
-                'long' => 'Received',
-                'short' => 'Rcvd',
-                'key' => 'OES_RECEIVED',
-            ],
-            self::OES_DISPATCHED => [
-                'long' => 'Dispatched',
-                'short' => 'Dspd',
-                'key' => 'OES_DISPATCHED',
-            ],
-            self::OES_DELIVERED => [
-                'long' => 'Delivered',
-                'short' => 'Dlvd',
-                'key' => 'OES_DELIVERED',
-            ],
-            self::OES_CANCELLED => [
-                'long' => 'Cancelled',
-                'short' => 'Cnld',
-                'key' => 'OES_CANCELLED',
-            ],
-            self::OES_PARTIAL_CANCELLED => [
-                'long' => 'Partially Cancelled',
-                'short' => 'PartCnld',
-                'key' => 'OES_PARTIAL_CANCELLED',
-            ],
-        ];
+        return [self::OES_PENDING => ['long' => 'Pending', 'short' => 'Pndg', 'key' => 'OES_PENDING'], self::OES_PROCESSING => ['long' => 'Processing', 'short' => 'Proc', 'key' => 'OES_PROCESSING'], self::OES_RECEIVED => ['long' => 'Received', 'short' => 'Rcvd', 'key' => 'OES_RECEIVED'], self::OES_DISPATCHED => ['long' => 'Dispatched', 'short' => 'Dspd', 'key' => 'OES_DISPATCHED'], self::OES_DELIVERED => ['long' => 'Delivered', 'short' => 'Dlvd', 'key' => 'OES_DELIVERED'], self::OES_CANCELLED => ['long' => 'Cancelled', 'short' => 'Cnld', 'key' => 'OES_CANCELLED'], self::OES_PARTIAL_CANCELLED => ['long' => 'Partially Cancelled', 'short' => 'PartCnld', 'key' => 'OES_PARTIAL_CANCELLED']];
     }
-
-    public static function getOrdersQuery(array $fields)
+    public static function get_orders_query(array $fields)
     {
-        $cQuery = \common\models\Orders::find()
-                ->select(array_keys($fields))
-                ->where('1=1');
+        $c_query = \common\models\Orders::find()->select(array_keys($fields))->where('1=1');
         foreach ($fields as $field => $value) {
             if (is_array($value)) {
-                $cQuery->andWhere(['in', $field, $value]);
+                $c_query->and_where(['in', $field, $value]);
             } elseif (is_string($value) && !empty($value)) {
-                $cQuery->andWhere(['like', $field, $value]);
+                $c_query->and_where(['like', $field, $value]);
             }
         }
-        return $cQuery;
+        return $c_query;
     }
-
-    public static function getPurchaseOrderId(\common\classes\extended\OrderAbstract $order)
+    public static function get_purchase_order_id(\common\classes\extended\Order_Abstract $order)
     {
-        return (!empty($order->info['purchase_order']) ? ' #'.$order->info['purchase_order'] : '');
+        return !empty($order->info['purchase_order']) ? ' #' . $order->info['purchase_order'] : '';
     }
-
-    public static function getOrderVolumeWeight(int $order_id)
+    public static function get_order_volume_weight(int $order_id)
     {
-        $shipmentVolume = 0;
-        $orderProducts = \common\models\OrdersProducts::find()->where(['orders_id' => $order_id])->asArray()->all();
-        foreach ($orderProducts as $product) {
-            $shipmentVolume += (\common\helpers\Product::get_products_volume((int)$product['products_id'], true) * $product['products_quantity']);
+        $shipment_volume = 0;
+        $order_products = \common\models\Orders_Products::find()->where(['orders_id' => $order_id])->as_array()->all();
+        foreach ($order_products as $product) {
+            $shipment_volume += \common\helpers\Product::get_products_volume((int) $product['products_id'], true) * $product['products_quantity'];
         }
-        return $shipmentVolume;
+        return $shipment_volume;
     }
-
     /**
      * query cost and profit amount on order. Ordered product should be allocated (assigned to supplier and its price)
      * @param int|array $orders_ids
      * @return array|null
      */
-    public static function getProfit($orders_ids)
+    public static function get_profit($orders_ids)
     {
         $ret = null;
         if (is_array($orders_ids)) {
             $orders_ids = array_map('intval', $orders_ids);
         }
-
         if ($orders_ids) {
-            $q = (new \yii\db\Query())
-               ->select([
-                 'sum(opa.allocate_received * opa.suppliers_price) as cost',
-                 'sum(opa.allocate_received * (op.final_price - opa.suppliers_price)) as profit',
-                 'sum(opa.allocate_received * (op.final_price - opa.suppliers_price)) / sum(opa.allocate_received * opa.suppliers_price) * 100 as profit_percent'])
-               ->from(['op' => TABLE_ORDERS_PRODUCTS])
-               ->leftJoin(['opa' => 'orders_products_allocate'], 'op.orders_products_id = opa.orders_products_id')
-               ->andWhere(['op.orders_id' => $orders_ids])
-               ->andWhere('opa.allocate_received > 0 and opa.suppliers_price > 0')
-            ;
+            $q = (new \yii\db\Query())->select(['sum(opa.allocate_received * opa.suppliers_price) as cost', 'sum(opa.allocate_received * (op.final_price - opa.suppliers_price)) as profit', 'sum(opa.allocate_received * (op.final_price - opa.suppliers_price)) / sum(opa.allocate_received * opa.suppliers_price) * 100 as profit_percent'])->from(['op' => TABLE_ORDERS_PRODUCTS])->left_join(['opa' => 'orders_products_allocate'], 'op.orders_products_id = opa.orders_products_id')->and_where(['op.orders_id' => $orders_ids])->and_where('opa.allocate_received > 0 and opa.suppliers_price > 0');
             if (is_array($orders_ids)) {
-                $q->addSelect('op.orders_id')->groupBy('op.orders_id')->indexBy('orders_id');
+                $q->add_select('op.orders_id')->group_by('op.orders_id')->index_by('orders_id');
                 $ret = $q->all();
             } else {
                 $ret = $q->one();
@@ -1220,12 +1003,11 @@ class Order
         }
         return $ret;
     }
-
-    public static function anonimizeOrder($orders_id, $table = '')
+    public static function anonimize_order($orders_id, $table = '')
     {
-        $removedId = \common\helpers\Customer::findCreateAnonymousCustomer();
-        $sqlData = [
-            'customers_id' => (int)$removedId,
+        $removed_id = \common\helpers\Customer::find_create_anonymous_customer();
+        $sql_data = [
+            'customers_id' => (int) $removed_id,
             'basket_id' => 0,
             'customers_name' => 'removed',
             'customers_firstname' => 'removed',
@@ -1266,39 +1048,28 @@ class Order
             //billing_country
             'billing_address_book_id' => 0,
         ];
-
-        $statusCheckWhere = '';
+        $status_check_where = '';
         if (defined('GDPR_CUSTOMER_DELETE_OPEN_ORDER_STATUSES') && !empty(trim(GDPR_CUSTOMER_DELETE_OPEN_ORDER_STATUSES))) {
             $tmp = array_map('intval', explode(',', GDPR_CUSTOMER_DELETE_OPEN_ORDER_STATUSES));
             if (is_array($tmp) && !empty($tmp)) {
-                $statusCheckWhere = ' and orders_status not in (' . implode(',', $tmp) . ')';
+                $status_check_where = ' and orders_status not in (' . implode(',', $tmp) . ')';
             }
         }
         if (empty($table)) {
             $table = TABLE_ORDERS;
-        } elseif (!in_array($table, [TABLE_ORDERS, 'quote_'. TABLE_ORDERS, 'sample_' . TABLE_ORDERS, 'tmp_' . TABLE_ORDERS, TABLE_SUBSCRIPTION])) {
+        } elseif (!in_array($table, [TABLE_ORDERS, 'quote_' . TABLE_ORDERS, 'sample_' . TABLE_ORDERS, 'tmp_' . TABLE_ORDERS, TABLE_SUBSCRIPTION])) {
             $table = false;
         }
-        foreach (\common\helpers\Hooks::getList('orders/order-anonymize') as $filename) {
-            include($filename);
+        foreach (\common\helpers\Hooks::get_list('orders/order-anonymize') as $filename) {
+            include $filename;
         }
     }
-
-    public static function getStatusesDetails($typeId = 1)
+    public static function get_statuses_details($type_id = 1)
     {
         $languages_id = \Yii::$app->settings->get('languages_id');
-
-        $ret = \common\models\OrdersStatus::find()->alias('os')
-            ->leftJoin(['osg' => \common\models\OrdersStatusGroups::tableName()], 'os.orders_status_groups_id=osg.orders_status_groups_id')
-            ->select('os.*, osg.*')
-            ->andWhere(['orders_status_type_id' => $typeId])
-            ->andWhere(['os.language_id' => $languages_id])
-            ->andWhere(['osg.language_id' => $languages_id])
-        ;
+        $ret = \common\models\Orders_Status::find()->alias('os')->left_join(['osg' => \common\models\Orders_Status_Groups::table_name()], 'os.orders_status_groups_id=osg.orders_status_groups_id')->select('os.*, osg.*')->and_where(['orders_status_type_id' => $type_id])->and_where(['os.language_id' => $languages_id])->and_where(['osg.language_id' => $languages_id]);
         //echo $ret ->createCommand()->rawSql; die;
-        $ret = $ret->asArray()->indexBy('orders_status_id')->all()
-        ;
+        $ret = $ret->as_array()->index_by('orders_status_id')->all();
         return $ret;
     }
-
 }

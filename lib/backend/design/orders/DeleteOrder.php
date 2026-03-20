@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,20 +11,16 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\orders;
 
 use yii\base\Widget;
-
-class DeleteOrder extends Widget
+class Delete_Order extends Widget
 {
     public $order;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
         if (\common\helpers\Order::is_stock_updated(intval($this->order->order_id))) {
@@ -34,10 +30,6 @@ class DeleteOrder extends Widget
             $restock_disabled = ' disabled="disabled" readonly="readonly" ';
             $restock_selected = '';
         }
-        return $this->render('delete-order', [
-            'order' => $this->order,
-            'restock_selected' => $restock_selected,
-            'restock_disabled' => $restock_disabled,
-        ]);
+        return $this->render('delete-order', ['order' => $this->order, 'restock_selected' => $restock_selected, 'restock_disabled' => $restock_disabled]);
     }
 }

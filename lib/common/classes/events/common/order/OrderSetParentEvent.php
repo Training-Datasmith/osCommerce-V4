@@ -1,41 +1,35 @@
 <?php
 
 declare (strict_types=1);
-
 namespace common\classes\events\common\order;
 
-use common\classes\extended\OrderAbstract;
+use common\classes\extended\Order_Abstract;
 use common\classes\Order;
-
-class OrderSetParentEvent
+class Order_Set_Parent_Event
 {
     /** @var OrderAbstract */
-    private $parentOrder;
+    private $parent_order;
     private $order;
-
-    public function __construct(OrderAbstract $parentOrder, $order)
+    public function __construct(Order_Abstract $parent_order, $order)
     {
-        $this->parentOrder = $parentOrder;
+        $this->parent_order = $parent_order;
         if (is_scalar($order)) {
             $this->order = new Order($order);
         } elseif ($order instanceof Order) {
             $this->order = $order;
         }
-
         if (!is_object($this->order)) {
             throw new \Exception('Order not found');
         }
     }
-
     /**
      * @return OrderAbstract
      */
-    public function getParentOrder(): OrderAbstract
+    public function get_parent_order(): Order_Abstract
     {
-        return $this->parentOrder;
+        return $this->parent_order;
     }
-
-    public function getOrder(): Order
+    public function get_order(): Order
     {
         return $this->order;
     }

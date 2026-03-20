@@ -10,9 +10,8 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-declare(strict_types=1);
-
-namespace common\components\EventDispatcher;
+declare (strict_types=1);
+namespace common\components\Event_Dispatcher;
 
 /**
  * Class EventDispatcher
@@ -25,20 +24,18 @@ namespace common\components\EventDispatcher;
  *
  * \Yii::$container->get('eventDispatcher')->dispatch(new OrderCreated($this));
  */
-class EventDispatcher
+class Event_Dispatcher
 {
     /** @var ListenerProviderInterface */
-    private $listenerProvider;
-
-    public function __construct(ListenerProviderInterface $listenerProvider)
+    private $listener_provider;
+    public function __construct(Listener_Provider_Interface $listener_provider)
     {
-        $this->listenerProvider = $listenerProvider;
+        $this->listener_provider = $listener_provider;
     }
-
     public function dispatch($event)
     {
-        foreach ($this->listenerProvider->getListenersForEvent($event) as $listener) {
-            if ($event instanceof StoppableEventInterface && $event->isPropagationStopped()) {
+        foreach ($this->listener_provider->get_listeners_for_event($event) as $listener) {
+            if ($event instanceof Stoppable_Event_Interface && $event->is_propagation_stopped()) {
                 return $event;
             }
             $listener($event);

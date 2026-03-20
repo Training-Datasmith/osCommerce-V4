@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,41 +11,37 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models;
 
 class Recovery
 {
     /*
-    * check if customer is online
-    */
+     * check if customer is online
+     */
     public static function is_online($customers_id)
     {
         /** @var \common\extensions\WhosOnline\WhosOnline $ext */
-        if ($ext = \common\helpers\Extensions::isAllowed('WhosOnline')) {
-            return $ext::getCustomerIp((int)$customers_id);
+        if ($ext = \common\helpers\Extensions::is_allowed('WhosOnline')) {
+            return $ext::get_customer_ip((int) $customers_id);
         }
         return false;
     }
-
-    public function appendToHistory($order_id, $comments)
+    public function append_to_history($order_id, $comments)
     {
         global $login_id;
         if ($order_id > 0) {
-            $order_status = tep_db_fetch_array(tep_db_query('select orders_status from ' . TABLE_ORDERS . " where orders_id='" . (int)$order_id . "'"));
+            $order_status = tep_db_fetch_array(tep_db_query('select orders_status from ' . TABLE_ORDERS . " where orders_id='" . (int) $order_id . "'"));
             if ($order_status['orders_status']) {
-                tep_db_query('insert into ' . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, admin_id) values ('" . (int)$order_id . "', '" . tep_db_input($order_status['orders_status']) . "', now(), '1', '" . tep_db_input($comments)  . "', '" . (int)$login_id . "')");
+                tep_db_query('insert into ' . TABLE_ORDERS_STATUS_HISTORY . " (orders_id, orders_status_id, date_added, customer_notified, comments, admin_id) values ('" . (int) $order_id . "', '" . tep_db_input($order_status['orders_status']) . "', now(), '1', '" . tep_db_input($comments) . "', '" . (int) $login_id . "')");
             }
         }
     }
-
     /*
-    * all recovery coupons
-    */
-    public static function getRecoveryCoupons($id = 0)
+     * all recovery coupons
+     */
+    public static function get_recovery_coupons($id = 0)
     {
-
-        $query = tep_db_query('select * from '. TABLE_COUPONS . " where coupon_active = 'Y' and coupon_for_recovery_email = 1 /*and coupon_expire_date >= now()*/ " . ($id ? " and coupon_id = '" . (int)$id . "'" : ''));
+        $query = tep_db_query('select * from ' . TABLE_COUPONS . " where coupon_active = 'Y' and coupon_for_recovery_email = 1 /*and coupon_expire_date >= now()*/ " . ($id ? " and coupon_id = '" . (int) $id . "'" : ''));
         $coupons = [];
         if (tep_db_num_rows($query)) {
             while ($coupon = tep_db_fetch_array($query)) {
@@ -55,13 +51,12 @@ class Recovery
         }
         return $coupons;
     }
-
     /*
-    * not yet sent customer coupons
-    */
-    public static function getCustomerEmailCouponsNotSended($customer_id, $all_coupons, $basket_id)
+     * not yet sent customer coupons
+     */
+    public static function get_customer_email_coupons_not_sended($customer_id, $all_coupons, $basket_id)
     {
-        $query = tep_db_query('select coupon_id from ' . TABLE_COUPON_EMAIL_TRACK . " where customer_id_sent = '" . (int)$customer_id . "' and basket_id = '" . $basket_id . "'");
+        $query = tep_db_query('select coupon_id from ' . TABLE_COUPON_EMAIL_TRACK . " where customer_id_sent = '" . (int) $customer_id . "' and basket_id = '" . $basket_id . "'");
         $coupons = [];
         if (tep_db_num_rows($query)) {
             while ($coupon = tep_db_fetch_array($query)) {
@@ -74,5 +69,4 @@ class Recovery
         }
         return $all_coupons;
     }
-
 }

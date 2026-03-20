@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,53 +11,49 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes;
 
 class Captcha
 {
-    private $identityBy;
+    private $identity_by;
     private $field;
     private $captcha;
     private $widget;
-
-    public function __construct($field, $identityBy = null)
+    public function __construct($field, $identity_by = null)
     {
-        $this->identityBy = $identityBy;
-        $captcha = new \common\classes\ReCaptcha();
-        if (defined('PREFERRED_USE_RECAPTCHA') && PREFERRED_USE_RECAPTCHA == 'True' && $captcha->isEnabled()) {
-            $this->widget = \frontend\design\boxes\ReCaptchaWidget::widget();
+        $this->identity_by = $identity_by;
+        $captcha = new \common\classes\Re_Captcha();
+        if (defined('PREFERRED_USE_RECAPTCHA') && PREFERRED_USE_RECAPTCHA == 'True' && $captcha->is_enabled()) {
+            $this->widget = \frontend\design\boxes\Re_Captcha_Widget::widget();
             $this->captcha = 'recaptcha';
             $this->field = 'g-recaptcha-response';
         } else {
             $this->field = $field;
             $params = ['attribute' => 'captcha'];
-            $type = is_object($this->identityBy) ? 'model' : 'name';
+            $type = is_object($this->identity_by) ? 'model' : 'name';
             $params[$type] = $this->field;
             $this->captcha = 'captcha';
             $this->widget = \yii\captcha\Captcha::widget($params);
         }
     }
-
-    public function getWidget()
+    public function get_widget()
     {
         return $this->widget;
     }
-
-    public function isValid($post)
+    public function is_valid($post)
     {
         switch ($this->captcha) {
             case 'recaptcha':
-                $captcha = new \common\classes\ReCaptcha();
-                return $captcha->checkVerification($post[$this->field] ?? null);
+                $captcha = new \common\classes\Re_Captcha();
+                return $captcha->check_verification($post[$this->field] ?? null);
                 break;
             case 'captcha':
-                if (is_object($this->identityBy && property_exists($this->identityBy, $this->field))) {
-                    $userValue = $this->identityBy->{$this->field};
+                if (is_object($this->identity_by && property_exists($this->identity_by, $this->field))) {
+                    $user_value = $this->identity_by->{$this->field};
                 } else {
-                    $userValue = ($post[$this->field] ?? null);
+                    $user_value = $post[$this->field] ?? null;
                 }
-                return (new \yii\captcha\CaptchaValidator())->validate($userValue);
+                return (new \yii\captcha\Captcha_Validator())->validate($user_value);
                 break;
         }
         return false;

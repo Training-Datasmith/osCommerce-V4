@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,145 +11,106 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design;
 
-use common\helpers\PageStatus as hPageStatus;
-use common\models\PageStatus;
-use common\models\PageStatusSwitch;
+use common\helpers\Page_Status as hPageStatus;
+use common\models\Page_Status;
+use common\models\Page_Status_Switch;
 use yii\base\Widget;
-
-class ChangeStatus extends Widget
+class Change_Status extends Widget
 {
     public $type;
     public $element;
-    public $pageId;
+    public $page_id;
     public $statuses = [];
     public $periods = [];
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
         switch ($this->element) {
-            case 'button': return $this->switcher('button');
-            case 'dropdown': return $this->switcher('dropdown');
-            case 'schedule': return $this->schedule();
+            case 'button':
+                return $this->switcher('button');
+            case 'dropdown':
+                return $this->switcher('dropdown');
+            case 'schedule':
+                return $this->schedule();
         }
-
         return '';
     }
-
     private function switcher($name)
     {
-        $status = PageStatus::find()->where([
-            'type' => $this->type,
-            'page_id' => $this->pageId,
-        ])->asArray()->one();
-
-        $statusKeys = [];
-
+        $status = Page_Status::find()->where(['type' => $this->type, 'page_id' => $this->page_id])->as_array()->one();
+        $status_keys = [];
         $statuses = [];
         if (count($this->statuses) == 0) {
-            $statuses = hPageStatus::PAGE_STATUSES;
-            foreach ($statuses as $statusKey => $statusTitle) {
-                $statusKeys[] = $statusKey;
+            $statuses = H_Page_Status::PAGE_STATUSES;
+            foreach ($statuses as $status_key => $status_title) {
+                $status_keys[] = $status_key;
             }
         } else {
-            foreach (hPageStatus::PAGE_STATUSES as $statusKey => $statusTitle) {
-                if (in_array($statusKey, $this->statuses)) {
-                    $statuses[$statusKey] = $statusTitle;
+            foreach (H_Page_Status::PAGE_STATUSES as $status_key => $status_title) {
+                if (in_array($status_key, $this->statuses)) {
+                    $statuses[$status_key] = $status_title;
                 }
             }
-            $statusKeys = $this->statuses;
+            $status_keys = $this->statuses;
         }
-
-        return $this->render('change-status-' . $name . '.tpl', [
-            'id' => rand(1, 100000),
-            'pageStatusActions' => $this->statusActions(),
-            'status' => $status['status'],
-            'statuses' => $statuses,
-            'data' => json_encode([
-                'statuses' => $statuses,
-                'statusKeys' => $statusKeys,
-                'status' => $status['status'],
-                'pageStatusActions' => $this->statusActions(),
-                'pageId' => $this->pageId,
-                'type' => $this->type,
-            ]),
-        ]);
+        return $this->render('change-status-' . $name . '.tpl', ['id' => rand(1, 100000), 'pageStatusActions' => $this->status_actions(), 'status' => $status['status'], 'statuses' => $statuses, 'data' => json_encode(['statuses' => $statuses, 'statusKeys' => $status_keys, 'status' => $status['status'], 'pageStatusActions' => $this->status_actions(), 'pageId' => $this->page_id, 'type' => $this->type])]);
     }
-
     private function schedule()
     {
-        $pageSwitchers = PageStatusSwitch::find()->alias('pss')
-            ->innerJoin(PageStatus::tableName() . ' ps', 'ps.page_status_id = pss.page_status_id')
-            ->where([
-                'ps.type' => $this->type,
-                'ps.page_id' => $this->pageId,
-            ])
-            ->asArray()->all();
-
-        foreach ($pageSwitchers as $key => $pageSwitcher) {
-            $date  = date_create_from_format(\common\helpers\Date::DATABASE_DATETIME_FORMAT, $pageSwitcher['date']);
-            $pageSwitchers[$key]['day'] = -1;
-
-            switch ($pageSwitcher['period']) {
+        $page_switchers = Page_Status_Switch::find()->alias('pss')->inner_join(Page_Status::table_name() . ' ps', 'ps.page_status_id = pss.page_status_id')->where(['ps.type' => $this->type, 'ps.page_id' => $this->page_id])->as_array()->all();
+        foreach ($page_switchers as $key => $page_switcher) {
+            $date = date_create_from_format(\common\helpers\Date::DATABASE_DATETIME_FORMAT, $page_switcher['date']);
+            $page_switchers[$key]['day'] = -1;
+            switch ($page_switcher['period']) {
                 case 'year':
-                    $pageSwitchers[$key]['date'] = $date->format('d M g:i A');
+                    $page_switchers[$key]['date'] = $date->format('d M g:i A');
                     break;
                 case 'month':
-                    $pageSwitchers[$key]['date'] = $date->format('d g:i A');
+                    $page_switchers[$key]['date'] = $date->format('d g:i A');
                     break;
                 case 'week':
-                    $pageSwitchers[$key]['date'] = $date->format('g:i A');
-                    $pageSwitchers[$key]['day'] = $date->format('N') - 1;
+                    $page_switchers[$key]['date'] = $date->format('g:i A');
+                    $page_switchers[$key]['day'] = $date->format('N') - 1;
                     break;
                 case 'day':
-                    $pageSwitchers[$key]['date'] = $date->format('g:i A');
+                    $page_switchers[$key]['date'] = $date->format('g:i A');
                     break;
                 default:
-                    $pageSwitchers[$key]['date'] = $date->format('d M Y g:i A');
+                    $page_switchers[$key]['date'] = $date->format('d M Y g:i A');
             }
         }
-
-        return $this->render('change-status.tpl', [
-            'pageSwitchers' => $pageSwitchers,
-            'pageStatusActions' => $this->statusActions(),
-            'pageStatusPeriods' => $this->statusPeriods(),
-            'weekDays' => [TEXT_MONDAY, TEXT_TUESDAY, TEXT_WEDNESDAY, TEXT_THURSDAY, TEXT_FRIDAY, TEXT_SATURDAY, TEXT_SUNDAY],
-        ]);
+        return $this->render('change-status.tpl', ['pageSwitchers' => $page_switchers, 'pageStatusActions' => $this->status_actions(), 'pageStatusPeriods' => $this->status_periods(), 'weekDays' => [TEXT_MONDAY, TEXT_TUESDAY, TEXT_WEDNESDAY, TEXT_THURSDAY, TEXT_FRIDAY, TEXT_SATURDAY, TEXT_SUNDAY]]);
     }
-
-    private function statusActions()
+    private function status_actions()
     {
         $actions = [];
         if (count($this->statuses) > 0) {
             foreach ($this->statuses as $status) {
-                if (hPageStatus::PAGE_STATUSES[$status]) {
-                    $actions[$status] = sprintf(STATUS_MOVE_TO, hPageStatus::PAGE_STATUSES[$status]);
+                if (H_Page_Status::PAGE_STATUSES[$status]) {
+                    $actions[$status] = sprintf(STATUS_MOVE_TO, H_Page_Status::PAGE_STATUSES[$status]);
                 }
             }
         } else {
-            foreach (hPageStatus::PAGE_STATUSES as $status => $title) {
+            foreach (H_Page_Status::PAGE_STATUSES as $status => $title) {
                 $actions[$status] = sprintf(STATUS_MOVE_TO, $title);
             }
         }
         return $actions;
     }
-
-    private function statusPeriods()
+    private function status_periods()
     {
         if (count($this->periods) == 0) {
-            return hPageStatus::PAGE_STATUS_PERIODS;
+            return H_Page_Status::PAGE_STATUS_PERIODS;
         }
         $periods = [];
         foreach ($this->periods as $period) {
-            if (hPageStatus::PAGE_STATUS_PERIODS[$period]) {
-                $periods[$period] = hPageStatus::PAGE_STATUS_PERIODS[$period];
+            if (H_Page_Status::PAGE_STATUS_PERIODS[$period]) {
+                $periods[$period] = H_Page_Status::PAGE_STATUS_PERIODS[$period];
             }
         }
         return $periods;

@@ -1,134 +1,109 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace common\classes\CPC;
 
-use yii\caching\TagDependency;
-
-class CPCFileCache extends CPCBase implements CPCCacheInterface
+use yii\caching\Tag_Dependency;
+class Cpc_File_Cache extends Cpc_Base implements Cpc_Cache_Interface
 {
     public static $cache;
-
     /**
      * @inheritDoc
      */
-    public static function getCategories($categoriesIds, $platformId, $groupId = 0): array
+    public static function get_categories($categories_ids, $platform_id, $group_id = 0): array
     {
         $res = [];
-        $notCachedIds = self::addResultFromCache($res, $categoriesIds, $platformId, $groupId);
-        if (!empty($notCachedIds)) {
-            self::updateCacheWithNewCats($notCachedIds, $platformId, $groupId);
-            self::addResultFromCache($res, $notCachedIds, $platformId, $groupId);
+        $not_cached_ids = self::add_result_from_cache($res, $categories_ids, $platform_id, $group_id);
+        if (!empty($not_cached_ids)) {
+            self::update_cache_with_new_cats($not_cached_ids, $platform_id, $group_id);
+            self::add_result_from_cache($res, $not_cached_ids, $platform_id, $group_id);
         }
         return $res;
     }
-
     /**
      * @inheritDoc
      */
-    public static function getCached($platformId, $groupId = 0)
+    public static function get_cached($platform_id, $group_id = 0)
     {
-        $cacheId = self::getCacheName($platformId, $groupId);
-        if (!isset(self::$cache[$cacheId]) && ($arr = \Yii::$app->getCache()->get($cacheId))) {
-            self::$cache[$cacheId] = $arr;
+        $cache_id = self::get_cache_name($platform_id, $group_id);
+        if (!isset(self::$cache[$cache_id]) && $arr = \Yii::$app->get_cache()->get($cache_id)) {
+            self::$cache[$cache_id] = $arr;
         }
-        return self::$cache[$cacheId] ?? null;
+        return self::$cache[$cache_id] ?? null;
     }
-
     /**
      * @inheritDoc
      */
-    public static function invalidateProducts($productIds): void
+    public static function invalidate_products($product_ids): void
     {
-        $categoriesIds = \common\models\Products2Categories::find()
-            ->select('categories_id')
-            ->where(['products_id' => $productIds])
-            ->asArray()
-            ->column();
-        self::invalidateCategories($categoriesIds);
+        $categories_ids = \common\models\Products2Categories::find()->select('categories_id')->where(['products_id' => $product_ids])->as_array()->column();
+        self::invalidate_categories($categories_ids);
     }
-
     /**
      * @inheritDoc
      */
-    public static function invalidateCategories($categoriesIds): void
+    public static function invalidate_categories($categories_ids): void
     {
-        if (empty($categoriesIds)) {
+        if (empty($categories_ids)) {
             return;
         }
-        if (!is_array($categoriesIds)) {
-            $categoriesIds = [$categoriesIds];
+        if (!is_array($categories_ids)) {
+            $categories_ids = [$categories_ids];
         }
         // include all parents
-        $categoriesIds = \common\models\Categories::find()->alias('c')
-            ->withNestedCategories()
-            ->select('c.categories_id')
-            ->FilterWhere(['c1.categories_id' => $categoriesIds])
-            //->andWhere('c.categories_status = 1')
-            ->asArray()
-            ->column();
-
-        $platformsIds = \common\models\PlatformsCategories::find()
-            ->select('platform_id')
-            ->where(['categories_id' => $categoriesIds])
-            ->distinct()
-            ->column();
-        if (\common\helpers\Extensions::isAllowed('UserGroupsRestrictions')) {
-            $groupsIds = \common\models\Groups::find()->select('groups_id')->column();
-            if (count($groupsIds) * count($platformsIds) > 10) {
+        $categories_ids = \common\models\Categories::find()->alias('c')->with_nested_categories()->select('c.categories_id')->filter_where(['c1.categories_id' => $categories_ids])->as_array()->column();
+        $platforms_ids = \common\models\Platforms_Categories::find()->select('platform_id')->where(['categories_id' => $categories_ids])->distinct()->column();
+        if (\common\helpers\Extensions::is_allowed('UserGroupsRestrictions')) {
+            $groups_ids = \common\models\Groups::find()->select('groups_id')->column();
+            if (count($groups_ids) * count($platforms_ids) > 10) {
                 // clear cache, too expensive to modify the cache in a large number of files
-                self::invalidatePlatforms($platformsIds);
+                self::invalidate_platforms($platforms_ids);
             } else {
-                foreach ($platformsIds as $platformsId) {
-                    foreach ($groupsIds as $groupsId) {
-                        self::updateCacheByRemovingCats($categoriesIds, $platformsId, $groupsId);
+                foreach ($platforms_ids as $platforms_id) {
+                    foreach ($groups_ids as $groups_id) {
+                        self::update_cache_by_removing_cats($categories_ids, $platforms_id, $groups_id);
                     }
                 }
             }
         } else {
-            foreach ($platformsIds as $platformsId) {
-                self::updateCacheByRemovingCats($categoriesIds, $platformsId);
+            foreach ($platforms_ids as $platforms_id) {
+                self::update_cache_by_removing_cats($categories_ids, $platforms_id);
             }
         }
     }
-
     /**
      * @inheritDoc
      */
-    public static function invalidateAll(): void
+    public static function invalidate_all(): void
     {
         self::$cache = null;
-        TagDependency::invalidate(\Yii::$app->cache, 'cpcc_all');
+        Tag_Dependency::invalidate(\Yii::$app->cache, 'cpcc_all');
     }
-
     /**
      * @inheritDoc
      */
-    public static function invalidateGroups($groupsIds): void
+    public static function invalidate_groups($groups_ids): void
     {
-        $groupsIds = is_array($groupsIds) ? $groupsIds : [(int) $groupsIds];
-        foreach ($groupsIds as $groupsId) {
-            TagDependency::invalidate(\Yii::$app->cache, 'cpcc_group'.$groupsId);
+        $groups_ids = is_array($groups_ids) ? $groups_ids : [(int) $groups_ids];
+        foreach ($groups_ids as $groups_id) {
+            Tag_Dependency::invalidate(\Yii::$app->cache, 'cpcc_group' . $groups_id);
         }
     }
-
     /**
      * @inheritDoc
      */
-    public static function invalidatePlatforms($platformsIds): void
+    public static function invalidate_platforms($platforms_ids): void
     {
-        if (!is_array($platformsIds)) {
-            $platformsIds = [$platformsIds];
+        if (!is_array($platforms_ids)) {
+            $platforms_ids = [$platforms_ids];
         }
-        if (!empty($platformsIds)) {
+        if (!empty($platforms_ids)) {
             self::$cache = null;
-            foreach ($platformsIds as $platformId) {
-                TagDependency::invalidate(\Yii::$app->cache, 'cpcc_platform'.$platformId);
+            foreach ($platforms_ids as $platform_id) {
+                Tag_Dependency::invalidate(\Yii::$app->cache, 'cpcc_platform' . $platform_id);
             }
         }
     }
-
     /**
      * @param $res result array [ categoryId => productsCount ]
      * @param int|array $categoriesIds categoryId/Ids
@@ -136,60 +111,55 @@ class CPCFileCache extends CPCBase implements CPCCacheInterface
      * @param $groupId
      * @return array|mixed non cached Ids
      */
-    private static function addResultFromCache(&$res, $categoriesIds, $platformId, $groupId)
+    private static function add_result_from_cache(&$res, $categories_ids, $platform_id, $group_id)
     {
-        $notCachedIds = [];
-        if (!is_array($categoriesIds)) {
-            $categoriesIds = [$categoriesIds];
+        $not_cached_ids = [];
+        if (!is_array($categories_ids)) {
+            $categories_ids = [$categories_ids];
         }
-        $cached = self::getCached($platformId, $groupId);
+        $cached = self::get_cached($platform_id, $group_id);
         if (empty($cached)) {
-            $notCachedIds = $categoriesIds;
+            $not_cached_ids = $categories_ids;
         } else {
-            foreach ($categoriesIds as $categoryId) {
-                if (isset($cached[$categoryId])) {
-                    $res[$categoryId] = $cached[$categoryId];
+            foreach ($categories_ids as $category_id) {
+                if (isset($cached[$category_id])) {
+                    $res[$category_id] = $cached[$category_id];
                 } else {
-                    $notCachedIds[] = $categoryId;
+                    $not_cached_ids[] = $category_id;
                 }
             }
         }
-        return $notCachedIds;
+        return $not_cached_ids;
     }
-
-    private static function updateCacheWithNewCats(array $categoriesIds, $platformId, $groupId = 0)
+    private static function update_cache_with_new_cats(array $categories_ids, $platform_id, $group_id = 0)
     {
-        $res = parent::runQuery($platformId, $groupId, $categoriesIds);
-        foreach ($categoriesIds as $categoriyId) {
-            if (!isset($res[$categoriyId])) {
-                $res[$categoriyId] = 0;
+        $res = parent::run_query($platform_id, $group_id, $categories_ids);
+        foreach ($categories_ids as $categoriy_id) {
+            if (!isset($res[$categoriy_id])) {
+                $res[$categoriy_id] = 0;
             }
         }
-        $res = array_replace(self::getCached($platformId, $groupId) ?? [], $res);
-        self::setCache($platformId, $groupId, $res);
+        $res = array_replace(self::get_cached($platform_id, $group_id) ?? [], $res);
+        self::set_cache($platform_id, $group_id, $res);
     }
-
-    private static function updateCacheByRemovingCats(array $categoriesIds, $platformId, $groupId = 0)
+    private static function update_cache_by_removing_cats(array $categories_ids, $platform_id, $group_id = 0)
     {
-        $res = self::getCached($platformId, $groupId);
+        $res = self::get_cached($platform_id, $group_id);
         if (!empty($res)) {
-            foreach ($categoriesIds as $categoriesId) {
-                unset($res[$categoriesId]);
+            foreach ($categories_ids as $categories_id) {
+                unset($res[$categories_id]);
             }
-            self::setCache($platformId, $groupId, $res);
+            self::set_cache($platform_id, $group_id, $res);
         }
     }
-
-    private static function setCache($platformId, $groupId, array $res)
+    private static function set_cache($platform_id, $group_id, array $res)
     {
-        $cacheId = self::getCacheName($platformId, $groupId);
-        \Yii::$app->getCache()->set($cacheId, $res, 0, new TagDependency(['tags' => ['cpcc_all', 'cpcc_platform'.$platformId, 'cpcc_group'.$groupId]]));
-        self::$cache[$cacheId] = $res;
+        $cache_id = self::get_cache_name($platform_id, $group_id);
+        \Yii::$app->get_cache()->set($cache_id, $res, 0, new Tag_Dependency(['tags' => ['cpcc_all', 'cpcc_platform' . $platform_id, 'cpcc_group' . $group_id]]));
+        self::$cache[$cache_id] = $res;
     }
-
-    private static function getCacheName($platformId, $groupId = 0)
+    private static function get_cache_name($platform_id, $group_id = 0)
     {
-        return sprintf('CategoriesProductCountCache%d-%d', (int) $platformId, (int) $groupId);
+        return sprintf('CategoriesProductCountCache%d-%d', (int) $platform_id, (int) $group_id);
     }
-
 }

@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /*
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,52 +11,46 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components;
 
 /**
  * seems YII2 doesn't provide a way to change user's auth_key for autologin
  * (saved only once during customer registration .... https://yii2-framework.readthedocs.io/en/latest/guide/security-authentication/ )
  */
-class RememberMe extends \yii\web\User
+class Remember_Me extends \yii\web\User
 {
-    public $autoLoginDuration = 0;
-
-    protected function removeIdentityCookie()
+    public $auto_login_duration = 0;
+    protected function remove_identity_cookie()
     {
-        parent::removeIdentityCookie();
+        parent::remove_identity_cookie();
         try {
-            $user = $this->getIdentity();
+            $user = $this->get_identity();
             if ($user) {
-                $user->auth_key = \Yii::$app->security->generateRandomString();
+                $user->auth_key = \Yii::$app->security->generate_random_string();
                 $user->save(false);
             }
         } catch (\Exception $ex) {
-            \Yii::warning(' #### ' . print_r($ex->getMessage(), true), 'TLDEBUG');
+            \Yii::warning(' #### ' . print_r($ex->get_message(), true), 'TLDEBUG');
         }
-
     }
-
-    public function logout($destroySession = true)
+    public function logout($destroy_session = true)
     {
         //disable autologin (everywhere after log out
         try {
-            $user = $this->getIdentity();
+            $user = $this->get_identity();
         } catch (\Exception $ex) {
-            \Yii::warning(' #### ' . print_r($ex->getMessage(), true), 'TLDEBUG');
+            \Yii::warning(' #### ' . print_r($ex->get_message(), true), 'TLDEBUG');
         }
-
-        if (parent::logout($destroySession)) {
+        if (parent::logout($destroy_session)) {
             //parent::removeIdentityCookie();
             if ($user) {
                 try {
-                    $user->auth_key = \Yii::$app->security->generateRandomString();
+                    $user->auth_key = \Yii::$app->security->generate_random_string();
                     $user->save(false);
                 } catch (\Exception $ex) {
-                    \Yii::warning(' #### ' . print_r($ex->getMessage(), true), 'TLDEBUG');
+                    \Yii::warning(' #### ' . print_r($ex->get_message(), true), 'TLDEBUG');
                 }
             }
         }
     }
-
 }

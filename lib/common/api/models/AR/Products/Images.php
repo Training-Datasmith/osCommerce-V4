@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,88 +11,70 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\AR\Products;
 
-use common\api\models\AR\EPMap;
+use common\api\models\AR\Ep_Map;
 use common\api\models\AR\Products\Images\Description as ImageDescription;
-use common\api\models\AR\Products\Images\ExternalUrl;
-use common\models\ProductsImagesAttributes;
-
-class Images extends EPMap
+use common\api\models\AR\Products\Images\External_Url;
+use common\models\Products_Images_Attributes;
+class Images extends Ep_Map
 {
-    protected $hideFields = [
-        'products_images_id',
-        'products_id',
-    ];
-
-    protected $childCollections = [
-        'image_description' => [],
-    ];
-
+    protected $hide_fields = ['products_images_id', 'products_id'];
+    protected $child_collections = ['image_description' => []];
     protected $assign_to_attributes;
-
-    protected $childExternalUrls;
-
+    protected $child_external_urls;
     /**
      * @var EPMap
      */
-    protected $parentObject;
-
+    protected $parent_object;
     public function __construct(array $config = [])
     {
         parent::__construct($config);
-        $this->afterSaveHooks['Image::normalize'] = 'normalizeImageFiles';
+        $this->after_save_hooks['Image::normalize'] = 'normalizeImageFiles';
     }
-
-    public static function tableName()
+    public static function table_name()
     {
         return TABLE_PRODUCTS_IMAGES;
     }
-
-    public static function primaryKey()
+    public static function primary_key()
     {
         return ['products_images_id'];
     }
-
     public function refresh()
     {
-        $this->childExternalUrls = false;
+        $this->child_external_urls = false;
         return parent::refresh();
     }
-
-    public function getAssocExternalUrls()
+    public function get_assoc_external_urls()
     {
-        if (!is_array($this->childExternalUrls)) {
-            $this->childExternalUrls = [];
+        if (!is_array($this->child_external_urls)) {
+            $this->child_external_urls = [];
             if ($this->products_images_id) {
-                foreach (ExternalUrl::find()->where(['products_images_id' => $this->products_images_id])->orderBy(['image_types_id' => SORT_ASC])->all() as $obj) {
+                foreach (External_Url::find()->where(['products_images_id' => $this->products_images_id])->order_by(['image_types_id' => SORT_ASC])->all() as $obj) {
                     if ($obj->language_id == 0) {
-                        $keyCode = '00';
+                        $key_code = '00';
                     } else {
-                        $keyCode = \common\classes\language::get_code($obj->language_id, true);
-                        if (!$keyCode) {
+                        $key_code = \common\classes\language::get_code($obj->language_id, true);
+                        if (!$key_code) {
                             continue;
                         }
                     }
-                    if (!isset($this->childExternalUrls[$keyCode])) {
-                        $this->childExternalUrls[$keyCode] = [];
+                    if (!isset($this->child_external_urls[$key_code])) {
+                        $this->child_external_urls[$key_code] = [];
                     }
-                    $this->childExternalUrls[$keyCode][] = $obj;
+                    $this->child_external_urls[$key_code][] = $obj;
                 }
             }
         }
-        return$this->childExternalUrls;
+        return $this->child_external_urls;
     }
-
-    public function initCollectionByLookupKey_ImageDescription($lookupKeys)
+    public function init_collection_by_lookup_key_image_description($lookup_keys)
     {
-        $loadAll = in_array('*', $lookupKeys);
-
+        $load_all = in_array('*', $lookup_keys);
         if (true) {
             if (!is_null($this->products_images_id)) {
-                $dbMapCollect = [];
-                foreach (ImageDescription::findAll(['products_images_id' => $this->products_images_id]) as $obj) {
+                $db_map_collect = [];
+                foreach (Image_Description::find_all(['products_images_id' => $this->products_images_id]) as $obj) {
                     if ($obj->language_id == 0) {
                         $code = '00';
                     } else {
@@ -101,111 +83,101 @@ class Images extends EPMap
                             continue;
                         }
                     }
-                    $dbMapCollect[$code] = $obj;
+                    $db_map_collect[$code] = $obj;
                 }
-                foreach (ImageDescription::getAllKeyCodes() as $keyCode => $lookupPK) {
-                    if ($loadAll || in_array($keyCode, $lookupKeys)) {
-                        if (isset($dbMapCollect[$keyCode])) {
-                            $this->childCollections['image_description'][$keyCode] = $dbMapCollect[$keyCode];
+                foreach (Image_Description::get_all_key_codes() as $key_code => $lookup_pk) {
+                    if ($load_all || in_array($key_code, $lookup_keys)) {
+                        if (isset($db_map_collect[$key_code])) {
+                            $this->child_collections['image_description'][$key_code] = $db_map_collect[$key_code];
                         } else {
-                            $lookupPK['products_images_id'] = (int)$this->products_images_id;
-                            $this->childCollections['image_description'][$keyCode] = new ImageDescription($lookupPK);
+                            $lookup_pk['products_images_id'] = (int) $this->products_images_id;
+                            $this->child_collections['image_description'][$key_code] = new Image_Description($lookup_pk);
                         }
-                        $this->childCollections['image_description'][$keyCode]->parentEPMap($this);
+                        $this->child_collections['image_description'][$key_code]->parent_ep_map($this);
                     }
                 }
             } else {
-                foreach (ImageDescription::getAllKeyCodes() as $keyCode => $lookupPK) {
-                    $this->childCollections['image_description'][$keyCode] = new ImageDescription($lookupPK);
-                    $this->childCollections['image_description'][$keyCode]->parentEPMap($this);
+                foreach (Image_Description::get_all_key_codes() as $key_code => $lookup_pk) {
+                    $this->child_collections['image_description'][$key_code] = new Image_Description($lookup_pk);
+                    $this->child_collections['image_description'][$key_code]->parent_ep_map($this);
                 }
             }
         } else {
-            foreach (ImageDescription::getAllKeyCodes() as $keyCode => $lookupPK) {
-                if (is_object($this->childCollections['image_description'][$keyCode])) {
+            foreach (Image_Description::get_all_key_codes() as $key_code => $lookup_pk) {
+                if (is_object($this->child_collections['image_description'][$key_code])) {
                     continue;
                 }
-                $this->childCollections['image_description'][$keyCode] = null;
+                $this->child_collections['image_description'][$key_code] = null;
                 if (is_null($this->products_images_id)) {
-                    $this->childCollections['image_description'][$keyCode] = new ImageDescription($lookupPK);
-                    $this->childCollections['image_description'][$keyCode]->parentEPMap($this);
-                } elseif ($loadAll || in_array($keyCode, $lookupKeys)) {
-                    if (!is_object($this->childCollections['image_description'][$keyCode])) {
-                        $lookupPK['products_images_id'] = $this->products_images_id;
-                        $this->childCollections['image_description'][$keyCode] = ImageDescription::findOne($lookupPK);
-                        if (!is_object($this->childCollections['image_description'][$keyCode])) {
-                            $this->childCollections['image_description'][$keyCode] = new ImageDescription($lookupPK);
+                    $this->child_collections['image_description'][$key_code] = new Image_Description($lookup_pk);
+                    $this->child_collections['image_description'][$key_code]->parent_ep_map($this);
+                } elseif ($load_all || in_array($key_code, $lookup_keys)) {
+                    if (!is_object($this->child_collections['image_description'][$key_code])) {
+                        $lookup_pk['products_images_id'] = $this->products_images_id;
+                        $this->child_collections['image_description'][$key_code] = Image_Description::find_one($lookup_pk);
+                        if (!is_object($this->child_collections['image_description'][$key_code])) {
+                            $this->child_collections['image_description'][$key_code] = new Image_Description($lookup_pk);
                         }
-                        $this->childCollections['image_description'][$keyCode]->parentEPMap($this);
+                        $this->child_collections['image_description'][$key_code]->parent_ep_map($this);
                     }
                 }
             }
         }
-        return $this->childCollections['image_description'];
+        return $this->child_collections['image_description'];
     }
-
-    public function parentEPMap(EPMap $parentObject)
+    public function parent_ep_map(Ep_Map $parent_object)
     {
-        $this->products_id = $parentObject->products_id;
-        $this->parentObject = $parentObject;
+        $this->products_id = $parent_object->products_id;
+        $this->parent_object = $parent_object;
     }
-
-    public function getImageHashes()
+    public function get_image_hashes()
     {
-        if (count($this->childCollections['image_description']) == 0) {
-            $this->initCollectionByLookupKey_ImageDescription(['*']);
+        if (count($this->child_collections['image_description']) == 0) {
+            $this->init_collection_by_lookup_key_image_description(['*']);
         }
         $hashes = [];
-        foreach ($this->childCollections['image_description'] as $key => $imageDesc) {
-            $hashes[$key] = $imageDesc->hash_file_name;
+        foreach ($this->child_collections['image_description'] as $key => $image_desc) {
+            $hashes[$key] = $image_desc->hash_file_name;
         }
         return $hashes;
     }
-    public function getImageCompareKeys()
+    public function get_image_compare_keys()
     {
-        if (count($this->childCollections['image_description']) == 0) {
-            $this->initCollectionByLookupKey_ImageDescription(['*']);
+        if (count($this->child_collections['image_description']) == 0) {
+            $this->init_collection_by_lookup_key_image_description(['*']);
         }
         $hashes = [];
-        foreach ($this->childCollections['image_description'] as $key => $imageDesc) {
-            $hashes[$key] = [
-                'products_images_id' => $imageDesc->products_images_id,
-                'language_id' => $imageDesc->language_id,
-                'hash' => $imageDesc->hash_file_name,
-                'orig_name' => $imageDesc->orig_file_name,
-            ];
+        foreach ($this->child_collections['image_description'] as $key => $image_desc) {
+            $hashes[$key] = ['products_images_id' => $image_desc->products_images_id, 'language_id' => $image_desc->language_id, 'hash' => $image_desc->hash_file_name, 'orig_name' => $image_desc->orig_file_name];
         }
         return $hashes;
     }
-
-    public function matchIndexedValue(EPMap $importedObject)
+    public function match_indexed_value(Ep_Map $imported_object)
     {
-        if (isset($importedObject->products_images_id) && intval($importedObject->products_images_id) > 0) {
-            if (intval($importedObject->products_images_id) == intval($this->products_images_id)) {
-                $this->pendingRemoval = false;
+        if (isset($imported_object->products_images_id) && intval($imported_object->products_images_id) > 0) {
+            if (intval($imported_object->products_images_id) == intval($this->products_images_id)) {
+                $this->pending_removal = false;
                 return true;
             }
             return false;
         }
-
         $k1_match = 0;
         $k2_match = 0;
-        $this_keys = $this->getImageCompareKeys();
-        $imported_keys = $importedObject->getImageCompareKeys();
-        foreach ($this_keys as $key => $compareValues) {
-            if (!empty($compareValues['hash']) && isset($imported_keys[$key]['hash']) && $compareValues['hash'] == $imported_keys[$key]['hash']) {
+        $this_keys = $this->get_image_compare_keys();
+        $imported_keys = $imported_object->get_image_compare_keys();
+        foreach ($this_keys as $key => $compare_values) {
+            if (!empty($compare_values['hash']) && isset($imported_keys[$key]['hash']) && $compare_values['hash'] == $imported_keys[$key]['hash']) {
                 $k1_match++;
             }
-            if (!empty($compareValues['orig_name']) && isset($imported_keys[$key]['orig_name']) && $compareValues['orig_name'] == $imported_keys[$key]['orig_name']) {
+            if (!empty($compare_values['orig_name']) && isset($imported_keys[$key]['orig_name']) && $compare_values['orig_name'] == $imported_keys[$key]['orig_name']) {
                 $k2_match++;
             }
         }
         if ($k1_match > 0 || $k2_match > 0) {
-            $this->pendingRemoval = false;
+            $this->pending_removal = false;
             return true;
         }
         return false;
-
         /*
         $match_images = 0;
         $this_hashes = $this->getImageHashes();
@@ -222,71 +194,58 @@ class Images extends EPMap
         return false;
         */
     }
-
-    public function importArray($data)
+    public function import_array($data)
     {
         //if ( count($this->childCollections['image_description'])==0 ) {
         //    $this->initCollectionByLookupKey_ImageDescription([]);
         //}
-        if (isset($data['products_images_id']) && (int)$data['products_images_id'] > 0) {
-            $data['products_images_id'] = (int)$data['products_images_id'];
+        if (isset($data['products_images_id']) && (int) $data['products_images_id'] > 0) {
+            $data['products_images_id'] = (int) $data['products_images_id'];
         }
-        $result = parent::importArray($data);
+        $result = parent::import_array($data);
         if (isset($data['assign_to_attributes']) && is_array($data['assign_to_attributes'])) {
             $this->assign_to_attributes = $data['assign_to_attributes'];
         }
         return $result;
     }
-
-    public function beforeDelete()
+    public function before_delete()
     {
-        if (count($this->childCollections['image_description']) == 0) {
-            $this->initCollectionByLookupKey_ImageDescription(['*']);
+        if (count($this->child_collections['image_description']) == 0) {
+            $this->init_collection_by_lookup_key_image_description(['*']);
         }
-        foreach ($this->childCollections['image_description'] as $imageDescription) {
-            $imageDescription->delete();
+        foreach ($this->child_collections['image_description'] as $image_description) {
+            $image_description->delete();
         }
-
-        \common\classes\Images::removeProductImage($this->products_id, $this->products_images_id);
-
-        return parent::beforeDelete();
+        \common\classes\Images::remove_product_image($this->products_id, $this->products_images_id);
+        return parent::before_delete();
     }
-
-    public function afterSave($insert, $changedAttributes)
+    public function after_save($insert, $changed_attributes)
     {
-        parent::afterSave($insert, $changedAttributes);
-
+        parent::after_save($insert, $changed_attributes);
         if (is_array($this->assign_to_attributes) && count($this->assign_to_attributes) > 0) {
-            foreach ($this->assign_to_attributes as $optionId => $valuesIds) {
-                if (!is_array($valuesIds)) {
+            foreach ($this->assign_to_attributes as $option_id => $values_ids) {
+                if (!is_array($values_ids)) {
                     continue;
                 }
-                $valuesIds = array_flip($valuesIds);
-                foreach (ProductsImagesAttributes::find()
-                    ->where(['AND',['products_images_id' => $this->products_images_id],['products_options_id' => $optionId]])
-                    ->all() as $existingAssign) {
-                    if (!isset($valuesIds[$existingAssign->products_options_values_id])) {
-                        $existingAssign->delete();
+                $values_ids = array_flip($values_ids);
+                foreach (Products_Images_Attributes::find()->where(['AND', ['products_images_id' => $this->products_images_id], ['products_options_id' => $option_id]])->all() as $existing_assign) {
+                    if (!isset($values_ids[$existing_assign->products_options_values_id])) {
+                        $existing_assign->delete();
                     } else {
-                        unset($valuesIds[$existingAssign->products_options_values_id]);
+                        unset($values_ids[$existing_assign->products_options_values_id]);
                     }
                 }
-                foreach ($valuesIds as $missingValueId) {
-                    $missingMap = new ProductsImagesAttributes([
-                        'products_images_id' => $this->products_images_id,
-                        'products_options_id' => $optionId,
-                        'products_options_values_id' => $missingValueId,
-                    ]);
-                    $missingMap->loadDefaultValues();
-                    $missingMap->save(false);
+                foreach ($values_ids as $missing_value_id) {
+                    $missing_map = new Products_Images_Attributes(['products_images_id' => $this->products_images_id, 'products_options_id' => $option_id, 'products_options_values_id' => $missing_value_id]);
+                    $missing_map->load_default_values();
+                    $missing_map->save(false);
                 }
             }
         }
         // assign_to_attributes
     }
-
-    protected function normalizeImageFiles()
+    protected function normalize_image_files()
     {
-        \common\classes\Images::normalizeImageFiles($this->products_id, $this->products_images_id);
+        \common\classes\Images::normalize_image_files($this->products_id, $this->products_images_id);
     }
 }

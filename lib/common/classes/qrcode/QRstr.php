@@ -1,11 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace common\classes\qrcode;
 
-require_once('init.php');
-
+require_once 'init.php';
 /*
  * PHP QR Code encoder
  *
@@ -31,11 +29,10 @@ require_once('init.php');
  * License along with this library; if not, write to the Free Software
  * Foundation, Inc., 51 Franklin St, Fifth Floor, Boston, MA 02110-1301 USA
  */
-
-    class QRstr
+class Q_Rstr
 {
-    public static function set(&$srctab, $x, $y, $repl, $replLen = false)
+    public static function set(&$srctab, $x, $y, $repl, $repl_len = false)
     {
-        $srctab[$y] = substr_replace($srctab[$y], ($replLen !== false) ? substr($repl, 0, $replLen) : $repl, $x, ($replLen !== false) ? $replLen : strlen($repl));
+        $srctab[$y] = substr_replace($srctab[$y], $repl_len !== false ? substr($repl, 0, $repl_len) : $repl, $x, $repl_len !== false ? $repl_len : strlen($repl));
     }
 }

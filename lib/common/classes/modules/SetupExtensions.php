@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,21 +11,18 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes\modules;
 
-class SetupExtensions
+class Setup_Extensions
 {
-    use VersionTrait;
-
+    use Version_Trait;
     // required
-    public static function getDescription()
+    public static function get_description()
     {
         return '';
     }
-
     // override optionally if extension require other extension(s)
-    public static function getRequiredModules()
+    public static function get_required_modules()
     {
         //        return [
         //           'osCommerce' => ['version' => '121211', 'version_applicable' => 'equal' or 'greater-equal' or 'less-equal'],
@@ -60,7 +56,6 @@ class SetupExtensions
         //            ],
         //        ];
     }
-
     // implement optionally if extension add backend menu
     //    public static function getAdminMenu() {
     //        return [
@@ -76,7 +71,6 @@ class SetupExtensions
     //            ],
     //        ];
     //    }
-
     // implement optionally to intercept important calls (see list in extensions/methodology.txt)
     //    public static function getAdminHooks()
     //    {
@@ -94,7 +88,6 @@ class SetupExtensions
     //            ],
     //        ];
     //    }
-
     // implement optionally if extension used configuration keys
     //    public static function getConfigureKeys($code)
     //    {
@@ -107,7 +100,6 @@ class SetupExtensions
     //            ]
     //        ];
     //    }
-
     // return array with translations keys
     //
     // read this only if you want to customize managing:
@@ -123,8 +115,7 @@ class SetupExtensions
     //  By default these rules are applied:
     //    - for 'extensions/*' entities:  ['install', 'remove_entity', 'init', 'init_static', 'widget'] // extension keys
     //    - for others:                   ['install', 'init', 'init_static', 'widget'], // main keys (won't be removed by default because still present in menu and acl)
-
-    public static function getTranslationArray()
+    public static function get_translation_array()
     {
         //        return [
         //            'main' => ['BOX_MODULES_CONNECTORS' => 'Connectors'],
@@ -136,7 +127,6 @@ class SetupExtensions
         //            'extensions/your_ext' => [EXTENSION_YOUREXT_TEXT => 'English text']
         //        ];
     }
-
     // implement optionally
     //    protected static function getAclArray()
     //    {
@@ -144,7 +134,6 @@ class SetupExtensions
     //                'actionExtentionSecure1' => [...],
     //        ];
     //    }
-
     // implement optionally
     //    public static function getWidgets($type = 'general') {
     //        return [
@@ -155,7 +144,6 @@ class SetupExtensions
     //            ['name' => 'Communication\NewTopic', 'title' => 'New Topic', 'description' => '', 'type' => 'account'],
     //        ];
     //    }
-
     // implement optionally
     //    public static function getEpDatasources()
     //    {
@@ -179,7 +167,6 @@ class SetupExtensions
     //                ]
     //        ]];
     //    }
-
     // implement it here or override Extension::install
     //    public static function install($platform_id, $migrate) {
     //        $migrate->createTableIfNotExists('connector_osclink_configuration', [
@@ -189,15 +176,12 @@ class SetupExtensions
     //            'cmc_upd_admin' => $migrate->integer(10)->unsigned()->notNull(),
     //        ]);
     //    }
-
     // optional
     //    public static function getDropDatabasesArray()
     //    {
     //        return ['table1', 'table2'];
     //    }
-
     // implement it here or override Extension::remove
     //    public static function remove($platform_id, $migrate, $removeDBTables) {
     //    }
-
 }

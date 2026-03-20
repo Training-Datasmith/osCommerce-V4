@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,8 +11,7 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
-namespace OscLink\XML;
+namespace Osc_Link\XML;
 
 abstract class Complex
 {
@@ -20,31 +19,24 @@ abstract class Complex
     public $table;
     public $attribute;
     public $value;
-
-    public function getMapName()
+    public function get_map_name()
     {
-        return !empty($this->named) ? $this->named : ($this->table.'.'.$this->attribute);
+        return !empty($this->named) ? $this->named : $this->table . '.' . $this->attribute;
     }
-
-    public function setMap($table, $attribute)
+    public function set_map($table, $attribute)
     {
         $this->table = $table;
         $this->attribute = $attribute;
     }
-
-    public function serializeTo(\SimpleXMLElement $parent)
+    public function serialize_to(\Simple_Xml_Element $parent)
     {
-
     }
-
-    public static function restoreFrom(\SimpleXMLElement $node, $obj)
+    public static function restore_from(\Simple_Xml_Element $node, $obj)
     {
         return strval($node);
     }
-
-    public function toImportModel()
+    public function to_import_model()
     {
         return $this->value;
     }
-
 }

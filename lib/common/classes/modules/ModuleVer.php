@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,53 +11,47 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes\modules;
 
-class ModuleVer
+class Module_Ver
 {
     public $major = 0;
     public $minor = 0;
     public $build = 0;
-
-    private const REG_FORMAT_FILE   = '/\d{1,3}-\d{1,2}-\d{1,2}/';
+    private const REG_FORMAT_FILE = '/\d{1,3}-\d{1,2}-\d{1,2}/';
     private const REG_FORMAT_COMMON = '/\d{1,3}.\d{1,2}.\d{1,2}/';
-
     public function __construct($major = 0, $minor = 0, $build = 0)
     {
         $this->major = (int) $major;
         $this->minor = (int) $minor;
         $this->build = (int) $build;
     }
-
-    private static function badFormat($version, $default, $expected)
+    private static function bad_format($version, $default, $expected)
     {
         if (is_null($default)) {
             throw new \Exception(sprintf('Module version is incorrect (expected %s): %s', $expected, var_export($version, true)));
         }
         return self::parse($default, '0.0.0');
     }
-
     public static function parse($version, $default = null)
     {
         if ($version instanceof self) {
             return $version;
         } elseif (is_numeric($version)) {
-            return self::parseNumber($version, $default);
+            return self::parse_number($version, $default);
         } elseif (is_string($version)) {
             if (preg_match(self::REG_FORMAT_FILE, $version)) {
-                return self::parseFileFormat($version, $default);
+                return self::parse_file_format($version, $default);
             } elseif (preg_match(self::REG_FORMAT_COMMON, $version)) {
-                return self::parseCommonFormat($version, $default);
+                return self::parse_common_format($version, $default);
             }
         }
-        return self::badFormat($version, $default, 'mixed');
+        return self::bad_format($version, $default, 'mixed');
     }
-
-    public static function parseNumber($version, $default = null)
+    public static function parse_number($version, $default = null)
     {
         if (!is_numeric($version)) {
-            return self::badFormat($version, $default, 'number');
+            return self::bad_format($version, $default, 'number');
         }
         $major = floor($version);
         $version -= $major;
@@ -68,54 +61,46 @@ class ModuleVer
         $version *= 100;
         return new self($major, $minor, $version);
     }
-
-    public static function parseFileFormat($version, $default = null)
+    public static function parse_file_format($version, $default = null)
     {
         if (!is_string($version) || !preg_match(self::REG_FORMAT_FILE, $version, $match)) {
-            return self::badFormat($version, $default, 'file format');
+            return self::bad_format($version, $default, 'file format');
         }
         list($major, $minor, $build) = explode('-', $match[0]);
         return new self($major, $minor, $build);
     }
-
-    public static function parseCommonFormat($version, $default = null)
+    public static function parse_common_format($version, $default = null)
     {
         if (!is_string($version) || !preg_match(self::REG_FORMAT_COMMON, $version, $match)) {
-            return self::badFormat($version, $default, 'common format');
+            return self::bad_format($version, $default, 'common format');
         }
         list($major, $minor, $build) = explode('.', $match[0]);
         return new self($major, $minor, $build);
     }
-
-    public function toNumber()
+    public function to_number()
     {
         return $this->major + $this->minor / 100 + $this->build / 10000;
     }
-
-    public function toFileFormat()
+    public function to_file_format()
     {
         return sprintf('%u_%u_%u', $this->major, $this->minor, $this->build);
     }
-
-    public function toCommonFormat()
+    public function to_common_format()
     {
         return sprintf('%u.%u.%u', $this->major, $this->minor, $this->build);
     }
-
-    public function toCompareFormat()
+    public function to_compare_format()
     {
         return sprintf('%u.%02u.%02u', $this->major, $this->minor, $this->build);
     }
-
-    public function compareTo($ver)
+    public function compare_to($ver)
     {
         return self::compare($this, $ver);
     }
-
     public static function compare($ver1, $ver2)
     {
         $ver1 = self::parse($ver1);
         $ver2 = self::parse($ver2);
-        return version_compare($ver1->toCompareFormat(), $ver2->toCompareFormat());
+        return version_compare($ver1->to_compare_format(), $ver2->to_compare_format());
     }
 }

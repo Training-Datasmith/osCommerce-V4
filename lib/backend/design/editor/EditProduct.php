@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,35 +11,23 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\editor;
 
 use Yii;
 use yii\base\Widget;
-
-class EditProduct extends Widget
+class Edit_Product extends Widget
 {
     public $manager;
     public $uprid;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
-
-        $insulator = new \backend\services\ProductInsulatorService($this->uprid, $this->manager);
+        $insulator = new \backend\services\Product_Insulator_Service($this->uprid, $this->manager);
         $insulator->edit = true;
-        $productDetails = $insulator->getProductMainDetails();
-        return $this->render('edit-product', [
-            'manager' => $this->manager,
-            'product' => $productDetails,
-            'rates' => $this->manager->getOrderTaxRates(),
-            'queryParams' => array_merge(['editor/show-basket'], Yii::$app->request->getQueryParams()),
-            'currentUrl' => Yii::$app->request->url,
-        ]);
+        $product_details = $insulator->get_product_main_details();
+        return $this->render('edit-product', ['manager' => $this->manager, 'product' => $product_details, 'rates' => $this->manager->get_order_tax_rates(), 'queryParams' => array_merge(['editor/show-basket'], Yii::$app->request->get_query_params()), 'currentUrl' => Yii::$app->request->url]);
     }
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,41 +11,35 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP;
 
 class Transform
 {
-    protected $columnMap = [];
+    protected $column_map = [];
     protected $mapping = [];
-
-    public function setProviderColumns($columns)
+    public function set_provider_columns($columns)
     {
-        $this->columnMap = $columns;
+        $this->column_map = $columns;
         if (count($this->mapping) == 0) {
             $this->mapping = array_flip($columns);
         }
     }
-
-    public function setTransformMap($external)
+    public function set_transform_map($external)
     {
         $this->mapping = $external;
     }
-
     public function transform($data)
     {
         if (!is_array($data)) {
             return $data;
         }
-
-        $transformedData = [];
+        $transformed_data = [];
         foreach ($this->mapping as $file_key => $db_key) {
             if (!array_key_exists($file_key, $data)) {
                 continue;
             }
-            $transformedData[$db_key] = $data[$file_key];
+            $transformed_data[$db_key] = $data[$file_key];
         }
-
-        return $transformedData;
+        return $transformed_data;
     }
 }

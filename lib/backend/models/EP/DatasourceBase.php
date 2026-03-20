@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,17 +11,14 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP;
 
-use yii\base\BaseObject;
-
-abstract class DatasourceBase extends BaseObject
+use yii\base\Base_Object;
+abstract class Datasource_Base extends Base_Object
 {
     public $code = '';
-    public $className = 'DatasourceBase';
+    public $class_name = 'DatasourceBase';
     public $settings = [];
-
     public function __construct(array $config = [])
     {
         if (isset($config['settings']) && is_string($config['settings'])) {
@@ -30,15 +27,14 @@ abstract class DatasourceBase extends BaseObject
         if (!is_array($config['settings'] ?? null)) {
             $config['settings'] = [];
         }
-        $initConfig = [];
+        $init_config = [];
         foreach ($config as $key => $val) {
-            if (isset($this->$key)) {
-                $initConfig[$key] = $val;
+            if (isset($this->{$key})) {
+                $init_config[$key] = $val;
             }
         }
-        parent::__construct($initConfig);
+        parent::__construct($init_config);
     }
-
     /**
      * [
      *   '{ProviderClass}\\{DatasourceClass}' => [
@@ -54,76 +50,60 @@ abstract class DatasourceBase extends BaseObject
      *
      * @return array
      */
-    public static function getProviderList()
+    public static function get_provider_list()
     {
         return [];
     }
-
-    abstract public function getName();
-
-    abstract public function getViewTemplate();
-
-    public function orderView($orderId)
+    abstract public function get_name();
+    abstract public function get_view_template();
+    public function order_view($order_id)
     {
         return false;
     }
-
     /**
      * @deprecated
      * @param $configArray
      * @return mixed
      */
-    public static function configureArray($configArray)
+    public static function configure_array($config_array)
     {
-        return $configArray;
+        return $config_array;
     }
-
-    public function prepareConfigForView($configArray)
+    public function prepare_config_for_view($config_array)
     {
-        return $configArray;
+        return $config_array;
     }
-
     /**
      * @param $data
      * @return array
      * @throws \InvalidArgumentException
      */
-    public static function beforeSettingSave($data)
+    public static function before_setting_save($data)
     {
         $settings = is_array($data) ? $data : [];
-
         return $settings;
     }
-
-    public static function afterSettingSave()
+    public static function after_setting_save()
     {
-
     }
-
     public function update($settings)
     {
-        $settings = static::beforeSettingSave($settings);
+        $settings = static::before_setting_save($settings);
         $this->settings = $settings;
-        tep_db_query("UPDATE ep_datasources SET settings='".tep_db_input(json_encode($this->settings))."' WHERE code='".tep_db_input($this->code)."' ");
-        static::afterSettingSave();
+        tep_db_query("UPDATE ep_datasources SET settings='" . tep_db_input(json_encode($this->settings)) . "' WHERE code='" . tep_db_input($this->code) . "' ");
+        static::after_setting_save();
     }
-
-    public function configureView()
+    public function configure_view()
     {
-        $settings = $this->prepareConfigForView($this->settings);
+        $settings = $this->prepare_config_for_view($this->settings);
         $settings['code'] = $this->code;
-        return [
-            $this->getViewTemplate(),
-            $settings,
-        ];
+        return [$this->get_view_template(), $settings];
     }
-
-    public function getJobConfig()
+    public function get_job_config()
     {
         return $this->settings;
     }
-
-    public function updateSettingKey($key, $value)
+    public function update_setting_key($key, $value)
     {
         $changed = false;
         if (is_null($value)) {
@@ -131,30 +111,23 @@ abstract class DatasourceBase extends BaseObject
                 unset($this->settings[$key]);
                 $changed = true;
             }
-        } else {
-            if (!isset($this->settings[$key]) || $this->settings[$key] != $value) {
-                $this->settings[$key] = $value;
-                $changed = true;
-            }
+        } else if (!isset($this->settings[$key]) || $this->settings[$key] != $value) {
+            $this->settings[$key] = $value;
+            $changed = true;
         }
         if ($changed) {
             tep_db_query("UPDATE ep_datasources SET settings='" . tep_db_input(json_encode($this->settings)) . "' WHERE code='" . tep_db_input($this->code) . "' ");
         }
     }
-
-    public function allowProductView()
+    public function allow_product_view()
     {
         return false;
     }
-
-    public function productView($config)
+    public function product_view($config)
     {
         return '';
     }
-
-    public function productSave(Directory $directory, $product)
+    public function product_save(Directory $directory, $product)
     {
-
     }
-
 }

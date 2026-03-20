@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /*
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,7 +11,6 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
 class Featured
@@ -20,27 +18,13 @@ class Featured
     public static function featured_cleanup()
     {
         try {
-            \common\models\Featured::deleteAll(
-                ['and',
-                ['status' => 0],
-                ['or',
-                  ['<', 'start_date', new \yii\db\Expression('now()')],
-                  ['is', 'start_date',  new \yii\db\Expression('null')],
-                ],
-        ]
-            )
-            ;
-            \common\models\Featured::deleteAll(
-                ['not in', 'products_id', (new \yii\db\Query())->from(TABLE_PRODUCTS)->select('products_id')]
-            )
-            ;
-
+            \common\models\Featured::delete_all(['and', ['status' => 0], ['or', ['<', 'start_date', new \yii\db\Expression('now()')], ['is', 'start_date', new \yii\db\Expression('null')]]]);
+            \common\models\Featured::delete_all(['not in', 'products_id', (new \yii\db\Query())->from(TABLE_PRODUCTS)->select('products_id')]);
         } catch (\Exception $e) {
-            \Yii::warning($e->getMessage(), 'featured');
-            echo $e->getMessage();
+            \Yii::warning($e->get_message(), 'featured');
+            echo $e->get_message();
         }
     }
-
     public static function tep_expire_featured($force = false)
     {
         if ($force || !defined('EXPIRE_FEATURED_BY_CRON') || EXPIRE_FEATURED_BY_CRON == 'False' || date('H:i') == '00:07') {

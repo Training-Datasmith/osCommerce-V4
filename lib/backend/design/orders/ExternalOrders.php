@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,44 +11,33 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\orders;
 
 use Yii;
 use yii\base\Widget;
-
-class ExternalOrders extends Widget
+class External_Orders extends Widget
 {
     public $order;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
         if (defined('SUPERADMIN_ENABLED') && SUPERADMIN_ENABLED == true) {
-            $departments = \common\classes\department::getList(false);
-            $departments = \yii\helpers\ArrayHelper::map($departments, 'departments_id', 'text');
-            $departmentInfo = TEXT_FROM . ' ' . ($departments[$this->order->info['department_id']] ?? TEXT_NONE);
+            $departments = \common\classes\department::get_list(false);
+            $departments = \yii\helpers\Array_Helper::map($departments, 'departments_id', 'text');
+            $department_info = TEXT_FROM . ' ' . ($departments[$this->order->info['department_id']] ?? TEXT_NONE);
             $api_client_order_id = '';
             if ($this->order instanceof \common\classes\Order) {
-                $api_client_order_id = Yii::$app->getDb()->createCommand(
-                    'SELECT api_client_order_id FROM ' . TABLE_ORDERS . ' WHERE orders_id = :orders_id',
-                    [':orders_id' => $this->order->order_id]
-                )->queryScalar();
+                $api_client_order_id = Yii::$app->get_db()->create_command('SELECT api_client_order_id FROM ' . TABLE_ORDERS . ' WHERE orders_id = :orders_id', [':orders_id' => $this->order->order_id])->query_scalar();
             }
             if ($api_client_order_id) {
-                $departmentInfo .= ' (#'.$api_client_order_id.')';
+                $department_info .= ' (#' . $api_client_order_id . ')';
             }
-            return $this->render('external-orders', [
-                'extra' => $departmentInfo,
-            ]);
+            return $this->render('external-orders', ['extra' => $department_info]);
         } elseif ($this->order->info['external_orders_id']) {
-            return $this->render('external-orders', [
-                'extra' => $this->order->info['external_orders_id'],
-            ]);
+            return $this->render('external-orders', ['extra' => $this->order->info['external_orders_id']]);
         }
     }
 }

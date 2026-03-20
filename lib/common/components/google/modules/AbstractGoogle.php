@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,25 +11,19 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components\google\modules;
 
-abstract class AbstractGoogle implements GoogleInterface
+abstract class Abstract_Google implements Google_Interface
 {
     protected $provider;
-
-    abstract public function getParams();
-
-    abstract public function renderWidget();
-
-    public function setProvider(\common\components\google\ModuleProvider $provider)
+    abstract public function get_params();
+    abstract public function render_widget();
+    public function set_provider(\common\components\google\Module_Provider $provider)
     {
         $this->provider = $provider;
     }
-
     public function loaded(array $params)
     {
-
         $elements = $this->config[$this->code];
         foreach ($elements as $key => $element) {
             if (isset($params[$key])) {
@@ -64,16 +57,13 @@ abstract class AbstractGoogle implements GoogleInterface
             }
         }
         $this->config[$this->code] = $elements;
-
         return $this;
     }
-
     public function render()
     {
-        return \common\components\google\widgets\ModuleWidget::widget(['module' => $this]);
+        return \common\components\google\widgets\Module_Widget::widget(['module' => $this]);
     }
-
-    public function overloadConfig($config, array $params = [])
+    public function overload_config($config, array $params = [])
     {
         $this->config = unserialize($config);
         if ($params) {
@@ -81,8 +71,7 @@ abstract class AbstractGoogle implements GoogleInterface
         }
         return $this;
     }
-
-    public function getAvailablePages()
+    public function get_available_pages()
     {
         $_pages = [];
         if (isset($this->config[$this->code]['pages'])) {
@@ -90,60 +79,40 @@ abstract class AbstractGoogle implements GoogleInterface
                 $_pages[$key] = strtolower($_page);
             }
         }
-        return (count($_pages) ? $_pages : ['all']);
+        return count($_pages) ? $_pages : ['all'];
     }
-
-    public function getPriority()
+    public function get_priority()
     {
-        return (isset($this->config[$this->code]['priority']) ? $this->config[$this->code]['priority'] : 99);
+        return isset($this->config[$this->code]['priority']) ? $this->config[$this->code]['priority'] : 99;
     }
-
-    public function parseFields($fields)
+    public function parse_fields($fields)
     {
         $ret = [];
         if (is_array($fields)) {
             foreach ($fields as $field) {
-                $ret[$field['name']]  = $field['value'];
+                $ret[$field['name']] = $field['value'];
             }
         }
         return $ret;
     }
-
-    public function isTrackingAdded($orderId, $type = '')
+    public function is_tracking_added($order_id, $type = '')
     {
-        $m = \common\models\EcommerceTracking::find()->andWhere([
-          'orders_id' => $orderId,
-          'services' => $this->code,
-          'message_type' => (!empty($type) ? $type : 'purchase'),
-        ]);
+        $m = \common\models\Ecommerce_Tracking::find()->and_where(['orders_id' => $order_id, 'services' => $this->code, 'message_type' => !empty($type) ? $type : 'purchase']);
         return $m->exists();
     }
-
     /**
      *
      * @param array $data [orders_id => NNN , < 'via'=>ssss> ]
      */
-    public function saveTracking($data)
+    public function save_tracking($data)
     {
-        $m = new \common\models\EcommerceTracking();
-        $m->loadDefaultValues();
+        $m = new \common\models\Ecommerce_Tracking();
+        $m->load_default_values();
         try {
-            $m->setAttributes(array_merge(
-                [
-                      'date_added' => date(\common\helpers\Date::DATABASE_DATETIME_FORMAT),
-                      'services' => $this->code,
-                      'message_type' => 'purchase',
-                      'via' => 'js',
-                      'extra_info' => '',
-                    ],
-                $data
-            ), false);
-
+            $m->set_attributes(array_merge(['date_added' => date(\common\helpers\Date::DATABASE_DATETIME_FORMAT), 'services' => $this->code, 'message_type' => 'purchase', 'via' => 'js', 'extra_info' => ''], $data), false);
             $m->save(false);
-
         } catch (\Exception $ex) {
-            \Yii::warning(' #### ' .print_r($ex->getMessage(), 1), 'TLDEBUG');
+            \Yii::warning(' #### ' . print_r($ex->get_message(), 1), 'TLDEBUG');
         }
     }
-
 }

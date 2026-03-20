@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,15 +11,12 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Formatter;
 
-interface FormatterInterface
+interface Formatter_Interface
 {
     public function write_array($data_array);
-
-    public function getHeaders();
-    public function setReadRemapArray($data_array);
+    public function get_headers();
+    public function set_read_remap_array($data_array);
     public function read_array();
-
 }

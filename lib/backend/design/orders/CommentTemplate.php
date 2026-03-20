@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,25 +11,21 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\orders;
 
 use yii\base\Widget;
-
-class CommentTemplate extends Widget
+class Comment_Template extends Widget
 {
     public $order;
     public $manager;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
         if (class_exists('\common\helpers\CommentTemplate')) {
-            return \common\helpers\CommentTemplate::renderFor('order', $this->order);
+            return \common\helpers\Comment_Template::render_for('order', $this->order);
         }
     }
 }

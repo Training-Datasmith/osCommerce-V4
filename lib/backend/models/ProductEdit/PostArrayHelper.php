@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,12 +11,10 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
-namespace backend\models\ProductEdit;
+namespace backend\models\Product_Edit;
 
 use yii;
-
-class PostArrayHelper
+class Post_Array_Helper
 {
     /**
      * check & returns data from marketing tabs if any
@@ -26,14 +24,14 @@ class PostArrayHelper
      * 'flag' => 'qty_discount_status_pack_unit', POST switcher flag (1 - on!!! someone use yes o_O )
      * 'f' => ['self', 'formatDiscountString']] - validator - callback
      */
-    public static function getFromPostArrays($field, $curr_id, $group_id = 0)
+    public static function get_from_post_arrays($field, $curr_id, $group_id = 0)
     {
         $data = $field['dbdef'] ?? null;
-        if (isset($field['f']) && is_array($field['f']) && reset($field['f']) == 'self') { // php 8.2
-            $field['f'][ array_key_first($field['f'])] = self::class;
+        if (isset($field['f']) && is_array($field['f']) && reset($field['f']) == 'self') {
+            // php 8.2
+            $field['f'][array_key_first($field['f'])] = self::class;
         }
-
-        if (USE_MARKET_PRICES == 'True' && \common\helpers\Extensions::isCustomerGroupsAllowed()) {
+        if (USE_MARKET_PRICES == 'True' && \common\helpers\Extensions::is_customer_groups_allowed()) {
             if (isset($field['flag'])) {
                 $tmp = Yii::$app->request->post($field['flag'], 0);
                 if (is_array($tmp)) {
@@ -61,14 +59,14 @@ class PostArrayHelper
                     if (isset($field['f'])) {
                         $data = call_user_func_array($field['f'], [$data, $field['dbdef']]);
                     }
-                } else { //plain, doesnot depend on group and currency
+                } else {
+                    //plain, doesnot depend on group and currency
                     $data = $tmp;
                     if (isset($field['f'])) {
                         $data = call_user_func_array($field['f'], [$data, $field['dbdef']]);
                     }
                 }
             }
-
         } elseif (USE_MARKET_PRICES == 'True') {
             if (isset($field['flag'])) {
                 $tmp = Yii::$app->request->post($field['flag'], 0);
@@ -97,15 +95,15 @@ class PostArrayHelper
                     if (isset($field['f'])) {
                         $data = call_user_func_array($field['f'], [$data, $field['dbdef']]);
                     }
-                } else { //plain, doesnot depend on group and currency
+                } else {
+                    //plain, doesnot depend on group and currency
                     $data = $tmp;
                     if (isset($field['f'])) {
                         $data = call_user_func_array($field['f'], [$data, $field['dbdef']]);
                     }
                 }
             }
-
-        } elseif (\common\helpers\Extensions::isCustomerGroupsAllowed()) {
+        } elseif (\common\helpers\Extensions::is_customer_groups_allowed()) {
             if (isset($field['flag'])) {
                 $tmp = Yii::$app->request->post($field['flag'], 0);
                 if (is_array($tmp)) {
@@ -133,14 +131,14 @@ class PostArrayHelper
                     if (isset($field['f'])) {
                         $data = call_user_func_array($field['f'], [$data, $field['dbdef']]);
                     }
-                } else { //plain, doesnot depend on group and currency
+                } else {
+                    //plain, doesnot depend on group and currency
                     $data = $tmp;
                     if (isset($field['f'])) {
                         $data = call_user_func_array($field['f'], [$data, $field['dbdef']]);
                     }
                 }
             }
-
         } else {
             if (isset($field['flag'])) {
                 $check = Yii::$app->request->post($field['flag'], 0);
@@ -163,20 +161,17 @@ class PostArrayHelper
                     $data = call_user_func_array($field['f'], [$data, $field['dbdef']]);
                 }
             }
-
         }
         return $data;
     }
-
-    private static function defGroupPrice($data, $def)
+    private static function def_group_price($data, $def)
     {
-        if (!preg_match('/\-?[\d\,\.]+/', trim($data)) || ($data < 0 && (int)$data != -1 && (int)$data != -2)) {
+        if (!preg_match('/\-?[\d\,\.]+/', trim($data)) || $data < 0 && (int) $data != -1 && (int) $data != -2) {
             $data = $def;
         }
         return $data;
     }
-
-    private static function formatDiscountString($data, $def)
+    private static function format_discount_string($data, $def)
     {
         if (is_array($data)) {
             ksort($data);
@@ -189,5 +184,4 @@ class PostArrayHelper
         }
         return $ret;
     }
-
 }

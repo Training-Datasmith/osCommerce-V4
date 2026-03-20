@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +11,6 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
 class Assert
@@ -20,14 +19,12 @@ class Assert
     {
         throw new \Exception($message);
     }
-
     public static function assert($condition, string $message = null)
     {
         if (!$condition) {
             static::error($message ?? 'Assertion failed');
         }
     }
-
     protected static function ident($obj)
     {
         $type = gettype($obj);
@@ -36,161 +33,141 @@ class Assert
         } elseif (is_array($obj)) {
             $value = var_export($obj, true);
         } else {
-            $value = (string)$obj;
+            $value = (string) $obj;
         }
         return sprintf('%s(%s)', $type, $value);
     }
-
-    protected static function errorMsg($message, $message_def)
+    protected static function error_msg($message, $message_def)
     {
         $message = $message ?? 'Assertion: %s';
         static::error(sprintf($message, $message_def));
     }
-
-    public static function isSet(bool $isSet, $varName, string $message = null)
+    public static function is_set(bool $is_set, $var_name, string $message = null)
     {
-        if (!$isSet) {
-            static::errorMsg($message, 'variable "$varName" is not set');
+        if (!$is_set) {
+            static::error_msg($message, 'variable "$varName" is not set');
         }
     }
-
     /**
      * @deprecated Use isNotNull
      */
-    public static function assertNotNull($value, string $message = null)
+    public static function assert_not_null($value, string $message = null)
     {
-        self::isNotNull($value, $message);
+        self::is_not_null($value, $message);
     }
-
-    public static function isNotNull($value, string $message = null)
+    public static function is_not_null($value, string $message = null)
     {
         if (is_null($value)) {
-            static::errorMsg($message, 'unexpected value: null');
+            static::error_msg($message, 'unexpected value: null');
         }
     }
-
     /**
      * @deprecated Use isNotEmpty
      */
-    public static function assertNotEmpty($value, string $message = null)
+    public static function assert_not_empty($value, string $message = null)
     {
-        self::isNotEmpty($value, $message);
+        self::is_not_empty($value, $message);
     }
-
-    public static function isNotEmpty($value, string $message = null)
+    public static function is_not_empty($value, string $message = null)
     {
         if (empty($value)) {
-            static::errorMsg($message, 'unexpected value: empty');
+            static::error_msg($message, 'unexpected value: empty');
         }
     }
-
-    public static function isEmpty($value, string $message = null)
+    public static function is_empty($value, string $message = null)
     {
         if (!empty($value)) {
-            static::errorMsg($message, 'expect empty value, but given: ' . self::ident($value));
+            static::error_msg($message, 'expect empty value, but given: ' . self::ident($value));
         }
     }
-
-    public static function hasMethod($obj, $method, string $message = null)
+    public static function has_method($obj, $method, string $message = null)
     {
         if (!method_exists($obj, $method)) {
             $def = sprintf('%s has not method %s', self::ident($obj), self::ident($method));
-            static::errorMsg($message, $def);
+            static::error_msg($message, $def);
         }
     }
-
-    public static function stringMatched($str, string $match, string $message = null)
+    public static function string_matched($str, string $match, string $message = null)
     {
         if (!preg_match($match, $str)) {
             $def = sprintf('%s does not match %s', self::ident($str), self::ident($match));
-            static::errorMsg($message, $def);
+            static::error_msg($message, $def);
         }
     }
-
-    public static function fileExists($fn, string $message = null)
+    public static function file_exists($fn, string $message = null)
     {
         if (!file_exists($fn)) {
             $def = sprintf('file %s does not exist', self::ident($fn));
-            static::errorMsg($message, $def);
+            static::error_msg($message, $def);
         }
     }
-
-    public static function isObject($obj, string $message = null)
+    public static function is_object($obj, string $message = null)
     {
         if (!is_object($obj)) {
             $def = sprintf('%s is not object', self::ident($obj));
-            static::errorMsg($message, $def);
+            static::error_msg($message, $def);
         }
     }
-
-    public static function instanceOf($obj, $class, string $message = null)
+    public static function instance_of($obj, $class, string $message = null)
     {
-        if (!($obj instanceof $class)) {
+        if (!$obj instanceof $class) {
             $def = sprintf('%s is not instance of %s', self::ident($obj), self::ident($class));
-            static::errorMsg($message, $def);
+            static::error_msg($message, $def);
         }
     }
-
-    public static function classExists($className, string $message = null)
+    public static function class_exists($class_name, string $message = null)
     {
-        if (!class_exists($className)) {
-            $def = sprintf('Class %s does not exist', self::ident($className));
-            static::errorMsg($message, $def);
+        if (!class_exists($class_name)) {
+            $def = sprintf('Class %s does not exist', self::ident($class_name));
+            static::error_msg($message, $def);
         }
     }
-    public static function classImplements($class, $interface, string $message = null)
+    public static function class_implements($class, $interface, string $message = null)
     {
-        if (!\common\helpers\Php::isClassImplementsInterface($class, $interface)) {
+        if (!\common\helpers\Php::is_class_implements_interface($class, $interface)) {
             $def = sprintf('%s does not implements %s', self::ident($class), self::ident($interface));
-            static::errorMsg($message, $def);
+            static::error_msg($message, $def);
         }
     }
-
-    public static function isArray($arr, string $message = null)
+    public static function is_array($arr, string $message = null)
     {
         if (!is_array($arr)) {
             $def = sprintf('%s is not array', self::ident($arr));
-            static::errorMsg($message, $def);
+            static::error_msg($message, $def);
         }
     }
-
-    public static function keyExists($arr, $key, string $message = null)
+    public static function key_exists($arr, $key, string $message = null)
     {
-        static::isArray($arr, $message);
+        static::is_array($arr, $message);
         if (!(isset($arr[$key]) || \array_key_exists($key, $arr))) {
             $def = sprintf('Key %s is not exist in %s', self::ident($key), self::ident($arr));
-            static::errorMsg($message, $def);
+            static::error_msg($message, $def);
         }
     }
-
-    public static function keysExists($arr, $keys, string $message = null)
+    public static function keys_exists($arr, $keys, string $message = null)
     {
-        static::isArray($arr, $message);
-        static::isArray($keys, $message);
+        static::is_array($arr, $message);
+        static::is_array($keys, $message);
         foreach ($keys as $key) {
-            static::keyExists($arr, $key);
+            static::key_exists($arr, $key);
         }
     }
-
     public static function match($pattern, $value, string $message = null)
     {
         if (!preg_match($pattern, $value)) {
             $def = sprintf('%s is not match template', self::ident($value));
-            static::errorMsg($message, $def);
+            static::error_msg($message, $def);
         }
     }
-
-    public static function notImplemented(string $message = null)
+    public static function not_implemented(string $message = null)
     {
-        static::errorMsg($message, 'Not implemented yet');
+        static::error_msg($message, 'Not implemented yet');
     }
-
-    public static function isExtensionAllowed(string $extCode, string $message = null)
+    public static function is_extension_allowed(string $ext_code, string $message = null)
     {
-        if (!\common\helpers\Extensions::isAllowed($extCode)) {
-            $def = sprintf('Extension %s is not allowed', self::ident($extCode));
-            static::errorMsg($message, $def);
+        if (!\common\helpers\Extensions::is_allowed($ext_code)) {
+            $def = sprintf('Extension %s is not allowed', self::ident($ext_code));
+            static::error_msg($message, $def);
         }
     }
-
 }

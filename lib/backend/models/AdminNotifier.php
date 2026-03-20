@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,64 +11,53 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models;
 
-use common\models\AdminMessages;
-
+use common\models\Admin_Messages;
 /*
  * Admin Notifier
  */
-
-class AdminNotifier
+class Admin_Notifier
 {
     /* save  retrieved class message or simple message */
-    public function addNotification($class, $message, $type = 'info')
+    public function add_notification($class, $message, $type = 'info')
     {
-        $adminMessage = new AdminMessages();
-        if (is_object($class) && $class instanceof \backend\models\NotificationInterface) {
-            $adminMessage->setAttributes([
-                'class' => $class::className(),
-                'message' => $class->prepareAdminMessage($message),
-                    ], false);
+        $admin_message = new Admin_Messages();
+        if (is_object($class) && $class instanceof \backend\models\Notification_Interface) {
+            $admin_message->set_attributes(['class' => $class::class_name(), 'message' => $class->prepare_admin_message($message)], false);
         } else {
-            $adminMessage->message = $message;
+            $admin_message->message = $message;
         }
-        $adminMessage->status = 'unread';
-        $adminMessage->type = $type;
-        $adminMessage->save();
+        $admin_message->status = 'unread';
+        $admin_message->type = $type;
+        $admin_message->save();
     }
-
     /* return array retrieved messages */
-    public function getUnreadNotifications()
+    public function get_unread_notifications()
     {
-        $_list = AdminMessages::getUnread()->orderBy('date_added desc')->all();
+        $_list = Admin_Messages::get_unread()->order_by('date_added desc')->all();
         if ($_list) {
             foreach ($_list as $key => $notification) {
                 $_list[$key]->status = 'read';
                 $_list[$key]->save();
                 if (!empty($notification->class) && class_exists($notification->class)) {
                     $object = new $notification->class();
-                    $_list[$key]->message = $object->getAdminMessage($notification->message);
+                    $_list[$key]->message = $object->get_admin_message($notification->message);
                 }
             }
         }
         return $_list;
     }
-
-    public function getUnreadCount()
+    public function get_unread_count()
     {
-        return AdminMessages::getUnread()->count();
+        return Admin_Messages::get_unread()->count();
     }
-
-    public function getLastNotification()
+    public function get_last_notification()
     {
         //to do
     }
-
-    public function getAllNotifications()
+    public function get_all_notifications()
     {
         //to do
     }
-
 }

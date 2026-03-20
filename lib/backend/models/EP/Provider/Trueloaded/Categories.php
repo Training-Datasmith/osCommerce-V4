@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,29 +11,23 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Provider\Trueloaded;
 
-use common\api\models\XML\IOCore;
-
-class Categories extends XmlBase
+use common\api\models\XML\Io_Core;
+class Categories extends Xml_Base
 {
     public function init()
     {
-
-        $this->ConfigureMap = IOCore::getExportStructure('categories');
+        $this->configure_map = Io_Core::get_export_structure('categories');
         parent::init();
-
     }
-
-    public function clearLocalData()
+    public function clear_local_data()
     {
         $query = tep_db_query('select * from ' . TABLE_CATEGORIES);
         while ($data = tep_db_fetch_array($query)) {
             @unlink(DIR_FS_CATALOG_IMAGES . $data['categories_image']);
         }
         tep_db_query('DELETE FROM ' . TABLE_FILTERS . " WHERE filters_of = 'category'");
-        parent::clearLocalData();
+        parent::clear_local_data();
     }
-
 }

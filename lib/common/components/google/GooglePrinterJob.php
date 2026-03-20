@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,77 +11,60 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components\google;
 
-class GooglePrinterJob
+class Google_Printer_Job
 {
     private $printer_id;
     private $title;
-
     public function __construct($printer_id)
     {
         $this->printer_id = $printer_id;
     }
-
-    public function getPrinterId()
+    public function get_printer_id()
     {
         return $this->printer_id;
     }
-
-    public function setTitle($title)
+    public function set_title($title)
     {
         $this->title = $title;
     }
-
-    public function getTitle()
+    public function get_title()
     {
-        return $this->title ? $this->title : 'Printing process '. date('Y-m-d H:i:s');
+        return $this->title ? $this->title : 'Printing process ' . date('Y-m-d H:i:s');
     }
-
     private $copies;
-    public function setCopies($copies)
+    public function set_copies($copies)
     {
-        $this->copies = (int)$copies;
+        $this->copies = (int) $copies;
     }
-
-    public function getCopies()
+    public function get_copies()
     {
         return $this->copies ? $this->copies : 1;
     }
-
-    private $contentType;
-    public function setContentType($type)
+    private $content_type;
+    public function set_content_type($type)
     {
-        $this->contentType = $type;
+        $this->content_type = $type;
     }
-
-    public function getContentType()
+    public function get_content_type()
     {
-        return $this->contentType ? $this->contentType : false;
+        return $this->content_type ? $this->content_type : false;
     }
-
     private $version = '1.0';
-    public function getTicket()
+    public function get_ticket()
     {
-        return [
-            'version' => $this->version,
-            'print' => [
-                'copies' => ['copies' => $this->getCopies()],
-            ],
-        ];
+        return ['version' => $this->version, 'print' => ['copies' => ['copies' => $this->get_copies()]]];
     }
-
-    private $lastJob;
-    public function setLastJob($lastJob)
+    private $last_job;
+    public function set_last_job($last_job)
     {
-        if ($lastJob['id']) {
-            $this->lastJob = $lastJob;
+        if ($last_job['id']) {
+            $this->last_job = $last_job;
         }
     }
-
-    public function getLastJob()
+    public function get_last_job()
     {
-        return $this->lastJob;
+        return $this->last_job;
     }
 }

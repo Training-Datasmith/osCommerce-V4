@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,168 +11,144 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design;
 
 use common\classes\Images as CommonImages;
 use common\helpers\Html;
-use common\models\DesignBoxesGroups;
-use common\models\DesignBoxesGroupsCategory;
-use common\models\DesignBoxesGroupsImages;
-use common\models\DesignBoxesGroupsLanguages;
-use common\models\ThemesSettings;
+use common\models\Design_Boxes_Groups;
+use common\models\Design_Boxes_Groups_Category;
+use common\models\Design_Boxes_Groups_Images;
+use common\models\Design_Boxes_Groups_Languages;
+use common\models\Themes_Settings;
 use Yii;
-use yii\helpers\ArrayHelper;
-use yii\helpers\FileHelper;
-
+use yii\helpers\Array_Helper;
+use yii\helpers\File_Helper;
 class Groups
 {
-    public static function groupFilePath()
+    public static function group_file_path()
     {
         return DIR_FS_CATALOG . implode(DIRECTORY_SEPARATOR, ['lib', 'backend', 'design', 'groups']);
     }
-
     public static function synchronize()
     {
-        $path = self::groupFilePath();
-
-        FileHelper::createDirectory($path);
+        $path = self::group_file_path();
+        File_Helper::create_directory($path);
         chmod($path, 0755);
-
         $files = [];
-        $filesPath = FileHelper::findFiles($path);
-        if (is_array($filesPath)) {
-            foreach ($filesPath as $filePath) {
-                $filePathArr = explode(DIRECTORY_SEPARATOR, $filePath);
-                $files[end($filePathArr)] = end($filePathArr);
+        $files_path = File_Helper::find_files($path);
+        if (is_array($files_path)) {
+            foreach ($files_path as $file_path) {
+                $file_path_arr = explode(DIRECTORY_SEPARATOR, $file_path);
+                $files[end($file_path_arr)] = end($file_path_arr);
             }
         }
-
-        $groups = DesignBoxesGroups::find()->asArray()->all();
+        $groups = Design_Boxes_Groups::find()->as_array()->all();
         foreach ($groups as $group) {
             if (isset($files[$group['file']]) && $files[$group['file']]) {
                 unset($files[$group['file']]);
             } else {
-                DesignBoxesGroups::deleteAll(['file' => $group['file']]);
+                Design_Boxes_Groups::delete_all(['file' => $group['file']]);
             }
         }
         foreach ($files as $file) {
             if (!is_file($path . DIRECTORY_SEPARATOR . $file)) {
                 continue;
             }
-
-            $zip = new \ZipArchive();
-            if (!$zip->open($path . DIRECTORY_SEPARATOR . $file, \ZipArchive::CREATE)) {
+            $zip = new \Zip_Archive();
+            if (!$zip->open($path . DIRECTORY_SEPARATOR . $file, \Zip_Archive::CREATE)) {
                 continue;
             }
-
-            $info = json_decode($zip->getFromName('info.json'), true);
-            $images = json_decode($zip->getFromName('images.json'), true);
+            $info = json_decode($zip->get_from_name('info.json'), true);
+            $images = json_decode($zip->get_from_name('images.json'), true);
             if (is_array($images)) {
                 foreach ($images as $key => $image) {
                     $images[$key] = 'images/' . $image;
                 }
             }
-
             $name = explode('.', $file);
-            $designBoxesGroups = new DesignBoxesGroups();
-            $designBoxesGroups->file = $file;
+            $design_boxes_groups = new Design_Boxes_Groups();
+            $design_boxes_groups->file = $file;
             if (isset($info['name']) && $info['name']) {
-                $designBoxesGroups->name = $info['name'];
+                $design_boxes_groups->name = $info['name'];
             } else {
-                $designBoxesGroups->name = $name[0];
+                $design_boxes_groups->name = $name[0];
             }
             if (isset($info['comment']) && $info['comment']) {
-                $designBoxesGroups->comment = $info['comment'];
+                $design_boxes_groups->comment = $info['comment'];
             }
             if (isset($info['page_type']) && $info['page_type']) {
-                $designBoxesGroups->page_type = $info['page_type'];
+                $design_boxes_groups->page_type = $info['page_type'];
             }
             if (isset($info['groupCategory']) && $info['groupCategory']) {
-                $designBoxesGroups->category = $info['groupCategory'];
+                $design_boxes_groups->category = $info['groupCategory'];
             }
-            $designBoxesGroups->date_added = new \yii\db\Expression('now()');
-            $designBoxesGroups->save();
-            $groupId = $designBoxesGroups->getPrimaryKey();
-
-            $imageFSPath = CommonImages::getFSCatalogImagesPath() . 'widget-groups' . DIRECTORY_SEPARATOR . $groupId . DIRECTORY_SEPARATOR;
-            $zip->extractTo($imageFSPath, $images);
-            if (is_dir($imageFSPath . 'images')) {
-                FileHelper::copyDirectory($imageFSPath . 'images', $imageFSPath);
-                FileHelper::removeDirectory($imageFSPath . 'images');
+            $design_boxes_groups->date_added = new \yii\db\Expression('now()');
+            $design_boxes_groups->save();
+            $group_id = $design_boxes_groups->get_primary_key();
+            $image_fs_path = Common_Images::get_fs_catalog_images_path() . 'widget-groups' . DIRECTORY_SEPARATOR . $group_id . DIRECTORY_SEPARATOR;
+            $zip->extract_to($image_fs_path, $images);
+            if (is_dir($image_fs_path . 'images')) {
+                File_Helper::copy_directory($image_fs_path . 'images', $image_fs_path);
+                File_Helper::remove_directory($image_fs_path . 'images');
             }
-
-            $images = FileHelper::findFiles($imageFSPath);
-            if (is_array($images) && $groupId) {
+            $images = File_Helper::find_files($image_fs_path);
+            if (is_array($images) && $group_id) {
                 foreach ($images as $image) {
-                    $filePathArr = explode(DIRECTORY_SEPARATOR, $image);
-                    $file = end($filePathArr);
-
-                    $designBoxesGroupsImages = new DesignBoxesGroupsImages();
-                    $designBoxesGroupsImages->boxes_group_id = $groupId;
-                    $designBoxesGroupsImages->file = $file;
-                    $designBoxesGroupsImages->save();
+                    $file_path_arr = explode(DIRECTORY_SEPARATOR, $image);
+                    $file = end($file_path_arr);
+                    $design_boxes_groups_images = new Design_Boxes_Groups_Images();
+                    $design_boxes_groups_images->boxes_group_id = $group_id;
+                    $design_boxes_groups_images->file = $file;
+                    $design_boxes_groups_images->save();
                 }
             }
-
             $zip->close();
         }
     }
-
     public static function status()
     {
         $id = Yii::$app->request->post('id');
         $status = Yii::$app->request->post('status');
-
-        $designBoxesGroup = DesignBoxesGroups::findOne($id);
-        $designBoxesGroup->status = (int)$status;
-        $designBoxesGroup->save();
-
-        if ($designBoxesGroup->errors) {
-            return var_dump($designBoxesGroup->errors);
+        $design_boxes_group = Design_Boxes_Groups::find_one($id);
+        $design_boxes_group->status = (int) $status;
+        $design_boxes_group->save();
+        if ($design_boxes_group->errors) {
+            return var_dump($design_boxes_group->errors);
         }
         return 'ok';
     }
-
     public static function save()
     {
         $id = Yii::$app->request->post('id');
         $name = Yii::$app->request->post('name');
         $page_type = Yii::$app->request->post('page_type');
-
-        $designBoxesGroup = DesignBoxesGroups::findOne($id);
-        $designBoxesGroup->name = $name;
-        $designBoxesGroup->page_type = $page_type;
-        $designBoxesGroup->save();
-
-        if ($designBoxesGroup->errors) {
-            return var_dump($designBoxesGroup->errors);
+        $design_boxes_group = Design_Boxes_Groups::find_one($id);
+        $design_boxes_group->name = $name;
+        $design_boxes_group->page_type = $page_type;
+        $design_boxes_group->save();
+        if ($design_boxes_group->errors) {
+            return var_dump($design_boxes_group->errors);
         }
         return 'ok';
     }
-
     public static function delete()
     {
         $id = Yii::$app->request->post('id');
-
-        $path = self::groupFilePath();
-        $designBoxesGroup = DesignBoxesGroups::findOne($id);
-        $designBoxesGroup->file;
-        unlink($path . DIRECTORY_SEPARATOR . $designBoxesGroup->file);
-
-        DesignBoxesGroups::deleteAll(['id' => $id]);
-
-        if ($designBoxesGroup->errors) {
-            return var_dump($designBoxesGroup->errors);
+        $path = self::group_file_path();
+        $design_boxes_group = Design_Boxes_Groups::find_one($id);
+        $design_boxes_group->file;
+        unlink($path . DIRECTORY_SEPARATOR . $design_boxes_group->file);
+        Design_Boxes_Groups::delete_all(['id' => $id]);
+        if ($design_boxes_group->errors) {
+            return var_dump($design_boxes_group->errors);
         }
         return 'ok';
     }
-
     public static function basename($param, $suffix = null, $charset = 'utf-8')
     {
         if ($suffix) {
             $tmpstr = ltrim(mb_substr($param, mb_strrpos($param, DIRECTORY_SEPARATOR, 0, $charset), null, $charset), DIRECTORY_SEPARATOR);
-            if ((mb_strpos($param, $suffix, null, $charset) + mb_strlen($suffix, $charset))  ==  mb_strlen($param, $charset)) {
+            if (mb_strpos($param, $suffix, null, $charset) + mb_strlen($suffix, $charset) == mb_strlen($param, $charset)) {
                 return str_ireplace($suffix, '', $tmpstr);
             } else {
                 return ltrim(mb_substr($param, mb_strrpos($param, DIRECTORY_SEPARATOR, 0, $charset), null, $charset), DIRECTORY_SEPARATOR);
@@ -181,118 +157,55 @@ class Groups
             return ltrim(mb_substr($param, mb_strrpos($param, DIRECTORY_SEPARATOR, 0, $charset), null, $charset), DIRECTORY_SEPARATOR);
         }
     }
-
-    public static function getWidgetGroups($type)
+    public static function get_widget_groups($type)
     {
         $widgets = [];
-        $widgets[] = [
-            'name' => 'title',
-            'title' => TEXT_WIDGET_GROUPS,
-            'type' => 'groups',
-        ];
-
-        $designBoxesGroups = DesignBoxesGroups::find()
-            ->where(['page_type' => $type, 'status' => 1])
-            ->orWhere(['page_type' => '', 'status' => 1])
-            ->asArray()->all();
-
-        if (is_array($designBoxesGroups)) {
-            foreach ($designBoxesGroups as $group) {
-                $widgets[] = [
-                    'name' => 'group-' . $group['id'],
-                    'title' => $group['name'],
-                    'type' => 'groups',
-                    'description' => $group['comment'],
-                ];
+        $widgets[] = ['name' => 'title', 'title' => TEXT_WIDGET_GROUPS, 'type' => 'groups'];
+        $design_boxes_groups = Design_Boxes_Groups::find()->where(['page_type' => $type, 'status' => 1])->or_where(['page_type' => '', 'status' => 1])->as_array()->all();
+        if (is_array($design_boxes_groups)) {
+            foreach ($design_boxes_groups as $group) {
+                $widgets[] = ['name' => 'group-' . $group['id'], 'title' => $group['name'], 'type' => 'groups', 'description' => $group['comment']];
             }
         }
-
         return $widgets;
     }
-
-    public static function getWidgetGroupsCategories()
+    public static function get_widget_groups_categories()
     {
-        $categories = [
-            'header' => [
-                'name' => 'header',
-                'title' => TEXT_HEADER,
-            ],
-            'footer' => [
-                'name' => 'footer',
-                'title' => TEXT_FOOTER,
-            ],
-            'header-menu' => [
-                'name' => 'header-menu',
-                'title' => 'Header menu',
-            ],
-            'pages' => [
-                'name' => 'pages',
-                'title' => TEXT_PAGES,
-            ],
-            'color' => [
-                'name' => 'color',
-                'title' => TEXT_COLOR_SCHEME,
-            ],
-            'font' => [
-                'name' => 'font',
-                'title' => TEXT_FONTS,
-            ],
-        ];
-
-        $pageGroups = FrontendStructure::getPageGroups();
-
-        $categories['pages']['children'] = $pageGroups;
-
-        $pages = FrontendStructure::getPages();
-
+        $categories = ['header' => ['name' => 'header', 'title' => TEXT_HEADER], 'footer' => ['name' => 'footer', 'title' => TEXT_FOOTER], 'header-menu' => ['name' => 'header-menu', 'title' => 'Header menu'], 'pages' => ['name' => 'pages', 'title' => TEXT_PAGES], 'color' => ['name' => 'color', 'title' => TEXT_COLOR_SCHEME], 'font' => ['name' => 'font', 'title' => TEXT_FONTS]];
+        $page_groups = Frontend_Structure::get_page_groups();
+        $categories['pages']['children'] = $page_groups;
+        $pages = Frontend_Structure::get_pages();
         foreach ($pages as $page) {
-            ArrayHelper::setValue($categories, ['pages', 'children', $page['group'], 'children', $page['name']], $page);
+            Array_Helper::set_value($categories, ['pages', 'children', $page['group'], 'children', $page['name']], $page);
         }
-
-        $groupsCategory = DesignBoxesGroupsCategory::find()->asArray()->all();
-
-        foreach ($groupsCategory as $category) {
-            $categoryArr = explode('/', $category['parent_category']);
-            $categoryPath = [];
-
-            foreach ($categoryArr as $categoryLevel) {
-                if (!$categoryLevel) {
+        $groups_category = Design_Boxes_Groups_Category::find()->as_array()->all();
+        foreach ($groups_category as $category) {
+            $category_arr = explode('/', $category['parent_category']);
+            $category_path = [];
+            foreach ($category_arr as $category_level) {
+                if (!$category_level) {
                     continue;
                 }
-                $categoryPath[] = $categoryLevel;
-                $categoryPath[] = 'children';
+                $category_path[] = $category_level;
+                $category_path[] = 'children';
             }
-            if (count($categoryPath)) {
-                ArrayHelper::setValue($categories, $categoryPath, [$category['name'] => [
-                    'name' => $category['name'],
-                    'title' => $category['name'],
-                    'category_id' => $category['boxes_group_category_id'],
-                ]]);
+            if (count($category_path)) {
+                Array_Helper::set_value($categories, $category_path, [$category['name'] => ['name' => $category['name'], 'title' => $category['name'], 'category_id' => $category['boxes_group_category_id']]]);
             } else {
-                $categories[$category['name']] = [
-                    'name' => $category['name'],
-                    'title' => $category['name'],
-                    'category_id' => $category['boxes_group_category_id'],
-                ];
+                $categories[$category['name']] = ['name' => $category['name'], 'title' => $category['name'], 'category_id' => $category['boxes_group_category_id']];
             }
         }
-
         return $categories;
     }
-
-    public static function widgetGroupsCategoriesDropdown($name, $selection = null, $options = [])
+    public static function widget_groups_categories_dropdown($name, $selection = null, $options = [])
     {
-        $categories = self::getWidgetGroupsCategories();
-
+        $categories = self::get_widget_groups_categories();
         $content = '<option name=""></option>';
-        $content .= self::widgetGroupsCategoriesLevel($categories, $selection);
-
+        $content .= self::widget_groups_categories_level($categories, $selection);
         $options['name'] = $name;
-
         return Html::tag('select', "\n" . $content . "\n", $options);
     }
-
-    public static function widgetGroupsCategoriesLevel($categories, $selection, $indent = '')
+    public static function widget_groups_categories_level($categories, $selection, $indent = '')
     {
         $options = '';
         foreach ($categories as $category) {
@@ -303,56 +216,45 @@ class Groups
                 $options .= '<option value="' . $category['name'] . '"' . ($category['name'] == $selection ? ' selected' : '') . '>' . $indent . $category['title'] . '</option>';
             }
             if (isset($category['children']) && $category['children']) {
-                $options .= self::widgetGroupsCategoriesLevel($category['children'], $selection, $indent . '&nbsp;&nbsp;&nbsp;');
+                $options .= self::widget_groups_categories_level($category['children'], $selection, $indent . '&nbsp;&nbsp;&nbsp;');
             }
         }
-
         return $options;
     }
-
-    public static function getGroup($groupId)
+    public static function get_group($group_id)
     {
-        $languageId = Yii::$app->settings->get('languages_id');
-        if (!$groupId) {
+        $language_id = Yii::$app->settings->get('languages_id');
+        if (!$group_id) {
             return [];
         }
-
-        $group = DesignBoxesGroups::find()->where(['id' => $groupId])->asArray()->one();
-
+        $group = Design_Boxes_Groups::find()->where(['id' => $group_id])->as_array()->one();
         if (!$group) {
             return [];
         }
-
-        $group['images'] = DesignBoxesGroupsImages::find()->where(['boxes_group_id' => $groupId])->asArray()->one();
-
+        $group['images'] = Design_Boxes_Groups_Images::find()->where(['boxes_group_id' => $group_id])->as_array()->one();
         $languages = [];
-        $designBoxesGroupsLanguages = DesignBoxesGroupsLanguages::find()
-            ->where(['boxes_group_id' => $groupId])
-            ->asArray()->all();
-        if (is_array($designBoxesGroupsLanguages)) {
-            foreach ($designBoxesGroupsLanguages as $language) {
+        $design_boxes_groups_languages = Design_Boxes_Groups_Languages::find()->where(['boxes_group_id' => $group_id])->as_array()->all();
+        if (is_array($design_boxes_groups_languages)) {
+            foreach ($design_boxes_groups_languages as $language) {
                 $languages[$language['language_id']] = $language;
             }
         }
-        if (!isset($languages[$languageId]) || !$languages[$languageId]) {
-            $languages[$languageId] = [];
+        if (!isset($languages[$language_id]) || !$languages[$language_id]) {
+            $languages[$language_id] = [];
         }
-        if ((!isset($languages[$languageId]['title']) || !$languages[$languageId]['title']) && $group['name']) {
-            $languages[$languageId]['title'] = $group['name'];
+        if ((!isset($languages[$language_id]['title']) || !$languages[$language_id]['title']) && $group['name']) {
+            $languages[$language_id]['title'] = $group['name'];
         }
-        if ((!isset($languages[$languageId]['description']) || !$languages[$languageId]['description']) && $group['comment']) {
-            $languages[$languageId]['description'] = $group['comment'];
+        if ((!isset($languages[$language_id]['description']) || !$languages[$language_id]['description']) && $group['comment']) {
+            $languages[$language_id]['description'] = $group['comment'];
         }
-
         $group['languages'] = $languages;
-
         foreach (['title', 'description'] as $field) {
             $group[$field] = '';
-            if (isset($languages[$languageId][$field]) && $languages[$languageId][$field]) {
-                $group[$field] = $languages[$languageId][$field];
+            if (isset($languages[$language_id][$field]) && $languages[$language_id][$field]) {
+                $group[$field] = $languages[$language_id][$field];
                 continue;
             }
-
             if (!is_array($languages)) {
                 continue;
             }
@@ -363,105 +265,74 @@ class Groups
                 }
             }
         }
-
         return $group;
     }
-
-    public static function countGroups($category)
+    public static function count_groups($category)
     {
         if (!isset($category['name'])) {
             return 0;
         }
-
         if ($category['name'] == 'home') {
             $category['name'] = 'main';
         }
-        $count = DesignBoxesGroups::find()->where(['category' => $category['name']])->count();
-
+        $count = Design_Boxes_Groups::find()->where(['category' => $category['name']])->count();
         if (isset($category['children']) && is_array($category['children'])) {
-            foreach ($category['children'] as $subCategory) {
-                if ($category['name'] == 'main' && $subCategory['name'] = 'home') {
+            foreach ($category['children'] as $sub_category) {
+                if ($category['name'] == 'main' && $sub_category['name'] = 'home') {
                     continue;
                 }
-                $count += self::countGroups($subCategory);
+                $count += self::count_groups($sub_category);
             }
         }
-
         return $count;
     }
-
-    public static function createGroup($group)
+    public static function create_group($group)
     {
-        $fsCatalog = DIR_FS_CATALOG . implode(DIRECTORY_SEPARATOR, ['lib', 'backend', 'design', 'groups']) . DIRECTORY_SEPARATOR;
-
-        $themeName = $group['theme_name'];
-
+        $fs_catalog = DIR_FS_CATALOG . implode(DIRECTORY_SEPARATOR, ['lib', 'backend', 'design', 'groups']) . DIRECTORY_SEPARATOR;
+        $theme_name = $group['theme_name'];
         if (substr($group['file'], -4) != '.zip') {
             $group['file'] = $group['file'] . '.zip';
         }
-        if (is_file($fsCatalog . $group['file'])) {
-            return json_encode([
-                'error' => sprintf(FILE_ALREADY_EXISTS, $group['file']),
-                'focus' => 'group[file]',
-            ]);
+        if (is_file($fs_catalog . $group['file'])) {
+            return json_encode(['error' => sprintf(FILE_ALREADY_EXISTS, $group['file']), 'focus' => 'group[file]']);
         }
-
-        FileHelper::createDirectory($fsCatalog);
-        chmod($fsCatalog, 0755);
-
-        $zip = new \ZipArchive();
-        if ($zip->open($fsCatalog . $group['file'], \ZipArchive::CREATE) !== true) {
+        File_Helper::create_directory($fs_catalog);
+        chmod($fs_catalog, 0755);
+        $zip = new \Zip_Archive();
+        if ($zip->open($fs_catalog . $group['file'], \Zip_Archive::CREATE) !== true) {
             return json_encode(['error' => 'Error']);
         }
-
         if (!isset($group['pages']) || !is_array($group['pages'])) {
             return json_encode(['error' => CHOOSE_PAGES]);
         }
-
-        $addedPages = [];
+        $added_pages = [];
         $boxes = [];
         foreach ($group['pages'] as $page) {
-            $designBoxes = \common\models\DesignBoxesTmp::find()->where([
-                'block_name' => $page,
-                'theme_name' => $themeName,
-            ])->orderBy('sort_order')->asArray()->all();
-
-            foreach ($designBoxes as $key => $box) {
-                $boxTree = Theme::blocksTree($box['id']);
-                $boxTree['sort_order'] = $key;
-                $boxes[$page] = $boxTree;
+            $design_boxes = \common\models\Design_Boxes_Tmp::find()->where(['block_name' => $page, 'theme_name' => $theme_name])->order_by('sort_order')->as_array()->all();
+            foreach ($design_boxes as $key => $box) {
+                $box_tree = Theme::blocks_tree($box['id']);
+                $box_tree['sort_order'] = $key;
+                $boxes[$page] = $box_tree;
             }
-
-            $themeAddedPages = ThemesSettings::find()
-                ->where(['theme_name' => $themeName, 'setting_group' => 'added_page'])
-                ->asArray()->all();
-
-            foreach ($themeAddedPages as $addedPage) {
-                if (\common\classes\design::pageName($addedPage['setting_value']) == $page) {
-                    $addedPages[] = [
-                        'setting_name' => $addedPage['setting_name'],
-                        'setting_value' => $addedPage['setting_value'],
-                    ];
+            $theme_added_pages = Themes_Settings::find()->where(['theme_name' => $theme_name, 'setting_group' => 'added_page'])->as_array()->all();
+            foreach ($theme_added_pages as $added_page) {
+                if (\common\classes\design::page_name($added_page['setting_value']) == $page) {
+                    $added_pages[] = ['setting_name' => $added_page['setting_name'], 'setting_value' => $added_page['setting_value']];
                 }
             }
         }
         $json = json_encode($boxes);
         $files = [];
-
-        $zip->addFromString('data.json', $json);
-
-        foreach (Theme::$themeFiles as $file) {
-            $path = str_replace('frontend/themes/' . $themeName . '/', '', $file);
-            $path = str_replace('themes/' . $themeName . '/', 'theme/', $path);
-            $zip->addFile(DIR_FS_CATALOG . $file, $path);
+        $zip->add_from_string('data.json', $json);
+        foreach (Theme::$theme_files as $file) {
+            $path = str_replace('frontend/themes/' . $theme_name . '/', '', $file);
+            $path = str_replace('themes/' . $theme_name . '/', 'theme/', $path);
+            $zip->add_file(DIR_FS_CATALOG . $file, $path);
             $files[] = $path;
         }
-
-        $zip->addFromString('files.json', json_encode($files));
-        $zip->addFromString('addedPages.json', json_encode($addedPages));
-
+        $zip->add_from_string('files.json', json_encode($files));
+        $zip->add_from_string('addedPages.json', json_encode($added_pages));
         $zip->close();
-
         return false;
     }
 }

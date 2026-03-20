@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,12 +11,10 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes;
 
 use frontend\design\Info;
 use Yii;
-
 class Blog
 {
     public $wp_head;
@@ -25,73 +23,57 @@ class Blog
     public $wp_sidebar_3;
     public $wp_content;
     public $wp_footer;
-
     public function init()
     {
     }
-
-    public function wpLoad()
+    public function wp_load()
     {
-        if (!\frontend\design\Info::hasBlog()) {
+        if (!\frontend\design\Info::has_blog()) {
             return '';
         }
-
         if (!function_exists('wp')) {
             $wp_did_header = true;
-
-            define('WP_HOME', rtrim(Yii::$app->getUrlManager()->createAbsoluteUrl('index'), '/') . '/blog');
+            define('WP_HOME', rtrim(Yii::$app->get_url_manager()->create_absolute_url('index'), '/') . '/blog');
             define('WP_SITEURL', \yii\helpers\Url::home(true) . '_blog');
-
             // Load the WordPress library.
-            require_once(DIR_FS_CATALOG . '/_blog/wp-load.php');
-
+            require_once DIR_FS_CATALOG . '/_blog/wp-load.php';
             // Set up the WordPress query.
             wp();
         }
-
     }
-
-    public function getBlog($page = '')
+    public function get_blog($page = '')
     {
-        if (!\frontend\design\Info::hasBlog()) {
+        if (!\frontend\design\Info::has_blog()) {
             return '';
         }
         global $request_type;
-
-        $default = tep_db_fetch_array(tep_db_query('SELECT platform_url FROM '.TABLE_PLATFORMS.' WHERE is_default=1 '));
-
-        $platform = Info::platformData();
-
-        $this->wpLoad();
+        $default = tep_db_fetch_array(tep_db_query('SELECT platform_url FROM ' . TABLE_PLATFORMS . ' WHERE is_default=1 '));
+        $platform = Info::platform_data();
+        $this->wp_load();
         define('WP_USE_THEMES', true);
         ob_start();
-        require_once(ABSPATH . WPINC . '/template-loader.php');
+        require_once ABSPATH . WPINC . '/template-loader.php';
         $all_content = ob_get_contents();
         ob_end_clean();
         //$all_content = file_get_contents(($request_type == 'SSL' ? 'https' : 'http') . '://'.$platform['url'].'/blog/'.($page ? $page : $_GET['url_path']));
-
         $all_content = explode('<!--wphead-->', $all_content);
-
         if ($all_content[1]) {
             $wp_head = $all_content[0];
-
             $default_url = str_replace('/', '\/', str_replace('.', '\.', addslashes($default['platform_url'])));
             $wp_head = preg_replace('/' . $default_url . '/', $platform['url'], $wp_head);
-            $wp_head = preg_replace("/\/_blog\//", '/blog/', $wp_head);
-            $wp_head = preg_replace("/\/blog\/wp-content\//", '/_blog/wp-content/', $wp_head);
-            $wp_head = preg_replace("/\/blog\/wp-admin\//", '/_blog/wp-admin/', $wp_head);
-            $wp_head = preg_replace("/\/blog\/wp-includes\//", '/_blog/wp-includes/', $wp_head);
-            $wp_head = preg_replace("/\/blog\/wp-json\//", '/_blog/wp-json/', $wp_head);
-            $this->wp_head = preg_replace("/\/blog\/wp-comments-post.php/", '/_blog/wp-comments-post.php', $wp_head);
-
+            $wp_head = preg_replace("/\\/_blog\\//", '/blog/', $wp_head);
+            $wp_head = preg_replace("/\\/blog\\/wp-content\\//", '/_blog/wp-content/', $wp_head);
+            $wp_head = preg_replace("/\\/blog\\/wp-admin\\//", '/_blog/wp-admin/', $wp_head);
+            $wp_head = preg_replace("/\\/blog\\/wp-includes\\//", '/_blog/wp-includes/', $wp_head);
+            $wp_head = preg_replace("/\\/blog\\/wp-json\\//", '/_blog/wp-json/', $wp_head);
+            $this->wp_head = preg_replace("/\\/blog\\/wp-comments-post.php/", '/_blog/wp-comments-post.php', $wp_head);
             $all_content[1] = preg_replace('/' . $default_url . '/', $platform['url'], $all_content[1]);
-            $all_content[1] = preg_replace("/\/_blog\//", '/blog/', $all_content[1]);
-            $all_content[1] = preg_replace("/\/blog\/wp-content\//", '/_blog/wp-content/', $all_content[1]);
-            $all_content[1] = preg_replace("/\/blog\/wp-admin\//", '/_blog/wp-admin/', $all_content[1]);
-            $all_content[1] = preg_replace("/\/blog\/wp-includes\//", '/_blog/wp-includes/', $all_content[1]);
-            $all_content[1] = preg_replace("/\/blog\/wp-json\//", '/_blog/wp-json/', $all_content[1]);
-            $all_content[1] = preg_replace("/\/blog\/wp-comments-post.php/", '/_blog/wp-comments-post.php', $all_content[1]);
-
+            $all_content[1] = preg_replace("/\\/_blog\\//", '/blog/', $all_content[1]);
+            $all_content[1] = preg_replace("/\\/blog\\/wp-content\\//", '/_blog/wp-content/', $all_content[1]);
+            $all_content[1] = preg_replace("/\\/blog\\/wp-admin\\//", '/_blog/wp-admin/', $all_content[1]);
+            $all_content[1] = preg_replace("/\\/blog\\/wp-includes\\//", '/_blog/wp-includes/', $all_content[1]);
+            $all_content[1] = preg_replace("/\\/blog\\/wp-json\\//", '/_blog/wp-json/', $all_content[1]);
+            $all_content[1] = preg_replace("/\\/blog\\/wp-comments-post.php/", '/_blog/wp-comments-post.php', $all_content[1]);
             $all_content = explode('<!--wpsidebar-1-->', $all_content[1]);
             $this->wp_sidebar_1 = $all_content[0];
             $all_content = explode('<!--wpsidebar-2-->', $all_content[1]);
@@ -105,103 +87,85 @@ class Blog
             $this->wp_content = $all_content[0];
         }
     }
-
     public function head()
     {
-        if (!\frontend\design\Info::hasBlog()) {
+        if (!\frontend\design\Info::has_blog()) {
             return '';
         }
         if (!$this->wp_head) {
-            $this->getBlog();
+            $this->get_blog();
         }
         return $this->wp_head;
     }
-
     public function footer()
     {
-        if (!\frontend\design\Info::hasBlog()) {
+        if (!\frontend\design\Info::has_blog()) {
             return '';
         }
         if (!$this->wp_footer) {
-            $this->getBlog();
+            $this->get_blog();
         }
         return $this->wp_footer;
     }
-
     public function content($page = '')
     {
-        if (!\frontend\design\Info::hasBlog()) {
+        if (!\frontend\design\Info::has_blog()) {
             return '';
         }
         if ($page) {
-            $this->getBlog($page);
+            $this->get_blog($page);
         } elseif (!$this->wp_content) {
-            $this->getBlog();
+            $this->get_blog();
         }
         return $this->wp_content;
     }
-
     public function sidebar_1()
     {
-        if (!\frontend\design\Info::hasBlog()) {
+        if (!\frontend\design\Info::has_blog()) {
             return '';
         }
         if (!$this->wp_sidebar_1) {
-            $this->getBlog();
+            $this->get_blog();
         }
         return $this->wp_sidebar_1;
     }
-
     public function sidebar_2()
     {
-        if (!\frontend\design\Info::hasBlog()) {
+        if (!\frontend\design\Info::has_blog()) {
             return '';
         }
         if (!$this->wp_sidebar_2) {
-            $this->getBlog();
+            $this->get_blog();
         }
         return $this->wp_sidebar_2;
     }
-
     public function sidebar_3()
     {
-        if (!\frontend\design\Info::hasBlog()) {
+        if (!\frontend\design\Info::has_blog()) {
             return '';
         }
         if (!$this->wp_sidebar_3) {
-            $this->getBlog();
+            $this->get_blog();
         }
         return $this->wp_sidebar_3;
     }
-
-    public function editAdmin($admin_id)
+    public function edit_admin($admin_id)
     {
-        if (!\frontend\design\Info::hasBlog()) {
+        if (!\frontend\design\Info::has_blog()) {
             return '';
         }
-        $this->wpLoad();
+        $this->wp_load();
         //$user_info = get_user_by('admin_id', $admin_id);
         $user_info_arr = get_users(['meta_key' => 'admin_id', 'meta_value' => $admin_id]);
         $user_info = $user_info_arr[0];
-
         $admin_data = tep_db_fetch_array(tep_db_query('select * from ' . TABLE_ADMIN . " where admin_id = '" . $admin_id . "'"));
-
-        if ($user_info && count($admin_data) > 0) {// edit user
-
-            $arr = [
-              'ID' => $user_info->ID,
-              'nickname' => $admin_data['admin_firstname'] . ' ' . $admin_data['admin_lastname'],
-              'display_name' => $admin_data['customers_firstname'] . ' ' . $admin_data['	customers_lastname'],
-              'first_name' => $admin_data['admin_firstname'],
-              'last_name' => $admin_data['admin_lastname'],
-              'role' => 'administrator',
-            ];
+        if ($user_info && count($admin_data) > 0) {
+            // edit user
+            $arr = ['ID' => $user_info->ID, 'nickname' => $admin_data['admin_firstname'] . ' ' . $admin_data['admin_lastname'], 'display_name' => $admin_data['customers_firstname'] . ' ' . $admin_data['	customers_lastname'], 'first_name' => $admin_data['admin_firstname'], 'last_name' => $admin_data['admin_lastname'], 'role' => 'administrator'];
             wp_update_user($arr);
-
-        } elseif (!$user_info && count($admin_data) > 0) {// create user
-
+        } elseif (!$user_info && count($admin_data) > 0) {
+            // create user
             $username = preg_replace('/[^a-z0-9_-]/', '', $admin_data['admin_email_address']);
-
             $user_id = wp_create_user($username, '', '');
             $n = 1;
             while (count($user_id->errors) > 0) {
@@ -209,54 +173,30 @@ class Blog
                 $n++;
             }
             add_user_meta($user_id, 'admin_id', $admin_id);
-
-            $arr = [
-              'ID' => $user_id,
-              'nickname' => $admin_data['admin_firstname'] . ' ' . $admin_data['admin_lastname'],
-              'display_name' => $admin_data['admin_firstname'] . ' ' . $admin_data['admin_lastname'],
-              'first_name' => $admin_data['admin_firstname'],
-              'last_name' => $admin_data['admin_lastname'],
-              'role' => 'administrator',
-            ];
+            $arr = ['ID' => $user_id, 'nickname' => $admin_data['admin_firstname'] . ' ' . $admin_data['admin_lastname'], 'display_name' => $admin_data['admin_firstname'] . ' ' . $admin_data['admin_lastname'], 'first_name' => $admin_data['admin_firstname'], 'last_name' => $admin_data['admin_lastname'], 'role' => 'administrator'];
             wp_update_user($arr);
-
-        } elseif ($user_info && count($admin_data) == 0) {// "remove user" change role to subscriber
-
-            $arr = [
-              'ID' => $user_info->ID,
-              'role' => 'subscriber',
-            ];
+        } elseif ($user_info && count($admin_data) == 0) {
+            // "remove user" change role to subscriber
+            $arr = ['ID' => $user_info->ID, 'role' => 'subscriber'];
             wp_update_user($arr);
-
         }
     }
-
-    public function editCustomer($customer_id)
+    public function edit_customer($customer_id)
     {
-        if (!\frontend\design\Info::hasBlog()) {
+        if (!\frontend\design\Info::has_blog()) {
             return '';
         }
-        $this->wpLoad();
+        $this->wp_load();
         $user_info_arr = get_users(['meta_key' => 'customer_id', 'meta_value' => $customer_id]);
         $user_info = $user_info_arr[0];
-
         $admin_data = tep_db_fetch_array(tep_db_query('select * from ' . TABLE_CUSTOMERS . " where customers_id = '" . $customer_id . "'"));
-
-        if ($user_info && count($admin_data) > 0) {// edit user
-
-            $arr = [
-              'ID' => $user_info->ID,
-              'nickname' => $admin_data['customers_firstname'] . ' ' . $admin_data['	customers_lastname'],
-              'display_name' => $admin_data['customers_firstname'] . ' ' . $admin_data['	customers_lastname'],
-              'first_name' => $admin_data['customers_firstname'],
-              'last_name' => $admin_data['customers_lastname'],
-            ];
+        if ($user_info && count($admin_data) > 0) {
+            // edit user
+            $arr = ['ID' => $user_info->ID, 'nickname' => $admin_data['customers_firstname'] . ' ' . $admin_data['	customers_lastname'], 'display_name' => $admin_data['customers_firstname'] . ' ' . $admin_data['	customers_lastname'], 'first_name' => $admin_data['customers_firstname'], 'last_name' => $admin_data['customers_lastname']];
             wp_update_user($arr);
-
-        } elseif (!$user_info && count($admin_data) > 0) {// create user
-
+        } elseif (!$user_info && count($admin_data) > 0) {
+            // create user
             $username = preg_replace('/[^a-z0-9_-]/', '', $admin_data['admin_email_address']);
-
             $user_id = wp_create_user($username, '', '');
             $n = 1;
             while (count($user_id->errors) > 0) {
@@ -264,23 +204,12 @@ class Blog
                 $n++;
             }
             add_user_meta($user_id, 'customer_id', $customer_id);
-
-            $arr = [
-              'ID' => $user_id,
-              'nickname' => $admin_data['customers_firstname'] . ' ' . $admin_data['customers_lastname'],
-              'first_name' => $admin_data['customers_firstname'],
-              'last_name' => $admin_data['customers_lastname'],
-            ];
+            $arr = ['ID' => $user_id, 'nickname' => $admin_data['customers_firstname'] . ' ' . $admin_data['customers_lastname'], 'first_name' => $admin_data['customers_firstname'], 'last_name' => $admin_data['customers_lastname']];
             wp_update_user($arr);
-
-        } elseif ($user_info && count($admin_data) == 0) {// "remove user" change role to subscriber
-
-            $arr = [
-              'ID' => $user_info->ID,
-              'role' => 'subscriber',
-            ];
+        } elseif ($user_info && count($admin_data) == 0) {
+            // "remove user" change role to subscriber
+            $arr = ['ID' => $user_info->ID, 'role' => 'subscriber'];
             wp_update_user($arr);
-
         }
     }
 }

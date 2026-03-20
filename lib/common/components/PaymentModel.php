@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,31 +11,24 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components;
 
 use Yii;
-
-class PaymentModel extends \yii\base\Model
+class Payment_Model extends \yii\base\Model
 {
     public $rules = [];
     public $data = [];
-
     public function __construct()
     {
-
     }
-
     public function rules()
     {
         return $this->rules;
     }
-
     public function __set($name, $value)
     {
         $this->data[$name] = $value;
     }
-
     public function __get($name)
     {
         if (isset($this->data[$name])) {
@@ -43,33 +36,30 @@ class PaymentModel extends \yii\base\Model
         }
         return null;
     }
-
-    public function getAttributes($names = null, $except = [])
+    public function get_attributes($names = null, $except = [])
     {
         return $this->data;
     }
-
-    public function beforeValidate()
+    public function before_validate()
     {
         foreach ($this->rules() as $rule) {
             if (isset($rule['format'])) {
-                $method = 'as'.$rule[1];
+                $method = 'as' . $rule[1];
                 foreach ($rule[0] as $field) {
                     try {
                         if (strlen($this->{$field})) {
-                            $value = \common\helpers\Date::prepareInputDate($this->{$field});
+                            $value = \common\helpers\Date::prepare_input_date($this->{$field});
                             $this->{$field} = Yii::$app->formatter->{$method}($value, $rule['format']);
                         }
                     } catch (\Exception $ex) {
-                        $this->addError($field, $ex->getMessage());
+                        $this->add_error($field, $ex->get_message());
                     }
                 }
             }
         }
-        if ($this->hasErrors()) {
+        if ($this->has_errors()) {
             return false;
         }
         return true;
     }
-
 }

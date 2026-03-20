@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,172 +11,109 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes;
 
 class department
 {
     protected $active_department_id = 0;
-
     /**
      * @return int
      */
-    public function getActiveDepartmentId()
+    public function get_active_department_id()
     {
         return $this->active_department_id;
     }
-
     /**
      * @param int $active_department_id
      */
-    public function setActiveDepartmentId($active_department_id)
+    public function set_active_department_id($active_department_id)
     {
         $this->active_department_id = $active_department_id;
     }
-
-    public static function getList($only_active = true)
+    public static function get_list($only_active = true)
     {
-        $departmentList = [];
-        $departments_query = tep_db_query(
-            'SELECT * '.
-            'FROM ' . TABLE_DEPARTMENTS . ' '.
-            'WHERE 1 '.
-            ($only_active ? ' AND departments_status > 0 ' : '').
-            'ORDER BY departments_status desc, departments_sort_order, departments_id'
-        );
+        $department_list = [];
+        $departments_query = tep_db_query('SELECT * ' . 'FROM ' . TABLE_DEPARTMENTS . ' ' . 'WHERE 1 ' . ($only_active ? ' AND departments_status > 0 ' : '') . 'ORDER BY departments_status desc, departments_sort_order, departments_id');
         while ($department = tep_db_fetch_array($departments_query)) {
             $department['id'] = $department['departments_id'];
             $department['text'] = $department['departments_store_name'];
-            $departmentList[] = $department;
+            $department_list[] = $department;
         }
-        return $departmentList;
+        return $department_list;
     }
-
-    public static function getCatalogAssignList()
+    public static function get_catalog_assign_list()
     {
-        return self::getList(false);
+        return self::get_list(false);
     }
-
-    public function hasCategory($categoryId)
+    public function has_category($category_id)
     {
-        $check = tep_db_fetch_array(tep_db_query(
-            'SELECT COUNT(*) AS assigned '.
-            'FROM '.TABLE_CATEGORIES.' c '.
-            ' INNER JOIN '.TABLE_DEPARTMENTS_CATEGORIES." dc ON c.categories_id=dc.categories_id AND dc.departments_id='".(int)$this->active_department_id."' ".
-            "WHERE c.categories_id='".(int)$categoryId."' ".
-            ''
-        ));
+        $check = tep_db_fetch_array(tep_db_query('SELECT COUNT(*) AS assigned ' . 'FROM ' . TABLE_CATEGORIES . ' c ' . ' INNER JOIN ' . TABLE_DEPARTMENTS_CATEGORIES . " dc ON c.categories_id=dc.categories_id AND dc.departments_id='" . (int) $this->active_department_id . "' " . "WHERE c.categories_id='" . (int) $category_id . "' " . ''));
         return $check['assigned'] > 0;
     }
-
-    public function hasProduct($productId)
+    public function has_product($product_id)
     {
-        $check = tep_db_fetch_array(tep_db_query(
-            'SELECT COUNT(*) AS assigned '.
-            'FROM '.TABLE_PRODUCTS.' p '.
-            ' INNER JOIN '.TABLE_DEPARTMENTS_PRODUCTS." dp ON dp.products_id=p.products_id AND dp.departments_id='".(int)$this->active_department_id."' ".
-            ' INNER JOIN '.TABLE_PRODUCTS_TO_CATEGORIES.' p2c ON p2c.products_id=p.products_id '.
-            ' INNER JOIN '.TABLE_DEPARTMENTS_CATEGORIES." dc ON p2c.categories_id=dc.categories_id AND dc.departments_id='".(int)$this->active_department_id."' ".
-            "WHERE p.products_id='".(int)$productId."' ".
-            ''
-        ));
+        $check = tep_db_fetch_array(tep_db_query('SELECT COUNT(*) AS assigned ' . 'FROM ' . TABLE_PRODUCTS . ' p ' . ' INNER JOIN ' . TABLE_DEPARTMENTS_PRODUCTS . " dp ON dp.products_id=p.products_id AND dp.departments_id='" . (int) $this->active_department_id . "' " . ' INNER JOIN ' . TABLE_PRODUCTS_TO_CATEGORIES . ' p2c ON p2c.products_id=p.products_id ' . ' INNER JOIN ' . TABLE_DEPARTMENTS_CATEGORIES . " dc ON p2c.categories_id=dc.categories_id AND dc.departments_id='" . (int) $this->active_department_id . "' " . "WHERE p.products_id='" . (int) $product_id . "' " . ''));
         return $check['assigned'] > 0;
     }
-
-    public static function getName($departmentId)
+    public static function get_name($department_id)
     {
         static $map = false;
         if (!is_array($map)) {
             $map = [];
-            foreach (self::getList(false) as $departmentVariant) {
-                $map[ $departmentVariant['id'] ] = $departmentVariant['text'];
+            foreach (self::get_list(false) as $department_variant) {
+                $map[$department_variant['id']] = $department_variant['text'];
             }
         }
-        return isset($map[$departmentId]) ? $map[$departmentId] : '--';
+        return isset($map[$department_id]) ? $map[$department_id] : '--';
     }
-
-    public function getPlatformName($externalPlatformId)
+    public function get_platform_name($external_platform_id)
     {
         $name = '--';
-        $get_name_r = tep_db_query(
-            'SELECT platform_name '.
-            'FROM '.TABLE_DEPARTMENTS_EXTERNAL_PLATFORMS.' '.
-            "WHERE departments_id='".(int)$this->active_department_id."' AND platform_id='".(int)$externalPlatformId."' "
-        );
+        $get_name_r = tep_db_query('SELECT platform_name ' . 'FROM ' . TABLE_DEPARTMENTS_EXTERNAL_PLATFORMS . ' ' . "WHERE departments_id='" . (int) $this->active_department_id . "' AND platform_id='" . (int) $external_platform_id . "' ");
         if (tep_db_num_rows($get_name_r) > 0) {
             $_name = tep_db_fetch_array($get_name_r);
             $name = $_name['platform_name'];
         }
         return $name;
     }
-
-    public function updatePlatformName($externalPlatformId, $externalPlatformName)
+    public function update_platform_name($external_platform_id, $external_platform_name)
     {
-        tep_db_query(
-            'INSERT INTO '.TABLE_DEPARTMENTS_EXTERNAL_PLATFORMS.' (departments_id, platform_id, platform_name) '.
-            "VALUES ('".(int)$this->active_department_id."', '".(int)$externalPlatformId."', '".tep_db_input($externalPlatformName)."') ".
-            "ON DUPLICATE KEY UPDATE platform_name='".tep_db_input($externalPlatformName)."' "
-        );
+        tep_db_query('INSERT INTO ' . TABLE_DEPARTMENTS_EXTERNAL_PLATFORMS . ' (departments_id, platform_id, platform_name) ' . "VALUES ('" . (int) $this->active_department_id . "', '" . (int) $external_platform_id . "', '" . tep_db_input($external_platform_name) . "') " . "ON DUPLICATE KEY UPDATE platform_name='" . tep_db_input($external_platform_name) . "' ");
     }
-
-    public function getDepartmentSiteAdminBaseUrl()
+    public function get_department_site_admin_base_url()
     {
         $admin_url = '';
-
-        $get_name_r = tep_db_query(
-            'SELECT departments_http_server, departments_https_server, departments_enable_ssl, departments_http_catalog, departments_https_catalog '.
-            'FROM '.TABLE_DEPARTMENTS.' '.
-            "WHERE departments_id='".(int)$this->active_department_id."'"
-        );
+        $get_name_r = tep_db_query('SELECT departments_http_server, departments_https_server, departments_enable_ssl, departments_http_catalog, departments_https_catalog ' . 'FROM ' . TABLE_DEPARTMENTS . ' ' . "WHERE departments_id='" . (int) $this->active_department_id . "'");
         if (tep_db_num_rows($get_name_r) > 0) {
             $_name = tep_db_fetch_array($get_name_r);
-            $admin_url = $_name['departments_http_server'].$_name['departments_http_catalog'].'/admin/';
-            $admin_url = 'http://'.str_replace('//', '/', $admin_url);
+            $admin_url = $_name['departments_http_server'] . $_name['departments_http_catalog'] . '/admin/';
+            $admin_url = 'http://' . str_replace('//', '/', $admin_url);
         }
         return $admin_url;
-
     }
-
-    public function getApiOutgoingPriceFormula()
+    public function get_api_outgoing_price_formula()
     {
         static $fetched = [];
-
-        if (!isset($fetched[(int)$this->active_department_id])) {
-            $fetched[(int)$this->active_department_id] = false;
-            $get_formula_r = tep_db_query(
-                'SELECT api_outgoing_price_formula ' .
-                'FROM ' . TABLE_DEPARTMENTS . ' ' .
-                "WHERE departments_id='" . (int)$this->active_department_id . "' "
-            );
+        if (!isset($fetched[(int) $this->active_department_id])) {
+            $fetched[(int) $this->active_department_id] = false;
+            $get_formula_r = tep_db_query('SELECT api_outgoing_price_formula ' . 'FROM ' . TABLE_DEPARTMENTS . ' ' . "WHERE departments_id='" . (int) $this->active_department_id . "' ");
             if (tep_db_num_rows($get_formula_r) > 0) {
                 $get_formula = tep_db_fetch_array($get_formula_r);
-                $fetched[(int)$this->active_department_id] = json_decode($get_formula['api_outgoing_price_formula'], true);
+                $fetched[(int) $this->active_department_id] = json_decode($get_formula['api_outgoing_price_formula'], true);
             }
         }
-
-        return $fetched[(int)$this->active_department_id];
+        return $fetched[(int) $this->active_department_id];
     }
-
-    public function getApiOutgoingPriceParams()
+    public function get_api_outgoing_price_params()
     {
         static $fetched = [];
-
-        if (!isset($fetched[(int)$this->active_department_id])) {
-            $fetched[(int)$this->active_department_id] = [];
-            $get_formula_params_r = tep_db_query(
-                'SELECT '.
-                ' api_outgoing_price_discount AS discount, '.
-                ' api_outgoing_price_surcharge AS surcharge, '.
-                ' api_outgoing_price_margin AS margin '.
-               'FROM ' . TABLE_DEPARTMENTS . ' ' .
-                "WHERE departments_id='" . (int)$this->active_department_id . "' "
-            );
+        if (!isset($fetched[(int) $this->active_department_id])) {
+            $fetched[(int) $this->active_department_id] = [];
+            $get_formula_params_r = tep_db_query('SELECT ' . ' api_outgoing_price_discount AS discount, ' . ' api_outgoing_price_surcharge AS surcharge, ' . ' api_outgoing_price_margin AS margin ' . 'FROM ' . TABLE_DEPARTMENTS . ' ' . "WHERE departments_id='" . (int) $this->active_department_id . "' ");
             if (tep_db_num_rows($get_formula_params_r) > 0) {
-                $fetched[(int)$this->active_department_id] = tep_db_fetch_array($get_formula_params_r);
+                $fetched[(int) $this->active_department_id] = tep_db_fetch_array($get_formula_params_r);
             }
         }
-
-        return $fetched[(int)$this->active_department_id];
+        return $fetched[(int) $this->active_department_id];
     }
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,19 +11,14 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Provider\Trueloaded;
 
-use common\api\models\XML\IOCore;
-
-class TaxZones extends XmlBase
+use common\api\models\XML\Io_Core;
+class Tax_Zones extends Xml_Base
 {
     public function init()
     {
-
-        $this->ConfigureMap = IOCore::getExportStructure('tax_zones');
+        $this->configure_map = Io_Core::get_export_structure('tax_zones');
         parent::init();
-
     }
-
 }

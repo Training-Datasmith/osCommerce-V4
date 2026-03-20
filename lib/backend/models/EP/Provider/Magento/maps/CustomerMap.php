@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,19 +11,14 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Provider\Magento\maps;
 
-class CustomerMap
+class Customer_Map
 {
     public const SCENARIO_CUSTOMER = 1;
     public const SCENARIO_ORDER = 2;
-    private static $dependence = [
-        'addresses' => '\backend\models\EP\Provider\Magento\maps\AddressMap',
-        'info' => '\backend\models\EP\Provider\Magento\maps\InfoMap',
-    ];
-
-    public static function getMap($scenario = 1)
+    private static $dependence = ['addresses' => '\backend\models\EP\Provider\Magento\maps\AddressMap', 'info' => '\backend\models\EP\Provider\Magento\maps\InfoMap'];
+    public static function get_map($scenario = 1)
     {
         if ($scenario == self::SCENARIO_CUSTOMER) {
             $map = [
@@ -38,47 +32,34 @@ class CustomerMap
                 'opc_temp_account' => 'customer_is_guest',
             ];
         } elseif ($scenario == self::SCENARIO_ORDER) {
-            $map = [
-               'customers_email_address' => 'customer_email',
-               'customers_firstname' => 'customer_firstname',
-               'customers_lastname' => 'customer_lastname',
-               'customers_dob' => 'customer_dob',
-               'customers_company_vat' => 'customer_taxvat',
-               'gender' => 'customer_gender',
-               'groups_id' => 'customer_group_id',
-               'opc_temp_account' => 'customer_is_guest',
-            ];
+            $map = ['customers_email_address' => 'customer_email', 'customers_firstname' => 'customer_firstname', 'customers_lastname' => 'customer_lastname', 'customers_dob' => 'customer_dob', 'customers_company_vat' => 'customer_taxvat', 'gender' => 'customer_gender', 'groups_id' => 'customer_group_id', 'opc_temp_account' => 'customer_is_guest'];
         }
-
         if (is_array(self::$dependence)) {
             foreach (self::$dependence as $key => $_dep) {
                 if (method_exists($_dep, 'getMap')) {
-                    $map[$key] = $_dep::getMap();
+                    $map[$key] = $_dep::get_map();
                 }
             }
         }
         return $map;
     }
-
     protected function gender($data)
     {
-        return ($data == '1' ? 'm' : 'f');
+        return $data == '1' ? 'm' : 'f';
     }
-
-    public static function apllyMapping($data, $params = [])
+    public static function aplly_mapping($data, $params = [])
     {
         $response = [];
         if (isset($params['scenario'])) {
-            $map = self::getMap($params['scenario']);
+            $map = self::get_map($params['scenario']);
         } else {
-            $map = self::getMap();
+            $map = self::get_map();
         }
-
         foreach ($map as $tl_key => $mg_key) {
             if (isset(self::$dependence[$tl_key])) {
                 $class = self::$dependence[$tl_key];
                 if (method_exists($class, 'apllyMapping')) {
-                    $response[$tl_key] = $class::apllyMapping($data, $params);
+                    $response[$tl_key] = $class::aplly_mapping($data, $params);
                 }
             } elseif (method_exists('CustomerMap', $mg_key)) {
                 $response[$tl_key] = self::$mg_key($data[$mg_key]);
@@ -88,5 +69,4 @@ class CustomerMap
         }
         return $response;
     }
-
 }

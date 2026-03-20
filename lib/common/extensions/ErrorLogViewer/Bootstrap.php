@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
 * This file is part of osCommerce ecommerce platform.
 * osCommerce the ecommerce
@@ -12,30 +11,25 @@ declare(strict_types=1);
 * Released under the GNU General Public License
 * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
 */
-
-namespace common\extensions\ErrorLogViewer;
+namespace common\extensions\Error_Log_Viewer;
 
 use yii\base\Application;
-use yii\base\BootstrapInterface;
-
-class Bootstrap implements BootstrapInterface
+use yii\base\Bootstrap_Interface;
+class Bootstrap implements Bootstrap_Interface
 {
     /**
      * @param Application $app
      */
     public function bootstrap($app)
     {
-        if (!ErrorLogViewer::enabled()) {
+        if (!Error_Log_Viewer::enabled()) {
             return;
         }
-        \Yii::setAlias('@ext-error-log-viewer', dirname(__FILE__));
+        \Yii::set_alias('@ext-error-log-viewer', dirname(__FILE__));
         if ($app instanceof \yii\web\Application) {
             if ($app->id == 'app-backend') {
-                $app->controllerMap = array_merge($app->controllerMap, [
-                    'error-log-viewer' => ['class' => __NAMESPACE__ . '\backend\controllers\ErrorLogViewerController'],
-                ]);
+                $app->controller_map = array_merge($app->controller_map, ['error-log-viewer' => ['class' => __NAMESPACE__ . '\backend\controllers\ErrorLogViewerController']]);
             }
         }
     }
-
 }

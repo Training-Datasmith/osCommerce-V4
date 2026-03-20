@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,38 +11,31 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Provider\Magento\maps;
 
-class OrderCustomerMap
+class Order_Customer_Map
 {
-    private static $dependence = [
-        'customer' => '\backend\models\EP\Provider\Magento\maps\CustomerMap',
-    ];
-
-    public static function getMap()
+    private static $dependence = ['customer' => '\backend\models\EP\Provider\Magento\maps\CustomerMap'];
+    public static function get_map()
     {
         $map = [];
-
         if (is_array(self::$dependence)) {
             foreach (self::$dependence as $key => $_dep) {
                 if (method_exists($_dep, 'getMap')) {
-                    $map[$key] = $_dep::getMap(CustomerMap::SCENARIO_ORDER);
+                    $map[$key] = $_dep::get_map(Customer_Map::SCENARIO_ORDER);
                 }
             }
         }
         return $map;
     }
-
     protected function customer_gender($data)
     {
-        return ($data == '1' ? 'm' : 'f');
+        return $data == '1' ? 'm' : 'f';
     }
-
-    public static function apllyMapping($data)
+    public static function aplly_mapping($data)
     {
         $response = [];
-        $map = self::getMap();
+        $map = self::get_map();
         $is_default = false;
         $data['addresses'] = [];
         if (isset($data['shipping_address']) && is_array($data['shipping_address'])) {
@@ -68,12 +60,11 @@ class OrderCustomerMap
             }
             $data['addresses'][] = $data['billing_address'];
         }
-
         foreach ($map as $tl_key => $mg_key) {
             if (isset(self::$dependence[$tl_key])) {
                 $class = self::$dependence[$tl_key];
                 if (method_exists($class, 'apllyMapping')) {
-                    $response[$tl_key] = $class::apllyMapping($data, ['scenario' => CustomerMap::SCENARIO_ORDER]);
+                    $response[$tl_key] = $class::aplly_mapping($data, ['scenario' => Customer_Map::SCENARIO_ORDER]);
                 }
             } elseif (method_exists(self, $mg_key)) {
                 $response[$tl_key] = self::$mg_key($data[$mg_key]);
@@ -81,8 +72,6 @@ class OrderCustomerMap
                 $response[$tl_key] = $data[$mg_key];
             }
         }
-
         return $response['customer'];
     }
-
 }

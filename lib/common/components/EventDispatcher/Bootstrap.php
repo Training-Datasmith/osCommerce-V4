@@ -10,31 +10,29 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-declare(strict_types=1);
+declare (strict_types=1);
+namespace common\components\Event_Dispatcher;
 
-namespace common\components\EventDispatcher;
-
-use common\components\EventDispatcher\Provider\Provider;
-use common\components\EventDispatcher\Provider\ProvidersAggregate;
-use yii\base\BootstrapInterface;
-
-class Bootstrap implements BootstrapInterface
+use common\components\Event_Dispatcher\Provider\Provider;
+use common\components\Event_Dispatcher\Provider\Providers_Aggregate;
+use yii\base\Bootstrap_Interface;
+class Bootstrap implements Bootstrap_Interface
 {
     public function bootstrap($app)
     {
         $container = \Yii::$container;
         try {
-            $container->setSingleton('eventProvider', static function () {
+            $container->set_singleton('eventProvider', static function () {
                 return new Provider();
             });
-            $container->setSingleton('eventDispatcher', static function () use ($container) {
-                $providersAggregate = new ProvidersAggregate();
-                $providersAggregate->attach($container->get('eventProvider'));
-                return new EventDispatcher($providersAggregate);
+            $container->set_singleton('eventDispatcher', static function () use ($container) {
+                $providers_aggregate = new Providers_Aggregate();
+                $providers_aggregate->attach($container->get('eventProvider'));
+                return new Event_Dispatcher($providers_aggregate);
             });
         } catch (\Exception $e) {
             // throw new \RuntimeException($e->getMessage(), 0, $e);
-            \Yii::error($e->getMessage());
+            \Yii::error($e->get_message());
         }
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,22 +11,19 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes\modules;
 
-interface TransactionSearchInterface
+interface Transaction_Search_Interface
 {
     /**
      * transaction filter/search fields
      * @return array [ [['ENDDATE'], 'datetime', 'format' => 'yyyy-MM-dd HH:mm:ss'], .....]
      */
-    public function getFields();
-
+    public function get_fields();
     /**
      * search transaction at gateway
      * @param array $queryParams ['ENDDATE'=> 'STARTDATE' => ...]
      * @return array of transactions
      */
-    public function search($queryParams);
-
+    public function search($query_params);
 }

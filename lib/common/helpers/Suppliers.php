@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,111 +11,87 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
-use common\models\ProductsPrices;
+use common\models\Products_Prices;
 use common\models\Suppliers as sModel;
-use common\models\SuppliersProducts as spModel;
+use common\models\Suppliers_Products as spModel;
 use yii\db\Expression;
-
 class Suppliers
 {
-    public static function getSuppliersCount($include_inactive = false)
+    public static function get_suppliers_count($include_inactive = false)
     {
-        $model = sModel::find();
+        $model = S_Model::find();
         if (!$include_inactive) {
             $model->where(['status' => 1]);
         }
         return $model->count();
     }
-
-    public static function getDefaultSupplier()
+    public static function get_default_supplier()
     {
-        return sModel::findOne(['is_default' => 1]);
+        return S_Model::find_one(['is_default' => 1]);
     }
-
-    public static function getDefaultSupplierId()
+    public static function get_default_supplier_id()
     {
-        static $_defId = null;
-        if (is_null($_defId)) {
-            $_defId = 0;
-            $supplier = sModel::findOne(['is_default' => 1]);
+        static $_def_id = null;
+        if (is_null($_def_id)) {
+            $_def_id = 0;
+            $supplier = S_Model::find_one(['is_default' => 1]);
             if ($supplier) {
-                $_defId = $supplier->suppliers_id;
+                $_def_id = $supplier->suppliers_id;
             }
         }
-        return $_defId;
+        return $_def_id;
     }
-
-    public static function orderedIds()
+    public static function ordered_ids()
     {
         static $ids;
         if (!is_array($ids)) {
             $ids = [];
-            foreach (\common\models\Suppliers::find()
-                         ->select('suppliers_id')
-                         ->orderBy('is_default DESC, sort_order, suppliers_name')
-                         ->asArray()
-                         ->all() as $_tmp) {
+            foreach (\common\models\Suppliers::find()->select('suppliers_id')->order_by('is_default DESC, sort_order, suppliers_name')->as_array()->all() as $_tmp) {
                 $ids[] = $_tmp['suppliers_id'];
             }
         }
         return $ids;
     }
-
-    public static function orderedIdsForProduct($products_id)
+    public static function ordered_ids_for_product($products_id)
     {
-        return \common\models\SuppliersProducts::find()->alias('sp')
-            ->select('sp.suppliers_id')
-            ->joinWith('supplier s')
-            ->where(['sp.products_id' => (int)$products_id])
-            ->orderBy(new \yii\db\Expression('if(sp.sort_order is null, s.sort_order, sp.sort_order)'))
-            ->column();
+        return \common\models\Suppliers_Products::find()->alias('sp')->select('sp.suppliers_id')->join_with('supplier s')->where(['sp.products_id' => (int) $products_id])->order_by(new \yii\db\Expression('if(sp.sort_order is null, s.sort_order, sp.sort_order)'))->column();
     }
-
-    public static function orderedActiveIds()
+    public static function ordered_active_ids()
     {
         static $ids;
         if (!is_array($ids)) {
             $ids = [];
-            foreach (\common\models\Suppliers::find()
-                         ->select('suppliers_id')
-                          ->where(['status' => 1])
-                         ->orderBy('is_default DESC, sort_order, suppliers_name')
-                         ->asArray()
-                         ->all() as $_tmp) {
-                $ids[] = (int)$_tmp['suppliers_id'];
+            foreach (\common\models\Suppliers::find()->select('suppliers_id')->where(['status' => 1])->order_by('is_default DESC, sort_order, suppliers_name')->as_array()->all() as $_tmp) {
+                $ids[] = (int) $_tmp['suppliers_id'];
             }
         }
         return $ids;
     }
-
     /*get all active suppliers*/
-    public static function getSuppliers($asArray = false)
+    public static function get_suppliers($as_array = false)
     {
-        return sModel::find()->where(['status' => 1])->orderBy('is_default DESC, sort_order, suppliers_name')->asArray($asArray)->all();
+        return S_Model::find()->where(['status' => 1])->order_by('is_default DESC, sort_order, suppliers_name')->as_array($as_array)->all();
     }
-
     /*get supplier product with related supplier */
-    public static function getSuppliersToUprid($uprid)
+    public static function get_suppliers_to_uprid($uprid)
     {
         if (strpos($uprid, '{') !== false) {
-            $sModels = spModel::getSupplierUpridProducts($uprid)->all();
+            $s_models = Sp_Model::get_supplier_uprid_products($uprid)->all();
         } else {
-            $sModels = spModel::getSupplierProducts($uprid)->all();
+            $s_models = Sp_Model::get_supplier_products($uprid)->all();
         }
-        return $sModels;
+        return $s_models;
     }
-
     /*get suppliers list for dropdown*/
-    public static function getSuppliersList($uprid = null, $asArray = false)
+    public static function get_suppliers_list($uprid = null, $as_array = false)
     {
         if (is_null($uprid)) {
-            return \yii\helpers\ArrayHelper::map(self::getSuppliers($asArray), 'suppliers_id', 'suppliers_name');
+            return \yii\helpers\Array_Helper::map(self::get_suppliers($as_array), 'suppliers_id', 'suppliers_name');
         } else {
             $list = [];
-            $sp = self::getSuppliersToUprid($uprid);
+            $sp = self::get_suppliers_to_uprid($uprid);
             if ($sp) {
                 foreach ($sp as $_sp) {
                     $list[$_sp->suppliers_id] = $_sp->supplier->suppliers_name;
@@ -124,76 +100,63 @@ class Suppliers
             return $list;
         }
     }
-
-    public static function getSupplierName($SupplierId)
+    public static function get_supplier_name($supplier_id)
     {
-        $suppliersName = '';
-        $supplier = sModel::findOne(['suppliers_id' => $SupplierId]);
+        $suppliers_name = '';
+        $supplier = S_Model::find_one(['suppliers_id' => $supplier_id]);
         if ($supplier) {
-            $suppliersName = $supplier->suppliers_name;
+            $suppliers_name = $supplier->suppliers_name;
         }
-        return $suppliersName;
+        return $suppliers_name;
     }
-
-    public static function getSupplierIdByName($SupplierName)
+    public static function get_supplier_id_by_name($supplier_name)
     {
         $ret = null;
-        $supplier = sModel::find()->where('suppliers_name like :name', [':name' => $SupplierName]);
-        if (!is_null($supplier) && ($supplier->count() == 1)) {
+        $supplier = S_Model::find()->where('suppliers_name like :name', [':name' => $supplier_name]);
+        if (!is_null($supplier) && $supplier->count() == 1) {
             $ret = $supplier->one()->suppliers_id;
         }
         return $ret;
     }
-
-    public static function removeUprids($products_id)
+    public static function remove_uprids($products_id)
     {
-        $_uprids = spModel::find()->where(['products_id' => (int)$products_id])
-                ->all();
-        foreach ($_uprids as $eProduct) {
-            if (strval($eProduct->uprid) != strval($eProduct->products_id)) {
-                $eProduct->delete();
+        $_uprids = Sp_Model::find()->where(['products_id' => (int) $products_id])->all();
+        foreach ($_uprids as $e_product) {
+            if (strval($e_product->uprid) != strval($e_product->products_id)) {
+                $e_product->delete();
             }
         }
     }
-
-    public static function onUpdatePriceModeSwitch($newValue)
+    public static function on_update_price_mode_switch($new_value)
     {
-        if ($newValue == 'Auto') {
+        if ($new_value == 'Auto') {
             // recalculate price
         }
     }
-
-    public static function updateProductPrice($product)
+    public static function update_product_price($product)
     {
-        $productQuery = ProductsPrices::find()
-            ->where(['products_id' => (int)$product,'groups_id' => 0]);
+        $product_query = Products_Prices::find()->where(['products_id' => (int) $product, 'groups_id' => 0]);
         if (SUPPLIER_UPDATE_PRICE_MODE == 'Auto') {
-            $productQuery->andWhere(['OR', ['IS', 'supplier_price_manual', new Expression('NULL')], ['supplier_price_manual' => 0]]);
+            $product_query->and_where(['OR', ['IS', 'supplier_price_manual', new Expression('NULL')], ['supplier_price_manual' => 0]]);
         } else {
-            $productQuery->andWhere(['OR', ['IS NOT', 'supplier_price_manual', new Expression('NULL')], ['supplier_price_manual' => 0]]);
+            $product_query->and_where(['OR', ['IS NOT', 'supplier_price_manual', new Expression('NULL')], ['supplier_price_manual' => 0]]);
         }
         if (defined('USE_MARKET_PRICES') && USE_MARKET_PRICES == 'True') {
-            $productQuery->andWhere(['currencies_id' => \common\helpers\Currencies::getCurrencyId(\common\helpers\Currencies::systemCurrencyCode())]);
+            $product_query->and_where(['currencies_id' => \common\helpers\Currencies::get_currency_id(\common\helpers\Currencies::system_currency_code())]);
         } else {
-            $productQuery->andWhere(['currencies_id' => 0]);
+            $product_query->and_where(['currencies_id' => 0]);
         }
         //echo $productQuery->createCommand()->getRawSql();
-        $productQuery->all();
-
+        $product_query->all();
     }
-
-    public static function getDefaultProductPrice($productId, $qty = 0)
+    public static function get_default_product_price($product_id, $qty = 0)
     {
         static $cache = [];
-        $key = $productId . '_' . $qty;
+        $key = $product_id . '_' . $qty;
         $price = 0;
         if (!isset($cache[$key])) {
-            $q = spModel::find()->andWhere([
-              'products_id' => \common\helpers\Inventory::get_prid($productId),
-              'uprid' => $productId,
-              'is_default' => 1,
-            ]);
-            $sp = $q->asArray()->one();
+            $q = Sp_Model::find()->and_where(['products_id' => \common\helpers\Inventory::get_prid($product_id), 'uprid' => $product_id, 'is_default' => 1]);
+            $sp = $q->as_array()->one();
             if ($sp) {
                 //?? round?? $currencies = Yii::$container->get('currencies');
                 //?? $currencies->format_clear($totalItemCountryPrice, true, $products['currency'], $products['currency_value']);
@@ -204,8 +167,7 @@ class Suppliers
         }
         return $cache[$key];
     }
-
-    public static function getDiscountValuesArray($suppliers_price_discount)
+    public static function get_discount_values_array($suppliers_price_discount)
     {
         $suppliers_qty_discounts = [];
         foreach (explode(';', $suppliers_price_discount) as $qty_discount) {
@@ -220,8 +182,7 @@ class Suppliers
         }
         return $suppliers_qty_discounts;
     }
-
-    public static function getDiscountValuesTable($suppliers_price_discount_post)
+    public static function get_discount_values_table($suppliers_price_discount_post)
     {
         $suppliers_price_discount = '';
         if (is_array($suppliers_price_discount_post) && ($suppliers_price_discount_post['status'] ?? false)) {

@@ -1,39 +1,28 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace backend\models\Report;
 
 use Yii;
-
-class MonthlyReport extends BasicReport implements ReportInterface
+class Monthly_Report extends Basic_Report implements Report_Interface
 {
     public const DELIMETER = '/';
     public const SHOW_ROWS = 10;
-
     protected $start_month;
     protected $end_month;
     protected $start_year;
     protected $end_year;
-
     protected $start_month_cmp;
     protected $end_month_cmp;
     protected $start_year_cmp;
     protected $end_year_cmp;
-
     private $start_custom;
     private $end_custom;
     protected $all_params = [];
     private $name = 'monthly';
-    protected $sql_params = [
-        'group' => ['month', 'year'],
-        'select_period' => 'date',
-    ];
-    protected $range = [
-        'year' => TITLE_YEAR, 'all' => TEXT_ALL_PERIOD, 'custom' => TEXT_CUSTOM,
-    ];
+    protected $sql_params = ['group' => ['month', 'year'], 'select_period' => 'date'];
+    protected $range = ['year' => TITLE_YEAR, 'all' => TEXT_ALL_PERIOD, 'custom' => TEXT_CUSTOM];
     protected $current_range;
-
     public function __construct($data)
     {
         switch ($data['range']) {
@@ -43,7 +32,7 @@ class MonthlyReport extends BasicReport implements ReportInterface
                     $this->start_year = $data['year'];
                     $this->end_month = '12';
                     $this->end_year = $data['year'];
-                    if (isset($data['year_cmp']) and ((int)$data['year_cmp'] > 0) and ($data['year'] != $data['year_cmp'])) {
+                    if (isset($data['year_cmp']) and (int) $data['year_cmp'] > 0 and $data['year'] != $data['year_cmp']) {
                         $this->start_month_cmp = '01';
                         $this->start_year_cmp = $data['year_cmp'];
                         $this->end_month_cmp = '12';
@@ -53,14 +42,13 @@ class MonthlyReport extends BasicReport implements ReportInterface
                 break;
             case 'custom':
                 if (isset($data['start_custom']) && !empty($data['start_custom'])) {
-                    $start_custom = $this->parseDate($data['start_custom'], false);
+                    $start_custom = $this->parse_date($data['start_custom'], false);
                     $this->start_custom = $data['start_custom'];
                     $this->start_month = $start_custom['month'];
                     $this->start_year = $start_custom['year'];
                 }
-
                 if (isset($data['end_custom']) && !empty($data['end_custom'])) {
-                    $end_custom = $this->parseDate($data['end_custom'], false);
+                    $end_custom = $this->parse_date($data['end_custom'], false);
                     $this->end_custom = $data['end_custom'];
                     $this->end_month = $end_custom['month'];
                     $this->end_year = $end_custom['year'];
@@ -71,23 +59,21 @@ class MonthlyReport extends BasicReport implements ReportInterface
                 $this->start_year = date('Y');
                 $this->end_month = '12';
                 $this->end_year = date('Y');
-                $start = $this->getFirstDatePurchase();
+                $start = $this->get_first_date_purchase();
                 if ($start) {
                     $this->start_month = date('m', strtotime($start));
                     $this->start_year = date('Y', strtotime($start));
                 }
-                $end = $this->getLastDatePurchase();
+                $end = $this->get_last_date_purchase();
                 if ($end) {
                     $this->end_month = date('m', strtotime($end));
                     $this->end_year = date('Y', strtotime($end));
                 }
                 break;
         }
-
         if (isset($data['range'])) {
             $this->current_range = $data['range'];
         }
-
         if (empty($this->start_month)) {
             $this->start_month = '01';
         }
@@ -100,39 +86,27 @@ class MonthlyReport extends BasicReport implements ReportInterface
         if (empty($this->end_year)) {
             $this->end_year = date('Y');
         }
-
         //need ordering check
-
         parent::__construct($data);
     }
-
-    public function getOptions($range)
+    public function get_options($range)
     {
         switch ($range) {
             case 'all':
                 return '';
                 break;
             case 'year':
-                return Yii::$app->controller->renderAjax('year', [
-                            'year' => $this->start_year,
-                            'year_cmp' => trim($this->start_year_cmp),
-                            'years' => $this->getYearsList(),
-                ]);
+                return Yii::$app->controller->render_ajax('year', ['year' => $this->start_year, 'year_cmp' => trim($this->start_year_cmp), 'years' => $this->get_years_list()]);
                 break;
             case 'custom':
-                return Yii::$app->controller->renderAjax('custom_month_year', [
-                            'start_custom' => $this->start_custom,
-                            'end_custom' => $this->end_custom,
-                            'holder' => TEXT_MONTH_COMMON . '/' . strtolower(TITLE_YEAR),
-                ]);
+                return Yii::$app->controller->render_ajax('custom_month_year', ['start_custom' => $this->start_custom, 'end_custom' => $this->end_custom, 'holder' => TEXT_MONTH_COMMON . '/' . strtolower(TITLE_YEAR)]);
                 break;
         }
     }
-
-    public function loadPurchases($for_map = false)
+    public function load_purchases($for_map = false)
     {
         $where = " ( o.date_purchased between '" . $this->start_year . '-' . $this->start_month . "-01 00:00:00' and '" . $this->end_year . '-' . $this->end_month . "-31 23:59:59' ) ";
-        $data = $this->getRawData($where, $for_map);
+        $data = $this->get_raw_data($where, $for_map);
         if ($for_map) {
             return $data;
         }
@@ -147,7 +121,7 @@ class MonthlyReport extends BasicReport implements ReportInterface
                             $template[$key] = '';
                         }
                     }
-                    $new_data = $this->prepareMonthRange($template, 'M Y', $this->class_range);
+                    $new_data = $this->prepare_month_range($template, 'M Y', $this->class_range);
                     $filled = true;
                 }
                 if (!empty($v['period'])) {
@@ -163,42 +137,32 @@ class MonthlyReport extends BasicReport implements ReportInterface
             }
             $data = $_temp;
             //$this->end_month = date("m", strtotime($v['period']));
-
-            if (($this->current_range == 'year') and ((int)$this->start_year_cmp > 0)) {
-                $data = $this->comparePurchases($data);
+            if ($this->current_range == 'year' and (int) $this->start_year_cmp > 0) {
+                $data = $this->compare_purchases($data);
             }
         }
         return $data;
     }
-
-    public function getRange()
+    public function get_range()
     {
         return date('M, Y', mktime(0, 0, 0, $this->start_month, 1, $this->start_year)) . ' - ' . date('M, Y', mktime(0, 0, 0, $this->end_month, 1, $this->end_year));
     }
-
-    public function getTableTitle()
+    public function get_table_title()
     {
         return TEXT_SALES_MONTHLY_STATISTICS;
     }
-
-    public function convertColumnTitle($value)
+    public function convert_column_title($value)
     {
         if ($value == 'period') {
-            return parent::convertColumnTitle(TEXT_MONTH_COMMON);
+            return parent::convert_column_title(TEXT_MONTH_COMMON);
         }
-        return parent::convertColumnTitle($value);
+        return parent::convert_column_title($value);
     }
-
-    public function getRowsCount()
+    public function get_rows_count()
     {
-        if (($this->start_month != $this->end_month &&
-                $this->start_year == $this->end_year) ||
-                ($this->start_month == $this->end_month &&
-                $this->start_year != $this->end_year)
-        ) {
+        if ($this->start_month != $this->end_month && $this->start_year == $this->end_year || $this->start_month == $this->end_month && $this->start_year != $this->end_year) {
             return 25;
         }
         return self::SHOW_ROWS;
     }
-
 }

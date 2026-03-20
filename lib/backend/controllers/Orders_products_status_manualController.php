@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -9,34 +10,22 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\controllers;
 
 use Yii;
-
 /**
  * default controller to handle user requests.
  */
-class Orders_products_status_manualController extends Sceleton
+class Orders_products_status_manual_Controller extends Sceleton
 {
     public $acl = ['TEXT_SETTINGS', 'BOX_SETTINGS_ORDERS_PRODUCTS_STATUS', 'BOX_ORDERS_PRODUCTS_STATUS_MANUAL'];
-
-    public function actionIndex()
+    public function action_index()
     {
-        $this->selectedMenu = ['settings', 'status', 'orders_products_status_manual'];
-        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('orders_products_status_manual/index'), 'title' => HEADING_TITLE_ORDERS_PRODUCTS_STATUS];
-        $this->view->headingTitle = HEADING_TITLE_ORDERS_PRODUCTS_STATUS;
-        $this->topButtons[] = '<a href="#" class="btn btn-primary" onclick="return statusEdit(0)">' . TEXT_INFO_HEADING_NEW_ORDERS_PRODUCTS_STATUS . '</a>';
-        $this->view->StatusTable = [
-            [
-                'title' => TABLE_HEADING_ORDERS_PRODUCTS_STATUS,
-                'not_important' => 0,
-            ],
-            [
-                'title' => '',
-                'not_important' => 0,
-            ],
-        ];
+        $this->selected_menu = ['settings', 'status', 'orders_products_status_manual'];
+        $this->navigation[] = ['link' => Yii::$app->url_manager->create_url('orders_products_status_manual/index'), 'title' => HEADING_TITLE_ORDERS_PRODUCTS_STATUS];
+        $this->view->heading_title = HEADING_TITLE_ORDERS_PRODUCTS_STATUS;
+        $this->top_buttons[] = '<a href="#" class="btn btn-primary" onclick="return statusEdit(0)">' . TEXT_INFO_HEADING_NEW_ORDERS_PRODUCTS_STATUS . '</a>';
+        $this->view->status_table = [['title' => TABLE_HEADING_ORDERS_PRODUCTS_STATUS, 'not_important' => 0], ['title' => '', 'not_important' => 0]];
         $messages = [];
         if (isset($_SESSION['messages'])) {
             $messages = $_SESSION['messages'];
@@ -47,152 +36,102 @@ class Orders_products_status_manualController extends Sceleton
         }
         return $this->render('index', ['messages' => $messages]);
     }
-
-    public function actionList()
+    public function action_list()
     {
         $languages_id = \Yii::$app->settings->get('languages_id');
-
         $draw = Yii::$app->request->get('draw', 1);
         $start = Yii::$app->request->get('start', 0);
         $length = Yii::$app->request->get('length', 10);
-        $opsmQuery = \common\models\OrdersProductsStatusManual::find()
-            ->andWhere(['language_id' => $languages_id]);
+        $opsm_query = \common\models\Orders_Products_Status_Manual::find()->and_where(['language_id' => $languages_id]);
         if (isset($_GET['search']['value']) && tep_not_null($_GET['search']['value'])) {
-            $opsmQuery->andWhere(['or',
-                ['like', 'orders_products_status_manual_name', tep_db_input(tep_db_prepare_input($_GET['search']['value']))],
-                ['like', 'orders_products_status_manual_name_long', tep_db_input(tep_db_prepare_input($_GET['search']['value']))],
-            ]);
+            $opsm_query->and_where(['or', ['like', 'orders_products_status_manual_name', tep_db_input(tep_db_prepare_input($_GET['search']['value']))], ['like', 'orders_products_status_manual_name_long', tep_db_input(tep_db_prepare_input($_GET['search']['value']))]]);
         }
         if (isset($_GET['order'][0]['column']) && $_GET['order'][0]['dir']) {
             switch ($_GET['order'][0]['column']) {
                 case 0:
-                    $opsmQuery->orderBy('orders_products_status_manual_name_long ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
+                    $opsm_query->order_by('orders_products_status_manual_name_long ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
                     break;
                 case 1:
-                    $opsmQuery->orderBy('orders_products_status_manual_name ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
+                    $opsm_query->order_by('orders_products_status_manual_name ' . tep_db_input(tep_db_prepare_input($_GET['order'][0]['dir'])));
                     break;
                 default:
-                    $opsmQuery->orderBy('orders_products_status_manual_id ASC');
+                    $opsm_query->order_by('orders_products_status_manual_id ASC');
                     break;
             }
         } else {
-            $opsmQuery->orderBy('orders_products_status_manual_id ASC');
+            $opsm_query->order_by('orders_products_status_manual_id ASC');
         }
-        $orders_products_status_manual_query_numrows = $opsmQuery->count();
+        $orders_products_status_manual_query_numrows = $opsm_query->count();
         if ($length > 0) {
-            $opsmQuery->limit($length)->offset($start);
+            $opsm_query->limit($length)->offset($start);
         }
-        $opsmQuery = $opsmQuery->asArray(true)->all();
-        $responseList = [];
-        foreach ($opsmQuery as $opsmRecord) {
-            $responseList[] = [
-                $opsmRecord['orders_products_status_manual_name_long'] . tep_draw_hidden_field('id', $opsmRecord['orders_products_status_manual_id'], 'class="cell_identify"'),
-                $opsmRecord['orders_products_status_manual_name'],
-            ];
+        $opsm_query = $opsm_query->as_array(true)->all();
+        $response_list = [];
+        foreach ($opsm_query as $opsm_record) {
+            $response_list[] = [$opsm_record['orders_products_status_manual_name_long'] . tep_draw_hidden_field('id', $opsm_record['orders_products_status_manual_id'], 'class="cell_identify"'), $opsm_record['orders_products_status_manual_name']];
         }
-        $response = [
-            'draw' => $draw,
-            'recordsTotal' => $orders_products_status_manual_query_numrows,
-            'recordsFiltered' => $orders_products_status_manual_query_numrows,
-            'data' => $responseList,
-        ];
+        $response = ['draw' => $draw, 'recordsTotal' => $orders_products_status_manual_query_numrows, 'recordsFiltered' => $orders_products_status_manual_query_numrows, 'data' => $response_list];
         echo json_encode($response);
     }
-
-    public function actionStatusactions()
+    public function action_statusactions()
     {
         $languages_id = \Yii::$app->settings->get('languages_id');
-
         \common\helpers\Translation::init('admin/orders_products_status_manual');
         $this->layout = false;
-        $opsmRecord = \common\models\OrdersProductsStatusManual::findOne([
-            'orders_products_status_manual_id' => Yii::$app->request->post('orders_products_status_manual_id', 0),
-            'language_id' => $languages_id,
-        ]);
-        if ($opsmRecord) {
-            echo '<div class="or_box_head" style="color: ' . $opsmRecord->getColour() . '">' . $opsmRecord->orders_products_status_manual_name_long . ' / ' . $opsmRecord->orders_products_status_manual_name . '</div>';
+        $opsm_record = \common\models\Orders_Products_Status_Manual::find_one(['orders_products_status_manual_id' => Yii::$app->request->post('orders_products_status_manual_id', 0), 'language_id' => $languages_id]);
+        if ($opsm_record) {
+            echo '<div class="or_box_head" style="color: ' . $opsm_record->get_colour() . '">' . $opsm_record->orders_products_status_manual_name_long . ' / ' . $opsm_record->orders_products_status_manual_name . '</div>';
             $orders_products_status_manual_inputs_string = '';
             $languages = \common\helpers\Language::get_languages();
             for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
-                $orders_products_status_manual_inputs_string .= '<div class="col_desc">' . $languages[$i]['image'] . '&nbsp;' . \common\helpers\Order::get_orders_products_status_manual_name($opsmRecord->orders_products_status_manual_id, $languages[$i]['id']) . '</div>';
+                $orders_products_status_manual_inputs_string .= '<div class="col_desc">' . $languages[$i]['image'] . '&nbsp;' . \common\helpers\Order::get_orders_products_status_manual_name($opsm_record->orders_products_status_manual_id, $languages[$i]['id']) . '</div>';
             }
             echo $orders_products_status_manual_inputs_string;
             echo '<div class="btn-toolbar btn-toolbar-order">';
-            echo '<button class="btn btn-edit btn-no-margin" onclick="statusEdit(' . $opsmRecord->orders_products_status_manual_id . ')">' . IMAGE_EDIT . '</button><button class="btn btn-delete" onclick="statusDelete(' . $opsmRecord->orders_products_status_manual_id . ')">' . IMAGE_DELETE . '</button>';
+            echo '<button class="btn btn-edit btn-no-margin" onclick="statusEdit(' . $opsm_record->orders_products_status_manual_id . ')">' . IMAGE_EDIT . '</button><button class="btn btn-delete" onclick="statusDelete(' . $opsm_record->orders_products_status_manual_id . ')">' . IMAGE_DELETE . '</button>';
             echo '</div>';
         }
     }
-
-    public function actionEdit()
+    public function action_edit()
     {
         $languages_id = \Yii::$app->settings->get('languages_id');
-
-        $this->topButtons[] = '<span class="btn btn-confirm">' . IMAGE_SAVE . '</span>';
-
+        $this->top_buttons[] = '<span class="btn btn-confirm">' . IMAGE_SAVE . '</span>';
         \common\helpers\Translation::init('admin/orders_products_status_manual');
-        $opsmRecord = \common\models\OrdersProductsStatusManual::findOne([
-            'orders_products_status_manual_id' => Yii::$app->request->get('orders_products_status_manual_id', 0),
-            'language_id' => $languages_id,
-        ]);
+        $opsm_record = \common\models\Orders_Products_Status_Manual::find_one(['orders_products_status_manual_id' => Yii::$app->request->get('orders_products_status_manual_id', 0), 'language_id' => $languages_id]);
         $orders_products_status_manual_id = 0;
         $orders_products_status_manual_colour = '#000000';
-        if ($opsmRecord) {
-            $orders_products_status_manual_id = $opsmRecord->orders_products_status_manual_id;
-            $orders_products_status_manual_colour = $opsmRecord->getColour();
+        if ($opsm_record) {
+            $orders_products_status_manual_id = $opsm_record->orders_products_status_manual_id;
+            $orders_products_status_manual_colour = $opsm_record->get_colour();
         }
         $orders_products_status_manual_inputs_string = [];
         $languages = \common\helpers\Language::get_languages();
         for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
-            $orders_products_status_manual_inputs_string[$languages[$i]['id']] = \yii\helpers\Html::input(
-                'text',
-                'orders_products_status_manual_name[' . $languages[$i]['id'] . ']',
-                \common\helpers\Order::get_orders_products_status_manual_name($orders_products_status_manual_id, $languages[$i]['id'], false),
-                ['class' => 'form-control']
-            );
-            $orders_products_status_manual_inputs_string_long[$languages[$i]['id']] = \yii\helpers\Html::input(
-                'text',
-                'orders_products_status_manual_name_long[' . $languages[$i]['id'] . ']',
-                \common\helpers\Order::get_orders_products_status_manual_name($orders_products_status_manual_id, $languages[$i]['id']),
-                ['class' => 'form-control']
-            );
+            $orders_products_status_manual_inputs_string[$languages[$i]['id']] = \yii\helpers\Html::input('text', 'orders_products_status_manual_name[' . $languages[$i]['id'] . ']', \common\helpers\Order::get_orders_products_status_manual_name($orders_products_status_manual_id, $languages[$i]['id'], false), ['class' => 'form-control']);
+            $orders_products_status_manual_inputs_string_long[$languages[$i]['id']] = \yii\helpers\Html::input('text', 'orders_products_status_manual_name_long[' . $languages[$i]['id'] . ']', \common\helpers\Order::get_orders_products_status_manual_name($orders_products_status_manual_id, $languages[$i]['id']), ['class' => 'form-control']);
         }
-        $opsmmArray = ($opsmRecord ? $opsmRecord->getMatrixArray(true) : []);
+        $opsmm_array = $opsm_record ? $opsm_record->get_matrix_array(true) : [];
         $orders_products_status_matrix_string = [];
-        foreach (\common\models\OrdersProductsStatus::findAll(['language_id' => $languages_id]) as $opsRecord) {
-            $opsId = ('ops_' . $opsRecord->orders_products_status_id);
-            $orders_products_status_matrix_string[] = [
-                'label' => ('<label for="' . $opsId . '">' . $opsRecord->orders_products_status_name_long . '</label>'),
-                'element' => \yii\helpers\Html::checkbox(
-                    'orders_products_status_matrix[' . $opsRecord->orders_products_status_id . ']',
-                    isset($opsmmArray[$opsRecord->orders_products_status_id]),
-                    ['id' => $opsId, 'class' => 'form-control']
-                ),
-            ];
+        foreach (\common\models\Orders_Products_Status::find_all(['language_id' => $languages_id]) as $ops_record) {
+            $ops_id = 'ops_' . $ops_record->orders_products_status_id;
+            $orders_products_status_matrix_string[] = ['label' => '<label for="' . $ops_id . '">' . $ops_record->orders_products_status_name_long . '</label>', 'element' => \yii\helpers\Html::checkbox('orders_products_status_matrix[' . $ops_record->orders_products_status_id . ']', isset($opsmm_array[$ops_record->orders_products_status_id]), ['id' => $ops_id, 'class' => 'form-control'])];
         }
         if ($orders_products_status_manual_id) {
             $title = TEXT_INFO_HEADING_EDIT_ORDERS_PRODUCTS_STATUS;
         } else {
             $title = TEXT_INFO_HEADING_NEW_ORDERS_PRODUCTS_STATUS;
         }
-        $this->selectedMenu = ['settings', 'status', 'orders_products_status_manual'];
-        $this->view->headingTitle = $title;
-        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('orders_products_status_manual/index'), 'title' => $title];
-        return $this->render('edit', [
-            'orders_products_status_manual_id' => $orders_products_status_manual_id,
-            'orders_products_status_manual_colour' => $orders_products_status_manual_colour,
-            'orders_products_status_manual_inputs_string' => $orders_products_status_manual_inputs_string,
-            'orders_products_status_manual_inputs_string_long' => $orders_products_status_manual_inputs_string_long,
-            'orders_products_status_matrix_string' => $orders_products_status_matrix_string,
-            'languages' => $languages,
-        ]);
+        $this->selected_menu = ['settings', 'status', 'orders_products_status_manual'];
+        $this->view->heading_title = $title;
+        $this->navigation[] = ['link' => Yii::$app->url_manager->create_url('orders_products_status_manual/index'), 'title' => $title];
+        return $this->render('edit', ['orders_products_status_manual_id' => $orders_products_status_manual_id, 'orders_products_status_manual_colour' => $orders_products_status_manual_colour, 'orders_products_status_manual_inputs_string' => $orders_products_status_manual_inputs_string, 'orders_products_status_manual_inputs_string_long' => $orders_products_status_manual_inputs_string_long, 'orders_products_status_matrix_string' => $orders_products_status_matrix_string, 'languages' => $languages]);
     }
-
-    public function actionSave()
+    public function action_save()
     {
         \common\helpers\Translation::init('admin/orders_products_status_manual');
         $insert_id = $orders_products_status_manual_id = intval(Yii::$app->request->get('orders_products_status_manual_id', 0));
         if ($orders_products_status_manual_id == 0) {
-            $next_id = \common\models\OrdersProductsStatusManual::find()->select('max(orders_products_status_manual_id) AS count')->asArray(true)->one();
+            $next_id = \common\models\Orders_Products_Status_Manual::find()->select('max(orders_products_status_manual_id) AS count')->as_array(true)->one();
             $insert_id = $next_id['count'] + 1;
         }
         $languages = \common\helpers\Language::get_languages();
@@ -201,60 +140,50 @@ class Orders_products_status_manualController extends Sceleton
             $orders_products_status_manual_name_array = $_POST['orders_products_status_manual_name'];
             $orders_products_status_manual_name_long_array = $_POST['orders_products_status_manual_name_long'];
             $language_id = $languages[$i]['id'];
-            $opsmRecord = \common\models\OrdersProductsStatusManual::findOne([
-                'orders_products_status_manual_id' => $orders_products_status_manual_id,
-                'language_id' => (int)$language_id,
-            ]);
+            $opsm_record = \common\models\Orders_Products_Status_Manual::find_one(['orders_products_status_manual_id' => $orders_products_status_manual_id, 'language_id' => (int) $language_id]);
             $action = 'updated';
             $added = false;
-            if (!$opsmRecord) {
+            if (!$opsm_record) {
                 $added = $insert_id;
                 $action = 'added';
-                $opsmRecord = new \common\models\OrdersProductsStatusManual();
-                $opsmRecord->language_id = $language_id;
-                $opsmRecord->orders_products_status_manual_id = $orders_products_status_manual_id == 0 ? $insert_id : $orders_products_status_manual_id;
+                $opsm_record = new \common\models\Orders_Products_Status_Manual();
+                $opsm_record->language_id = $language_id;
+                $opsm_record->orders_products_status_manual_id = $orders_products_status_manual_id == 0 ? $insert_id : $orders_products_status_manual_id;
             }
-            $opsmRecord->orders_products_status_manual_name = tep_db_prepare_input($orders_products_status_manual_name_array[$language_id]);
-            $opsmRecord->orders_products_status_manual_name_long = tep_db_prepare_input($orders_products_status_manual_name_long_array[$language_id]);
-            $opsmRecord->orders_products_status_manual_colour = $orders_products_status_manual_colour;
+            $opsm_record->orders_products_status_manual_name = tep_db_prepare_input($orders_products_status_manual_name_array[$language_id]);
+            $opsm_record->orders_products_status_manual_name_long = tep_db_prepare_input($orders_products_status_manual_name_long_array[$language_id]);
+            $opsm_record->orders_products_status_manual_colour = $orders_products_status_manual_colour;
             try {
-                $opsmRecord->save(false);
+                $opsm_record->save(false);
             } catch (\Exception $e) {
                 echo '<pre>';
                 print_r($e);
                 echo '</pre>';
             }
         }
-        $opsmRecord = \common\models\OrdersProductsStatusManual::findOne([
-            'orders_products_status_manual_id' => ($orders_products_status_manual_id == 0 ? $insert_id : $orders_products_status_manual_id),
-        ]);
-        if ($opsmRecord) {
-            if (($opsmRecord = $opsmRecord->setMatrixArray(array_keys((array)$_POST['orders_products_status_matrix']))) !== true) {
+        $opsm_record = \common\models\Orders_Products_Status_Manual::find_one(['orders_products_status_manual_id' => $orders_products_status_manual_id == 0 ? $insert_id : $orders_products_status_manual_id]);
+        if ($opsm_record) {
+            if (($opsm_record = $opsm_record->set_matrix_array(array_keys((array) $_POST['orders_products_status_matrix']))) !== true) {
                 echo '<pre>';
-                print_r($opsmRecord);
+                print_r($opsm_record);
                 echo '</pre>';
             }
         }
-        echo json_encode([
-            'message' => 'Status ' . $action,
-            'messageType' => 'alert-success',
-            'added' => $added,
-        ]);
+        echo json_encode(['message' => 'Status ' . $action, 'messageType' => 'alert-success', 'added' => $added]);
     }
-
-    public function actionDelete()
+    public function action_delete()
     {
         \common\helpers\Translation::init('admin/orders_products_status_manual');
         $orders_products_status_manual_id = Yii::$app->request->post('orders_products_status_manual_id', 0);
         if ($orders_products_status_manual_id) {
             $remove_status = true;
-            $product = \common\models\OrdersProducts::find()->select('COUNT(*) AS count')->andWhere(['orders_products_status_manual' => $orders_products_status_manual_id])->asArray(true)->one();
+            $product = \common\models\Orders_Products::find()->select('COUNT(*) AS count')->and_where(['orders_products_status_manual' => $orders_products_status_manual_id])->as_array(true)->one();
             $error = [];
             if ($product['count'] > 0) {
                 $remove_status = false;
                 $error = ['message' => ERROR_ORDERS_PRODUCTS_STATUS_USED_IN_ORDERS_PRODUCTS, 'messageType' => 'alert-danger'];
             } else {
-                $history = \common\models\OrdersProductsStatusHistory::find()->select('COUNT(*) AS count')->andWhere(['orders_products_status_manual_id' => $orders_products_status_manual_id])->asArray(true)->one();
+                $history = \common\models\Orders_Products_Status_History::find()->select('COUNT(*) AS count')->and_where(['orders_products_status_manual_id' => $orders_products_status_manual_id])->as_array(true)->one();
                 if ($history['count'] > 0) {
                     $remove_status = false;
                     $error = ['message' => ERROR_ORDERS_PRODUCTS_STATUS_USED_IN_ORDERS_PRODUCTS_HISTORY, 'messageType' => 'alert-danger'];
@@ -262,19 +191,21 @@ class Orders_products_status_manualController extends Sceleton
             }
             if (!$remove_status) {
                 ?>
-                <div class="alert fade in <?= $error['messageType'] ?>">
+                <div class="alert fade in <?php 
+                echo $error['messageType'];
+                ?>">
                     <i data-dismiss="alert" class="icon-remove close"></i>
-                    <span id="message_plce"><?= $error['message'] ?></span>
+                    <span id="message_plce"><?php 
+                echo $error['message'];
+                ?></span>
                 </div>
-                <?php
+                <?php 
             } else {
-                $opsmRecord = \common\models\OrdersProductsStatusManual::findOne([
-                    'orders_products_status_manual_id' => $orders_products_status_manual_id,
-                ]);
-                if ($opsmRecord) {
-                    $opsmRecord = $opsmRecord->setMatrixArray([]);
+                $opsm_record = \common\models\Orders_Products_Status_Manual::find_one(['orders_products_status_manual_id' => $orders_products_status_manual_id]);
+                if ($opsm_record) {
+                    $opsm_record = $opsm_record->set_matrix_array([]);
                 }
-                \common\models\OrdersProductsStatusManual::deleteAll(['orders_products_status_manual_id' => $orders_products_status_manual_id]);
+                \common\models\Orders_Products_Status_Manual::delete_all(['orders_products_status_manual_id' => $orders_products_status_manual_id]);
                 echo 'reset';
             }
         }

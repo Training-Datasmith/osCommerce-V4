@@ -1,16 +1,14 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * Get access to modules, captcha, map, printers, analytics and their settings
  */
-
 namespace common\components;
 
 use Yii;
-
-#[\AllowDynamicProperties]
-class GoogleTools
+#[\Allow_Dynamic_Properties]
+class Google_Tools
 {
     private static $instance = null;
     public static function instance()
@@ -20,78 +18,62 @@ class GoogleTools
         }
         return self::$instance;
     }
-
-    private $providers = [
-        'ModulesProvider' => false,
-        'MapProvider' => false,
-        'PrinterProvider' => false,
-        'CaptchaProvider' => false,
-        'AnalyticsProvider' => false,
-    ];
-
-    public function getProvider($name)
+    private $providers = ['ModulesProvider' => false, 'MapProvider' => false, 'PrinterProvider' => false, 'CaptchaProvider' => false, 'AnalyticsProvider' => false];
+    public function get_provider($name)
     {
         if (isset($this->providers[$name])) {
-            $getProvier = 'get' . ucfirst($name);
-            if (method_exists($this, $getProvier)) {
-                return $this->{$getProvier}();
+            $get_provier = 'get' . ucfirst($name);
+            if (method_exists($this, $get_provier)) {
+                return $this->{$get_provier}();
             }
         }
         return false;
     }
-
-    public function updateProviderConfig(google\GoogleProviderInterface $provider, $config, $platformId = 0)
+    public function update_provider_config(google\Google_Provider_Interface $provider, $config, $platform_id = 0)
     {
-        $setting = $provider->getSetting($platformId);
+        $setting = $provider->get_setting($platform_id);
         if ($setting) {
-            return $provider->updateSetting($setting, $config, $platformId);
+            return $provider->update_setting($setting, $config, $platform_id);
         } else {
-            return $provider->createSetting($config, $platformId);
+            return $provider->create_setting($config, $platform_id);
         }
-
     }
-
-    public function getModulesProvider()
+    public function get_modules_provider()
     {
         if (!is_object($this->provider['ModulesProvider'] ?? null)) {
-            $this->provider['ModulesProvider'] = Yii::createObject(__NAMESPACE__ . '\google\ModuleProvider');
+            $this->provider['ModulesProvider'] = Yii::create_object(__NAMESPACE__ . '\google\ModuleProvider');
         }
         return $this->provider['ModulesProvider'];
     }
-
-    public function getMapProvider()
+    public function get_map_provider()
     {
         if (!is_object($this->provider['MapProvider'] ?? null)) {
-            $this->provider['MapProvider'] = Yii::createObject(__NAMESPACE__ . '\google\MapProvider');
+            $this->provider['MapProvider'] = Yii::create_object(__NAMESPACE__ . '\google\MapProvider');
         }
         return $this->provider['MapProvider'];
     }
-
-    public function getCaptchaProvider()
+    public function get_captcha_provider()
     {
         if (!is_object($this->provider['CaptchaProvider'] ?? null)) {
-            $this->provider['CaptchaProvider'] = Yii::createObject(__NAMESPACE__ . '\google\CaptchaProvider');
+            $this->provider['CaptchaProvider'] = Yii::create_object(__NAMESPACE__ . '\google\CaptchaProvider');
         }
         return $this->provider['CaptchaProvider'];
     }
-
-    public function getAnalyticsProvider()
+    public function get_analytics_provider()
     {
         if (!is_object($this->provider['AnalyticsProvider'] ?? null)) {
-            $this->provider['AnalyticsProvider'] = Yii::createObject(__NAMESPACE__ . '\google\AnalyticsProvider');
+            $this->provider['AnalyticsProvider'] = Yii::create_object(__NAMESPACE__ . '\google\AnalyticsProvider');
         }
         return $this->provider['AnalyticsProvider'];
     }
-
-    public function getGeocodingLocation(string $address)
+    public function get_geocoding_location(string $address)
     {
         if (empty($address)) {
             return false;
         }
-        return $this->getMapProvider()->getLocationByAddress($address);
+        return $this->get_map_provider()->get_location_by_address($address);
     }
-
-    public function checkOrderPosition(\common\classes\extended\OrderAbstract $order)
+    public function check_order_position(\common\classes\extended\Order_Abstract $order)
     {
         if ($order->order_id) {
             return false;
@@ -100,12 +82,12 @@ class GoogleTools
         $address = implode(' ', [$order->customer['postcode'] ?? '', $order->customer['street_address'] ?? '', $order->customer['city'], $order->customer['country']['title'] ?? '']);
         $addressnocode = implode(' ', [$order->customer['street_address'] ?? '', $order->customer['city'] ?? '', $order->customer['country']['title'] ?? '']);
         foreach ([$address, $addressnocode, $nostreetaddress] as $addr) {
-            if ($resp = $this->getMapProvider()->getLocationByAddress($addr)) {
-                $oModel = $order->getARModel()->where(['orders_id' => $order->order_id]);
-                if ($oModel) {
-                    $oModel->lat = $resp['lat'];
-                    $oModel->lng = $resp['lng'];
-                    return $oModel->save(false);
+            if ($resp = $this->get_map_provider()->get_location_by_address($addr)) {
+                $o_model = $order->get_ar_model()->where(['orders_id' => $order->order_id]);
+                if ($o_model) {
+                    $o_model->lat = $resp['lat'];
+                    $o_model->lng = $resp['lng'];
+                    return $o_model->save(false);
                 }
             }
         }

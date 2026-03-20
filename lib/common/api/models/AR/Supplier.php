@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,35 +11,28 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\AR;
 
 use yii\db\Expression;
-
-class Supplier extends EPMap
+class Supplier extends Ep_Map
 {
-    public static function primaryKey()
+    public static function primary_key()
     {
         return ['suppliers_id'];
     }
-
-    public static function tableName()
+    public static function table_name()
     {
         return 'suppliers';
     }
-
-    public function beforeSave($insert)
+    public function before_save($insert)
     {
         if ($insert) {
             if (empty($this->date_added)) {
                 $this->date_added = new Expression('NOW()');
             }
-        } else {
-            if ($this->isModified()) {
-                $this->last_modified = new Expression('NOW()');
-            }
+        } else if ($this->is_modified()) {
+            $this->last_modified = new Expression('NOW()');
         }
-        return parent::beforeSave($insert);
+        return parent::before_save($insert);
     }
-
 }

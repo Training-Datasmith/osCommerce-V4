@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,39 +11,26 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Reader;
 
 use backend\models\EP\Exception;
-use yii\base\BaseObject;
-
-class CSV extends BaseObject implements ReaderInterface
+use yii\base\Base_Object;
+class CSV extends Base_Object implements Reader_Interface
 {
     public const MAX_LINE_LENGTH = 1000000;
-
     public $column_separator = 'auto';
     public $column_enclosure = '"';
-    public $data_escape = "\0";
+    public $data_escape = "\x00";
     public $line_separator = "\r\n";
     public $input_encoding = 'auto';
     public $without_header = false;
-
     public $filename;
-
     protected $file_handle;
-
     protected $file_header;
-    protected $use_config = [
-        'column_separator' => 'auto',
-        'column_enclosure' => '"',
-        'data_escape' => "\0",
-        'line_separator' => 'auto',
-        'input_encoding' => 'auto',
-    ];
+    protected $use_config = ['column_separator' => 'auto', 'column_enclosure' => '"', 'data_escape' => "\x00", 'line_separator' => 'auto', 'input_encoding' => 'auto'];
     private $file_start_pointer = 0;
     private $file_data_start_pointer;
     protected $file_size = 0;
-
     public function __set($name, $value)
     {
         try {
@@ -51,20 +38,18 @@ class CSV extends BaseObject implements ReaderInterface
         } catch (\Exception $ex) {
         }
     }
-
-    protected function openFile()
+    protected function open_file()
     {
         $this->file_header = null;
         $this->file_start_pointer = 0;
-
         ini_set('auto_detect_line_endings', true);
         if (preg_match('/\.gz$/', $this->filename) && function_exists('gzopen')) {
             // {{ get ungzipped length
             $fh = fopen($this->filename, 'rb');
             fseek($fh, -4, SEEK_END);
-            $arrLength = unpack('C*', fread($fh, 4));
+            $arr_length = unpack('C*', fread($fh, 4));
             fclose($fh);
-            $this->file_size = ($arrLength[4] << 24) | ($arrLength[3] << 16) + ($arrLength[1] << 8) + $arrLength[0];
+            $this->file_size = $arr_length[4] << 24 | ($arr_length[3] << 16) + ($arr_length[1] << 8) + $arr_length[0];
             // }}
             $this->file_handle = @gzopen($this->filename, 'rb');
         } else {
@@ -75,60 +60,52 @@ class CSV extends BaseObject implements ReaderInterface
             throw new Exception('Can\'t open file', 20);
         }
         foreach ($this->use_config as $param => $value) {
-            if (isset($this->$param)) {
-                $this->use_config[$param] = $this->$param;
+            if (isset($this->{$param})) {
+                $this->use_config[$param] = $this->{$param};
             }
         }
-
-        $this->detectEncoding();
+        $this->detect_encoding();
         if ($this->use_config['input_encoding'] != 'auto' && $this->use_config['input_encoding'] != 'UTF-8') {
             stream_filter_append($this->file_handle, 'convert.iconv.' . $this->use_config['input_encoding'] . '/UTF-8');
         }
-        $this->detectSeparator();
-
-        $this->readColumns();
-
+        $this->detect_separator();
+        $this->read_columns();
         if (!is_null($this->file_data_start_pointer)) {
             //fseek($this->file_handle, $this->file_data_start_pointer, SEEK_SET);
         }
     }
-
-    public function currentPosition()
+    public function current_position()
     {
         if ($this->file_handle) {
             return ftell($this->file_handle);
         }
         return 0;
     }
-
-    public function getProgress()
+    public function get_progress()
     {
-        $filePosition = $this->currentPosition();
+        $file_position = $this->current_position();
         if (stripos($this->use_config['input_encoding'], 'UTF-16') === 0) {
-            $filePosition *= 2;
+            $file_position *= 2;
         } elseif (stripos($this->use_config['input_encoding'], 'UTF-32') === 0) {
-            $filePosition *= 4;
+            $file_position *= 4;
         }
-        $percentDone = min(100, ($filePosition / max(1, $this->file_size)) * 100);
-        return number_format($percentDone, 1, '.', '');
+        $percent_done = min(100, $file_position / max(1, $this->file_size) * 100);
+        return number_format($percent_done, 1, '.', '');
     }
-
-    public function setDataPosition($position)
+    public function set_data_position($position)
     {
         $this->file_data_start_pointer = $position;
         if ($this->file_handle) {
             fseek($this->file_handle, $position, SEEK_SET);
         }
     }
-
-    public function readColumns()
+    public function read_columns()
     {
         if (is_null($this->file_header)) {
             if (!$this->file_handle) {
-                $this->openFile();
+                $this->open_file();
             }
             fseek($this->file_handle, $this->file_start_pointer, SEEK_SET);
-
             $this->file_header = false;
             if ($this->without_header) {
                 $this->file_header = array_keys($this->read());
@@ -136,37 +113,24 @@ class CSV extends BaseObject implements ReaderInterface
             } else {
                 $this->file_header = $this->read();
             }
-            $data_start = $this->currentPosition();
-
+            $data_start = $this->current_position();
             if (is_null($this->file_data_start_pointer) || $this->file_data_start_pointer < $data_start) {
                 $this->file_data_start_pointer = $data_start;
             }
         }
-
         return $this->file_header;
     }
-
     public function read()
     {
         if (!$this->file_handle) {
-            $this->openFile();
+            $this->open_file();
         }
-
-        $data = fgetcsv(
-            $this->file_handle,
-            self::MAX_LINE_LENGTH,
-            $this->use_config['column_separator'],
-            $this->use_config['column_enclosure'],
-            $this->use_config['data_escape']
-        );
-
+        $data = fgetcsv($this->file_handle, self::MAX_LINE_LENGTH, $this->use_config['column_separator'], $this->use_config['column_enclosure'], $this->use_config['data_escape']);
         if (is_array($data)) {
             if ($this->use_config['input_encoding'] == 'auto') {
-                $data = $this->deEncode($data);
+                $data = $this->de_encode($data);
             }
-
             $data = array_map([$this, 'filterText'], $data);
-
             if (is_array($this->file_header)) {
                 $named_data = [];
                 foreach ($this->file_header as $idx => $key_name) {
@@ -175,11 +139,9 @@ class CSV extends BaseObject implements ReaderInterface
                 return $named_data;
             }
         }
-
         return $data;
     }
-
-    protected function filterText($string)
+    protected function filter_text($string)
     {
         if (strpos($string, '\t') !== false) {
             $string = str_replace('\t', "\t", $string);
@@ -192,42 +154,36 @@ class CSV extends BaseObject implements ReaderInterface
         }
         return $string;
     }
-
-    protected function detectEncoding()
+    protected function detect_encoding()
     {
         // check UTF encoding
         rewind($this->file_handle);
-        $utfMap = $this->getUtfBomMap();
-        if (isset($utfMap[ $this->use_config['input_encoding'] ])) {
-            $this->file_start_pointer = strlen($utfMap[ $this->use_config['input_encoding'] ]);
+        $utf_map = $this->get_utf_bom_map();
+        if (isset($utf_map[$this->use_config['input_encoding']])) {
+            $this->file_start_pointer = strlen($utf_map[$this->use_config['input_encoding']]);
         }
-
         if ($this->use_config['input_encoding'] == 'auto') {
-            $readLength = array_reduce($utfMap, function ($initial, $signature) {
+            $read_length = array_reduce($utf_map, function ($initial, $signature) {
                 return max($initial, strlen($signature));
             }, 0);
-            $checkSignature = fread($this->file_handle, $readLength);
-
+            $check_signature = fread($this->file_handle, $read_length);
             rewind($this->file_handle);
-            foreach ($utfMap as $utfEncoding => $utfSignature) {
-                if (substr($checkSignature, 0, strlen($utfSignature)) == $utfSignature) {
-                    $this->use_config['input_encoding'] = $utfEncoding;
-                    $this->file_start_pointer = strlen($utfSignature);
+            foreach ($utf_map as $utf_encoding => $utf_signature) {
+                if (substr($check_signature, 0, strlen($utf_signature)) == $utf_signature) {
+                    $this->use_config['input_encoding'] = $utf_encoding;
+                    $this->file_start_pointer = strlen($utf_signature);
                     break;
                 }
             }
         }
-
         fseek($this->file_handle, $this->file_start_pointer, SEEK_SET);
     }
-
-    protected function detectSeparator()
+    protected function detect_separator()
     {
         if ($this->use_config['column_separator'] == 'auto') {
             $file_position = ftell($this->file_handle);
             $test_line = fgets($this->file_handle);
             $delimiters = [',', "\t", ';', '|', ':'];
-
             $results = [];
             foreach ($delimiters as $delimiter) {
                 $fields = explode($delimiter, $test_line);
@@ -235,9 +191,7 @@ class CSV extends BaseObject implements ReaderInterface
                     $results[$delimiter] = count($fields);
                 }
             }
-
             fseek($this->file_handle, $file_position);
-
             if (count($results) > 0) {
                 $results = array_keys($results, max($results));
                 $this->use_config['column_separator'] = $results[0];
@@ -246,23 +200,15 @@ class CSV extends BaseObject implements ReaderInterface
             }
         }
     }
-
-    private function getUtfBomMap()
+    private function get_utf_bom_map()
     {
-        $UTF_BOM = [
-            'UTF-32BE' => chr(0x00) . chr(0x00) . chr(0xFE) . chr(0xFF),
-            'UTF-32LE' => chr(0xFF) . chr(0xFE) . chr(0x00) . chr(0x00),
-            'UTF-16BE' => chr(0xFE) . chr(0xFF),
-            'UTF-16LE' => chr(0xFF) . chr(0xFE),
-            'UTF-8' => chr(0xEF) . chr(0xBB) . chr(0xBF),
-        ];
+        $UTF_BOM = ['UTF-32BE' => chr(0x0) . chr(0x0) . chr(0xfe) . chr(0xff), 'UTF-32LE' => chr(0xff) . chr(0xfe) . chr(0x0) . chr(0x0), 'UTF-16BE' => chr(0xfe) . chr(0xff), 'UTF-16LE' => chr(0xff) . chr(0xfe), 'UTF-8' => chr(0xef) . chr(0xbb) . chr(0xbf)];
         return $UTF_BOM;
     }
-
-    private function deEncode($dataArray)
+    private function de_encode($data_array)
     {
-        static $preferredEncodingOrder = false;
-        if (!is_array($preferredEncodingOrder)) {
+        static $preferred_encoding_order = false;
+        if (!is_array($preferred_encoding_order)) {
             $encoding_list = mb_list_encodings();
             $encoding_list = preg_grep('/(-Mobile|auto)/i', $encoding_list, PREG_GREP_INVERT);
             $prefer3_order = 'UTF,ISO,WIN,CP8';
@@ -279,18 +225,16 @@ class CSV extends BaseObject implements ReaderInterface
                 }
                 return $cmp_res;
             });
-            $preferredEncodingOrder = $encoding_list;
+            $preferred_encoding_order = $encoding_list;
         }
-
-        foreach ($dataArray as $key => $file_data) {
+        foreach ($data_array as $key => $file_data) {
             if (!empty($file_data) && !is_numeric($file_data)) {
-                $cellEncoding = mb_detect_encoding($file_data, $preferredEncodingOrder, true);
-                if ($cellEncoding != 'UTF-8') {
-                    $dataArray[$key] = mb_convert_encoding($file_data, 'UTF-8', $cellEncoding);
+                $cell_encoding = mb_detect_encoding($file_data, $preferred_encoding_order, true);
+                if ($cell_encoding != 'UTF-8') {
+                    $data_array[$key] = mb_convert_encoding($file_data, 'UTF-8', $cell_encoding);
                 }
             }
         }
-        return $dataArray;
+        return $data_array;
     }
-
 }

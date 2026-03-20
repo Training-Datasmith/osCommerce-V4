@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,93 +11,82 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components;
 
-class ProductItem extends \ArrayObject
+class Product_Item extends \ArrayObject
 {
     private $product_prices = [];
-
-    public function checkAttachedDetails($block)
+    public function check_attached_details($block)
     {
         return $this->offsetExists($block);
     }
-
-    public function attachDetails($array)
+    public function attach_details($array)
     {
         if (!is_array($array)) {
             return $this;
         }
-
         //$type = key($array);
         //$data = current($array);
-
         //if ($this->checkAttachedDetails($type)) return $this;
-
         if (!is_array($array)) {
             return $this;
         }
-
-        $product = array_merge($this->getArrayCopy(), $array);
-        $this->exchangeArray($product);
-
+        $product = array_merge($this->get_array_copy(), $array);
+        $this->exchange_array($product);
         return $this;
     }
-
-    public function removeDetails($key)
+    public function remove_details($key)
     {
-
-        $current = $this->getArrayCopy();
+        $current = $this->get_array_copy();
         if (isset($current[$key])) {
             unset($current[$key]);
         }
-
-        $this->exchangeArray($current);
-
+        $this->exchange_array($current);
         return $this;
     }
-
-    #[\ReturnTypeWillChange]
+    #[\Return_Type_Will_Change]
     public function offsetGet($index)
     {
-        if ($index != 'products_id' && !$this->offsetExists($index) && $this->getId()) {
+        if ($index != 'products_id' && !$this->offsetExists($index) && $this->get_id()) {
             /**
              * @var $productsSchema \yii\db\TableSchema
              */
-            $productsSchema = \common\models\Products::getTableSchema();
-            if ($productsSchema->getColumn($index)) {
-                $loadKeys = [$index];
-                $offenUsedKeys = [
+            $products_schema = \common\models\Products::get_table_schema();
+            if ($products_schema->get_column($index)) {
+                $load_keys = [$index];
+                $offen_used_keys = [
                     //'products_id_stock','products_id_price',
-                    'disable_discount', 'products_status', 'stock_indication_id', 'stock_delivery_terms_id', 'is_virtual', 'request_quote', 'ask_sample',
-                    'allow_backorder', 'request_quote_out_stock', 'cart_button',
-                    'products_price', 'products_price_full', 'pack_unit', 'products_price_pack_unit', 'packaging', 'products_price_packaging',
+                    'disable_discount',
+                    'products_status',
+                    'stock_indication_id',
+                    'stock_delivery_terms_id',
+                    'is_virtual',
+                    'request_quote',
+                    'ask_sample',
+                    'allow_backorder',
+                    'request_quote_out_stock',
+                    'cart_button',
+                    'products_price',
+                    'products_price_full',
+                    'pack_unit',
+                    'products_price_pack_unit',
+                    'packaging',
+                    'products_price_packaging',
                 ];
-                if (in_array($index, $offenUsedKeys)) {
-                    $loadKeys = $offenUsedKeys;
+                if (in_array($index, $offen_used_keys)) {
+                    $load_keys = $offen_used_keys;
                 } else {
                     //echo '<pre>'; var_dump($index); echo '</pre>';
                 }
-
-                $missing_data = \common\models\Products::find()
-                    ->where(['products_id' => $this->getId()])
-                    ->select($loadKeys)
-                    ->asArray()
-                    ->one();
-
-                foreach ($missing_data as $loadedKey => $loadedValue) {
-                    $this->offsetSet($loadedKey, $loadedValue);
+                $missing_data = \common\models\Products::find()->where(['products_id' => $this->get_id()])->select($load_keys)->as_array()->one();
+                foreach ($missing_data as $loaded_key => $loaded_value) {
+                    $this->offsetSet($loaded_key, $loaded_value);
                 }
             }
         }
-
-        if (in_array($index, ['products_id_stock','products_id_price']) && !$this->offsetExists($index)) {
+        if (in_array($index, ['products_id_stock', 'products_id_price']) && !$this->offsetExists($index)) {
             if (defined('LISTING_SUB_PRODUCT') && LISTING_SUB_PRODUCT == 'True') {
-                $missing_data = \common\models\Products::find()
-                    ->where(['products_id' => $this->getId()])
-                    ->select(['products_id_stock', 'products_id_price'])
-                    ->asArray()
-                    ->one();
+                $missing_data = \common\models\Products::find()->where(['products_id' => $this->get_id()])->select(['products_id_stock', 'products_id_price'])->as_array()->one();
                 foreach ($missing_data as $key => $val) {
                     $this->offsetSet($key, $val);
                 }
@@ -107,44 +96,32 @@ class ProductItem extends \ArrayObject
         }
         return parent::offsetExists($index) ? parent::offsetGet($index) : null;
     }
-
-    public function getId()
+    public function get_id()
     {
         return $this->offsetGet('products_id');
     }
-
-    public function getPriceProductId()
+    public function get_price_product_id()
     {
-        return $this->offsetGet(\common\helpers\Product::priceProductIdColumn());
+        return $this->offsetGet(\common\helpers\Product::price_product_id_column());
     }
-
-    public function getProductsPrices($params)
+    public function get_products_prices($params)
     {
         $key = md5(\json_encode($params));
         if (!array_key_exists($key, $this->product_prices)) {
-            $this->product_prices[$key] = \common\models\ProductsPrices::find()
-                ->select('products_group_price as products_price, products_group_price_pack_unit as products_price_pack_unit, products_group_price_packaging as products_price_packaging')
-                ->where('products_id=:products_id and groups_id = :groups_id and currencies_id =:currencies_id', $params)
-                ->asArray()->one();
+            $this->product_prices[$key] = \common\models\Products_Prices::find()->select('products_group_price as products_price, products_group_price_pack_unit as products_price_pack_unit, products_group_price_packaging as products_price_packaging')->where('products_id=:products_id and groups_id = :groups_id and currencies_id =:currencies_id', $params)->as_array()->one();
         }
         return $this->product_prices[$key];
     }
-
-    public function getProductWeight($uprid)
+    public function get_product_weight($uprid)
     {
         $product_weight = $this->offsetGet('products_weight');
         $without_inventory = $this->offsetGet('without_inventory');
-
         $inventory_attributes = [];
         $virtual_attributes = [];
-
-        $inventoryUprid = \common\helpers\Inventory::normalizeInventoryId($uprid, $inventory_attributes, $virtual_attributes);
-        if (\common\helpers\Extensions::isAllowed('Inventory') && !$without_inventory) {
+        $inventory_uprid = \common\helpers\Inventory::normalize_inventory_id($uprid, $inventory_attributes, $virtual_attributes);
+        if (\common\helpers\Extensions::is_allowed('Inventory') && !$without_inventory) {
             $attributes = $virtual_attributes;
-            $inventory_weight = \common\models\Inventory::find()
-                ->where(['products_id' => strval($inventoryUprid), 'prid' => (int)$inventoryUprid])
-                ->select('inventory_weight')
-                ->scalar();
+            $inventory_weight = \common\models\Inventory::find()->where(['products_id' => strval($inventory_uprid), 'prid' => (int) $inventory_uprid])->select('inventory_weight')->scalar();
             if (is_numeric($inventory_weight)) {
                 $product_weight += $inventory_weight;
             }
@@ -153,17 +130,10 @@ class ProductItem extends \ArrayObject
             $attributes = [];
             \common\helpers\Inventory::normalize_id($uprid, $attributes);
         }
-
         if (count($attributes) > 0) {
             $attributes_weight_fixed = 0;
             $attributes_weight_percents = [];
-            $attribute_price_query = tep_db_query(
-                'select products_attributes_weight, products_attributes_weight_prefix ' .
-                'from ' . TABLE_PRODUCTS_ATTRIBUTES . ' ' .
-                "where products_id = '" . (int)$uprid . "' ".
-                "  and options_id IN ('" . implode("','", array_keys($attributes)). "') ".
-                "  and options_values_id IN('" . implode("','", array_values($attributes)) . "')"
-            );
+            $attribute_price_query = tep_db_query('select products_attributes_weight, products_attributes_weight_prefix ' . 'from ' . TABLE_PRODUCTS_ATTRIBUTES . ' ' . "where products_id = '" . (int) $uprid . "' " . "  and options_id IN ('" . implode("','", array_keys($attributes)) . "') " . "  and options_values_id IN('" . implode("','", array_values($attributes)) . "')");
             while ($attribute_price = tep_db_fetch_array($attribute_price_query)) {
                 if (tep_not_null($attribute_price['products_attributes_weight'])) {
                     if ($attribute_price['products_attributes_weight_prefix'] == '-%') {
@@ -171,7 +141,7 @@ class ProductItem extends \ArrayObject
                     } elseif ($attribute_price['products_attributes_weight_prefix'] == '+%') {
                         $attributes_weight_percents[] = 1 + $attribute_price['products_attributes_weight'] / 100;
                     } else {
-                        $attributes_weight_fixed += (($attribute_price['products_attributes_weight_prefix'] == '-') ? -1 : 1) * $attribute_price['products_attributes_weight'];
+                        $attributes_weight_fixed += ($attribute_price['products_attributes_weight_prefix'] == '-' ? -1 : 1) * $attribute_price['products_attributes_weight'];
                     }
                 }
             }
@@ -180,7 +150,6 @@ class ProductItem extends \ArrayObject
                 $product_weight *= $attributes_weight_percent;
             }
         }
-
         return $product_weight;
     }
 }

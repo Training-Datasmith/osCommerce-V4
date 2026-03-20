@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,52 +11,39 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\orders;
 
 use yii\base\Widget;
-
 class Customer extends Widget
 {
     public $manager;
     public $order;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
-
         $customer_id = $this->order->customer['customer_id'];
-        $customer_exists = \common\models\Customers::findOne($customer_id);
-        $customerLink = '';
+        $customer_exists = \common\models\Customers::find_one($customer_id);
+        $customer_link = '';
         if ($customer_exists) {
             if ($this->order->customer) {
-                $customerLink = \common\helpers\Address::address_format($this->order->customer['format_id'], $this->order->customer, 1, '', '<br>');
+                $customer_link = \common\helpers\Address::address_format($this->order->customer['format_id'], $this->order->customer, 1, '', '<br>');
             } else {
-                $customerLink = $this->order->customer['name'];
+                $customer_link = $this->order->customer['name'];
             }
         }
-
         $admin_name = '';
         if (!$customer_id) {
             $admin_id = $this->order->info['admin_id'];
             if ($admin_id) {
                 $admin = new \backend\models\Admin($admin_id);
                 if ($admin) {
-                    $admin_name = $admin->getInfo('admin_firstname') . ' ' . $admin->getInfo('admin_lastname');
+                    $admin_name = $admin->get_info('admin_firstname') . ' ' . $admin->get_info('admin_lastname');
                 }
             }
         }
-
-        return $this->render('customer', [
-            'order' => $this->order,
-            'customer_id' => $customer_id,
-            'customerExists' => $customer_exists,
-            'customerLink' => $customerLink,
-            'admin_name' => $admin_name,
-            ]);
+        return $this->render('customer', ['order' => $this->order, 'customer_id' => $customer_id, 'customerExists' => $customer_exists, 'customerLink' => $customer_link, 'admin_name' => $admin_name]);
     }
 }

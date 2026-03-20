@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,152 +11,125 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
-namespace OscLink;
+namespace Osc_Link;
 
 use common\helpers\Assert;
 use common\helpers\Php8;
-
 class Downloader
 {
-    private $apiUrlBase = '';
-    private $apiUrl = '';
-    private $apiMethod = '';
-    private $apiKey = '';
-
-    private $workingDir;
-
-    public function __construct(array $configurationArray)
+    private $api_url_base = '';
+    private $api_url = '';
+    private $api_method = '';
+    private $api_key = '';
+    private $working_dir;
+    public function __construct(array $configuration_array)
     {
-        $this->workingDir = dirname(__DIR__) . '/temp/';
-
-        $this->apiUrlBase = trim($configurationArray['api_url']['cmc_value'] ?? '');
-        $pos = strpos($this->apiUrlBase, 'index.php');
+        $this->working_dir = dirname(__DIR__) . '/temp/';
+        $this->api_url_base = trim($configuration_array['api_url']['cmc_value'] ?? '');
+        $pos = strpos($this->api_url_base, 'index.php');
         if ($pos) {
-            $this->apiUrlBase = substr($this->apiUrlBase, 0, $pos);
+            $this->api_url_base = substr($this->api_url_base, 0, $pos);
         }
-        $this->apiUrlBase = rtrim($this->apiUrlBase, '/');
-        $this->apiUrl = $this->apiUrlBase . '/index.php';
-
-        $this->apiMethod = trim($configurationArray['api_method']['cmc_value'] ?? 'bearer');
-        $this->apiKey = trim($configurationArray['api_key']['cmc_value'] ?? '');
+        $this->api_url_base = rtrim($this->api_url_base, '/');
+        $this->api_url = $this->api_url_base . '/index.php';
+        $this->api_method = trim($configuration_array['api_method']['cmc_value'] ?? 'bearer');
+        $this->api_key = trim($configuration_array['api_key']['cmc_value'] ?? '');
     }
-
-    private function checkVars()
+    private function check_vars()
     {
-        Assert::assert(is_dir($this->workingDir), 'Temp dir does not exists');
-
-        Assert::assertNotEmpty($this->apiUrl, 'Url is empty');
-        Assert::assert(in_array(substr($this->apiUrl, 0, 7), ['http://', 'https:/']), 'Url is invalid');
-
-        Assert::assertNotEmpty($this->apiKey, 'Secure key is empty');
+        Assert::assert(is_dir($this->working_dir), 'Temp dir does not exists');
+        Assert::assert_not_empty($this->api_url, 'Url is empty');
+        Assert::assert(in_array(substr($this->api_url, 0, 7), ['http://', 'https:/']), 'Url is invalid');
+        Assert::assert_not_empty($this->api_key, 'Secure key is empty');
     }
-
-    public function testConnection()
+    public function test_connection()
     {
-        $this->checkVersion();
+        $this->check_version();
     }
-
-    private function getStreamContext()
+    private function get_stream_context()
     {
         $stream_context_params = ['http' => ['timeout' => 1200]];
-        switch ($this->apiMethod) {
+        switch ($this->api_method) {
             case 'get':
-                $stream_context_params['http']['method']  = 'GET';
-                $stream_context_params['http']['header']  = 'Cache-Control: no-store';
+                $stream_context_params['http']['method'] = 'GET';
+                $stream_context_params['http']['header'] = 'Cache-Control: no-store';
                 break;
             case 'post':
-                $stream_context_params['http']['method']  = 'POST';
-                $stream_context_params['http']['header']  = 'Content-Type: application/x-www-form-urlencoded';
-                $stream_context_params['http']['content'] = 'key=' . $this->apiKey; // . '&feed=' . urlencode($feed);
+                $stream_context_params['http']['method'] = 'POST';
+                $stream_context_params['http']['header'] = 'Content-Type: application/x-www-form-urlencoded';
+                $stream_context_params['http']['content'] = 'key=' . $this->api_key;
+                // . '&feed=' . urlencode($feed);
                 break;
             case 'bearer':
-                $stream_context_params['http']['header'] = 'Authorization: Bearer ' . $this->apiKey;
+                $stream_context_params['http']['header'] = 'Authorization: Bearer ' . $this->api_key;
                 break;
             default:
-                throw new \Exception('Secure method is invalid: ' . $this->apiMethod);
+                throw new \Exception('Secure method is invalid: ' . $this->api_method);
         }
         //        if (YII_ENV=='dev') { // disable checking self-signed cert
         $stream_context_params['ssl'] = ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true];
         //        }
         return stream_context_create($stream_context_params);
     }
-
     private function internal_download($params)
     {
-        $this->checkVars();
+        $this->check_vars();
         Assert::assert(is_array($params));
-
-        $url = $this->apiUrl . '?';
+        $url = $this->api_url . '?';
         foreach ($params as $name => $value) {
-            $url .=  $name . '=' . urlencode($value) . '&';
+            $url .= $name . '=' . urlencode($value) . '&';
         }
-        if ($this->apiMethod == 'get') {
-            $url .= 'key=' . $this->apiKey;
+        if ($this->api_method == 'get') {
+            $url .= 'key=' . $this->api_key;
         }
-
         $feed = $params['feed'] ?? null;
         if (!empty($feed) && empty($params['r'])) {
-            $suffix = isset($params['offset']) ? '_offset'.$params['offset'] : '';
-            $filename = $this->workingDir . urlencode($feed) . $suffix . '.xml';
+            $suffix = isset($params['offset']) ? '_offset' . $params['offset'] : '';
+            $filename = $this->working_dir . urlencode($feed) . $suffix . '.xml';
             // download XML feed to working folder
-            Assert::assert(
-                copy($url, $filename, $this->getStreamContext()),
-                error_get_last()['message'] ?? ''
-            );
+            Assert::assert(copy($url, $filename, $this->get_stream_context()), error_get_last()['message'] ?? '');
             return $filename;
         } else {
-            $result = @file_get_contents($url, false, $this->getStreamContext());
+            $result = @file_get_contents($url, false, $this->get_stream_context());
             Assert::assert(false !== $result, error_get_last()['message'] ?? '');
             return json_decode($result, true);
         }
     }
-
-    public function getCount($feed, &$errorMsg)
+    public function get_count($feed, &$error_msg)
     {
-        Assert::assertNotEmpty($feed, 'Feed param is empty');
-        $result = $this->internal_download([
-            'r' => 'site/count',
-            'feed' => $feed,
-        ]);
+        Assert::assert_not_empty($feed, 'Feed param is empty');
+        $result = $this->internal_download(['r' => 'site/count', 'feed' => $feed]);
         $count = $result['count'] ?? -1;
-        $errorMsg = $count >= 0 ? '' : $result['error'] ?? 'Unknown error';
+        $error_msg = $count >= 0 ? '' : $result['error'] ?? 'Unknown error';
         return $result['count'];
     }
-
-    public function getStatus()
+    public function get_status()
     {
-        return $this->internal_download([
-            'r' => 'site/status',
-        ]);
+        return $this->internal_download(['r' => 'site/status']);
     }
-
-    public function checkVersion()
+    public function check_version()
     {
-        $required_ver = '1.56';  // oscb/compat/configure.php
-        $required_msg = sprintf(Php8::getConst('EXTENSION_OSCLINK_TEXT_ERROR_OLD_VERSION'), $required_ver);
-
+        $required_ver = '1.56';
+        // oscb/compat/configure.php
+        $required_msg = sprintf(Php8::get_const('EXTENSION_OSCLINK_TEXT_ERROR_OLD_VERSION'), $required_ver);
         // check access and auth
         $this->internal_download([]);
-
         try {
-            $status = $this->getStatus();
+            $status = $this->get_status();
         } catch (\Exception $e) {
-            if (false !== strpos($e->getMessage(), '404 Not Found')) {
+            if (false !== strpos($e->get_message(), '404 Not Found')) {
                 throw new \Exception($required_msg);
             } else {
                 throw $e;
             }
         }
-        Assert::assert(isset($status['version']), Php8::getConst('EXTENSION_OSCLINK_TEXT_ERROR_NOT_FOUND'));
-        $required_msg .= ' (' . sprintf(Php8::getConst('EXTENSION_OSCLINK_TEXT_ERROR_OLD_VER_FOUND'), $status['version']) . ')';
+        Assert::assert(isset($status['version']), Php8::get_const('EXTENSION_OSCLINK_TEXT_ERROR_NOT_FOUND'));
+        $required_msg .= ' (' . sprintf(Php8::get_const('EXTENSION_OSCLINK_TEXT_ERROR_OLD_VER_FOUND'), $status['version']) . ')';
         Assert::assert(version_compare($status['version'], $required_ver) >= 0, $required_msg);
     }
-
-    public function getFeed($feed, $offset = null, $limit = null)
+    public function get_feed($feed, $offset = null, $limit = null)
     {
-        Assert::assertNotEmpty($feed, 'Feed param is empty');
-
+        Assert::assert_not_empty($feed, 'Feed param is empty');
         $params = ['feed' => $feed];
         if (!empty($offset)) {
             $params['offset'] = $offset;
@@ -166,5 +139,4 @@ class Downloader
         }
         return $this->internal_download($params);
     }
-
 }

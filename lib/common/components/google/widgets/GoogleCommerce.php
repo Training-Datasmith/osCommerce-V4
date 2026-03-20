@@ -1,4 +1,5 @@
 <?php
+
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -9,28 +10,23 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components\google\widgets;
 
-use common\components\GoogleTools;
-
-class GoogleCommerce extends \yii\base\Widget
+use common\components\Google_Tools;
+class Google_Commerce extends \yii\base\Widget
 {
     public $order;
-    public $ga = ['ec:addProduct' => [], 'ec:setAction' => [], 'userId' => [], /*, 'ecommerce:send' => []*/];
+    public $ga = ['ec:addProduct' => [], 'ec:setAction' => [], 'userId' => []];
     public $gtag = ['transaction_id' => '', 'items' => []];
     public $installed_modules = [];
-
     public function init()
     {
         parent::init();
     }
-
-    public function prepareData()
+    public function prepare_data()
     {
-        $provider = (new GoogleTools())->getModulesProvider();
-        $this->installed_modules = $provider->getInstalledModules($this->order->info['platform_id']);
-
+        $provider = (new Google_Tools())->get_modules_provider();
+        $this->installed_modules = $provider->get_installed_modules($this->order->info['platform_id']);
         $_tax = $_total = $_shipping = $_coupon = $_subtotal = 0;
         foreach ($this->order->totals as $totals) {
             if ($totals['class'] == 'ot_total') {
@@ -49,81 +45,49 @@ class GoogleCommerce extends \yii\base\Widget
             }
         }
         if (array_key_exists('analytics', $this->installed_modules)) {
-            $this->ga['ec:setAction'] = [
-                'id' => $this->order->info['order_id'],
-                'affiliation' => \common\classes\platform::name($this->order->info['platform_id']),
-                'revenue' => $_total,
-                'shipping'  => $_shipping,
-                'tax' => $_tax,
-                'coupon' => ($_coupon ? $_coupon : ''),
-            ];
+            $this->ga['ec:setAction'] = ['id' => $this->order->info['order_id'], 'affiliation' => \common\classes\platform::name($this->order->info['platform_id']), 'revenue' => $_total, 'shipping' => $_shipping, 'tax' => $_tax, 'coupon' => $_coupon ? $_coupon : ''];
             $this->ga['userId'] = [$this->order->customer['id']];
-
             $this->gtag = [
-                'transaction_id' => (string)$this->order->info['order_id'],
+                'transaction_id' => (string) $this->order->info['order_id'],
                 // Set value to the sum of (price * quantity) for all items in items. Don't include shipping or tax
-                'value' => (float)$_subtotal,
-                'shipping'  => (float)$_shipping,
-                'tax' => (float)$_tax,
-                'currency' => (!empty($this->order->info['currency']) ? $this->order->info['currency'] : constant('DEFAULT_CURRENCY')),
+                'value' => (float) $_subtotal,
+                'shipping' => (float) $_shipping,
+                'tax' => (float) $_tax,
+                'currency' => !empty($this->order->info['currency']) ? $this->order->info['currency'] : constant('DEFAULT_CURRENCY'),
                 'items' => [],
             ];
         }
-
-        if (is_array($this->order->products)  && sizeof($this->order->products)) {
+        if (is_array($this->order->products) && sizeof($this->order->products)) {
             foreach ($this->order->products as $item) {
-                $p2cModel = \common\models\Products2Categories::findOne(['products_id' => (int)$item['id']]);
-                $category_name = $p2cModel ? str_replace('"', '\"', \common\helpers\Categories::get_categories_name($p2cModel->categories_id)) : '';
+                $p2c_model = \common\models\Products2Categories::find_one(['products_id' => (int) $item['id']]);
+                $category_name = $p2c_model ? str_replace('"', '\"', \common\helpers\Categories::get_categories_name($p2c_model->categories_id)) : '';
                 if (array_key_exists('analytics', $this->installed_modules)) {
-                    $this->ga['ec:addProduct'][] = [
-                        'id' => \common\helpers\Inventory::get_prid($item['id']),
-                        'name' => str_replace('"', '\"', $item['name']),
-                        'sku' => $item['model'],
-                        'category' => $category_name,
-                        'price' => number_format($item['final_price'], 2, '.', ''),
-                        'quantity' => $item['qty'],
-                    ];
-
-                    $manufacturers_id = \common\helpers\Product::get_products_info((int)$item['id'], 'manufacturers_id');
+                    $this->ga['ec:addProduct'][] = ['id' => \common\helpers\Inventory::get_prid($item['id']), 'name' => str_replace('"', '\"', $item['name']), 'sku' => $item['model'], 'category' => $category_name, 'price' => number_format($item['final_price'], 2, '.', ''), 'quantity' => $item['qty']];
+                    $manufacturers_id = \common\helpers\Product::get_products_info((int) $item['id'], 'manufacturers_id');
                     $brand = \common\helpers\Manufacturers::get_manufacturer_info('manufacturers_name', $manufacturers_id);
                     $attributes = '';
                     if (is_array($item['attributes']) && count($item['attributes'])) {
-                        $map = [
-                            'options' => \yii\helpers\ArrayHelper::getColumn($item['attributes'], 'option'),
-                            'values' => \yii\helpers\ArrayHelper::getColumn($item['attributes'], 'value'),
-                        ];
+                        $map = ['options' => \yii\helpers\Array_Helper::get_column($item['attributes'], 'option'), 'values' => \yii\helpers\Array_Helper::get_column($item['attributes'], 'value')];
                         foreach ($map['options'] as $key => $value) {
-                            $attributes .= $value . ': ' . $map['values'][$key]. ', ';
+                            $attributes .= $value . ': ' . $map['values'][$key] . ', ';
                         }
                         if (strlen($attributes) > 0) {
                             $attributes = substr($attributes, 0, -2);
                         }
                     }
-                    $this->gtag['items'][] = [
-                        'item_id' => (string)\common\helpers\Inventory::get_prid($item['id']),
-                        'item_name' => str_replace('"', '\"', $item['name']),
-                        'price' => (float)number_format($item['final_price'], 2, '.', ''),
-                        'item_brand' => ($brand ? $brand : ''),
-                        'item_category' => $category_name,
-                        'item_variant' => $attributes,
-                        'quantity' => (int)$item['qty'],
-                    ];
+                    $this->gtag['items'][] = ['item_id' => (string) \common\helpers\Inventory::get_prid($item['id']), 'item_name' => str_replace('"', '\"', $item['name']), 'price' => (float) number_format($item['final_price'], 2, '.', ''), 'item_brand' => $brand ? $brand : '', 'item_category' => $category_name, 'item_variant' => $attributes, 'quantity' => (int) $item['qty']];
                 }
             }
         }
     }
-
     public function run()
     {
-        $this->prepareData();
-
-        return $this->renderJs();
+        $this->prepare_data();
+        return $this->render_js();
     }
-
-    public function renderJs()
+    public function render_js()
     {
         ob_start();
-
         if (array_key_exists('analytics', $this->installed_modules)) {
             ?>
 <script>
@@ -151,23 +115,25 @@ class GoogleCommerce extends \yii\base\Widget
         }
 
         if (gtag_type) {
-          gtag('event', 'purchase', <?php echo json_encode($this->gtag); ?>);
+          gtag('event', 'purchase', <?php 
+            echo json_encode($this->gtag);
+            ?>);
         }
         if (ga_type) {
           ga('require', 'ec');
-<?php
-                        foreach ($this->ga as $key => $item) {
-                            if ($key == 'userId') {
-                                continue;
-                            }
-                            if (!count(array_filter($item, 'is_array'))) {
-                                echo 'ga(\'' . $key . '\', \'purchase\' , ' . json_encode($item) . ');' . "\r\n";
-                            } else {
-                                foreach ($item as $item1) {
-                                    echo 'ga(\'' . $key . '\', ' . json_encode($item1) . ');' . "\r\n";
-                                }
-                            }
-                        }
+<?php 
+            foreach ($this->ga as $key => $item) {
+                if ($key == 'userId') {
+                    continue;
+                }
+                if (!count(array_filter($item, 'is_array'))) {
+                    echo 'ga(\'' . $key . '\', \'purchase\' , ' . json_encode($item) . ');' . "\r\n";
+                } else {
+                    foreach ($item as $item1) {
+                        echo 'ga(\'' . $key . '\', ' . json_encode($item1) . ');' . "\r\n";
+                    }
+                }
+            }
             if (!empty($this->ga['userId'])) {
                 echo "ga('create', _account, { 'userId': '" . $this->ga['userId'][0] . "' });";
             }
@@ -177,11 +143,10 @@ class GoogleCommerce extends \yii\base\Widget
         }
     });
 </script>
-<?php
+<?php 
         }
         $buf = ob_get_contents();
         ob_clean();
         return $buf;
     }
-
 }

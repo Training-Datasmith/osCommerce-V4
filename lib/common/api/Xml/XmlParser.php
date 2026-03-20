@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,25 +11,22 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\Xml;
 
 /**
  * Responsible for parsing XML and returning a PHP object.
  */
-class XmlParser
+class Xml_Parser
 {
     /**
      * @var mixed
      */
-    private $rootObject;
-
+    private $root_object;
     /**
      * @var array
      */
-    private $currentItem = [];
-    private $NameNum = 0;
-
+    private $current_item = [];
+    private $name_num = 0;
     /**
      * Parse the passed XML
      *
@@ -38,27 +34,21 @@ class XmlParser
      * @param string $xml The xml string to parse.
      * @return mixed A PHP object
      */
-    public function parse($rootObject, $xml)
+    public function parse($root_object, $xml)
     {
-        $this->rootObject = $rootObject;
-        $this->currentItem = [];
-        $this->NameNum = 0;
-
+        $this->root_object = $root_object;
+        $this->current_item = [];
+        $this->name_num = 0;
         $parser = xml_parser_create_ns('UTF-8', '@');
-
         xml_parser_set_option($parser, XML_OPTION_CASE_FOLDING, 0);
         xml_parser_set_option($parser, XML_OPTION_SKIP_WHITE, 1);
         xml_set_object($parser, $this);
         xml_set_element_handler($parser, 'startElement', 'endElement');
         xml_set_character_data_handler($parser, 'cdata');
-
         xml_parse($parser, $xml, true);
-
         xml_parser_free($parser);
-
-        return $this->rootObject;
+        return $this->root_object;
     }
-
     /**
      * Handler for the parser that is called at the start of each XML element.
      *
@@ -66,20 +56,19 @@ class XmlParser
      * @param string $name The name of the element.
      * @param array $attributes Associative array of the element's attributes.
      */
-    private function startElement($parser, $name, array $attributes)
+    private function start_element($parser, $name, array $attributes)
     {
-        $class = get_class($this->rootObject);
+        $class = get_class($this->root_object);
         if (property_exists($class, $name)) {
-            $this->currentItem[] = $name;
-        } elseif (count($this->currentItem) > 0) {
+            $this->current_item[] = $name;
+        } elseif (count($this->current_item) > 0) {
             if ($name == 'item') {
-                $this->NameNum++;
-                $name = $this->NameNum;
+                $this->name_num++;
+                $name = $this->name_num;
             }
-            $this->currentItem[] = $name;
+            $this->current_item[] = $name;
         }
     }
-
     /**
      * Handler for the parser that is called for character data.
      *
@@ -88,36 +77,34 @@ class XmlParser
      */
     private function cdata($parser, $cdata)
     {
-        if (isset($this->currentItem[0])) {
-            $class = get_class($this->rootObject);
-            if (property_exists($class, $this->currentItem[0])) {
-                if (count($this->currentItem) == 1) {
-                    $this->rootObject->{$this->currentItem[0]} = $cdata;
+        if (isset($this->current_item[0])) {
+            $class = get_class($this->root_object);
+            if (property_exists($class, $this->current_item[0])) {
+                if (count($this->current_item) == 1) {
+                    $this->root_object->{$this->current_item[0]} = $cdata;
                 } else {
-                    $deep = & $this->rootObject->{$this->currentItem[0]};
-                    foreach ($this->currentItem as $key => $value) {
+                    $deep =& $this->root_object->{$this->current_item[0]};
+                    foreach ($this->current_item as $key => $value) {
                         if ($key == 0) {
                             continue;
                         }
-                        $deep = & $deep[$value];
+                        $deep =& $deep[$value];
                     }
                     $deep .= $cdata;
                 }
             }
         }
     }
-
     /**
      * Handler for the parser that is called at the end of each XML element.
      *
      * @param resource $parser Reference to the XML parser calling the handler.
      * @param string $name The name of the element.
      */
-    private function endElement($parser, $name)
+    private function end_element($parser, $name)
     {
-        if (count($this->currentItem) > 0) {
-            array_pop($this->currentItem);
+        if (count($this->current_item) > 0) {
+            array_pop($this->current_item);
         }
     }
-
 }

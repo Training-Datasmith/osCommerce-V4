@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,46 +11,39 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
-namespace backend\models\ProductEdit;
+namespace backend\models\Product_Edit;
 
 use common\api\models\AR\Products as ARProduct;
 use common\classes\Images;
 use common\models\Products;
 use yii;
-use yii\helpers\ArrayHelper;
-
-class SaveProductImages
+use yii\helpers\Array_Helper;
+class Save_Product_Images
 {
     protected $product;
-    protected $uploadsDirectory = '';
-
-    public function __construct(Products $product, $pathToUploads)
+    protected $uploads_directory = '';
+    public function __construct(Products $product, $path_to_uploads)
     {
         $this->product = $product;
-        $this->uploadsDirectory = $pathToUploads;
+        $this->uploads_directory = $path_to_uploads;
     }
-
     public function save()
     {
         $products_id = $this->product->products_id;
-        $path = $this->uploadsDirectory;
-
+        $path = $this->uploads_directory;
         $Images = new \common\classes\Images();
-
         $image_location = DIR_FS_DOCUMENT_ROOT . DIR_WS_CATALOG_IMAGES . 'products' . DIRECTORY_SEPARATOR . $products_id . DIRECTORY_SEPARATOR;
         if (!file_exists($image_location)) {
             mkdir($image_location, 0777, true);
             @chmod($image_location, 0777);
         }
-
-        $default_image = (int) Yii::$app->request->post('default_image'); //pointer
-
+        $default_image = (int) Yii::$app->request->post('default_image');
+        //pointer
         $image_status = Yii::$app->request->post('image_status');
         $products_images_id = Yii::$app->request->post('products_images_id');
         $products_images_deleted = Yii::$app->request->post('products_images_deleted');
-
-        $orig_file_name = Yii::$app->request->post('orig_file_name'); //new uploaded images
+        $orig_file_name = Yii::$app->request->post('orig_file_name');
+        //new uploaded images
         $use_origin_image_name = Yii::$app->request->post('use_origin_image_name', []);
         $image_title = Yii::$app->request->post('image_title');
         $image_alt = Yii::$app->request->post('image_alt');
@@ -63,9 +56,7 @@ class SaveProductImages
         $link_video_flag_array = Yii::$app->request->post('link_video_flag', []);
         $link_video_id_array = Yii::$app->request->post('link_video_id', []);
         //hash_file_name
-
-        $cleaningUploads = [];
-
+        $cleaning_uploads = [];
         $update_image_data = [];
         $_sort_order2pointer = [];
         $images_sort = [];
@@ -77,119 +68,79 @@ class SaveProductImages
                     $images_sort = array_flip($images_sort['image-box']);
                 }
             }
-
-            foreach ($products_images_id as $pointer => $imageId) {
-                tep_db_query('delete from ' . TABLE_PRODUCTS_IMAGES_ATTRIBUTES . " where products_images_id = '" . (int) $imageId . "'");
-                tep_db_query('delete from ' . TABLE_PRODUCTS_IMAGES_INVENTORY . " where products_images_id = '" . (int) $imageId . "'");
+            foreach ($products_images_id as $pointer => $image_id) {
+                tep_db_query('delete from ' . TABLE_PRODUCTS_IMAGES_ATTRIBUTES . " where products_images_id = '" . (int) $image_id . "'");
+                tep_db_query('delete from ' . TABLE_PRODUCTS_IMAGES_INVENTORY . " where products_images_id = '" . (int) $image_id . "'");
                 if ((int) $products_images_deleted[$pointer] == 1) {
                     continue;
                 }
-
-                $image_data = [
-                    'products_images_id' => $imageId,
-                    'products_id' => $products_id,
-                    'default_image' => ($pointer == $default_image) ? 1 : 0,
-                    'image_status' => (int)($image_status[$pointer] ?? 0),
-                    'sort_order' => isset($images_sort[$pointer]) ? $images_sort[$pointer] : (int)$pointer,
-                    'image_description' => [],
-                ];
-                $_sort_order2pointer[$image_data['sort_order']] = (int)$pointer;
-
+                $image_data = ['products_images_id' => $image_id, 'products_id' => $products_id, 'default_image' => $pointer == $default_image ? 1 : 0, 'image_status' => (int) ($image_status[$pointer] ?? 0), 'sort_order' => isset($images_sort[$pointer]) ? $images_sort[$pointer] : (int) $pointer, 'image_description' => []];
+                $_sort_order2pointer[$image_data['sort_order']] = (int) $pointer;
                 foreach ($orig_file_name[$pointer] as $language_id => $orig_file) {
                     if (!empty($orig_file)) {
-                        $cleaningUploads[] = $path . $orig_file;
+                        $cleaning_uploads[] = $path . $orig_file;
                     }
-                    $image_description = [
-                        'language_id' => (int)$language_id,
-                        'image_title' => $image_title[$pointer][$language_id],
-                        'image_alt' => $image_alt[$pointer][$language_id],
-                        'image_source_url' => (empty($orig_file) ? '' : $path . $orig_file),
-                        'alt_file_name' => ((int)ArrayHelper::getValue($alt_file_name_flag, [$pointer, $language_id]) == 0) ? '' : $alt_file_name[$pointer][$language_id],
-                        'no_watermark' => (int)ArrayHelper::getValue($no_watermark, [$pointer, $language_id]),
-                        'use_external_images' => (isset($use_external_image_array[$pointer][$language_id]) ? 1 : 0) ,
-                        'external_image_original' => $external_image_original[$pointer][$language_id],
-                        'use_origin_image_name' => (int)ArrayHelper::getValue($use_origin_image_name, [$pointer, $language_id]),
-                        'link_video_id' => (isset($link_video_flag_array[$pointer][$language_id]) && $link_video_flag_array[$pointer][$language_id] == 1 ? (isset($link_video_id_array[$pointer][$language_id]) ? $link_video_id_array[$pointer][$language_id] : 0) : 0) ,
-                    ];
+                    $image_description = ['language_id' => (int) $language_id, 'image_title' => $image_title[$pointer][$language_id], 'image_alt' => $image_alt[$pointer][$language_id], 'image_source_url' => empty($orig_file) ? '' : $path . $orig_file, 'alt_file_name' => (int) Array_Helper::get_value($alt_file_name_flag, [$pointer, $language_id]) == 0 ? '' : $alt_file_name[$pointer][$language_id], 'no_watermark' => (int) Array_Helper::get_value($no_watermark, [$pointer, $language_id]), 'use_external_images' => isset($use_external_image_array[$pointer][$language_id]) ? 1 : 0, 'external_image_original' => $external_image_original[$pointer][$language_id], 'use_origin_image_name' => (int) Array_Helper::get_value($use_origin_image_name, [$pointer, $language_id]), 'link_video_id' => isset($link_video_flag_array[$pointer][$language_id]) && $link_video_flag_array[$pointer][$language_id] == 1 ? isset($link_video_id_array[$pointer][$language_id]) ? $link_video_id_array[$pointer][$language_id] : 0 : 0];
                     $image_data['image_description'][$language_id == 0 ? '00' : \common\classes\language::get_code($language_id)] = $image_description;
                     if (isset($external_image_array[$pointer][$language_id]) && is_array($external_image_array[$pointer][$language_id])) {
-                        foreach (Images::getImageTypes(false, true) as $image_type) {
+                        foreach (Images::get_image_types(false, true) as $image_type) {
                             $external_image_url = $external_image_array[$pointer][$language_id][$image_type['image_types_id']] ?? '';
-                            tep_db_query(
-                                'INSERT INTO '.TABLE_PRODUCTS_IMAGES_EXTERNAL_URL.'(products_images_id, language_id, image_types_id, image_url) '.
-                                "VALUES('".(int)$imageId."', '".(int)$language_id."', '".(int)$image_type['image_types_id']."', '".tep_db_input($external_image_url)."') ".
-                                "ON DUPLICATE KEY UPDATE image_url='".tep_db_input($external_image_url)."'"
-                            );
-                            ;
+                            tep_db_query('INSERT INTO ' . TABLE_PRODUCTS_IMAGES_EXTERNAL_URL . '(products_images_id, language_id, image_types_id, image_url) ' . "VALUES('" . (int) $image_id . "', '" . (int) $language_id . "', '" . (int) $image_type['image_types_id'] . "', '" . tep_db_input($external_image_url) . "') " . "ON DUPLICATE KEY UPDATE image_url='" . tep_db_input($external_image_url) . "'");
                         }
                     }
                 }
-                if ($ext = \common\helpers\Extensions::isAllowed('ProductImagesByPlatform')) {
-                    $ext::imageSave($image_data, $pointer);
+                if ($ext = \common\helpers\Extensions::is_allowed('ProductImagesByPlatform')) {
+                    $ext::image_save($image_data, $pointer);
                 }
                 $update_image_data[] = $image_data;
             }
         }
-
-        $objProduct = ARProduct::findOne(['products_id' => $products_id]);
-        $objProduct->importArray([
-            'images' => $update_image_data,
-        ]);
-        $objProduct->save();
-        $objProduct->refresh();
-        $imageBack = $objProduct->exportArray([
-            'images' => [
-                '*' => [
-                    'products_images_id',
-                    'sort_order',
-                ],
-            ],
-        ]);
-        unset($objProduct);
-
-        foreach ($imageBack['images'] as $_map) {
-            $imageId = $_map['products_images_id'];
+        $obj_product = Ar_Product::find_one(['products_id' => $products_id]);
+        $obj_product->import_array(['images' => $update_image_data]);
+        $obj_product->save();
+        $obj_product->refresh();
+        $image_back = $obj_product->export_array(['images' => ['*' => ['products_images_id', 'sort_order']]]);
+        unset($obj_product);
+        foreach ($image_back['images'] as $_map) {
+            $image_id = $_map['products_images_id'];
             $pointer = $_sort_order2pointer[$_map['sort_order']];
-            $products_images_id[$pointer] = $imageId;
+            $products_images_id[$pointer] = $image_id;
             /** @var \common\extensions\AttributesImages\AttributesImages $ext */
-            if ($ext = \common\helpers\Extensions::isAllowed('AttributesImages')) {
-                $ext::productSave($imageId, $pointer);
+            if ($ext = \common\helpers\Extensions::is_allowed('AttributesImages')) {
+                $ext::product_save($image_id, $pointer);
             }
-
             /** @var \common\extensions\InventoryImages\InventoryImages $ext */
-            if ($ext = \common\helpers\Extensions::isAllowed('InventoryImages')) {
-                $ext::productSave($imageId, $pointer);
+            if ($ext = \common\helpers\Extensions::is_allowed('InventoryImages')) {
+                $ext::product_save($image_id, $pointer);
             }
         }
         unset($update_image_data);
         unset($_sort_order2pointer);
-        unset($imageBack);
-
+        unset($image_back);
         $check_image_query = tep_db_query('SELECT products_images_id FROM ' . TABLE_PRODUCTS_IMAGES . " WHERE default_image = '1' and products_id = '" . (int) $products_id . "'");
         if (tep_db_num_rows($check_image_query) == 0) {
-            $check_image_query = tep_db_query('SELECT products_images_id FROM ' . TABLE_PRODUCTS_IMAGES . " WHERE products_id = '" . (int) $products_id . "'"); //add sort order
+            $check_image_query = tep_db_query('SELECT products_images_id FROM ' . TABLE_PRODUCTS_IMAGES . " WHERE products_id = '" . (int) $products_id . "'");
+            //add sort order
             if (tep_db_num_rows($check_image_query) > 0) {
                 $check_image = tep_db_fetch_array($check_image_query);
                 tep_db_query('update ' . TABLE_PRODUCTS_IMAGES . " set default_image = '1' where products_images_id = '" . (int) $check_image['products_images_id'] . "'");
             }
         }
-
         // {{ cleaning uploaded images
-        if (count($cleaningUploads) > 0) {
-            $cleaningUploads = array_unique($cleaningUploads);
-            foreach ($cleaningUploads as $cleaningUpload) {
-                if (is_file($cleaningUpload)) {
-                    @unlink($cleaningUpload);
+        if (count($cleaning_uploads) > 0) {
+            $cleaning_uploads = array_unique($cleaning_uploads);
+            foreach ($cleaning_uploads as $cleaning_upload) {
+                if (is_file($cleaning_upload)) {
+                    @unlink($cleaning_upload);
                 }
             }
         }
         // }} cleaning uploaded images
-        $mapsId = (int)Yii::$app->request->post('maps_id', 0);
-        $this->product->setAttributes(['maps_id' => $mapsId], false);
-
+        $maps_id = (int) Yii::$app->request->post('maps_id', 0);
+        $this->product->set_attributes(['maps_id' => $maps_id], false);
         /** @var \common\extensions\ProductDesigner\ProductDesigner $pdExt */
-        if ($pdExt = \common\helpers\Extensions::isAllowed('ProductDesigner')) {
-            $pdExt::productSave($products_id);
+        if ($pd_ext = \common\helpers\Extensions::is_allowed('ProductDesigner')) {
+            $pd_ext::product_save($products_id);
         }
     }
 }

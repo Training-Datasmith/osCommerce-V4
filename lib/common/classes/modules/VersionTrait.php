@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,15 +11,14 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes\modules;
 
 /**
  * Used by Module and Setup
  */
-trait VersionTrait
+trait Version_Trait
 {
-    public static function getVersionHistory()
+    public static function get_version_history()
     {
         //        return [
         //            '1.1.0' => [
@@ -31,18 +30,15 @@ trait VersionTrait
         //            ],
         //            '1.0.0' => 'Initial release'];
     }
-
     /* Don't override if getVersionHistory is implemented */
-    public static function getVersion()
+    public static function get_version()
     {
         $default = '0.0.1';
-        $arr = static::getVersionHistory();
+        $arr = static::get_version_history();
         return empty($arr) ? $default : \common\helpers\Php8::array_key_first($arr);
     }
-
-    public static function getVersionObj(): \common\classes\modules\ModuleVer
+    public static function get_version_obj(): \common\classes\modules\Module_Ver
     {
-        return \common\classes\modules\ModuleVer::parseCommonFormat(static::getVersion());
+        return \common\classes\modules\Module_Ver::parse_common_format(static::get_version());
     }
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,24 +11,15 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+namespace Osc_Link\XML;
 
-namespace OscLink\XML;
-
-class AttributeMapper
+class Attribute_Mapper
 {
-    protected $known = [
-        '@language' => ['languages', 'languages_id'],
-        '@currency' => ['currencies', 'currencies_id'],
-        '@customer_address_book' => ['address_book', 'address_book_id'],
-        '@order_status' => ['orders_status', 'orders_status_id'],
-    ];
-
-    protected $projectId = 1;
-    protected $isLocalProject = false;
-
+    protected $known = ['@language' => ['languages', 'languages_id'], '@currency' => ['currencies', 'currencies_id'], '@customer_address_book' => ['address_book', 'address_book_id'], '@order_status' => ['orders_status', 'orders_status_id']];
+    protected $project_id = 1;
+    protected $is_local_project = false;
     protected $cache = [];
-
-    public function setProjectId($projectId)
+    public function set_project_id($project_id)
     {
         //        $getProjectInfo_r = tep_db_query("SELECT * FROM io_project WHERE project_id='".intval($projectId)."'");
         //        if ( tep_db_num_rows($getProjectInfo_r) ) {
@@ -39,110 +30,72 @@ class AttributeMapper
         //            throw new \Exception('Wrong project id');
         //        }
         $this->cache = [];
-
     }
-
-    public function externalId(Complex $ref)
+    public function external_id(Complex $ref)
     {
-        $externalId = null;
-
-        if (!$this->isLocalProject) {
-            $entityId = $this->getEntityId($ref);
-            if ($entityId) {
-                $getReference_r = tep_db_query(
-                    'SELECT external_id ' .
-                    'FROM connector_osclink_mapping ' .
-                    "WHERE entity_id='" . (int)$entityId . "' AND internal_id='" . intval($ref->value) . "'"
-                );
-                if (tep_db_num_rows($getReference_r) > 0) {
-                    $getReference = tep_db_fetch_array($getReference_r);
-                    $externalId = $getReference['external_id'];
+        $external_id = null;
+        if (!$this->is_local_project) {
+            $entity_id = $this->get_entity_id($ref);
+            if ($entity_id) {
+                $get_reference_r = tep_db_query('SELECT external_id ' . 'FROM connector_osclink_mapping ' . "WHERE entity_id='" . (int) $entity_id . "' AND internal_id='" . intval($ref->value) . "'");
+                if (tep_db_num_rows($get_reference_r) > 0) {
+                    $get_reference = tep_db_fetch_array($get_reference_r);
+                    $external_id = $get_reference['external_id'];
                 }
             }
         }
-
-        return $externalId;
+        return $external_id;
     }
-
-    public function internalId(Complex $ref)
+    public function internal_id(Complex $ref)
     {
-        $internalId = null;
-
-        if (!$this->isLocalProject) {
-
-            if (in_array($ref->table, IOCore::get()->getTablenamesWithMirrorIds()) && $ref instanceof IOMap) {
-                return $ref->externalId;
+        $internal_id = null;
+        if (!$this->is_local_project) {
+            if (in_array($ref->table, Io_Core::get()->get_tablenames_with_mirror_ids()) && $ref instanceof Io_Map) {
+                return $ref->external_id;
             }
-
-            $entityId = $this->getEntityId($ref);
-
-            if ($entityId) {
-                $mapName = $ref->getMapName();
-                if (isset($this->known[$mapName])) {
-                    if (isset($this->cache[(int)$entityId.$mapName]) && !empty($this->cache[(int)$entityId.$mapName][intval($ref->externalId)])) {
-                        return $this->cache[(int)$entityId.$mapName][intval($ref->externalId)];
+            $entity_id = $this->get_entity_id($ref);
+            if ($entity_id) {
+                $map_name = $ref->get_map_name();
+                if (isset($this->known[$map_name])) {
+                    if (isset($this->cache[(int) $entity_id . $map_name]) && !empty($this->cache[(int) $entity_id . $map_name][intval($ref->external_id)])) {
+                        return $this->cache[(int) $entity_id . $map_name][intval($ref->external_id)];
                     }
                 }
-
-                $getReference_r = tep_db_query(
-                    'SELECT internal_id ' .
-                    'FROM connector_osclink_mapping ' .
-                    "WHERE entity_id='" . (int)$entityId . "' AND external_id='" . intval($ref->externalId) . "'"
-                );
-                if (tep_db_num_rows($getReference_r) > 0) {
-                    $getReference = tep_db_fetch_array($getReference_r);
-                    $internalId = $getReference['internal_id'];
-                    if (isset($this->known[$mapName])) {
-                        $this->cache[(int)$entityId.$mapName][intval($ref->externalId)] = $internalId;
+                $get_reference_r = tep_db_query('SELECT internal_id ' . 'FROM connector_osclink_mapping ' . "WHERE entity_id='" . (int) $entity_id . "' AND external_id='" . intval($ref->external_id) . "'");
+                if (tep_db_num_rows($get_reference_r) > 0) {
+                    $get_reference = tep_db_fetch_array($get_reference_r);
+                    $internal_id = $get_reference['internal_id'];
+                    if (isset($this->known[$map_name])) {
+                        $this->cache[(int) $entity_id . $map_name][intval($ref->external_id)] = $internal_id;
                     }
                 }
-
             }
-
         }
-
-        return $internalId;
+        return $internal_id;
     }
-
-    public function mapIds(Complex $ref, $internalId, $externalId)
+    public function map_ids(Complex $ref, $internal_id, $external_id)
     {
-        $entityId = $this->getEntityId($ref);
-        tep_db_query(
-            'INSERT IGNORE INTO connector_osclink_mapping ' .
-            ' (entity_id, internal_id, external_id) '.
-            'VALUES '.
-            "('" . (int)$entityId . "', '" . intval($internalId) . "', '" . intval($externalId) . "')"
-        );
+        $entity_id = $this->get_entity_id($ref);
+        tep_db_query('INSERT IGNORE INTO connector_osclink_mapping ' . ' (entity_id, internal_id, external_id) ' . 'VALUES ' . "('" . (int) $entity_id . "', '" . intval($internal_id) . "', '" . intval($external_id) . "')");
     }
-
-    protected function getEntityId(Complex $ref)
+    protected function get_entity_id(Complex $ref)
     {
-        $entityId = 0;
-
-        static $cachedIds = [];
-
-        $key = intval($this->projectId).'^'.$ref->getMapName();
-        if (!isset($cachedIds[$key])) {
-            $get_id_r = tep_db_query(
-                'SELECT id ' .
-                'FROM connector_osclink_entity ' .
-                "WHERE entity_name='" . tep_db_input($ref->getMapName()) . "' AND project_id='" . intval($this->projectId) . "'"
-            );
+        $entity_id = 0;
+        static $cached_ids = [];
+        $key = intval($this->project_id) . '^' . $ref->get_map_name();
+        if (!isset($cached_ids[$key])) {
+            $get_id_r = tep_db_query('SELECT id ' . 'FROM connector_osclink_entity ' . "WHERE entity_name='" . tep_db_input($ref->get_map_name()) . "' AND project_id='" . intval($this->project_id) . "'");
             if (tep_db_num_rows($get_id_r) > 0) {
                 $get_id = tep_db_fetch_array($get_id_r);
-                $entityId = $get_id['id'];
+                $entity_id = $get_id['id'];
             } else {
-                tep_db_perform('connector_osclink_entity', [
-                    'entity_name' => $ref->getMapName(),
-                    'project_id' => intval($this->projectId),
-                ]);
-                $entityId = tep_db_insert_id();
+                tep_db_perform('connector_osclink_entity', ['entity_name' => $ref->get_map_name(), 'project_id' => intval($this->project_id)]);
+                $entity_id = tep_db_insert_id();
             }
-            $cachedIds[$key] = $entityId;
+            $cached_ids[$key] = $entity_id;
         } else {
-            $entityId = $cachedIds[$key];
+            $entity_id = $cached_ids[$key];
         }
-
-        return $entityId;
+        return $entity_id;
     }
 }

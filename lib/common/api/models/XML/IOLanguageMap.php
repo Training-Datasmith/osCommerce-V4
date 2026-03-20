@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,56 +11,49 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\XML;
 
-class IOLanguageMap extends IOMap
+class Io_Language_Map extends Io_Map
 {
     protected $named = '@language';
     public $language;
-
-    public function serializeTo(\SimpleXMLElement $parent)
+    public function serialize_to(\Simple_Xml_Element $parent)
     {
         if (!empty($this->value)) {
-            $parent->addAttribute('language', \common\classes\language::get_code($this->value));
-            $parent->addAttribute('internalId', $this->value);
-            $externalId = IOCore::get()->getAttributeMapper()->externalId($this);
-            if (is_numeric($externalId)) {
-                $parent->addAttribute('externalId', $externalId);
+            $parent->add_attribute('language', \common\classes\language::get_code($this->value));
+            $parent->add_attribute('internalId', $this->value);
+            $external_id = Io_Core::get()->get_attribute_mapper()->external_id($this);
+            if (is_numeric($external_id)) {
+                $parent->add_attribute('externalId', $external_id);
             }
         }
     }
-
-    public function toImportModel()
+    public function to_import_model()
     {
-        if (IOCore::get()->isLocalProject()) {
+        if (Io_Core::get()->is_local_project()) {
             // force lang mapping for local projects
             if (!empty($this->language)) {
                 $arr = \common\helpers\Language::get_language_id($this->language);
-                $newId = $arr['languages_id'] ?? null;
-                if ($newId) {
-                    $this->value = $newId;
-                    IOCore::get()->getAttributeMapper()->mapIds($this, $newId, $this->internalId);
+                $new_id = $arr['languages_id'] ?? null;
+                if ($new_id) {
+                    $this->value = $new_id;
+                    Io_Core::get()->get_attribute_mapper()->map_ids($this, $new_id, $this->internal_id);
                 } else {
                     $this->value = null;
                 }
             }
             return $this->value;
         }
-
-        $parentResult = parent::toImportModel();
-
-        if (!$parentResult && !empty($this->language) && !IOCore::get()->isLocalProject()) {
-            $newId = \common\classes\language::get_id($this->language);
-            if ($newId) {
-                $this->internalId = $newId;
-                $this->value = $newId;
-                $parentResult = $newId;
-                IOCore::get()->getAttributeMapper()->mapIds($this, $this->internalId, $this->externalId);
+        $parent_result = parent::to_import_model();
+        if (!$parent_result && !empty($this->language) && !Io_Core::get()->is_local_project()) {
+            $new_id = \common\classes\language::get_id($this->language);
+            if ($new_id) {
+                $this->internal_id = $new_id;
+                $this->value = $new_id;
+                $parent_result = $new_id;
+                Io_Core::get()->get_attribute_mapper()->map_ids($this, $this->internal_id, $this->external_id);
             }
         }
-
-        return $parentResult;
+        return $parent_result;
     }
-
 }

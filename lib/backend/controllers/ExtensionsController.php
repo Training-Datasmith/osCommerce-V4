@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,56 +11,50 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\controllers;
 
 use common\helpers\Acl;
 use Yii;
-
-class ExtensionsController extends Sceleton
+class Extensions_Controller extends Sceleton
 {
     public function __construct($id, $mod = null)
     {
         $module = Yii::$app->request->get('module');
-        if ($ext = \common\helpers\Acl::checkExtension($module, 'acl')) {
-            $this->acl = $ext::getAcl('adminActionIndex');
+        if ($ext = \common\helpers\Acl::check_extension($module, 'acl')) {
+            $this->acl = $ext::get_acl('adminActionIndex');
         }
         parent::__construct($id, $mod);
     }
-
-    public function actionIndex()
+    public function action_index()
     {
         $module = Yii::$app->request->get('module');
         $action = Yii::$app->request->get('action', 'adminActionIndex');
-        $errMsg = null;
-        if ($ext = Acl::checkExtension($module, $action)) {
+        $err_msg = null;
+        if ($ext = Acl::check_extension($module, $action)) {
             if ($ext::allowed()) {
                 if (method_exists($ext, 'initTranslation')) {
-                    $ext::initTranslation('init_beforeaction');
+                    $ext::init_translation('init_beforeaction');
                 }
-                if ($action != 'actionRefreshTranslation' && !empty($acl = $ext::getAcl($action))) {
+                if ($action != 'actionRefreshTranslation' && !empty($acl = $ext::get_acl($action))) {
                     $this->acl = $acl;
-                    Acl::checkAccess($acl);
+                    Acl::check_access($acl);
                 }
-                if (!method_exists($ext, 'beforeAction') || $ext::beforeAction($action)) {
+                if (!method_exists($ext, 'beforeAction') || $ext::before_action($action)) {
                     return $ext::$action();
                 }
             } else {
-                $errMsg = 'Extension is not allowed: ' . \yii\helpers\Html::encode($module);
+                $err_msg = 'Extension is not allowed: ' . \yii\helpers\Html::encode($module);
             }
+        } else if (Acl::check_extension($module)) {
+            $err_msg = 'Extension has not this action: ' . \yii\helpers\Html::encode($module) . '::' . \yii\helpers\Html::encode($action);
         } else {
-            if (Acl::checkExtension($module)) {
-                $errMsg = 'Extension has not this action: ' . \yii\helpers\Html::encode($module) . '::' . \yii\helpers\Html::encode($action);
-            } else {
-                $errMsg = 'Extension does not exist: ' . \yii\helpers\Html::encode($module);
-            }
+            $err_msg = 'Extension does not exist: ' . \yii\helpers\Html::encode($module);
         }
-        if (!empty($errMsg)) {
-            \Yii::error($errMsg);
-            if (\common\helpers\System::isDevelopment()) {
-                die($errMsg);
+        if (!empty($err_msg)) {
+            \Yii::error($err_msg);
+            if (\common\helpers\System::is_development()) {
+                die($err_msg);
             }
         }
     }
-
 }

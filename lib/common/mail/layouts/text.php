@@ -3,9 +3,8 @@
 /* @var $this \yii\web\View view component instance */
 /* @var $message \yii\mail\MessageInterface the message being composed */
 /* @var $content string main view render result */
-?>
-<?php $this->beginPage() ?>
-<?php $this->beginBody() ?>
-<?= $content ?>
-<?php $this->endBody() ?>
-<?php $this->endPage() ?>
+$this->begin_page();
+$this->begin_body();
+echo $content;
+$this->end_body();
+$this->end_page();

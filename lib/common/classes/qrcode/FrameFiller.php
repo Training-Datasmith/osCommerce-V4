@@ -1,13 +1,11 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace common\classes\qrcode;
 
-require_once('init.php');
+require_once 'init.php';
 //##########################################################################
-
-class FrameFiller
+class Frame_Filler
 {
     public $width;
     public $frame;
@@ -15,7 +13,6 @@ class FrameFiller
     public $y;
     public $dir;
     public $bit;
-
     //----------------------------------------------------------------------
     public function __construct($width, &$frame)
     {
@@ -26,33 +23,27 @@ class FrameFiller
         $this->dir = -1;
         $this->bit = -1;
     }
-
     //----------------------------------------------------------------------
-    public function setFrameAt($at, $val)
+    public function set_frame_at($at, $val)
     {
         $this->frame[$at['y']][$at['x']] = chr($val);
     }
-
     //----------------------------------------------------------------------
-    public function getFrameAt($at)
+    public function get_frame_at($at)
     {
         return ord($this->frame[$at['y']][$at['x']]);
     }
-
     //----------------------------------------------------------------------
     public function next()
     {
         do {
-
             if ($this->bit == -1) {
                 $this->bit = 0;
                 return ['x' => $this->x, 'y' => $this->y];
             }
-
             $x = $this->x;
             $y = $this->y;
             $w = $this->width;
-
             if ($this->bit == 0) {
                 $x--;
                 $this->bit++;
@@ -61,7 +52,6 @@ class FrameFiller
                 $y += $this->dir;
                 $this->bit--;
             }
-
             if ($this->dir < 0) {
                 if ($y < 0) {
                     $y = 0;
@@ -72,27 +62,21 @@ class FrameFiller
                         $y = 9;
                     }
                 }
-            } else {
-                if ($y == $w) {
-                    $y = $w - 1;
-                    $x -= 2;
-                    $this->dir = -1;
-                    if ($x == 6) {
-                        $x--;
-                        $y -= 8;
-                    }
+            } else if ($y == $w) {
+                $y = $w - 1;
+                $x -= 2;
+                $this->dir = -1;
+                if ($x == 6) {
+                    $x--;
+                    $y -= 8;
                 }
             }
             if ($x < 0 || $y < 0) {
                 return null;
             }
-
             $this->x = $x;
             $this->y = $y;
-
         } while (ord($this->frame[$y][$x]) & 0x80);
-
         return ['x' => $x, 'y' => $y];
     }
-
-} ;
+}

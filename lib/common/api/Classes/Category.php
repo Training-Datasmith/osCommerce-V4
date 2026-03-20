@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,661 +11,640 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\Classes;
 
-class Category extends AbstractClass
+class Category extends Abstract_Class
 {
-    public $categoryId = null;
-
-    public $categoryRecord = [];
-    public $descriptionRecordArray = [];
-    public $affiliateRecordArray = [];
-    public $platformRecordArray = [];
-    public $platformSettingRecordArray = [];
-    public $templateRecordArray = [];
-    public $groupRecordArray = [];
-    public $supplierDiscountRecordArray = [];
-    public $supplierPriceRuleRecordArray = [];
-    public $filterRecordArray = [];
-    public $productRecordArray = [];
-    public $categoryImageNewArray = [];
-    public $oldSeoRedirectArray = [];
-
-    public function getId()
+    public $category_id = null;
+    public $category_record = [];
+    public $description_record_array = [];
+    public $affiliate_record_array = [];
+    public $platform_record_array = [];
+    public $platform_setting_record_array = [];
+    public $template_record_array = [];
+    public $group_record_array = [];
+    public $supplier_discount_record_array = [];
+    public $supplier_price_rule_record_array = [];
+    public $filter_record_array = [];
+    public $product_record_array = [];
+    public $category_image_new_array = [];
+    public $old_seo_redirect_array = [];
+    public function get_id()
     {
-        return $this->categoryId;
+        return $this->category_id;
     }
-
-    public function setId($categoryId)
+    public function set_id($category_id)
     {
-        $categoryId = (int)$categoryId;
-        if ($categoryId >= 0) {
-            $this->categoryId = $categoryId;
+        $category_id = (int) $category_id;
+        if ($category_id >= 0) {
+            $this->category_id = $category_id;
             return true;
         }
         return $this;
     }
-
-    public function load($categoryId)
+    public function load($category_id)
     {
         $this->clear();
-        $categoryId = (int)$categoryId;
-        $categoryRecord = \common\models\Categories::find()->where(['categories_id' => $categoryId])->one();
-        if ($categoryRecord instanceof \common\models\Categories) {
-            $this->categoryId = $categoryId;
-            $this->categoryRecord = $categoryRecord->toArray();
-            unset($categoryRecord);
+        $category_id = (int) $category_id;
+        $category_record = \common\models\Categories::find()->where(['categories_id' => $category_id])->one();
+        if ($category_record instanceof \common\models\Categories) {
+            $this->category_id = $category_id;
+            $this->category_record = $category_record->to_array();
+            unset($category_record);
             // DESCRIPTION
-            $this->descriptionRecordArray = \common\models\CategoriesDescription::find()->where(['categories_id' => $categoryId])->asArray(true)->all();
+            $this->description_record_array = \common\models\Categories_Description::find()->where(['categories_id' => $category_id])->as_array(true)->all();
             // EOF DESCRIPTION
             // AFFILIATE
-            $this->affiliateRecordArray = !\common\helpers\Acl::checkExtensionAllowed('Affiliate') ? [] :
-                    \common\extensions\Affiliate\models\CategoriesToAffiliates::find()->where(['categories_id' => $categoryId])->asArray(true)->all();
+            $this->affiliate_record_array = !\common\helpers\Acl::check_extension_allowed('Affiliate') ? [] : \common\extensions\Affiliate\models\Categories_To_Affiliates::find()->where(['categories_id' => $category_id])->as_array(true)->all();
             // EOF AFFILIATE*/
             // PLATFORM
-            $this->platformRecordArray = \common\models\PlatformsCategories::find()->where(['categories_id' => $categoryId])->asArray(true)->all();
+            $this->platform_record_array = \common\models\Platforms_Categories::find()->where(['categories_id' => $category_id])->as_array(true)->all();
             // EOF PLATFORM
             // PLATFORM SETTING
-            $this->platformSettingRecordArray = \common\models\CategoriesPlatformSettings::find()->where(['categories_id' => $categoryId])->asArray(true)->all();
+            $this->platform_setting_record_array = \common\models\Categories_Platform_Settings::find()->where(['categories_id' => $category_id])->as_array(true)->all();
             // EOF PLATFORM SETTING
             // TEMPLATE
-            $this->templateRecordArray = \common\models\CategoriesToTemplate::find()->where(['categories_id' => $categoryId])->asArray(true)->all();
+            $this->template_record_array = \common\models\Categories_To_Template::find()->where(['categories_id' => $category_id])->as_array(true)->all();
             // EOF TEMPLATE
             // GROUP
-            if ($model = \common\helpers\Acl::checkExtensionTableExist('UserGroupsRestrictions', 'GroupsCategories')) {
-                $this->groupRecordArray = $model::find()->where(['categories_id' => $categoryId])->asArray(true)->all();
+            if ($model = \common\helpers\Acl::check_extension_table_exist('UserGroupsRestrictions', 'GroupsCategories')) {
+                $this->group_record_array = $model::find()->where(['categories_id' => $category_id])->as_array(true)->all();
             }
             // EOF GROUP
             // SUPPLIER DISCOUNT
-            $this->supplierDiscountRecordArray = \common\models\SuppliersCatalogDiscount::find()->where(['category_id' => $categoryId])->asArray(true)->all();
+            $this->supplier_discount_record_array = \common\models\Suppliers_Catalog_Discount::find()->where(['category_id' => $category_id])->as_array(true)->all();
             // EOF SUPPLIER DISCOUNT
             // SUPPLIER PRICE RULE
-            $this->supplierPriceRuleRecordArray = \common\models\SuppliersCatalogPriceRules::find()->where(['category_id' => $categoryId])->asArray(true)->all();
+            $this->supplier_price_rule_record_array = \common\models\Suppliers_Catalog_Price_Rules::find()->where(['category_id' => $category_id])->as_array(true)->all();
             // EOF SUPPLIER PRICE RULE
             // FILTER
-            $this->filterRecordArray = \common\models\Filters::find()->where(['categories_id' => $categoryId])->asArray(true)->all();
+            $this->filter_record_array = \common\models\Filters::find()->where(['categories_id' => $category_id])->as_array(true)->all();
             // EOF FILTER
             // PRODUCT
-            $this->productRecordArray = \common\models\Products2Categories::find()->alias('ptc')
-                ->leftJoin(\common\models\Products::tableName() . ' AS p', 'p.products_id = ptc.products_id')
-                ->select(['ptc.*', 'p.products_model'])->where(['categories_id' => $categoryId])->asArray(true)->all();
+            $this->product_record_array = \common\models\Products2Categories::find()->alias('ptc')->left_join(\common\models\Products::table_name() . ' AS p', 'p.products_id = ptc.products_id')->select(['ptc.*', 'p.products_model'])->where(['categories_id' => $category_id])->as_array(true)->all();
             // EOF PRODUCT
             return true;
         }
         return false;
     }
-
     public function validate()
     {
-        $this->categoryId = (int)(((int)$this->categoryId > 0) ? $this->categoryId : 0);
-        if (!is_array($this->categoryRecord)) {
+        $this->category_id = (int) ((int) $this->category_id > 0 ? $this->category_id : 0);
+        if (!is_array($this->category_record)) {
             return false;
         }
         if (!parent::validate()) {
             return false;
         }
-        unset($this->categoryRecord['categories_id']);
-        $this->descriptionRecordArray = (is_array($this->descriptionRecordArray) ? $this->descriptionRecordArray : []);
-        $this->affiliateRecordArray = (is_array($this->affiliateRecordArray) ? $this->affiliateRecordArray : []);
-        $this->platformRecordArray = (is_array($this->platformRecordArray) ? $this->platformRecordArray : []);
-        $this->platformSettingRecordArray = (is_array($this->platformSettingRecordArray) ? $this->platformSettingRecordArray : []);
-        $this->templateRecordArray = (is_array($this->templateRecordArray) ? $this->templateRecordArray : []);
-        $this->groupRecordArray = (is_array($this->groupRecordArray) ? $this->groupRecordArray : []);
-        $this->supplierDiscountRecordArray = (is_array($this->supplierDiscountRecordArray) ? $this->supplierDiscountRecordArray : []);
-        $this->supplierPriceRuleRecordArray = (is_array($this->supplierPriceRuleRecordArray) ? $this->supplierPriceRuleRecordArray : []);
-        $this->filterRecordArray = (is_array($this->filterRecordArray) ? $this->filterRecordArray : []);
-        $this->productRecordArray = (is_array($this->productRecordArray) ? $this->productRecordArray : []);
-        $this->categoryImageNewArray = (is_array($this->categoryImageNewArray) ? $this->categoryImageNewArray : []);
-        $this->oldSeoRedirectArray = (is_array($this->oldSeoRedirectArray) ? $this->oldSeoRedirectArray : []);
+        unset($this->category_record['categories_id']);
+        $this->description_record_array = is_array($this->description_record_array) ? $this->description_record_array : [];
+        $this->affiliate_record_array = is_array($this->affiliate_record_array) ? $this->affiliate_record_array : [];
+        $this->platform_record_array = is_array($this->platform_record_array) ? $this->platform_record_array : [];
+        $this->platform_setting_record_array = is_array($this->platform_setting_record_array) ? $this->platform_setting_record_array : [];
+        $this->template_record_array = is_array($this->template_record_array) ? $this->template_record_array : [];
+        $this->group_record_array = is_array($this->group_record_array) ? $this->group_record_array : [];
+        $this->supplier_discount_record_array = is_array($this->supplier_discount_record_array) ? $this->supplier_discount_record_array : [];
+        $this->supplier_price_rule_record_array = is_array($this->supplier_price_rule_record_array) ? $this->supplier_price_rule_record_array : [];
+        $this->filter_record_array = is_array($this->filter_record_array) ? $this->filter_record_array : [];
+        $this->product_record_array = is_array($this->product_record_array) ? $this->product_record_array : [];
+        $this->category_image_new_array = is_array($this->category_image_new_array) ? $this->category_image_new_array : [];
+        $this->old_seo_redirect_array = is_array($this->old_seo_redirect_array) ? $this->old_seo_redirect_array : [];
         return true;
     }
-
     public function create()
     {
-        $this->categoryId = 0;
+        $this->category_id = 0;
         return $this->save();
     }
-
-    public function save($isReplace = false)
+    public function save($is_replace = false)
     {
         $return = false;
         if (!$this->validate()) {
             return $return;
         }
-        $categoryClass = \common\models\Categories::find()->where(['categories_id' => $this->categoryId])->one();
-        if (!($categoryClass instanceof \common\models\Categories)) {
-            $categoryClass = new \common\models\Categories();
-            $categoryClass->loadDefaultValues();
-            if ($this->categoryId > 0) {
-                $categoryClass->categories_id = $this->categoryId;
+        $category_class = \common\models\Categories::find()->where(['categories_id' => $this->category_id])->one();
+        if (!$category_class instanceof \common\models\Categories) {
+            $category_class = new \common\models\Categories();
+            $category_class->load_default_values();
+            if ($this->category_id > 0) {
+                $category_class->categories_id = $this->category_id;
             } else {
                 $this->unrelate();
             }
         }
-        $categoryClass->setAttributes($this->categoryRecord, false);
-        $categoryClass->detachBehavior('nestedSets');
-        if ($categoryClass->save(false)) {
-            $this->categoryRecord = $categoryClass->toArray();
-            $this->categoryId = (int)$categoryClass->categories_id;
+        $category_class->set_attributes($this->category_record, false);
+        $category_class->detach_behavior('nestedSets');
+        if ($category_class->save(false)) {
+            $this->category_record = $category_class->to_array();
+            $this->category_id = (int) $category_class->categories_id;
             // DESCRIPTION
-            foreach ($this->descriptionRecordArray as $key => &$descriptionRecord) {
-                $isSave = false;
-                $languageId = (int)(isset($descriptionRecord['language_id']) ? $descriptionRecord['language_id'] : 0);
-                if (isset($descriptionRecord['language_code'])) {
-                    $languageId = $this->getLanguageIdByCode($descriptionRecord['language_code'], $languageId);
+            foreach ($this->description_record_array as $key => &$description_record) {
+                $is_save = false;
+                $language_id = (int) (isset($description_record['language_id']) ? $description_record['language_id'] : 0);
+                if (isset($description_record['language_code'])) {
+                    $language_id = $this->get_language_id_by_code($description_record['language_code'], $language_id);
                 }
-                $affiliateId = (int)(isset($descriptionRecord['affiliate_id']) ? $descriptionRecord['affiliate_id'] : -1);
-                unset($descriptionRecord['categories_id']);
-                unset($descriptionRecord['affiliate_id']);
-                unset($descriptionRecord['language_id']);
-                if (($languageId > 0) and ($affiliateId >= 0)) {
+                $affiliate_id = (int) (isset($description_record['affiliate_id']) ? $description_record['affiliate_id'] : -1);
+                unset($description_record['categories_id']);
+                unset($description_record['affiliate_id']);
+                unset($description_record['language_id']);
+                if ($language_id > 0 and $affiliate_id >= 0) {
                     try {
-                        $descriptionClass = \common\models\CategoriesDescription::find()->where(['categories_id' => $this->categoryId, 'language_id' => $languageId, 'affiliate_id' => $affiliateId])->one();
-                        if (!($descriptionClass instanceof \common\models\CategoriesDescription)) {
-                            $descriptionClass = new \common\models\CategoriesDescription();
-                            $descriptionClass->loadDefaultValues();
-                            $descriptionClass->categories_id = $this->categoryId;
-                            $descriptionClass->affiliate_id = $affiliateId;
-                            $descriptionClass->language_id = $languageId;
+                        $description_class = \common\models\Categories_Description::find()->where(['categories_id' => $this->category_id, 'language_id' => $language_id, 'affiliate_id' => $affiliate_id])->one();
+                        if (!$description_class instanceof \common\models\Categories_Description) {
+                            $description_class = new \common\models\Categories_Description();
+                            $description_class->load_default_values();
+                            $description_class->categories_id = $this->category_id;
+                            $description_class->affiliate_id = $affiliate_id;
+                            $description_class->language_id = $language_id;
                         }
-                        $descriptionClass->setAttributes($descriptionRecord, false);
-                        if ($descriptionClass->save(false)) {
-                            $isSave = true;
-                            $descriptionRecord = $descriptionClass->toArray();
+                        $description_class->set_attributes($description_record, false);
+                        if ($description_class->save(false)) {
+                            $is_save = true;
+                            $description_record = $description_class->to_array();
                         } else {
-                            $this->messageAdd($descriptionClass->getErrorSummary(true));
+                            $this->message_add($description_class->get_error_summary(true));
                         }
                     } catch (\Exception $exc) {
-                        $this->messageAdd($exc->getMessage());
+                        $this->message_add($exc->get_message());
                     }
-                    unset($descriptionClass);
+                    unset($description_class);
                 }
-                unset($affiliateId);
-                unset($languageId);
-                if ($isSave != true) {
-                    unset($this->descriptionRecordArray[$key]);
+                unset($affiliate_id);
+                unset($language_id);
+                if ($is_save != true) {
+                    unset($this->description_record_array[$key]);
                 }
-                unset($isSave);
+                unset($is_save);
             }
-            unset($descriptionRecord);
+            unset($description_record);
             unset($key);
             // EOF DESCRIPTION
             // AFFILIATE
-            if (\common\helpers\Acl::checkExtensionAllowed('Affiliate')) {
-                foreach ($this->affiliateRecordArray as $key => &$affiliateRecord) {
-                    $isSave = false;
-                    $affiliateId = (int)(isset($affiliateRecord['affiliate_id']) ? $affiliateRecord['affiliate_id'] : -1);
-                    unset($affiliateRecord['categories_id']);
-                    unset($affiliateRecord['affiliate_id']);
-                    if ($affiliateId >= 0) {
+            if (\common\helpers\Acl::check_extension_allowed('Affiliate')) {
+                foreach ($this->affiliate_record_array as $key => &$affiliate_record) {
+                    $is_save = false;
+                    $affiliate_id = (int) (isset($affiliate_record['affiliate_id']) ? $affiliate_record['affiliate_id'] : -1);
+                    unset($affiliate_record['categories_id']);
+                    unset($affiliate_record['affiliate_id']);
+                    if ($affiliate_id >= 0) {
                         try {
-                            $affiliateClass = \common\extensions\Affiliate\models\CategoriesToAffiliates::find()->where(['categories_id' => $this->categoryId, 'affiliate_id' => $affiliateId])->one();
-                            if (!($affiliateClass instanceof \common\models\CategoriesToAffiliates)) {
-                                $affiliateClass = new \common\extensions\Affiliate\models\CategoriesToAffiliates();
-                                $affiliateClass->loadDefaultValues();
-                                $affiliateClass->categories_id = $this->categoryId;
-                                $affiliateClass->affiliate_id = $affiliateId;
+                            $affiliate_class = \common\extensions\Affiliate\models\Categories_To_Affiliates::find()->where(['categories_id' => $this->category_id, 'affiliate_id' => $affiliate_id])->one();
+                            if (!$affiliate_class instanceof \common\models\Categories_To_Affiliates) {
+                                $affiliate_class = new \common\extensions\Affiliate\models\Categories_To_Affiliates();
+                                $affiliate_class->load_default_values();
+                                $affiliate_class->categories_id = $this->category_id;
+                                $affiliate_class->affiliate_id = $affiliate_id;
                             }
-                            $affiliateClass->setAttributes($affiliateRecord, false);
-                            if ($affiliateClass->save(false)) {
-                                $isSave = true;
-                                $affiliateRecord = $affiliateClass->toArray();
+                            $affiliate_class->set_attributes($affiliate_record, false);
+                            if ($affiliate_class->save(false)) {
+                                $is_save = true;
+                                $affiliate_record = $affiliate_class->to_array();
                             } else {
-                                $this->messageAdd($affiliateClass->getErrorSummary(true));
+                                $this->message_add($affiliate_class->get_error_summary(true));
                             }
                         } catch (\Exception $exc) {
-                            $this->messageAdd($exc->getMessage());
+                            $this->message_add($exc->get_message());
                         }
-                        unset($affiliateClass);
+                        unset($affiliate_class);
                     }
-                    unset($affiliateId);
-                    if ($isSave != true) {
-                        unset($this->affiliateRecordArray[$key]);
+                    unset($affiliate_id);
+                    if ($is_save != true) {
+                        unset($this->affiliate_record_array[$key]);
                     }
-                    unset($isSave);
+                    unset($is_save);
                 }
-                unset($affiliateRecord);
+                unset($affiliate_record);
                 unset($key);
             }
             // EOF AFFILIATE
             // PLATFORM
-            foreach ($this->platformRecordArray as $key => &$platformRecord) {
-                $isSave = false;
-                $platformId = (int)(isset($platformRecord['platform_id']) ? $platformRecord['platform_id'] : 0);
-                unset($platformRecord['categories_id']);
-                unset($platformRecord['platform_id']);
-                if ($platformId > 0) {
+            foreach ($this->platform_record_array as $key => &$platform_record) {
+                $is_save = false;
+                $platform_id = (int) (isset($platform_record['platform_id']) ? $platform_record['platform_id'] : 0);
+                unset($platform_record['categories_id']);
+                unset($platform_record['platform_id']);
+                if ($platform_id > 0) {
                     try {
-                        $platformClass = \common\models\PlatformsCategories::find()->where(['categories_id' => $this->categoryId, 'platform_id' => $platformId])->one();
-                        if (!($platformClass instanceof \common\models\PlatformsCategories)) {
-                            $platformClass = new \common\models\PlatformsCategories();
-                            $platformClass->loadDefaultValues();
-                            $platformClass->categories_id = $this->categoryId;
-                            $platformClass->platform_id = $platformId;
+                        $platform_class = \common\models\Platforms_Categories::find()->where(['categories_id' => $this->category_id, 'platform_id' => $platform_id])->one();
+                        if (!$platform_class instanceof \common\models\Platforms_Categories) {
+                            $platform_class = new \common\models\Platforms_Categories();
+                            $platform_class->load_default_values();
+                            $platform_class->categories_id = $this->category_id;
+                            $platform_class->platform_id = $platform_id;
                         }
-                        $platformClass->setAttributes($platformRecord, false);
-                        if ($platformClass->save(false)) {
-                            $isSave = true;
-                            $platformRecord = $platformClass->toArray();
+                        $platform_class->set_attributes($platform_record, false);
+                        if ($platform_class->save(false)) {
+                            $is_save = true;
+                            $platform_record = $platform_class->to_array();
                         } else {
-                            $this->messageAdd($platformClass->getErrorSummary(true));
+                            $this->message_add($platform_class->get_error_summary(true));
                         }
                     } catch (\Exception $exc) {
-                        $this->messageAdd($exc->getMessage());
+                        $this->message_add($exc->get_message());
                     }
-                    unset($platformClass);
+                    unset($platform_class);
                 }
-                unset($platformId);
-                if ($isSave != true) {
-                    unset($this->platformRecordArray[$key]);
+                unset($platform_id);
+                if ($is_save != true) {
+                    unset($this->platform_record_array[$key]);
                 }
-                unset($isSave);
+                unset($is_save);
             }
-            unset($platformRecord);
+            unset($platform_record);
             unset($key);
             // EOF PLATFORM
             // PLATFORM SETTING
-            foreach ($this->platformSettingRecordArray as $key => &$platformSettingRecord) {
-                $isSave = false;
-                $platformId = (int)(isset($platformSettingRecord['platform_id']) ? $platformSettingRecord['platform_id'] : 0);
-                unset($platformSettingRecord['categories_id']);
-                unset($platformSettingRecord['platform_id']);
-                if ($platformId > 0) {
+            foreach ($this->platform_setting_record_array as $key => &$platform_setting_record) {
+                $is_save = false;
+                $platform_id = (int) (isset($platform_setting_record['platform_id']) ? $platform_setting_record['platform_id'] : 0);
+                unset($platform_setting_record['categories_id']);
+                unset($platform_setting_record['platform_id']);
+                if ($platform_id > 0) {
                     try {
-                        $platformSettingClass = \common\models\CategoriesPlatformSettings::find()->where(['categories_id' => $this->categoryId, 'platform_id' => $platformId])->one();
-                        if (!($platformSettingClass instanceof \common\models\CategoriesPlatformSettings)) {
-                            $platformSettingClass = new \common\models\CategoriesPlatformSettings();
-                            $platformSettingClass->loadDefaultValues();
-                            $platformSettingClass->categories_id = $this->categoryId;
-                            $platformSettingClass->platform_id = $platformId;
+                        $platform_setting_class = \common\models\Categories_Platform_Settings::find()->where(['categories_id' => $this->category_id, 'platform_id' => $platform_id])->one();
+                        if (!$platform_setting_class instanceof \common\models\Categories_Platform_Settings) {
+                            $platform_setting_class = new \common\models\Categories_Platform_Settings();
+                            $platform_setting_class->load_default_values();
+                            $platform_setting_class->categories_id = $this->category_id;
+                            $platform_setting_class->platform_id = $platform_id;
                         }
-                        $platformSettingClass->setAttributes($platformSettingRecord, false);
-                        if ($platformSettingClass->save(false)) {
-                            $isSave = true;
-                            $platformSettingRecord = $platformSettingClass->toArray();
+                        $platform_setting_class->set_attributes($platform_setting_record, false);
+                        if ($platform_setting_class->save(false)) {
+                            $is_save = true;
+                            $platform_setting_record = $platform_setting_class->to_array();
                         } else {
-                            $this->messageAdd($platformSettingClass->getErrorSummary(true));
+                            $this->message_add($platform_setting_class->get_error_summary(true));
                         }
                     } catch (\Exception $exc) {
-                        $this->messageAdd($exc->getMessage());
+                        $this->message_add($exc->get_message());
                     }
-                    unset($platformSettingClass);
+                    unset($platform_setting_class);
                 }
-                unset($platformId);
-                if ($isSave != true) {
-                    unset($this->platformSettingRecordArray[$key]);
+                unset($platform_id);
+                if ($is_save != true) {
+                    unset($this->platform_setting_record_array[$key]);
                 }
-                unset($isSave);
+                unset($is_save);
             }
-            unset($platformSettingRecord);
+            unset($platform_setting_record);
             unset($key);
             // EOF PLATFORM SETTING
             // TEMPLATE
-            foreach ($this->templateRecordArray as $key => &$templateRecord) {
-                $isSave = false;
-                $platformId = (int)(isset($templateRecord['platform_id']) ? $templateRecord['platform_id'] : 0);
-                unset($templateRecord['categories_id']);
-                unset($templateRecord['platform_id']);
-                unset($templateRecord['id']);
-                if ($platformId > 0) {
+            foreach ($this->template_record_array as $key => &$template_record) {
+                $is_save = false;
+                $platform_id = (int) (isset($template_record['platform_id']) ? $template_record['platform_id'] : 0);
+                unset($template_record['categories_id']);
+                unset($template_record['platform_id']);
+                unset($template_record['id']);
+                if ($platform_id > 0) {
                     try {
-                        $templateClass = \common\models\CategoriesToTemplate::find()->where(['categories_id' => $this->categoryId, 'platform_id' => $platformId])->one();
-                        if (!($templateClass instanceof \common\models\CategoriesToTemplate)) {
-                            $templateClass = new \common\models\CategoriesToTemplate();
-                            $templateClass->loadDefaultValues();
-                            $templateClass->categories_id = $this->categoryId;
-                            $templateClass->platform_id = $platformId;
+                        $template_class = \common\models\Categories_To_Template::find()->where(['categories_id' => $this->category_id, 'platform_id' => $platform_id])->one();
+                        if (!$template_class instanceof \common\models\Categories_To_Template) {
+                            $template_class = new \common\models\Categories_To_Template();
+                            $template_class->load_default_values();
+                            $template_class->categories_id = $this->category_id;
+                            $template_class->platform_id = $platform_id;
                         }
-                        $templateClass->setAttributes($templateRecord, false);
-                        if ($templateClass->save(false)) {
-                            $isSave = true;
-                            $templateRecord = $templateClass->toArray();
+                        $template_class->set_attributes($template_record, false);
+                        if ($template_class->save(false)) {
+                            $is_save = true;
+                            $template_record = $template_class->to_array();
                         } else {
-                            $this->messageAdd($templateClass->getErrorSummary(true));
+                            $this->message_add($template_class->get_error_summary(true));
                         }
                     } catch (\Exception $exc) {
-                        $this->messageAdd($exc->getMessage());
+                        $this->message_add($exc->get_message());
                     }
-                    unset($templateClass);
+                    unset($template_class);
                 }
-                unset($platformId);
-                if ($isSave != true) {
-                    unset($this->templateRecordArray[$key]);
+                unset($platform_id);
+                if ($is_save != true) {
+                    unset($this->template_record_array[$key]);
                 }
-                unset($isSave);
+                unset($is_save);
             }
-            unset($templateRecord);
+            unset($template_record);
             unset($key);
             // EOF TEMPLATE
             // GROUP
-            $isRewriteGroup = false;
-            if ($groupCategories = \common\helpers\Acl::checkExtensionTableExist('UserGroupsRestrictions', 'GroupsCategories')) {
-                foreach ($this->groupRecordArray as $key => &$groupRecord) {
-                    $isSave = false;
-                    if ($isRewriteGroup == false) {
-                        $isRewriteGroup = true;
-                        $groupCategories::deleteAll(['categories_id' => $this->categoryId]);
+            $is_rewrite_group = false;
+            if ($group_categories = \common\helpers\Acl::check_extension_table_exist('UserGroupsRestrictions', 'GroupsCategories')) {
+                foreach ($this->group_record_array as $key => &$group_record) {
+                    $is_save = false;
+                    if ($is_rewrite_group == false) {
+                        $is_rewrite_group = true;
+                        $group_categories::delete_all(['categories_id' => $this->category_id]);
                     }
-                    $groupId = (int)(isset($groupRecord['groups_id']) ? $groupRecord['groups_id'] : 0);
-                    unset($groupRecord['categories_id']);
-                    unset($groupRecord['groups_id']);
-                    if ($groupId > 0) {
+                    $group_id = (int) (isset($group_record['groups_id']) ? $group_record['groups_id'] : 0);
+                    unset($group_record['categories_id']);
+                    unset($group_record['groups_id']);
+                    if ($group_id > 0) {
                         try {
-                            $groupClass = $groupCategories::find()->where(['categories_id' => $this->categoryId, 'groups_id' => $groupId])->one();
-                            if (empty($groupClass)) {
-                                $groupClass = new $groupCategories();
-                                $groupClass->loadDefaultValues();
-                                $groupClass->categories_id = $this->categoryId;
-                                $groupClass->groups_id = $groupId;
+                            $group_class = $group_categories::find()->where(['categories_id' => $this->category_id, 'groups_id' => $group_id])->one();
+                            if (empty($group_class)) {
+                                $group_class = new $group_categories();
+                                $group_class->load_default_values();
+                                $group_class->categories_id = $this->category_id;
+                                $group_class->groups_id = $group_id;
                             }
-                            $groupClass->setAttributes($groupRecord, false);
-                            if ($groupClass->save(false)) {
-                                $isSave = true;
-                                $groupRecord = $groupClass->toArray();
+                            $group_class->set_attributes($group_record, false);
+                            if ($group_class->save(false)) {
+                                $is_save = true;
+                                $group_record = $group_class->to_array();
                             } else {
-                                $this->messageAdd($groupClass->getErrorSummary(true));
+                                $this->message_add($group_class->get_error_summary(true));
                             }
                         } catch (\Exception $exc) {
-                            $this->messageAdd($exc->getMessage());
+                            $this->message_add($exc->get_message());
                         }
-                        unset($groupClass);
+                        unset($group_class);
                     }
-                    unset($groupId);
-                    if ($isSave != true) {
-                        unset($this->groupRecordArray[$key]);
+                    unset($group_id);
+                    if ($is_save != true) {
+                        unset($this->group_record_array[$key]);
                     }
-                    unset($isSave);
+                    unset($is_save);
                 }
-                unset($isRewriteGroup);
-                unset($groupRecord);
+                unset($is_rewrite_group);
+                unset($group_record);
                 unset($key);
             }
             // EOF GROUP
             // SUPPLIER DISCOUNT
-            foreach ($this->supplierDiscountRecordArray as $key => &$supplierDiscountRecord) {
-                $isSave = false;
-                $manufacturerId = (int)(isset($supplierDiscountRecord['manufacturer_id']) ? $supplierDiscountRecord['manufacturer_id'] : 0);
-                $supplierId = (int)(isset($supplierDiscountRecord['suppliers_id']) ? $supplierDiscountRecord['suppliers_id'] : 0);
-                unset($supplierDiscountRecord['catalog_discount_id']);
-                unset($supplierDiscountRecord['manufacturer_id']);
-                unset($supplierDiscountRecord['suppliers_id']);
-                unset($supplierDiscountRecord['category_id']);
-                if (($supplierId > 0) and ($manufacturerId > 0)) {
+            foreach ($this->supplier_discount_record_array as $key => &$supplier_discount_record) {
+                $is_save = false;
+                $manufacturer_id = (int) (isset($supplier_discount_record['manufacturer_id']) ? $supplier_discount_record['manufacturer_id'] : 0);
+                $supplier_id = (int) (isset($supplier_discount_record['suppliers_id']) ? $supplier_discount_record['suppliers_id'] : 0);
+                unset($supplier_discount_record['catalog_discount_id']);
+                unset($supplier_discount_record['manufacturer_id']);
+                unset($supplier_discount_record['suppliers_id']);
+                unset($supplier_discount_record['category_id']);
+                if ($supplier_id > 0 and $manufacturer_id > 0) {
                     try {
-                        $supplierDiscountClass = \common\models\SuppliersCatalogDiscount::find()->where(['category_id' => $this->categoryId, 'suppliers_id' => $supplierId, 'manufacturer_id' => $manufacturerId])->one();
-                        if (!($supplierDiscountClass instanceof \common\models\SuppliersCatalogDiscount)) {
-                            $supplierDiscountClass = new \common\models\SuppliersCatalogDiscount();
-                            $supplierDiscountClass->loadDefaultValues();
-                            $supplierDiscountClass->category_id = $this->categoryId;
-                            $supplierDiscountClass->manufacturer_id = $manufacturerId;
-                            $supplierDiscountClass->suppliers_id = $supplierId;
+                        $supplier_discount_class = \common\models\Suppliers_Catalog_Discount::find()->where(['category_id' => $this->category_id, 'suppliers_id' => $supplier_id, 'manufacturer_id' => $manufacturer_id])->one();
+                        if (!$supplier_discount_class instanceof \common\models\Suppliers_Catalog_Discount) {
+                            $supplier_discount_class = new \common\models\Suppliers_Catalog_Discount();
+                            $supplier_discount_class->load_default_values();
+                            $supplier_discount_class->category_id = $this->category_id;
+                            $supplier_discount_class->manufacturer_id = $manufacturer_id;
+                            $supplier_discount_class->suppliers_id = $supplier_id;
                         }
-                        $supplierDiscountClass->setAttributes($supplierDiscountRecord, false);
-                        if ($supplierDiscountClass->save(false)) {
-                            $isSave = true;
-                            $supplierDiscountRecord = $supplierDiscountClass->toArray();
+                        $supplier_discount_class->set_attributes($supplier_discount_record, false);
+                        if ($supplier_discount_class->save(false)) {
+                            $is_save = true;
+                            $supplier_discount_record = $supplier_discount_class->to_array();
                         } else {
-                            $this->messageAdd($supplierDiscountClass->getErrorSummary(true));
+                            $this->message_add($supplier_discount_class->get_error_summary(true));
                         }
                     } catch (\Exception $exc) {
-                        $this->messageAdd($exc->getMessage());
+                        $this->message_add($exc->get_message());
                     }
-                    unset($supplierDiscountClass);
+                    unset($supplier_discount_class);
                 }
-                unset($manufacturerId);
-                unset($supplierId);
-                if ($isSave != true) {
-                    unset($this->supplierDiscountRecordArray[$key]);
+                unset($manufacturer_id);
+                unset($supplier_id);
+                if ($is_save != true) {
+                    unset($this->supplier_discount_record_array[$key]);
                 }
-                unset($isSave);
+                unset($is_save);
             }
-            unset($supplierDiscountRecord);
+            unset($supplier_discount_record);
             unset($key);
             // EOF SUPPLIER DISCOUNT
             // SUPPLIER PRICE RULE
-            foreach ($this->supplierPriceRuleRecordArray as $key => &$supplierPriceRuleRecord) {
-                $isSave = false;
-                $manufacturerId = (int)(isset($supplierPriceRuleRecord['manufacturer_id']) ? $supplierPriceRuleRecord['manufacturer_id'] : 0);
-                $currencyId = (int)(isset($supplierPriceRuleRecord['currencies_id']) ? $supplierPriceRuleRecord['currencies_id'] : -1);
-                $supplierId = (int)(isset($supplierPriceRuleRecord['suppliers_id']) ? $supplierPriceRuleRecord['suppliers_id'] : 0);
-                unset($supplierPriceRuleRecord['manufacturer_id']);
-                unset($supplierPriceRuleRecord['currencies_id']);
-                unset($supplierPriceRuleRecord['suppliers_id']);
-                unset($supplierPriceRuleRecord['category_id']);
-                unset($supplierPriceRuleRecord['rule_id']);
-                if (($supplierId > 0) and ($manufacturerId > 0) and ($currencyId >= 0)) {
+            foreach ($this->supplier_price_rule_record_array as $key => &$supplier_price_rule_record) {
+                $is_save = false;
+                $manufacturer_id = (int) (isset($supplier_price_rule_record['manufacturer_id']) ? $supplier_price_rule_record['manufacturer_id'] : 0);
+                $currency_id = (int) (isset($supplier_price_rule_record['currencies_id']) ? $supplier_price_rule_record['currencies_id'] : -1);
+                $supplier_id = (int) (isset($supplier_price_rule_record['suppliers_id']) ? $supplier_price_rule_record['suppliers_id'] : 0);
+                unset($supplier_price_rule_record['manufacturer_id']);
+                unset($supplier_price_rule_record['currencies_id']);
+                unset($supplier_price_rule_record['suppliers_id']);
+                unset($supplier_price_rule_record['category_id']);
+                unset($supplier_price_rule_record['rule_id']);
+                if ($supplier_id > 0 and $manufacturer_id > 0 and $currency_id >= 0) {
                     try {
-                        $supplierPriceRuleClass = \common\models\SuppliersCatalogPriceRules::find()->where(['category_id' => $this->categoryId, 'suppliers_id' => $supplierId, 'manufacturer_id' => $manufacturerId, 'currencies_id' => $currencyId])->one();
-                        if (!($supplierPriceRuleClass instanceof \common\models\SuppliersCatalogPriceRules)) {
-                            $supplierPriceRuleClass = new \common\models\SuppliersCatalogPriceRules();
-                            $supplierPriceRuleClass->loadDefaultValues();
-                            $supplierPriceRuleClass->category_id = $this->categoryId;
-                            $supplierPriceRuleClass->manufacturer_id = $manufacturerId;
-                            $supplierPriceRuleClass->currencies_id = $currencyId;
-                            $supplierPriceRuleClass->suppliers_id = $supplierId;
+                        $supplier_price_rule_class = \common\models\Suppliers_Catalog_Price_Rules::find()->where(['category_id' => $this->category_id, 'suppliers_id' => $supplier_id, 'manufacturer_id' => $manufacturer_id, 'currencies_id' => $currency_id])->one();
+                        if (!$supplier_price_rule_class instanceof \common\models\Suppliers_Catalog_Price_Rules) {
+                            $supplier_price_rule_class = new \common\models\Suppliers_Catalog_Price_Rules();
+                            $supplier_price_rule_class->load_default_values();
+                            $supplier_price_rule_class->category_id = $this->category_id;
+                            $supplier_price_rule_class->manufacturer_id = $manufacturer_id;
+                            $supplier_price_rule_class->currencies_id = $currency_id;
+                            $supplier_price_rule_class->suppliers_id = $supplier_id;
                         }
-                        $supplierPriceRuleClass->setAttributes($supplierPriceRuleRecord, false);
-                        if ($supplierPriceRuleClass->save(false)) {
-                            $isSave = true;
-                            $supplierPriceRuleRecord = $supplierPriceRuleClass->toArray();
+                        $supplier_price_rule_class->set_attributes($supplier_price_rule_record, false);
+                        if ($supplier_price_rule_class->save(false)) {
+                            $is_save = true;
+                            $supplier_price_rule_record = $supplier_price_rule_class->to_array();
                         } else {
-                            $this->messageAdd($supplierPriceRuleClass->getErrorSummary(true));
+                            $this->message_add($supplier_price_rule_class->get_error_summary(true));
                         }
                     } catch (\Exception $exc) {
-                        $this->messageAdd($exc->getMessage());
+                        $this->message_add($exc->get_message());
                     }
-                    unset($supplierPriceRuleClass);
+                    unset($supplier_price_rule_class);
                 }
-                unset($manufacturerId);
-                unset($currencyId);
-                unset($supplierId);
-                if ($isSave != true) {
-                    unset($this->supplierPriceRuleRecordArray[$key]);
+                unset($manufacturer_id);
+                unset($currency_id);
+                unset($supplier_id);
+                if ($is_save != true) {
+                    unset($this->supplier_price_rule_record_array[$key]);
                 }
-                unset($isSave);
+                unset($is_save);
             }
-            unset($supplierPriceRuleRecord);
+            unset($supplier_price_rule_record);
             unset($key);
             // EOF SUPPLIER PRICE RULE
             // FILTER
-            foreach ($this->filterRecordArray as $key => &$filterRecord) {
-                $isSave = false;
-                $manufacturerId = (int)(isset($filterRecord['manufacturers_id']) ? $filterRecord['manufacturers_id'] : 0);
-                $propertyId = (int)(isset($filterRecord['properties_id']) ? $filterRecord['properties_id'] : 0);
-                $filterType = trim(isset($filterRecord['filters_type']) ? $filterRecord['filters_type'] : '');
-                $optionId = (int)(isset($filterRecord['options_id']) ? $filterRecord['options_id'] : 0);
-                unset($filterRecord['manufacturers_id']);
-                unset($filterRecord['categories_id']);
-                unset($filterRecord['properties_id']);
-                unset($filterRecord['filters_type']);
-                unset($filterRecord['options_id']);
-                unset($filterRecord['filters_id']);
-                if ($filterType != '') {
+            foreach ($this->filter_record_array as $key => &$filter_record) {
+                $is_save = false;
+                $manufacturer_id = (int) (isset($filter_record['manufacturers_id']) ? $filter_record['manufacturers_id'] : 0);
+                $property_id = (int) (isset($filter_record['properties_id']) ? $filter_record['properties_id'] : 0);
+                $filter_type = trim(isset($filter_record['filters_type']) ? $filter_record['filters_type'] : '');
+                $option_id = (int) (isset($filter_record['options_id']) ? $filter_record['options_id'] : 0);
+                unset($filter_record['manufacturers_id']);
+                unset($filter_record['categories_id']);
+                unset($filter_record['properties_id']);
+                unset($filter_record['filters_type']);
+                unset($filter_record['options_id']);
+                unset($filter_record['filters_id']);
+                if ($filter_type != '') {
                     try {
-                        $filterClass = \common\models\Filters::find()->where(['categories_id' => $this->categoryId, 'manufacturers_id' => $manufacturerId, 'filters_type' => $filterType, 'options_id' => $optionId, 'properties_id' => $propertyId])->one();
-                        if (!($filterClass instanceof \common\models\Filters)) {
-                            $filterClass = new \common\models\Filters();
-                            $filterClass->loadDefaultValues();
-                            $filterClass->categories_id = $this->categoryId;
-                            $filterClass->manufacturers_id = $manufacturerId;
-                            $filterClass->properties_id = $propertyId;
-                            $filterClass->filters_type = $filterType;
-                            $filterClass->options_id = $optionId;
+                        $filter_class = \common\models\Filters::find()->where(['categories_id' => $this->category_id, 'manufacturers_id' => $manufacturer_id, 'filters_type' => $filter_type, 'options_id' => $option_id, 'properties_id' => $property_id])->one();
+                        if (!$filter_class instanceof \common\models\Filters) {
+                            $filter_class = new \common\models\Filters();
+                            $filter_class->load_default_values();
+                            $filter_class->categories_id = $this->category_id;
+                            $filter_class->manufacturers_id = $manufacturer_id;
+                            $filter_class->properties_id = $property_id;
+                            $filter_class->filters_type = $filter_type;
+                            $filter_class->options_id = $option_id;
                         }
-                        $filterClass->setAttributes($filterRecord, false);
-                        if ($filterClass->save(false)) {
-                            $isSave = true;
-                            $filterRecord = $filterClass->toArray();
+                        $filter_class->set_attributes($filter_record, false);
+                        if ($filter_class->save(false)) {
+                            $is_save = true;
+                            $filter_record = $filter_class->to_array();
                         } else {
-                            $this->messageAdd($filterClass->getErrorSummary(true));
+                            $this->message_add($filter_class->get_error_summary(true));
                         }
                     } catch (\Exception $exc) {
-                        $this->messageAdd($exc->getMessage());
+                        $this->message_add($exc->get_message());
                     }
-                    unset($filterClass);
+                    unset($filter_class);
                 }
-                unset($manufacturerId);
-                unset($propertyId);
-                unset($filterType);
-                unset($optionId);
-                if ($isSave != true) {
-                    unset($this->filterRecordArray[$key]);
+                unset($manufacturer_id);
+                unset($property_id);
+                unset($filter_type);
+                unset($option_id);
+                if ($is_save != true) {
+                    unset($this->filter_record_array[$key]);
                 }
-                unset($isSave);
+                unset($is_save);
             }
-            unset($filterRecord);
+            unset($filter_record);
             unset($key);
             // EOF FILTER
             // PRODUCT
-            foreach ($this->productRecordArray as $key => &$productRecord) {
-                $isSave = false;
-                $productId = (int)(isset($productRecord['products_id']) ? $productRecord['products_id'] : 0);
-                $productModel = trim(isset($productRecord['products_model']) ? $productRecord['products_model'] : '');
-                unset($productRecord['products_model']);
-                unset($productRecord['categories_id']);
-                unset($productRecord['products_id']);
-                if ($productModel != '') {
-                    $productIdCheck = $productId;
-                    $productId = 0;
-                    foreach (\common\models\Products::findAll(['products_model' => $productModel]) as $count => $productSearchRecord) {
-                        $productId = 0;
+            foreach ($this->product_record_array as $key => &$product_record) {
+                $is_save = false;
+                $product_id = (int) (isset($product_record['products_id']) ? $product_record['products_id'] : 0);
+                $product_model = trim(isset($product_record['products_model']) ? $product_record['products_model'] : '');
+                unset($product_record['products_model']);
+                unset($product_record['categories_id']);
+                unset($product_record['products_id']);
+                if ($product_model != '') {
+                    $product_id_check = $product_id;
+                    $product_id = 0;
+                    foreach (\common\models\Products::find_all(['products_model' => $product_model]) as $count => $product_search_record) {
+                        $product_id = 0;
                         if ($count == 0) {
-                            $productId = (int)$productSearchRecord->products_id;
+                            $product_id = (int) $product_search_record->products_id;
                         }
-                        if ($productIdCheck == (int)$productSearchRecord->products_id) {
-                            $productId = $productIdCheck;
+                        if ($product_id_check == (int) $product_search_record->products_id) {
+                            $product_id = $product_id_check;
                             break;
                         }
                     }
-                    unset($productSearchRecord);
-                    unset($productIdCheck);
+                    unset($product_search_record);
+                    unset($product_id_check);
                     unset($count);
                 }
-                if ($productId > 0) {
+                if ($product_id > 0) {
                     try {
-                        $productClass = \common\models\Products2Categories::find()->where(['categories_id' => $this->categoryId, 'products_id' => $productId])->one();
-                        if (!($productClass instanceof \common\models\Products2Categories)) {
-                            $productClass = new \common\models\Products2Categories();
-                            $productClass->loadDefaultValues();
-                            $productClass->categories_id = $this->categoryId;
-                            $productClass->products_id = $productId;
+                        $product_class = \common\models\Products2Categories::find()->where(['categories_id' => $this->category_id, 'products_id' => $product_id])->one();
+                        if (!$product_class instanceof \common\models\Products2Categories) {
+                            $product_class = new \common\models\Products2Categories();
+                            $product_class->load_default_values();
+                            $product_class->categories_id = $this->category_id;
+                            $product_class->products_id = $product_id;
                         }
-                        $productClass->setAttributes($productRecord, false);
-                        if ($productClass->save(false)) {
-                            $isSave = true;
-                            $productRecord = $productClass->toArray();
-                            if ($productModel != '') {
-                                $productRecord['products_model'] = $productModel;
+                        $product_class->set_attributes($product_record, false);
+                        if ($product_class->save(false)) {
+                            $is_save = true;
+                            $product_record = $product_class->to_array();
+                            if ($product_model != '') {
+                                $product_record['products_model'] = $product_model;
                             }
                         } else {
-                            $this->messageAdd($productClass->getErrorSummary(true));
+                            $this->message_add($product_class->get_error_summary(true));
                         }
                     } catch (\Exception $exc) {
-                        $this->messageAdd($exc->getMessage());
+                        $this->message_add($exc->get_message());
                     }
-                    unset($productClass);
+                    unset($product_class);
                 }
-                unset($productModel);
-                unset($productId);
-                if ($isSave != true) {
-                    unset($this->productRecordArray[$key]);
+                unset($product_model);
+                unset($product_id);
+                if ($is_save != true) {
+                    unset($this->product_record_array[$key]);
                 }
-                unset($isSave);
+                unset($is_save);
             }
-            unset($productRecord);
+            unset($product_record);
             unset($key);
             // EOF PRODUCT
             // OLD SEO REDIRECT
-            $seoModel = \common\helpers\Extensions::getModel('SeoRedirectsNamed', 'SeoRedirectsNamed');
-            if (!empty($seoModel)) {
-                foreach ($this->oldSeoRedirectArray as $seoRedirectArray) {
+            $seo_model = \common\helpers\Extensions::get_model('SeoRedirectsNamed', 'SeoRedirectsNamed');
+            if (!empty($seo_model)) {
+                foreach ($this->old_seo_redirect_array as $seo_redirect_array) {
                     try {
-                        $platformId = (int)(isset($seoRedirectArray['platform_id']) ? $seoRedirectArray['platform_id'] : 0);
-                        if ($platformId >= 0) {
-                            $languageId = (int)(isset($seoRedirectArray['language_id']) ? $seoRedirectArray['language_id'] : 0);
-                            if (isset($seoRedirectArray['language_code'])) {
-                                $languageId = $this->getLanguageIdByCode($seoRedirectArray['language_code'], $languageId);
+                        $platform_id = (int) (isset($seo_redirect_array['platform_id']) ? $seo_redirect_array['platform_id'] : 0);
+                        if ($platform_id >= 0) {
+                            $language_id = (int) (isset($seo_redirect_array['language_id']) ? $seo_redirect_array['language_id'] : 0);
+                            if (isset($seo_redirect_array['language_code'])) {
+                                $language_id = $this->get_language_id_by_code($seo_redirect_array['language_code'], $language_id);
                             }
-                            $searchArray = [
-                                'platform_id' => $platformId,
-                                'language_id' => $languageId,
-                                'redirects_type' => 'category',
-                                'owner_id' => $this->categoryId,
-                                'old_seo_page_name' => $seoRedirectArray['old_seo_page_name'],
-                            ];
-                            $seoRedirectRecord = $seoModel::findOne($searchArray);
-                            if (!($seoRedirectRecord instanceof $seoModel)) {
-                                $seoRedirectRecord = new $seoModel();
-                                $seoRedirectRecord->loadDefaultValues();
-                                $seoRedirectRecord->setAttributes($searchArray);
-                                $seoRedirectRecord->save();
+                            $search_array = ['platform_id' => $platform_id, 'language_id' => $language_id, 'redirects_type' => 'category', 'owner_id' => $this->category_id, 'old_seo_page_name' => $seo_redirect_array['old_seo_page_name']];
+                            $seo_redirect_record = $seo_model::find_one($search_array);
+                            if (!$seo_redirect_record instanceof $seo_model) {
+                                $seo_redirect_record = new $seo_model();
+                                $seo_redirect_record->load_default_values();
+                                $seo_redirect_record->set_attributes($search_array);
+                                $seo_redirect_record->save();
                             }
                         }
                     } catch (\Exception $exc) {
-                        \Yii::warning($exc->getMessage().' '.$exc->getTraceAsString(), 'SeoRedirectNammed');
+                        \Yii::warning($exc->get_message() . ' ' . $exc->get_trace_as_string(), 'SeoRedirectNammed');
                     }
-                    unset($seoRedirectRecord);
-                    unset($searchArray);
-                    unset($languageId);
-                    unset($platformId);
+                    unset($seo_redirect_record);
+                    unset($search_array);
+                    unset($language_id);
+                    unset($platform_id);
                 }
-
             }
-            unset($seoRedirectArray);
+            unset($seo_redirect_array);
             // EOF OLD SEO REDIRECT
             // IMAGES
-            if (count($this->categoryImageNewArray) > 0) {
-                $categoryDirectory = ('categories' . DIRECTORY_SEPARATOR . $this->categoryId . DIRECTORY_SEPARATOR);
-                foreach (['gallery' => '', 'hero' => '_2', 'homepage' => '_3'] as $imageType => $imageField) {
-                    if (isset($this->categoryImageNewArray[$imageType]) and (trim($this->categoryImageNewArray[$imageType]) != '')) {
+            if (count($this->category_image_new_array) > 0) {
+                $category_directory = 'categories' . DIRECTORY_SEPARATOR . $this->category_id . DIRECTORY_SEPARATOR;
+                foreach (['gallery' => '', 'hero' => '_2', 'homepage' => '_3'] as $image_type => $image_field) {
+                    if (isset($this->category_image_new_array[$image_type]) and trim($this->category_image_new_array[$image_type]) != '') {
                         try {
-                            $imageSrc = trim($this->categoryImageNewArray[$imageType]);
-                            $imageBody = file_get_contents($imageSrc);
-                            if ($imageBody != false) {
-                                $imageName = ($this->categoryId . '_' . md5($imageSrc) . '.' . strtolower(pathinfo($imageSrc, PATHINFO_EXTENSION)));
-                                $imageDirectory = (DIR_FS_CATALOG . DIR_WS_IMAGES . $categoryDirectory);
-                                if (!is_dir($imageDirectory)) {
-                                    @mkdir($imageDirectory, 0777, true);
+                            $image_src = trim($this->category_image_new_array[$image_type]);
+                            $image_body = file_get_contents($image_src);
+                            if ($image_body != false) {
+                                $image_name = $this->category_id . '_' . md5($image_src) . '.' . strtolower(pathinfo($image_src, PATHINFO_EXTENSION));
+                                $image_directory = DIR_FS_CATALOG . DIR_WS_IMAGES . $category_directory;
+                                if (!is_dir($image_directory)) {
+                                    @mkdir($image_directory, 0777, true);
                                 }
-                                $imageFile = @fopen($imageDirectory . $imageName, 'w+');
-                                unset($imageDirectory);
-                                if ($imageFile) {
-                                    $isCreate = (@fwrite($imageFile, $imageBody) > 0);
-                                    @fclose($imageFile);
-                                    if ($isCreate == true) {
-                                        $categoryClass->{'categories_image' . $imageField} = \common\classes\Images::moveImage(
-                                            ($categoryDirectory . $imageName),
-                                            ($categoryDirectory . $imageType)
-                                        );
-                                        $categoryClass->save(false);
-                                        \common\classes\Images::createWebp($categoryClass->{'categories_image' . $imageField});
-                                        \common\classes\Images::createResizeImages($categoryClass->{'categories_image' . $imageField}, 'Category ' . $imageType);
+                                $image_file = @fopen($image_directory . $image_name, 'w+');
+                                unset($image_directory);
+                                if ($image_file) {
+                                    $is_create = @fwrite($image_file, $image_body) > 0;
+                                    @fclose($image_file);
+                                    if ($is_create == true) {
+                                        $category_class->{'categories_image' . $image_field} = \common\classes\Images::move_image($category_directory . $image_name, $category_directory . $image_type);
+                                        $category_class->save(false);
+                                        \common\classes\Images::create_webp($category_class->{'categories_image' . $image_field});
+                                        \common\classes\Images::create_resize_images($category_class->{'categories_image' . $image_field}, 'Category ' . $image_type);
                                     }
-                                    unset($isCreate);
+                                    unset($is_create);
                                 }
-                                unset($imageFile);
-                                unset($imageName);
+                                unset($image_file);
+                                unset($image_name);
                             }
-                            unset($imageBody);
-                            unset($imageSrc);
+                            unset($image_body);
+                            unset($image_src);
                         } catch (\Exception $exc) {
-                            \Yii::warning("Error while import image '$imageSrc' for category($this->categoryId) : " . $exc->getMessage());
+                            \Yii::warning("Error while import image '{$image_src}' for category({$this->category_id}) : " . $exc->get_message());
                         }
                     }
                 }
-                unset($categoryDirectory);
-                unset($imageField);
-                unset($imageType);
-                $categoryClass->save(false);
+                unset($category_directory);
+                unset($image_field);
+                unset($image_type);
+                $category_class->save(false);
             }
             // EOF IMAGES
-            $return = $this->categoryId;
+            $return = $this->category_id;
         } else {
-            $this->messageAdd($categoryClass->getErrorSummary(true));
+            $this->message_add($category_class->get_error_summary(true));
         }
-        unset($categoryClass);
-        unset($isReplace);
+        unset($category_class);
+        unset($is_replace);
         return $return;
     }
 }

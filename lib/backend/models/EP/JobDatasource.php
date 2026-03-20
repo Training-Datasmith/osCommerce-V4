@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,323 +11,242 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP;
 
-use backend\models\EP\Provider\DatasourceInterface;
-
-class JobDatasource extends Job
+use backend\models\EP\Provider\Datasource_Interface;
+class Job_Datasource extends Job
 {
-    public function canConfigureExport()
+    public function can_configure_export()
     {
         return false;
     }
-
-    public function getFileSystemName()
+    public function get_file_system_name()
     {
         if (strpos($this->file_name, 'php://') === 0) {
             return $this->file_name;
         }
-        $directory = $this->getDirectory();
-        $ep_files_dir = $directory->filesRoot();
-        return $ep_files_dir.(empty($this->file_name_internal) ? $this->file_name : $this->file_name_internal);
+        $directory = $this->get_directory();
+        $ep_files_dir = $directory->files_root();
+        return $ep_files_dir . (empty($this->file_name_internal) ? $this->file_name : $this->file_name_internal);
     }
-
-    public function canConfigureImport()
+    public function can_configure_import()
     {
         $can = false;
         try {
-            $job = $this->getJobInstance();
+            $job = $this->get_job_instance();
             if (method_exists($job, 'importOptions')) {
-                $can = !empty($job->importOptions());
+                $can = !empty($job->import_options());
             }
         } catch (\Exception $ex) {
-            \Yii::warning(' #### ' . print_r($ex->getMessage(), true), 'TLDEBUG');
+            \Yii::warning(' #### ' . print_r($ex->get_message(), true), 'TLDEBUG');
         }
         return $can;
     }
-
-    public function canRun()
+    public function can_run()
     {
-        $this->checkIdle();
+        $this->check_idle();
         if ($this->job_state == self::PROCESS_STATE_CONFIGURED || $this->job_state == self::PROCESS_STATE_IDLE) {
             return true;
         }
         return false;
     }
-
     /**
      * Timeout for job restart
      *
      * @return int
      */
-    public function maximumHangTimeMinutes()
+    public function maximum_hang_time_minutes()
     {
         return 12 * 60;
     }
-
     /**
      * Check job too long running.
      * If last_cron_run time touched time more then maximumHangTimeMinutes and in running state
      *
      * @return bool
      */
-    public function isHangJob()
+    public function is_hang_job()
     {
-        if ($activityState = $this->jobActivityState()) {
-            if (in_array($activityState['job_state'], [Job::PROCESS_STATE_IN_PROGRESS, Job::PROCESS_STATE_IDLE])) {
-                $dbTime = strtotime($activityState['db_time']);
-                $lastPingSeconds = $dbTime - strtotime($activityState['last_cron_run']);
-                if ($lastPingSeconds >= $this->maximumHangTimeMinutes() * 60) {
-                    \Yii::info(
-                        'Hang job #'.$this->job_id.' '.$this->file_name.
-                        " state: {$activityState['job_state']};".
-                        " last_ping: {$activityState['last_cron_run']};".
-                        ' allow minutes:'.$this->maximumHangTimeMinutes().
-                        '  ('.date('Y-m-d H:i:s', strtotime('-'.$this->maximumHangTimeMinutes().'minutes', $dbTime)).'); ',
-                        'datasource'
-                    );
+        if ($activity_state = $this->job_activity_state()) {
+            if (in_array($activity_state['job_state'], [Job::PROCESS_STATE_IN_PROGRESS, Job::PROCESS_STATE_IDLE])) {
+                $db_time = strtotime($activity_state['db_time']);
+                $last_ping_seconds = $db_time - strtotime($activity_state['last_cron_run']);
+                if ($last_ping_seconds >= $this->maximum_hang_time_minutes() * 60) {
+                    \Yii::info('Hang job #' . $this->job_id . ' ' . $this->file_name . " state: {$activity_state['job_state']};" . " last_ping: {$activity_state['last_cron_run']};" . ' allow minutes:' . $this->maximum_hang_time_minutes() . '  (' . date('Y-m-d H:i:s', strtotime('-' . $this->maximum_hang_time_minutes() . 'minutes', $db_time)) . '); ', 'datasource');
                     return true;
                 }
             }
         }
         return false;
     }
-
     /**
      * Get job state from db
      *
      * @return array|false
      */
-    protected function jobActivityState()
+    protected function job_activity_state()
     {
-        return tep_db_fetch_array(tep_db_query(
-            'select last_cron_run, now() as db_time, job_state from '.TABLE_EP_JOB.' '.
-            "WHERE job_id='".intval($this->job_id)."'"
-        ));
+        return tep_db_fetch_array(tep_db_query('select last_cron_run, now() as db_time, job_state from ' . TABLE_EP_JOB . ' ' . "WHERE job_id='" . intval($this->job_id) . "'"));
     }
-
-    public function checkIdle()
+    public function check_idle()
     {
-
-        $idle = tep_db_fetch_array(tep_db_query(
-            'select (MINUTE(TIMEDIFF(last_cron_run, now()))) as minutes from '.TABLE_EP_JOB.' '.
-            "WHERE job_id='".intval($this->job_id)."' and job_state='in_progress'"
-        ));
-
+        $idle = tep_db_fetch_array(tep_db_query('select (MINUTE(TIMEDIFF(last_cron_run, now()))) as minutes from ' . TABLE_EP_JOB . ' ' . "WHERE job_id='" . intval($this->job_id) . "' and job_state='in_progress'"));
         if (($idle['minutes'] ?? null) > 10) {
             $this->job_state = self::PROCESS_STATE_IDLE;
         }
         return;
     }
-
-    public function canRunInBrowser()
+    public function can_run_in_browser()
     {
         $can = false;
         try {
-            $job = $this->getJobInstance();
+            $job = $this->get_job_instance();
             if (method_exists($job, 'allowRunInPopup')) {
-                $can = $job->allowRunInPopup();
+                $can = $job->allow_run_in_popup();
             }
         } catch (\Exception $ex) {
         }
         return $can;
     }
-
-    public function runASAP()
+    public function run_asap()
     {
         $this->run_frequency = 1;
-        tep_db_query(
-            'UPDATE '.TABLE_EP_JOB.' '.
-            'SET run_frequency=1 '.
-            "WHERE job_id='".intval($this->job_id)."'"
-        );
+        tep_db_query('UPDATE ' . TABLE_EP_JOB . ' ' . 'SET run_frequency=1 ' . "WHERE job_id='" . intval($this->job_id) . "'");
     }
-
-    public function getProviders()
+    public function get_providers()
     {
         return new Providers();
     }
-
-    protected function getDataSourceByName(Directory $directory)
+    protected function get_data_source_by_name(Directory $directory)
     {
-        return DataSources::getByName($directory->directory);
+        return Data_Sources::get_by_name($directory->directory);
     }
-
-    protected function getJobInstance()
+    protected function get_job_instance()
     {
-        $directory = Directory::loadById($this->directory_id);
+        $directory = Directory::load_by_id($this->directory_id);
         if (!is_object($directory)) {
             throw new Exception('Not found job directory.');
         }
-        $datasource = $this->getDataSourceByName($directory);
+        $datasource = $this->get_data_source_by_name($directory);
         if (!is_object($datasource)) {
             throw new Exception('Not found job datasource object.');
         }
-
-        $datasourceProviderConfig = $datasource->getJobConfig();
-        $datasourceProviderConfig['workingDirectory'] = $directory->filesRoot();
-        $datasourceProviderConfig['directoryId'] = $this->directory_id;
+        $datasource_provider_config = $datasource->get_job_config();
+        $datasource_provider_config['workingDirectory'] = $directory->files_root();
+        $datasource_provider_config['directoryId'] = $this->directory_id;
         if (is_array($this->job_configure) && !empty($this->job_configure)) {
-            $datasourceProviderConfig['job_configure'] = $this->job_configure;
+            $datasource_provider_config['job_configure'] = $this->job_configure;
         }
-
-        $providers = $this->getProviders();
-
-        return $providers->getProviderInstance($this->job_provider, $datasourceProviderConfig);
-
+        $providers = $this->get_providers();
+        return $providers->get_provider_instance($this->job_provider, $datasource_provider_config);
     }
-
     public function run(Messages $messages)
     {
         try {
-            $providerObj = $this->getJobInstance();
-            if (property_exists($providerObj, 'job_id')) {
-                $providerObj->job_id = $this->job_id;
+            $provider_obj = $this->get_job_instance();
+            if (property_exists($provider_obj, 'job_id')) {
+                $provider_obj->job_id = $this->job_id;
             }
         } catch (Exception $ex) {
-            $messages->info($ex->getMessage().' Exit job.');
+            $messages->info($ex->get_message() . ' Exit job.');
         }
-
         $messages->command('start');
-
         try {
-
-            if ($providerObj instanceof DatasourceInterface) {
-
+            if ($provider_obj instanceof Datasource_Interface) {
                 $messages->progress(0);
-
                 $started = time();
-                $idlePing = $started;
-                $rowCounter = 0;
-                $progressRowInform = 100;
-                $lastInfoSayTime = $started;
-                $lastProgress = 0;
+                $idle_ping = $started;
+                $row_counter = 0;
+                $progress_row_inform = 100;
+                $last_info_say_time = $started;
+                $last_progress = 0;
                 set_time_limit(0);
-
-                $providerObj->prepareProcess($messages);
-
-                while ($providerObj->processRow($messages)) {
+                $provider_obj->prepare_process($messages);
+                while ($provider_obj->process_row($messages)) {
                     echo '.';
-
-                    $rowCounter++;
-                    $currentTime = time();
-                    $percentProgress = $providerObj->getProgress();
-                    if (((int)$percentProgress - $lastProgress) > 1 || ($rowCounter % $progressRowInform) == 0 || ($currentTime - $lastInfoSayTime) > 60) {
-                        $lastProgress = (int)$percentProgress;
-                        if ($percentProgress == 0) {
-                            $secondsForJob = round(($currentTime - $started) * 100 / 0.0001);
+                    $row_counter++;
+                    $current_time = time();
+                    $percent_progress = $provider_obj->get_progress();
+                    if ((int) $percent_progress - $last_progress > 1 || $row_counter % $progress_row_inform == 0 || $current_time - $last_info_say_time > 60) {
+                        $last_progress = (int) $percent_progress;
+                        if ($percent_progress == 0) {
+                            $seconds_for_job = round(($current_time - $started) * 100 / 0.0001);
                         } else {
-                            $secondsForJob = round(($currentTime - $started) * 100 / $percentProgress);
+                            $seconds_for_job = round(($current_time - $started) * 100 / $percent_progress);
                         }
-                        $timeLeft = 'Time left: '.gmdate('H:i:s', max(0, $secondsForJob - ($currentTime - $started)));
-                        if ($currentTime != $started) {
-                            $timeLeft .= ' ' . number_format($rowCounter / ($currentTime - $started), 1, '.', '') . ' Lines per second';
+                        $time_left = 'Time left: ' . gmdate('H:i:s', max(0, $seconds_for_job - ($current_time - $started)));
+                        if ($current_time != $started) {
+                            $time_left .= ' ' . number_format($row_counter / ($current_time - $started), 1, '.', '') . ' Lines per second';
                         }
-                        if ($this->isAlive() === false) {
+                        if ($this->is_alive() === false) {
                             // job removed;
                             // hmm.. postprocess or not?
                             echo "\nJob removed. Exit\n";
                             break;
                         }
-
-                        $messages->progress($percentProgress, $timeLeft);
-
-                        $idlePing = $currentTime;
-
+                        $messages->progress($percent_progress, $time_left);
+                        $idle_ping = $current_time;
                         set_time_limit(0);
-                        $lastInfoSayTime = $currentTime;
-                    } elseif ($this->job_id && $currentTime - $idlePing > 60) {
+                        $last_info_say_time = $current_time;
+                    } elseif ($this->job_id && $current_time - $idle_ping > 60) {
                         // workaround for idle state
-                        tep_db_perform(TABLE_EP_JOB, [
-                            'last_cron_run' => date('Y-m-d H:i:s', $currentTime),
-                            'job_state' => Job::PROCESS_STATE_IN_PROGRESS,
-                        ], 'update', "job_id='".$this->job_id."'");
-                        $idlePing = $currentTime;
+                        tep_db_perform(TABLE_EP_JOB, ['last_cron_run' => date('Y-m-d H:i:s', $current_time), 'job_state' => Job::PROCESS_STATE_IN_PROGRESS], 'update', "job_id='" . $this->job_id . "'");
+                        $idle_ping = $current_time;
                     }
                 }
-
                 $messages->progress(100);
-
-                $providerObj->postProcess($messages);
-
+                $provider_obj->post_process($messages);
             }
         } catch (\Exception $ex) {
             //$messages->info($ex->getMessage());
-            \Yii::error('Job exception: '.$ex->getMessage()."\n".$ex->getTraceAsString(), 'datasource');
+            \Yii::error('Job exception: ' . $ex->get_message() . "\n" . $ex->get_trace_as_string(), 'datasource');
             throw $ex;
         }
     }
-
-    public function jobFinished()
+    public function job_finished()
     {
-        parent::jobFinished();
-
-        $this->moveToProcessed();
+        parent::job_finished();
+        $this->move_to_processed();
     }
-
-    public function moveToProcessed()
+    public function move_to_processed()
     {
         $new_job_directory_id = $this->directory_id;
-
-        if (!parent::moveToProcessed()) {
-            \Yii::error('Move '.$this->file_name.' to processed failed - renew skip', 'datasource');
+        if (!parent::move_to_processed()) {
+            \Yii::error('Move ' . $this->file_name . ' to processed failed - renew skip', 'datasource');
             return;
         }
-
         if (is_array($this->job_configure) && isset($this->job_configure['oneTimeJob']) && $this->job_configure['oneTimeJob'] === true) {
             // on time job
             return;
         }
-        if (!$this->isAlive()) {
-            \Yii::error('Move '.$this->file_name.' to processed failed - current job not in db', 'datasource');
+        if (!$this->is_alive()) {
+            \Yii::error('Move ' . $this->file_name . ' to processed failed - current job not in db', 'datasource');
             return;
         }
-
-        $data_array = [
-            'directory_id' => $new_job_directory_id,
-            'direction' => $this->direction,
-            'file_name' => $this->file_name,
-            'file_time' => 0,
-            'file_size' => 0,
-            'job_state' => 'configured',
-            'job_provider' => $this->job_provider,
-            'run_frequency' => $this->run_frequency,
-            'run_time' => $this->run_time,
-            'job_configure' => (!empty($this->job_configure) ? json_encode($this->job_configure) : 'null'),
-            'last_cron_run' => 'now()', //$this->last_cron_run,
-        ];
+        $data_array = ['directory_id' => $new_job_directory_id, 'direction' => $this->direction, 'file_name' => $this->file_name, 'file_time' => 0, 'file_size' => 0, 'job_state' => 'configured', 'job_provider' => $this->job_provider, 'run_frequency' => $this->run_frequency, 'run_time' => $this->run_time, 'job_configure' => !empty($this->job_configure) ? json_encode($this->job_configure) : 'null', 'last_cron_run' => 'now()'];
         // {{ restore time if run by admin request - Immediately or and custom job time modification
-        $directory = Directory::loadById($this->directory_id);
+        $directory = Directory::load_by_id($this->directory_id);
         if (is_object($directory) && $directory->directory_type == Directory::TYPE_PROCESSED) {
-            $directory = $directory->getParent();
+            $directory = $directory->get_parent();
         }
         if (is_object($directory)) {
-            $jobConfig = $directory->findConfigByFileName($this->file_name);
-            if (is_array($jobConfig)) {
-                if (array_key_exists('run_frequency', $jobConfig)) {
-                    $data_array['run_frequency'] = $jobConfig['run_frequency'];
+            $job_config = $directory->find_config_by_file_name($this->file_name);
+            if (is_array($job_config)) {
+                if (array_key_exists('run_frequency', $job_config)) {
+                    $data_array['run_frequency'] = $job_config['run_frequency'];
                 }
-                if (array_key_exists('run_time', $jobConfig)) {
-                    $data_array['run_time'] = $jobConfig['run_time'];
+                if (array_key_exists('run_time', $job_config)) {
+                    $data_array['run_time'] = $job_config['run_time'];
                 }
             }
         }
         // }} restore time
-
         \Yii::info("[EP_CRON] Dir {$data_array['directory_id']} re-add processed job {$data_array['file_name']}", 'datasource');
-        $this_job_scheduled_count = \Yii::$app->getDb()->createCommand(
-            'SELECT COUNT(*) '.
-            'FROM '.TABLE_EP_JOB.' '.
-            'WHERE directory_id=:dir_id AND file_name=:job_name',
-            [':dir_id' => (int)$data_array['directory_id'], ':job_name' => (string)$data_array['file_name']]
-        )->queryScalar();
+        $this_job_scheduled_count = \Yii::$app->get_db()->create_command('SELECT COUNT(*) ' . 'FROM ' . TABLE_EP_JOB . ' ' . 'WHERE directory_id=:dir_id AND file_name=:job_name', [':dir_id' => (int) $data_array['directory_id'], ':job_name' => (string) $data_array['file_name']])->query_scalar();
         if (is_numeric($this_job_scheduled_count) && $this_job_scheduled_count > 0) {
             \Yii::info("[EP_CRON] [CRITICAL] Job {$data_array['directory_id']} {$data_array['file_name']} already exist", 'datasource');
         } else {
             tep_db_perform(TABLE_EP_JOB, $data_array);
         }
-
     }
-
 }

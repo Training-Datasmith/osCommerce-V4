@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,75 +11,70 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Reader;
 
 use backend\models\EP\Exception;
-use PhpOffice\PhpSpreadsheet\Reader\Xls as PhpOfficeXls;
-
-class XLS implements ReaderInterface
+use Php_Office\Php_Spreadsheet\Reader\Xls as PhpOfficeXls;
+class XLS implements Reader_Interface
 {
     protected $file_header;
     private $file_start_pointer = 0;
     private $file_header_rows = 10;
     private $file_data_start_pointer;
-    private $currow = 1; //excel style
-
+    private $currow = 1;
+    //excel style
     public $filename;
-
     protected $file_handle;
-    protected $maxColumn; //A,B,C ...
-    protected $maxColumnIndex; //1,2,3 ...
-    protected $maxRow; //1,2,3 ....
-    protected $maxColumnToCheck = 'CZ';
-
+    protected $max_column;
+    //A,B,C ...
+    protected $max_column_index;
+    //1,2,3 ...
+    protected $max_row;
+    //1,2,3 ....
+    protected $max_column_to_check = 'CZ';
     protected $reader;
-
-    protected function openFile()
+    protected function open_file()
     {
         $this->file_header = null;
         $this->file_start_pointer = 0;
         /*        $this->file_handle = fopen($this->filename,'r');
-                if ( !$this->file_handle ) {
-                    throw new Exception('Can\'t open file', 20);
-                }
-        */
-        $reader = new PhpOfficeXls();
-        $worksheetNames = $reader->listWorksheetNames($this->filename);
-        if (is_array($worksheetNames) && count($worksheetNames) > 0) {
-            $sheetname = $worksheetNames[0];
+                        if ( !$this->file_handle ) {
+                            throw new Exception('Can\'t open file', 20);
+                        }
+                */
+        $reader = new Php_Office_Xls();
+        $worksheet_names = $reader->list_worksheet_names($this->filename);
+        if (is_array($worksheet_names) && count($worksheet_names) > 0) {
+            $sheetname = $worksheet_names[0];
         }
-        $reader->setLoadSheetsOnly($sheetname);
-        $reader->setReadDataOnly(true);
-        if (is_object($this->filterSubset)) {
-            $reader->setReadFilter($this->filterSubset);
+        $reader->set_load_sheets_only($sheetname);
+        $reader->set_read_data_only(true);
+        if (is_object($this->filter_subset)) {
+            $reader->set_read_filter($this->filter_subset);
         }
         $spreadsheet = $reader->load($this->filename);
-
-        $this->file_handle = $spreadsheet->getActiveSheet();
-        $worksheet  = $this->file_handle;
-        $this->maxRow = $worksheet->getHighestRow(); // e.g. 10
-        $this->maxColumn = $worksheet->getHighestColumn(); // e.g 'F'
-        $this->maxColumnIndex = \PhpOffice\PhpSpreadsheet\Cell\Coordinate::columnIndexFromString($this->maxColumn); // e.g. 5
-        $this->maxColumn++;
-
-        $this->readColumns();
-
+        $this->file_handle = $spreadsheet->get_active_sheet();
+        $worksheet = $this->file_handle;
+        $this->max_row = $worksheet->get_highest_row();
+        // e.g. 10
+        $this->max_column = $worksheet->get_highest_column();
+        // e.g 'F'
+        $this->max_column_index = \Php_Office\Php_Spreadsheet\Cell\Coordinate::column_index_from_string($this->max_column);
+        // e.g. 5
+        $this->max_column++;
+        $this->read_columns();
         $this->currow = $this->file_data_start_pointer + 1;
         //$tmp = $this;         unset($tmp->file_handle);        echo "#### <PRE>" .print_r($tmp, 1) ."</PRE>";        die;
     }
-
-    public function currentPosition()
+    public function current_position()
     {
         return $this->currow;
     }
-
-    public function setDataPosition($position)
+    public function set_data_position($position)
     {
         $this->currow = $position;
     }
-
-    public static function cellRange($from, $to)
+    public static function cell_range($from, $to)
     {
         $ret = [];
         if ($from > $to) {
@@ -93,88 +88,93 @@ class XLS implements ReaderInterface
         }
         return $ret;
     }
-
-    public function readColumns()
+    public function read_columns()
     {
         if (is_null($this->file_header)) {
             if (!$this->file_handle) {
-                $this->filterSubset = new XlsReadFilter($this->file_start_pointer, $this->file_header_rows, self::cellRange('A', $this->maxColumnToCheck));
-                $this->openFile();
+                $this->filter_subset = new Xls_Read_Filter($this->file_start_pointer, $this->file_header_rows, self::cell_range('A', $this->max_column_to_check));
+                $this->open_file();
             }
             $data_start = 0;
             if (is_null($this->file_header)) {
                 $this->file_header = false;
                 if ($this->without_header) {
-                    $tmp = $this->file_handle->rangeToArray(
-                        'A' . (1) . ':' . ($this->maxColumn) . (1),     // The worksheet range that we want to retrieve
-                        '',        // Value that should be returned for empty cells
-                        true,        // Should formulas be calculated (the equivalent of getCalculatedValue() for each cell)
-                        true,        // Should values be formatted (the equivalent of getFormattedValue() for each cell)
-                        false         // Should the array be indexed by cell row and cell column
+                    $tmp = $this->file_handle->range_to_array(
+                        'A' . 1 . ':' . $this->max_column . 1,
+                        // The worksheet range that we want to retrieve
+                        '',
+                        // Value that should be returned for empty cells
+                        true,
+                        // Should formulas be calculated (the equivalent of getCalculatedValue() for each cell)
+                        true,
+                        // Should values be formatted (the equivalent of getFormattedValue() for each cell)
+                        false
                     );
                 } else {
                     // skip table header
                     // until max filled row with unique values
                     $u = [];
-                    for ($row = 1; $row <= $this->maxRow; ++$row) {
-                        $tmp = $this->file_handle->rangeToArray(
-                            'A' . ($row) . ':' . ($this->maxColumn) . ($row),     // The worksheet range that we want to retrieve
-                            '',        // Value that should be returned for empty cells
-                            true,        // Should formulas be calculated (the equivalent of getCalculatedValue() for each cell)
-                            true,        // Should values be formatted (the equivalent of getFormattedValue() for each cell)
-                            false         // Should the array be indexed by cell row and cell column
+                    for ($row = 1; $row <= $this->max_row; ++$row) {
+                        $tmp = $this->file_handle->range_to_array(
+                            'A' . $row . ':' . $this->max_column . $row,
+                            // The worksheet range that we want to retrieve
+                            '',
+                            // Value that should be returned for empty cells
+                            true,
+                            // Should formulas be calculated (the equivalent of getCalculatedValue() for each cell)
+                            true,
+                            // Should values be formatted (the equivalent of getFormattedValue() for each cell)
+                            false
                         );
                         $u = array_unique($tmp[0]);
-                        if (ceil(0.8 * $this->maxColumnIndex) <= count($u)) {
-                            $this->maxColumnIndex = count($u);
+                        if (ceil(0.8 * $this->max_column_index) <= count($u)) {
+                            $this->max_column_index = count($u);
                             $data_start = $row;
                             break;
                         }
                         //echo  'A' . ($row) . ':' . ($this->maxColumn) . ($row) . " \$u #### <PRE>" .print_r($u , 1) ."</PRE>";
                     }
-                    $u = array_filter($u, 'strlen'); /// strip empty and Null headers
+                    $u = array_filter($u, 'strlen');
+                    /// strip empty and Null headers
                     $this->file_header = $u;
                 }
             }
-
             if (is_null($this->file_data_start_pointer) || $this->file_data_start_pointer < $data_start) {
                 $this->file_data_start_pointer = $data_start;
             }
-
             //reopen full file (without row limits)
-            if (is_object($this->filterSubset)) {
-                unset($this->filterSubset);
-                $this->openFile();
+            if (is_object($this->filter_subset)) {
+                unset($this->filter_subset);
+                $this->open_file();
             }
         }
         return array_values($this->file_header);
     }
-
-    public function getProgress()
+    public function get_progress()
     {
-
-        $percentDone = min(100, ($this->currow / $this->maxRow) * 100);
-        return number_format($percentDone, 1, '.', '');
+        $percent_done = min(100, $this->currow / $this->max_row * 100);
+        return number_format($percent_done, 1, '.', '');
     }
-
     public function read()
     {
         if (!$this->file_handle) {
-            $this->openFile();
+            $this->open_file();
         }
         $data = false;
-        if ($this->currow <= $this->maxRow) {
-
-            $data = $this->file_handle->rangeToArray(
-                'A' . ($this->currow) . ':' . ($this->maxColumn) . ($this->currow),     // The worksheet range that we want to retrieve
-                null,        // Value that should be returned for empty cells
-                true,        // Should formulas be calculated (the equivalent of getCalculatedValue() for each cell)
-                true,        // Should values be formatted (the equivalent of getFormattedValue() for each cell)
-                false         // Should the array be indexed by cell row and cell column
+        if ($this->currow <= $this->max_row) {
+            $data = $this->file_handle->range_to_array(
+                'A' . $this->currow . ':' . $this->max_column . $this->currow,
+                // The worksheet range that we want to retrieve
+                null,
+                // Value that should be returned for empty cells
+                true,
+                // Should formulas be calculated (the equivalent of getCalculatedValue() for each cell)
+                true,
+                // Should values be formatted (the equivalent of getFormattedValue() for each cell)
+                false
             );
             $data = $data[0];
             $this->currow++;
-
             if (is_array($data)) {
                 if (is_array($this->file_header)) {
                     $named_data = [];
@@ -185,42 +185,36 @@ class XLS implements ReaderInterface
                 }
             }
         }
-
         return $data;
     }
-
-    protected function detectEncoding()
+    protected function detect_encoding()
     {
         // check UTF encoding
         rewind($this->file_handle);
-        $utfMap = $this->getUtfBomMap();
-        if (isset($utfMap[ $this->use_config['input_encoding'] ])) {
-            $this->file_start_pointer = strlen($utfMap[ $this->use_config['input_encoding'] ]);
+        $utf_map = $this->get_utf_bom_map();
+        if (isset($utf_map[$this->use_config['input_encoding']])) {
+            $this->file_start_pointer = strlen($utf_map[$this->use_config['input_encoding']]);
         }
-
         if ($this->use_config['input_encoding'] == 'auto') {
-            $readLength = array_reduce($utfMap, function ($initial, $signature) {
+            $read_length = array_reduce($utf_map, function ($initial, $signature) {
                 return max($initial, strlen($signature));
             }, 0);
-            $checkSignature = fread($this->file_handle, $readLength);
-
+            $check_signature = fread($this->file_handle, $read_length);
             rewind($this->file_handle);
-            foreach ($utfMap as $utfEncoding => $utfSignature) {
-                if (substr($checkSignature, 0, strlen($utfSignature)) == $utfSignature) {
-                    $this->use_config['input_encoding'] = $utfEncoding;
-                    $this->file_start_pointer = strlen($utfSignature);
+            foreach ($utf_map as $utf_encoding => $utf_signature) {
+                if (substr($check_signature, 0, strlen($utf_signature)) == $utf_signature) {
+                    $this->use_config['input_encoding'] = $utf_encoding;
+                    $this->file_start_pointer = strlen($utf_signature);
                     break;
                 }
             }
         }
-
         fseek($this->file_handle, $this->file_start_pointer, SEEK_SET);
     }
-
-    private function deEncode($dataArray)
+    private function de_encode($data_array)
     {
-        static $preferredEncodingOrder = false;
-        if (!is_array($preferredEncodingOrder)) {
+        static $preferred_encoding_order = false;
+        if (!is_array($preferred_encoding_order)) {
             $encoding_list = mb_list_encodings();
             $encoding_list = preg_grep('/(-Mobile|auto)/i', $encoding_list, PREG_GREP_INVERT);
             $prefer3_order = 'UTF,ISO,WIN,CP8';
@@ -237,18 +231,16 @@ class XLS implements ReaderInterface
                 }
                 return $cmp_res;
             });
-            $preferredEncodingOrder = $encoding_list;
+            $preferred_encoding_order = $encoding_list;
         }
-
-        foreach ($dataArray as $key => $file_data) {
+        foreach ($data_array as $key => $file_data) {
             if (!empty($file_data) && !is_numeric($file_data)) {
-                $cellEncoding = mb_detect_encoding($file_data, $preferredEncodingOrder, true);
-                if ($cellEncoding != 'UTF-8') {
-                    $dataArray[$key] = mb_convert_encoding($file_data, 'UTF-8', $cellEncoding);
+                $cell_encoding = mb_detect_encoding($file_data, $preferred_encoding_order, true);
+                if ($cell_encoding != 'UTF-8') {
+                    $data_array[$key] = mb_convert_encoding($file_data, 'UTF-8', $cell_encoding);
                 }
             }
         }
-        return $dataArray;
+        return $data_array;
     }
-
 }

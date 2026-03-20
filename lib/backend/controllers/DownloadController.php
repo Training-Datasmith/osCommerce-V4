@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,17 +11,15 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\controllers;
 
 use Yii;
-
 /**
  *
  */
-class DownloadController extends Sceleton
+class Download_Controller extends Sceleton
 {
-    public function actionIndex()
+    public function action_index()
     {
         $filename = Yii::$app->request->get('filename');
         $filename = \common\helpers\Output::mb_basename($filename);
@@ -33,10 +30,8 @@ class DownloadController extends Sceleton
             header('Pragma: no-cache');
             header('Content-Type: Application/octet-stream');
             header('Content-disposition: attachment; filename=' . $filename);
-
             readfile(DIR_FS_DOWNLOAD . $filename);
-            exit();
+            exit;
         }
     }
-
 }

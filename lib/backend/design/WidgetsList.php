@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,10 +11,9 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design;
 
-class WidgetsList
+class Widgets_List
 {
     public static function get($type)
     {
@@ -23,19 +22,13 @@ class WidgetsList
         if ($type == 'invoice' || $type == 'creditnote' || $type == 'orders') {
             $method = 'orders';
         }
-
         if (method_exists(__CLASS__, $method)) {
             $widgets = self::$method();
         }
         if ($type != 'email' && $type != 'invoice' && $type != 'packingslip' && $type != 'pdf' && $type != 'orders') {
             $widgets = array_merge(self::main(), $widgets);
         }
-
-        $path = DIR_FS_CATALOG . 'lib'
-            . DIRECTORY_SEPARATOR . 'backend'
-            . DIRECTORY_SEPARATOR . 'design'
-            . DIRECTORY_SEPARATOR . 'boxes'
-            . DIRECTORY_SEPARATOR . 'include';
+        $path = DIR_FS_CATALOG . 'lib' . DIRECTORY_SEPARATOR . 'backend' . DIRECTORY_SEPARATOR . 'design' . DIRECTORY_SEPARATOR . 'boxes' . DIRECTORY_SEPARATOR . 'include';
         if (file_exists($path)) {
             $dir = scandir($path);
             foreach ($dir as $file) {
@@ -44,44 +37,37 @@ class WidgetsList
                 }
             }
         }
-
-        $widgets = array_merge($widgets, \common\helpers\Acl::getExtensionWidgets($type));
-
+        $widgets = array_merge($widgets, \common\helpers\Acl::get_extension_widgets($type));
         if ($type == 'productListing') {
-            $productListing = [];
+            $product_listing = [];
             foreach ($widgets as $key => $widget) {
                 if ($widget['type'] == 'productListing') {
-                    $productListing[] = $widget;
+                    $product_listing[] = $widget;
                 }
             }
-            $widgets = $productListing;
+            $widgets = $product_listing;
         }
-
         if ($type == 'backendOrder') {
-            $backendOrder = [];
+            $backend_order = [];
             foreach ($widgets as $key => $widget) {
                 if ($widget['type'] == 'backendOrder') {
-                    $backendOrder[] = $widget;
+                    $backend_order[] = $widget;
                 }
             }
-            $widgets = $backendOrder;
+            $widgets = $backend_order;
         }
-
         if ($type == 'backendOrdersList') {
-            $backendOrder = [];
+            $backend_order = [];
             foreach ($widgets as $key => $widget) {
                 if ($widget['type'] == 'backendOrdersList') {
-                    $backendOrder[] = $widget;
+                    $backend_order[] = $widget;
                 }
             }
-            $widgets = $backendOrder;
+            $widgets = $backend_order;
         }
-
-        $widgets = array_merge($widgets, \backend\design\Groups::getWidgetGroups($type));
-
+        $widgets = array_merge($widgets, \backend\design\Groups::get_widget_groups($type));
         return $widgets;
     }
-
     private static function product()
     {
         $widgets = [];
@@ -121,15 +107,12 @@ class WidgetsList
         $widgets[] = ['name' => 'product\BazaarvoiceReview', 'title' => TEXT_BAZAARVOICE_REVIEWS, 'description' => '', 'type' => 'product', 'class' => ''];
         $widgets[] = ['name' => 'product\CompareButton', 'title' => TEXT_COMPARE_BUTTON, 'description' => '', 'type' => 'product', 'class' => ''];
         $widgets[] = ['name' => 'product\PriceFrom', 'title' => TEXT_PRICE_FROM, 'description' => '', 'type' => 'product', 'class' => ''];
-        $widgets[] = ['name' => 'product\PayPalPayLater', 'title' => (defined('TEXT_PAYPAL_PARTNER_PAY_LATER_PLAN') ? TEXT_PAYPAL_PARTNER_PAY_LATER_PLAN : 'PAYPAL_PARTNER_PAY_LATER_PLAN'), 'description' => '', 'type' => 'product', 'class' => ''];
-
+        $widgets[] = ['name' => 'product\PayPalPayLater', 'title' => defined('TEXT_PAYPAL_PARTNER_PAY_LATER_PLAN') ? TEXT_PAYPAL_PARTNER_PAY_LATER_PLAN : 'PAYPAL_PARTNER_PAY_LATER_PLAN', 'description' => '', 'type' => 'product', 'class' => ''];
         return $widgets;
     }
-
     private static function inform()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => INFOPAGES_WIDGETS, 'description' => '', 'type' => 'inform'];
         $widgets[] = ['name' => 'info\Title', 'title' => TEXT_TITLE_, 'description' => '', 'type' => 'inform', 'class' => 'title'];
         $widgets[] = ['name' => 'info\Content', 'title' => TEXT_CONTENT, 'description' => '', 'type' => 'inform', 'class' => 'content'];
@@ -139,16 +122,12 @@ class WidgetsList
         $widgets[] = ['name' => 'contact\Map', 'title' => TEXT_MAP, 'description' => '', 'type' => 'inform', 'class' => 'map'];
         $widgets[] = ['name' => 'contact\Contacts', 'title' => TEXT_CONTACTS, 'description' => '', 'type' => 'inform', 'class' => 'contacts'];
         $widgets[] = ['name' => 'contact\StreetView', 'title' => GOOGLE_STREET_VIEW, 'description' => '', 'type' => 'inform', 'class' => 'street-view'];
-
         return $widgets;
     }
-
     private static function catalog()
     {
         $widgets = [];
-
         //$widgets[] = array('name' => 'product\WeddingRegistryButton', 'title' => TEXT_WEDDING_REGISTRY, 'description' => '', 'type' => 'catalog', 'class' => 'buttons');
-
         $widgets[] = ['name' => 'title', 'title' => CATALOGS_WIDGETS, 'description' => '', 'type' => 'catalog'];
         $widgets[] = ['name' => 'catalog\Title', 'title' => TEXT_TITLE_, 'description' => '', 'type' => 'catalog', 'class' => 'title'];
         $widgets[] = ['name' => 'catalog\Description', 'title' => TEXT_CATEGORY_DESCRIPTION, 'description' => '', 'type' => 'catalog', 'class' => 'description'];
@@ -166,14 +145,11 @@ class WidgetsList
         $widgets[] = ['name' => 'Filters', 'title' => TEXT_FILTERS, 'description' => '', 'type' => 'catalog', 'class' => 'filters'];
         $widgets[] = ['name' => 'catalog\B2bAddButton', 'title' => B2B_ADD_BUTTON, 'description' => '', 'type' => 'catalog', 'class' => ''];
         $widgets[] = ['name' => 'catalog\AdditionalImages', 'title' => TEXT_ADDITIONAL_IMAGES, 'description' => '', 'type' => 'catalog', 'class' => ''];
-
         return $widgets;
     }
-
     private static function cart()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => SHOPPING_CART_WIDGETS, 'description' => '', 'type' => 'cart'];
         $widgets[] = ['name' => 'cart\ContinueBtn', 'title' => CONTINUE_BUTTON, 'description' => '', 'type' => 'cart', 'class' => 'continue-button'];
         $widgets[] = ['name' => 'cart\CheckoutBtn', 'title' => CHECKOUT_BUTTON, 'description' => '', 'type' => 'cart', 'class' => 'checkout-button'];
@@ -191,45 +167,33 @@ class WidgetsList
         $widgets[] = ['name' => 'DeliveryDay', 'title' => DELIVERY_DAY, 'description' => '', 'type' => 'cart', 'class' => ''];
         $widgets[] = ['name' => 'cart\DependedProducts', 'title' => TEXT_DEPENDED_PRODUCTS, 'description' => '', 'type' => 'cart', 'class' => ''];
         $widgets[] = ['name' => 'cart\PayPalPayLater', 'title' => TEXT_PAYPAL_PARTNER_PAY_LATER_PLAN, 'description' => '', 'type' => 'cart', 'class' => ''];
-
         return $widgets;
     }
-
     private static function quote()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'quote\Products', 'title' => TABLE_HEADING_PRODUCTS, 'description' => 'Quote', 'type' => 'quote', 'class' => 'products'];
         $widgets[] = ['name' => 'cart\CartTabs', 'title' => TEXT_CART_TABS, 'description' => '', 'type' => 'quote', 'class' => ''];
         $widgets[] = ['name' => 'quote\CheckoutBtn', 'title' => CHECKOUT_BUTTON, 'description' => 'Quote', 'type' => 'quote', 'class' => 'checkout-button'];
-
         return $widgets;
     }
-
     private static function sample()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'cart\CartTabs', 'title' => TEXT_CART_TABS, 'description' => '', 'type' => 'sample', 'class' => ''];
-
         return $widgets;
     }
-
     private static function wishlist()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => TEXT_WISHLIST, 'description' => '', 'type' => 'wishlist'];
         $widgets[] = ['name' => 'cart\CartTabs', 'title' => TEXT_CART_TABS, 'description' => '', 'type' => 'wishlist', 'class' => ''];
         $widgets[] = ['name' => 'account\Wishlist', 'title' => TEXT_WISHLIST, 'description' => '', 'type' => 'wishlist', 'class' => ''];
-
         return $widgets;
     }
-
     private static function checkout()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => TEXT_CHECKOUT, 'description' => '', 'type' => 'checkout'];
         $widgets[] = ['name' => 'checkout\ContinueBtn', 'title' => CONTINUE_BUTTON, 'description' => '', 'type' => 'checkout', 'class' => ''];
         $widgets[] = ['name' => 'checkout\Shipping', 'title' => TEXT_CHOOSE_SHIPPING_METHOD, 'description' => '', 'type' => 'checkout', 'class' => ''];
@@ -249,14 +213,11 @@ class WidgetsList
         $widgets[] = ['name' => 'cart\FreeDelivery', 'title' => TEXT_FREE_DELIVERY, 'description' => '', 'type' => 'checkout', 'class' => ''];
         $widgets[] = ['name' => 'checkout\LoginOnForm', 'title' => 'Login On Form', 'description' => '', 'type' => 'checkout', 'class' => ''];
         $widgets[] = ['name' => 'checkout\PayPalPayLater', 'title' => TEXT_PAYPAL_PARTNER_PAY_LATER_PLAN, 'description' => '', 'type' => 'cart', 'class' => ''];
-
         return $widgets;
     }
-
     private static function confirmation()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => TEXT_CONFIRMATION, 'description' => '', 'type' => 'confirmation'];
         $widgets[] = ['name' => 'checkout\ConfirmBtn', 'title' => TEXT_CONFIRMATION_BUTTON, 'description' => '', 'type' => 'confirmation', 'class' => ''];
         $widgets[] = ['name' => 'checkout\ShippingConfirm', 'title' => TEXT_CHOOSE_SHIPPING_METHOD, 'description' => '', 'type' => 'confirmation', 'class' => ''];
@@ -269,14 +230,11 @@ class WidgetsList
         $widgets[] = ['name' => 'checkout\EditBtn', 'title' => TEXT_EDIT_LINK, 'description' => '', 'type' => 'confirmation', 'class' => ''];
         $widgets[] = ['name' => 'quote\Products', 'title' => TEXT_QUOTE_PRODUCTS, 'description' => '', 'type' => 'confirmation', 'class' => 'products'];
         $widgets[] = ['name' => 'checkout\ContactConfirm', 'title' => TEXT_CONTACT_INFO, 'description' => '', 'type' => 'confirmation', 'class' => ''];
-
         return $widgets;
     }
-
     private static function success()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => CHECKOUT_SUCCESS_WIDGETS, 'description' => '', 'type' => 'success'];
         $widgets[] = ['name' => 'success\ContinueBtn', 'title' => CONTINUE_BUTTON, 'description' => '', 'type' => 'success', 'class' => 'continue-button'];
         $widgets[] = ['name' => 'success\PrintBtn', 'title' => PRINT_BUTTON, 'description' => '', 'type' => 'success', 'class' => 'print-button'];
@@ -293,14 +251,11 @@ class WidgetsList
         $widgets[] = ['name' => 'order\ShippingMethod', 'title' => 'ShippingMethod', 'description' => '', 'type' => 'success', 'class' => ''];
         $widgets[] = ['name' => 'order\Totals', 'title' => 'Totals', 'description' => '', 'type' => 'success', 'class' => ''];
         $widgets[] = ['name' => 'order\OrderNumber', 'title' => 'Order Number', 'description' => '', 'type' => 'success', 'class' => ''];
-
         return $widgets;
     }
-
     private static function email()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => TABLE_HEADING_EMAIL_TEMPLATES, 'description' => '', 'type' => 'email'];
         $widgets[] = ['name' => 'email\Title', 'title' => TEXT_TITLE_, 'description' => '', 'type' => 'email', 'class' => 'title'];
         $widgets[] = ['name' => 'email\Date', 'title' => TEXT_CURRENT_DATE, 'description' => '', 'type' => 'email', 'class' => 'date'];
@@ -312,14 +267,11 @@ class WidgetsList
         $widgets[] = ['name' => 'Text', 'title' => TEXT_TEXT, 'description' => '', 'type' => 'email', 'class' => 'text'];
         $widgets[] = ['name' => 'Import', 'title' => IMPORT_BLOCK, 'description' => '', 'type' => 'email', 'class' => 'import'];
         $widgets[] = ['name' => 'Copyright', 'title' => COPYRIGHT, 'description' => '', 'type' => 'email', 'class' => 'copyright'];
-
         return $widgets;
     }
-
     private static function orders()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => INVOICE_TEMPLATE, 'description' => '', 'type' => 'invoice'];
         $widgets[] = ['name' => 'title', 'title' => TABLE_HEADING_ORDER, 'description' => '', 'type' => 'invoice'];
         $widgets[] = ['name' => 'BlockBox', 'title' => TEXT_BLOCK, 'description' => '', 'type' => 'invoice', 'class' => 'block-box'];
@@ -342,7 +294,7 @@ class WidgetsList
         $widgets[] = ['name' => 'invoice\CustomerPhone', 'title' => TEXT_CUSTOMER_PHONE, 'description' => '', 'type' => 'invoice', 'class' => 'customer-phone'];
         $widgets[] = ['name' => 'invoice\Totals', 'title' => TRXT_TOTALS, 'description' => '', 'type' => 'invoice', 'class' => 'totals'];
         $widgets[] = ['name' => 'invoice\OrderId', 'title' => TEXT_ORDER_ID, 'description' => '', 'type' => 'invoice', 'class' => 'order-id'];
-        $widgets[] = ['name' => 'invoice\InvoiceId', 'title' => TEXT_INVOICE_PREFIX.'_'.TEXT_CREDIT_NOTE_PREFIX, 'description' => '', 'type' => 'invoice', 'class' => 'invoice-id'];
+        $widgets[] = ['name' => 'invoice\InvoiceId', 'title' => TEXT_INVOICE_PREFIX . '_' . TEXT_CREDIT_NOTE_PREFIX, 'description' => '', 'type' => 'invoice', 'class' => 'invoice-id'];
         $widgets[] = ['name' => 'invoice\PaymentDate', 'title' => TEXT_PAYMENT_DATE, 'description' => '', 'type' => 'invoice', 'class' => 'payment-date'];
         $widgets[] = ['name' => 'invoice\PaymentMethod', 'title' => TEXT_SELECT_PAYMENT_METHOD, 'description' => '', 'type' => 'invoice', 'class' => 'payment-method'];
         $widgets[] = ['name' => 'invoice\PaidMark', 'title' => TEXT_PAID_MARK, 'description' => '', 'type' => 'invoice', 'class' => 'paid-mark'];
@@ -362,14 +314,11 @@ class WidgetsList
         $widgets[] = ['name' => 'order\OrderDate', 'title' => 'Order Date', 'description' => '', 'type' => 'invoice', 'class' => ''];
         $widgets[] = ['name' => 'order\OrderDateTime', 'title' => 'Order Date and Time', 'description' => '', 'type' => 'invoice', 'class' => ''];
         $widgets[] = ['name' => 'order\PageNumber', 'title' => 'Page Number', 'description' => '', 'type' => 'invoice', 'class' => ''];
-
         return $widgets;
     }
-
     private static function packingslip()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => TEXT_PACKINGSLIP, 'description' => '', 'type' => 'packingslip'];
         $widgets[] = ['name' => 'order\OrderDate', 'title' => 'Order Date', 'description' => '', 'type' => 'packingslip', 'class' => ''];
         $widgets[] = ['name' => 'BlockBox', 'title' => TEXT_BLOCK, 'description' => '', 'type' => 'packingslip', 'class' => 'block-box'];
@@ -403,14 +352,11 @@ class WidgetsList
         $widgets[] = ['name' => 'invoice\PurchaseOrderNo', 'title' => 'Purchase Order Number', 'description' => '', 'type' => 'packingslip', 'class' => ''];
         $widgets[] = ['name' => 'invoice\Comments', 'title' => 'Comments', 'description' => '', 'type' => 'packingslip', 'class' => ''];
         $widgets[] = ['name' => 'invoice\Currency', 'title' => 'Currency', 'description' => '', 'type' => 'packingslip', 'class' => ''];
-
         return $widgets;
     }
-
     private static function gift()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => TEXT_GIFT_CARD, 'description' => '', 'type' => 'gift'];
         $widgets[] = ['name' => 'gift\Form', 'title' => TEXT_FORM, 'description' => '', 'type' => 'gift', 'class' => 'contact-form'];
         $widgets[] = ['name' => 'gift\AmountView', 'title' => AMOUNT_VIEW, 'description' => '', 'type' => 'gift', 'class' => 'contact-form'];
@@ -423,14 +369,11 @@ class WidgetsList
         $widgets[] = ['name' => 'invoice\StoreSite', 'title' => TEXT_STORE_SITE, 'description' => '', 'type' => 'gift', 'class' => 'store-site'];
         $widgets[] = ['name' => 'info\Title', 'title' => TEXT_TITLE_, 'description' => '', 'type' => 'gift', 'class' => 'title'];
         $widgets[] = ['name' => 'gift\Card', 'title' => TEXT_GIFT_CARD, 'description' => '', 'type' => 'gift', 'class' => 'title'];
-
         return $widgets;
     }
-
     private static function gift_card()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => TEXT_GIFT_CARD, 'description' => '', 'type' => 'gift'];
         $widgets[] = ['name' => 'gift\Form', 'title' => TEXT_FORM, 'description' => '', 'type' => 'gift', 'class' => 'contact-form'];
         $widgets[] = ['name' => 'gift\AmountView', 'title' => AMOUNT_VIEW, 'description' => '', 'type' => 'gift', 'class' => 'contact-form'];
@@ -442,18 +385,14 @@ class WidgetsList
         $widgets[] = ['name' => 'invoice\StoreEmail', 'title' => TEXT_STORE_EMAIL, 'description' => '', 'type' => 'gift', 'class' => 'store-email'];
         $widgets[] = ['name' => 'invoice\StoreSite', 'title' => TEXT_STORE_SITE, 'description' => '', 'type' => 'gift', 'class' => 'store-site'];
         $widgets[] = ['name' => 'info\Title', 'title' => TEXT_TITLE_, 'description' => '', 'type' => 'gift', 'class' => 'title'];
-
         $widgets[] = ['name' => 'gift\AmountViewPdf', 'title' => AMOUNT_VIEW . ' pdf', 'description' => '', 'type' => 'gift', 'class' => 'contact-form'];
         $widgets[] = ['name' => 'gift\MessageViewPdf', 'title' => MESSAGE_VIEW . ' pdf', 'description' => '', 'type' => 'gift', 'class' => 'contact-form'];
         $widgets[] = ['name' => 'gift\CodeViewPdf', 'title' => CODE_VIEW . ' pdf', 'description' => '', 'type' => 'gift', 'class' => 'contact-form'];
-
         return $widgets;
     }
-
     private static function main()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => GENERAL_WIDGETS, 'description' => '', 'type' => 'general'];
         $widgets[] = ['name' => 'BlockBox', 'title' => TEXT_BLOCK, 'description' => '', 'type' => 'general', 'class' => 'block-box'];
         $widgets[] = ['name' => 'Tabs', 'title' => TEXT_TABS, 'description' => '', 'type' => 'general', 'class' => 'tabs'];
@@ -484,8 +423,7 @@ class WidgetsList
         $widgets[] = ['name' => 'Copyright', 'title' => COPYRIGHT, 'description' => '', 'type' => 'general', 'class' => 'copyright'];
         $widgets[] = ['name' => 'Account', 'title' => TEXT_ACCOUNT, 'description' => '', 'type' => 'general', 'class' => 'account'];
         $widgets[] = ['name' => 'Import', 'title' => IMPORT_BLOCK, 'description' => '', 'type' => 'general', 'class' => 'import'];
-
-        if (\frontend\design\Info::hasBlog()) {
+        if (\frontend\design\Info::has_blog()) {
             $widgets[] = ['name' => 'BlogSidebar', 'title' => TEXT_BLOG_SIDEBAR, 'description' => '', 'type' => 'general', 'class' => 'menu'];
             $widgets[] = ['name' => 'BlogContent', 'title' => TEXT_BLOG_CONTENT, 'description' => '', 'type' => 'general', 'class' => 'content'];
         }
@@ -495,33 +433,26 @@ class WidgetsList
         $widgets[] = ['name' => 'GoogleReviews', 'title' => TEXT_GOOGLE_REVIEWS, 'description' => '', 'type' => 'general', 'class' => 'contact-form'];
         $widgets[] = ['name' => 'CustomerData', 'title' => TEXT_CUSTOMER_DATA, 'description' => '', 'type' => 'general', 'class' => ''];
         //$widgets[] = array('name' => 'ProductElement', 'title' => TEXT_PRODUCT_ELEMENT, 'description' => '', 'type' => 'general', 'class' => ''); //this widget has to parent product component
-
-        if (\common\helpers\Acl::checkExtensionAllowed('Trustpilot', 'allowed')) {
+        if (\common\helpers\Acl::check_extension_allowed('Trustpilot', 'allowed')) {
             $client = new \common\extensions\Trustpilot\Trustpilot();
-            if ($client->anyAPIKeyExists()) {
+            if ($client->any_api_key_exists()) {
                 $widgets[] = ['name' => 'TrustPilotReviews', 'title' => EXT_TRUSTPILOT_TRUSTPILOT_REVIEWS, 'description' => '', 'type' => 'general', 'class' => 'content'];
             }
         }
         $widgets[] = ['name' => 'SocialLinks', 'title' => TEXT_SOCIAL_LINKS, 'description' => '', 'type' => 'general', 'class' => ''];
         $widgets[] = ['name' => 'FiltersSimple', 'title' => FILTERS_SIMPLE, 'description' => '', 'type' => 'general', 'class' => ''];
         //$widgets[] = array('name' => 'CartPopUp', 'title' => 'CartPopUp', 'description' => '', 'type' => 'general', 'class' => '');
-
         $widgets[] = ['name' => 'BatchProducts', 'title' => TEXT_WIDGET_BATCH_PRODUCTS, 'description' => '', 'type' => 'general', 'class' => ''];
         $widgets[] = ['name' => 'BatchSelectedProducts', 'title' => TEXT_WIDGET_BATCH_SELECTED_PRODUCTS, 'description' => '', 'type' => 'general', 'class' => ''];
         $widgets[] = ['name' => 'TopText', 'title' => TEXT_TOP_TEXT, 'description' => '', 'type' => 'general', 'class' => 'toptext'];
         //$widgets[] = array('name' => 'UnsupportedBrowser', 'title' => TEXT_UNSUPPORTED_BROWSER, 'description' => '', 'type' => 'general', 'class' => '');
-
         $widgets[] = ['name' => 'VisitorCountry', 'title' => TEXT_VISITOR_COUNTRY, 'description' => '', 'type' => 'general', 'class' => 'account'];
-
         //$widgets[] = array('name' => 'Wristband', 'title' => 'wristband', 'description' => '', 'type' => 'general');
-
         return $widgets;
     }
-
     private static function pdf()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'BlockBox', 'title' => TEXT_BLOCK, 'description' => '', 'type' => 'pdf', 'class' => 'block-box'];
         $widgets[] = ['name' => 'Logo', 'title' => TEXT_LOGO, 'description' => '', 'type' => 'pdf', 'class' => 'logo'];
         $widgets[] = ['name' => 'Image', 'title' => TEXT_IMAGE_, 'description' => '', 'type' => 'pdf', 'class' => 'image'];
@@ -539,14 +470,11 @@ class WidgetsList
         $widgets[] = ['name' => 'pdf\CategoryDescription', 'title' => TEXT_CATEGORY_DESCRIPTION, 'description' => '', 'type' => 'pdf', 'class' => ''];
         $widgets[] = ['name' => 'pdf\PageNumber', 'title' => TEXT_PAGE_NUMBER, 'description' => '', 'type' => 'pdf', 'class' => ''];
         $widgets[] = ['name' => 'Import', 'title' => IMPORT_BLOCK, 'description' => '', 'type' => 'pdf', 'class' => 'import'];
-
         return $widgets;
     }
-
     private static function account()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => TEXT_ACCOUNT, 'description' => '', 'type' => 'account'];
         $widgets[] = ['name' => 'account\AccountLink', 'title' => ACCOUNT_LINK, 'description' => '', 'type' => 'account', 'class' => ''];
         $widgets[] = ['name' => 'account\LastOrder', 'title' => DATE_LAST_ORDERED, 'description' => '', 'type' => 'account', 'class' => ''];
@@ -580,41 +508,32 @@ class WidgetsList
         $widgets[] = ['name' => 'account\Subscription', 'title' => 'Subscription', 'description' => '', 'type' => 'account', 'class' => ''];
         $widgets[] = ['name' => 'account\GiftCards', 'title' => 'Gift cards', 'description' => '', 'type' => 'account', 'class' => ''];
         $widgets[] = ['name' => 'account\SpendBalance', 'title' => TEXT_SPEND_BALANCE, 'description' => '', 'type' => 'account', 'class' => ''];
-
         return $widgets;
     }
-
     private static function trade_form()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'account\CustomerAdditionalField', 'title' => 'CustomerAdditionalField', 'description' => '', 'type' => 'trade_form', 'class' => ''];
         $widgets[] = ['name' => 'account\BackButton', 'title' => 'BackButton', 'description' => '', 'type' => 'trade_form', 'class' => ''];
         $widgets[] = ['name' => 'account\SaveButton', 'title' => 'SaveButton', 'description' => '', 'type' => 'trade_form', 'class' => ''];
         $widgets[] = ['name' => 'account\PdfButton', 'title' => 'PdfButton', 'description' => '', 'type' => 'trade_form', 'class' => ''];
         $widgets[] = ['name' => 'account\AddressesList', 'title' => 'AddressesList', 'description' => '', 'type' => 'trade_form', 'class' => ''];
-
         return $widgets;
     }
-
     private static function trade_form_pdf()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'account\CustomerAdditionalField', 'title' => 'CustomerAdditionalField', 'description' => '', 'type' => 'trade_form', 'class' => ''];
         $widgets[] = ['name' => 'account\BackButton', 'title' => 'BackButton', 'description' => '', 'type' => 'trade_form', 'class' => ''];
         $widgets[] = ['name' => 'account\SaveButton', 'title' => 'SaveButton', 'description' => '', 'type' => 'trade_form', 'class' => ''];
         $widgets[] = ['name' => 'account\PdfButton', 'title' => 'PdfButton', 'description' => '', 'type' => 'trade_form', 'class' => ''];
         $widgets[] = ['name' => 'account\AddressesList', 'title' => 'AddressesList', 'description' => '', 'type' => 'trade_form', 'class' => ''];
         $widgets[] = ['name' => 'account\CombinedField', 'title' => 'CombinedField', 'description' => '', 'type' => 'trade_form', 'class' => ''];
-
         return $widgets;
     }
-
     private static function login()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => 'Login', 'description' => '', 'type' => 'login'];
         $widgets[] = ['name' => 'login\Returning', 'title' => 'Returning customer', 'description' => '', 'type' => 'login', 'class' => ''];
         $widgets[] = ['name' => 'login\Register', 'title' => 'Register', 'description' => '', 'type' => 'login', 'class' => ''];
@@ -623,65 +542,47 @@ class WidgetsList
         $widgets[] = ['name' => 'quote\FastOrder', 'title' => 'Fast Order', 'description' => '', 'type' => 'login', 'class' => ''];
         $widgets[] = ['name' => 'checkout\GuestBtn', 'title' => 'Guest Button', 'description' => '', 'type' => 'login', 'class' => ''];
         $widgets[] = ['name' => 'checkout\CreateBtn', 'title' => 'Create Button', 'description' => '', 'type' => 'login', 'class' => ''];
-
         return $widgets;
     }
-
     private static function password_forgotten()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'login\PasswordForgotten', 'title' => 'Password Forgotten', 'description' => '', 'type' => 'login', 'class' => ''];
-
         return $widgets;
     }
-
     private static function index()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => HOME_PAGE_WIDGETS, 'description' => '', 'type' => 'index'];
         $widgets[] = ['name' => 'TopCategories', 'title' => TEXT_CATEGORIES, 'description' => '', 'type' => 'index', 'class' => 'categories'];
         $widgets[] = ['name' => 'login\Returning', 'title' => 'Returning customer', 'description' => '', 'type' => 'index', 'class' => 'categories'];
         $widgets[] = ['name' => 'login\Register', 'title' => 'Register', 'description' => '', 'type' => 'index', 'class' => 'categories'];
         //$widgets[] = array('name' => 'login\Enquire', 'title' => 'Enquire', 'description' => '', 'type' => 'index', 'class' => 'categories');
-
         return $widgets;
     }
-
     private static function sitemap()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'sitemap\Categories', 'title' => 'Categories', 'description' => '', 'type' => 'sitemap', 'class' => ''];
         $widgets[] = ['name' => 'sitemap\InfoPages', 'title' => 'Info Pages', 'description' => '', 'type' => 'sitemap', 'class' => ''];
-
         return $widgets;
     }
-
     private static function reviews()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'reviews\Heading', 'title' => 'Heading', 'description' => '', 'type' => 'reviews', 'class' => ''];
         $widgets[] = ['name' => 'reviews\Content', 'title' => 'Content', 'description' => '', 'type' => 'reviews', 'class' => ''];
-
         return $widgets;
     }
-
     private static function compare()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'catalog\Compare', 'title' => TEXT_COMPARE, 'description' => '', 'type' => 'compare', 'class' => ''];
-
         return $widgets;
     }
-
-    private static function productListing()
+    private static function product_listing()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => TEXT_LISTING_ITEM, 'description' => '', 'type' => 'productListing'];
         $widgets[] = ['name' => 'productListing\name', 'title' => TEXT_PRODUCT_NAME, 'description' => '', 'type' => 'productListing', 'class' => ''];
         $widgets[] = ['name' => 'productListing\image', 'title' => TEXT_IMAGE, 'description' => '', 'type' => 'productListing', 'class' => ''];
@@ -710,14 +611,11 @@ class WidgetsList
         //$widgets[] = array('name' => 'productListing\amazonButton', 'title' => 'amazon button', 'description' => '', 'type' => 'productListing', 'class' => '');
         $widgets[] = ['name' => 'productListing\brand', 'title' => 'Brand', 'description' => '', 'type' => 'productListing', 'class' => ''];
         $widgets[] = ['name' => 'productListing\internalName', 'title' => 'Internal product name', 'description' => '', 'type' => 'productListing', 'class' => ''];
-
         return $widgets;
     }
-
-    private static function backendOrder()
+    private static function backend_order()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => 'Backend Order', 'description' => '', 'type' => 'backendOrder'];
         $widgets[] = ['name' => 'BlockBox', 'title' => TEXT_BLOCK, 'description' => '', 'type' => 'backendOrder', 'class' => 'block-box'];
         $widgets[] = ['name' => 'AddressDetailsHolder', 'title' => 'AddressDetails', 'description' => '', 'type' => 'backendOrder', 'class' => ''];
@@ -759,14 +657,11 @@ class WidgetsList
         $widgets[] = ['name' => 'Trustpilot', 'title' => 'Trustpilot', 'description' => '', 'type' => 'backendOrder', 'class' => ''];
         $widgets[] = ['name' => 'Unprocessed', 'title' => 'Unprocessed', 'description' => '', 'type' => 'backendOrder', 'class' => ''];
         $widgets[] = ['name' => 'ClosableBox', 'title' => 'ClosableBox', 'description' => '', 'type' => 'backendOrder', 'class' => ''];
-
         return $widgets;
     }
-
-    private static function backendOrdersList()
+    private static function backend_orders_list()
     {
         $widgets = [];
-
         $widgets[] = ['name' => 'title', 'title' => ORDERS_LIST_ITEMS, 'description' => '', 'type' => 'backendOrdersList'];
         $widgets[] = ['name' => 'BlockBox', 'title' => TEXT_BLOCK, 'description' => '', 'type' => 'backendOrdersList', 'class' => 'block-box'];
         $widgets[] = ['name' => 'backendOrdersList\BatchCheckbox', 'title' => BATCH_CHECKBOX_CELL, 'description' => '', 'type' => 'backendOrdersList', 'class' => ''];
@@ -789,7 +684,6 @@ class WidgetsList
         $widgets[] = ['name' => 'backendOrdersList\PaymentMethod', 'title' => TEXT_INFO_PAYMENT_METHOD, 'description' => '', 'type' => 'backendOrdersList', 'class' => ''];
         $widgets[] = ['name' => 'backendOrdersList\ShippingMethod', 'title' => TEXT_CHOOSE_SHIPPING_METHOD, 'description' => '', 'type' => 'backendOrdersList', 'class' => ''];
         $widgets[] = ['name' => 'backendOrdersList\OrderPurchase', 'title' => TABLE_HEADING_DATE_PURCHASED, 'description' => '', 'type' => 'backendOrdersList', 'class' => ''];
-
         return $widgets;
     }
 }

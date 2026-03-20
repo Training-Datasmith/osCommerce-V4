@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,537 +11,476 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\XML;
 
 use yii\base\Model;
-use yii\db\ActiveRecord;
-
-class RelatedSerialize /*extends \yii\base\Component*/
+use yii\db\Active_Record;
+class Related_Serialize
 {
-    protected $_configureMap = [];
-
-    protected $modelsComparePK = [
-        //'common\models\GroupsDiscounts' => [],
-    ];
-
-    public function setConfigureMap($configureMap)
+    protected $_configure_map = [];
+    protected $models_compare_pk = [];
+    public function set_configure_map($configure_map)
     {
-        $this->_configureMap = $configureMap;
+        $this->_configure_map = $configure_map;
     }
-
     public function import($filename)
     {
-        $xmlParser = new XMLtoDataParser();
-        $xmlParser->setConfigureMap($this->_configureMap['Data']);
-        $xmlParser->parseFile($filename);
-        $processConfigure = [];
-        foreach ($this->_configureMap['Data'] as $processModel => $_processConfigure) {
-            $processConfigure = $_processConfigure;
-            $collectTag = '/data/'.str_replace('>', '/', $processConfigure['xmlCollection']);
-            $xmlParser->setCollectPath($collectTag);
+        $xml_parser = new Xm_Lto_Data_Parser();
+        $xml_parser->set_configure_map($this->_configure_map['Data']);
+        $xml_parser->parse_file($filename);
+        $process_configure = [];
+        foreach ($this->_configure_map['Data'] as $process_model => $_process_configure) {
+            $process_configure = $_process_configure;
+            $collect_tag = '/data/' . str_replace('>', '/', $process_configure['xmlCollection']);
+            $xml_parser->set_collect_path($collect_tag);
             break;
         }
-
-        while ($data = $xmlParser->read()) {
-            if (is_object($data) && $data instanceof IOData) {
-                if ($data->isImportable($processModel)) {
-                    $this->importModel($processModel, $data, $processConfigure);
+        while ($data = $xml_parser->read()) {
+            if (is_object($data) && $data instanceof Io_Data) {
+                if ($data->is_importable($process_model)) {
+                    $this->import_model($process_model, $data, $process_configure);
                 } else {
-
                 }
             }
         }
     }
-
-    public function importModel($processModel, $data, $processConfigure, $parentObject = null)
+    public function import_model($process_model, $data, $process_configure, $parent_object = null)
     {
-        $processObj = false;
-
-        if (isset($processConfigure['importFind']) && is_callable($processConfigure['importFind'])) {
-            $updateObject = call_user_func_array($processConfigure['importFind'], [$data, $parentObject]);
+        $process_obj = false;
+        if (isset($process_configure['importFind']) && is_callable($process_configure['importFind'])) {
+            $update_object = call_user_func_array($process_configure['importFind'], [$data, $parent_object]);
         }
-
-        if (is_object($processModel) && $processModel instanceof \yii\db\ActiveRecord) {
-            $updateObject = $processModel;
-            $processModel = $updateObject->className();
+        if (is_object($process_model) && $process_model instanceof \yii\db\Active_Record) {
+            $update_object = $process_model;
+            $process_model = $update_object->class_name();
         } else {
-            $processObj = \Yii::createObject($processModel);
-            $lookupByPk = [];
-            foreach (array_keys($processObj->getPrimaryKey(true)) as $property) {
+            $process_obj = \Yii::create_object($process_model);
+            $lookup_by_pk = [];
+            foreach (array_keys($process_obj->get_primary_key(true)) as $property) {
                 if ($data->data['@' . $property] ?? null) {
-                    $lookupByPk[$property] = $data->data['@' . $property];
+                    $lookup_by_pk[$property] = $data->data['@' . $property];
                 } elseif (isset($data->data[$property])) {
-                    if (is_object($data->data[$property]) && $data->data[$property] instanceof IOMap) {
-                        $data->data[$property]->table = $processModel::tableName();
+                    if (is_object($data->data[$property]) && $data->data[$property] instanceof Io_Map) {
+                        $data->data[$property]->table = $process_model::table_name();
                         $data->data[$property]->attribute = $property;
-                        $lookupByPk[$property] = $data->data[$property]->toImportModel();
+                        $lookup_by_pk[$property] = $data->data[$property]->to_import_model();
                     } elseif (is_object($data->data[$property]) && $data->data[$property] instanceof Complex) {
-                        $lookupByPk[$property] = $data->data[$property]->toImportModel();
+                        $lookup_by_pk[$property] = $data->data[$property]->to_import_model();
                     } else {
-                        $lookupByPk[$property] = $data->data[$property];
+                        $lookup_by_pk[$property] = $data->data[$property];
                     }
                 }
             }
-            if (!count($lookupByPk) == 0 || array_search(null, $lookupByPk, true) === false) {
-                $updateObject = $processModel::findOne($lookupByPk);
+            if (!count($lookup_by_pk) == 0 || array_search(null, $lookup_by_pk, true) === false) {
+                $update_object = $process_model::find_one($lookup_by_pk);
             }
         }
         /**
          * @var $updateObject \yii\db\ActiveRecord
          */
-        if ($updateObject) {
+        if ($update_object) {
             // fill all related collections
-            if (isset($processConfigure['withRelated']) && is_array($processConfigure['withRelated'])) {
-                foreach ($processConfigure['withRelated'] as $collectionProperty => $collectionConfig) {
-                    $_dummyArray = $updateObject->{$collectionProperty};
-                    unset($_dummyArray);
+            if (isset($process_configure['withRelated']) && is_array($process_configure['withRelated'])) {
+                foreach ($process_configure['withRelated'] as $collection_property => $collection_config) {
+                    $_dummy_array = $update_object->{$collection_property};
+                    unset($_dummy_array);
                 }
             }
         } else {
-            $updateObject = is_object($processObj) ? $processObj : \Yii::createObject($processModel);
-            $updateObject->loadDefaultValues();
+            $update_object = is_object($process_obj) ? $process_obj : \Yii::create_object($process_model);
+            $update_object->load_default_values();
         }
-
-        $isInsertedNewRecord = $updateObject->isNewRecord;
-
-        $updateObject->detachBehaviors();
-        if (is_object($parentObject) && $updateObject->canSetProperty('parentObject')) {
-            $updateObject->parentObject = $parentObject;
+        $is_inserted_new_record = $update_object->is_new_record;
+        $update_object->detach_behaviors();
+        if (is_object($parent_object) && $update_object->can_set_property('parentObject')) {
+            $update_object->parent_object = $parent_object;
         }
-
         /**
          * @var $updateObject \yii\db\ActiveRecord
          */
         // {{ populate data in model
-        foreach ($data->data as $property => $propertyValue) {
-            if ($updateObject->hasAttribute($property)) {
-
-            } elseif ($updateObject->canSetProperty($property)) {
-
+        foreach ($data->data as $property => $property_value) {
+            if ($update_object->has_attribute($property)) {
+            } elseif ($update_object->can_set_property($property)) {
             } else {
                 continue;
             }
-
-            if (is_object($propertyValue)) {
-                if ($propertyValue instanceof IOAttachment) {
-                    $propertyValue = $propertyValue->toImportModel();
-                } elseif ($propertyValue instanceof Complex) {
-                    $propertyValue = $propertyValue->toImportModel();
+            if (is_object($property_value)) {
+                if ($property_value instanceof Io_Attachment) {
+                    $property_value = $property_value->to_import_model();
+                } elseif ($property_value instanceof Complex) {
+                    $property_value = $property_value->to_import_model();
                 }
             }
-
-            $propertyValue = $this->castInputValue($updateObject, $property, $propertyValue);
-            $updateObject->{$property} = $propertyValue;
+            $property_value = $this->cast_input_value($update_object, $property, $property_value);
+            $update_object->{$property} = $property_value;
         }
         // }} populate data in model
-
-        if (isset($processConfigure['beforeImportSave']) && is_callable($processConfigure['beforeImportSave'])) {
-            call_user_func_array($processConfigure['beforeImportSave'], [$updateObject, $data]);
+        if (isset($process_configure['beforeImportSave']) && is_callable($process_configure['beforeImportSave'])) {
+            call_user_func_array($process_configure['beforeImportSave'], [$update_object, $data]);
         }
-
-        if (!$updateObject->save(false)) {
+        if (!$update_object->save(false)) {
             // save fail
             //echo '<pre>'; var_dump('SAVE FAIL '.var_export($updateObject->getErrors(),true)); echo '</pre>';
             return;
         }
-        $updateObject->refresh();
-
-        $tableSchema = $updateObject->getTableSchema();
+        $update_object->refresh();
+        $table_schema = $update_object->get_table_schema();
         //echo '<pre>'; var_dump($updateObject->getPrimaryKey(true)); echo '</pre>';
-
         // {{ pass new AutoInc id to mapping
-        foreach ($tableSchema->primaryKey as $name) {
-            if ($tableSchema->columns[$name]->autoIncrement && isset($data->data[$name])) {
-                $propertyValue = $data->data[$name];
-                if (is_object($propertyValue) && $propertyValue instanceof IOMap) {
-                    $propertyValue->afterImportModel($updateObject->{$name});
+        foreach ($table_schema->primary_key as $name) {
+            if ($table_schema->columns[$name]->auto_increment && isset($data->data[$name])) {
+                $property_value = $data->data[$name];
+                if (is_object($property_value) && $property_value instanceof Io_Map) {
+                    $property_value->after_import_model($update_object->{$name});
                 }
             }
         }
         // }} pass new AutoInc id to mapping
-
         // current model processed
-
-        if (isset($processConfigure['withRelated']) && is_array($processConfigure['withRelated'])) {
-            foreach ($processConfigure['withRelated'] as $collectionProperty => $collectionConfig) {
-                if (!isset($data->data[$collectionProperty]) || !is_object($data->data[$collectionProperty]) || !($data->data[$collectionProperty] instanceof IODataRelated)) {
+        if (isset($process_configure['withRelated']) && is_array($process_configure['withRelated'])) {
+            foreach ($process_configure['withRelated'] as $collection_property => $collection_config) {
+                if (!isset($data->data[$collection_property]) || !is_object($data->data[$collection_property]) || !$data->data[$collection_property] instanceof Io_Data_Related) {
                     continue;
                 }
-
-                $importedCollection = $data->data[$collectionProperty]->data;
-
+                $imported_collection = $data->data[$collection_property]->data;
                 // {{ load up current dp data & remember existing refs
-                $relatedCollection = false;
-                if (!$isInsertedNewRecord) {
-                    $relatedCollection = $updateObject->{$collectionProperty};
+                $related_collection = false;
+                if (!$is_inserted_new_record) {
+                    $related_collection = $update_object->{$collection_property};
                 }
-                if (!is_array($relatedCollection)) {
-                    $relatedCollection = [];
+                if (!is_array($related_collection)) {
+                    $related_collection = [];
                 } else {
                     // {{ set parent object for import
-                    foreach ($relatedCollection as $relatedModel) {
-                        if (!$relatedModel->canSetProperty('parentObject')) {
+                    foreach ($related_collection as $related_model) {
+                        if (!$related_model->can_set_property('parentObject')) {
                             break;
                         }
-                        $relatedModel->parentObject = $updateObject;
+                        $related_model->parent_object = $update_object;
                     }
                     // }} set parent object for import
                 }
-                $relatedRemovalKeys = array_flip(array_keys($relatedCollection));
+                $related_removal_keys = array_flip(array_keys($related_collection));
                 // }} load up current dp data & remember existing refs
-
-                $relatedCollectionActiveQueryGetter = 'get'.ucfirst($collectionProperty);
+                $related_collection_active_query_getter = 'get' . ucfirst($collection_property);
                 /**
                  * @var $relatedActiveQuery \yii\db\ActiveQuery
                  */
-                $relatedActiveQuery = $updateObject->$relatedCollectionActiveQueryGetter();
-                unset($relatedCollectionActiveQueryGetter);
-
+                $related_active_query = $update_object->{$related_collection_active_query_getter}();
+                unset($related_collection_active_query_getter);
                 // {{ make $relatedObject as model skel
                 /**
                  * @var $relatedObject \yii\db\ActiveRecord
                  */
-                $relatedObject = \Yii::createObject($relatedActiveQuery->modelClass);
-                $relatedObject->loadDefaultValues(false);
+                $related_object = \Yii::create_object($related_active_query->model_class);
+                $related_object->load_default_values(false);
                 // }} make $relatedObject as model skel
-
-                if (!isset($this->modelsComparePK[$relatedActiveQuery->modelClass])) {
-                    $relatedPkKeys = $relatedObject->getPrimaryKey(true);
-                    $comparePkKeys = array_keys($relatedPkKeys);
+                if (!isset($this->models_compare_pk[$related_active_query->model_class])) {
+                    $related_pk_keys = $related_object->get_primary_key(true);
+                    $compare_pk_keys = array_keys($related_pk_keys);
                     /*
                                         if ( isset($relatedActiveQuery->link) && is_array($relatedActiveQuery->link) ) {
                                             $comparePkKeys = array_diff($comparePkKeys, array_values($relatedActiveQuery->link));
                                         }
                     */
-                    $this->modelsComparePK[$relatedActiveQuery->modelClass] = $comparePkKeys;
+                    $this->models_compare_pk[$related_active_query->model_class] = $compare_pk_keys;
                 }
-
                 //'link array map to related import data';
-                foreach ($importedCollection as $idx => $recordData) {
+                foreach ($imported_collection as $idx => $record_data) {
                     /**
                      * @var IOData $recordData
                      */
-                    if (isset($relatedActiveQuery->link) && is_array($relatedActiveQuery->link)) {
-                        foreach ($relatedActiveQuery->link as $relateKey => $parentKey) {
-                            if ($updateObject->hasAttribute($parentKey)) {
-                                $importedCollection[$idx]->data[$relateKey] = $updateObject->{$parentKey};
+                    if (isset($related_active_query->link) && is_array($related_active_query->link)) {
+                        foreach ($related_active_query->link as $relate_key => $parent_key) {
+                            if ($update_object->has_attribute($parent_key)) {
+                                $imported_collection[$idx]->data[$relate_key] = $update_object->{$parent_key};
                             }
                         }
                     }
                 }
-
                 // find match in related collection
-                foreach ($importedCollection as $idx => $importedIOData) {
-                    $matchedIdxInDbCollection = false;
-                    foreach ($relatedCollection as $dbIdx => $databaseRecord) {
-                        if (!isset($relatedRemovalKeys[$dbIdx])) {
+                foreach ($imported_collection as $idx => $imported_io_data) {
+                    $matched_idx_in_db_collection = false;
+                    foreach ($related_collection as $db_idx => $database_record) {
+                        if (!isset($related_removal_keys[$db_idx])) {
                             continue;
                         }
-
-                        if ($this->collectionModelCompare($databaseRecord, $importedIOData)) {
-                            $matchedIdxInDbCollection = $dbIdx;
+                        if ($this->collection_model_compare($database_record, $imported_io_data)) {
+                            $matched_idx_in_db_collection = $db_idx;
                         }
-                        if ($matchedIdxInDbCollection !== false) {
+                        if ($matched_idx_in_db_collection !== false) {
                             break;
                         }
                     }
-                    if ($matchedIdxInDbCollection !== false) {
-                        $this->importModel($relatedCollection[$matchedIdxInDbCollection], $importedIOData, $collectionConfig, $updateObject);
-                        unset($relatedRemovalKeys[$matchedIdxInDbCollection]);
-                        unset($importedCollection[$idx]);
+                    if ($matched_idx_in_db_collection !== false) {
+                        $this->import_model($related_collection[$matched_idx_in_db_collection], $imported_io_data, $collection_config, $update_object);
+                        unset($related_removal_keys[$matched_idx_in_db_collection]);
+                        unset($imported_collection[$idx]);
                     }
                     //echo '<pre>??MATCH '; var_dump($matchedIdxInDbCollection); echo '</pre>';
                 }
                 // {{ remove not processed ActiveRecords
-                foreach ($relatedRemovalKeys as $relatedRemovalKey) {
+                foreach ($related_removal_keys as $related_removal_key) {
                     //echo '$relatedCollection[$relatedRemovalKey]->delete()';
-                    $relatedCollection[$relatedRemovalKey]->delete();
+                    $related_collection[$related_removal_key]->delete();
                 }
                 // }} remove not processed ActiveRecords
-
                 // {{ insert new records
-                foreach ($importedCollection as $importData) {
-                    $this->importModel($relatedActiveQuery->modelClass, $importData, $collectionConfig, $updateObject);
+                foreach ($imported_collection as $import_data) {
+                    $this->import_model($related_active_query->model_class, $import_data, $collection_config, $update_object);
                 }
                 // }} insert new records
             }
         }
-
-        if (isset($processConfigure['afterImport']) && is_callable($processConfigure['afterImport'])) {
-            call_user_func_array($processConfigure['afterImport'], [$updateObject, $data]);
+        if (isset($process_configure['afterImport']) && is_callable($process_configure['afterImport'])) {
+            call_user_func_array($process_configure['afterImport'], [$update_object, $data]);
         }
     }
-
-    protected function castInputValue(\yii\db\ActiveRecord $record, $attribute, $inputValue)
+    protected function cast_input_value(\yii\db\Active_Record $record, $attribute, $input_value)
     {
-        $propertyValue = $inputValue;
-
+        $property_value = $input_value;
         try {
-            $schemaColumns = $record->getTableSchema()->columns;
-            if (!is_array($schemaColumns)) {
-                $schemaColumns = [];
+            $schema_columns = $record->get_table_schema()->columns;
+            if (!is_array($schema_columns)) {
+                $schema_columns = [];
             }
-        } catch (\yii\base\InvalidConfigException $ex) {
-            $schemaColumns = [];
+        } catch (\yii\base\Invalid_Config_Exception $ex) {
+            $schema_columns = [];
         }
-
         // {{ some type cast using db schema
-        if (isset($schemaColumns[$attribute])) {
-            $tableColumn = $schemaColumns[$attribute];
+        if (isset($schema_columns[$attribute])) {
+            $table_column = $schema_columns[$attribute];
             /**
              * @var $tableColumn \yii\db\ColumnSchema
              */
-            if ($propertyValue === '' && in_array($tableColumn->phpType, ['integer','boolean','double'])) {
-                $propertyValue = 0;
+            if ($property_value === '' && in_array($table_column->php_type, ['integer', 'boolean', 'double'])) {
+                $property_value = 0;
             }
-            if ($propertyValue !== '' && !is_null($propertyValue) && !is_object($propertyValue) && !is_array($propertyValue)) {
-                $propertyValue = $tableColumn->phpTypecast($propertyValue);
+            if ($property_value !== '' && !is_null($property_value) && !is_object($property_value) && !is_array($property_value)) {
+                $property_value = $table_column->php_typecast($property_value);
             }
-            if (is_null($propertyValue) && !$tableColumn->allowNull) {
-                if (is_null($tableColumn->defaultValue)) {
-                    $propertyValue =
-                        !is_null($tableColumn->phpTypecast('')) ? $tableColumn->phpTypecast('') : $tableColumn->phpTypecast(0);
+            if (is_null($property_value) && !$table_column->allow_null) {
+                if (is_null($table_column->default_value)) {
+                    $property_value = !is_null($table_column->php_typecast('')) ? $table_column->php_typecast('') : $table_column->php_typecast(0);
                 } else {
-                    $propertyValue = $tableColumn->defaultValue;
+                    $property_value = $table_column->default_value;
                 }
             }
-            if (($tableColumn->type === 'decimal' || $tableColumn->type === 'float') && is_string($propertyValue) && strlen($propertyValue) !== 0) {
-                $dotPosition = strpos($propertyValue, '.');
-
-                if ($dotPosition === false) {
-                    $propertyValue = number_format((float)$propertyValue, $tableColumn->scale, '.', '');
+            if (($table_column->type === 'decimal' || $table_column->type === 'float') && is_string($property_value) && strlen($property_value) !== 0) {
+                $dot_position = strpos($property_value, '.');
+                if ($dot_position === false) {
+                    $property_value = number_format((float) $property_value, $table_column->scale, '.', '');
                 } else {
-                    $inputValueScale = (strlen($propertyValue) - $dotPosition - 1);
-                    if ($inputValueScale > $tableColumn->scale) {
-                        $propertyValue = number_format((float)$propertyValue, $tableColumn->scale, '.', '');
-                    } elseif ($inputValueScale < $tableColumn->scale) {
-                        $propertyValue = number_format((float)$propertyValue, $tableColumn->scale, '.', '');
+                    $input_value_scale = strlen($property_value) - $dot_position - 1;
+                    if ($input_value_scale > $table_column->scale) {
+                        $property_value = number_format((float) $property_value, $table_column->scale, '.', '');
+                    } elseif ($input_value_scale < $table_column->scale) {
+                        $property_value = number_format((float) $property_value, $table_column->scale, '.', '');
                     }
                 }
             }
         }
         // }} some type cast using db schema
-        return $propertyValue;
+        return $property_value;
     }
-
-    protected function collectionModelCompare(\yii\db\ActiveRecord $databaseRecord, IOData $importedRecord)
+    protected function collection_model_compare(\yii\db\Active_Record $database_record, Io_Data $imported_record)
     {
         $same = false;
-
-        $useAttributeMatch = true;
-        $modelClass = get_class($databaseRecord);
-        $comparePkKeys = isset($this->modelsComparePK[$modelClass]) ? $this->modelsComparePK[$modelClass] : [];
-
-        if (count($comparePkKeys) > 0) {
-            $allPkMatch = true;
-            foreach ($comparePkKeys as $relatedPkKey) {
-                if (!isset($importedRecord->data[$relatedPkKey])) {
-                    $allPkMatch = false;
+        $use_attribute_match = true;
+        $model_class = get_class($database_record);
+        $compare_pk_keys = isset($this->models_compare_pk[$model_class]) ? $this->models_compare_pk[$model_class] : [];
+        if (count($compare_pk_keys) > 0) {
+            $all_pk_match = true;
+            foreach ($compare_pk_keys as $related_pk_key) {
+                if (!isset($imported_record->data[$related_pk_key])) {
+                    $all_pk_match = false;
                     break;
                 }
-                $importedValue = $importedRecord->data[$relatedPkKey];
-                if (is_object($importedValue)) {
-                    if ($importedValue instanceof Complex) {
-                        $importedValue = $importedValue->toImportModel();
+                $imported_value = $imported_record->data[$related_pk_key];
+                if (is_object($imported_value)) {
+                    if ($imported_value instanceof Complex) {
+                        $imported_value = $imported_value->to_import_model();
                     } else {
-                        $importedValue = (string)$importedValue;
+                        $imported_value = (string) $imported_value;
                     }
                 }
-                if ($databaseRecord->$relatedPkKey != $importedValue) {
-                    $allPkMatch = false;
+                if ($database_record->{$related_pk_key} != $imported_value) {
+                    $all_pk_match = false;
                     break;
                 }
             }
-            if ($allPkMatch) {
+            if ($all_pk_match) {
                 $same = true;
-                $useAttributeMatch = false;
+                $use_attribute_match = false;
             }
         }
-        if ($useAttributeMatch) {
-            $matchByAttributes = true;
-            foreach ($importedRecord->data as $importAttribute => $importValue) {
-                if ($databaseRecord->hasAttribute($importAttribute)) {
-                    if (is_object($importValue)) {
-                        if ($importValue instanceof Complex) {
-                            $importValue = $importValue->toImportModel();
+        if ($use_attribute_match) {
+            $match_by_attributes = true;
+            foreach ($imported_record->data as $import_attribute => $import_value) {
+                if ($database_record->has_attribute($import_attribute)) {
+                    if (is_object($import_value)) {
+                        if ($import_value instanceof Complex) {
+                            $import_value = $import_value->to_import_model();
                         } else {
-                            $importValue = (string)$importValue;
+                            $import_value = (string) $import_value;
                         }
                     }
-                    $importValue = $this->castInputValue($databaseRecord, $importAttribute, $importValue);
-                    if ($databaseRecord->{$importAttribute} !== $importValue) {
-                        $matchByAttributes = false;
+                    $import_value = $this->cast_input_value($database_record, $import_attribute, $import_value);
+                    if ($database_record->{$import_attribute} !== $import_value) {
+                        $match_by_attributes = false;
                         break;
                     }
                 }
             }
-            if ($matchByAttributes) {
+            if ($match_by_attributes) {
                 $same = true;
             }
         }
         return $same;
     }
-
     /**
      *
      */
-    public function export(XMLWriter $writer)
+    public function export(Xml_Writer $writer)
     {
-        $writer->exportBegin(isset($this->_configureMap['Header']) ? $this->_configureMap['Header'] : []);
-
-        foreach (array_keys($this->_configureMap['Data']) as $modelClass) {
+        $writer->export_begin(isset($this->_configure_map['Header']) ? $this->_configure_map['Header'] : []);
+        foreach (array_keys($this->_configure_map['Data']) as $model_class) {
             //$object = Yii::createObject($modelClass);
-            $collectionConfig = $this->_configureMap['Data'][$modelClass];
-            $data = $this->exportCollection($modelClass::find(), $collectionConfig, $writer);
+            $collection_config = $this->_configure_map['Data'][$model_class];
+            $data = $this->export_collection($model_class::find(), $collection_config, $writer);
             unset($data);
             //$IOProject->exportData($data);
         }
-        $writer->exportEnd();
+        $writer->export_end();
     }
-
-    public function exportCollection(\yii\db\ActiveQuery $collection, array $collectionConfig, $writer = null, $parentObject = null)
+    public function export_collection(\yii\db\Active_Query $collection, array $collection_config, $writer = null, $parent_object = null)
     {
-        $data = new IODataRelated();
-        $data->meta = $collectionConfig;
+        $data = new Io_Data_Related();
+        $data->meta = $collection_config;
         //$collection->limit(2);
-
-        if (isset($collectionConfig['softGroup']) && !empty($collectionConfig['softGroup']['column'])) {
-            $groupColumn = $collectionConfig['softGroup']['column'];
-            $collection->select($groupColumn)->distinct()->orderBy($groupColumn);
+        if (isset($collection_config['softGroup']) && !empty($collection_config['softGroup']['column'])) {
+            $group_column = $collection_config['softGroup']['column'];
+            $collection->select($group_column)->distinct()->order_by($group_column);
         }
-        if (!empty($collectionConfig['where'])) {
-            $collection->andWhere($collectionConfig['where']);
+        if (!empty($collection_config['where'])) {
+            $collection->and_where($collection_config['where']);
         }
-        if (!empty($collectionConfig['orderBy'])) {
-            $collection->orderBy($collectionConfig['orderBy']);
+        if (!empty($collection_config['orderBy'])) {
+            $collection->order_by($collection_config['orderBy']);
         }
-
         foreach ($collection->batch(200) as $records) {
             foreach ($records as $record) {
                 /**
                  * @var $record ActiveRecord
                  */
-                if (is_object($parentObject) && $record->canSetProperty('parentObject')) {
-                    $record->parentObject = $parentObject;
+                if (is_object($parent_object) && $record->can_set_property('parentObject')) {
+                    $record->parent_object = $parent_object;
                 }
                 if (is_object($writer)) {
-                    $writer->exportData($this->exportModel($record, $collectionConfig));
+                    $writer->export_data($this->export_model($record, $collection_config));
                 } else {
-                    $data->data[] = $this->exportModel($record, $collectionConfig);
+                    $data->data[] = $this->export_model($record, $collection_config);
                 }
             }
         }
         return $data;
     }
-
-    public function exportModel(\yii\db\ActiveRecord $record, $recordConfig)
+    public function export_model(\yii\db\Active_Record $record, $record_config)
     {
-        $data = new IOData();
-        $data->meta = $recordConfig;
-
+        $data = new Io_Data();
+        $data->meta = $record_config;
         /**
          * @var $record \yii\db\BaseActiveRecord
          */
-        if (!isset($recordConfig['properties']) || !is_array($recordConfig['properties'])) {
-            $recordConfig['properties'] = [];
+        if (!isset($record_config['properties']) || !is_array($record_config['properties'])) {
+            $record_config['properties'] = [];
         }
-
-        $exportProperties = [];
-
+        $export_properties = [];
         //$tableSchema = $record->getTableSchema();
         /**
          * @var $tableSchema yii\db\TableSchema
          */
-        $primaryKeys = $record->getPrimaryKey(true);
-
-        $modelAttributes = $record->attributes();
-        $describedAttributes = (isset($recordConfig['properties']) && is_array($recordConfig['properties'])) ? array_keys($recordConfig['properties']) : [];
-        $unknown = array_diff($describedAttributes, $modelAttributes);
-
-        foreach ($unknown as $unknownAttribute) {
-            if (isset($recordConfig['properties'][$unknownAttribute]) && $recordConfig['properties'][$unknownAttribute] === false) {
+        $primary_keys = $record->get_primary_key(true);
+        $model_attributes = $record->attributes();
+        $described_attributes = isset($record_config['properties']) && is_array($record_config['properties']) ? array_keys($record_config['properties']) : [];
+        $unknown = array_diff($described_attributes, $model_attributes);
+        foreach ($unknown as $unknown_attribute) {
+            if (isset($record_config['properties'][$unknown_attribute]) && $record_config['properties'][$unknown_attribute] === false) {
                 continue;
             }
-            if ($record->canGetProperty($unknownAttribute)) {
-                $modelAttributes[] = $unknownAttribute;
+            if ($record->can_get_property($unknown_attribute)) {
+                $model_attributes[] = $unknown_attribute;
             }
         }
-        foreach ($modelAttributes as $attribute) {
-            if (isset($recordConfig['hideProperties']) && in_array($attribute, $recordConfig['hideProperties'])) {
+        foreach ($model_attributes as $attribute) {
+            if (isset($record_config['hideProperties']) && in_array($attribute, $record_config['hideProperties'])) {
                 continue;
-            } // hide relation
-            $attributeValue = $record->{$attribute};
-
-            if (isset($recordConfig['properties'][$attribute])) {
-                $propertyMapper = $recordConfig['properties'][$attribute];
-                if ($propertyMapper === false) {
-                    continue; // hide
-                } elseif (is_string($propertyMapper) && !empty($propertyMapper)) {
-                    $attribute = $propertyMapper; // rename
-                } elseif (is_array($propertyMapper)) {
-                    if (!empty($propertyMapper['rename'])) {
-                        $attribute = $propertyMapper['rename'];
+            }
+            // hide relation
+            $attribute_value = $record->{$attribute};
+            if (isset($record_config['properties'][$attribute])) {
+                $property_mapper = $record_config['properties'][$attribute];
+                if ($property_mapper === false) {
+                    continue;
+                    // hide
+                } elseif (is_string($property_mapper) && !empty($property_mapper)) {
+                    $attribute = $property_mapper;
+                    // rename
+                } elseif (is_array($property_mapper)) {
+                    if (!empty($property_mapper['rename'])) {
+                        $attribute = $property_mapper['rename'];
                     }
-                    if (empty($propertyMapper['table'])) {
-                        $propertyMapper['table'] = $record::tableName();
+                    if (empty($property_mapper['table'])) {
+                        $property_mapper['table'] = $record::table_name();
                     }
-                    if (empty($propertyMapper['attribute'])) {
-                        $propertyMapper['attribute'] = $attribute;
+                    if (empty($property_mapper['attribute'])) {
+                        $property_mapper['attribute'] = $attribute;
                     }
-                    $propertyMapper['value'] = $attributeValue;
-                    if (isset($propertyMapper['record']) && $propertyMapper['record'] === true) {
-                        $propertyMapper['record'] = $record;
+                    $property_mapper['value'] = $attribute_value;
+                    if (isset($property_mapper['record']) && $property_mapper['record'] === true) {
+                        $property_mapper['record'] = $record;
                     }
-                    $attributeValue = IOCore::createObject($propertyMapper);
+                    $attribute_value = Io_Core::create_object($property_mapper);
                 }
-            } elseif (array_key_exists($attribute, $primaryKeys)) {
-                $attributeValue = IOCore::createObject([
-                    'class' => 'IOPK',
-                    'table' => $record::tableName(),
-                    'attribute' => $attribute,
-                    'value' => $attributeValue,
-                ]);
+            } elseif (array_key_exists($attribute, $primary_keys)) {
+                $attribute_value = Io_Core::create_object(['class' => 'IOPK', 'table' => $record::table_name(), 'attribute' => $attribute, 'value' => $attribute_value]);
             }
-            $exportProperties[$attribute] = $attributeValue;
+            $export_properties[$attribute] = $attribute_value;
         }
-
-        $data->data = $exportProperties;
-        $data->exportPK = [];
-        foreach (array_keys($primaryKeys) as $pkAttribute) {
-            if (array_key_exists($pkAttribute, $exportProperties)) {
-                $data->exportPK[] = $pkAttribute;
+        $data->data = $export_properties;
+        $data->export_pk = [];
+        foreach (array_keys($primary_keys) as $pk_attribute) {
+            if (array_key_exists($pk_attribute, $export_properties)) {
+                $data->export_pk[] = $pk_attribute;
             }
         }
-
-        if (isset($recordConfig['withRelated'])) {
-            foreach ($recordConfig['withRelated'] as $collectionProperty => $collectionConfig) {
-                $relateActiveQueryGetter = 'get'.ucfirst($collectionProperty);
-                if (!$record->hasMethod($relateActiveQueryGetter)) {
+        if (isset($record_config['withRelated'])) {
+            foreach ($record_config['withRelated'] as $collection_property => $collection_config) {
+                $relate_active_query_getter = 'get' . ucfirst($collection_property);
+                if (!$record->has_method($relate_active_query_getter)) {
                     continue;
                 }
-                $relatedActiveQuery = $record->$relateActiveQueryGetter();
+                $related_active_query = $record->{$relate_active_query_getter}();
                 /**
                  * @var $relatedActiveQuery \yii\db\ActiveQuery
                  */
-                if (isset($relatedActiveQuery->link) && is_array($relatedActiveQuery->link)) {
-                    if (!isset($collectionConfig['hideProperties'])) {
-                        $collectionConfig['hideProperties'] = [];
+                if (isset($related_active_query->link) && is_array($related_active_query->link)) {
+                    if (!isset($collection_config['hideProperties'])) {
+                        $collection_config['hideProperties'] = [];
                     }
-                    foreach ($relatedActiveQuery->link as $relProp => $currentProp) {
+                    foreach ($related_active_query->link as $rel_prop => $current_prop) {
                         //$collectionConfig['hideProperties'][] = $relProp;
-                        if (!in_array($currentProp, $data->exportPK)) {
-                            unset($data->data[$currentProp]);
+                        if (!in_array($current_prop, $data->export_pk)) {
+                            unset($data->data[$current_prop]);
                         }
                     }
                     //$collectionConfig['hideProperties'] = array_merge($collectionConfig['hideProperties'],array_keys($relatedActiveQuery->link));
                 }
                 //$relatedClass = $relatedActiveQuery->modelClass;
-                $data->data[$collectionProperty] = $this->exportCollection($relatedActiveQuery, $collectionConfig, null, $record);
+                $data->data[$collection_property] = $this->export_collection($related_active_query, $collection_config, null, $record);
             }
         }
-
         return $data;
     }
-
 }

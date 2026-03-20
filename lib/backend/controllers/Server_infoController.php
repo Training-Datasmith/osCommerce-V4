@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,30 +11,23 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\controllers;
 
 use Yii;
-
-class Server_infoController extends Sceleton
+class Server_info_Controller extends Sceleton
 {
     public $acl = ['TEXT_SETTINGS', 'BOX_HEADING_TOOLS', 'BOX_TOOLS_SERVER_INFO'];
-
-    public function actionIndex()
+    public function action_index()
     {
-
-        $this->selectedMenu = ['settings', 'tools', 'server_info'];
-        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('server_info/index'), 'title' => HEADING_TITLE];
-        $this->view->headingTitle = HEADING_TITLE;
-
+        $this->selected_menu = ['settings', 'tools', 'server_info'];
+        $this->navigation[] = ['link' => Yii::$app->url_manager->create_url('server_info/index'), 'title' => HEADING_TITLE];
+        $this->view->heading_title = HEADING_TITLE;
         ob_start();
         phpinfo();
         $phpinfo = ob_get_contents();
         ob_end_clean();
-
         $phpinfo = str_replace('border: 1px', '', $phpinfo);
         preg_match('/<body>(.*)<\/body>/is', $phpinfo, $regs);
         return $this->render('index', ['system' => \common\helpers\System::get_system_information(), 'reg' => $regs[1]]);
     }
-
 }

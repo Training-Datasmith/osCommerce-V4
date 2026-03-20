@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /*
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,97 +11,67 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\AR;
 
 use common\api\models\AR\Warehouses\Address;
 use common\api\models\AR\Warehouses\Info;
 use yii\db\Expression;
-
-class Warehouses extends EPMap
+class Warehouses extends Ep_Map
 {
-    protected $hideFields = [
-    ];
-
-    protected $childCollections = [
-        'addresses' => false,
-        'info' => false,
-    ];
-
-    protected $indexedCollections = [
-        'addresses' => 'common\api\models\AR\Warehouses\Address',
-        'info' => 'common\api\models\AR\Warehouses\Info',
-    ];
-
-    public static function tableName()
+    protected $hide_fields = [];
+    protected $child_collections = ['addresses' => false, 'info' => false];
+    protected $indexed_collections = ['addresses' => 'common\api\models\AR\Warehouses\Address', 'info' => 'common\api\models\AR\Warehouses\Info'];
+    public static function table_name()
     {
         return TABLE_WAREHOUSES;
     }
-
-    public static function primaryKey()
+    public static function primary_key()
     {
         return ['warehouse_id'];
     }
-
     public function rules()
     {
-        return array_merge(
-            parent::rules(),
-            [
-             ///   ['customers_company_vat', 'default', 'value' => '']
-            ]
-        );
+        return array_merge(parent::rules(), []);
     }
-
-    public function initCollectionByLookupKey_Addresses($lookupKeys)
+    public function init_collection_by_lookup_key_addresses($lookup_keys)
     {
-        if (!is_array($this->childCollections['addresses'])) {
-            $this->childCollections['addresses'] = [];
+        if (!is_array($this->child_collections['addresses'])) {
+            $this->child_collections['addresses'] = [];
             if ($this->warehouse_id) {
-                $this->childCollections['addresses'] =
-                    Address::find()
-                        ->addSelect(['*'])
-                        ->where(['warehouse_id' => $this->warehouse_id])
-                        ->all();
+                $this->child_collections['addresses'] = Address::find()->add_select(['*'])->where(['warehouse_id' => $this->warehouse_id])->all();
             }
         }
-        return $this->childCollections['addresses'];
+        return $this->child_collections['addresses'];
     }
-
-    public function initCollectionByLookupKey_Info($lookupKeys)
+    public function init_collection_by_lookup_key_info($lookup_keys)
     {
-        if (!is_array($this->childCollections['info'])) {
-            $this->childCollections['info'] = [];
+        if (!is_array($this->child_collections['info'])) {
+            $this->child_collections['info'] = [];
             if ($this->warehouse_id) {
-                $this->childCollections['info'][] =
-                    Info::findOne(['warehouse_id' => $this->warehouse_id]);
+                $this->child_collections['info'][] = Info::find_one(['warehouse_id' => $this->warehouse_id]);
             }
         }
-        return $this->childCollections['info'];
+        return $this->child_collections['info'];
     }
-
-    public function exportArray(array $fields = [])
+    public function export_array(array $fields = [])
     {
-        $export = parent::exportArray($fields);
-
+        $export = parent::export_array($fields);
         return $export;
     }
-
-    public function importArray($data)
+    public function import_array($data)
     {
         /*        if ( array_key_exists('customers_currency', $data) ) {
-                    $data['customers_currency_id'] = \common\helpers\Currencies::getCurrencyId($data['customers_currency']);
-                }
-        */
-        $importResult = parent::importArray($data);
-        return $importResult;
+                            $data['customers_currency_id'] = \common\helpers\Currencies::getCurrencyId($data['customers_currency']);
+                        }
+                */
+        $import_result = parent::import_array($data);
+        return $import_result;
     }
-
-    public function beforeSave($insert)
+    public function before_save($insert)
     {
-        if ($insert && (!is_array($this->childCollections['info']) || count($this->childCollections['info']) == 0)) {
-            $this->childCollections['info'] = [];
-            $this->childCollections['info'][] = new Info();
+        if ($insert && (!is_array($this->child_collections['info']) || count($this->child_collections['info']) == 0)) {
+            $this->child_collections['info'] = [];
+            $this->child_collections['info'][] = new Info();
         }
         if ($insert) {
             if (is_null($this->date_added)) {
@@ -118,21 +87,20 @@ class Warehouses extends EPMap
                 $old_credit_amount = $this->getOldAttribute('credit_amount');
                 if ( number_format($old_credit_amount,4,'.','')!=number_format($old_credit_amount,4,'.','') ) {
                     tep_db_perform(TABLE_CUSTOMERS_CREDIT_HISTORY,[
-| warehouse_id                | int(11)       | NO     |       |    <null> |                |
-| credit_prefix               | varchar(1)    | NO     |       |    <null> |                |
-| credit_amount               | decimal(11,2) | NO     |       |    <null> |                |
-| currency                    | char(3)       | NO     |       |    <null> |                |
-| currency_value              | decimal(14,6) | NO     |       |    <null> |                |
-| customer_notified           | tinyint(1)    | NO     |       |    <null> |                |
-| comments                    | mediumtext    | NO     |       |    <null> |                |
-| date_added                  | datetime      | NO     |       |    <null> |                |
-| admin_id
+        | warehouse_id                | int(11)       | NO     |       |    <null> |                |
+        | credit_prefix               | varchar(1)    | NO     |       |    <null> |                |
+        | credit_amount               | decimal(11,2) | NO     |       |    <null> |                |
+        | currency                    | char(3)       | NO     |       |    <null> |                |
+        | currency_value              | decimal(14,6) | NO     |       |    <null> |                |
+        | customer_notified           | tinyint(1)    | NO     |       |    <null> |                |
+        | comments                    | mediumtext    | NO     |       |    <null> |                |
+        | date_added                  | datetime      | NO     |       |    <null> |                |
+        | admin_id
                     ]);
                 }
             }
         }
         */
-        return parent::beforeSave($insert);
+        return parent::before_save($insert);
     }
-
 }

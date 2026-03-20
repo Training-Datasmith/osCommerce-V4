@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,305 +11,295 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\Classes;
 
-class Customer extends AbstractClass
+class Customer extends Abstract_Class
 {
-    public $customerId = 0;
-    public $customerRecord = [];
-    public $addressRecordArray = [];
-    public $emailRecordArray = [];
-    public $phoneRecordArray = [];
-    public $extraGroupRecordArray = [];
-
-    public function getId()
+    public $customer_id = 0;
+    public $customer_record = [];
+    public $address_record_array = [];
+    public $email_record_array = [];
+    public $phone_record_array = [];
+    public $extra_group_record_array = [];
+    public function get_id()
     {
-        return $this->customerId;
+        return $this->customer_id;
     }
-
-    public function setId($customerId)
+    public function set_id($customer_id)
     {
-        $customerId = (int)$customerId;
-        if ($customerId >= 0) {
-            $this->customerId = $customerId;
+        $customer_id = (int) $customer_id;
+        if ($customer_id >= 0) {
+            $this->customer_id = $customer_id;
             return true;
         }
         return false;
     }
-
-    public function load($customerId)
+    public function load($customer_id)
     {
         $this->clear();
-        $customerId = (int)$customerId;
-        $customerRecord = \common\models\Customers::find()->alias('c')->select('*')
-            ->leftJoin(\common\models\CustomersInfo::tableName() . ' ci', 'ci.customers_info_id = c.customers_id')
-            ->where(['c.customers_id' => $customerId])->asArray(true)->one();
-        if (is_array($customerRecord) and (count($customerRecord) > 0)) {
-            $this->customerId = $customerId;
-            $this->customerRecord = $customerRecord;
-            unset($customerRecord);
+        $customer_id = (int) $customer_id;
+        $customer_record = \common\models\Customers::find()->alias('c')->select('*')->left_join(\common\models\Customers_Info::table_name() . ' ci', 'ci.customers_info_id = c.customers_id')->where(['c.customers_id' => $customer_id])->as_array(true)->one();
+        if (is_array($customer_record) and count($customer_record) > 0) {
+            $this->customer_id = $customer_id;
+            $this->customer_record = $customer_record;
+            unset($customer_record);
             // ADDRESS
-            $this->addressRecordArray = \common\models\AddressBook::find()->where(['customers_id' => $customerId])->asArray(true)->all();
+            $this->address_record_array = \common\models\Address_Book::find()->where(['customers_id' => $customer_id])->as_array(true)->all();
             // EOF ADDRESS
             // EMAIL
-            $this->emailRecordArray = \common\models\CustomersEmails::find()->where(['customers_id' => $customerId])->asArray(true)->all();
+            $this->email_record_array = \common\models\Customers_Emails::find()->where(['customers_id' => $customer_id])->as_array(true)->all();
             // EOF EMAIL
             // PHONE
-            $this->phoneRecordArray = \common\models\CustomersPhones::find()->where(['customers_id' => $customerId])->asArray(true)->all();
+            $this->phone_record_array = \common\models\Customers_Phones::find()->where(['customers_id' => $customer_id])->as_array(true)->all();
             // EOF PHONE*/
             // EXTRA GROUP
-            if (\common\helpers\Acl::checkExtensionAllowed('ExtraGroups', 'allowed')) {
-                $model = \common\helpers\Extensions::getModel('ExtraGroups', 'CustomerExtraGroups');
-                $this->extraGroupRecordArray = (!empty($model)) ? $model::find()->where(['customer_id' => $customerId])->asArray(true)->all() : [];
+            if (\common\helpers\Acl::check_extension_allowed('ExtraGroups', 'allowed')) {
+                $model = \common\helpers\Extensions::get_model('ExtraGroups', 'CustomerExtraGroups');
+                $this->extra_group_record_array = !empty($model) ? $model::find()->where(['customer_id' => $customer_id])->as_array(true)->all() : [];
             }
             // EOF EXTRA GROUP
             return true;
         }
         return false;
     }
-
     public function unrelate()
     {
-        if (is_array($this->customerRecord)) {
-            unset($this->customerRecord['customers_default_address_id']);
+        if (is_array($this->customer_record)) {
+            unset($this->customer_record['customers_default_address_id']);
         }
-        if (is_array($this->addressRecordArray)) {
-            foreach ($this->addressRecordArray as &$addressRecord) {
-                unset($addressRecord['address_book_id']);
+        if (is_array($this->address_record_array)) {
+            foreach ($this->address_record_array as &$address_record) {
+                unset($address_record['address_book_id']);
             }
-            unset($addressRecord);
+            unset($address_record);
         }
         return parent::unrelate();
     }
-
     public function validate()
     {
-        $this->customerId = (int)(((int)$this->customerId > 0) ? $this->customerId : 0);
-        if (!is_array($this->customerRecord) or (count($this->customerRecord) < 5)) {
+        $this->customer_id = (int) ((int) $this->customer_id > 0 ? $this->customer_id : 0);
+        if (!is_array($this->customer_record) or count($this->customer_record) < 5) {
             return false;
         }
         if (!parent::validate()) {
             return false;
         }
-        unset($this->customerRecord['customers_id']);
-        unset($this->customerRecord['customers_info_id']);
-        $this->addressRecordArray = (is_array($this->addressRecordArray) ? $this->addressRecordArray : []);
-        $this->emailRecordArray = (is_array($this->emailRecordArray) ? $this->emailRecordArray : []);
-        $this->phoneRecordArray = (is_array($this->phoneRecordArray) ? $this->phoneRecordArray : []);
-        $this->extraGroupRecordArray = (is_array($this->extraGroupRecordArray) ? $this->extraGroupRecordArray : []);
+        unset($this->customer_record['customers_id']);
+        unset($this->customer_record['customers_info_id']);
+        $this->address_record_array = is_array($this->address_record_array) ? $this->address_record_array : [];
+        $this->email_record_array = is_array($this->email_record_array) ? $this->email_record_array : [];
+        $this->phone_record_array = is_array($this->phone_record_array) ? $this->phone_record_array : [];
+        $this->extra_group_record_array = is_array($this->extra_group_record_array) ? $this->extra_group_record_array : [];
         return true;
     }
-
     public function create()
     {
-        $this->customerId = 0;
+        $this->customer_id = 0;
         return $this->save();
     }
-
-    public function save($isReplace = false)
+    public function save($is_replace = false)
     {
         $return = false;
         if (!$this->validate()) {
             return $return;
         }
-        $customerClass = \common\models\Customers::find()->where(['customers_id' => $this->customerId])->one();
-        if (!($customerClass instanceof \common\models\Customers)) {
-            $customerClass = new \common\models\Customers();
-            $customerClass->loadDefaultValues();
-            if ($this->customerId > 0) {
-                $customerClass->customers_id = $this->customerId;
+        $customer_class = \common\models\Customers::find()->where(['customers_id' => $this->customer_id])->one();
+        if (!$customer_class instanceof \common\models\Customers) {
+            $customer_class = new \common\models\Customers();
+            $customer_class->load_default_values();
+            if ($this->customer_id > 0) {
+                $customer_class->customers_id = $this->customer_id;
             } else {
                 $this->unrelate();
             }
         }
-        $customerClass->setAttributes($this->customerRecord, false);
-        if ($customerClass->save(false)) {
-            $customerInfoRecord = $this->customerRecord;
-            $this->customerRecord = $customerClass->toArray();
-            $this->customerId = (int)$customerClass->customers_id;
+        $customer_class->set_attributes($this->customer_record, false);
+        if ($customer_class->save(false)) {
+            $customer_info_record = $this->customer_record;
+            $this->customer_record = $customer_class->to_array();
+            $this->customer_id = (int) $customer_class->customers_id;
             // INFORMATION
             try {
-                $customerInfoClass = \common\models\CustomersInfo::find()->where(['customers_info_id' => $this->customerId])->one();
-                if (!($customerInfoClass instanceof \common\models\CustomersInfo)) {
-                    $customerInfoClass = new \common\models\CustomersInfo();
-                    $customerInfoClass->loadDefaultValues();
-                    $customerInfoClass->customers_info_id = $this->customerId;
+                $customer_info_class = \common\models\Customers_Info::find()->where(['customers_info_id' => $this->customer_id])->one();
+                if (!$customer_info_class instanceof \common\models\Customers_Info) {
+                    $customer_info_class = new \common\models\Customers_Info();
+                    $customer_info_class->load_default_values();
+                    $customer_info_class->customers_info_id = $this->customer_id;
                 }
-                $customerInfoClass->setAttributes($customerInfoRecord, false);
-                $customerInfoClass->detachBehavior('timestampBehavior');
-                if ($customerInfoClass->save(false)) {
-                    $this->customerRecord = ($this->customerRecord + $customerInfoClass->toArray());
+                $customer_info_class->set_attributes($customer_info_record, false);
+                $customer_info_class->detach_behavior('timestampBehavior');
+                if ($customer_info_class->save(false)) {
+                    $this->customer_record = $this->customer_record + $customer_info_class->to_array();
                 } else {
-                    $this->messageAdd($customerInfoClass->getErrorSummary(true));
+                    $this->message_add($customer_info_class->get_error_summary(true));
                 }
             } catch (\Exception $exc) {
-                $this->messageAdd($exc->getMessage());
+                $this->message_add($exc->get_message());
             }
-            unset($customerInfoRecord);
-            unset($customerInfoClass);
+            unset($customer_info_record);
+            unset($customer_info_class);
             // EOF INFORMATION
             // ADDRESS
-            $addressRecordArray = &$this->addressRecordArray;
-            foreach ($addressRecordArray as $key => &$addressRecord) {
-                $isSave = false;
-                $addressId = (int)(isset($addressRecord['address_book_id']) ? $addressRecord['address_book_id'] : 0);
-                unset($addressRecord['customers_id']);
-                unset($addressRecord['address_book_id']);
+            $address_record_array =& $this->address_record_array;
+            foreach ($address_record_array as $key => &$address_record) {
+                $is_save = false;
+                $address_id = (int) (isset($address_record['address_book_id']) ? $address_record['address_book_id'] : 0);
+                unset($address_record['customers_id']);
+                unset($address_record['address_book_id']);
                 try {
-                    $addressClass = \common\models\AddressBook::find()->where(['customers_id' => $this->customerId, 'address_book_id' => $addressId])->one();
-                    if (!($addressClass instanceof \common\models\AddressBook)) {
-                        $addressClass = new \common\models\AddressBook();
-                        $addressClass->loadDefaultValues();
-                        $addressClass->customers_id = $this->customerId;
-                        if ($addressId > 0) {
-                            $addressClass->address_book_id = $addressId;
+                    $address_class = \common\models\Address_Book::find()->where(['customers_id' => $this->customer_id, 'address_book_id' => $address_id])->one();
+                    if (!$address_class instanceof \common\models\Address_Book) {
+                        $address_class = new \common\models\Address_Book();
+                        $address_class->load_default_values();
+                        $address_class->customers_id = $this->customer_id;
+                        if ($address_id > 0) {
+                            $address_class->address_book_id = $address_id;
                         }
                     }
-                    $addressClass->setAttributes($addressRecord, false);
-                    if ($addressClass->save(false)) {
-                        $isSave = true;
-                        $addressRecord = ($addressClass->toArray() + $addressRecord);
+                    $address_class->set_attributes($address_record, false);
+                    if ($address_class->save(false)) {
+                        $is_save = true;
+                        $address_record = $address_class->to_array() + $address_record;
                     } else {
-                        $this->messageAdd($addressClass->getErrorSummary(true));
+                        $this->message_add($address_class->get_error_summary(true));
                     }
                 } catch (\Exception $exc) {
-                    $this->messageAdd($exc->getMessage());
+                    $this->message_add($exc->get_message());
                 }
-                unset($addressClass);
-                unset($addressId);
-                if ($isSave != true) {
-                    unset($addressRecordArray[$key]);
+                unset($address_class);
+                unset($address_id);
+                if ($is_save != true) {
+                    unset($address_record_array[$key]);
                 }
-                unset($isSave);
+                unset($is_save);
             }
-            unset($addressRecordArray);
-            unset($addressRecord);
+            unset($address_record_array);
+            unset($address_record);
             unset($key);
             // EOF ADDRESS
             // EMAIL
-            $emailRecordArray = &$this->emailRecordArray;
-            foreach ($emailRecordArray as $key => &$emailRecord) {
-                $isSave = false;
-                $email = trim(isset($emailRecord['customers_email']) ? $emailRecord['customers_email'] : '');
-                unset($emailRecord['customers_id']);
-                unset($emailRecord['customers_email']);
+            $email_record_array =& $this->email_record_array;
+            foreach ($email_record_array as $key => &$email_record) {
+                $is_save = false;
+                $email = trim(isset($email_record['customers_email']) ? $email_record['customers_email'] : '');
+                unset($email_record['customers_id']);
+                unset($email_record['customers_email']);
                 if ($email != '') {
                     try {
-                        $emailClass = \common\models\CustomersEmails::find()->where(['customers_id' => $this->customerId, 'customers_email' => $email])->one();
-                        if (!($emailClass instanceof \common\models\CustomersEmails)) {
-                            $emailClass = new \common\models\CustomersEmails();
-                            $emailClass->loadDefaultValues();
-                            $emailClass->customers_id = $this->customerId;
-                            $emailClass->customers_email = $email;
+                        $email_class = \common\models\Customers_Emails::find()->where(['customers_id' => $this->customer_id, 'customers_email' => $email])->one();
+                        if (!$email_class instanceof \common\models\Customers_Emails) {
+                            $email_class = new \common\models\Customers_Emails();
+                            $email_class->load_default_values();
+                            $email_class->customers_id = $this->customer_id;
+                            $email_class->customers_email = $email;
                         }
-                        $emailClass->setAttributes($emailRecord, false);
-                        if ($emailClass->save(false)) {
-                            $isSave = true;
-                            $emailRecord = $emailClass->toArray();
+                        $email_class->set_attributes($email_record, false);
+                        if ($email_class->save(false)) {
+                            $is_save = true;
+                            $email_record = $email_class->to_array();
                         } else {
-                            $this->messageAdd($emailClass->getErrorSummary(true));
+                            $this->message_add($email_class->get_error_summary(true));
                         }
                     } catch (\Exception $exc) {
-                        $this->messageAdd($exc->getMessage());
+                        $this->message_add($exc->get_message());
                     }
-                    unset($emailClass);
+                    unset($email_class);
                 }
                 unset($email);
-                if ($isSave != true) {
-                    unset($emailRecordArray[$key]);
+                if ($is_save != true) {
+                    unset($email_record_array[$key]);
                 }
-                unset($isSave);
+                unset($is_save);
             }
-            unset($emailRecordArray);
-            unset($emailRecord);
+            unset($email_record_array);
+            unset($email_record);
             unset($key);
             // EOF EMAIL
             // PHONE
-            $phoneRecordArray = &$this->phoneRecordArray;
-            foreach ($phoneRecordArray as $key => &$phoneRecord) {
-                $isSave = false;
-                $phone = trim(isset($phoneRecord['customers_phone']) ? $phoneRecord['customers_phone'] : '');
-                unset($phoneRecord['customers_id']);
-                unset($phoneRecord['customers_phone']);
+            $phone_record_array =& $this->phone_record_array;
+            foreach ($phone_record_array as $key => &$phone_record) {
+                $is_save = false;
+                $phone = trim(isset($phone_record['customers_phone']) ? $phone_record['customers_phone'] : '');
+                unset($phone_record['customers_id']);
+                unset($phone_record['customers_phone']);
                 if ($phone != '') {
                     try {
-                        $phoneClass = \common\models\CustomersPhones::find()->where(['customers_id' => $this->customerId, 'customers_phone' => $phone])->one();
-                        if (!($phoneClass instanceof \common\models\CustomersPhones)) {
-                            $phoneClass = new \common\models\CustomersPhones();
-                            $phoneClass->loadDefaultValues();
-                            $phoneClass->customers_id = $this->customerId;
-                            $phoneClass->customers_phone = $phone;
+                        $phone_class = \common\models\Customers_Phones::find()->where(['customers_id' => $this->customer_id, 'customers_phone' => $phone])->one();
+                        if (!$phone_class instanceof \common\models\Customers_Phones) {
+                            $phone_class = new \common\models\Customers_Phones();
+                            $phone_class->load_default_values();
+                            $phone_class->customers_id = $this->customer_id;
+                            $phone_class->customers_phone = $phone;
                         }
-                        $phoneClass->setAttributes($phoneRecord, false);
-                        if ($phoneClass->save(false)) {
-                            $isSave = true;
-                            $phoneRecord = $phoneClass->toArray();
+                        $phone_class->set_attributes($phone_record, false);
+                        if ($phone_class->save(false)) {
+                            $is_save = true;
+                            $phone_record = $phone_class->to_array();
                         } else {
-                            $this->messageAdd($phoneClass->getErrorSummary(true));
+                            $this->message_add($phone_class->get_error_summary(true));
                         }
                     } catch (\Exception $exc) {
-                        $this->messageAdd($exc->getMessage());
+                        $this->message_add($exc->get_message());
                     }
-                    unset($phoneClass);
+                    unset($phone_class);
                 }
                 unset($phone);
-                if ($isSave != true) {
-                    unset($phoneRecordArray[$key]);
+                if ($is_save != true) {
+                    unset($phone_record_array[$key]);
                 }
-                unset($isSave);
+                unset($is_save);
             }
-            unset($phoneRecordArray);
-            unset($phoneRecord);
+            unset($phone_record_array);
+            unset($phone_record);
             unset($key);
             // EOF PHONE
             // EXTRA GROUP
-            $model = \common\helpers\Extensions::getModel('ExtraGroups', 'CustomerExtraGroups');
+            $model = \common\helpers\Extensions::get_model('ExtraGroups', 'CustomerExtraGroups');
             if (!empty($model)) {
-                $extraGroupRecordArray = &$this->extraGroupRecordArray;
-                foreach ($extraGroupRecordArray as $key => &$extraGroupRecord) {
-                    $isSave = false;
-                    $groupId = (int)(isset($extraGroupRecord['group_id']) ? $extraGroupRecord['group_id'] : '');
-                    unset($extraGroupRecord['customer_id']);
-                    unset($extraGroupRecord['group_id']);
-                    if ($groupId > 0) {
+                $extra_group_record_array =& $this->extra_group_record_array;
+                foreach ($extra_group_record_array as $key => &$extra_group_record) {
+                    $is_save = false;
+                    $group_id = (int) (isset($extra_group_record['group_id']) ? $extra_group_record['group_id'] : '');
+                    unset($extra_group_record['customer_id']);
+                    unset($extra_group_record['group_id']);
+                    if ($group_id > 0) {
                         try {
-                            $groupClass = $model::find()->where(['customer_id' => $this->customerId, 'group_id' => $groupId])->one();
-                            if (!($groupClass instanceof $model)) {
-                                $groupClass = new $model();
-                                $groupClass->loadDefaultValues();
-                                $groupClass->customer_id = $this->customerId;
-                                $groupClass->group_id = $groupId;
+                            $group_class = $model::find()->where(['customer_id' => $this->customer_id, 'group_id' => $group_id])->one();
+                            if (!$group_class instanceof $model) {
+                                $group_class = new $model();
+                                $group_class->load_default_values();
+                                $group_class->customer_id = $this->customer_id;
+                                $group_class->group_id = $group_id;
                             }
-                            $groupClass->setAttributes($extraGroupRecord, false);
-                            if ($groupClass->save(false)) {
-                                $isSave = true;
-                                $extraGroupRecord = $groupClass->toArray();
+                            $group_class->set_attributes($extra_group_record, false);
+                            if ($group_class->save(false)) {
+                                $is_save = true;
+                                $extra_group_record = $group_class->to_array();
                             } else {
-                                $this->messageAdd($groupClass->getErrorSummary(true));
+                                $this->message_add($group_class->get_error_summary(true));
                             }
                         } catch (\Exception $exc) {
-                            $this->messageAdd($exc->getMessage());
+                            $this->message_add($exc->get_message());
                         }
-                        unset($groupClass);
+                        unset($group_class);
                     }
-                    unset($groupId);
-                    if ($isSave != true) {
-                        unset($extraGroupRecordArray[$key]);
+                    unset($group_id);
+                    if ($is_save != true) {
+                        unset($extra_group_record_array[$key]);
                     }
-                    unset($isSave);
+                    unset($is_save);
                 }
-                unset($extraGroupRecordArray);
-                unset($extraGroupRecord);
+                unset($extra_group_record_array);
+                unset($extra_group_record);
                 unset($key);
             }
             // EOF EXTRA GROUP
-            $return = $this->customerId;
+            $return = $this->customer_id;
         } else {
-            $this->messageAdd($customerClass->getErrorSummary(true));
+            $this->message_add($customer_class->get_error_summary(true));
         }
-        unset($customerClass);
-        unset($isReplace);
+        unset($customer_class);
+        unset($is_replace);
         return $return;
     }
 }

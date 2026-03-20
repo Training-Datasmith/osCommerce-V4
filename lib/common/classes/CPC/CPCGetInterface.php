@@ -1,13 +1,12 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace common\classes\CPC;
 
 /**
  * CPC - Counts of products in categories
  */
-interface CPCGetInterface
+interface Cpc_Get_Interface
 {
     /**
      * Returns array [categoryId => productCount]
@@ -16,8 +15,6 @@ interface CPCGetInterface
      * @param mixed $groupId
      * @return array [categoryId => productCount]
      */
-    public static function getCategories($categoriesIds, $platformId, $groupId = 0): array;
-
-    public static function getAllCategories($platformId, $groupId = 0): array;
-
+    public static function get_categories($categories_ids, $platform_id, $group_id = 0): array;
+    public static function get_all_categories($platform_id, $group_id = 0): array;
 }

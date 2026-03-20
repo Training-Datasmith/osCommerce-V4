@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,12 +11,11 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
 class Html extends \yii\helpers\Html
 {
-    public static function textInputNullable($name, $value = null, $options = [])
+    public static function text_input_nullable($name, $value = null, $options = [])
     {
         $button = [];
         if (isset($options['button'])) {
@@ -25,50 +24,35 @@ class Html extends \yii\helpers\Html
         if (!isset($button['options']) || !is_array($button['options'])) {
             $button['options'] = [];
         }
-
         $class = ['input-group-addon', 'js-input-nullable-btn'];
         if (isset($button['options']['class']) && strpos($button['options']['class'], 'input-group-addon') === false) {
             $class = ['input-group-addon', 'js-input-nullable-btn', $button['options']['class']];
         }
-
         $button['options']['title'] = IMAGE_EDIT;
         $button['options']['class'] = array_merge($class, ['js-input-nullable-edit']);
-        $inputButton = static::tag('div', '<i class="icon-pencil"></i>', $button['options']);
-
+        $input_button = static::tag('div', '<i class="icon-pencil"></i>', $button['options']);
         $button['options']['style'] = ['display' => 'none'];
-
         if (isset($options['placeholder']) && $options['placeholder'] !== '') {
             $button['options']['title'] = RETURN_DEFAULT_VALUE;
             $button['options']['class'] = array_merge($class, ['js-input-nullable-undo']);
-            $inputButton .= static::tag('div', '<i class="icon-undo"></i>', $button['options']);
+            $input_button .= static::tag('div', '<i class="icon-undo"></i>', $button['options']);
         }
-
         $button['options']['title'] = IMAGE_CANCEL;
         $button['options']['class'] = array_merge($class, ['js-input-nullable-close']);
-        $inputButton .= static::tag('div', '<i class="icon-close"></i>', $button['options']);
-
+        $input_button .= static::tag('div', '<i class="icon-close"></i>', $button['options']);
         $button['options']['title'] = TEXT_APPLY;
         $button['options']['class'] = array_merge($class, ['js-input-nullable-save']);
-        $inputButton .= static::tag('div', '<i class="icon-ok"></i>', $button['options']);
-
+        $input_button .= static::tag('div', '<i class="icon-ok"></i>', $button['options']);
         $options['readonly'] = 'readonly';
-
         $default = '';
         if (isset($options['placeholder']) && $options['placeholder'] !== '') {
             $default = '<div class="js-input-nullable-default"' . ($value ? '' : ' style="display: none"') . '>
                             <span>' . TEXT_DEFAULT . '</span>
-                            <span class="js-input-nullable-default-val">'. $options['placeholder'] . '</span>
+                            <span class="js-input-nullable-default-val">' . $options['placeholder'] . '</span>
                         </div>';
         }
-
-        return
-            '<div class="input-group js-main-text-input-nullable">'.
-              $default.
-              static::textInput($name, $value, $options).
-              $inputButton.
-            '</div>';
+        return '<div class="input-group js-main-text-input-nullable">' . $default . static::text_input($name, $value, $options) . $input_button . '</div>';
     }
-
     /**
      * adds css default class (form-control), unique class (<last-class>|<$type>-<start[name]>) id by name (_ to lo-camel-ed),
      * @param type $type
@@ -79,10 +63,8 @@ class Html extends \yii\helpers\Html
      */
     public static function input($type, $name = null, $value = null, $options = [])
     {
-
-        self::commonClass($type, $name, $options);
-        self::commonId($name, $options);
-
+        self::common_class($type, $name, $options);
+        self::common_id($name, $options);
         if (!isset($options['class']) || strpos($options['class'], 'form-control') === false) {
             if (in_array($type, ['checkbox', 'radio'])) {
                 $c = 'form-control-bool ';
@@ -91,19 +73,17 @@ class Html extends \yii\helpers\Html
             }
             $options['class'] = $c . (isset($options['class']) ? $options['class'] : '');
         }
-
         return parent::input($type, $name, $value, $options);
     }
-
     public static function checkbox($name, $checked = false, $options = [])
     {
-        if (!isset($options['class']) || (strpos($options['class'], 'multiOption') === false && strpos($options['class'], 'uniform') === false && strpos($options['class'], '_on_off') === false)) { // check|switch| etc _on_off O_O
+        if (!isset($options['class']) || strpos($options['class'], 'multiOption') === false && strpos($options['class'], 'uniform') === false && strpos($options['class'], '_on_off') === false) {
+            // check|switch| etc _on_off O_O
             $options['class'] = 'multiOption ' . (isset($options['class']) ? $options['class'] : '');
         }
         return parent::checkbox($name, $checked, $options);
     }
-
-    public static function commonId($name, &$options)
+    public static function common_id($name, &$options)
     {
         if (!isset($options['id']) && !empty($name) && !strpos($name, '[]')) {
             $p = explode('_', $name);
@@ -112,12 +92,10 @@ class Html extends \yii\helpers\Html
                     $val = ucfirst($val);
                 }
             });
-            $options['id'] =
-              str_replace(['[',']'], '_', implode('', $p));
+            $options['id'] = str_replace(['[', ']'], '_', implode('', $p));
         }
     }
-
-    public static function commonClass($type, $name, &$options)
+    public static function common_class($type, $name, &$options)
     {
         if (!empty($name)) {
             $m = [];
@@ -127,52 +105,45 @@ class Html extends \yii\helpers\Html
             } else {
                 $sf = '-' . $name;
             }
-
             if (isset($options['class'])) {
                 $m = [];
                 preg_match('/[\S]+$/i', trim($options['class']), $m);
                 if (count($m)) {
                     $options['class'] .= ' ' . $m[0] . $sf;
                 } else {
-                    $options['class'] .= ' '. $type . $sf;
+                    $options['class'] .= ' ' . $type . $sf;
                 }
             } else {
-                $options['class'] = ' '. $type . $sf;
+                $options['class'] = ' ' . $type . $sf;
             }
         }
     }
-
     /**
      * {@inheritdocs}
      */
-    public static function dropDownList($name, $selection = null, $items = [], $options = [])
+    public static function drop_down_list($name, $selection = null, $items = [], $options = [])
     {
-        self::commonClass('select', $name, $options);
-        self::commonId($name, $options);
-
+        self::common_class('select', $name, $options);
+        self::common_id($name, $options);
         if (!isset($options['class']) || strpos($options['class'], 'form-control') === false) {
             $options['class'] = 'form-control' . (isset($options['class']) ? $options['class'] : '');
         }
-        return parent::dropDownList($name, $selection, $items, $options);
+        return parent::drop_down_list($name, $selection, $items, $options);
     }
-
-    public static function activeFileInput($model, $attribute, $options = [])
+    public static function active_file_input($model, $attribute, $options = [])
     {
-        $hiddenOptions = ['id' => null];
+        $hidden_options = ['id' => null];
         if (isset($options['name'])) {
-            $hiddenOptions['name'] = $options['name'];
+            $hidden_options['name'] = $options['name'];
         }
         // make sure disabled input is not sending any value
         if (!empty($options['disabled'])) {
-            $hiddenOptions['disabled'] = $options['disabled'];
+            $hidden_options['disabled'] = $options['disabled'];
         }
-        $hiddenOptions = \yii\helpers\ArrayHelper::merge($hiddenOptions, \yii\helpers\ArrayHelper::remove($options, 'hiddenOptions', []));
-
-        return static::activeHiddenInput($model, $attribute, $hiddenOptions)
-            . static::activeInput('file', $model, $attribute, $options);
+        $hidden_options = \yii\helpers\Array_Helper::merge($hidden_options, \yii\helpers\Array_Helper::remove($options, 'hiddenOptions', []));
+        return static::active_hidden_input($model, $attribute, $hidden_options) . static::active_input('file', $model, $attribute, $options);
     }
-
-    public static function fixHtmlTags($html)
+    public static function fix_html_tags($html)
     {
         if (!class_exists('\DOMDocument')) {
             return $html;
@@ -181,42 +152,36 @@ class Html extends \yii\helpers\Html
         if (empty($html)) {
             return $html;
         }
-        $dom = new \DOMDocument();
-        @$dom->loadHTML($html);
-        $nodes = $dom->getElementsByTagName('body')->item(0)->childNodes;
-
+        $dom = new \Dom_Document();
+        @$dom->load_html($html);
+        $nodes = $dom->get_elements_by_tag_name('body')->item(0)->child_nodes;
         $html = '';
         $len = $nodes->length;
         for ($i = 0; $i < $len; $i++) {
-            $html .= $dom->saveHTML($nodes->item($i));
+            $html .= $dom->save_html($nodes->item($i));
         }
         $html = preg_replace('/<p[^>]{0,}>/', '', $html);
         $html = str_replace('</p>', '', $html);
-
         return $html;
     }
-
-    private static function tr(string $constName, bool $camelIfNotFoundConstant = null)
+    private static function tr(string $const_name, bool $camel_if_not_found_constant = null)
     {
-        if (defined($constName)) {
-            $string = constant($constName);
+        if (defined($const_name)) {
+            $string = constant($const_name);
         } else {
-            if (is_null($camelIfNotFoundConstant)) {
-                $camelIfNotFoundConstant = \common\helpers\System::isProduction();
+            if (is_null($camel_if_not_found_constant)) {
+                $camel_if_not_found_constant = \common\helpers\System::is_production();
             }
-            $string = $camelIfNotFoundConstant ? \yii\helpers\Inflector::camel2words($constName) : $constName;
+            $string = $camel_if_not_found_constant ? \yii\helpers\Inflector::camel2words($const_name) : $const_name;
         }
         return $string;
     }
-
-    public static function tr_html(string $constName)
+    public static function tr_html(string $const_name)
     {
-        return self::encode(self::tr($constName));
+        return self::encode(self::tr($const_name));
     }
-
-    public static function tr_js(string $constName)
+    public static function tr_js(string $const_name)
     {
-        return \yii\helpers\Json::encode(self::tr($constName));
+        return \yii\helpers\Json::encode(self::tr($const_name));
     }
-
 }

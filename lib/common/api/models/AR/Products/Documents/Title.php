@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,45 +11,32 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\AR\Products\Documents;
 
-use common\api\models\AR\EPMap;
-
-class Title extends EPMap
+use common\api\models\AR\Ep_Map;
+class Title extends Ep_Map
 {
-    protected $hideFields = [
-        'products_documents_id',
-        'language_id',
-    ];
-
-    public static function tableName()
+    protected $hide_fields = ['products_documents_id', 'language_id'];
+    public static function table_name()
     {
         return TABLE_PRODUCTS_DOCUMENTS_TITLES;
     }
-
-    public static function primaryKey()
+    public static function primary_key()
     {
-        return ['products_documents_id', 'language_id',];
+        return ['products_documents_id', 'language_id'];
     }
-
-    public static function getAllKeyCodes()
+    public static function get_all_key_codes()
     {
-        $keyCodes = [];
+        $key_codes = [];
         foreach (\common\classes\language::get_all() as $lang) {
-            $keyCode = $lang['code'];
-            $keyCodes[$keyCode] = [
-                'products_documents_id' => null,
-                'language_id' => $lang['id'],
-            ];
+            $key_code = $lang['code'];
+            $key_codes[$key_code] = ['products_documents_id' => null, 'language_id' => $lang['id']];
         }
-        return $keyCodes;
+        return $key_codes;
     }
-
-    public function parentEPMap(EPMap $parentObject)
+    public function parent_ep_map(Ep_Map $parent_object)
     {
-        $this->products_documents_id = $parentObject->products_documents_id;
-        parent::parentEPMap($parentObject);
+        $this->products_documents_id = $parent_object->products_documents_id;
+        parent::parent_ep_map($parent_object);
     }
-
 }

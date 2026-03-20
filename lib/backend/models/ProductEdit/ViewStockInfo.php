@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,66 +11,57 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+namespace backend\models\Product_Edit;
 
-namespace backend\models\ProductEdit;
-
-class ViewStockInfo
+class View_Stock_Info
 {
     /**
      * @var \objectInfo
      */
-    protected $productInfoRef;
-
-    public function __construct($productInfo)
+    protected $product_info_ref;
+    public function __construct($product_info)
     {
-        $this->productInfoRef = $productInfo;
-        $this->wrap($this->productInfoRef);
+        $this->product_info_ref = $product_info;
+        $this->wrap($this->product_info_ref);
     }
-
-    protected function wrap($pInfo)
+    protected function wrap($p_info)
     {
-        $products_id = $pInfo->products_id;
-        if ($pInfo->parent_products_id && $pInfo->products_id_stock) {
-            $products_id = $pInfo->products_id_stock;
-            $pDataInfo = new \objectInfo(\common\models\Products::findOne($products_id)->getAttributes());
+        $products_id = $p_info->products_id;
+        if ($p_info->parent_products_id && $p_info->products_id_stock) {
+            $products_id = $p_info->products_id_stock;
+            $p_data_info = new \Object_Info(\common\models\Products::find_one($products_id)->get_attributes());
         } else {
-            $pDataInfo = $pInfo;
+            $p_data_info = $p_info;
         }
-
-        $allocatedTemporary = \common\helpers\Product::getAllocatedTemporary($products_id, true);
-
-        $pInfo->products_quantity = $pDataInfo->products_quantity;
-        $pInfo->allocated_quantity = ($pDataInfo->allocated_stock_quantity - $allocatedTemporary);
-        $pInfo->allocated_temporary_quantity = $allocatedTemporary;
-        $pInfo->temporary_quantity = $pDataInfo->temporary_stock_quantity;
-        $pInfo->warehouse_quantity = $pDataInfo->warehouse_stock_quantity;
+        $allocated_temporary = \common\helpers\Product::get_allocated_temporary($products_id, true);
+        $p_info->products_quantity = $p_data_info->products_quantity;
+        $p_info->allocated_quantity = $p_data_info->allocated_stock_quantity - $allocated_temporary;
+        $p_info->allocated_temporary_quantity = $allocated_temporary;
+        $p_info->temporary_quantity = $p_data_info->temporary_stock_quantity;
+        $p_info->warehouse_quantity = $p_data_info->warehouse_stock_quantity;
         //$pInfo->ordered_quantity = $pDataInfo->ordered_stock_quantity;
-        $pInfo->ordered_quantity = \common\helpers\Product::getStockOrdered($products_id);
-        $pInfo->suppliers_quantity = $pDataInfo->suppliers_stock_quantity;
-        $pInfo->deficit_quantity = \common\helpers\Product::getStockDeficit($products_id);
-
-        if ((int)$pDataInfo->stock_reorder_level < 0) {
-            $pInfo->stock_reorder_level = (int)STOCK_REORDER_LEVEL;
+        $p_info->ordered_quantity = \common\helpers\Product::get_stock_ordered($products_id);
+        $p_info->suppliers_quantity = $p_data_info->suppliers_stock_quantity;
+        $p_info->deficit_quantity = \common\helpers\Product::get_stock_deficit($products_id);
+        if ((int) $p_data_info->stock_reorder_level < 0) {
+            $p_info->stock_reorder_level = (int) STOCK_REORDER_LEVEL;
         } else {
-            $pInfo->stock_reorder_level_on = true;
+            $p_info->stock_reorder_level_on = true;
         }
-        if ((int)$pDataInfo->stock_reorder_quantity < 0) {
-            $pInfo->stock_reorder_quantity = (int)STOCK_REORDER_QUANTITY;
+        if ((int) $p_data_info->stock_reorder_quantity < 0) {
+            $p_info->stock_reorder_quantity = (int) STOCK_REORDER_QUANTITY;
         } else {
-            $pInfo->stock_reorder_quantity_on = true;
+            $p_info->stock_reorder_quantity_on = true;
         }
-
-        if ((int)$pDataInfo->stock_limit < 0) {
-            $pInfo->stock_limit = (int)ADDITIONAL_STOCK_LIMIT;
+        if ((int) $p_data_info->stock_limit < 0) {
+            $p_info->stock_limit = (int) ADDITIONAL_STOCK_LIMIT;
         } else {
-            $pInfo->stock_limit_on = true;
+            $p_info->stock_limit_on = true;
         }
-
-        $pInfo->platformStockList = [];
-        $pInfo->platformWarehouseList = [];
-        if ($extScl = \common\helpers\Acl::checkExtensionAllowed('StockControl', 'allowed')) {
-            $extScl::updateProductViewStockInfo($pInfo);
+        $p_info->platform_stock_list = [];
+        $p_info->platform_warehouse_list = [];
+        if ($ext_scl = \common\helpers\Acl::check_extension_allowed('StockControl', 'allowed')) {
+            $ext_scl::update_product_view_stock_info($p_info);
         }
     }
-
 }

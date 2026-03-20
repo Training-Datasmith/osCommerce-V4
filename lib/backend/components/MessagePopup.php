@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,28 +11,19 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\components;
 
 use yii\base\Widget;
-
-class MessagePopup extends Widget
+class Message_Popup extends Widget
 {
     public const MESSAGE_TYPE_SUCCESS = 'success';
     public const MESSAGE_TYPE_WARNING = 'warning';
-
-    public $messageType = 'success';
+    public $message_type = 'success';
     public $heading = '';
     public $message = '';
-    public $clickJs = '';
-
+    public $click_js = '';
     public function run()
     {
-        return $this->render('MessagePopup', [
-            'messageType' => $this->messageType,
-            'message' => $this->message,
-            'heading' => $this->heading,
-            'clickJs' => $this->clickJs,
-        ]);
+        return $this->render('MessagePopup', ['messageType' => $this->message_type, 'message' => $this->message, 'heading' => $this->heading, 'clickJs' => $this->click_js]);
     }
 }

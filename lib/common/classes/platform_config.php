@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,7 +11,6 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes;
 
 class platform_config
@@ -21,98 +20,55 @@ class platform_config
     protected $platform_address;
     protected $platform_config;
     protected $platform_settings;
-    protected $catalogBaseUrlWithId = false;
+    protected $catalog_base_url_with_id = false;
     protected $urls = [];
-    protected $platformWarehouses;
-    protected $openHours;
-
+    protected $platform_warehouses;
+    protected $open_hours;
     public function __construct($platform_id)
     {
         $this->id = $platform_id;
         $this->load();
     }
-
-    public function getId()
+    public function get_id()
     {
         return $this->id;
     }
-
     protected function load()
     {
-        $get_platform_data_r = tep_db_query('SELECT * FROM '.TABLE_PLATFORMS." WHERE platform_id='".(int)$this->id."'");
+        $get_platform_data_r = tep_db_query('SELECT * FROM ' . TABLE_PLATFORMS . " WHERE platform_id='" . (int) $this->id . "'");
         if (tep_db_num_rows($get_platform_data_r) > 0) {
             $default_platform = null;
             $this->platform = tep_db_fetch_array($get_platform_data_r);
             if ($this->platform['default_platform_id'] > 0) {
-                $default_platform = tep_db_fetch_array(tep_db_query(
-                    'select * from platforms ' .
-            'where platform_id=' . $this->platform['default_platform_id'] . ' ' .
-            'LIMIT 1 '
-                ));
+                $default_platform = tep_db_fetch_array(tep_db_query('select * from platforms ' . 'where platform_id=' . $this->platform['default_platform_id'] . ' ' . 'LIMIT 1 '));
                 $this->platform['platform_url'] = $default_platform['platform_url'];
                 $this->platform['platform_url_secure'] = $default_platform['platform_url_secure'];
                 $this->platform['ssl_enabled'] = $default_platform['ssl_enabled'];
-
             }
             if ($this->platform['is_virtual'] == 1) {
-                $default_platform = tep_db_fetch_array(tep_db_query(
-                    'select * from platforms ' .
-            'where is_default=1 ' .
-            'LIMIT 1 '
-                ));
+                $default_platform = tep_db_fetch_array(tep_db_query('select * from platforms ' . 'where is_default=1 ' . 'LIMIT 1 '));
                 $this->platform['platform_url'] = $default_platform['platform_url'];
                 $this->platform['platform_url_secure'] = $default_platform['platform_url_secure'];
                 $this->platform['ssl_enabled'] = $default_platform['ssl_enabled'];
             }
-
             if ($this->platform['is_default_contact'] == 1 && is_array($default_platform)) {
                 $this->platform['platform_email_from'] = $default_platform['platform_email_from'];
                 $this->platform['platform_email_address'] = $default_platform['platform_email_address'];
                 $this->platform['platform_email_extra'] = $default_platform['platform_email_extra'];
                 $this->platform['platform_telephone'] = $default_platform['platform_telephone'];
             }
-
             if (empty($this->platform['platform_url_secure'])) {
                 $this->platform['platform_url_secure'] = $this->platform['platform_url'];
             }
-
             if ($this->platform['is_default_address'] == 1 && isset($default_platform['platform_id'])) {
-                $get_address_book_r = tep_db_query(
-                    'SELECT entry_company_vat, '.
-          ' entry_company as company, '.
-          ' entry_street_address as street_address, entry_suburb as suburb, '.
-          ' entry_city as city, entry_postcode as postcode, '.
-          ' entry_state as state, entry_zone_id as zone_id, entry_country_id as country_id, '.
-          ' entry_company_reg_number as reg_number, '.
-          ' lat as latitude, lng as longitude '.
-          'FROM '.TABLE_PLATFORMS_ADDRESS_BOOK.' '.
-          "WHERE platform_id='".intval($default_platform['platform_id'])."' ".
-          'ORDER BY IF(is_default=1,0,1) LIMIT 1'
-                );
+                $get_address_book_r = tep_db_query('SELECT entry_company_vat, ' . ' entry_company as company, ' . ' entry_street_address as street_address, entry_suburb as suburb, ' . ' entry_city as city, entry_postcode as postcode, ' . ' entry_state as state, entry_zone_id as zone_id, entry_country_id as country_id, ' . ' entry_company_reg_number as reg_number, ' . ' lat as latitude, lng as longitude ' . 'FROM ' . TABLE_PLATFORMS_ADDRESS_BOOK . ' ' . "WHERE platform_id='" . intval($default_platform['platform_id']) . "' " . 'ORDER BY IF(is_default=1,0,1) LIMIT 1');
             } else {
-                $get_address_book_r = tep_db_query(
-                    'SELECT entry_company_vat, '.
-          ' entry_company as company, '.
-          ' entry_street_address as street_address, entry_suburb as suburb, '.
-          ' entry_city as city, entry_postcode as postcode, '.
-          ' entry_state as state, entry_zone_id as zone_id, entry_country_id as country_id, '.
-          ' entry_company_reg_number as reg_number, '.
-          ' lat as latitude, lng as longitude '.
-          'FROM '.TABLE_PLATFORMS_ADDRESS_BOOK.' '.
-          "WHERE platform_id='".intval($this->platform['platform_id'])."' ".
-          'ORDER BY IF(is_default=1,0,1) LIMIT 1'
-                );
+                $get_address_book_r = tep_db_query('SELECT entry_company_vat, ' . ' entry_company as company, ' . ' entry_street_address as street_address, entry_suburb as suburb, ' . ' entry_city as city, entry_postcode as postcode, ' . ' entry_state as state, entry_zone_id as zone_id, entry_country_id as country_id, ' . ' entry_company_reg_number as reg_number, ' . ' lat as latitude, lng as longitude ' . 'FROM ' . TABLE_PLATFORMS_ADDRESS_BOOK . ' ' . "WHERE platform_id='" . intval($this->platform['platform_id']) . "' " . 'ORDER BY IF(is_default=1,0,1) LIMIT 1');
             }
             if (tep_db_num_rows($get_address_book_r) > 0) {
                 $this->platform_address = tep_db_fetch_array($get_address_book_r);
             }
-
-            $get_platform_urls_r = tep_db_query(
-                'SELECT url_type, status, url, ssl_enabled, remote_server_config '.
-                'FROM '.TABLE_PLATFORMS_URL.' '.
-                "WHERE platform_id='".intval($this->platform['platform_id'])."' ".
-                ' AND status=1 '
-            );
+            $get_platform_urls_r = tep_db_query('SELECT url_type, status, url, ssl_enabled, remote_server_config ' . 'FROM ' . TABLE_PLATFORMS_URL . ' ' . "WHERE platform_id='" . intval($this->platform['platform_id']) . "' " . ' AND status=1 ');
             if (tep_db_num_rows($get_platform_urls_r) > 0) {
                 while ($platform_url = tep_db_fetch_array($get_platform_urls_r)) {
                     if (empty($platform_url['url'])) {
@@ -121,9 +77,8 @@ class platform_config
                     $this->urls[] = $platform_url;
                 }
             }
-
             if ($this->platform['default_platform_id'] > 0) {
-                $get_platform_config_r = tep_db_query('SELECT configuration_key, configuration_value FROM '.TABLE_PLATFORMS_CONFIGURATION." WHERE platform_id='".intval($this->platform['default_platform_id'])."'");
+                $get_platform_config_r = tep_db_query('SELECT configuration_key, configuration_value FROM ' . TABLE_PLATFORMS_CONFIGURATION . " WHERE platform_id='" . intval($this->platform['default_platform_id']) . "'");
                 if (tep_db_num_rows($get_platform_config_r) > 0) {
                     while ($_platform_config = tep_db_fetch_array($get_platform_config_r)) {
                         $this->platform_config[$_platform_config['configuration_key']] = $_platform_config['configuration_value'];
@@ -131,7 +86,7 @@ class platform_config
                 }
                 tep_db_free_result($get_platform_config_r);
             }
-            if ((int)$this->platform['platform_id'] != (int)$this->platform['default_platform_id']) {
+            if ((int) $this->platform['platform_id'] != (int) $this->platform['default_platform_id']) {
                 $get_platform_config_r = tep_db_query('SELECT configuration_key, configuration_value FROM ' . TABLE_PLATFORMS_CONFIGURATION . " WHERE platform_id='" . intval($this->platform['platform_id']) . "'");
                 if (tep_db_num_rows($get_platform_config_r) > 0) {
                     while ($_platform_config = tep_db_fetch_array($get_platform_config_r)) {
@@ -141,7 +96,7 @@ class platform_config
                 tep_db_free_result($get_platform_config_r);
             }
             if (($this->platform['is_virtual'] == 1 || $this->platform['is_marketplace']) && isset($default_platform['platform_id'])) {
-                $get_platform_config_r = tep_db_query('SELECT configuration_key, configuration_value FROM '.TABLE_PLATFORMS_CONFIGURATION." WHERE platform_id='".intval($default_platform['platform_id'])."'");
+                $get_platform_config_r = tep_db_query('SELECT configuration_key, configuration_value FROM ' . TABLE_PLATFORMS_CONFIGURATION . " WHERE platform_id='" . intval($default_platform['platform_id']) . "'");
                 if (tep_db_num_rows($get_platform_config_r) > 0) {
                     while ($_platform_config = tep_db_fetch_array($get_platform_config_r)) {
                         $this->platform_config[$_platform_config['configuration_key']] = $_platform_config['configuration_value'];
@@ -149,139 +104,119 @@ class platform_config
                 }
                 tep_db_free_result($get_platform_config_r);
             }
-
             $this->platform_settings = new platform_settings($this->platform['platform_id']);
         }
     }
-
-    public function setBaseHostUrl($ssl = true)
+    public function set_base_host_url($ssl = true)
     {
-        $catalog_base = ($this->platform['ssl_enabled'] == 2 || ($ssl && $this->platform['ssl_enabled'])) ? ('https://' . $this->platform['platform_url_secure'] . '/') : ('http://' . $this->platform['platform_url'] . '/');
+        $catalog_base = $this->platform['ssl_enabled'] == 2 || $ssl && $this->platform['ssl_enabled'] ? 'https://' . $this->platform['platform_url_secure'] . '/' : 'http://' . $this->platform['platform_url'] . '/';
         $parsed_url = parse_url($catalog_base);
-        \Yii::$app->urlManager->setHostInfo($parsed_url['scheme'].'://'.$parsed_url['host']);
-        \Yii::$app->urlManager->setBaseUrl($parsed_url['path']);
+        \Yii::$app->url_manager->set_host_info($parsed_url['scheme'] . '://' . $parsed_url['host']);
+        \Yii::$app->url_manager->set_base_url($parsed_url['path']);
     }
-
-    public function getPlatformToDescription()
+    public function get_platform_to_description()
     {
-        return $this->platform_settings->getPlatformToDescription();
+        return $this->platform_settings->get_platform_to_description();
     }
-
-    public function getPlatformAddress()
+    public function get_platform_address()
     {
         return $this->platform_address;
     }
-
-    public function getPlatformData()
+    public function get_platform_data()
     {
         return $this->platform;
     }
-
-    public function getPlatformDataField($field)
+    public function get_platform_data_field($field)
     {
-        return (isset($this->platform[$field]) ? $this->platform[$field] : '');
+        return isset($this->platform[$field]) ? $this->platform[$field] : '';
     }
-
-    public function catalogBaseUrlWithId($use_id = false)
+    public function catalog_base_url_with_id($use_id = false)
     {
-        $this->catalogBaseUrlWithId = $use_id;
+        $this->catalog_base_url_with_id = $use_id;
     }
-
-    public function isCatalogBaseUrlWithId()
+    public function is_catalog_base_url_with_id()
     {
-        return $this->catalogBaseUrlWithId;
+        return $this->catalog_base_url_with_id;
     }
-
-    public function getPlatformCode()
+    public function get_platform_code()
     {
         return $this->platform['platform_code'];
     }
-
-    public function isVirtual()
+    public function is_virtual()
     {
         return !!($this->platform['is_virtual'] ?? null);
     }
-
-    public function isMarketPlace()
+    public function is_market_place()
     {
         return !!($this->platform['is_marketplace'] ?? null);
     }
-
-    public function getCatalogBaseUrl($ssl = false, $same = true)
+    public function get_catalog_base_url($ssl = false, $same = true)
     {
-        $ssl_status = defined('ENABLE_SSL_CATALOG') ? (ENABLE_SSL_CATALOG === true || ENABLE_SSL_CATALOG === 'true') : ENABLE_SSL;
-
-        if ($same && $this->isCatalogBaseUrlWithId() && defined('HTTPS_CATALOG_SERVER')) {
-            $catalog_base = ($ssl && $ssl_status) ? (HTTPS_CATALOG_SERVER . DIR_WS_CATALOG) : (HTTP_CATALOG_SERVER . DIR_WS_CATALOG);
+        $ssl_status = defined('ENABLE_SSL_CATALOG') ? ENABLE_SSL_CATALOG === true || ENABLE_SSL_CATALOG === 'true' : ENABLE_SSL;
+        if ($same && $this->is_catalog_base_url_with_id() && defined('HTTPS_CATALOG_SERVER')) {
+            $catalog_base = $ssl && $ssl_status ? HTTPS_CATALOG_SERVER . DIR_WS_CATALOG : HTTP_CATALOG_SERVER . DIR_WS_CATALOG;
         } else {
-            $catalog_base = ($this->platform['ssl_enabled'] == 2 || ($ssl && $this->platform['ssl_enabled'])) ? ('https://' . $this->platform['platform_url_secure'] . '/') : ('http://' . $this->platform['platform_url'] . '/');
+            $catalog_base = $this->platform['ssl_enabled'] == 2 || $ssl && $this->platform['ssl_enabled'] ? 'https://' . $this->platform['platform_url_secure'] . '/' : 'http://' . $this->platform['platform_url'] . '/';
         }
         return $catalog_base;
     }
-
-    public function getAdditionalUrls()
+    public function get_additional_urls()
     {
         return $this->urls;
     }
-
-    public function getImagesCdnUrl()
+    public function get_images_cdn_url()
     {
         $cdn_server = '';
-        foreach ($this->getAdditionalUrls() as $urlInfo) {
-            if ($urlInfo['url_type'] == '/' || $urlInfo['url_type'] == '/images') {
-                if ($urlInfo['ssl_enabled'] == 0 && !\Yii::$app->request->getIsSecureConnection()) {
-                    $cdn_server = rtrim('http://'.$urlInfo['url'], '/').'/';
-                    if ($cdn_server == $this->getCatalogBaseUrl()) {
+        foreach ($this->get_additional_urls() as $url_info) {
+            if ($url_info['url_type'] == '/' || $url_info['url_type'] == '/images') {
+                if ($url_info['ssl_enabled'] == 0 && !\Yii::$app->request->get_is_secure_connection()) {
+                    $cdn_server = rtrim('http://' . $url_info['url'], '/') . '/';
+                    if ($cdn_server == $this->get_catalog_base_url()) {
                         $cdn_server = '';
                     }
-                } elseif ($urlInfo['ssl_enabled'] != 0) {
-                    $cdn_server = rtrim('https://'.$urlInfo['url'], '/').'/';
-                    if ($cdn_server == $this->getCatalogBaseUrl(true)) {
+                } elseif ($url_info['ssl_enabled'] != 0) {
+                    $cdn_server = rtrim('https://' . $url_info['url'], '/') . '/';
+                    if ($cdn_server == $this->get_catalog_base_url(true)) {
                         $cdn_server = '';
                     }
                 }
-                if (!empty($cdn_server) && $urlInfo['url_type'] == '/images') {
+                if (!empty($cdn_server) && $url_info['url_type'] == '/images') {
                     break;
                 }
             }
         }
         return $cdn_server;
     }
-
-    public function getAllowedCurrencies()
+    public function get_allowed_currencies()
     {
         if (tep_not_null($this->platform['defined_currencies'] ?? null)) {
             return explode(',', $this->platform['defined_currencies']);
         }
         return false;
     }
-
-    public function getDefaultCurrency()
+    public function get_default_currency()
     {
         if (tep_not_null($this->platform['default_currency'])) {
             return $this->platform['default_currency'];
         }
         return false;
     }
-
-    public function getAllowedLanguages()
+    public function get_allowed_languages()
     {
-        return array_keys($this->getLanguagesMap());
+        return array_keys($this->get_languages_map());
     }
-
-    public function getDefaultLanguage()
+    public function get_default_language()
     {
-        $map = array_keys($this->getLanguagesMap());
+        $map = array_keys($this->get_languages_map());
         return $map[0] ?? null;
     }
-
-    public function getLanguagesMap()
+    public function get_languages_map()
     {
         if (!isset($this->platform['_languages_map'])) {
-            if ($this->isVirtual()) {
-                $this->platform['_languages_map'] = \Yii::$app->get('platform')->getConfig($this->platform['sattelit_id'])->getLanguagesMap();
-            } elseif ($this->isMarketPlace()) {
-                $this->platform['_languages_map'] = \Yii::$app->get('platform')->getConfig($this->platform['default_platform_id'])->getLanguagesMap();
+            if ($this->is_virtual()) {
+                $this->platform['_languages_map'] = \Yii::$app->get('platform')->get_config($this->platform['sattelit_id'])->get_languages_map();
+            } elseif ($this->is_market_place()) {
+                $this->platform['_languages_map'] = \Yii::$app->get('platform')->get_config($this->platform['default_platform_id'])->get_languages_map();
             } else {
                 $active_list = \common\classes\language::get_all();
                 $this->platform['_languages_map'] = [];
@@ -289,34 +224,31 @@ class platform_config
                 if ($this->platform['default_language'] ?? null) {
                     $languages_codes[] = $this->platform['default_language'];
                 }
-                $languages_codes = array_merge($languages_codes, preg_split('/,/', (string)($this->platform['defined_languages'] ?? null), -1, PREG_SPLIT_NO_EMPTY));
+                $languages_codes = array_merge($languages_codes, preg_split('/,/', (string) ($this->platform['defined_languages'] ?? null), -1, PREG_SPLIT_NO_EMPTY));
                 if (count($languages_codes) == 0) {
-                    $languages_codes[] = \common\helpers\Language::systemLanguageCode();
+                    $languages_codes[] = \common\helpers\Language::system_language_code();
                 }
                 foreach ($languages_codes as $languages_code) {
                     if (!isset($active_list[$languages_code])) {
                         continue;
                     }
                     if ($language_id_array = \common\helpers\Language::get_language_id($languages_code)) {
-                        $this->platform['_languages_map'][$languages_code] = (int)$language_id_array['languages_id'];
+                        $this->platform['_languages_map'][$languages_code] = (int) $language_id_array['languages_id'];
                     }
                 }
             }
         }
         return $this->platform['_languages_map'];
     }
-
-    public function checkNeedSocials()
+    public function check_need_socials()
     {
-        return (bool)$this->platform['use_social_login'];
+        return (bool) $this->platform['use_social_login'];
     }
-
-    public function checkNeedLogged()
+    public function check_need_logged()
     {
-        return (bool)$this->platform['checkout_logged_customer'];
+        return (bool) $this->platform['checkout_logged_customer'];
     }
-
-    public function contactUsEmail()
+    public function contact_us_email()
     {
         if (!empty($this->platform['contact_us_email'])) {
             return $this->platform['contact_us_email'];
@@ -324,7 +256,7 @@ class platform_config
             return $this->platform['platform_email_address'];
         }
     }
-    public function landingContactEmail()
+    public function landing_contact_email()
     {
         if (!empty($this->platform['landing_contact_email'])) {
             return $this->platform['landing_contact_email'];
@@ -332,7 +264,6 @@ class platform_config
             return $this->platform['platform_email_address'];
         }
     }
-
     public function constant_up()
     {
         if (!is_array($this->platform_config)) {
@@ -344,7 +275,6 @@ class platform_config
             }
         }
     }
-
     public function const_value($key, $default = '')
     {
         if (isset($this->platform_config[$key])) {
@@ -360,42 +290,40 @@ class platform_config
         } elseif ($key == 'STORE_ADDRESS') {
             if (function_exists('\common\helpers\Address::address_format')) {
                 $formatted = \common\helpers\Address::address_format(max(1, $this->platform_address['format_id']), $this->platform_address, false, '', "\n");
-                $formatted = preg_replace("/\n\s*/ms", "\n", $formatted); // remove empty customer name
+                $formatted = preg_replace("/\n\\s*/ms", "\n", $formatted);
+                // remove empty customer name
                 return $formatted;
             }
             //return $this->platform_address;
         } elseif ($key == 'SEND_EXTRA_ORDER_EMAILS_TO') {
             return $this->platform['platform_email_extra'];
         }
-
         return defined($key) ? constant($key) : $default;
     }
-
-    public function getDefPlatformId()
+    public function get_def_platform_id()
     {
         if ($this->platform['is_marketplace']) {
-            return (int)$this->platform['default_platform_id'];
+            return (int) $this->platform['default_platform_id'];
         }
-        return $this->getId();
+        return $this->get_id();
     }
-
-    public function getGoogleShopPlatformId($code)
+    public function get_google_shop_platform_id($code)
     {
         $platform_id = 0;
-        $configValue = $this->const_value('GOOGLE_BASE_SHOP_PLATFORM_ID');
-        if (preg_match('/^(.*):(\d+)$/', $configValue, $match) && strtolower($code) == strtolower($match[1])) {
-            $platform_id = (int)$match[2];
+        $config_value = $this->const_value('GOOGLE_BASE_SHOP_PLATFORM_ID');
+        if (preg_match('/^(.*):(\d+)$/', $config_value, $match) && strtolower($code) == strtolower($match[1])) {
+            $platform_id = (int) $match[2];
         }
         return empty($platform_id) ? $this->id : $platform_id;
     }
-
     /* get vitual real platfrom_id by code*/
-    public function getSattelitePlatformId($code)
+    public function get_sattelite_platform_id($code)
     {
-        $_platfrom_id = $this->getGoogleShopPlatformId($code); // IS NEEDED FOR FACEBOOK ALSO?
+        $_platfrom_id = $this->get_google_shop_platform_id($code);
+        // IS NEEDED FOR FACEBOOK ALSO?
         if ($_platfrom_id == $this->id) {
-            if ($ext = \common\helpers\Acl::checkExtensionAllowed('AdditionalPlatforms', 'allowed')) {
-                $sattelite = $ext::getSattelite($code);
+            if ($ext = \common\helpers\Acl::check_extension_allowed('AdditionalPlatforms', 'allowed')) {
+                $sattelite = $ext::get_sattelite($code);
                 if ($sattelite) {
                     $_platfrom_id = $sattelite['platform_id'];
                 }
@@ -403,83 +331,59 @@ class platform_config
         }
         return $_platfrom_id;
     }
-
-    public function setConfigValue($key, $value)
+    public function set_config_value($key, $value)
     {
-        if ((int)$this->id == 0) {
+        if ((int) $this->id == 0) {
             return false;
         }
-        $platformKeyCheck = tep_db_fetch_array(tep_db_query(
-            'SELECT COUNT(*) AS c '.
-            'FROM '.TABLE_PLATFORMS_CONFIGURATION.' '.
-            "WHERE configuration_key='".tep_db_input($key)."' AND platform_id='".(int)$this->id."'"
-        ));
-        if ($platformKeyCheck['c'] == 0) {
-            $template_r = tep_db_query(
-                'SELECT * '.
-                'FROM '.TABLE_CONFIGURATION.' '.
-                "WHERE configuration_key='".tep_db_input($key)."'"
-            );
+        $platform_key_check = tep_db_fetch_array(tep_db_query('SELECT COUNT(*) AS c ' . 'FROM ' . TABLE_PLATFORMS_CONFIGURATION . ' ' . "WHERE configuration_key='" . tep_db_input($key) . "' AND platform_id='" . (int) $this->id . "'"));
+        if ($platform_key_check['c'] == 0) {
+            $template_r = tep_db_query('SELECT * ' . 'FROM ' . TABLE_CONFIGURATION . ' ' . "WHERE configuration_key='" . tep_db_input($key) . "'");
             if (tep_db_num_rows($template_r) == 0) {
                 return false;
             }
             $template = tep_db_fetch_array($template_r);
             unset($template['configuration_id']);
-            $template['platform_id'] = (int)$this->id;
+            $template['platform_id'] = (int) $this->id;
             tep_db_perform(TABLE_PLATFORMS_CONFIGURATION, $template);
         }
-        tep_db_query(
-            'UPDATE '.TABLE_PLATFORMS_CONFIGURATION.' '.
-            "SET configuration_value='".tep_db_input($value)."', last_modified=NOW() ".
-            "WHERE configuration_key='".tep_db_input($key)."' AND platform_id='".(int)$this->id."'"
-        );
+        tep_db_query('UPDATE ' . TABLE_PLATFORMS_CONFIGURATION . ' ' . "SET configuration_value='" . tep_db_input($value) . "', last_modified=NOW() " . "WHERE configuration_key='" . tep_db_input($key) . "' AND platform_id='" . (int) $this->id . "'");
         return true;
     }
-
-    public function getPrefix()
+    public function get_prefix()
     {
         if (tep_not_null($this->platform['platform_prefix'])) {
             return $this->platform['platform_prefix'];
         }
         return false;
     }
-
-    public function getOpenHours()
+    public function get_open_hours()
     {
-        if (!is_array($this->openHours)) {
-            $this->openHours = [];
+        if (!is_array($this->open_hours)) {
+            $this->open_hours = [];
             $query_db = tep_db_query('
         select
           open_days as days,
           open_time_from as time_from,
           open_time_to as time_to
-        from ' . TABLE_PLATFORMS_OPEN_HOURS . "
-        where platform_id = '" . $this->getId() . "'");
+        from ' . TABLE_PLATFORMS_OPEN_HOURS . "\n        where platform_id = '" . $this->get_id() . "'");
             while ($item = tep_db_fetch_array($query_db)) {
-                $this->openHours[] = $item;
+                $this->open_hours[] = $item;
             }
         }
-        return $this->openHours;
+        return $this->open_hours;
     }
-
-    public function assignedWarehouses()
+    public function assigned_warehouses()
     {
-        if (!is_array($this->platformWarehouses)) {
-            $this->platformWarehouses = [];
-            $data_r = tep_db_query(
-                'SELECT w.warehouse_id ' .
-                'FROM ' . TABLE_WAREHOUSES . ' w ' .
-                '  LEFT JOIN ' . TABLE_WAREHOUSES_TO_PLATFORMS . " w2p ON w.warehouse_id = w2p.warehouse_id AND w2p.platform_id = '" . intval($this->id) . "' " .
-                "WHERE IFNULL(w2p.status, w.status) = '1' " .
-                'ORDER BY IFNULL(w2p.sort_order, w.sort_order), w.warehouse_name'
-            );
+        if (!is_array($this->platform_warehouses)) {
+            $this->platform_warehouses = [];
+            $data_r = tep_db_query('SELECT w.warehouse_id ' . 'FROM ' . TABLE_WAREHOUSES . ' w ' . '  LEFT JOIN ' . TABLE_WAREHOUSES_TO_PLATFORMS . " w2p ON w.warehouse_id = w2p.warehouse_id AND w2p.platform_id = '" . intval($this->id) . "' " . "WHERE IFNULL(w2p.status, w.status) = '1' " . 'ORDER BY IFNULL(w2p.sort_order, w.sort_order), w.warehouse_name');
             if (tep_db_num_rows($data_r) > 0) {
                 while ($data = tep_db_fetch_array($data_r)) {
-                    $this->platformWarehouses[] = (int)$data['warehouse_id'];
+                    $this->platform_warehouses[] = (int) $data['warehouse_id'];
                 }
             }
         }
-        return $this->platformWarehouses;
+        return $this->platform_warehouses;
     }
-
 }

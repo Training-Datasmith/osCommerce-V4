@@ -1,10 +1,9 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace common\classes;
 
-abstract class PropsWorkerAbstract
+abstract class Props_Worker_Abstract
 {
     /**
      * Convert POST params to xml
@@ -12,11 +11,10 @@ abstract class PropsWorkerAbstract
      * @param $productId
      * @return array
      */
-    public static function paramsToXml($params = [], $productId = false)
+    public static function params_to_xml($params = [], $product_id = false)
     {
         return [];
     }
-
     /**
      * Return normalized urpid without props
      * @param type $uprid
@@ -26,23 +24,20 @@ abstract class PropsWorkerAbstract
     {
         return $uprid;
     }
-
     /**
      * Modify Cart contens key (product_id|uprid) particulary to props
      * @params $productId mixed normalized product id
      * @params $propsData array
      * @return mixed modified product id
      */
-    public static function cartUprid($productId, array $propsData)
+    public static function cart_uprid($product_id, array $props_data)
     {
-        return $productId;
+        return $product_id;
     }
-
-    public static function onCartAdd($propsData)
+    public static function on_cart_add($props_data)
     {
-        return $propsData;
+        return $props_data;
     }
-
     /*
     abstract public static function explainParams($params = array(), $tax_rate = 0);
     abstract public static function cartChanged($cart);

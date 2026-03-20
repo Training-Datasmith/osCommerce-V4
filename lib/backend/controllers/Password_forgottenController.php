@@ -1,65 +1,61 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace backend\controllers;
 
 use Yii;
 use yii\web\Controller;
-
 /**
  * Password forgotten controller to handle user requests.
  */
-class Password_forgottenController extends Controller
+class Password_forgotten_Controller extends Controller
 {
     /**
      * Disable layout for the controller view
      */
     public $layout = false;
-    public $errorMessage = '';
-    public $enableCsrfValidation = false;
-
+    public $error_message = '';
+    public $enable_csrf_validation = false;
     /**
      * Index action is the default action in a controller.
      */
-    public function actionIndex()
+    public function action_index()
     {
         $_GET['login'] = '';
-        if (isset($_GET['action']) && ($_GET['action'] == 'process')) {
-            $loginModel = new \backend\forms\Login(['captha_enabled' => true]);
-            if ($loginModel->load(Yii::$app->request->post()) && $loginModel->validate()) {
-                if ($loginModel->hasErrors()) {
-                    $errorMessage = '';
-                    foreach ($loginModel->getErrors() as $error) {
+        if (isset($_GET['action']) && $_GET['action'] == 'process') {
+            $login_model = new \backend\forms\Login(['captha_enabled' => true]);
+            if ($login_model->load(Yii::$app->request->post()) && $login_model->validate()) {
+                if ($login_model->has_errors()) {
+                    $error_message = '';
+                    foreach ($login_model->get_errors() as $error) {
                         if (is_array($error)) {
-                            $errorMessage .= implode(', ', $error);
+                            $error_message .= implode(', ', $error);
                         } elseif (is_string($error)) {
-                            $errorMessage .= $error;
+                            $error_message .= $error;
                         }
                     }
                     $_GET['login'] = 'captcha';
                 }
             } else {
-                if ($loginModel->hasErrors()) {
-                    $errorMessage = '';
-                    foreach ($loginModel->getErrors() as $error) {
+                if ($login_model->has_errors()) {
+                    $error_message = '';
+                    foreach ($login_model->get_errors() as $error) {
                         if (is_array($error)) {
-                            $errorMessage .= implode(', ', $error);
+                            $error_message .= implode(', ', $error);
                         } elseif (is_string($error)) {
-                            $errorMessage .= $error;
+                            $error_message .= $error;
                         }
                     }
                 }
                 $_GET['login'] = 'captcha';
             }
             if ($_GET['login'] == '') {
-                if (\common\models\AdminPasswordForgotLog::isBlocked() == true) {
+                if (\common\models\Admin_Password_Forgot_Log::is_blocked() == true) {
                     $_GET['login'] = 'ban';
                 }
             }
             if ($_GET['login'] == '') {
-                \common\models\AdminPasswordForgotLog::register();
-
+                \common\models\Admin_Password_Forgot_Log::register();
                 $email_address = Yii::$app->request->post('email_address', '');
                 $log_times = \Yii::$app->request->post('log_times') + 1;
                 if ($log_times >= 4) {
@@ -71,80 +67,72 @@ class Password_forgottenController extends Controller
                     $_GET['login'] = 'fail';
                 } else {
                     $check_admin = tep_db_fetch_array($check_admin_query);
-
-                    $passwordResetFileds = ['firstname'];
+                    $password_reset_fileds = ['firstname'];
                     if (defined('RESET_PASSWORD_FIELDS')) {
-                        $passwordResetFileds = explode(', ', RESET_PASSWORD_FIELDS);
+                        $password_reset_fileds = explode(', ', RESET_PASSWORD_FIELDS);
                     }
-
-                    $loginFail = false;
-                    foreach ($passwordResetFileds as $passwordResetFiled) {
-                        switch ($passwordResetFiled) {
+                    $login_fail = false;
+                    foreach ($password_reset_fileds as $password_reset_filed) {
+                        switch ($password_reset_filed) {
                             case 'firstname':
                                 $firstname = Yii::$app->request->post('firstname', '');
                                 if ($check_admin['check_firstname'] != $firstname) {
-                                    $loginFail = true;
+                                    $login_fail = true;
                                 }
                                 break;
                             case 'lastname':
                                 $lastname = Yii::$app->request->post('lastname', '');
                                 if ($check_admin['check_lastname'] != $lastname) {
-                                    $loginFail = true;
+                                    $login_fail = true;
                                 }
                                 break;
                             case 'phone':
                                 $phone = Yii::$app->request->post('phone', '');
                                 if ($check_admin['check_phone_number'] != $phone) {
-                                    $loginFail = true;
+                                    $login_fail = true;
                                 }
                                 break;
                             case 'username':
                                 $username = Yii::$app->request->post('username', '');
                                 if ($check_admin['admin_username'] != $username) {
-                                    $loginFail = true;
+                                    $login_fail = true;
                                 }
                                 break;
                             default:
                                 break;
                         }
                     }
-
                     if (!\common\helpers\Password::validate_password($check_admin['check_email_address'], $check_admin['check_email_token'], 'backend')) {
-                        $loginFail = true;
+                        $login_fail = true;
                     }
-                    if ($loginFail) {
+                    if ($login_fail) {
                         $_GET['login'] = 'fail';
                     } else {
                         $_GET['login'] = 'success';
                         //{{
                         //\common\models\AdminPasswordForgotLog::clear();
-
-                        $currentPlatformId = \Yii::$app->get('platform')->config()->getId();
-                        $platform_config = \Yii::$app->get('platform')->config($currentPlatformId);
-
+                        $current_platform_id = \Yii::$app->get('platform')->config()->get_id();
+                        $platform_config = \Yii::$app->get('platform')->config($current_platform_id);
                         $STORE_NAME = $platform_config->const_value('STORE_NAME');
                         $STORE_OWNER_EMAIL_ADDRESS = $platform_config->const_value('STORE_OWNER_EMAIL_ADDRESS');
                         $STORE_OWNER = $platform_config->const_value('STORE_OWNER');
-
                         $email_params = [];
-
                         if (defined('ADMIN_PASSWORD_FORGOTTEN_MODE') && ADMIN_PASSWORD_FORGOTTEN_MODE == 'invite') {
-                            $adminInfo = \common\models\Admin::findOne($check_admin['check_id']);
+                            $admin_info = \common\models\Admin::find_one($check_admin['check_id']);
                             $email_params['NEW_PASSWORD_SENTENCE'] = '';
-                            if ($adminInfo) {
-                                $token = $adminInfo->updateToken();
+                            if ($admin_info) {
+                                $token = $admin_info->update_token();
                                 \common\helpers\Translation::init('account/password-forgotten');
-                                $email_params['NEW_PASSWORD'] = \yii\helpers\Html::a(TEXT_PASSWORD_INVITATION_LINK, tep_href_link('password-forgotten-new-password/', 'token='.$token, 'SSL'));
+                                $email_params['NEW_PASSWORD'] = \yii\helpers\Html::a(TEXT_PASSWORD_INVITATION_LINK, tep_href_link('password-forgotten-new-password/', 'token=' . $token, 'SSL'));
                                 unset($token);
                             } else {
                                 $email_params['NEW_PASSWORD'] = '';
                             }
                         } else {
-                            $makePassword = \common\helpers\Password::randomize();
-                            $email_params['NEW_PASSWORD'] = $makePassword;
-                            tep_db_query('update ' . TABLE_ADMIN . " set admin_password = '" . tep_db_input(\common\helpers\Password::encrypt_password($makePassword, 'backend')) . "', reset_ip='" . tep_db_input(\common\helpers\System::get_ip_address()) . "', reset_date = now(), password_last_update = now() where admin_id = '" . $check_admin['check_id'] . "'");
+                            $make_password = \common\helpers\Password::randomize();
+                            $email_params['NEW_PASSWORD'] = $make_password;
+                            tep_db_query('update ' . TABLE_ADMIN . " set admin_password = '" . tep_db_input(\common\helpers\Password::encrypt_password($make_password, 'backend')) . "', reset_ip='" . tep_db_input(\common\helpers\System::get_ip_address()) . "', reset_date = now(), password_last_update = now() where admin_id = '" . $check_admin['check_id'] . "'");
                         }
-
                         $email_params['STORE_NAME'] = $STORE_NAME;
                         $email_params['CUSTOMER_FIRSTNAME'] = $check_admin['check_firstname'];
                         $email_params['HTTP_HOST'] = \common\helpers\Output::get_clickable_link(tep_href_link(FILENAME_LOGIN));

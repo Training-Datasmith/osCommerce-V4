@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,178 +11,148 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\AR;
 
 use common\api\models\AR\Manufacturer\Info;
 use yii\db\Expression;
-use yii\helpers\FileHelper;
-
-class Manufacturer extends EPMap
+use yii\helpers\File_Helper;
+class Manufacturer extends Ep_Map
 {
-    protected $childCollections = [
-        'infos' => [],//'\\common\\api\\models\\AR\\Manufacturer\\Info',
-    ];
-
+    protected $child_collections = ['infos' => []];
     public $manufacturers_image_data = '';
     public $manufacturers_image_source_url = '';
     public $manufacturers_image_after_save = false;
-
-    public static function tableName()
+    public static function table_name()
     {
         return TABLE_MANUFACTURERS;
     }
-
-    public static function primaryKey()
+    public static function primary_key()
     {
         return ['manufacturers_id'];
     }
-
-    public function customFields()
+    public function custom_fields()
     {
-        $fields = parent::customFields();
+        $fields = parent::custom_fields();
         $fields[] = 'manufacturers_image_data';
         $fields[] = 'manufacturers_image_source_url';
         return $fields;
     }
-
     /**
      * @return \yii\db\ActiveQuery
      */
-    public function getInfos()
+    public function get_infos()
     {
-        return $this->hasMany(Info::className(), ['manufacturers_id' => 'manufacturers_id']);
+        return $this->has_many(Info::class_name(), ['manufacturers_id' => 'manufacturers_id']);
     }
-
     // SeoRedirectsNamed moved to extensions/SeoRedirectsNamed/models/
     //    public function getSeoRedirectsNamed()
     //    {
     //        return $this->hasMany(\common\models\SeoRedirectsNamed::className(), ['owner_id' => 'manufacturers_id'])->andWhere(['redirects_type'=>'brand']);
     //    }
-
-    public function getPossibleKeys()
+    public function get_possible_keys()
     {
-        $possibleKeys = parent::getPossibleKeys();
-        $nestedCollectObject = new Info();
-        $infoKeys = $nestedCollectObject->getPossibleKeys();
-        foreach (Info::getAllKeyCodes() as $keyCode => $lookupPK) {
-            foreach ($infoKeys as $infoKey) {
-                $possibleKeys[] = 'infos.' . $keyCode . '.'.$infoKey;
+        $possible_keys = parent::get_possible_keys();
+        $nested_collect_object = new Info();
+        $info_keys = $nested_collect_object->get_possible_keys();
+        foreach (Info::get_all_key_codes() as $key_code => $lookup_pk) {
+            foreach ($info_keys as $info_key) {
+                $possible_keys[] = 'infos.' . $key_code . '.' . $info_key;
             }
         }
-        return $possibleKeys;
+        return $possible_keys;
     }
-
-    public function initCollectionByLookupKey_Infos($lookupKeys)
+    public function init_collection_by_lookup_key_infos($lookup_keys)
     {
-        $loadAll = in_array('*', $lookupKeys);
-        foreach (Info::getAllKeyCodes() as $keyCode => $lookupPK) {
-            $this->childCollections['infos'][$keyCode] = null;
+        $load_all = in_array('*', $lookup_keys);
+        foreach (Info::get_all_key_codes() as $key_code => $lookup_pk) {
+            $this->child_collections['infos'][$key_code] = null;
             if (is_null($this->manufacturers_id)) {
-                $this->childCollections['infos'][$keyCode] = new Info($lookupPK);
-            } elseif ($loadAll || in_array($keyCode, $lookupKeys)) {
-                if (!isset($this->childCollections['infos'][$keyCode])) {
-                    $lookupPK['manufacturers_id'] = $this->manufacturers_id;
-                    $this->childCollections['infos'][$keyCode] = Info::findOne($lookupPK);
-                    if (!is_object($this->childCollections['infos'][$keyCode])) {
-                        $this->childCollections['infos'][$keyCode] = new Info($lookupPK);
+                $this->child_collections['infos'][$key_code] = new Info($lookup_pk);
+            } elseif ($load_all || in_array($key_code, $lookup_keys)) {
+                if (!isset($this->child_collections['infos'][$key_code])) {
+                    $lookup_pk['manufacturers_id'] = $this->manufacturers_id;
+                    $this->child_collections['infos'][$key_code] = Info::find_one($lookup_pk);
+                    if (!is_object($this->child_collections['infos'][$key_code])) {
+                        $this->child_collections['infos'][$key_code] = new Info($lookup_pk);
                     }
                 }
             }
         }
-        return $this->childCollections['infos'];
+        return $this->child_collections['infos'];
     }
-
-    public function exportArray(array $fields = [])
+    public function export_array(array $fields = [])
     {
-
-        if (!empty($this->manufacturers_image) && is_file(\common\classes\Images::getFSCatalogImagesPath() . $this->manufacturers_image)) {
+        if (!empty($this->manufacturers_image) && is_file(\common\classes\Images::get_fs_catalog_images_path() . $this->manufacturers_image)) {
             if (count($fields) == 0 || array_key_exists('manufacturers_image_data', $fields)) {
                 //$this->manufacturers_image_data = file_get_contents(\common\classes\Images::getFSCatalogImagesPath().$this->manufacturers_image);
             }
             if (count($fields) == 0 || array_key_exists('manufacturers_image_source_url', $fields)) {
-                $this->manufacturers_image_source_url = \Yii::$app->get('platform')->config()->getCatalogBaseUrl() . DIR_WS_IMAGES/*.\common\classes\Images::getWSCatalogImagesPath(false)*/ . rawurlencode($this->manufacturers_image);
+                $this->manufacturers_image_source_url = \Yii::$app->get('platform')->config()->get_catalog_base_url() . DIR_WS_IMAGES . rawurlencode($this->manufacturers_image);
             }
         }
-
-        $data = parent::exportArray($fields);
-
+        $data = parent::export_array($fields);
         if ((count($fields) == 0 || array_key_exists('manufacturers_image_source_url', $fields)) && !empty($this->manufacturers_image_source_url)) {
             $data['manufacturers_image_source_url'] = $this->manufacturers_image_source_url;
         }
         if ((count($fields) == 0 || array_key_exists('manufacturers_image_data', $fields)) && !empty($this->manufacturers_image_data)) {
             $data['manufacturers_image_data'] = base64_encode($this->manufacturers_image_data);
         }
-
         return $data;
     }
-
-    public function importArray($data)
+    public function import_array($data)
     {
-        $result = parent::importArray($data);
-
+        $result = parent::import_array($data);
         if (isset($data['manufacturers_image_data']) && !empty($data['manufacturers_image_data'])) {
             $this->manufacturers_image_data = base64_decode($data['manufacturers_image_data']);
         } elseif (array_key_exists('manufacturers_image_source_url', $data) && !empty($data['manufacturers_image_source_url'])) {
             $this->manufacturers_image_source_url = $data['manufacturers_image_source_url'];
         }
-
         return $result;
     }
-
-    public function beforeSave($insert)
+    public function before_save($insert)
     {
-        $targetDir = \common\classes\Images::getFSCatalogImagesPath();
+        $target_dir = \common\classes\Images::get_fs_catalog_images_path();
         if (!empty($this->manufacturers_image_source_url) || !empty($this->manufacturers_image_data)) {
-            $targetFilename = !empty($this->manufacturers_image) ? $this->manufacturers_image : basename($this->manufacturers_image_source_url);
+            $target_filename = !empty($this->manufacturers_image) ? $this->manufacturers_image : basename($this->manufacturers_image_source_url);
             if (!empty($this->manufacturers_image_source_url)) {
-                if (!is_dir(dirname($targetDir.$targetFilename))) {
+                if (!is_dir(dirname($target_dir . $target_filename))) {
                     try {
-                        FileHelper::createDirectory(dirname($targetDir.$targetFilename), 0777);
+                        File_Helper::create_directory(dirname($target_dir . $target_filename), 0777);
                     } catch (\Exception $ex) {
                     }
                 }
-                @copy($this->manufacturers_image_source_url, $targetDir.$targetFilename);
-            } elseif (!empty($this->manufacturers_image_data) && !empty($targetFilename)) {
-                @file_put_contents($targetDir.$targetFilename, $this->manufacturers_image_data);
+                @copy($this->manufacturers_image_source_url, $target_dir . $target_filename);
+            } elseif (!empty($this->manufacturers_image_data) && !empty($target_filename)) {
+                @file_put_contents($target_dir . $target_filename, $this->manufacturers_image_data);
                 unset($this->manufacturers_image_data);
             }
             if (empty($this->manufacturers_image)) {
-                $this->manufacturers_image_after_save = [
-                    $targetDir.$targetFilename,
-                    $targetDir.'brands/%ID/gallery/'.$targetFilename,
-                    'brands/%ID/gallery/'.$targetFilename,
-                ];
+                $this->manufacturers_image_after_save = [$target_dir . $target_filename, $target_dir . 'brands/%ID/gallery/' . $target_filename, 'brands/%ID/gallery/' . $target_filename];
             }
         }
-
         if ($insert) {
             if (empty($this->date_added)) {
                 $this->date_added = new Expression('NOW()');
             }
-        } else {
-            if ($this->isModified()) {
-                $this->last_modified = new Expression('NOW()');
-            }
+        } else if ($this->is_modified()) {
+            $this->last_modified = new Expression('NOW()');
         }
-        return parent::beforeSave($insert);
+        return parent::before_save($insert);
     }
-
-    public function afterSave($insert, $changedAttributes)
+    public function after_save($insert, $changed_attributes)
     {
-        parent::afterSave($insert, $changedAttributes);
+        parent::after_save($insert, $changed_attributes);
         if (is_array($this->manufacturers_image_after_save) && !empty($this->manufacturers_image_after_save)) {
-            $moveFrom = $this->manufacturers_image_after_save[0];
-            $moveTo = str_replace('%ID', $this->manufacturers_id, $this->manufacturers_image_after_save[1]);
-            $relName = str_replace('%ID', $this->manufacturers_id, $this->manufacturers_image_after_save[2]);
-            if (@rename($moveFrom, $moveTo)) {
-                \common\classes\Images::createWebp($relName, true);
-                \common\classes\Images::createResizeImages($relName, 'Brand gallery', true);
+            $move_from = $this->manufacturers_image_after_save[0];
+            $move_to = str_replace('%ID', $this->manufacturers_id, $this->manufacturers_image_after_save[1]);
+            $rel_name = str_replace('%ID', $this->manufacturers_id, $this->manufacturers_image_after_save[2]);
+            if (@rename($move_from, $move_to)) {
+                \common\classes\Images::create_webp($rel_name, true);
+                \common\classes\Images::create_resize_images($rel_name, 'Brand gallery', true);
             }
-            $this->manufacturers_image = $relName;
+            $this->manufacturers_image = $rel_name;
             $this->manufacturers_image_after_save = false;
             $this->save(false);
         }
     }
-
 }

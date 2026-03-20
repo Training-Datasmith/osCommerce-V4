@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,60 +11,52 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components\google\widgets;
 
 use common\classes\platform;
-use common\components\GoogleTools;
+use common\components\Google_Tools;
 use common\helpers\Manufacturers;
 use common\helpers\Product;
 use frontend\design\Info;
 use Yii;
-
-class GoogleTagmanger
+class Google_Tagmanger
 {
     public $module = false;
-
     public const EVENT_NAME = 'GTMevent';
-
-    public function __construct(GoogleTools $tool)
+    public function __construct(Google_Tools $tool)
     {
-        $module = $tool->getModulesProvider()->getActiveByCode('tagmanger', platform::currentId());
+        $module = $tool->get_modules_provider()->get_active_by_code('tagmanger', platform::current_id());
         if ($module) {
             $this->module = $module;
         }
     }
-
     private static $instance = null;
     public static function instance()
     {
         if (!is_object(self::$instance)) {
-            self::$instance = new self(GoogleTools::instance());
+            self::$instance = new self(Google_Tools::instance());
         }
         return self::$instance;
     }
-
-    public static function headTag()
+    public static function head_tag()
     {
         $Gt = self::instance();
-        if (Info::isAdmin() || ($Gt->module === false)) {
+        if (Info::is_admin() || $Gt->module === false) {
             return '';
         }
-        return $Gt->module->getSelectedCode($Gt->module->config[$Gt->module->code]['fields'][0]['value'], 1, $Gt);
+        return $Gt->module->get_selected_code($Gt->module->config[$Gt->module->code]['fields'][0]['value'], 1, $Gt);
     }
-
-    public static function bodyTag()
+    public static function body_tag()
     {
         $Gt = self::instance();
-        if (Info::isAdmin() || ($Gt->module === false)) {
+        if (Info::is_admin() || $Gt->module === false) {
             return '';
         }
-        return $Gt->module->getSelectedCode($Gt->module->config[$Gt->module->code]['fields'][0]['value'], 2);
+        return $Gt->module->get_selected_code($Gt->module->config[$Gt->module->code]['fields'][0]['value'], 2);
     }
-
-    public static function getEvent()
+    public static function get_event()
     {
-        if (self::checkAPI()) {
+        if (self::check_api()) {
             return;
         }
         $session = Yii::$app->session;
@@ -76,17 +67,15 @@ class GoogleTagmanger
         }
         return false;
     }
-
     /*
      * use setEvent after some action you want perform, would be checkecd at trigger()
      */
-
-    public static function setEvent($value)
+    public static function set_event($value)
     {
-        if (self::checkAPI()) {
+        if (self::check_api()) {
             return;
         }
-        $events = self::getEvent();
+        $events = self::get_event();
         if (is_array($events)) {
             $values = array_unique(array_merge($events, [$value]));
         } else {
@@ -95,28 +84,26 @@ class GoogleTagmanger
         $session = Yii::$app->session;
         $session->set(self::EVENT_NAME, $values);
     }
-
-    public static function clearEvent()
+    public static function clear_event()
     {
-        if (self::checkAPI()) {
+        if (self::check_api()) {
             return;
         }
         $session = Yii::$app->session;
         $session->remove(self::EVENT_NAME);
-        self::removeTagAction();
+        self::remove_tag_action();
     }
-
     /*
      * render Js to catch events,
      * params is array [ 'class' => '.name of class or another selector', 'action' => 'some js action', 'php_action' => 'action would be fired to collect data', 'page' => 'cuurent or name of page' ]
      */
-
-    public static function getJsEvents($params = [])
+    public static function get_js_events($params = [])
     {
-        return false; // deprecated
+        return false;
+        // deprecated
         if (is_array($params) && count($params)) {
             $code = '';
-            if (Yii::$app->request->getPathInfo() == 'checkout/success') {
+            if (Yii::$app->request->get_path_info() == 'checkout/success') {
                 return;
             }
             foreach ($params as $element) {
@@ -125,25 +112,24 @@ class GoogleTagmanger
                 } else {
                     $page = "window.localStorage['tagPage'] = '{$element['page']}'";
                 }
-
                 if (isset($element['immidiately']) && $element['immidiately']) {
                     $response = self::trigger(false, $element['php_action']);
                     $code .= <<<EOD
-                      tl(function(){
-                        $('body').on("{$element['action']}", "{$element['class']}", function(e){
-                            {$response}
-                        });
-                       })
-EOD;
+                                          tl(function(){
+                                            \$('body').on("{$element['action']}", "{$element['class']}", function(e){
+                                                {$response}
+                                            });
+                                           })
+                    EOD;
                 } else {
                     $code .= <<<EOD
-                tl(function(){
-                    $('body').on("{$element['action']}", "{$element['class']}", function(e){
-                        {$page};
-                        $.cookie('tagAction', "{$element['php_action']}", cookieConfig || {});
-                    });
-                });
-EOD;
+                                    tl(function(){
+                                        \$('body').on("{$element['action']}", "{$element['class']}", function(e){
+                                            {$page};
+                                            \$.cookie('tagAction', "{$element['php_action']}", cookieConfig || {});
+                                        });
+                                    });
+                    EOD;
                 }
             }
             return '<script>' . $code . '</script>';
@@ -151,31 +137,26 @@ EOD;
             return;
         }
     }
-
     /*
      * used on layout to perform isset event, can be called forced
      */
-
-    public static function trigger($wrap = true, $fEvent = '')
+    public static function trigger($wrap = true, $f_event = '')
     {
-        if (Yii::$app->request->isAjax) {
+        if (Yii::$app->request->is_ajax) {
             return;
         }
         $Gt = self::instance();
-        if (Info::isAdmin() || ($Gt->module === false)) {
+        if (Info::is_admin() || $Gt->module === false) {
             return '';
         }
         $return = $response = '';
-
-        $event = (empty($fEvent) ? self::getEvent() : $fEvent);
+        $event = empty($f_event) ? self::get_event() : $f_event;
         if (!$event) {
             return $response;
         }
-
-        if (\Yii::$app->user->isGuest && \common\helpers\PlatformConfig::getFieldValue('platform_please_login')) {
+        if (\Yii::$app->user->is_guest && \common\helpers\Platform_Config::get_field_value('platform_please_login')) {
             return $response;
         }
-
         if (!is_array($event)) {
             $events = [$event];
         } else {
@@ -187,51 +168,56 @@ EOD;
                 $config[$v['name']] = $v['value'];
             }
         }
-
         foreach ($events as $event) {
             if (!isset($config['collect_measuring']) || $config['collect_measuring'] == 1 || !isset($config['collect_measuring_ga4']) || $config['collect_measuring_ga4'] == 1) {
                 switch ($event) {
                     case 'addToCart':
-                        $response = self::addToCart($config);
+                        $response = self::add_to_cart($config);
                         break;
                     case 'removeFromCart':
-                        $response = self::removeFromCart($config);
+                        $response = self::remove_from_cart($config);
                         break;
                     case 'productClick':
-                        $response = self::productClick($config);
+                        $response = self::product_click($config);
                         break;
                     case 'checkout':
-                        $response = self::checkout($wrap, $config); //NU
+                        $response = self::checkout($wrap, $config);
+                        //NU
                         break;
                     case 'promotionClick':
-                        $response = self::promotionClick($config);//ga4
+                        $response = self::promotion_click($config);
+                        //ga4
                         break;
                     case 'indexPage':
-                        $response = self::indexPage($config); //ga4 na
+                        $response = self::index_page($config);
+                        //ga4 na
                         break;
                     case 'productListing':
-                        $response = self::productListing($config);
+                        $response = self::product_listing($config);
                         break;
                     case 'productPage':
-                        $response = self::productPage($config);
+                        $response = self::product_page($config);
                         break;
                     case 'shoppingCart':
-                        $response = self::orderStep(1, 'cart', $config);
+                        $response = self::order_step(1, 'cart', $config);
                         break;
                     case 'orderStep1':
-                        $response = self::orderStep(1, 'order', $config);
+                        $response = self::order_step(1, 'order', $config);
                         break;
                     case 'orderStep2':
-                        $response = self::orderStep(2, 'order', $config); //ga4
+                        $response = self::order_step(2, 'order', $config);
+                        //ga4
                         break;
                     case 'orderStep3':
-                        $response = self::orderStep(3, 'order', $config);//ga4
+                        $response = self::order_step(3, 'order', $config);
+                        //ga4
                         break;
                     case 'orderStep4':
-                        $response = self::orderStep(4, 'order', $config);//ga4
+                        $response = self::order_step(4, 'order', $config);
+                        //ga4
                         break;
                     case 'orderSuccess':
-                        $response = self::orderSuccess($config);
+                        $response = self::order_success($config);
                         break;
                 }
                 if ($wrap) {
@@ -239,14 +225,13 @@ EOD;
                 }
                 $return .= $response;
             }
-            self::clearEvent();
+            self::clear_event();
         }
         return $return;
     }
-
-    public static function addToCart($config = [])
+    public static function add_to_cart($config = [])
     {
-        if (self::checkAPI()) {
+        if (self::check_api()) {
             return;
         }
         global $new_products_id_in_cart;
@@ -258,13 +243,11 @@ EOD;
         if (is_array($products)) {
             $ga4list = $list = [];
             foreach ($products as $product) {
-                $brand = self::helperBrand($product['id']);
+                $brand = self::helper_brand($product['id']);
                 $attributes = '';
-                if (is_array($product['attributes']) && count($product['attributes']) && false) { //shopping cart hasn't names
-                    $map = [
-                        'options' => \yii\helpers\ArrayHelper::getColumn($product['attributes'], 'option'),
-                        'values' => \yii\helpers\ArrayHelper::getColumn($product['attributes'], 'value'),
-                    ];
+                if (is_array($product['attributes']) && count($product['attributes']) && false) {
+                    //shopping cart hasn't names
+                    $map = ['options' => \yii\helpers\Array_Helper::get_column($product['attributes'], 'option'), 'values' => \yii\helpers\Array_Helper::get_column($product['attributes'], 'value')];
                     foreach ($map['options'] as $key => $value) {
                         $attributes .= $value . ': ' . $map['values'][$key] . ', ';
                     }
@@ -274,51 +257,19 @@ EOD;
                 }
                 $products_tax = \common\helpers\Tax::get_tax_rate($product['products_tax_class_id']);
                 $price = $currencies->calculate_price($product['final_price'], $products_tax);
-
-                $category_name = self::helperCategory($product['id']);
-
-                $list[] = [
-                    'id' => "{$product['model']}",
-                    'reference' => "{$product['model']}",
-                    'name' => "{$product['name']}",
-                    'price' => (float)$price,
-                    'brand' => "{$brand}",
-                    'category' => "{$category_name}",
-                    'variant' => "{$attributes}",
-                    'position' => 0,
-                    'quantity' => (int)$product['quantity'],
-                ];
-                $ga4list[] = [
-                    'item_id' => "{$product['id']}",
-                    'reference' => "{$product['model']}",
-                    'item_model' => "{$product['model']}",
-                    'item_name' => "{$product['name']}",
-                    'price' => (float)$price,
-                    'item_brand' => "{$brand}",
-                    'item_category' => "{$category_name}",
-                    'item_variant' => "{$attributes}",
-                    'index' => 0,
-                    'quantity' => (int)$product['quantity'],
-                ];
+                $category_name = self::helper_category($product['id']);
+                $list[] = ['id' => "{$product['model']}", 'reference' => "{$product['model']}", 'name' => "{$product['name']}", 'price' => (float) $price, 'brand' => "{$brand}", 'category' => "{$category_name}", 'variant' => "{$attributes}", 'position' => 0, 'quantity' => (int) $product['quantity']];
+                $ga4list[] = ['item_id' => "{$product['id']}", 'reference' => "{$product['model']}", 'item_model' => "{$product['model']}", 'item_name' => "{$product['name']}", 'price' => (float) $price, 'item_brand' => "{$brand}", 'item_category' => "{$category_name}", 'item_variant' => "{$attributes}", 'index' => 0, 'quantity' => (int) $product['quantity']];
             }
-
             if (count($list)) {
                 $list = json_encode($list);
                 $_total = $cart->show_total();
-
                 $ret = '';
                 if (!isset($config['collect_measuring_ga4']) || $config['collect_measuring_ga4'] == 1) {
-                    $ret .= self::eventDatalayerPush(json_encode([
-                        'event' =>  'add_to_cart',
-                        'ecommerce' => [
-                            'currency' => $currency,
-                            'value' => $_total,
-                            'items' => $ga4list,
-                         ]]));
+                    $ret .= self::event_datalayer_push(json_encode(['event' => 'add_to_cart', 'ecommerce' => ['currency' => $currency, 'value' => $_total, 'items' => $ga4list]]));
                 }
-
                 if (!isset($config['collect_measuring']) || $config['collect_measuring'] == 1) {
-                    $ret .= self::eventDatalayerPush('{
+                    $ret .= self::event_datalayer_push('{
                         "event": "addToCart",
                         "ecommerce": {
                             "currencyCode": "' . $currency . '",
@@ -328,48 +279,37 @@ EOD;
                         }
                     }');
                 }
-
                 return $ret;
-
             }
         }
         return;
     }
-
-    public static function removeFromCart($config = [])
+    public static function remove_from_cart($config = [])
     {
-        if (self::checkAPI()) {
+        if (self::check_api()) {
             return;
         }
         global $last_removed;
         $currencies = \Yii::$container->get('currencies');
         $restored_data = unserialize(base64_decode($last_removed));
-
         if (is_array($restored_data) && count($restored_data)) {
             $uprid = $restored_data['products_id'];
             $last_removed_data = $restored_data['data'];
         }
-
         tep_session_unregister('last_removed');
-
         if ($uprid) {
             $languages_id = \Yii::$app->settings->get('languages_id');
             $ga4list = $list = [];
             $atts = [];
             $uprid = \common\helpers\Inventory::normalize_id($uprid, $atts);
             $currency = \Yii::$app->settings->get('currency');
-            $_products = tep_db_fetch_array(tep_db_query('select p.products_id, if(length(pd1.products_name), pd1.products_name, pd.products_name) as products_name, p.products_model, p.products_price, p.products_price_full, p.products_weight, p.products_tax_class_id '
-                            . 'from ' . TABLE_PRODUCTS_DESCRIPTION . ' pd, ' . TABLE_PRODUCTS . ' p left join ' . TABLE_PRODUCTS_DESCRIPTION . " pd1 on pd1.products_id = p.products_id and pd1.language_id='" . (int) $languages_id . "' and pd1.platform_id = '".(int)Yii::$app->get('platform')->config()->getPlatformToDescription()."' "
-                            . "where p.products_id = '" . (int) $uprid . "' and pd.platform_id = '".intval(\common\classes\platform::defaultId())."' and pd.products_id = p.products_id "
-                            . " and pd.language_id = '" . (int) $languages_id . "'"));
+            $_products = tep_db_fetch_array(tep_db_query('select p.products_id, if(length(pd1.products_name), pd1.products_name, pd.products_name) as products_name, p.products_model, p.products_price, p.products_price_full, p.products_weight, p.products_tax_class_id ' . 'from ' . TABLE_PRODUCTS_DESCRIPTION . ' pd, ' . TABLE_PRODUCTS . ' p left join ' . TABLE_PRODUCTS_DESCRIPTION . " pd1 on pd1.products_id = p.products_id and pd1.language_id='" . (int) $languages_id . "' and pd1.platform_id = '" . (int) Yii::$app->get('platform')->config()->get_platform_to_description() . "' " . "where p.products_id = '" . (int) $uprid . "' and pd.platform_id = '" . intval(\common\classes\platform::default_id()) . "' and pd.products_id = p.products_id " . " and pd.language_id = '" . (int) $languages_id . "'"));
             if ($_products) {
                 $prid = $_products['products_id'];
-
                 /** @var \common\extensions\Inventory\Inventory $ext */
-                if ($ext = \common\helpers\Extensions::isAllowed('Inventory')) {
-                    $_products = array_replace($_products, $ext::getInventorySettings($prid, $uprid));
+                if ($ext = \common\helpers\Extensions::is_allowed('Inventory')) {
+                    $_products = array_replace($_products, $ext::get_inventory_settings($prid, $uprid));
                 }
-
                 $configurator_koeff = 1;
                 if ($last_removed_data['parent'] != '') {
                     $products_price = \common\helpers\Configurator::get_products_price_configurator($prid, $last_removed_data['qty']);
@@ -379,64 +319,30 @@ EOD;
                 } else {
                     $products_price = \common\helpers\Product::get_products_price($prid, $last_removed_data['qty'], $_products['products_price']);
                 }
-
                 $products_price_old = $products_price;
                 $special_price = \common\helpers\Product::get_products_special_price($prid, $last_removed_data['qty']);
                 if ($special_price !== false) {
                     $products_price = $special_price;
                 }
-
-                $brand = self::helperBrand($prid);
+                $brand = self::helper_brand($prid);
                 $attributes = '';
                 $products_tax = \common\helpers\Tax::get_tax_rate(Product::get_products_info($prid, 'products_tax_class_id'));
                 $price = $currencies->calculate_price($products_price, $products_tax);
-
-                $category_name = self::helperCategory($prid);
-
-                $list[] = [
-                    'id' => "{$_products['products_model']}",
-                    'reference' => "{$_products['products_model']}",
-                    'name' => "{$_products['products_name']}",
-                    'price' => (float)$price,
-                    'brand' => "{$brand}",
-                    'category' => "{$category_name}",
-                    'variant' => "{$attributes}",
-                    'position' => 0,
-                    'quantity' => (int)$last_removed_data['qty'],
-                ];
-                $ga4list[] = [
-                    'item_id' => $prid,
-                    'reference' => "{$_products['products_model']}",
-                    'item_model' => "{$_products['products_model']}",
-                    'item_name' => "{$_products['products_name']}",
-                    'price' => "{$price}",
-                    'item_brand' => "{$brand}",
-                    'item_category' => "{$category_name}",
-                    'item_variant' => "{$attributes}",
-                    'index' => 0,
-                    'quantity' => $last_removed_data['qty'],
-                ];
+                $category_name = self::helper_category($prid);
+                $list[] = ['id' => "{$_products['products_model']}", 'reference' => "{$_products['products_model']}", 'name' => "{$_products['products_name']}", 'price' => (float) $price, 'brand' => "{$brand}", 'category' => "{$category_name}", 'variant' => "{$attributes}", 'position' => 0, 'quantity' => (int) $last_removed_data['qty']];
+                $ga4list[] = ['item_id' => $prid, 'reference' => "{$_products['products_model']}", 'item_model' => "{$_products['products_model']}", 'item_name' => "{$_products['products_name']}", 'price' => "{$price}", 'item_brand' => "{$brand}", 'item_category' => "{$category_name}", 'item_variant' => "{$attributes}", 'index' => 0, 'quantity' => $last_removed_data['qty']];
             }
-
             if (count($list)) {
                 $list = json_encode($list);
                 $ret = '';
                 /** @var \common\classes\shopping_cart $cart */
                 global $cart;
                 $_total = $cart->show_total();
-
                 if (!isset($config['collect_measuring_ga4']) || $config['collect_measuring_ga4'] == 1) {
-                    $ret .= self::eventDatalayerPush(json_encode([
-                        'event' =>  'remove_from_cart',
-                        'ecommerce' => [
-                            'currency' => $currency,
-                            'value' => $_total,
-                            'items' => $ga4list,
-                         ]]));
+                    $ret .= self::event_datalayer_push(json_encode(['event' => 'remove_from_cart', 'ecommerce' => ['currency' => $currency, 'value' => $_total, 'items' => $ga4list]]));
                 }
-
                 if (!isset($config['collect_measuring']) || $config['collect_measuring'] == 1) {
-                    $ret .= self::eventDatalayerPush('{
+                    $ret .= self::event_datalayer_push('{
                         "event": "removeFromCart",
                         "ecommerce": {
                             "currencyCode": "' . $currency . '",
@@ -446,77 +352,44 @@ EOD;
                     }');
                 }
                 return $ret;
-
             }
         }
         return;
     }
-
-    public static function removeTagAction()
+    public static function remove_tag_action()
     {
-        if (self::checkAPI()) {
+        if (self::check_api()) {
             return;
         }
         if (isset($_COOKIE['tagAction'])) {
             unset($_COOKIE['tagAction']);
         }
     }
-
-    public static function productClick($config = [])
+    public static function product_click($config = [])
     {
         global $products_id;
-        if ($products_id) { //not ready
+        if ($products_id) {
+            //not ready
             $currencies = \Yii::$container->get('currencies');
             $currency = \Yii::$app->settings->get('currency');
-            $product = Yii::$container->get('products')->getProduct($products_id);
+            $product = Yii::$container->get('products')->get_product($products_id);
             //$products_tax = \common\helpers\Tax::get_tax_rate($product['products_tax_class_id']);
-            $price = ($product['special_price'] ? $product['special_price'] : ($product['current_price'] ? $product['current_price'] : $product['products_price']));
+            $price = $product['special_price'] ? $product['special_price'] : ($product['current_price'] ? $product['current_price'] : $product['products_price']);
             $price = $currencies->calculate_price($product['products_price'], $product['tax_rate']);
-            $list = [
-                [
-                    'id' => $product['model'],
-                    'reference' => $product['model'],
-                    'name' => $product['products_name'],
-                    'price' => (float)$price,
-                    'brand' => self::helperBrand($products_id),
-                    'category' => self::helperCategory($products_id),
-                    'position' => 1,
-                ],
-            ];
-            $ga4list = [
-                [
-                    'item_id' => $products_id,
-                    'item_model' => $product['model'],
-                    'reference' => $product['model'],
-                    'item_name' => $product['products_name'],
-                    'price' => $price,
-                    'item_brand' => self::helperBrand($products_id),
-                    'item_category' => self::helperCategory($products_id),
-                    'index' => 0,
-                ],
-            ];
-            self::removeTagAction();
+            $list = [['id' => $product['model'], 'reference' => $product['model'], 'name' => $product['products_name'], 'price' => (float) $price, 'brand' => self::helper_brand($products_id), 'category' => self::helper_category($products_id), 'position' => 1]];
+            $ga4list = [['item_id' => $products_id, 'item_model' => $product['model'], 'reference' => $product['model'], 'item_name' => $product['products_name'], 'price' => $price, 'item_brand' => self::helper_brand($products_id), 'item_category' => self::helper_category($products_id), 'index' => 0]];
+            self::remove_tag_action();
             $list = json_encode($list);
-            $main_js = Info::themeFile('/js/main.js');
-
-            $tagAction = <<<EOD
-tl("{$main_js}", function(){ jQuery.cookie('tagAction','', cookieConfig || {}); });
-EOD;
-
+            $main_js = Info::theme_file('/js/main.js');
+            $tag_action = <<<EOD
+            tl("{$main_js}", function(){ jQuery.cookie('tagAction','', cookieConfig || {}); });
+            EOD;
             $ret = '';
-
             if (!isset($config['collect_measuring_ga4']) || $config['collect_measuring_ga4'] == 1) {
-                $ret .= self::eventDatalayerPush(json_encode([
-                    'event' =>  'select_item',
-                    'ecommerce' => [
-                        'currency' => $currency,
-                        'items' => $ga4list,
-                     ]]));
+                $ret .= self::event_datalayer_push(json_encode(['event' => 'select_item', 'ecommerce' => ['currency' => $currency, 'items' => $ga4list]]));
             }
-
             if (!isset($config['collect_measuring']) || $config['collect_measuring'] == 1) {
-
-                $ret .= self::eventDatalayerPush('{
+                $ret .= self::event_datalayer_push('{
                         "event": "productClick",
                         "ecommerce": {
                             "currencyCode": "' . $currency . '",
@@ -527,42 +400,38 @@ EOD;
                                 "products": ' . $list . '
                             }
                         }
-                    }') . "\n" . $tagAction;
-
+                    }') . "\n" . $tag_action;
             }
             return $ret;
-
         }
     }
-
-    public static function promotionClick($config = [])
+    public static function promotion_click($config = [])
     {
         $code = <<<EOD
-                if (typeof dataLayer == 'object'){
-                    var cF = function(id){
-                        var promoBan = {};
-                        banners.forEach(function(ban){
-                            if (ban.id == id ){
-                                dataLayer.push({
-                                    "event": "promotionClick",
-                                    "ecommerce": {
-                                        "promoClick": {
-                                            'promotions': [
-                                              ban
-                                             ]
-                                          }
+                        if (typeof dataLayer == 'object'){
+                            var cF = function(id){
+                                var promoBan = {};
+                                banners.forEach(function(ban){
+                                    if (ban.id == id ){
+                                        dataLayer.push({
+                                            "event": "promotionClick",
+                                            "ecommerce": {
+                                                "promoClick": {
+                                                    'promotions': [
+                                                      ban
+                                                     ]
+                                                  }
+                                            }
+                                          });
                                     }
-                                  });
+                                })
+                                
                             }
-                        })
-                        
-                    }
-                    cF($(e.target).data('id'));
-                }
-EOD;
+                            cF(\$(e.target).data('id'));
+                        }
+        EOD;
         return $code;
     }
-
     /**
      * @deprecated return false always
      * @param type $wrap
@@ -570,31 +439,28 @@ EOD;
      */
     public static function checkout($wrap = true)
     {
-        return false; // deprecated
-        if (self::checkAPI()) {
+        return false;
+        // deprecated
+        if (self::check_api()) {
             return;
         }
-        $manager = \common\services\OrderManager::loadManager();
+        $manager = \common\services\Order_Manager::load_manager();
         try {
-            $order = $manager->getOrderInstance();
+            $order = $manager->get_order_instance();
         } catch (\Exception $ex) {
             return '';
         }
-
-        if (Yii::$app->request->isAjax || !is_array($order->products) || count($order->products) == 0) {
+        if (Yii::$app->request->is_ajax || !is_array($order->products) || count($order->products) == 0) {
             return;
         }
         $currencies = \Yii::$container->get('currencies');
         $list = [];
         foreach ($order->products as $product) {
-
-            $brand = self::helperBrand($product['id']);
+            $brand = self::helper_brand($product['id']);
             $attributes = '';
-            if (is_array($product['attributes']) && count($product['attributes']) && false) { //shopping cart hasn't names
-                $map = [
-                    'options' => \yii\helpers\ArrayHelper::getColumn($product['attributes'], 'option'),
-                    'values' => \yii\helpers\ArrayHelper::getColumn($product['attributes'], 'value'),
-                ];
+            if (is_array($product['attributes']) && count($product['attributes']) && false) {
+                //shopping cart hasn't names
+                $map = ['options' => \yii\helpers\Array_Helper::get_column($product['attributes'], 'option'), 'values' => \yii\helpers\Array_Helper::get_column($product['attributes'], 'value')];
                 foreach ($map['options'] as $key => $value) {
                     $attributes .= $value . ': ' . $map['values'][$key] . ', ';
                 }
@@ -603,53 +469,39 @@ EOD;
                 }
             }
             $price = $currencies->calculate_price($product['final_price'], $product['tax']);
-
-            $category_name = self::helperCategory($product['id']);
-
-            $list[] = [
-                'id' => "{$product['model']}",
-                'reference' => "{$product['model']}",
-                'name' => "{$product['name']}",
-                'price' => (float)$price,
-                'brand' => "{$brand}",
-                'category' => "{$category_name}",
-                'variant' => "{$attributes}",
-                'position' => 0,
-                'quantity' => (int)$product['quantity'],
-            ];
+            $category_name = self::helper_category($product['id']);
+            $list[] = ['id' => "{$product['model']}", 'reference' => "{$product['model']}", 'name' => "{$product['name']}", 'price' => (float) $price, 'brand' => "{$brand}", 'category' => "{$category_name}", 'variant' => "{$attributes}", 'position' => 0, 'quantity' => (int) $product['quantity']];
         }
         if (count($list)) {
             $list = json_encode($list);
-            $step = self::getStepNumber();
-
+            $step = self::get_step_number();
             if (!$step) {
                 $step = 'sts[id]';
             }
-
             $code = <<<EOD
-                if (typeof dataLayer == 'object'){
-                    var cF = function(){
-                        var sts = {'shopping-cart':1, 'shipping-step':2, 'payment-step': 3, 'confirmation-step':4, 'success':5}, id = 'shopping-cart';
-                        if (document.querySelector('.checkout-step.active') != null){id = document.querySelector('.checkout-step.active').id;}
-                        if (window.localStorage['tCS'] == 4 && id == 'shopping-cart'){id = 'success';}
-                        var _s = {$step}, _p = {$list};if (_s == 5){_p = [];}
-                        if (window.localStorage['tCS'] != _s ){
-                            window.localStorage['tCS'] = _s;
-                            dataLayer.push({
-                            "event": "checkout",
-                            "ecommerce": {
-                              "checkout": {
-                                "actionField": { "step": _s },
-                                "products": _p
-                              },
+                            if (typeof dataLayer == 'object'){
+                                var cF = function(){
+                                    var sts = {'shopping-cart':1, 'shipping-step':2, 'payment-step': 3, 'confirmation-step':4, 'success':5}, id = 'shopping-cart';
+                                    if (document.querySelector('.checkout-step.active') != null){id = document.querySelector('.checkout-step.active').id;}
+                                    if (window.localStorage['tCS'] == 4 && id == 'shopping-cart'){id = 'success';}
+                                    var _s = {$step}, _p = {$list};if (_s == 5){_p = [];}
+                                    if (window.localStorage['tCS'] != _s ){
+                                        window.localStorage['tCS'] = _s;
+                                        dataLayer.push({
+                                        "event": "checkout",
+                                        "ecommerce": {
+                                          "checkout": {
+                                            "actionField": { "step": _s },
+                                            "products": _p
+                                          },
+                                        }
+                                      });
+                                    
+                                    }
+                                }
+                                cF();\$('body').on('click', '.btn-next', function(){cF();});
                             }
-                          });
-                        
-                        }
-                    }
-                    cF();$('body').on('click', '.btn-next', function(){cF();});
-                }
-EOD;
+            EOD;
             /* var _e = new Event('checkout');window.addEventListener('checkout',function(){});window.dispatchEvent(_e); */
             if ($wrap) {
                 return 'window.onload = function(){ ' . $code . ' }';
@@ -659,27 +511,33 @@ EOD;
         }
         return;
     }
-
-    private static function getStepNumber()
+    private static function get_step_number()
     {
-        if (!\frontend\design\Info::themeSetting('checkout_view')) { //!multypages
-            switch (\Yii::$app->request->getPathInfo()) {
-                case 'shopping-cart':case 'shopping-cart/index': return '1';
+        if (!\frontend\design\Info::theme_setting('checkout_view')) {
+            //!multypages
+            switch (\Yii::$app->request->get_path_info()) {
+                case 'shopping-cart':
+                case 'shopping-cart/index':
+                    return '1';
                     break;
-                case 'checkout/index':case 'checkout': return '2';
+                case 'checkout/index':
+                case 'checkout':
+                    return '2';
                     break;
-                case 'checkout/payment': return '3';
+                case 'checkout/payment':
+                    return '3';
                     break;
-                case 'checkout/confirmation': return '4';
+                case 'checkout/confirmation':
+                    return '4';
                     break;
-                case 'checkout/success': return '5';
+                case 'checkout/success':
+                    return '5';
                     break;
             }
         }
         return false;
     }
-
-    private static function helperBrand($products_id)
+    private static function helper_brand($products_id)
     {
         $manufacturers_id = \common\helpers\Product::get_products_info((int) $products_id, 'manufacturers_id');
         $brand = Manufacturers::get_manufacturer_info('manufacturers_name', $manufacturers_id);
@@ -688,17 +546,15 @@ EOD;
         }
         return $brand;
     }
-
-    private static function helperCategory($products_id)
+    private static function helper_category($products_id)
     {
-        $p2cModel = \common\models\Products2Categories::findOne(['products_id' => (int)$products_id]);
-        return $p2cModel ? str_replace('"', '\"', \common\helpers\Categories::get_categories_name($p2cModel->categories_id)) : '';
+        $p2c_model = \common\models\Products2Categories::find_one(['products_id' => (int) $products_id]);
+        return $p2c_model ? str_replace('"', '\"', \common\helpers\Categories::get_categories_name($p2c_model->categories_id)) : '';
     }
-
     /**
      * check route - don't use if called from console (no session and cookies)
      */
-    private static function checkAPI()
+    private static function check_api()
     {
         $ret = false;
         if (Yii::$app->id == 'app-console') {
@@ -706,14 +562,13 @@ EOD;
         }
         return $ret;
     }
-
-    public static function indexPage($config = [])
+    public static function index_page($config = [])
     {
-        if (self::checkAPI()) {
+        if (self::check_api()) {
             return;
         }
         $currency = \Yii::$app->settings->get('currency');
-        return self::eventDatalayerPush('{
+        return self::event_datalayer_push('{
             "pageCategory":"index",
             "ecommerce": {
                 "currencyCode":"' . $currency . '",
@@ -723,61 +578,34 @@ EOD;
             }
         }');
     }
-
-    public static function productListing($config = [])
+    public static function product_listing($config = [])
     {
-        if (self::checkAPI()) {
+        if (self::check_api()) {
             return;
         }
         $currencies = \Yii::$container->get('currencies');
         $currency = \Yii::$app->settings->get('currency');
-        $products = \frontend\design\Info::$jsGlobalData['products'];
-        if (is_array($products) && \frontend\design\Info::$jsGlobalData['page_title']) {
+        $products = \frontend\design\Info::$js_global_data['products'];
+        if (is_array($products) && \frontend\design\Info::$js_global_data['page_title']) {
             $ga4list = $list = [];
             $position = 1;
             foreach ($products as $product) {
                 $products_id = \common\helpers\Inventory::get_prid($product['products_id']);
                 $price = $product['calculated_price'];
-                $category_name = self::helperCategory($products_id);
-                $brand = self::helperBrand($products_id);
-
-                $list[] = [
-                    'id' => "{$product['products_model']}",
-                    'reference' => "{$product['products_model']}",
-                    'name' => "{$product['products_name']}",
-                    'price' => (float)$product['calculated_price'],
-                    'price_tax_exc' => (float)$product['calculated_price_exc'],
-                    'brand' => "{$brand}",
-                    'category' => "{$category_name}",
-                    'position' => $position++,
-                ];
-                $ga4list[] = [
-                    'item_id' => "{$product['products_id']}",
-                    'reference' => "{$product['products_model']}",
-                    'item_model' => "{$product['products_model']}",
-                    'item_name' => "{$product['products_name']}",
-                    'price' => (float)$price,
-                    'item_brand' => "{$brand}",
-                    'item_category' => "{$category_name}",
-                    'item_list_name' => "{$category_name}",
-                    'index' => $position,
-                ];
+                $category_name = self::helper_category($products_id);
+                $brand = self::helper_brand($products_id);
+                $list[] = ['id' => "{$product['products_model']}", 'reference' => "{$product['products_model']}", 'name' => "{$product['products_name']}", 'price' => (float) $product['calculated_price'], 'price_tax_exc' => (float) $product['calculated_price_exc'], 'brand' => "{$brand}", 'category' => "{$category_name}", 'position' => $position++];
+                $ga4list[] = ['item_id' => "{$product['products_id']}", 'reference' => "{$product['products_model']}", 'item_model' => "{$product['products_model']}", 'item_name' => "{$product['products_name']}", 'price' => (float) $price, 'item_brand' => "{$brand}", 'item_category' => "{$category_name}", 'item_list_name' => "{$category_name}", 'index' => $position];
                 $position++;
             }
             if (count($list)) {
                 $list = json_encode($list);
                 $ret = '';
                 if (!isset($config['collect_measuring_ga4']) || $config['collect_measuring_ga4'] == 1) {
-                    $ret .= self::eventDatalayerPush(json_encode([
-                        'event' =>  'view_item_list',
-                        'ecommerce' => [
-                            'items' => $ga4list,
-                         ]]));
+                    $ret .= self::event_datalayer_push(json_encode(['event' => 'view_item_list', 'ecommerce' => ['items' => $ga4list]]));
                 }
-
                 if (!isset($config['collect_measuring']) || $config['collect_measuring'] == 1) {
-
-                    $ret .= self::eventDatalayerPush('{
+                    $ret .= self::event_datalayer_push('{
                         "pageCategory":"category",
                         "ecommerce": {
                             "currencyCode":"' . $currency . '",
@@ -785,7 +613,7 @@ EOD;
                         },
                         "google_tag_params": {
                             "ecomm_pagetype":"category",
-                            "ecomm_category":"' . \frontend\design\Info::$jsGlobalData['page_title'] . '"
+                            "ecomm_category":"' . \frontend\design\Info::$js_global_data['page_title'] . '"
                         }
                     }');
                 }
@@ -794,61 +622,30 @@ EOD;
         }
         return;
     }
-
-    public static function productPage($config = [])
+    public static function product_page($config = [])
     {
-        if (self::checkAPI()) {
+        if (self::check_api()) {
             return;
         }
         global $products_id;
-        if ($products_id) { //not ready
+        if ($products_id) {
+            //not ready
             $currencies = \Yii::$container->get('currencies');
             $currency = \Yii::$app->settings->get('currency');
-            $product = Yii::$container->get('products')->getProduct($products_id);
-            $category = self::helperCategory($products_id);
-            $price = ($product['special_price'] ? $product['special_price'] : ($product['current_price'] ? $product['current_price'] : $product['products_price']));
+            $product = Yii::$container->get('products')->get_product($products_id);
+            $category = self::helper_category($products_id);
+            $price = $product['special_price'] ? $product['special_price'] : ($product['current_price'] ? $product['current_price'] : $product['products_price']);
             $price_inc = $currencies->calculate_price($price, $product['tax_rate']);
             $price_exc = $currencies->calculate_price($price, 0);
-            $list = [
-                [
-                    'id' => $product['model'],
-                    'reference' => $product['model'],
-                    'name' => $product['products_name'],
-                    'price' => (float)$price_inc,
-                    'price_tax_exc' => (float)$price_exc,
-                    'brand' => self::helperBrand($products_id),
-                    'category' => $category,
-                    //'position' => 1
-                ],
-            ];
-
-            $ga4list[] = [
-                'item_id' => "{$product['products_id']}",
-                'reference' => "{$product['products_model']}",
-                'item_model' => "{$product['products_model']}",
-                'item_name' => "{$product['products_name']}",
-                'price' => "{$price}",
-                'item_brand' => self::helperBrand($products_id),
-                'item_category' => "{$category}",
-                'item_list_name' => "{$category}",
-                'index' => 0,
-            ];
-
+            $list = [['id' => $product['model'], 'reference' => $product['model'], 'name' => $product['products_name'], 'price' => (float) $price_inc, 'price_tax_exc' => (float) $price_exc, 'brand' => self::helper_brand($products_id), 'category' => $category]];
+            $ga4list[] = ['item_id' => "{$product['products_id']}", 'reference' => "{$product['products_model']}", 'item_model' => "{$product['products_model']}", 'item_name' => "{$product['products_name']}", 'price' => "{$price}", 'item_brand' => self::helper_brand($products_id), 'item_category' => "{$category}", 'item_list_name' => "{$category}", 'index' => 0];
             $list = json_encode($list);
             $ret = '';
-
             if (!isset($config['collect_measuring_ga4']) || $config['collect_measuring_ga4'] == 1) {
-
-                $ret .= self::eventDatalayerPush(json_encode([
-                            'event' =>  'view_item',
-                            'currency' =>  $currency,
-                            'ecommerce' => [
-                                'items' => $ga4list,
-                             ]]));
+                $ret .= self::event_datalayer_push(json_encode(['event' => 'view_item', 'currency' => $currency, 'ecommerce' => ['items' => $ga4list]]));
             }
-
             if (!isset($config['collect_measuring']) || $config['collect_measuring'] == 1) {
-                $ret .= self::eventDatalayerPush('{
+                $ret .= self::event_datalayer_push('{
                     "pageCategory":"product",
                     "ecommerce": {
                         "currencyCode":"' . $currency . '",
@@ -868,48 +665,35 @@ EOD;
             return $ret;
         }
     }
-
-    public static function orderStep($step, $pageCategory = 'order', $config = [])
+    public static function order_step($step, $page_category = 'order', $config = [])
     {
-        if (self::checkAPI()) {
+        if (self::check_api()) {
             return;
         }
         $currencies = \Yii::$container->get('currencies');
         $currency = \Yii::$app->settings->get('currency');
         try {
-            $manager = \common\services\OrderManager::loadManager();
-            $order = $manager->getOrderInstance();
+            $manager = \common\services\Order_Manager::load_manager();
+            $order = $manager->get_order_instance();
             $products = $order->products;
         } catch (\Exception $ex) {
             global $cart;
             $products = $cart->get_products();
         }
         if (is_array($products)) {
-            $group_properties_list = \common\models\Properties::find()
-                ->alias('p')
-                ->join('inner join', \common\models\PropertiesDescription::tableName().' pd', "pd.properties_id=p.properties_id AND pd.language_id='".(int)\Yii::$app->settings->get('languages_id')."'")
-                ->where(['p.products_groups' => 1])
-                ->select(['pd.properties_name','p.properties_id'])
-                ->orderBy(['p.sort_order' => SORT_ASC,'pd.properties_id' => SORT_ASC,])
-                ->asArray()
-                ->all();
-            $group_properties_list = \yii\helpers\ArrayHelper::map($group_properties_list, 'properties_id', 'properties_name');
-
+            $group_properties_list = \common\models\Properties::find()->alias('p')->join('inner join', \common\models\Properties_Description::table_name() . ' pd', "pd.properties_id=p.properties_id AND pd.language_id='" . (int) \Yii::$app->settings->get('languages_id') . "'")->where(['p.products_groups' => 1])->select(['pd.properties_name', 'p.properties_id'])->order_by(['p.sort_order' => SORT_ASC, 'pd.properties_id' => SORT_ASC])->as_array()->all();
+            $group_properties_list = \yii\helpers\Array_Helper::map($group_properties_list, 'properties_id', 'properties_name');
             $ga4list = $list = [];
             $position = 1;
             $totalvalue = 0;
             $totalvalue_exc = 0;
             $models_array = [];
-
             foreach ($products as $product) {
-                $brand = self::helperBrand($product['id']);
-                $category_name = self::helperCategory($product['id']);
+                $brand = self::helper_brand($product['id']);
+                $category_name = self::helper_category($product['id']);
                 $attributes = '';
                 if (is_array($product['attributes']) && count($product['attributes'])) {
-                    $map = [
-                        'options' => \yii\helpers\ArrayHelper::getColumn($product['attributes'], 'option'),
-                        'values' => \yii\helpers\ArrayHelper::getColumn($product['attributes'], 'value'),
-                    ];
+                    $map = ['options' => \yii\helpers\Array_Helper::get_column($product['attributes'], 'option'), 'values' => \yii\helpers\Array_Helper::get_column($product['attributes'], 'value')];
                     foreach ($map['options'] as $key => $value) {
                         if ($value) {
                             $attributes .= $value . ': ' . $map['values'][$key] . ', ';
@@ -921,22 +705,17 @@ EOD;
                 }
                 if (count($group_properties_list) > 0) {
                     $_prop_values = [];
-                    foreach (\common\models\Properties2Propducts::find()
-                                  ->where(['products_id' => (int)$product['id']])
-                                  ->andWhere(['IN','properties_id',array_keys($group_properties_list)])
-                                  ->select(['properties_id','values_id'])
-                                  ->asArray()
-                                  ->all() as $group_property) {
-                        $_prop_values[$group_property['properties_id']] = \common\helpers\Properties::get_properties_value($group_property['values_id'], (int)\Yii::$app->settings->get('languages_id'));
+                    foreach (\common\models\Properties2Propducts::find()->where(['products_id' => (int) $product['id']])->and_where(['IN', 'properties_id', array_keys($group_properties_list)])->select(['properties_id', 'values_id'])->as_array()->all() as $group_property) {
+                        $_prop_values[$group_property['properties_id']] = \common\helpers\Properties::get_properties_value($group_property['values_id'], (int) \Yii::$app->settings->get('languages_id'));
                     }
-                    foreach ($group_properties_list as $_propId => $_propName) {
-                        if (!isset($_prop_values[$_propId]) || !is_object($_prop_values[$_propId])) {
+                    foreach ($group_properties_list as $_prop_id => $_prop_name) {
+                        if (!isset($_prop_values[$_prop_id]) || !is_object($_prop_values[$_prop_id])) {
                             continue;
                         }
                         if (!empty($attributes)) {
                             $attributes .= ', ';
                         }
-                        $attributes = $_propName .': '. $_prop_values[$_propId]->values_text;
+                        $attributes = $_prop_name . ': ' . $_prop_values[$_prop_id]->values_text;
                     }
                 }
                 if (isset($product['tax'])) {
@@ -947,56 +726,33 @@ EOD;
                 $price = $currencies->calculate_price($product['final_price'], $products_tax);
                 $price_tax_exc = $currencies->calculate_price($product['final_price'], 0);
                 $quantity = $product['quantity'] ? $product['quantity'] : $product['qty'];
-
                 $totalvalue += $price * $quantity;
                 $totalvalue_exc += $price_tax_exc * $quantity;
                 $models_array[] = $product['model'];
-
                 $list[] = [
                     'id' => "{$product['model']}",
                     'reference' => "{$product['model']}",
                     'name' => "{$product['name']}",
-                    'price' => (float)$price,
-                    'price_tax_exc' => (float)$price_tax_exc,
+                    'price' => (float) $price,
+                    'price_tax_exc' => (float) $price_tax_exc,
                     'brand' => "{$brand}",
                     'category' => "{$category_name}",
                     'variant' => "{$attributes}",
                     //"position" => $position++,
-                    'quantity' => (int)$quantity,
+                    'quantity' => (int) $quantity,
                 ];
-                $ga4list[] = [
-                    'item_id' => (int)$product['id'],
-                    'reference' => "{$product['model']}",
-                    'item_model' => "{$product['model']}",
-                    'item_name' => "{$product['name']}",
-                    'price' => (float)$price,
-                    'item_brand' => "{$brand}",
-                    'item_category' => "{$category_name}",
-                    'item_variant' => "{$attributes}",
-                    'index' => $position,
-                    'quantity' => (int)$quantity,
-                ];
+                $ga4list[] = ['item_id' => (int) $product['id'], 'reference' => "{$product['model']}", 'item_model' => "{$product['model']}", 'item_name' => "{$product['name']}", 'price' => (float) $price, 'item_brand' => "{$brand}", 'item_category' => "{$category_name}", 'item_variant' => "{$attributes}", 'index' => $position, 'quantity' => (int) $quantity];
                 $position++;
-
             }
             if (count($list)) {
                 $list = json_encode($list);
                 $ret = '';
-
                 if ($step < 2 && !isset($config['collect_measuring_ga4']) || $config['collect_measuring_ga4'] == 1) {
-
-                    $ret .= self::eventDatalayerPush(json_encode([
-                        'event' =>  ($pageCategory == 'cart' ? 'view_cart' : 'begin_checkout'),
-                        'ecommerce' => [
-                            'currency' => $currency,
-                            'value' => number_format($totalvalue, 2, '.', ''),
-                            'items' => $ga4list,
-                         ]]));
+                    $ret .= self::event_datalayer_push(json_encode(['event' => $page_category == 'cart' ? 'view_cart' : 'begin_checkout', 'ecommerce' => ['currency' => $currency, 'value' => number_format($totalvalue, 2, '.', ''), 'items' => $ga4list]]));
                 }
-
                 if (!isset($config['collect_measuring']) || $config['collect_measuring'] == 1) {
-                    $ret .= self::eventDatalayerPush('{
-                            "pageCategory":"' . $pageCategory . '",
+                    $ret .= self::event_datalayer_push('{
+                            "pageCategory":"' . $page_category . '",
                             "ecommerce": {
                                 "currencyCode":"' . $currency . '",
                                 "checkout": {
@@ -1020,22 +776,20 @@ EOD;
         }
         return;
     }
-
-    public static function orderSuccess($config = [])
+    public static function order_success($config = [])
     {
-        if (self::checkAPI()) {
+        if (self::check_api()) {
             return;
         }
         $currencies = \Yii::$container->get('currencies');
         $currency = \Yii::$app->settings->get('currency');
         try {
-            $manager = \common\services\OrderManager::loadManager();
-            $order = $manager->getOrderInstance();
+            $manager = \common\services\Order_Manager::load_manager();
+            $order = $manager->get_order_instance();
             $products = $order->products;
         } catch (\Exception $ex) {
             return;
         }
-
         $_tax = $_total = $_shipping = $_coupon = 0;
         foreach ($order->totals as $totals) {
             if ($totals['class'] == 'ot_total') {
@@ -1050,41 +804,22 @@ EOD;
                     $_coupon = trim($ex[1]);
                 }
             }
-            $actionField = json_encode([
-                'id' => $order->info['order_id'],
-                'affiliation' => \common\classes\platform::name($order->info['platform_id']),
-                'revenue' => (float)$_total,
-                'shipping' => (float)$_shipping,
-                'tax' => (float)$_tax,
-                    //'coupon' => ($_coupon ? $_coupon : ''),
-            ]);
+            $action_field = json_encode(['id' => $order->info['order_id'], 'affiliation' => \common\classes\platform::name($order->info['platform_id']), 'revenue' => (float) $_total, 'shipping' => (float) $_shipping, 'tax' => (float) $_tax]);
         }
-
         if (is_array($products)) {
-            $group_properties_list = \common\models\Properties::find()
-                ->alias('p')
-                ->join('inner join', \common\models\PropertiesDescription::tableName().' pd', "pd.properties_id=p.properties_id AND pd.language_id='".(int)$order->info['language_id']."'")
-                ->where(['p.products_groups' => 1])
-                ->select(['pd.properties_name','p.properties_id'])
-                ->orderBy(['p.sort_order' => SORT_ASC,'pd.properties_id' => SORT_ASC,])
-                ->asArray()
-                ->all();
-            $group_properties_list = \yii\helpers\ArrayHelper::map($group_properties_list, 'properties_id', 'properties_name');
-
+            $group_properties_list = \common\models\Properties::find()->alias('p')->join('inner join', \common\models\Properties_Description::table_name() . ' pd', "pd.properties_id=p.properties_id AND pd.language_id='" . (int) $order->info['language_id'] . "'")->where(['p.products_groups' => 1])->select(['pd.properties_name', 'p.properties_id'])->order_by(['p.sort_order' => SORT_ASC, 'pd.properties_id' => SORT_ASC])->as_array()->all();
+            $group_properties_list = \yii\helpers\Array_Helper::map($group_properties_list, 'properties_id', 'properties_name');
             $list = $ga4list = [];
             $position = 1;
             $totalvalue = 0;
             $totalvalue_exc = 0;
             $models_array = [];
             foreach ($products as $product) {
-                $brand = self::helperBrand($product['id']);
-                $category_name = self::helperCategory($product['id']);
+                $brand = self::helper_brand($product['id']);
+                $category_name = self::helper_category($product['id']);
                 $attributes = '';
                 if (is_array($product['attributes']) && count($product['attributes'])) {
-                    $map = [
-                        'options' => \yii\helpers\ArrayHelper::getColumn($product['attributes'], 'option'),
-                        'values' => \yii\helpers\ArrayHelper::getColumn($product['attributes'], 'value'),
-                    ];
+                    $map = ['options' => \yii\helpers\Array_Helper::get_column($product['attributes'], 'option'), 'values' => \yii\helpers\Array_Helper::get_column($product['attributes'], 'value')];
                     foreach ($map['options'] as $key => $value) {
                         $attributes .= $value . ': ' . $map['values'][$key] . ', ';
                     }
@@ -1094,25 +829,19 @@ EOD;
                 }
                 if (count($group_properties_list) > 0) {
                     $_prop_values = [];
-                    foreach (\common\models\Properties2Propducts::find()
-                                  ->where(['products_id' => (int)$product['id']])
-                                  ->andWhere(['IN','properties_id',array_keys($group_properties_list)])
-                                  ->select(['properties_id','values_id'])
-                                  ->asArray()
-                                  ->all() as $group_property) {
-                        $_prop_values[$group_property['properties_id']] = \common\helpers\Properties::get_properties_value($group_property['values_id'], (int)$order->info['language_id']);
+                    foreach (\common\models\Properties2Propducts::find()->where(['products_id' => (int) $product['id']])->and_where(['IN', 'properties_id', array_keys($group_properties_list)])->select(['properties_id', 'values_id'])->as_array()->all() as $group_property) {
+                        $_prop_values[$group_property['properties_id']] = \common\helpers\Properties::get_properties_value($group_property['values_id'], (int) $order->info['language_id']);
                     }
-                    foreach ($group_properties_list as $_propId => $_propName) {
-                        if (!isset($_prop_values[$_propId]) || !is_object($_prop_values[$_propId])) {
+                    foreach ($group_properties_list as $_prop_id => $_prop_name) {
+                        if (!isset($_prop_values[$_prop_id]) || !is_object($_prop_values[$_prop_id])) {
                             continue;
                         }
                         if (!empty($attributes)) {
                             $attributes .= ', ';
                         }
-                        $attributes = $_propName .': '. $_prop_values[$_propId]->values_text;
+                        $attributes = $_prop_name . ': ' . $_prop_values[$_prop_id]->values_text;
                     }
                 }
-
                 if (isset($product['tax'])) {
                     $products_tax = $product['tax'];
                 } else {
@@ -1121,106 +850,69 @@ EOD;
                 $price = $currencies->calculate_price($product['final_price'], $products_tax);
                 $price_tax_exc = $currencies->calculate_price($product['final_price'], 0);
                 $quantity = $product['quantity'] ? $product['quantity'] : $product['qty'];
-
                 $totalvalue += $price * $quantity;
                 $totalvalue_exc += $price_tax_exc * $quantity;
                 $models_array[] = $product['model'];
-
                 $list[] = [
                     'id' => "{$product['model']}",
                     //"reference" => "{$product['model']}",
                     'name' => "{$product['name']}",
-                    'price' => (float)$price,
+                    'price' => (float) $price,
                     //"price_tax_exc" => "{$price_tax_exc}",
                     'brand' => "{$brand}",
                     'category' => "{$category_name}",
                     'variant' => "{$attributes}",
                     //"position" => $position,
-                    'quantity' => (int)$quantity,
+                    'quantity' => (int) $quantity,
                 ];
-
-                $ga4list[] = [
-                    'item_id' => "{$product['id']}",
-                    'reference' => "{$product['model']}",
-                    'item_model' => "{$product['model']}",
-                    'item_name' => "{$product['name']}",
-                    'price' => (float)$price,
-                    'item_brand' => "{$brand}",
-                    'item_category' => "{$category_name}",
-                    'item_variant' => "{$attributes}",
-                    'index' => $position,
-                    'quantity' => (int)$quantity,
-                ];
+                $ga4list[] = ['item_id' => "{$product['id']}", 'reference' => "{$product['model']}", 'item_model' => "{$product['model']}", 'item_name' => "{$product['name']}", 'price' => (float) $price, 'item_brand' => "{$brand}", 'item_category' => "{$category_name}", 'item_variant' => "{$attributes}", 'index' => $position, 'quantity' => (int) $quantity];
                 $position++;
             }
             if (count($list)) {
                 $list = json_encode($list);
                 $ret = '';
-
                 if (!isset($config['collect_measuring_ga4']) || $config['collect_measuring_ga4'] == 1) {
-                    $ret .= self::eventDatalayerPush(json_encode([
-                        'event' =>  'purchase',
-                        'ecommerce' => [
-                            'transaction_id' => $order->info['order_id'],
-                            'currency' => $order->info['currency'],
-                            'affiliation' => \common\classes\platform::name($order->info['platform_id']),
-                            'value' => (float)$_total,
-                            'shipping' => (float)$_shipping,
-                            'tax' => (float)$_tax,
-                            'items' => $ga4list,
-                         ]]));
+                    $ret .= self::event_datalayer_push(json_encode(['event' => 'purchase', 'ecommerce' => ['transaction_id' => $order->info['order_id'], 'currency' => $order->info['currency'], 'affiliation' => \common\classes\platform::name($order->info['platform_id']), 'value' => (float) $_total, 'shipping' => (float) $_shipping, 'tax' => (float) $_tax, 'items' => $ga4list]]));
                 }
-
                 if (!isset($config['collect_measuring']) || $config['collect_measuring'] == 1) {
-                    $ret .= self::eventDatalayerPush('{
+                    $ret .= self::event_datalayer_push('{
                         "ecommerce":{
                             "currencyCode":"' . $order->info['currency'] . '",
                             "purchase":{
-                                "actionField":' . $actionField . ',
+                                "actionField":' . $action_field . ',
                                 "products":' . $list . '
                             }
                         }
                     }');
                 }
-
                 return $ret;
-
             }
         }
         return;
     }
-
-    public static function onclickAddToCart($products_id, $qty_js_elem = '')
+    public static function onclick_add_to_cart($products_id, $qty_js_elem = '')
     {
-        if (self::checkAPI()) {
+        if (self::check_api()) {
             return;
         }
         $currencies = \Yii::$container->get('currencies');
         $currency = \Yii::$app->settings->get('currency');
-        $product = Yii::$container->get('products')->getProduct($products_id);
-        $brand = self::helperBrand($products_id);
-        $category = self::helperCategory($products_id);
-        $price = (isset($product['special_price']) && $product['special_price'] ? $product['special_price'] : (isset($product['current_price']) && $product['current_price'] ? $product['current_price'] : $product['products_price']));
+        $product = Yii::$container->get('products')->get_product($products_id);
+        $brand = self::helper_brand($products_id);
+        $category = self::helper_category($products_id);
+        $price = isset($product['special_price']) && $product['special_price'] ? $product['special_price'] : (isset($product['current_price']) && $product['current_price'] ? $product['current_price'] : $product['products_price']);
         $products_tax = \common\helpers\Tax::get_tax_rate($product['products_tax_class_id']);
         $price_inc = $currencies->calculate_price($price, $products_tax);
         $price_exc = $currencies->calculate_price($price, 0);
-        $event_datalayer = [
-            'event' => 'addToCart',
-            'ecommerce' => [
-                'currencyCode' => $currency,
-                'add' => [
-                    'products' => [[
-                        'name' => $product['products_name'],
-                        'id' => $product['products_model'],
-                        'price' => (float)$price_inc,
-                        'brand' => $brand,
-                        'category' => $category,
-                        //'variant' => '',
-                        'quantity' => 1,
-                    ]],
-                ],
-            ],
-        ];
+        $event_datalayer = ['event' => 'addToCart', 'ecommerce' => ['currencyCode' => $currency, 'add' => ['products' => [[
+            'name' => $product['products_name'],
+            'id' => $product['products_model'],
+            'price' => (float) $price_inc,
+            'brand' => $brand,
+            'category' => $category,
+            //'variant' => '',
+            'quantity' => 1,
+        ]]]]];
         $event_datalayer_ready = htmlspecialchars(json_encode($event_datalayer));
         if (strlen($qty_js_elem) > 0) {
             $qty = htmlspecialchars('(parseInt(' . $qty_js_elem . ') > 0 ? parseInt(' . $qty_js_elem . ') : 1)');
@@ -1228,17 +920,16 @@ EOD;
             $qty = '1';
         }
         return <<<EOD
-    onclick="if (typeof dataLayer == 'object') { var addToCartLayer = {$event_datalayer_ready}; addToCartLayer.ecommerce.add.products[0].quantity = {$qty}; dataLayer.push(addToCartLayer); }"
-EOD;
+            onclick="if (typeof dataLayer == 'object') { var addToCartLayer = {$event_datalayer_ready}; addToCartLayer.ecommerce.add.products[0].quantity = {$qty}; dataLayer.push(addToCartLayer); }"
+        EOD;
     }
-
-    public static function eventDatalayerPush($event_datalayer_ready)
+    public static function event_datalayer_push($event_datalayer_ready)
     {
         return <<<EOD
-        window.dataLayer = window.dataLayer || [];
-        if (typeof dataLayer == 'object') {
-            dataLayer.push({$event_datalayer_ready});
-        }
-EOD;
+                window.dataLayer = window.dataLayer || [];
+                if (typeof dataLayer == 'object') {
+                    dataLayer.push({$event_datalayer_ready});
+                }
+        EOD;
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,14 +11,13 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
-class ProductsGroupSortCache
+class Products_Group_Sort_Cache
 {
-    public static function update($productId = 0)
+    public static function update($product_id = 0)
     {
-        \Yii::$app->getDb()->createCommand('
+        \Yii::$app->get_db()->create_command('
             UPDATE products p
               LEFT JOIN (
                 select p2pi.products_id, CAST(group_concat(p2pi.properties_id ORDER BY pp.sort_order) AS UNSIGNED) AS properties_id
@@ -29,8 +28,7 @@ class ProductsGroupSortCache
               LEFT JOIN properties_to_products p2p ON p2p.products_id=p.products_id AND prop.properties_id=p2p.properties_id 
               LEFT JOIN properties_values pv ON pv.properties_id=p2p.properties_id AND p2p.values_id=pv.values_id and pv.language_id=1
             SET p.products_groups_sort=IFNULL(pv.sort_order,0)
-            WHERE '.(empty($productId) ? '1' : "p.products_id='".(int)$productId."'").'
+            WHERE ' . (empty($product_id) ? '1' : "p.products_id='" . (int) $product_id . "'") . '
         ')->execute();
     }
-
 }

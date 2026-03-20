@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,12 +11,10 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
 use Yii;
-use yii\helpers\FileHelper;
-
+use yii\helpers\File_Helper;
 class System
 {
     public static function get_ip_address()
@@ -33,19 +31,16 @@ class System
             } else {
                 $ip = $_SERVER['REMOTE_ADDR'];
             }
+        } else if (getenv('HTTP_X_FORWARDED_FOR')) {
+            $ip = getenv('HTTP_X_FORWARDED_FOR');
+        } elseif (getenv('HTTP_CLIENT_IP')) {
+            $ip = getenv('HTTP_CLIENT_IP');
         } else {
-            if (getenv('HTTP_X_FORWARDED_FOR')) {
-                $ip = getenv('HTTP_X_FORWARDED_FOR');
-            } elseif (getenv('HTTP_CLIENT_IP')) {
-                $ip = getenv('HTTP_CLIENT_IP');
-            } else {
-                $ip = getenv('REMOTE_ADDR');
-            }
+            $ip = getenv('REMOTE_ADDR');
         }
         $ip = preg_replace('/:(\d+)$/i', '', $ip);
         return $ip;
     }
-
     public static function get_cookie_params()
     {
         $params = [];
@@ -53,11 +48,10 @@ class System
         /**
          * @var $platform_config \common\classes\platform_config
          */
-        $base_url = $platform_config->getCatalogBaseUrl(Yii::$app->request->getIsSecureConnection());
+        $base_url = $platform_config->get_catalog_base_url(Yii::$app->request->get_is_secure_connection());
         $base_parsed = parse_url($base_url);
         $params['path'] = $base_parsed['path'] ?? null;
-
-        $platform_data = $platform_config->getPlatformData();
+        $platform_data = $platform_config->get_platform_data();
         if ($platform_data['ssl_enabled'] == 2) {
             $params['secure'] = true;
         }
@@ -65,9 +59,8 @@ class System
     }
     public static function js_cookie_setting($var_name)
     {
-        return "{$var_name} = (function(c){c.toString=function(){ return (this.path?'; path='+this.path:'')+(this.secure?'; secure':''); }; return c;})(".json_encode(static::get_cookie_params()).');';
+        return "{$var_name} = (function(c){c.toString=function(){ return (this.path?'; path='+this.path:'')+(this.secure?'; secure':''); }; return c;})(" . json_encode(static::get_cookie_params()) . ');';
     }
-
     public static function setcookie($name, $value = '', $expire = 0, $path = null, $domain = null, $secure = null)
     {
         $common_params = static::get_cookie_params();
@@ -80,16 +73,8 @@ class System
         if (is_null($secure)) {
             $secure = $common_params['secure'] ? $common_params['secure'] : false;
         }
-        setcookie($name, $value, [
-            'expires'  => $expire,
-            'path'     => $path,
-            'domain'   => (tep_not_null($domain) ? $domain : ''),
-            'secure'   => $secure,
-            'httponly' => true,
-            'samesite' => 'Lax',
-        ]);
+        setcookie($name, $value, ['expires' => $expire, 'path' => $path, 'domain' => tep_not_null($domain) ? $domain : '', 'secure' => $secure, 'httponly' => true, 'samesite' => 'Lax']);
     }
-
     public static function getcookie($name)
     {
         if (isset($_COOKIE[$name])) {
@@ -98,61 +83,55 @@ class System
             return '';
         }
     }
-
     public static function ga_detection($manager)
     {
-        if (!\frontend\design\Info::isTotallyAdmin()) {
-            $collector = Yii::createObject('\frontend\components\GaCollector');
-            $collector->collectData($manager);
+        if (!\frontend\design\Info::is_totally_admin()) {
+            $collector = Yii::create_object('\frontend\components\GaCollector');
+            $collector->collect_data($manager);
         }
     }
-
     public static function get_ga_detection($order_id)
     {
-        $collector = Yii::createObject('\frontend\components\GaCollector');
-        $data = $collector->getCollectedData($order_id);
-        return $collector->describeCollection($data);
+        $collector = Yii::create_object('\frontend\components\GaCollector');
+        $data = $collector->get_collected_data($order_id);
+        return $collector->describe_collection($data);
     }
-
     public static function get_ga_basket_detection($customer_id, $basket_id)
     {
-        $collector = Yii::createObject('\frontend\components\GaCollector');
-        $data = $collector->getCollectedData(0, $customer_id, $basket_id);
-        return $collector->describeCollection($data);
+        $collector = Yii::create_object('\frontend\components\GaCollector');
+        $data = $collector->get_collected_data(0, $customer_id, $basket_id);
+        return $collector->describe_collection($data);
     }
-
     public static function referer_stat()
     {
         global $HTTP_REFERER, $search_engines_id, $search_words_id;
         $ref_data = parse_url($HTTP_REFERER);
         $localhost = parse_url(HTTP_SERVER);
         // overture
-        if ((strpos($ref_data['host'], $localhost['host']) === false) && strlen($_GET['source']) > 0) {
+        if (strpos($ref_data['host'], $localhost['host']) === false && strlen($_GET['source']) > 0) {
             $ref_data['host'] = 'overture.com';
             $ref_data['query'] = 'source=' . $_GET['source'];
         }
         // kelkoo
-        if ((strpos($ref_data['host'], $localhost['host']) === false) && ($_GET['kelkoo'] == 1)) {
+        if (strpos($ref_data['host'], $localhost['host']) === false && $_GET['kelkoo'] == 1) {
             $ref_data['host'] = 'kelkoo.co.uk';
             $ref_data['query'] = 'keywords=' . $_GET['keywords'];
         }
         // referrer=thomweb
-        if ((strpos($ref_data['host'], $localhost['host']) === false) && ($_GET['referrer'] == 'thomweb')) {
+        if (strpos($ref_data['host'], $localhost['host']) === false && $_GET['referrer'] == 'thomweb') {
             $ref_data['host'] = 'thomweb';
             $ref_data['query'] = 'keywords=' . $_GET['keywords'];
         }
         // dealtime
-        if ((strpos($ref_data['host'], $localhost['host']) === false) && ($_GET['dealtime'] == 1)) {
+        if (strpos($ref_data['host'], $localhost['host']) === false && $_GET['dealtime'] == 1) {
             $ref_data['host'] = 'dealtime.co.uk';
             $ref_data['query'] = 'keywords=' . $_GET['keywords'];
         }
-
-        if (((strpos($ref_data['host'], $localhost['host']) !== false)) || ($search_engines_id > 0) || (strlen($ref_data['host']) == 0)) {
+        if (strpos($ref_data['host'], $localhost['host']) !== false || $search_engines_id > 0 || strlen($ref_data['host']) == 0) {
             return true;
         } else {
-            $ref_data['host'] = preg_replace("/^w{2,3}\d?\.(.*)/i", '\\1', $ref_data['host']);
-            $str_host = strtoLower(trim($ref_data['host']));
-
+            $ref_data['host'] = preg_replace("/^w{2,3}\\d?\\.(.*)/i", '\1', $ref_data['host']);
+            $str_host = strto_lower(trim($ref_data['host']));
             $res = tep_db_query('select search_engines_id, wordkey, name from ' . TABLE_SEARCH_ENGINES . " where url like '%" . tep_db_input($str_host) . "' order by show_flag desc ");
             if ($data = tep_db_fetch_array($res)) {
                 $search_engines_id = $data['search_engines_id'];
@@ -167,7 +146,6 @@ class System
                         $search_word = trim(str_replace($data['name'], '', urldecode($val[1])));
                     }
                 }
-
                 $res = tep_db_query('select search_words_id from ' . TABLE_SEARCH_WORDS . ' where search_engines_id=' . tep_db_input($search_engines_id) . " and word like '" . tep_db_input($search_word) . "'");
                 if ($data = tep_db_fetch_array($res)) {
                     $search_words_id = $data['search_words_id'];
@@ -185,14 +163,15 @@ class System
             }
         }
     }
-
     public static function get_seo_path()
     {
-        if (isset($_SERVER['HTTP_X_REWRITE_URL'])) { // IIS
+        if (isset($_SERVER['HTTP_X_REWRITE_URL'])) {
+            // IIS
             $seo_path = $_SERVER['HTTP_X_REWRITE_URL'];
         } elseif (isset($_SERVER['REQUEST_URI'])) {
             $seo_path = $_SERVER['REQUEST_URI'];
-        } elseif (isset($_SERVER['ORIG_PATH_INFO'])) { // IIS 5.0 CGI
+        } elseif (isset($_SERVER['ORIG_PATH_INFO'])) {
+            // IIS 5.0 CGI
             $seo_path = $_SERVER['ORIG_PATH_INFO'];
             if (!empty($_SERVER['QUERY_STRING'])) {
                 $seo_path .= '?' . $_SERVER['QUERY_STRING'];
@@ -209,99 +188,36 @@ class System
         }
         return $seo_path;
     }
-
     public static function get_system_information()
     {
         $db_query = tep_db_query('select now() as datetime');
         $db = tep_db_fetch_array($db_query);
-
         list($system, $host, $kernel) = array_pad(preg_split('/[\s,]+/', \common\helpers\Php::exec('uname -a'), 5), 3, 'unknown');
-
-        return ['date' => \common\helpers\Date::datetime_short(date('Y-m-d H:i:s')),
-            'system' => $system,
-            'kernel' => $kernel,
-            'host' => $host,
-            'ip' => gethostbyname($host),
-            'uptime' => @\common\helpers\Php::exec('uptime'),
-            'http_server' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown',
-            'php' => PHP_VERSION,
-            'zend' => (function_exists('zend_version') ? zend_version() : ''),
-            'db_server' => DB_SERVER,
-            'db_ip' => gethostbyname(DB_SERVER),
-            'db_version' => 'MySQL ' . (function_exists('mysqli_get_server_info') ? tep_db_get_server_info() : ''),
-            'db_date' => \common\helpers\Date::datetime_short($db['datetime'])];
+        return ['date' => \common\helpers\Date::datetime_short(date('Y-m-d H:i:s')), 'system' => $system, 'kernel' => $kernel, 'host' => $host, 'ip' => gethostbyname($host), 'uptime' => @\common\helpers\Php::exec('uptime'), 'http_server' => $_SERVER['SERVER_SOFTWARE'] ?? 'unknown', 'php' => PHP_VERSION, 'zend' => function_exists('zend_version') ? zend_version() : '', 'db_server' => DB_SERVER, 'db_ip' => gethostbyname(DB_SERVER), 'db_version' => 'MySQL ' . (function_exists('mysqli_get_server_info') ? tep_db_get_server_info() : ''), 'db_date' => \common\helpers\Date::datetime_short($db['datetime'])];
     }
-
-    public static function getSysInfo()
+    public static function get_sys_info()
     {
-        return [
-            'php' => PHP_VERSION,
-            'db_server' => DB_SERVER,
-            'db_version' => 'MySQL ' . (function_exists('mysqli_get_server_info') ? tep_db_get_server_info() : ''),
-            'osCommerce version' => defined('PROJECT_VERSION') ? PROJECT_VERSION : 'unknown',
-            'osCommerce revision' => defined('MIGRATIONS_DB_REVISION') ? MIGRATIONS_DB_REVISION : 'unknown',
-            'PLATFORM_ID' => defined('PLATFORM_ID') ? PLATFORM_ID : '',
-            'DEFAULT_LANGUAGE' => defined('DEFAULT_LANGUAGE') ? DEFAULT_LANGUAGE : '',
-            'DEFAULT_CURRENCY' => defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : '',
-        ];
+        return ['php' => PHP_VERSION, 'db_server' => DB_SERVER, 'db_version' => 'MySQL ' . (function_exists('mysqli_get_server_info') ? tep_db_get_server_info() : ''), 'osCommerce version' => defined('PROJECT_VERSION') ? PROJECT_VERSION : 'unknown', 'osCommerce revision' => defined('MIGRATIONS_DB_REVISION') ? MIGRATIONS_DB_REVISION : 'unknown', 'PLATFORM_ID' => defined('PLATFORM_ID') ? PLATFORM_ID : '', 'DEFAULT_LANGUAGE' => defined('DEFAULT_LANGUAGE') ? DEFAULT_LANGUAGE : '', 'DEFAULT_CURRENCY' => defined('DEFAULT_CURRENCY') ? DEFAULT_CURRENCY : ''];
     }
-
     public static function get_timezones()
     {
-        return [
-            ['id' => '-12', 'text' => '(GMT - 12:00) Eniwetok, Kwajalein'],
-            ['id' => '-11', 'text' => '(GMT - 11:00) Midway Island, Samoa'],
-            ['id' => '-10', 'text' => '(GMT - 10:00) Hawaii'],
-            ['id' => '-09', 'text' => '(GMT - 9:00) Alaska'],
-            ['id' => '-08', 'text' => '(GMT - 8:00) Pacific Time, Tijuana'],
-            ['id' => '-07', 'text' => '(GMT - 7:00) Mountain Time, Arizona'],
-            ['id' => '-06', 'text' => '(GMT - 6:00) Central Time, Mexico City'],
-            ['id' => '-05', 'text' => '(GMT - 5:00) Eastern Time, Lima, Indiana'],
-            ['id' => '-04', 'text' => '(GMT - 4:00) Atlantic Time, Caracas'],
-            ['id' => '-03.5', 'text' => '(GMT - 3:30) Newfoundland'],
-            ['id' => '-03', 'text' => '(GMT - 3:00) Greenland, Buenos Aires'],
-            ['id' => '-02', 'text' => '(GMT - 2:00) Mid-Atlantic'],
-            ['id' => '-01', 'text' => '(GMT - 1:00) Cape Verde Islands, Azores'],
-            ['id' => '-00', 'text' => '(GMT + 0:00) Casablanca, London'],
-            ['id' => '+01', 'text' => '(GMT + 1:00) Berlin, Rome, Paris '],
-            ['id' => '+02', 'text' => '(GMT + 2:00) Cairo, Athens, Instanbul'],
-            ['id' => '+03', 'text' => '(GMT + 3:00) Moscow, St. Petersburg'],
-            ['id' => '+03.5', 'text' => '(GMT + 3:30) Tehran'],
-            ['id' => '+04', 'text' => '(GMT + 4:00) Abu Dhabi, Muscat'],
-            ['id' => '+04.5', 'text' => '(GMT + 4:30) Kabul'],
-            ['id' => '+05', 'text' => '(GMT + 5:00) Islamabad, Karachi'],
-            ['id' => '+05.5', 'text' => '(GMT + 5:30) Calcutta, New Delhi'],
-            ['id' => '+05.75', 'text' => '(GMT + 5:45) Kathmandu'],
-            ['id' => '+06', 'text' => '(GMT + 6:00) Sri Lanka'],
-            ['id' => '+07', 'text' => '(GMT + 7:00) Bangkok, Hanoi, Jakarta'],
-            ['id' => '+08', 'text' => '(GMT + 8:00) Beijing, Singapore, Taipei'],
-            ['id' => '+09', 'text' => '(GMT + 9:00) Seoul, Osaka, Tokyo'],
-            ['id' => '+09.5', 'text' => '(GMT + 9:30) Darwin, Adelaide'],
-            ['id' => '+10', 'text' => '(GMT + 10:00) Melbourne, Sydney, Guam'],
-            ['id' => '+11', 'text' => '(GMT + 11:00) Magadan, Solomon Islands'],
-            ['id' => '+12', 'text' => '(GMT + 12:00) Fiji Islands'],
-            ['id' => '+13', 'text' => '(GMT + 13:00) Nuku\'alofa, Tonga']];
+        return [['id' => '-12', 'text' => '(GMT - 12:00) Eniwetok, Kwajalein'], ['id' => '-11', 'text' => '(GMT - 11:00) Midway Island, Samoa'], ['id' => '-10', 'text' => '(GMT - 10:00) Hawaii'], ['id' => '-09', 'text' => '(GMT - 9:00) Alaska'], ['id' => '-08', 'text' => '(GMT - 8:00) Pacific Time, Tijuana'], ['id' => '-07', 'text' => '(GMT - 7:00) Mountain Time, Arizona'], ['id' => '-06', 'text' => '(GMT - 6:00) Central Time, Mexico City'], ['id' => '-05', 'text' => '(GMT - 5:00) Eastern Time, Lima, Indiana'], ['id' => '-04', 'text' => '(GMT - 4:00) Atlantic Time, Caracas'], ['id' => '-03.5', 'text' => '(GMT - 3:30) Newfoundland'], ['id' => '-03', 'text' => '(GMT - 3:00) Greenland, Buenos Aires'], ['id' => '-02', 'text' => '(GMT - 2:00) Mid-Atlantic'], ['id' => '-01', 'text' => '(GMT - 1:00) Cape Verde Islands, Azores'], ['id' => '-00', 'text' => '(GMT + 0:00) Casablanca, London'], ['id' => '+01', 'text' => '(GMT + 1:00) Berlin, Rome, Paris '], ['id' => '+02', 'text' => '(GMT + 2:00) Cairo, Athens, Instanbul'], ['id' => '+03', 'text' => '(GMT + 3:00) Moscow, St. Petersburg'], ['id' => '+03.5', 'text' => '(GMT + 3:30) Tehran'], ['id' => '+04', 'text' => '(GMT + 4:00) Abu Dhabi, Muscat'], ['id' => '+04.5', 'text' => '(GMT + 4:30) Kabul'], ['id' => '+05', 'text' => '(GMT + 5:00) Islamabad, Karachi'], ['id' => '+05.5', 'text' => '(GMT + 5:30) Calcutta, New Delhi'], ['id' => '+05.75', 'text' => '(GMT + 5:45) Kathmandu'], ['id' => '+06', 'text' => '(GMT + 6:00) Sri Lanka'], ['id' => '+07', 'text' => '(GMT + 7:00) Bangkok, Hanoi, Jakarta'], ['id' => '+08', 'text' => '(GMT + 8:00) Beijing, Singapore, Taipei'], ['id' => '+09', 'text' => '(GMT + 9:00) Seoul, Osaka, Tokyo'], ['id' => '+09.5', 'text' => '(GMT + 9:30) Darwin, Adelaide'], ['id' => '+10', 'text' => '(GMT + 10:00) Melbourne, Sydney, Guam'], ['id' => '+11', 'text' => '(GMT + 11:00) Magadan, Solomon Islands'], ['id' => '+12', 'text' => '(GMT + 12:00) Fiji Islands'], ['id' => '+13', 'text' => '(GMT + 13:00) Nuku\'alofa, Tonga']];
     }
-
-    public static function getTimezones()
+    public static function get_timezones()
     {
-        return \yii\helpers\ArrayHelper::map(self::get_timezones(), 'id', 'text');
+        return \yii\helpers\Array_Helper::map(self::get_timezones(), 'id', 'text');
     }
-
     public static function browser_detect($component)
     {
         return stristr($_SERVER['HTTP_USER_AGENT'], $component);
     }
-
-    public static function getHttpUserInfoArray()
+    public static function get_http_user_info_array()
     {
         return [$_SERVER['HTTP_USER_AGENT']];
     }
-
     public static function reset_cache_block($cache_block)
     {
         global $cache_blocks;
-
         for ($i = 0, $n = sizeof($cache_blocks); $i < $n; $i++) {
             if ($cache_blocks[$i]['code'] == $cache_block) {
                 if ($cache_blocks[$i]['multiple']) {
@@ -330,117 +246,110 @@ class System
             }
         }
     }
-
-    public static function phpMaxUploadSize()
+    public static function php_max_upload_size()
     {
-        $phpMaxSizes = [ini_get('post_max_size'), ini_get('upload_max_filesize')];
-        $phpMaxByteSizes = array_map(function ($v) {
+        $php_max_sizes = [ini_get('post_max_size'), ini_get('upload_max_filesize')];
+        $php_max_byte_sizes = array_map(function ($v) {
             $l = substr($v, -1);
             $ret = substr($v, 0, -1);
             switch (strtoupper($l)) {
-                case 'P': $ret *= 1024;
-                    // no break
-                case 'T': $ret *= 1024;
-                    // no break
-                case 'G': $ret *= 1024;
-                    // no break
-                case 'M': $ret *= 1024;
-                    // no break
-                case 'K': $ret *= 1024;
+                case 'P':
+                    $ret *= 1024;
+                // no break
+                case 'T':
+                    $ret *= 1024;
+                // no break
+                case 'G':
+                    $ret *= 1024;
+                // no break
+                case 'M':
+                    $ret *= 1024;
+                // no break
+                case 'K':
+                    $ret *= 1024;
                     break;
             }
             return $ret;
-        }, $phpMaxSizes);
-        return min($phpMaxByteSizes);
+        }, $php_max_sizes);
+        return min($php_max_byte_sizes);
     }
-
-    public static function symlink($existingName, $symlinkName, $isRelative = true)
+    public static function symlink($existing_name, $symlink_name, $is_relative = true)
     {
-        if ($isRelative) {
-            $commonRoot = '';
-            $existingDir = dirname(\yii\helpers\FileHelper::normalizePath($existingName));
-            $symlinkDir = dirname(\yii\helpers\FileHelper::normalizePath($symlinkName));
-            $baseNameExisting = substr($existingName, strlen($existingDir) + 1);
-            $baseNameSymlink = substr($symlinkName, strlen($symlinkDir) + 1);
+        if ($is_relative) {
+            $common_root = '';
+            $existing_dir = dirname(\yii\helpers\File_Helper::normalize_path($existing_name));
+            $symlink_dir = dirname(\yii\helpers\File_Helper::normalize_path($symlink_name));
+            $base_name_existing = substr($existing_name, strlen($existing_dir) + 1);
+            $base_name_symlink = substr($symlink_name, strlen($symlink_dir) + 1);
             try {
-                FileHelper::createDirectory($symlinkDir, 0777);
+                File_Helper::create_directory($symlink_dir, 0777);
             } catch (\Exception $ex) {
                 return false;
             }
-            if ($existingDir == $symlinkDir) {
-                $commonRoot = $existingDir;
-                $existingDir = '';
-                $symlinkDir = '';
+            if ($existing_dir == $symlink_dir) {
+                $common_root = $existing_dir;
+                $existing_dir = '';
+                $symlink_dir = '';
             } else {
-                $commonRoot = $symlinkDir;
-
-                $stillSame = true;
-                $symlinkDirParts = explode(DIRECTORY_SEPARATOR, $symlinkDir);
-                $existingDirParts = explode(DIRECTORY_SEPARATOR, $existingDir);
-
-                $existingDir = '';
-                $symlinkDir = '';
-                foreach ($symlinkDirParts as $_idx => $symlinkDirPart) {
-                    if ($stillSame) {
-                        $existingDirPart = array_shift($existingDirParts);
-                        if (is_null($existingDirPart)) {
-                            array_unshift($existingDirParts, '..');
+                $common_root = $symlink_dir;
+                $still_same = true;
+                $symlink_dir_parts = explode(DIRECTORY_SEPARATOR, $symlink_dir);
+                $existing_dir_parts = explode(DIRECTORY_SEPARATOR, $existing_dir);
+                $existing_dir = '';
+                $symlink_dir = '';
+                foreach ($symlink_dir_parts as $_idx => $symlink_dir_part) {
+                    if ($still_same) {
+                        $existing_dir_part = array_shift($existing_dir_parts);
+                        if (is_null($existing_dir_part)) {
+                            array_unshift($existing_dir_parts, '..');
                             break;
-                        } elseif ($existingDirPart != $symlinkDirPart) {
-                            array_unshift($existingDirParts, $existingDirPart);
-                            array_unshift($existingDirParts, '..');
-                            $stillSame = false;
+                        } elseif ($existing_dir_part != $symlink_dir_part) {
+                            array_unshift($existing_dir_parts, $existing_dir_part);
+                            array_unshift($existing_dir_parts, '..');
+                            $still_same = false;
                         }
                     } else {
-                        array_unshift($existingDirParts, '..');
+                        array_unshift($existing_dir_parts, '..');
                     }
                 }
-                $existingDir = implode(DIRECTORY_SEPARATOR, $existingDirParts).(count($existingDirParts) > 0 ? DIRECTORY_SEPARATOR : '');
+                $existing_dir = implode(DIRECTORY_SEPARATOR, $existing_dir_parts) . (count($existing_dir_parts) > 0 ? DIRECTORY_SEPARATOR : '');
             }
-            $existingName = (substr($existingDir, 0, 3) == '..'.DIRECTORY_SEPARATOR ? '' : '.'.DIRECTORY_SEPARATOR).$existingDir.$baseNameExisting;
-            $symlinkName = '.'.DIRECTORY_SEPARATOR.$symlinkDir.$baseNameSymlink;
-
-            $returnDir = getcwd();
-            chdir($commonRoot);
-            @symlink($existingName, $symlinkName);
-            chdir($returnDir);
+            $existing_name = (substr($existing_dir, 0, 3) == '..' . DIRECTORY_SEPARATOR ? '' : '.' . DIRECTORY_SEPARATOR) . $existing_dir . $base_name_existing;
+            $symlink_name = '.' . DIRECTORY_SEPARATOR . $symlink_dir . $base_name_symlink;
+            $return_dir = getcwd();
+            chdir($common_root);
+            @symlink($existing_name, $symlink_name);
+            chdir($return_dir);
         } else {
-            symlink($existingName, $symlinkName);
+            symlink($existing_name, $symlink_name);
         }
     }
-
-    public static function isYiiLoaded()
+    public static function is_yii_loaded()
     {
         return class_exists('\Yii') && isset(\Yii::$app) && is_object(\Yii::$app);
     }
-
-    public static function isBackend()
+    public static function is_backend()
     {
         return \Yii::$app->id == 'app-backend';
     }
-
-    public static function isFrontend()
+    public static function is_frontend()
     {
         return \Yii::$app->id == 'app-frontend';
     }
-
-    public static function isConsole()
+    public static function is_console()
     {
         return \Yii::$app->id == 'app-console';
     }
-
-    public static function isPos()
+    public static function is_pos()
     {
         return \Yii::$app->id == 'app-pos';
     }
-
-    public static function isProduction()
+    public static function is_production()
     {
         return YII_ENV == 'prod';
     }
-
-    public static function isDevelopment()
+    public static function is_development()
     {
-        return !self::isProduction();
+        return !self::is_production();
     }
 }

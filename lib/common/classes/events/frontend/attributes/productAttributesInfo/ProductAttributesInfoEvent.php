@@ -10,58 +10,49 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-declare(strict_types=1);
+declare (strict_types=1);
+namespace common\classes\events\frontend\attributes\Product_Attributes_Info;
 
-namespace common\classes\events\frontend\attributes\productAttributesInfo;
-
-class ProductAttributesInfoEvent
+class Product_Attributes_Info_Event
 {
     /** @var array */
-    private $productAttributes;
+    private $product_attributes;
     private $customer;
-
-    public function __construct(
-        array $productAttributes,
-        $customer
-    ) {
-        $this->productAttributes = $productAttributes;
+    public function __construct(array $product_attributes, $customer)
+    {
+        $this->product_attributes = $product_attributes;
         $this->customer = $customer;
     }
-
     /**
      * @return array
      */
-    public function getProductAttributes(): array
+    public function get_product_attributes(): array
     {
-        return $this->productAttributes;
+        return $this->product_attributes;
     }
-
     /**
      * @param string $name
      * @param mixed|null $value
      * @return $this
      */
-    public function setProductAttributesProperty(string $name, $value = null): self
+    public function set_product_attributes_property(string $name, $value = null): self
     {
-        $this->productAttributes[$name] = $value;
+        $this->product_attributes[$name] = $value;
         return $this;
     }
-
     /**
      * @param string $name
      * @return mixed|null
      */
-    public function getProductAttributesProperty(string $name)
+    public function get_product_attributes_property(string $name)
     {
-        return $this->productAttributes[$name] ?? null;
+        return $this->product_attributes[$name] ?? null;
     }
-
     /**
      * @return mixed
      */
-    public function getCustomer()
+    public function get_customer()
     {
         return $this->customer;
     }
-
 }

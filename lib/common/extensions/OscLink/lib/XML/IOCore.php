@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,72 +11,37 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
-namespace OscLink\XML;
+namespace Osc_Link\XML;
 
 use common\helpers\Assert;
-use yii\base\InvalidParamException;
-use yii\helpers\FileHelper;
-
-class IOCore
+use yii\base\Invalid_Param_Exception;
+use yii\helpers\File_Helper;
+class Io_Core
 {
     public $project_id;
-
     protected $project_data;
-
-    private $attributeMapper;
-
-    private $typeClassMap = [];
-
+    private $attribute_mapper;
+    private $type_class_map = [];
     private $locations = [];
-    private $attachmentModes = [];
-
-    private $tablenamesWithMirrorIds = [];
-
+    private $attachment_modes = [];
+    private $tablenames_with_mirror_ids = [];
     private function __construct()
     {
-        $this->attributeMapper = new AttributeMapper();
+        $this->attribute_mapper = new Attribute_Mapper();
         $project_id = 1;
-        $this->setProjectId($project_id);
-
-        $this->typeClassMap = [
-            'IOMap' => '\\OscLink\\XML\\IOMap',
-            'IOCurrencyMap' => '\\OscLink\\XML\\IOCurrencyMap',
-            'IOLanguageMap' => '\\OscLink\\XML\\IOLanguageMap',
-            'IOPK' => '\\OscLink\\XML\\IOPK',
-            'IOPlatformMap' => '\\OscLink\\XML\\IOPlatformMap',
-            'IOAttachment' => '\\OscLink\\XML\\IOAttachment',
-            'IOGalleryAttachment' => '\\OscLink\\XML\\IOGalleryAttachment',
-            'IOCountryMap' => '\\OscLink\\XML\\IOCountryMap',
-            'IOCountryZoneMap' => '\\OscLink\\XML\\IOCountryZoneMap',
-            'IOOrderStatus' => '\\OscLink\\XML\\IOOrderStatus',
-        ];
+        $this->set_project_id($project_id);
+        $this->type_class_map = ['IOMap' => '\OscLink\XML\IOMap', 'IOCurrencyMap' => '\OscLink\XML\IOCurrencyMap', 'IOLanguageMap' => '\OscLink\XML\IOLanguageMap', 'IOPK' => '\OscLink\XML\IOPK', 'IOPlatformMap' => '\OscLink\XML\IOPlatformMap', 'IOAttachment' => '\OscLink\XML\IOAttachment', 'IOGalleryAttachment' => '\OscLink\XML\IOGalleryAttachment', 'IOCountryMap' => '\OscLink\XML\IOCountryMap', 'IOCountryZoneMap' => '\OscLink\XML\IOCountryZoneMap', 'IOOrderStatus' => '\OscLink\XML\IOOrderStatus'];
         if (class_exists('\Yii')) {
-            foreach ($this->typeClassMap as $shortName => $fullName) {
-                \Yii::$container->set($shortName, $fullName);
+            foreach ($this->type_class_map as $short_name => $full_name) {
+                \Yii::$container->set($short_name, $full_name);
             }
         }
-
-        $this->appendLocation(
-            '@home',
-            DIR_FS_CATALOG,
-            \Yii::$app->get('platform')->config()->getCatalogBaseUrl()
-        );
-        $this->appendLocation(
-            '@images',
-            '@home/images'
-        );
-        $this->appendLocation(
-            '@documents',
-            '@home/documents'
-        );
-        $this->appendLocation(
-            '@documents',
-            '@home/documents'
-        );
+        $this->append_location('@home', DIR_FS_CATALOG, \Yii::$app->get('platform')->config()->get_catalog_base_url());
+        $this->append_location('@images', '@home/images');
+        $this->append_location('@documents', '@home/documents');
+        $this->append_location('@documents', '@home/documents');
     }
-
-    public function setProjectId($projectId)
+    public function set_project_id($project_id)
     {
         //        $this->project_id = $projectId;
         //        $getProjectCode_r = tep_db_query("SELECT * FROM io_project WHERE project_id='".intval($this->project_id)."'");
@@ -85,7 +50,6 @@ class IOCore
         //        }
         //        $this->attributeMapper->setProjectId($this->project_id);
     }
-
     //    public function setProjectByCode($projectCode)
     //    {
     //        $getProjectId_r = tep_db_query("SELECT project_id FROM io_project WHERE project_code='".tep_db_input($projectCode)."'");
@@ -94,15 +58,13 @@ class IOCore
     //            $this->setProjectId((int)$projectIdArr['project_id']);
     //        }
     //    }
-
-    public function isLocalProject()
+    public function is_local_project()
     {
         //        if (is_array($this->project_data) ){
         //            return !!$this->project_data['is_local'];
         //        }
         return false;
     }
-
     //    public function getProjectCode()
     //    {
     //        if (is_array($this->project_data) ){
@@ -110,7 +72,6 @@ class IOCore
     //        }
     //        return '';
     //    }
-
     public static function get()
     {
         static $instance;
@@ -119,16 +80,14 @@ class IOCore
         }
         return $instance;
     }
-
-    public function getLookupTool()
+    public function get_lookup_tool()
     {
-        static $objLookup = false;
-        if (!is_object($objLookup)) {
-            $objLookup = new IOLookup();
+        static $obj_lookup = false;
+        if (!is_object($obj_lookup)) {
+            $obj_lookup = new Io_Lookup();
         }
-        return $objLookup;
+        return $obj_lookup;
     }
-
     //    public function getProjectList()
     //    {
     //        $projectList = [];
@@ -140,191 +99,156 @@ class IOCore
     //        }
     //        return $projectList;
     //    }
-
     /**
      * @return AttributeMapper
      */
-    public function getAttributeMapper()
+    public function get_attribute_mapper()
     {
-        return $this->attributeMapper;
+        return $this->attribute_mapper;
     }
-
-    public static function createObject($type, array $params = [])
+    public static function create_object($type, array $params = [])
     {
         $obj = self::get();
-
         if (class_exists('\Yii')) {
-            return \Yii::createObject($type, $params);
-        } else {
-            if (isset($obj->typeClassMap[$type])) {
-                $className = $obj->typeClassMap[$type];
-                $object = new $className();
-                foreach ($params as $name => $value) {
-                    $object->$name = $value;
-                }
-                return $object;
+            return \Yii::create_object($type, $params);
+        } else if (isset($obj->type_class_map[$type])) {
+            $class_name = $obj->type_class_map[$type];
+            $object = new $class_name();
+            foreach ($params as $name => $value) {
+                $object->{$name} = $value;
             }
+            return $object;
         }
         return false;
     }
-
-    public static function constructObjectInstance($objectArray, $params)
+    public static function construct_object_instance($object_array, $params)
     {
-        if (\Yii::$container->has($objectArray[0])) {
-            $Definitions = \Yii::$container->getDefinitions();
-            $fullClassName = $Definitions[$objectArray[0]]['class'];
-            return call_user_func_array([$fullClassName,$objectArray[1]], $params);
+        if (\Yii::$container->has($object_array[0])) {
+            $Definitions = \Yii::$container->get_definitions();
+            $full_class_name = $Definitions[$object_array[0]]['class'];
+            return call_user_func_array([$full_class_name, $object_array[1]], $params);
         }
         return $params;
     }
-
-    public static function getExportStructure($structure)
+    public static function get_export_structure($structure)
     {
-        $configFN = dirname(__FILE__).'/structure/'.$structure.'.php';
-        \common\helpers\Assert::assert(file_exists($configFN), 'Config file is not found: ' . $configFN);
-        $config = include $configFN;
-        $config['XSL'] = [
-            'export' => false,
-            'import' => false,
-        ];
-        $transformXSL = dirname(__FILE__).'/transform/export/'.$structure.'.xsl';
-        if (is_file($transformXSL)) {
-            $config['XSL']['export'] = $transformXSL;
+        $config_fn = dirname(__FILE__) . '/structure/' . $structure . '.php';
+        \common\helpers\Assert::assert(file_exists($config_fn), 'Config file is not found: ' . $config_fn);
+        $config = include $config_fn;
+        $config['XSL'] = ['export' => false, 'import' => false];
+        $transform_xsl = dirname(__FILE__) . '/transform/export/' . $structure . '.xsl';
+        if (is_file($transform_xsl)) {
+            $config['XSL']['export'] = $transform_xsl;
         }
-        $transformXSL = dirname(__FILE__).'/transform/import/'.$structure.'.xsl';
-        if (is_file($transformXSL)) {
-            $config['XSL']['import'] = $transformXSL;
+        $transform_xsl = dirname(__FILE__) . '/transform/import/' . $structure . '.xsl';
+        if (is_file($transform_xsl)) {
+            $config['XSL']['import'] = $transform_xsl;
         }
         return $config;
     }
-
-    public function appendLocation($alias, $fileSystemPath, $urlPath = '')
+    public function append_location($alias, $file_system_path, $url_path = '')
     {
-        $this->locations[$alias] = [
-            'local' => rtrim($fileSystemPath, '/'),
-            'public' => rtrim((empty($urlPath) ? $fileSystemPath : $urlPath), '/'),
-        ];
+        $this->locations[$alias] = ['local' => rtrim($file_system_path, '/'), 'public' => rtrim(empty($url_path) ? $file_system_path : $url_path, '/')];
     }
-
-    public function getLocalLocation($path)
+    public function get_local_location($path)
     {
-        return $this->computeLocationValue($path, 'local');
+        return $this->compute_location_value($path, 'local');
     }
-
-    public function getPublicLocation($path)
+    public function get_public_location($path)
     {
-        return $this->computeLocationValue($path, 'public');
+        return $this->compute_location_value($path, 'public');
     }
-
-    protected function computeLocationValue($path, $target)
+    protected function compute_location_value($path, $target)
     {
         if (substr($path, 0, 1) == '@') {
             $pos = strpos($path, '/');
             $root = $pos === false ? $path : substr($path, 0, $pos);
             if (isset($this->locations[$root][$target])) {
-                return $this->computeLocationValue($pos === false ? $this->locations[$root][$target] : $this->locations[$root][$target] . substr($path, $pos), $target);
+                return $this->compute_location_value($pos === false ? $this->locations[$root][$target] : $this->locations[$root][$target] . substr($path, $pos), $target);
             } elseif (class_exists('\Yii')) {
-                return \Yii::getAlias($path, false);
+                return \Yii::get_alias($path, false);
             }
         }
-
         return $path;
     }
-
     /**
      * @return array
      */
-    public function getAttachmentModes()
+    public function get_attachment_modes()
     {
-        return array_values($this->attachmentModes);
+        return array_values($this->attachment_modes);
     }
-
-    public function isAttachmentModePresent($checkMode)
+    public function is_attachment_mode_present($check_mode)
     {
-        return isset($this->attachmentModes[$checkMode]);
+        return isset($this->attachment_modes[$check_mode]);
     }
-
     /**
      * @param array|string $attachmentModes
      */
-    public function setAttachmentMode($attachmentModes)
+    public function set_attachment_mode($attachment_modes)
     {
-        if (!is_array($attachmentModes)) {
-            $attachmentModes = [$attachmentModes];
+        if (!is_array($attachment_modes)) {
+            $attachment_modes = [$attachment_modes];
         }
-        $IOAttachment = static::createObject('IOAttachment');
+        $io_attachment = static::create_object('IOAttachment');
         /**
          * @var $IOAttachment IOAttachment
          */
-        $knownAttachmentModes = $IOAttachment->getAttachmentModeVariants();
-        $unknown = array_diff($attachmentModes, $knownAttachmentModes);
+        $known_attachment_modes = $io_attachment->get_attachment_mode_variants();
+        $unknown = array_diff($attachment_modes, $known_attachment_modes);
         if (count($unknown) > 0) {
-            throw new InvalidParamException('Wrong mode "'.implode('", "', $unknown).'" Possible values for AttachmentModes is ['.implode(', ', $knownAttachmentModes).']');
+            throw new Invalid_Param_Exception('Wrong mode "' . implode('", "', $unknown) . '" Possible values for AttachmentModes is [' . implode(', ', $known_attachment_modes) . ']');
         }
-        $this->attachmentModes = [];
-        foreach ($attachmentModes as $attachmentMode) {
-            $this->attachmentModes[$attachmentMode] = $attachmentMode;
+        $this->attachment_modes = [];
+        foreach ($attachment_modes as $attachment_mode) {
+            $this->attachment_modes[$attachment_mode] = $attachment_mode;
         }
     }
-
-    public function normalizeLocalFileName($fn)
+    public function normalize_local_file_name($fn)
     {
         return str_replace(' ', '_', $fn);
     }
-
-    public function download($sourceFile, &$physicalFile, $prefix = '')
+    public function download($source_file, &$physical_file, $prefix = '')
     {
         $prefix = empty($prefix) ? '' : $prefix . ': ';
-        $dir = dirname($physicalFile);
+        $dir = dirname($physical_file);
         try {
             if (!is_dir($dir)) {
-                FileHelper::createDirectory($dir, 0777);
+                File_Helper::create_directory($dir, 0777);
             }
-            Assert::assertNotEmpty($sourceFile, 'Source file is empty');
-            Assert::assertNotEmpty($physicalFile, 'Destination file is empty');
-            $sourceFile = str_replace(' ', '%20', $sourceFile);
-            $physicalFile = $this->normalizeLocalFileName($physicalFile);
-            $context = stream_context_create([
-                'ssl' => [
-                    'verify_peer' => false,
-                    'verify_peer_name' => false,
-                    'allow_self_signed' => true,
-                ],
-            ]);
-            Assert::assert(
-                @copy($sourceFile, $physicalFile, $context),
-                "Could not download file '$sourceFile': " . (error_get_last()['message'] ?? 'unknown reason')
-            );
-
-            if (!@chmod($physicalFile, 0666)) {
-                \OscLink\Logger::print($prefix . 'warning: failed chmod: ' . (error_get_last()['message'] ?? 'unknown reason'));
+            Assert::assert_not_empty($source_file, 'Source file is empty');
+            Assert::assert_not_empty($physical_file, 'Destination file is empty');
+            $source_file = str_replace(' ', '%20', $source_file);
+            $physical_file = $this->normalize_local_file_name($physical_file);
+            $context = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true]]);
+            Assert::assert(@copy($source_file, $physical_file, $context), "Could not download file '{$source_file}': " . (error_get_last()['message'] ?? 'unknown reason'));
+            if (!@chmod($physical_file, 0666)) {
+                \Osc_Link\Logger::print($prefix . 'warning: failed chmod: ' . (error_get_last()['message'] ?? 'unknown reason'));
             }
             return true;
         } catch (\Exception $e) {
-            \OscLink\Logger::print($prefix . $e->getMessage());
+            \Osc_Link\Logger::print($prefix . $e->get_message());
             return false;
         }
     }
-
     /**
      * @param $tablenames string|array like 'products,orders' or ['products,orders']
      * @return void
      */
-    public function setTablenamesWithMirrorIds($tablenames)
+    public function set_tablenames_with_mirror_ids($tablenames)
     {
         if (is_string($tablenames)) {
             \common\helpers\Assert::assert(strpos($tablenames, ' ') === false, 'Spaces are not allowed');
-            $this->tablenamesWithMirrorIds = explode(',', $tablenames);
+            $this->tablenames_with_mirror_ids = explode(',', $tablenames);
         } elseif (is_array($tablenames)) {
-            $this->tablenamesWithMirrorIds = $tablenames;
+            $this->tablenames_with_mirror_ids = $tablenames;
         }
     }
-
     /**
      * @return array
      */
-    public function getTablenamesWithMirrorIds()
+    public function get_tablenames_with_mirror_ids()
     {
-        return $this->tablenamesWithMirrorIds;
+        return $this->tablenames_with_mirror_ids;
     }
 }

@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,580 +11,476 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
+namespace common\extensions\Stock_Control;
 
-namespace common\extensions\StockControl;
-
-use common\extensions\StockControl\models\PlatformInventoryControl;
-use common\extensions\StockControl\models\PlatformStockControl;
-use common\extensions\StockControl\models\WarehouseInventoryControl;
-use common\extensions\StockControl\models\WarehouseStockControl;
-
-class StockControl extends \common\classes\modules\ModuleExtensions
+use common\extensions\Stock_Control\models\Platform_Inventory_Control;
+use common\extensions\Stock_Control\models\Platform_Stock_Control;
+use common\extensions\Stock_Control\models\Warehouse_Inventory_Control;
+use common\extensions\Stock_Control\models\Warehouse_Stock_Control;
+class Stock_Control extends \common\classes\modules\Module_Extensions
 {
-    public static function saveProduct($productRecord = false)
+    public static function save_product($product_record = false)
     {
         try {
-            if ($productRecord instanceof \common\models\Products) {
-                $stockControl = (int)\Yii::$app->request->post('stock_control', 0);
-                if (((int)\Yii::$app->request->post('is_bundle', 0) > 0)
-                    or ((int)\Yii::$app->request->post('manual_stock_unlimited', 0) > 0)
-                ) {
-                    $stockControl = 0;
+            if ($product_record instanceof \common\models\Products) {
+                $stock_control = (int) \Yii::$app->request->post('stock_control', 0);
+                if ((int) \Yii::$app->request->post('is_bundle', 0) > 0 or (int) \Yii::$app->request->post('manual_stock_unlimited', 0) > 0) {
+                    $stock_control = 0;
                 }
-                $productRecord->setAttributes(['stock_control' => $stockControl], false);
-                switch ($stockControl) {
+                $product_record->set_attributes(['stock_control' => $stock_control], false);
+                switch ($stock_control) {
                     case 0:
                         break;
                     case 1:
-                        foreach (\common\models\Platforms::find()->where(['status' => 1])
-                            ->asArray(false)->all() as $platformRecord
-                        ) {
-                            $currentQuantity = (int)\Yii::$app->request->post('platform_to_qty_' . (int)$platformRecord->platform_id);
-                            $pscRecord = PlatformStockControl::findOne(['products_id' => (int)$productRecord->products_id, 'platform_id' => (int)$platformRecord->platform_id]);
-                            if (is_object($pscRecord)) {
-                                if ($currentQuantity != (int)$pscRecord->current_quantity) {
-                                    $pscRecord->current_quantity = $currentQuantity;
-                                    $pscRecord->manual_quantity = $currentQuantity;
-                                    $pscRecord->save(false);
+                        foreach (\common\models\Platforms::find()->where(['status' => 1])->as_array(false)->all() as $platform_record) {
+                            $current_quantity = (int) \Yii::$app->request->post('platform_to_qty_' . (int) $platform_record->platform_id);
+                            $psc_record = Platform_Stock_Control::find_one(['products_id' => (int) $product_record->products_id, 'platform_id' => (int) $platform_record->platform_id]);
+                            if (is_object($psc_record)) {
+                                if ($current_quantity != (int) $psc_record->current_quantity) {
+                                    $psc_record->current_quantity = $current_quantity;
+                                    $psc_record->manual_quantity = $current_quantity;
+                                    $psc_record->save(false);
                                 }
                             } else {
-                                $pscRecord = new PlatformStockControl();
-                                $pscRecord->products_id = (int)$productRecord->products_id;
-                                $pscRecord->platform_id = (int)$platformRecord->platform_id;
-                                $pscRecord->current_quantity = $currentQuantity;
-                                $pscRecord->manual_quantity = $currentQuantity;
-                                $pscRecord->save(false);
+                                $psc_record = new Platform_Stock_Control();
+                                $psc_record->products_id = (int) $product_record->products_id;
+                                $psc_record->platform_id = (int) $platform_record->platform_id;
+                                $psc_record->current_quantity = $current_quantity;
+                                $psc_record->manual_quantity = $current_quantity;
+                                $psc_record->save(false);
                             }
-                            unset($currentQuantity);
-                            unset($pscRecord);
+                            unset($current_quantity);
+                            unset($psc_record);
                         }
-                        unset($platformRecord);
+                        unset($platform_record);
                         break;
                     case 2:
-                        WarehouseStockControl::deleteAll(['products_id' => (int)$productRecord->products_id]);
-                        foreach (\common\models\Platforms::find()->where(['status' => 1])
-                            ->asArray(false)->all() as $platformRecord
-                        ) {
-                            $wscRecord = new WarehouseStockControl();
-                            $wscRecord->products_id = (int)$productRecord->products_id;
-                            $wscRecord->platform_id = (int)$platformRecord->platform_id;
-                            $wscRecord->warehouse_id = (int)\Yii::$app->request->post('platform_to_warehouse_' . (int)$platformRecord->platform_id);
-                            $wscRecord->save(false);
-                            unset($wscRecord);
+                        Warehouse_Stock_Control::delete_all(['products_id' => (int) $product_record->products_id]);
+                        foreach (\common\models\Platforms::find()->where(['status' => 1])->as_array(false)->all() as $platform_record) {
+                            $wsc_record = new Warehouse_Stock_Control();
+                            $wsc_record->products_id = (int) $product_record->products_id;
+                            $wsc_record->platform_id = (int) $platform_record->platform_id;
+                            $wsc_record->warehouse_id = (int) \Yii::$app->request->post('platform_to_warehouse_' . (int) $platform_record->platform_id);
+                            $wsc_record->save(false);
+                            unset($wsc_record);
                         }
-                        unset($platformRecord);
+                        unset($platform_record);
                         break;
                     default:
                         break;
                 }
-                unset($stockControl);
+                unset($stock_control);
             }
         } catch (\Exception $exc) {
-            \Yii::warning(($exc->getMessage() . ' ' . $exc->getTraceAsString()), 'Error.Extension.StockControl.saveProduct');
+            \Yii::warning($exc->get_message() . ' ' . $exc->get_trace_as_string(), 'Error.Extension.StockControl.saveProduct');
         }
-        unset($productRecord);
+        unset($product_record);
     }
-
-    public static function saveAttributesAndInventorySave($uProductId)
+    public static function save_attributes_and_inventory_save($u_product_id)
     {
         try {
             if (\Yii::$app->request->post('inventory_control_present', 0)) {
-                $stockControl = (int)\Yii::$app->request->post('inventory_control_' . $uProductId);
-                if (((int)\Yii::$app->request->post('manual_stock_unlimited', 0) > 0)
-                    or ((int)\Yii::$app->request->post('is_bundle', 0) > 0)
-                ) {
-                    $stockControl = 0;
+                $stock_control = (int) \Yii::$app->request->post('inventory_control_' . $u_product_id);
+                if ((int) \Yii::$app->request->post('manual_stock_unlimited', 0) > 0 or (int) \Yii::$app->request->post('is_bundle', 0) > 0) {
+                    $stock_control = 0;
                 }
-                tep_db_query('update ' . TABLE_INVENTORY . " set stock_control = '" . $stockControl . "' where products_id = '" . tep_db_input($uProductId) . "'");
-                switch ($stockControl) {
+                tep_db_query('update ' . TABLE_INVENTORY . " set stock_control = '" . $stock_control . "' where products_id = '" . tep_db_input($u_product_id) . "'");
+                switch ($stock_control) {
                     case 0:
                         break;
                     case 1:
-                        foreach (\common\models\Platforms::find()->where(['status' => 1])
-                            ->asArray(false)->all() as $platformRecord
-                        ) {
-                            $currentQuantity = (int)\Yii::$app->request->post('platform_to_qty_' . $uProductId . '_' . (int)$platformRecord->platform_id);
-                            $picRecord = PlatformInventoryControl::findOne(['products_id' => tep_db_input($uProductId), 'platform_id' => $platformRecord->platform_id]);
-                            if (is_object($picRecord)) {
-                                if ($currentQuantity != $picRecord->current_quantity) {
-                                    $picRecord->current_quantity = $currentQuantity;
-                                    $picRecord->manual_quantity = $currentQuantity;
-                                    $picRecord->save(false);
+                        foreach (\common\models\Platforms::find()->where(['status' => 1])->as_array(false)->all() as $platform_record) {
+                            $current_quantity = (int) \Yii::$app->request->post('platform_to_qty_' . $u_product_id . '_' . (int) $platform_record->platform_id);
+                            $pic_record = Platform_Inventory_Control::find_one(['products_id' => tep_db_input($u_product_id), 'platform_id' => $platform_record->platform_id]);
+                            if (is_object($pic_record)) {
+                                if ($current_quantity != $pic_record->current_quantity) {
+                                    $pic_record->current_quantity = $current_quantity;
+                                    $pic_record->manual_quantity = $current_quantity;
+                                    $pic_record->save(false);
                                 }
                             } else {
-                                $picRecord = new PlatformInventoryControl();
-                                $picRecord->products_id = tep_db_input($uProductId);
-                                $picRecord->platform_id = (int)$platformRecord->platform_id;
-                                $picRecord->current_quantity = $currentQuantity;
-                                $picRecord->manual_quantity = $currentQuantity;
-                                $picRecord->save(false);
+                                $pic_record = new Platform_Inventory_Control();
+                                $pic_record->products_id = tep_db_input($u_product_id);
+                                $pic_record->platform_id = (int) $platform_record->platform_id;
+                                $pic_record->current_quantity = $current_quantity;
+                                $pic_record->manual_quantity = $current_quantity;
+                                $pic_record->save(false);
                             }
-                            unset($picRecord);
+                            unset($pic_record);
                         }
-                        unset($platformRecord);
+                        unset($platform_record);
                         break;
                     case 2:
-                        WarehouseInventoryControl::deleteAll(['products_id' => tep_db_input($uProductId)]);
-                        foreach (\common\models\Platforms::find()->where(['status' => 1])
-                            ->asArray(false)->all() as $platformRecord
-                        ) {
-                            $wicRecord = new WarehouseInventoryControl();
-                            $wicRecord->products_id = tep_db_input($uProductId);
-                            $wicRecord->platform_id = (int)$platformRecord->platform_id;
-                            $wicRecord->warehouse_id = (int)\Yii::$app->request->post('platform_to_warehouse_' . $uProductId . '_' . (int)$platformRecord->platform_id);
-                            $wicRecord->save(false);
-                            unset($wicRecord);
+                        Warehouse_Inventory_Control::delete_all(['products_id' => tep_db_input($u_product_id)]);
+                        foreach (\common\models\Platforms::find()->where(['status' => 1])->as_array(false)->all() as $platform_record) {
+                            $wic_record = new Warehouse_Inventory_Control();
+                            $wic_record->products_id = tep_db_input($u_product_id);
+                            $wic_record->platform_id = (int) $platform_record->platform_id;
+                            $wic_record->warehouse_id = (int) \Yii::$app->request->post('platform_to_warehouse_' . $u_product_id . '_' . (int) $platform_record->platform_id);
+                            $wic_record->save(false);
+                            unset($wic_record);
                         }
-                        unset($platformRecord);
+                        unset($platform_record);
                         break;
                     default:
                         break;
                 }
             }
         } catch (\Exception $exc) {
-            \Yii::warning(($exc->getMessage() . ' ' . $exc->getTraceAsString()), 'Error.Extension.StockControl.saveAttributesAndInventorySave');
+            \Yii::warning($exc->get_message() . ' ' . $exc->get_trace_as_string(), 'Error.Extension.StockControl.saveAttributesAndInventorySave');
         }
-        unset($uProductId);
+        unset($u_product_id);
     }
-
-    public static function viewProductEdit($pInfo)
+    public static function view_product_edit($p_info)
     {
-        return Render::widget2('admin-product-detail', [
-            'pInfo' => $pInfo,
-        ]);
+        return Render::widget2('admin-product-detail', ['pInfo' => $p_info]);
     }
-
-    public static function viewStockTab($ikey, $inventory)
+    public static function view_stock_tab($ikey, $inventory)
     {
-        $isStockUnlimited = false;
-        $productRecord = \common\helpers\Product::getRecord($inventory['uprid'] ?? 0);
-        if ($productRecord instanceof \common\models\Products) {
-            $isStockUnlimited = ((int)$productRecord->manual_stock_unlimited > 0);
+        $is_stock_unlimited = false;
+        $product_record = \common\helpers\Product::get_record($inventory['uprid'] ?? 0);
+        if ($product_record instanceof \common\models\Products) {
+            $is_stock_unlimited = (int) $product_record->manual_stock_unlimited > 0;
         }
-        unset($productRecord);
-        return Render::widget2('admin-stock-tab', [
-            'ikey' => $ikey,
-            'inventory' => $inventory,
-            'isStockUnlimited' => $isStockUnlimited,
-        ]);
+        unset($product_record);
+        return Render::widget2('admin-stock-tab', ['ikey' => $ikey, 'inventory' => $inventory, 'isStockUnlimited' => $is_stock_unlimited]);
     }
-
-    public static function updateProductViewStockInfo($pInfo)
+    public static function update_product_view_stock_info($p_info)
     {
-        $warehouseStockControlList = [];
-        foreach (WarehouseStockControl::find(['products_id' => (int)$pInfo->products_id])
-            ->asArray(true)->each() as $warehouseStockControl
-        ) {
-            $warehouseStockControlList[$warehouseStockControl['platform_id']] = $warehouseStockControl['warehouse_id'];
+        $warehouse_stock_control_list = [];
+        foreach (Warehouse_Stock_Control::find(['products_id' => (int) $p_info->products_id])->as_array(true)->each() as $warehouse_stock_control) {
+            $warehouse_stock_control_list[$warehouse_stock_control['platform_id']] = $warehouse_stock_control['warehouse_id'];
         }
-        $platformStockControlList = [];
-        foreach (PlatformStockControl::find(['products_id' => (int)$pInfo->products_id])
-            ->asArray(true)->each() as $platformStockControl
-        ) {
-            $platformStockControlList[$platformStockControl['platform_id']] = $platformStockControl['current_quantity'];
+        $platform_stock_control_list = [];
+        foreach (Platform_Stock_Control::find(['products_id' => (int) $p_info->products_id])->as_array(true)->each() as $platform_stock_control) {
+            $platform_stock_control_list[$platform_stock_control['platform_id']] = $platform_stock_control['current_quantity'];
         }
-        $platformStockList = [];
-        $platformWarehouseList = [];
-        foreach (\common\classes\platform::getList(true, true) as $platform) {
-            $platformStockList[] = [
-                'id' => $platform['id'],
-                'name' => $platform['text'],
-                'qty' => (isset($platformStockControlList[$platform['id']]) ? $platformStockControlList[$platform['id']] : 0),
-            ];
-            $platformWarehouseList[] = [
-                'id' => $platform['id'],
-                'name' => $platform['text'],
-                'warehouse' => (
-                    isset($warehouseStockControlList[$platform['id']])
-                    ? $warehouseStockControlList[$platform['id']]
-                    : \common\helpers\Warehouses::get_default_warehouse()
-                ),
-            ];
+        $platform_stock_list = [];
+        $platform_warehouse_list = [];
+        foreach (\common\classes\platform::get_list(true, true) as $platform) {
+            $platform_stock_list[] = ['id' => $platform['id'], 'name' => $platform['text'], 'qty' => isset($platform_stock_control_list[$platform['id']]) ? $platform_stock_control_list[$platform['id']] : 0];
+            $platform_warehouse_list[] = ['id' => $platform['id'], 'name' => $platform['text'], 'warehouse' => isset($warehouse_stock_control_list[$platform['id']]) ? $warehouse_stock_control_list[$platform['id']] : \common\helpers\Warehouses::get_default_warehouse()];
         }
         unset($platform);
-        unset($platformStockControlList);
-        unset($warehouseStockControlList);
-        $pInfo->platformStockList = $platformStockList;
-        $pInfo->platformWarehouseList = $platformWarehouseList;
-        unset($platformWarehouseList);
-        unset($platformStockList);
-        unset($pInfo);
+        unset($platform_stock_control_list);
+        unset($warehouse_stock_control_list);
+        $p_info->platform_stock_list = $platform_stock_list;
+        $p_info->platform_warehouse_list = $platform_warehouse_list;
+        unset($platform_warehouse_list);
+        unset($platform_stock_list);
+        unset($p_info);
     }
-
-    public static function updateProductInventoryBox($productId)
+    public static function update_product_inventory_box($product_id)
     {
-        $platformStockList = [];
-        $platforWarehouseList = [];
-        $productId = (int)$productId;
-        $warehouseStockControlList = (
-            WarehouseInventoryControl::find()->andWhere(['products_id' => $productId])
-            ->select('warehouse_id')->asArray(true)->indexBy('platform_id')->column()
-        );
-        $platformStockControlList = (
-            PlatformInventoryControl::find()->andWhere(['products_id' => $productId])
-            ->select('current_quantity')->asArray(true)->indexBy('platform_id')->column()
-        );
-        foreach (\common\models\Platforms::find()->where(['status' => 1])->orderBy(['sort_order' => SORT_ASC])
-            ->asArray(false)->all() as $platformRecord
-        ) {
-            $platformStockList[] = [
-                'id' => $platformRecord->platform_id,
-                'name' => $platformRecord->platform_name,
-                'qty' => (isset($platformStockControlList[$platformRecord->platform_id]) ? $platformStockControlList[$platformRecord->platform_id] : 0),
-            ];
-            $platforWarehouseList[] = [
-                'id' => $platformRecord->platform_id,
-                'name' => $platformRecord->platform_name,
-                'warehouse' => (isset($warehouseStockControlList[$platformRecord->platform_id]) ? $warehouseStockControlList[$platformRecord->platform_id] : \common\helpers\Warehouses::get_default_warehouse()),
-            ];
+        $platform_stock_list = [];
+        $platfor_warehouse_list = [];
+        $product_id = (int) $product_id;
+        $warehouse_stock_control_list = Warehouse_Inventory_Control::find()->and_where(['products_id' => $product_id])->select('warehouse_id')->as_array(true)->index_by('platform_id')->column();
+        $platform_stock_control_list = Platform_Inventory_Control::find()->and_where(['products_id' => $product_id])->select('current_quantity')->as_array(true)->index_by('platform_id')->column();
+        foreach (\common\models\Platforms::find()->where(['status' => 1])->order_by(['sort_order' => SORT_ASC])->as_array(false)->all() as $platform_record) {
+            $platform_stock_list[] = ['id' => $platform_record->platform_id, 'name' => $platform_record->platform_name, 'qty' => isset($platform_stock_control_list[$platform_record->platform_id]) ? $platform_stock_control_list[$platform_record->platform_id] : 0];
+            $platfor_warehouse_list[] = ['id' => $platform_record->platform_id, 'name' => $platform_record->platform_name, 'warehouse' => isset($warehouse_stock_control_list[$platform_record->platform_id]) ? $warehouse_stock_control_list[$platform_record->platform_id] : \common\helpers\Warehouses::get_default_warehouse()];
         }
-        unset($warehouseStockControlList);
-        unset($platformStockControlList);
-        unset($platformRecord);
-        unset($productId);
-        return [$platformStockList, $platforWarehouseList];
+        unset($warehouse_stock_control_list);
+        unset($platform_stock_control_list);
+        unset($platform_record);
+        unset($product_id);
+        return [$platform_stock_list, $platfor_warehouse_list];
     }
-
-    public static function updateGetProductStockInventory($uProductId, &$stockValueArray)
+    public static function update_get_product_stock_inventory($u_product_id, &$stock_value_array)
     {
-        $uProductId = \common\helpers\Inventory::normalizeInventoryId($uProductId);
-        $stockValueArray['stock_control'] = (int)($stockValueArray['stock_control'] ?? 0);
-        switch ($stockValueArray['stock_control']) {
+        $u_product_id = \common\helpers\Inventory::normalize_inventory_id($u_product_id);
+        $stock_value_array['stock_control'] = (int) ($stock_value_array['stock_control'] ?? 0);
+        switch ($stock_value_array['stock_control']) {
             case 1:
-                $platformInventoryControl = PlatformInventoryControl::findOne(['products_id' => $uProductId, 'platform_id' => \common\classes\platform::currentId()]);
-                if (is_object($platformInventoryControl)) {
-                    $stockValueArray['products_quantity'] = $platformInventoryControl->current_quantity;
+                $platform_inventory_control = Platform_Inventory_Control::find_one(['products_id' => $u_product_id, 'platform_id' => \common\classes\platform::current_id()]);
+                if (is_object($platform_inventory_control)) {
+                    $stock_value_array['products_quantity'] = $platform_inventory_control->current_quantity;
                 }
-                unset($platformInventoryControl);
+                unset($platform_inventory_control);
                 break;
             case 2:
-                $warehouseInventoryControl = WarehouseInventoryControl::findOne(['products_id' => $uProductId, 'platform_id' => \common\classes\platform::currentId()]);
-                if (is_object($warehouseInventoryControl)) {
-                    $supplierId = (int)0;
-                    $warehouseId = (int)$warehouseInventoryControl->warehouse_id;
-                    $warehouses_stock_query = tep_db_query(
-                        'select w.warehouse_id, w.warehouse_name, sum(wp.products_quantity) as products_quantity,'
-                        . ' sum(wp.allocated_stock_quantity) as allocated_stock_quantity, sum(wp.temporary_stock_quantity) as temporary_stock_quantity,'
-                        . ' sum(wp.warehouse_stock_quantity) as warehouse_stock_quantity, sum(wp.ordered_stock_quantity) as ordered_stock_quantity'
-                        . ' from  ' . TABLE_WAREHOUSES . ' w left join ' . TABLE_WAREHOUSES_PRODUCTS . ' wp on wp.warehouse_id = w.warehouse_id'
-                            . (($supplierId > 0) ? " and wp.suppliers_id = '{$supplierId}'" : '')
-                            . " and wp.products_id = '{$uProductId}'"
-                            . " and wp.prid = '" . (int)$uProductId . "'"
-                        . " where w.status = '1' and w.warehouse_id = '{$warehouseId}'"
-                    );
+                $warehouse_inventory_control = Warehouse_Inventory_Control::find_one(['products_id' => $u_product_id, 'platform_id' => \common\classes\platform::current_id()]);
+                if (is_object($warehouse_inventory_control)) {
+                    $supplier_id = (int) 0;
+                    $warehouse_id = (int) $warehouse_inventory_control->warehouse_id;
+                    $warehouses_stock_query = tep_db_query('select w.warehouse_id, w.warehouse_name, sum(wp.products_quantity) as products_quantity,' . ' sum(wp.allocated_stock_quantity) as allocated_stock_quantity, sum(wp.temporary_stock_quantity) as temporary_stock_quantity,' . ' sum(wp.warehouse_stock_quantity) as warehouse_stock_quantity, sum(wp.ordered_stock_quantity) as ordered_stock_quantity' . ' from  ' . TABLE_WAREHOUSES . ' w left join ' . TABLE_WAREHOUSES_PRODUCTS . ' wp on wp.warehouse_id = w.warehouse_id' . ($supplier_id > 0 ? " and wp.suppliers_id = '{$supplier_id}'" : '') . " and wp.products_id = '{$u_product_id}'" . " and wp.prid = '" . (int) $u_product_id . "'" . " where w.status = '1' and w.warehouse_id = '{$warehouse_id}'");
                     if (tep_db_num_rows($warehouses_stock_query) > 0) {
                         $warehouses_stock = tep_db_fetch_array($warehouses_stock_query);
-                        $stockValueArray['products_quantity'] = $warehouses_stock['products_quantity'];
+                        $stock_value_array['products_quantity'] = $warehouses_stock['products_quantity'];
                         unset($warehouses_stock);
                     }
                     unset($warehouses_stock_query);
-                    unset($warehouseId);
-                    unset($supplierId);
+                    unset($warehouse_id);
+                    unset($supplier_id);
                 }
-                unset($warehouseInventoryControl);
+                unset($warehouse_inventory_control);
                 break;
         }
-        unset($stockValueArray);
-        unset($uProductId);
+        unset($stock_value_array);
+        unset($u_product_id);
     }
-
-    public static function updateGetProductStockProduct($productId, &$stockValueArray)
+    public static function update_get_product_stock_product($product_id, &$stock_value_array)
     {
-        $productId = (int)$productId;
-        $stockValueArray['stock_control'] = (int)($stockValueArray['stock_control'] ?? 0);
-        switch ($stockValueArray['stock_control']) {
+        $product_id = (int) $product_id;
+        $stock_value_array['stock_control'] = (int) ($stock_value_array['stock_control'] ?? 0);
+        switch ($stock_value_array['stock_control']) {
             case 1:
-                $platformStockControl = PlatformStockControl::findOne(['products_id' => $productId, 'platform_id' => \common\classes\platform::currentId()]);
-                if (is_object($platformStockControl)) {
-                    $stockValueArray['products_quantity'] = $platformStockControl->current_quantity;
+                $platform_stock_control = Platform_Stock_Control::find_one(['products_id' => $product_id, 'platform_id' => \common\classes\platform::current_id()]);
+                if (is_object($platform_stock_control)) {
+                    $stock_value_array['products_quantity'] = $platform_stock_control->current_quantity;
                 }
-                unset($platformStockControl);
+                unset($platform_stock_control);
                 break;
             case 2:
-                $warehouseStockControl = WarehouseStockControl::findOne(['products_id' => $productId, 'platform_id' => \common\classes\platform::currentId()]);
-                if (is_object($warehouseStockControl)) {
-                    $supplierId = (int)0;
-                    $warehouseId = (int)$warehouseStockControl->warehouse_id;
-                    $warehouses_stock_query = tep_db_query(
-                        'select w.warehouse_id, w.warehouse_name, sum(wp.products_quantity) as products_quantity,'
-                        . ' sum(wp.allocated_stock_quantity) as allocated_stock_quantity, sum(wp.temporary_stock_quantity) as temporary_stock_quantity,'
-                        . ' sum(wp.warehouse_stock_quantity) as warehouse_stock_quantity, sum(wp.ordered_stock_quantity) as ordered_stock_quantity'
-                        . ' from  ' . TABLE_WAREHOUSES . ' w left join ' . TABLE_WAREHOUSES_PRODUCTS . ' wp on wp.warehouse_id = w.warehouse_id'
-                            . (($supplierId > 0) ? " and wp.suppliers_id = '{$supplierId}'" : '')
-                            . " and wp.products_id = '{$productId}'"
-                            . " and wp.prid = '{$productId}'"
-                        . " where w.status = '1' and w.warehouse_id = '{$warehouseId}'"
-                    );
+                $warehouse_stock_control = Warehouse_Stock_Control::find_one(['products_id' => $product_id, 'platform_id' => \common\classes\platform::current_id()]);
+                if (is_object($warehouse_stock_control)) {
+                    $supplier_id = (int) 0;
+                    $warehouse_id = (int) $warehouse_stock_control->warehouse_id;
+                    $warehouses_stock_query = tep_db_query('select w.warehouse_id, w.warehouse_name, sum(wp.products_quantity) as products_quantity,' . ' sum(wp.allocated_stock_quantity) as allocated_stock_quantity, sum(wp.temporary_stock_quantity) as temporary_stock_quantity,' . ' sum(wp.warehouse_stock_quantity) as warehouse_stock_quantity, sum(wp.ordered_stock_quantity) as ordered_stock_quantity' . ' from  ' . TABLE_WAREHOUSES . ' w left join ' . TABLE_WAREHOUSES_PRODUCTS . ' wp on wp.warehouse_id = w.warehouse_id' . ($supplier_id > 0 ? " and wp.suppliers_id = '{$supplier_id}'" : '') . " and wp.products_id = '{$product_id}'" . " and wp.prid = '{$product_id}'" . " where w.status = '1' and w.warehouse_id = '{$warehouse_id}'");
                     if (tep_db_num_rows($warehouses_stock_query) > 0) {
                         $warehouses_stock = tep_db_fetch_array($warehouses_stock_query);
-                        $stockValueArray['products_quantity'] = $warehouses_stock['products_quantity'];
+                        $stock_value_array['products_quantity'] = $warehouses_stock['products_quantity'];
                         unset($warehouses_stock);
                     }
                     unset($warehouses_stock_query);
-                    unset($warehouseId);
-                    unset($supplierId);
+                    unset($warehouse_id);
+                    unset($supplier_id);
                 }
-                unset($warehouseStockControl);
+                unset($warehouse_stock_control);
                 break;
         }
-        unset($stockValueArray);
-        unset($productId);
+        unset($stock_value_array);
+        unset($product_id);
     }
-
-    public static function updateGetAvailable($uProductId, $platformId)
+    public static function update_get_available($u_product_id, $platform_id)
     {
         $return = false;
-        $platformId = (int)$platformId;
-        $uProductId = \common\helpers\Inventory::normalize_id_excl_virtual($uProductId);
-        if (\common\helpers\Inventory::isInventory($uProductId) != true) {
-            $productRecord = \common\helpers\Product::getRecord($uProductId);
-            if (($productRecord instanceof \common\models\Products) and ($productRecord->stock_control == 1)) {
+        $platform_id = (int) $platform_id;
+        $u_product_id = \common\helpers\Inventory::normalize_id_excl_virtual($u_product_id);
+        if (\common\helpers\Inventory::is_inventory($u_product_id) != true) {
+            $product_record = \common\helpers\Product::get_record($u_product_id);
+            if ($product_record instanceof \common\models\Products and $product_record->stock_control == 1) {
                 $return = 0;
-                $platformStockControl = (
-                    PlatformStockControl::find()->andWhere(['products_id' => $uProductId, 'platform_id' => $platformId])
-                    ->cache((defined('ALLOW_ANY_QUERY_CACHE') and (ALLOW_ANY_QUERY_CACHE == 'True')) ? \common\helpers\Product::PRODUCT_RECORD_CACHE : -1)
-                    ->one()
-                );
-                if ($platformStockControl instanceof PlatformStockControl) {
-                    $return = $platformStockControl->current_quantity;
+                $platform_stock_control = Platform_Stock_Control::find()->and_where(['products_id' => $u_product_id, 'platform_id' => $platform_id])->cache((defined('ALLOW_ANY_QUERY_CACHE') and ALLOW_ANY_QUERY_CACHE == 'True') ? \common\helpers\Product::PRODUCT_RECORD_CACHE : -1)->one();
+                if ($platform_stock_control instanceof Platform_Stock_Control) {
+                    $return = $platform_stock_control->current_quantity;
                 }
-                unset($platformStockControl);
+                unset($platform_stock_control);
             }
-            unset($productRecord);
+            unset($product_record);
         } else {
-            $inventoryRecord = \common\helpers\Inventory::getRecord($uProductId);
-            if (($inventoryRecord instanceof \common\models\Inventory) and ($inventoryRecord->stock_control == 1)) {
+            $inventory_record = \common\helpers\Inventory::get_record($u_product_id);
+            if ($inventory_record instanceof \common\models\Inventory and $inventory_record->stock_control == 1) {
                 $return = 0;
-                $platformInventoryControl = (
-                    PlatformInventoryControl::find()->andWhere(['products_id' => $uProductId, 'platform_id' => $platformId])
-                    ->cache((defined('ALLOW_ANY_QUERY_CACHE') and (ALLOW_ANY_QUERY_CACHE == 'True')) ? \common\helpers\Product::PRODUCT_RECORD_CACHE : -1)
-                    ->one()
-                );
-                if ($platformInventoryControl instanceof PlatformInventoryControl) {
-                    $return = $platformInventoryControl->current_quantity;
+                $platform_inventory_control = Platform_Inventory_Control::find()->and_where(['products_id' => $u_product_id, 'platform_id' => $platform_id])->cache((defined('ALLOW_ANY_QUERY_CACHE') and ALLOW_ANY_QUERY_CACHE == 'True') ? \common\helpers\Product::PRODUCT_RECORD_CACHE : -1)->one();
+                if ($platform_inventory_control instanceof Platform_Inventory_Control) {
+                    $return = $platform_inventory_control->current_quantity;
                 }
-                unset($platformInventoryControl);
+                unset($platform_inventory_control);
             }
-            unset($inventoryRecord);
+            unset($inventory_record);
         }
-        unset($uProductId);
-        unset($platformId);
+        unset($u_product_id);
+        unset($platform_id);
         return $return;
     }
-
-    public static function updateGetWarehouseIdPriorityArray($uProductId, $platformId)
+    public static function update_get_warehouse_id_priority_array($u_product_id, $platform_id)
     {
         $return = false;
-        $platformId = (int)$platformId;
-        $uProductId = \common\helpers\Inventory::normalize_id_excl_virtual($uProductId);
-        if (\common\helpers\Inventory::isInventory($uProductId) != true) {
-            $productRecord = \common\helpers\Product::getRecord($uProductId);
-            if (($productRecord instanceof \common\models\Products) and ($productRecord->stock_control == 2)) {
+        $platform_id = (int) $platform_id;
+        $u_product_id = \common\helpers\Inventory::normalize_id_excl_virtual($u_product_id);
+        if (\common\helpers\Inventory::is_inventory($u_product_id) != true) {
+            $product_record = \common\helpers\Product::get_record($u_product_id);
+            if ($product_record instanceof \common\models\Products and $product_record->stock_control == 2) {
                 $return = [];
-                $warehouseStockControlRecord = WarehouseStockControl::findOne(['products_id' => $productRecord->products_id, 'platform_id' => $platformId]);
-                if ($warehouseStockControlRecord instanceof WarehouseStockControl) {
-                    $return[] = (int)$warehouseStockControlRecord->warehouse_id;
+                $warehouse_stock_control_record = Warehouse_Stock_Control::find_one(['products_id' => $product_record->products_id, 'platform_id' => $platform_id]);
+                if ($warehouse_stock_control_record instanceof Warehouse_Stock_Control) {
+                    $return[] = (int) $warehouse_stock_control_record->warehouse_id;
                 }
-                unset($warehouseStockControlRecord);
+                unset($warehouse_stock_control_record);
             }
-            unset($productRecord);
+            unset($product_record);
         } else {
-            $inventoryRecord = \common\helpers\Inventory::getRecord($uProductId);
-            if (($inventoryRecord instanceof \common\models\Inventory) and ($inventoryRecord->stock_control == 2)) {
+            $inventory_record = \common\helpers\Inventory::get_record($u_product_id);
+            if ($inventory_record instanceof \common\models\Inventory and $inventory_record->stock_control == 2) {
                 $return = [];
-                $warehouseInventoryControl = WarehouseInventoryControl::findOne(['products_id' => $inventoryRecord->products_id, 'platform_id' => $platformId]);
-                if ($warehouseInventoryControl instanceof WarehouseInventoryControl) {
-                    $return[] = (int)$warehouseInventoryControl->warehouse_id;
+                $warehouse_inventory_control = Warehouse_Inventory_Control::find_one(['products_id' => $inventory_record->products_id, 'platform_id' => $platform_id]);
+                if ($warehouse_inventory_control instanceof Warehouse_Inventory_Control) {
+                    $return[] = (int) $warehouse_inventory_control->warehouse_id;
                 }
-                unset($warehouseInventoryControl);
+                unset($warehouse_inventory_control);
             }
-            unset($inventoryRecord);
+            unset($inventory_record);
         }
-        unset($uProductId);
-        unset($platformId);
+        unset($u_product_id);
+        unset($platform_id);
         return $return;
     }
-
-    public static function updateUpdateStockOfOrder($uProductId, $platformId)
+    public static function update_update_stock_of_order($u_product_id, $platform_id)
     {
         $return = false;
-        $productRecord = \common\helpers\Product::getRecord($uProductId);
-        if (($productRecord instanceof \common\models\Products) and ($productRecord->stock_control == 2)) {
+        $product_record = \common\helpers\Product::get_record($u_product_id);
+        if ($product_record instanceof \common\models\Products and $product_record->stock_control == 2) {
             //$return = 0;
-            $warehouseStockControl = WarehouseStockControl::findOne(['products_id' => $productRecord->products_id, 'platform_id' => (int)$platformId]);
-            if (is_object($warehouseStockControl)) {
-                $return = (int)$warehouseStockControl->warehouse_id;
+            $warehouse_stock_control = Warehouse_Stock_Control::find_one(['products_id' => $product_record->products_id, 'platform_id' => (int) $platform_id]);
+            if (is_object($warehouse_stock_control)) {
+                $return = (int) $warehouse_stock_control->warehouse_id;
             }
-            unset($warehouseStockControl);
+            unset($warehouse_stock_control);
         }
-        unset($productRecord);
-        unset($uProductId);
-        unset($platformId);
+        unset($product_record);
+        unset($u_product_id);
+        unset($platform_id);
         return $return;
     }
-
-    public static function updateStockInventoryInventory($uProductId, $platformId, $quantity)
+    public static function update_stock_inventory_inventory($u_product_id, $platform_id, $quantity)
     {
         $quantity = trim($quantity);
-        $platformId = (int)$platformId;
-        $uProductId = \common\helpers\Inventory::normalize_id_excl_virtual($uProductId);
-        $inventoryRecord = \common\helpers\Inventory::getRecord($uProductId);
-        if (($inventoryRecord instanceof \common\models\Inventory) and ($inventoryRecord->stock_control == 1)) {
-            tep_db_query(
-                'update platform_inventory_control set current_quantity = current_quantity ' . $quantity
-                . " where products_id = '" . tep_db_input($uProductId) . "' and platform_id='" . $platformId . "'"
-            );
+        $platform_id = (int) $platform_id;
+        $u_product_id = \common\helpers\Inventory::normalize_id_excl_virtual($u_product_id);
+        $inventory_record = \common\helpers\Inventory::get_record($u_product_id);
+        if ($inventory_record instanceof \common\models\Inventory and $inventory_record->stock_control == 1) {
+            tep_db_query('update platform_inventory_control set current_quantity = current_quantity ' . $quantity . " where products_id = '" . tep_db_input($u_product_id) . "' and platform_id='" . $platform_id . "'");
         }
-        unset($inventoryRecord);
-        unset($uProductId);
-        unset($platformId);
+        unset($inventory_record);
+        unset($u_product_id);
+        unset($platform_id);
         unset($quantity);
     }
-
-    public static function updateStockInventoryProduct($productId, $platformId, $quantity)
+    public static function update_stock_inventory_product($product_id, $platform_id, $quantity)
     {
         $quantity = trim($quantity);
-        $productId = (int)$productId;
-        $platformId = (int)$platformId;
-        $productRecord = \common\helpers\Product::getRecord($productId);
-        if (($productRecord instanceof \common\models\Products) and ($productRecord->stock_control == 1)) {
-            tep_db_query(
-                'update platform_stock_control set current_quantity = current_quantity ' . $quantity
-                . " where products_id = '" . $productId . "' and platform_id='" . $platformId . "'"
-            );
+        $product_id = (int) $product_id;
+        $platform_id = (int) $platform_id;
+        $product_record = \common\helpers\Product::get_record($product_id);
+        if ($product_record instanceof \common\models\Products and $product_record->stock_control == 1) {
+            tep_db_query('update platform_stock_control set current_quantity = current_quantity ' . $quantity . " where products_id = '" . $product_id . "' and platform_id='" . $platform_id . "'");
         }
-        unset($productRecord);
-        unset($platformId);
-        unset($productId);
+        unset($product_record);
+        unset($platform_id);
+        unset($product_id);
         unset($quantity);
     }
-
-    public static function updateApiProductLoad(\common\api\Classes\Product $productClass)
+    public static function update_api_product_load(\common\api\Classes\Product $product_class)
     {
-        $productClass->platformStockControlRecordArray = PlatformStockControl::find()->where(['products_id' => $productClass->productId])->asArray(true)->all();
-        $productClass->warehouseStockControlRecordArray = WarehouseStockControl::find()->where(['products_id' => $productClass->productId])->asArray(true)->all();
+        $product_class->platform_stock_control_record_array = Platform_Stock_Control::find()->where(['products_id' => $product_class->product_id])->as_array(true)->all();
+        $product_class->warehouse_stock_control_record_array = Warehouse_Stock_Control::find()->where(['products_id' => $product_class->product_id])->as_array(true)->all();
     }
-
-    public static function updateApiProductInventoryLoad(array &$inventoryRecord)
+    public static function update_api_product_inventory_load(array &$inventory_record)
     {
-        $inventoryRecord['platformInventoryControlRecordArray'] = PlatformInventoryControl::find()->where(['products_id' => $inventoryRecord['products_id']])->asArray(true)->all();
-        $inventoryRecord['warehouseInventoryControlRecordArray'] = WarehouseInventoryControl::find()->where(['products_id' => $inventoryRecord['products_id']])->asArray(true)->all();
+        $inventory_record['platformInventoryControlRecordArray'] = Platform_Inventory_Control::find()->where(['products_id' => $inventory_record['products_id']])->as_array(true)->all();
+        $inventory_record['warehouseInventoryControlRecordArray'] = Warehouse_Inventory_Control::find()->where(['products_id' => $inventory_record['products_id']])->as_array(true)->all();
     }
-
-    public static function updateApiProductSave(\common\api\Classes\Product $productClass)
+    public static function update_api_product_save(\common\api\Classes\Product $product_class)
     {
         /**
          * Platform Stock Control
          */
-        $productClass->platformStockControlRecordArray = (array)($productClass->platformStockControlRecordArray ?? []);
-        foreach ($productClass->platformStockControlRecordArray as $platformStockControlRecord) {
-            $platformId = (int)(isset($platformStockControlRecord['platform_id']) ? $platformStockControlRecord['platform_id'] : 0);
-            unset($platformStockControlRecord['products_id']);
-            unset($platformStockControlRecord['platform_id']);
-            if ($platformId > 0) {
-                $platformStockClass = PlatformStockControl::find()->where(['products_id' => $productClass->productId, 'platform_id' => $platformId])->one();
-                if (!($platformStockClass instanceof PlatformStockControl)) {
-                    $platformStockClass = new PlatformStockControl();
-                    $platformStockClass->loadDefaultValues();
-                    $platformStockClass->products_id = $productClass->productId;
-                    $platformStockClass->platform_id = $platformId;
+        $product_class->platform_stock_control_record_array = (array) ($product_class->platform_stock_control_record_array ?? []);
+        foreach ($product_class->platform_stock_control_record_array as $platform_stock_control_record) {
+            $platform_id = (int) (isset($platform_stock_control_record['platform_id']) ? $platform_stock_control_record['platform_id'] : 0);
+            unset($platform_stock_control_record['products_id']);
+            unset($platform_stock_control_record['platform_id']);
+            if ($platform_id > 0) {
+                $platform_stock_class = Platform_Stock_Control::find()->where(['products_id' => $product_class->product_id, 'platform_id' => $platform_id])->one();
+                if (!$platform_stock_class instanceof Platform_Stock_Control) {
+                    $platform_stock_class = new Platform_Stock_Control();
+                    $platform_stock_class->load_default_values();
+                    $platform_stock_class->products_id = $product_class->product_id;
+                    $platform_stock_class->platform_id = $platform_id;
                 }
-                $platformStockClass->setAttributes($platformStockControlRecord, false);
-                if ($platformStockClass->save(false)) {
-
+                $platform_stock_class->set_attributes($platform_stock_control_record, false);
+                if ($platform_stock_class->save(false)) {
                 } else {
-                    $productClass->messageAdd($platformStockClass->getErrorSummary(true));
+                    $product_class->message_add($platform_stock_class->get_error_summary(true));
                 }
-                unset($platformStockClass);
+                unset($platform_stock_class);
             }
-            unset($platformId);
+            unset($platform_id);
         }
-        unset($platformStockControlRecord);
+        unset($platform_stock_control_record);
         /**
          * Warehouses Stock Control
          */
-        $productClass->warehouseStockControlRecordArray = (array)($productClass->warehouseStockControlRecordArray ?? []);
-        foreach ($productClass->warehouseStockControlRecordArray as $warehouseStockControlRecord) {
-            $platformId = (int)(isset($warehouseStockControlRecord['platform_id']) ? $warehouseStockControlRecord['platform_id'] : 0);
-            unset($warehouseStockControlRecord['products_id']);
-            unset($warehouseStockControlRecord['platform_id']);
-            if ($platformId > 0) {
-                $warehouseStockClass = WarehouseStockControl::find()->where(['products_id' => $productClass->productId, 'platform_id' => $platformId])->one();
-                if (!($warehouseStockClass instanceof WarehouseStockControl)) {
-                    $warehouseStockClass = new WarehouseStockControl();
-                    $warehouseStockClass->loadDefaultValues();
-                    $warehouseStockClass->products_id = $productClass->productId;
-                    $warehouseStockClass->platform_id = $platformId;
+        $product_class->warehouse_stock_control_record_array = (array) ($product_class->warehouse_stock_control_record_array ?? []);
+        foreach ($product_class->warehouse_stock_control_record_array as $warehouse_stock_control_record) {
+            $platform_id = (int) (isset($warehouse_stock_control_record['platform_id']) ? $warehouse_stock_control_record['platform_id'] : 0);
+            unset($warehouse_stock_control_record['products_id']);
+            unset($warehouse_stock_control_record['platform_id']);
+            if ($platform_id > 0) {
+                $warehouse_stock_class = Warehouse_Stock_Control::find()->where(['products_id' => $product_class->product_id, 'platform_id' => $platform_id])->one();
+                if (!$warehouse_stock_class instanceof Warehouse_Stock_Control) {
+                    $warehouse_stock_class = new Warehouse_Stock_Control();
+                    $warehouse_stock_class->load_default_values();
+                    $warehouse_stock_class->products_id = $product_class->product_id;
+                    $warehouse_stock_class->platform_id = $platform_id;
                 }
-                $warehouseStockClass->setAttributes($warehouseStockControlRecord, false);
-                if ($warehouseStockClass->save(false)) {
-
+                $warehouse_stock_class->set_attributes($warehouse_stock_control_record, false);
+                if ($warehouse_stock_class->save(false)) {
                 } else {
-                    $productClass->messageAdd($warehouseStockClass->getErrorSummary(true));
+                    $product_class->message_add($warehouse_stock_class->get_error_summary(true));
                 }
-                unset($warehouseStockClass);
+                unset($warehouse_stock_class);
             }
-            unset($platformId);
+            unset($platform_id);
         }
-        unset($warehouseStockControlRecord);
+        unset($warehouse_stock_control_record);
     }
-
-    public static function updateApiProductInventorySave(\common\api\Classes\Product $productClass, array $inventoryRecord, $inventoryId, $uprid)
+    public static function update_api_product_inventory_save(\common\api\Classes\Product $product_class, array $inventory_record, $inventory_id, $uprid)
     {
-        $inventoryId = (int)$inventoryId;
-        $inventoryRecord['platformInventoryControlRecordArray'] = (array)($inventoryRecord['platformInventoryControlRecordArray'] ?? []);
-        if (count($inventoryRecord['platformInventoryControlRecordArray']) > 0) {
-            foreach ($inventoryRecord['platformInventoryControlRecordArray'] as $platformInventoryControlRecord) {
-                $platformId = (int)(isset($platformInventoryControlRecord['platform_id']) ? $platformInventoryControlRecord['platform_id'] : 0);
-                unset($platformInventoryControlRecord['products_id']);
-                unset($platformInventoryControlRecord['platform_id']);
-                if ($platformId > 0) {
-                    $inventoryClass = PlatformInventoryControl::find()->where(['products_id' => $uprid, 'platform_id' => $platformId])->one();
-                    if (!($inventoryClass instanceof PlatformInventoryControl)) {
-                        $inventoryClass = new PlatformInventoryControl();
-                        $inventoryClass->loadDefaultValues();
-                        $inventoryClass->products_id = $uprid;
-                        $inventoryClass->platform_id = $platformId;
+        $inventory_id = (int) $inventory_id;
+        $inventory_record['platformInventoryControlRecordArray'] = (array) ($inventory_record['platformInventoryControlRecordArray'] ?? []);
+        if (count($inventory_record['platformInventoryControlRecordArray']) > 0) {
+            foreach ($inventory_record['platformInventoryControlRecordArray'] as $platform_inventory_control_record) {
+                $platform_id = (int) (isset($platform_inventory_control_record['platform_id']) ? $platform_inventory_control_record['platform_id'] : 0);
+                unset($platform_inventory_control_record['products_id']);
+                unset($platform_inventory_control_record['platform_id']);
+                if ($platform_id > 0) {
+                    $inventory_class = Platform_Inventory_Control::find()->where(['products_id' => $uprid, 'platform_id' => $platform_id])->one();
+                    if (!$inventory_class instanceof Platform_Inventory_Control) {
+                        $inventory_class = new Platform_Inventory_Control();
+                        $inventory_class->load_default_values();
+                        $inventory_class->products_id = $uprid;
+                        $inventory_class->platform_id = $platform_id;
                     }
-                    $inventoryClass->setAttributes($inventoryRecord, false);
-                    if ($inventoryClass->save(false)) {
-
+                    $inventory_class->set_attributes($inventory_record, false);
+                    if ($inventory_class->save(false)) {
                     } else {
-                        $productClass->messageAdd($inventoryClass->getErrorSummary(true));
+                        $product_class->message_add($inventory_class->get_error_summary(true));
                     }
-                    unset($inventoryClass);
+                    unset($inventory_class);
                 }
-                unset($platformId);
+                unset($platform_id);
             }
-            unset($platformInventoryControlRecord);
+            unset($platform_inventory_control_record);
         }
-        $inventoryRecord['warehouseInventoryControlRecordArray'] = (array)($inventoryRecord['warehouseInventoryControlRecordArray'] ?? []);
-        if (($inventoryId > 0) and (count($inventoryRecord['warehouseInventoryControlRecordArray']) > 0)) {
-            foreach ($inventoryRecord['warehouseInventoryControlRecordArray'] as $warehouseInventoryControlRecord) {
-                $platformId = (int)(isset($warehouseInventoryControlRecord['platform_id']) ? $warehouseInventoryControlRecord['platform_id'] : 0);
-                unset($warehouseInventoryControlRecord['products_id']);
-                unset($warehouseInventoryControlRecord['platform_id']);
-                if ($platformId > 0) {
-                    $inventoryClass = WarehouseInventoryControl::find()->where(['products_id' => $uprid, 'platform_id' => $platformId])->one();
-                    if (!($inventoryClass instanceof WarehouseInventoryControl)) {
-                        $inventoryClass = new WarehouseInventoryControl();
-                        $inventoryClass->loadDefaultValues();
-                        $inventoryClass->products_id = $uprid;
-                        $inventoryClass->platform_id = $platformId;
+        $inventory_record['warehouseInventoryControlRecordArray'] = (array) ($inventory_record['warehouseInventoryControlRecordArray'] ?? []);
+        if ($inventory_id > 0 and count($inventory_record['warehouseInventoryControlRecordArray']) > 0) {
+            foreach ($inventory_record['warehouseInventoryControlRecordArray'] as $warehouse_inventory_control_record) {
+                $platform_id = (int) (isset($warehouse_inventory_control_record['platform_id']) ? $warehouse_inventory_control_record['platform_id'] : 0);
+                unset($warehouse_inventory_control_record['products_id']);
+                unset($warehouse_inventory_control_record['platform_id']);
+                if ($platform_id > 0) {
+                    $inventory_class = Warehouse_Inventory_Control::find()->where(['products_id' => $uprid, 'platform_id' => $platform_id])->one();
+                    if (!$inventory_class instanceof Warehouse_Inventory_Control) {
+                        $inventory_class = new Warehouse_Inventory_Control();
+                        $inventory_class->load_default_values();
+                        $inventory_class->products_id = $uprid;
+                        $inventory_class->platform_id = $platform_id;
                     }
-                    $inventoryClass->setAttributes($warehouseInventoryControlRecord, false);
-                    if ($inventoryClass->save(false)) {
-
+                    $inventory_class->set_attributes($warehouse_inventory_control_record, false);
+                    if ($inventory_class->save(false)) {
                     } else {
-                        $productClass->messageAdd($inventoryClass->getErrorSummary(true));
+                        $product_class->message_add($inventory_class->get_error_summary(true));
                     }
-                    unset($inventoryClass);
+                    unset($inventory_class);
                 }
-                unset($platformId);
+                unset($platform_id);
             }
-            unset($warehouseInventoryControlRecord);
+            unset($warehouse_inventory_control_record);
         }
-        unset($inventoryId);
+        unset($inventory_id);
         unset($uprid);
     }
 }

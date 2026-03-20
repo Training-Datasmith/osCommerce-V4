@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,10 +11,9 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes;
 
-class osC_CategoryTree
+class Os_C_category_Tree
 {
     public $root_category_id = 0;
     public $max_level = 0;
@@ -31,27 +30,15 @@ class osC_CategoryTree
     public $spacer_multiplier = 1;
     private $show_products = false;
     protected $categories_products = [];
-
     public function __construct($load_from_database = true)
     {
         global $languages_id, $current_category_id;
-
         $categories_join = '';
-        if (\common\classes\platform::activeId()) {
-            $categories_join .=
-                ' inner join ' . TABLE_PLATFORMS_CATEGORIES . " plc on c.categories_id = plc.categories_id  and plc.platform_id = '" . \common\classes\platform::currentId() . "' ";
+        if (\common\classes\platform::active_id()) {
+            $categories_join .= ' inner join ' . TABLE_PLATFORMS_CATEGORIES . " plc on c.categories_id = plc.categories_id  and plc.platform_id = '" . \common\classes\platform::current_id() . "' ";
         }
-
-        $categories_query = tep_db_query(
-            'select c.categories_id, cd.categories_name, c.parent_id '.
-              'from ' . TABLE_CATEGORIES . " c {$categories_join}, " . TABLE_CATEGORIES_DESCRIPTION . ' cd '.
-              "where c.categories_id = cd.categories_id and cd.language_id = '" . (int)$languages_id . "' and cd.affiliate_id=0 ".
-              ' and c.categories_status=1 '.
-              'order by c.parent_id, c.sort_order, cd.categories_name'
-        );
-
+        $categories_query = tep_db_query('select c.categories_id, cd.categories_name, c.parent_id ' . 'from ' . TABLE_CATEGORIES . " c {$categories_join}, " . TABLE_CATEGORIES_DESCRIPTION . ' cd ' . "where c.categories_id = cd.categories_id and cd.language_id = '" . (int) $languages_id . "' and cd.affiliate_id=0 " . ' and c.categories_status=1 ' . 'order by c.parent_id, c.sort_order, cd.categories_name');
         $this->data = [];
-
         while ($categories = tep_db_fetch_array($categories_query)) {
             // Ultimate SEO URLs compatibility - Chemo
             # initialize array container for parent_id
@@ -60,26 +47,23 @@ class osC_CategoryTree
             # For some reason it seems to return in reverse order so reverse the array
             $p = array_reverse($p);
             # Implode the array to get the parent category path
-            $cID = (implode('_', $p) ? implode('_', $p) . '_' . $categories['parent_id'] :
-            $categories['parent_id']);
+            $c_id = implode('_', $p) ? implode('_', $p) . '_' . $categories['parent_id'] : $categories['parent_id'];
             # initialize array container for category_id
             $c = [];
             \common\helpers\Categories::get_parent_categories($c, $categories['categories_id']);
             # For some reason it seems to return in reverse order so reverse the array
             $c = array_reverse($c);
             # Implode the array to get the full category path
-            $id = (implode('_', $c) ? implode('_', $c) . '_' . $categories['categories_id'] :
-            $categories['categories_id']);
-
+            $id = implode('_', $c) ? implode('_', $c) . '_' . $categories['categories_id'] : $categories['categories_id'];
             if (\common\helpers\Categories::count_products_in_category($categories['categories_id']) > 0) {
-                $this->data[$cID][$id] = ['name' => $categories['categories_name'], 'count' => 0, 'c_id_s' => $categories['categories_id']];
+                $this->data[$c_id][$id] = ['name' => $categories['categories_name'], 'count' => 0, 'c_id_s' => $categories['categories_id']];
             }
-
-        } // eof While loop
+        }
+        // eof While loop
         //echo '<pre>'; print_r($this->data);
-    } //eof Function
-
-    public function buildBranch($parent_id, $level = 0, $cid = 0, $cid2 = 0)
+    }
+    //eof Function
+    public function build_branch($parent_id, $level = 0, $cid = 0, $cid2 = 0)
     {
         $result = $this->parent_group_start_string;
         if (isset($this->data[$parent_id])) {
@@ -96,11 +80,9 @@ class osC_CategoryTree
                 if (isset($this->data[$category_id])) {
                     $result .= $this->parent_start_string;
                 }
-
                 if ($level == 0) {
                     $result .= $this->root_start_string;
                 }
-
                 if (is_array($_GET['c'])) {
                     $categories_array = $_GET['c'];
                 } else {
@@ -113,37 +95,28 @@ class osC_CategoryTree
                     $categories_array[] = $category['c_id_s'];
                     $result .= str_repeat($this->spacer_string, $this->spacer_multiplier * $level) . '<a href="' . tep_href_link('catalog', 'cPath=' . $_GET['cPath'] . (count($categories_array) > 0 ? '&c[]=' . implode('&c[]=', $categories_array) : '')) . '" class="c_heck"></a>';
                 }
-
                 $result .= $category['name'];
-
                 if ($level == 0) {
                     $result .= $this->root_end_string;
                 }
-
                 if (isset($this->data[$category_id])) {
                     $result .= $this->parent_end_string;
                 }
-
                 $result .= $this->child_end_string;
-
-                if (isset($this->data[$category_id]) && (($this->max_level == '0') || ($this->max_level > $level))) {
-                    $result .= $this->buildBranch($category_id, $level + 1, $cid, $cid2);
+                if (isset($this->data[$category_id]) && ($this->max_level == '0' || $this->max_level > $level)) {
+                    $result .= $this->build_branch($category_id, $level + 1, $cid, $cid2);
                 }
             }
         }
-
         $result .= $this->parent_group_end_string;
         return $result;
     }
-
-    public function buildBranch2($parent_id, $level = 0)
+    public function build_branch2($parent_id, $level = 0)
     {
-
         if ($level >= 2) {
             return '';
         }
         $result = $this->parent_group_start_string;
-
         if (isset($this->data[$parent_id])) {
             foreach ($this->data[$parent_id] as $category_id => $category) {
                 $category_link = $category_id;
@@ -151,100 +124,73 @@ class osC_CategoryTree
                 if (isset($this->data[$category_id]) || isset($this->categories_products[$category['c_id_s']])) {
                     $result .= $this->parent_start_string;
                 }
-
                 if ($level == 0) {
                     $result .= $this->root_start_string;
                 }
-
-                $result .= str_repeat($this->spacer_string, $this->spacer_multiplier * $level) .
-                '<a href="' . tep_href_link('catalog', 'cPath=' . $category_link) . '">';
+                $result .= str_repeat($this->spacer_string, $this->spacer_multiplier * $level) . '<a href="' . tep_href_link('catalog', 'cPath=' . $category_link) . '">';
                 $result .= $category['name'];
                 $result .= '</a>';
-
                 if ($level == 0) {
                     $result .= $this->root_end_string;
                 }
-
                 if (isset($this->data[$category_id]) || isset($this->categories_products[$category['c_id_s']])) {
                     $result .= $this->parent_end_string;
                 }
-
                 $result .= $this->child_end_string;
-
                 if (isset($this->categories_products[$category['c_id_s']])) {
-                    $result .= $this->buildProductsBranch($category['c_id_s'], $level + 1);
+                    $result .= $this->build_products_branch($category['c_id_s'], $level + 1);
                 }
-                if (isset($this->data[$category_id]) && (($this->max_level == '0') ||
-                ($this->max_level > $level + 1))) {
-                    $result .= $this->buildBranch2($category_id, $level + 1);
+                if (isset($this->data[$category_id]) && ($this->max_level == '0' || $this->max_level > $level + 1)) {
+                    $result .= $this->build_branch2($category_id, $level + 1);
                 }
             }
         }
-
         $result .= $this->parent_group_end_string;
         return $result;
     }
-
-    public function buildTree()
+    public function build_tree()
     {
         global $current_category_id;
         if ($this->show_products) {
-            $this->loadProducts();
+            $this->load_products();
         }
-        return $this->buildBranch2($this->root_category_id);
+        return $this->build_branch2($this->root_category_id);
     }
-
-    public function withProducts(bool $status)
+    public function with_products(bool $status)
     {
         $this->show_products = $status;
     }
-
-    protected function loadProducts()
+    protected function load_products()
     {
-
-        $q = new \common\components\ProductsQuery([
-            'orderBy' => ['products_date_added' => SORT_DESC],
-        ]);
-        $ac = $q->buildQuery()->getQuery()
-           ->join('inner join', 'products_to_categories p2c_assign', 'p2c_assign.products_id=p.products_id')
-           ->addSelect('p2c_assign.categories_id');
+        $q = new \common\components\Products_Query(['orderBy' => ['products_date_added' => SORT_DESC]]);
+        $ac = $q->build_query()->get_query()->join('inner join', 'products_to_categories p2c_assign', 'p2c_assign.products_id=p.products_id')->add_select('p2c_assign.categories_id');
         $ac->select(['p.products_id', 'p2c_assign.categories_id']);
-
-        $assign_to = $ac->createCommand()->queryAll();
+        $assign_to = $ac->create_command()->query_all();
         foreach ($assign_to as $assign) {
             if (!isset($this->categories_products[$assign['categories_id']])) {
                 $this->categories_products[$assign['categories_id']] = [];
             }
-            $this->categories_products[$assign['categories_id']][(int)$assign['products_id']] = (int)$assign['products_id'];
+            $this->categories_products[$assign['categories_id']][(int) $assign['products_id']] = (int) $assign['products_id'];
         }
     }
-
-    protected function buildProductsBranch($category_id, $level)
+    protected function build_products_branch($category_id, $level)
     {
-
         $result = '';
-
         if (isset($this->categories_products[$category_id]) && count($this->categories_products[$category_id]) > 0) {
             $result .= $this->parent_group_start_string;
             $product_names = [];
             foreach ($this->categories_products[$category_id] as $pid) {
-                $product_names[$pid] = \common\helpers\Product::get_products_name($pid, '', \common\classes\platform::activeId());
+                $product_names[$pid] = \common\helpers\Product::get_products_name($pid, '', \common\classes\platform::active_id());
             }
-
             foreach ($product_names as $products_id => $products_name) {
                 $result .= $this->child_start_string;
-
-                $result .= str_repeat($this->spacer_string, $this->spacer_multiplier * $level) .
-                    '<a href="' . tep_href_link('catalog/product', 'products_id=' . $products_id) . '">';
+                $result .= str_repeat($this->spacer_string, $this->spacer_multiplier * $level) . '<a href="' . tep_href_link('catalog/product', 'products_id=' . $products_id) . '">';
                 $result .= $products_name;
                 $result .= '</a>';
-
                 $result .= $this->child_end_string;
             }
             $result .= $this->parent_group_end_string;
         }
-
         return $result;
     }
-
 }

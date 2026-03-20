@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,43 +11,34 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\widgets;
 
 use Yii;
 use yii\base\Widget;
-
-class SalesSummary extends Widget
+class Sales_Summary extends Widget
 {
     public $stats = [];
-
     public function run()
     {
-
         $currencies = Yii::$container->get('currencies');
-        $exclude_order_statuses_array = \common\helpers\Order::extractStatuses(DASHBOARD_EXCLUDE_ORDER_STATUSES);
-
+        $exclude_order_statuses_array = \common\helpers\Order::extract_statuses(DASHBOARD_EXCLUDE_ORDER_STATUSES);
         $filter_by_platform = [];
         if (false === \common\helpers\Acl::rule(['SUPERUSER'])) {
             global $login_id;
-            $platforms = \common\models\AdminPlatforms::find()->where(['admin_id' => $login_id])->asArray()->all();
+            $platforms = \common\models\Admin_Platforms::find()->where(['admin_id' => $login_id])->as_array()->all();
             foreach ($platforms as $platform) {
                 $filter_by_platform[] = $platform['platform_id'];
             }
         }
-
-        $q = \common\models\Products::find()->select('is_listing_product, is_bundle, products_status')
-            ->addSelect(['isChild' => (new \yii\db\Expression('parent_products_id>0')), 'total' => (new \yii\db\Expression('count(*)'))])
-            ->groupBy('is_listing_product, is_bundle, products_status, isChild')
-        ;
-        $d = $q->asArray()->all();
+        $q = \common\models\Products::find()->select('is_listing_product, is_bundle, products_status')->add_select(['isChild' => new \yii\db\Expression('parent_products_id>0'), 'total' => new \yii\db\Expression('count(*)')])->group_by('is_listing_product, is_bundle, products_status, isChild');
+        $d = $q->as_array()->all();
         $ap = array_filter($d, function ($e) {
             return $e['products_status'];
         });
         $ip = array_filter($d, function ($e) {
             return !$e['products_status'];
         });
-        $pData = [];
+        $p_data = [];
         foreach (['bundle' => 'is_bundle', 'listing' => 'is_listing_product', 'master' => '!is_listing_product', 'child' => 'isChild'] as $key => $value) {
             if (substr($value, 0, 1) == '!') {
                 $v = 0;
@@ -55,39 +46,26 @@ class SalesSummary extends Widget
             } else {
                 $v = 1;
             }
-            $pData[$key]['active'] = array_sum(\yii\helpers\ArrayHelper::getColumn(array_filter($ap, function ($e) use ($v, $value) {
+            $p_data[$key]['active'] = array_sum(\yii\helpers\Array_Helper::get_column(array_filter($ap, function ($e) use ($v, $value) {
                 return $e[$value] == $v;
             }), 'total'));
-            $pData[$key]['inactive'] = array_sum(\yii\helpers\ArrayHelper::getColumn(array_filter($ip, function ($e) use ($v, $value) {
+            $p_data[$key]['inactive'] = array_sum(\yii\helpers\Array_Helper::get_column(array_filter($ip, function ($e) use ($v, $value) {
                 return $e[$value] == $v;
             }), 'total'));
         }
-        $this->stats['pData'] = $pData;
-
+        $this->stats['pData'] = $p_data;
         $manufacturers = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_MANUFACTURERS . ' where 1'));
         $this->stats['manufacturers'] = number_format($manufacturers['count']);
         $reviews_confirmed = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_REVIEWS . " where status = '1'"));
         $this->stats['reviews_confirmed'] = number_format($reviews_confirmed['count']);
         $reviews_to_confirm = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_REVIEWS . " where status = '0'"));
         $this->stats['reviews_to_confirm'] = number_format($reviews_to_confirm['count']);
-
         // Today stats
         $date_from = date('Y-m-d H:i:s', mktime(0, 0, 0, date('m'), date('d'), date('Y')));
         $date_to = date('Y-m-d H:i:s', mktime(23, 59, 59, date('m'), date('d'), date('Y')));
-        $customers = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_CUSTOMERS . ' c left join ' . TABLE_CUSTOMERS_INFO . " ci on c.customers_id = ci.customers_info_id where customers_status = '1' and ci.customers_info_date_account_created >= '" . tep_db_input($date_from) . "' and ci.customers_info_date_account_created <= '" . tep_db_input($date_to) . "'" .
-            (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '')));
+        $customers = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_CUSTOMERS . ' c left join ' . TABLE_CUSTOMERS_INFO . " ci on c.customers_id = ci.customers_info_id where customers_status = '1' and ci.customers_info_date_account_created >= '" . tep_db_input($date_from) . "' and ci.customers_info_date_account_created <= '" . tep_db_input($date_to) . "'" . (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '')));
         $this->stats['today']['customers'] = number_format($customers['count']);
-        $order_stats_query =
-            'SELECT '.
-            '  COUNT(o.orders_id) AS orders, ' .
-            "  SUM(IF(o.orders_status='" . (int) DEFAULT_ORDERS_STATUS_ID . "',1,0)) AS orders_new, ".
-            '  SUM(ott.value) as total_sum, AVG(ots.value) as total_avg '.
-            'FROM ' . TABLE_ORDERS . ' o '.
-            '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ott ON (o.orders_id = ott.orders_id) AND ott.class = 'ot_total' ".
-            '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ots ON (o.orders_id = ots.orders_id) and ots.class = 'ot_subtotal' ".
-            "WHERE o.date_purchased >= '" . tep_db_input($date_from) . "' AND o.date_purchased <= '" . tep_db_input($date_to) . "' ".
-            (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '').
-            "  AND o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "') ";
+        $order_stats_query = 'SELECT ' . '  COUNT(o.orders_id) AS orders, ' . "  SUM(IF(o.orders_status='" . (int) DEFAULT_ORDERS_STATUS_ID . "',1,0)) AS orders_new, " . '  SUM(ott.value) as total_sum, AVG(ots.value) as total_avg ' . 'FROM ' . TABLE_ORDERS . ' o ' . '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ott ON (o.orders_id = ott.orders_id) AND ott.class = 'ot_total' " . '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ots ON (o.orders_id = ots.orders_id) and ots.class = 'ot_subtotal' " . "WHERE o.date_purchased >= '" . tep_db_input($date_from) . "' AND o.date_purchased <= '" . tep_db_input($date_to) . "' " . (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '') . "  AND o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "') ";
         $range_stat = tep_db_fetch_array(tep_db_query($order_stats_query));
         $this->stats['today']['orders'] = number_format($range_stat['orders']);
         $this->stats['today']['orders_new'] = number_format($range_stat['orders_new']);
@@ -103,24 +81,12 @@ class SalesSummary extends Widget
         $orders_amount = tep_db_fetch_array(tep_db_query("select sum(ot.value) as total_sum from " . TABLE_ORDERS . " o left join " . TABLE_ORDERS_TOTAL . " ot on (o.orders_id = ot.orders_id) where o.date_purchased >= '" . tep_db_input($date_from) . "' and o.date_purchased <= '" . tep_db_input($date_to) . "' and ot.class = 'ot_total' and o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "')"));
         $this->stats['today']['orders_amount'] = $currencies->format($orders_amount['total_sum']);
         */
-
         // This week stats
         $date_from = date('Y-m-d H:i:s', strtotime('monday this week'));
         $date_to = date('Y-m-d H:i:s', mktime(23, 59, 59, date('m'), date('d'), date('Y')));
-        $customers = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_CUSTOMERS . ' c left join ' . TABLE_CUSTOMERS_INFO . " ci on c.customers_id = ci.customers_info_id where customers_status = '1' and ci.customers_info_date_account_created >= '" . tep_db_input($date_from) . "' and ci.customers_info_date_account_created <= '" . tep_db_input($date_to) . "'" .
-            (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '')));
+        $customers = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_CUSTOMERS . ' c left join ' . TABLE_CUSTOMERS_INFO . " ci on c.customers_id = ci.customers_info_id where customers_status = '1' and ci.customers_info_date_account_created >= '" . tep_db_input($date_from) . "' and ci.customers_info_date_account_created <= '" . tep_db_input($date_to) . "'" . (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '')));
         $this->stats['week']['customers'] = number_format($customers['count']);
-        $order_stats_query =
-            'SELECT '.
-            '  COUNT(o.orders_id) AS orders, ' .
-            "  SUM(IF(o.orders_status='" . (int) DEFAULT_ORDERS_STATUS_ID . "',1,0)) AS orders_new, ".
-            '  SUM(ott.value) as total_sum, AVG(ots.value) as total_avg '.
-            'FROM ' . TABLE_ORDERS . ' o '.
-            '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ott ON (o.orders_id = ott.orders_id) AND ott.class = 'ot_total' ".
-            '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ots ON (o.orders_id = ots.orders_id) and ots.class = 'ot_subtotal' ".
-            "WHERE o.date_purchased >= '" . tep_db_input($date_from) . "' AND o.date_purchased <= '" . tep_db_input($date_to) . "' ".
-            (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '').
-            "  AND o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "') ";
+        $order_stats_query = 'SELECT ' . '  COUNT(o.orders_id) AS orders, ' . "  SUM(IF(o.orders_status='" . (int) DEFAULT_ORDERS_STATUS_ID . "',1,0)) AS orders_new, " . '  SUM(ott.value) as total_sum, AVG(ots.value) as total_avg ' . 'FROM ' . TABLE_ORDERS . ' o ' . '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ott ON (o.orders_id = ott.orders_id) AND ott.class = 'ot_total' " . '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ots ON (o.orders_id = ots.orders_id) and ots.class = 'ot_subtotal' " . "WHERE o.date_purchased >= '" . tep_db_input($date_from) . "' AND o.date_purchased <= '" . tep_db_input($date_to) . "' " . (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '') . "  AND o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "') ";
         $range_stat = tep_db_fetch_array(tep_db_query($order_stats_query));
         $this->stats['week']['orders'] = number_format($range_stat['orders']);
         $this->stats['week']['orders_not_processed'] = number_format($range_stat['orders_new']);
@@ -136,24 +102,12 @@ class SalesSummary extends Widget
         $orders_amount = tep_db_fetch_array(tep_db_query("select sum(ot.value) as total_sum from " . TABLE_ORDERS . " o left join " . TABLE_ORDERS_TOTAL . " ot on (o.orders_id = ot.orders_id) where o.date_purchased >= '" . tep_db_input($date_from) . "' and o.date_purchased <= '" . tep_db_input($date_to) . "' and ot.class = 'ot_total' and o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "')"));
         $this->stats['week']['orders_amount'] = $currencies->format($orders_amount['total_sum']);
         */
-
         // This month stats
         $date_from = date('Y-m-d H:i:s', mktime(0, 0, 0, date('m'), 1, date('Y')));
         $date_to = date('Y-m-d H:i:s', mktime(23, 59, 59, date('m'), date('d'), date('Y')));
-        $customers = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_CUSTOMERS . ' c left join ' . TABLE_CUSTOMERS_INFO . " ci on c.customers_id = ci.customers_info_id where customers_status = '1' and ci.customers_info_date_account_created >= '" . tep_db_input($date_from) . "' and ci.customers_info_date_account_created <= '" . tep_db_input($date_to) . "'" .
-            (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '')));
+        $customers = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_CUSTOMERS . ' c left join ' . TABLE_CUSTOMERS_INFO . " ci on c.customers_id = ci.customers_info_id where customers_status = '1' and ci.customers_info_date_account_created >= '" . tep_db_input($date_from) . "' and ci.customers_info_date_account_created <= '" . tep_db_input($date_to) . "'" . (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '')));
         $this->stats['month']['customers'] = number_format($customers['count']);
-        $order_stats_query =
-            'SELECT '.
-            '  COUNT(o.orders_id) AS orders, ' .
-            "  SUM(IF(o.orders_status='" . (int) DEFAULT_ORDERS_STATUS_ID . "',1,0)) AS orders_new, ".
-            '  SUM(ott.value) as total_sum, AVG(ots.value) as total_avg '.
-            'FROM ' . TABLE_ORDERS . ' o '.
-            '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ott ON (o.orders_id = ott.orders_id) AND ott.class = 'ot_total' ".
-            '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ots ON (o.orders_id = ots.orders_id) and ots.class = 'ot_subtotal' ".
-            "WHERE o.date_purchased >= '" . tep_db_input($date_from) . "' AND o.date_purchased <= '" . tep_db_input($date_to) . "' ".
-            (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '').
-            "  AND o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "') ";
+        $order_stats_query = 'SELECT ' . '  COUNT(o.orders_id) AS orders, ' . "  SUM(IF(o.orders_status='" . (int) DEFAULT_ORDERS_STATUS_ID . "',1,0)) AS orders_new, " . '  SUM(ott.value) as total_sum, AVG(ots.value) as total_avg ' . 'FROM ' . TABLE_ORDERS . ' o ' . '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ott ON (o.orders_id = ott.orders_id) AND ott.class = 'ot_total' " . '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ots ON (o.orders_id = ots.orders_id) and ots.class = 'ot_subtotal' " . "WHERE o.date_purchased >= '" . tep_db_input($date_from) . "' AND o.date_purchased <= '" . tep_db_input($date_to) . "' " . (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '') . "  AND o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "') ";
         $range_stat = tep_db_fetch_array(tep_db_query($order_stats_query));
         $this->stats['month']['orders'] = number_format($range_stat['orders']);
         $this->stats['month']['orders_not_processed'] = number_format($range_stat['orders_new']);
@@ -169,24 +123,12 @@ class SalesSummary extends Widget
         $orders_amount = tep_db_fetch_array(tep_db_query("select sum(ot.value) as total_sum from " . TABLE_ORDERS . " o left join " . TABLE_ORDERS_TOTAL . " ot on (o.orders_id = ot.orders_id) where o.date_purchased >= '" . tep_db_input($date_from) . "' and o.date_purchased <= '" . tep_db_input($date_to) . "' and ot.class = 'ot_total' and o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "')"));
         $this->stats['month']['orders_amount'] = $currencies->format($orders_amount['total_sum']);
         */
-
         // This year stats
         $date_from = date('Y-m-d H:i:s', mktime(0, 0, 0, 1, 1, date('Y')));
         $date_to = date('Y-m-d H:i:s', mktime(23, 59, 59, date('m'), date('d'), date('Y')));
-        $customers = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_CUSTOMERS . ' c left join ' . TABLE_CUSTOMERS_INFO . " ci on c.customers_id = ci.customers_info_id where customers_status = '1' and ci.customers_info_date_account_created >= '" . tep_db_input($date_from) . "' and ci.customers_info_date_account_created <= '" . tep_db_input($date_to) . "'" .
-            (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '')));
+        $customers = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_CUSTOMERS . ' c left join ' . TABLE_CUSTOMERS_INFO . " ci on c.customers_id = ci.customers_info_id where customers_status = '1' and ci.customers_info_date_account_created >= '" . tep_db_input($date_from) . "' and ci.customers_info_date_account_created <= '" . tep_db_input($date_to) . "'" . (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '')));
         $this->stats['year']['customers'] = number_format($customers['count']);
-        $order_stats_query =
-            'SELECT '.
-            '  COUNT(o.orders_id) AS orders, ' .
-            "  SUM(IF(o.orders_status='" . (int) DEFAULT_ORDERS_STATUS_ID . "',1,0)) AS orders_new, ".
-            '  SUM(ott.value) as total_sum, AVG(ots.value) as total_avg '.
-            'FROM ' . TABLE_ORDERS . ' o '.
-            '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ott ON (o.orders_id = ott.orders_id) AND ott.class = 'ot_total' ".
-            '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ots ON (o.orders_id = ots.orders_id) and ots.class = 'ot_subtotal' ".
-            "WHERE o.date_purchased >= '" . tep_db_input($date_from) . "' AND o.date_purchased <= '" . tep_db_input($date_to) . "' ".
-            (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '').
-            "  AND o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "') ";
+        $order_stats_query = 'SELECT ' . '  COUNT(o.orders_id) AS orders, ' . "  SUM(IF(o.orders_status='" . (int) DEFAULT_ORDERS_STATUS_ID . "',1,0)) AS orders_new, " . '  SUM(ott.value) as total_sum, AVG(ots.value) as total_avg ' . 'FROM ' . TABLE_ORDERS . ' o ' . '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ott ON (o.orders_id = ott.orders_id) AND ott.class = 'ot_total' " . '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ots ON (o.orders_id = ots.orders_id) and ots.class = 'ot_subtotal' " . "WHERE o.date_purchased >= '" . tep_db_input($date_from) . "' AND o.date_purchased <= '" . tep_db_input($date_to) . "' " . (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '') . "  AND o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "') ";
         $range_stat = tep_db_fetch_array(tep_db_query($order_stats_query));
         $this->stats['year']['orders'] = number_format($range_stat['orders']);
         $this->stats['year']['orders_not_processed'] = number_format($range_stat['orders_new']);
@@ -202,31 +144,19 @@ class SalesSummary extends Widget
         $orders_amount = tep_db_fetch_array(tep_db_query("select sum(ot.value) as total_sum from " . TABLE_ORDERS . " o left join " . TABLE_ORDERS_TOTAL . " ot on (o.orders_id = ot.orders_id) where o.date_purchased >= '" . tep_db_input($date_from) . "' and o.date_purchased <= '" . tep_db_input($date_to) . "' and ot.class = 'ot_total' and o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "')"));
         $this->stats['year']['orders_amount'] = $currencies->format($orders_amount['total_sum']);
         */
-
         // All period stats
-        $customers = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_CUSTOMERS . ' c left join ' . TABLE_CUSTOMERS_INFO . " ci on c.customers_id = ci.customers_info_id where customers_status = '1'" .
-            (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '')));
+        $customers = tep_db_fetch_array(tep_db_query('select count(*) as count from ' . TABLE_CUSTOMERS . ' c left join ' . TABLE_CUSTOMERS_INFO . " ci on c.customers_id = ci.customers_info_id where customers_status = '1'" . (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '')));
         $this->stats['all']['customers'] = number_format($customers['count']);
-        $lazyLoadOrderAll = false;
-        $checkOrdersCount = tep_db_fetch_array(tep_db_query('SELECT COUNT(*) AS c FROM '.TABLE_ORDERS));
-        if ($checkOrdersCount['c'] > 100000) {
-            $lazyLoadOrderAll = true;
+        $lazy_load_order_all = false;
+        $check_orders_count = tep_db_fetch_array(tep_db_query('SELECT COUNT(*) AS c FROM ' . TABLE_ORDERS));
+        if ($check_orders_count['c'] > 100000) {
+            $lazy_load_order_all = true;
             $this->stats['all']['orders'] = '?';
             $this->stats['all']['orders_not_processed'] = '?';
             $this->stats['all']['orders_avg_amount'] = '?';
             $this->stats['all']['orders_amount'] = '?';
         } else {
-            $order_stats_query =
-                'SELECT ' .
-                '  COUNT(o.orders_id) AS orders, ' .
-                '  SUM(IF(o.orders_status=1,1,0)) AS orders_new, ' .
-                '  SUM(ott.value) as total_sum, AVG(ots.value) as total_avg ' .
-                'FROM ' . TABLE_ORDERS . ' o ' .
-                '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ott ON (o.orders_id = ott.orders_id) AND ott.class = 'ot_total' " .
-                '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ots ON (o.orders_id = ots.orders_id) and ots.class = 'ot_subtotal' " .
-                'WHERE 1=1 ' .
-                    (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '').
-                "  AND o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "') ";
+            $order_stats_query = 'SELECT ' . '  COUNT(o.orders_id) AS orders, ' . '  SUM(IF(o.orders_status=1,1,0)) AS orders_new, ' . '  SUM(ott.value) as total_sum, AVG(ots.value) as total_avg ' . 'FROM ' . TABLE_ORDERS . ' o ' . '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ott ON (o.orders_id = ott.orders_id) AND ott.class = 'ot_total' " . '  LEFT JOIN ' . TABLE_ORDERS_TOTAL . " ots ON (o.orders_id = ots.orders_id) and ots.class = 'ot_subtotal' " . 'WHERE 1=1 ' . (count($filter_by_platform) > 0 ? " and platform_id in ('" . implode("','", $filter_by_platform) . "') " : '') . "  AND o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "') ";
             $range_stat = tep_db_fetch_array(tep_db_query($order_stats_query));
             $this->stats['all']['orders'] = number_format($range_stat['orders']);
             $this->stats['all']['orders_not_processed'] = number_format($range_stat['orders_new']);
@@ -243,28 +173,21 @@ class SalesSummary extends Widget
         $orders_amount = tep_db_fetch_array(tep_db_query("select sum(ot.value) as total_sum from " . TABLE_ORDERS . " o left join " . TABLE_ORDERS_TOTAL . " ot on (o.orders_id = ot.orders_id) where ot.class = 'ot_total' and o.orders_status not in ('" . implode("','", $exclude_order_statuses_array) . "')"));
         $this->stats['all']['orders_amount'] = $currencies->format($orders_amount['total_sum']);
         */
-
         $currency = \Yii::$app->settings->get('currency');
         switch ($currency) {
             case 'USD':
-                $prefixClass = 'global-currency-usd';
+                $prefix_class = 'global-currency-usd';
                 break;
             case 'GBP':
-                $prefixClass = 'global-currency-gbp';
+                $prefix_class = 'global-currency-gbp';
                 break;
             case 'EUR':
-                $prefixClass = 'global-currency-eur';
+                $prefix_class = 'global-currency-eur';
                 break;
             default:
-                $prefixClass = '';
+                $prefix_class = '';
                 break;
         }
-
-        return $this->render('SalesSummary.tpl', [
-            'stats' => $this->stats,
-            'prefix' => $prefixClass,
-            'lazyLoadOrderAll' => $lazyLoadOrderAll,
-        ]);
+        return $this->render('SalesSummary.tpl', ['stats' => $this->stats, 'prefix' => $prefix_class, 'lazyLoadOrderAll' => $lazy_load_order_all]);
     }
-
 }

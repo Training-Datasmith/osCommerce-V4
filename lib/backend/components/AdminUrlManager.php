@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,34 +11,28 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace app\components;
 
-use yii\web\UrlManager;
-
-class AdminUrlManager extends UrlManager
+use yii\web\Url_Manager;
+class Admin_Url_Manager extends Url_Manager
 {
-    public function createAbsoluteUrl($params, $scheme = null, $front = false)
+    public function create_absolute_url($params, $scheme = null, $front = false)
     {
-        if ($front && !empty($params['platform_id']) /*&& PLATFORM_ID != $params['platform_id']*/) {
+        if ($front && !empty($params['platform_id'])) {
             // save current params
-            $HostInfo = $this->getHostInfo();
-            $BaseUrl = $this->getBaseUrl();
-
+            $host_info = $this->get_host_info();
+            $base_url = $this->get_base_url();
             $pc = new \common\classes\platform_config($params['platform_id']);
-            $parsed = parse_url((string) $pc->getCatalogBaseUrl(true, false));
-
-            $this->setHostInfo($parsed['scheme'] . '://' . $parsed['host'] . (!empty($parsed['port']) && ! in_array($parsed['port'], ['80', '443']) ? ':'.$parsed['port'] : ''));
-            $this->setBaseUrl(rtrim($parsed['path']));
-
+            $parsed = parse_url((string) $pc->get_catalog_base_url(true, false));
+            $this->set_host_info($parsed['scheme'] . '://' . $parsed['host'] . (!empty($parsed['port']) && !in_array($parsed['port'], ['80', '443']) ? ':' . $parsed['port'] : ''));
+            $this->set_base_url(rtrim($parsed['path']));
             // restore params
-            $ret = parent::createAbsoluteUrl($params, $scheme);
-            $this->setHostInfo($HostInfo);
-            $this->setBaseUrl($BaseUrl);
+            $ret = parent::create_absolute_url($params, $scheme);
+            $this->set_host_info($host_info);
+            $this->set_base_url($base_url);
         } else {
-            $ret = parent::createAbsoluteUrl($params, $scheme);
+            $ret = parent::create_absolute_url($params, $scheme);
         }
         return $ret;
     }
-
 }

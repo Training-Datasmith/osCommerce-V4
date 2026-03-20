@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,26 +11,20 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\controllers;
 
 use Yii;
-
 /**
  * default controller to handle user requests.
  */
-class Cron_managerController extends Sceleton
+class Cron_manager_Controller extends Sceleton
 {
     public $acl = ['TEXT_SETTINGS', 'BOX_HEADING_CRON_MANAGER'];
-
-    public function actionIndex()
+    public function action_index()
     {
-
-        $this->selectedMenu = ['settings', 'cron_manager'];
-        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('cron_manager/index'), 'title' => HEADING_TITLE];
-
-        $this->view->headingTitle = HEADING_TITLE;
-
+        $this->selected_menu = ['settings', 'cron_manager'];
+        $this->navigation[] = ['link' => Yii::$app->url_manager->create_url('cron_manager/index'), 'title' => HEADING_TITLE];
+        $this->view->heading_title = HEADING_TITLE;
         $messages = [];
         if (isset($_SESSION['messages'])) {
             $messages = $_SESSION['messages'];
@@ -40,7 +34,5 @@ class Cron_managerController extends Sceleton
             }
         }
         return $this->render('index', ['messages' => $messages]);
-
     }
-
 }

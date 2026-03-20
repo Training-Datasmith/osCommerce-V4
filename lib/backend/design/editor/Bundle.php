@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,29 +11,19 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\editor;
 
 use yii\base\Widget;
-
 class Bundle extends Widget
 {
     public $products;
     public $manager;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
-        return $this->render('bundle', [
-            'products' => $this->products,
-            'manager' => $this->manager,
-            'tax_address' => $this->manager->getOrderInstance()->tax_address,
-            'tax_class_array' => \common\helpers\Tax::get_complex_classes_list(),
-        ]);
+        return $this->render('bundle', ['products' => $this->products, 'manager' => $this->manager, 'tax_address' => $this->manager->get_order_instance()->tax_address, 'tax_class_array' => \common\helpers\Tax::get_complex_classes_list()]);
     }
-
 }

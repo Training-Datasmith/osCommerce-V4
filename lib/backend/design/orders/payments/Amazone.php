@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,39 +11,25 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\orders\payments;
 
 use yii\base\Widget;
-
 class Amazone extends Widget
 {
     public $order;
     public $manager;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
-
-        if ($amazonInfo = tep_db_fetch_array(tep_db_query("select * from amazon_payment_orders where orders_id ='" . (int)$this->order->order_id . "'"))) {
-            $allowClose = in_array($amazonInfo['amazon_status'], ['Open']);
-            $allowCapture = in_array($amazonInfo['amazon_auth_status'], ['Open']);
-            $allowRefund = in_array($amazonInfo['amazon_capture_status'], ['Completed']);
-            $amazonLog = array_map('unserialize', explode("#\n\n#", $amazonInfo['custom_data']));
-
-            return $this->render('amazone', [
-                'manager' => $this->manager,
-                'order' => $this->order,
-                'allowClose' => $allowClose,
-                'allowCapture' => $allowCapture,
-                'allowRefund' => $allowRefund,
-                'amazonLog' => $amazonLog,
-                'amazonInfo' => $amazonInfo,
-            ]);
+        if ($amazon_info = tep_db_fetch_array(tep_db_query("select * from amazon_payment_orders where orders_id ='" . (int) $this->order->order_id . "'"))) {
+            $allow_close = in_array($amazon_info['amazon_status'], ['Open']);
+            $allow_capture = in_array($amazon_info['amazon_auth_status'], ['Open']);
+            $allow_refund = in_array($amazon_info['amazon_capture_status'], ['Completed']);
+            $amazon_log = array_map('unserialize', explode("#\n\n#", $amazon_info['custom_data']));
+            return $this->render('amazone', ['manager' => $this->manager, 'order' => $this->order, 'allowClose' => $allow_close, 'allowCapture' => $allow_capture, 'allowRefund' => $allow_refund, 'amazonLog' => $amazon_log, 'amazonInfo' => $amazon_info]);
         }
     }
 }

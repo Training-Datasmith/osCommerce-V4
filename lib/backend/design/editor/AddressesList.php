@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,26 +11,23 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\editor;
 
 use yii\base\Widget;
-
-class AddressesList extends Widget
+class Addresses_List extends Widget
 {
     public $file;
     public $params;
     public $settings;
     public $manager;
-    public $type; //shipping or billing
+    public $type;
+    //shipping or billing
     public $mode;
     public $ab_id;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
         if (!is_object($this->manager)) {
@@ -39,52 +36,47 @@ class AddressesList extends Widget
         if (!in_array($this->mode, ['single', 'select', 'edit'])) {
             throw new \Exception('mode type should be defined');
         }
-
         $this->params['manager'] = $this->manager;
         $this->params['type'] = $this->type;
         $this->params['mode'] = $this->mode;
-
         if ($this->ab_id) {
-            $_selectedABid = $this->ab_id;
+            $_selected_a_bid = $this->ab_id;
         } elseif ($this->type == 'shipping') {
-            $_selectedABid = $this->manager->getSendto();
+            $_selected_a_bid = $this->manager->get_sendto();
         } else {
-            $_selectedABid = $this->manager->getBillto();
+            $_selected_a_bid = $this->manager->get_billto();
         }
-        $this->params['selected_ab_id'] = $_selectedABid;
-
+        $this->params['selected_ab_id'] = $_selected_a_bid;
         if ($this->mode == 'single') {
-            $this->params['address'] = $this->manager->getCustomersAddress($_selectedABid, true, true);
-            $this->_defineForm();
-            if (is_null($this->params['address']) || !$this->params['model']->customerAddressIsReady() || $this->params['model']->hasErrors()) {
+            $this->params['address'] = $this->manager->get_customers_address($_selected_a_bid, true, true);
+            $this->_define_form();
+            if (is_null($this->params['address']) || !$this->params['model']->customer_address_is_ready() || $this->params['model']->has_errors()) {
                 $this->params['error'] = true;
             }
         } elseif ($this->mode == 'select') {
-            $this->ab_id = $_selectedABid;
-            $this->_defineForm();
-            if (!$this->params['model']->customerAddressIsReady()) {
+            $this->ab_id = $_selected_a_bid;
+            $this->_define_form();
+            if (!$this->params['model']->customer_address_is_ready()) {
                 $this->params['error'] = true;
             }
-            $this->params['addresses'] = $this->manager->getCustomersAddresses(true, true, $this->type);
+            $this->params['addresses'] = $this->manager->get_customers_addresses(true, true, $this->type);
             if (!count($this->params['addresses'])) {
                 $this->params['mode'] = 'edit';
             }
-
         } else {
-            $this->_defineForm();
+            $this->_define_form();
         }
         if ($this->params['mode'] == 'edit') {
-            $this->params['postcoder'] = ($ext = \common\helpers\Acl::checkExtensionAllowed('AddressLookup')) ? $ext::getTool() : null;
+            $this->params['postcoder'] = ($ext = \common\helpers\Acl::check_extension_allowed('AddressLookup')) ? $ext::get_tool() : null;
         }
         return $this->render('addresses-list', $this->params);
     }
-
-    private function _defineForm()
+    private function _define_form()
     {
         if ($this->type == 'shipping') {
-            $this->params['model'] = $this->manager->getShippingForm($this->ab_id);
+            $this->params['model'] = $this->manager->get_shipping_form($this->ab_id);
         } else {
-            $this->params['model'] = $this->manager->getBillingForm($this->ab_id);
+            $this->params['model'] = $this->manager->get_billing_form($this->ab_id);
         }
     }
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,21 +11,17 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\orders\payments;
 
 use yii\base\Widget;
-
-class PaymentFields extends Widget
+class Payment_Fields extends Widget
 {
     public $manager;
     public $rules;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
         $fields = [];
@@ -39,21 +35,13 @@ class PaymentFields extends Widget
                             $fields[$_field]['validators'][] = $rule[1];
                         }
                     }
+                } else if (!array_key_exists($rule[0], $fields)) {
+                    $fields[$rule[0]] = ['name' => $rule[0], 'validators' => [$rule[1]]];
                 } else {
-                    if (!array_key_exists($rule[0], $fields)) {
-                        $fields[$rule[0]] = ['name' => $rule[0], 'validators' => [$rule[1]]];
-                    } else {
-                        $fields[$rule[0]]['validators'][] = $rule[1];
-                    }
+                    $fields[$rule[0]]['validators'][] = $rule[1];
                 }
             }
         }
-
-        return json_encode([
-            'required' => $this->render('payment-fields', [
-                'fields' => $fields,
-                'manager' => $this->manager,
-            ]),
-        ]);
+        return json_encode(['required' => $this->render('payment-fields', ['fields' => $fields, 'manager' => $this->manager])]);
     }
 }

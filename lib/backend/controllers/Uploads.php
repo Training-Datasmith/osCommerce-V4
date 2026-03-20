@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,18 +11,16 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\controllers;
 
 class Uploads
 {
     public static function move($file_name)
     {
-        $path = \Yii::getAlias('@webroot');
+        $path = \Yii::get_alias('@webroot');
         $path .= DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
-
         $upload_file = $path . $file_name;
-        $path2 = \Yii::getAlias('@webroot');
+        $path2 = \Yii::get_alias('@webroot');
         $path2 .= DIRECTORY_SEPARATOR . '..' . DIRECTORY_SEPARATOR . 'images' . DIRECTORY_SEPARATOR;
         $copy_file = $file_name;
         $i = 1;
@@ -34,11 +32,8 @@ class Uploads
             $temp_name = str_replace(' ', '_', $temp_name);
             $i++;
         }
-
         @copy($upload_file, $path2 . $temp_name);
         @unlink($upload_file);
-
         return $temp_name;
     }
-
 }

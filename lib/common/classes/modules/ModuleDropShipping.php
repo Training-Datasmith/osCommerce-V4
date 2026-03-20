@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,24 +11,20 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes\modules;
 
 use Yii;
 use yii\db\Query;
-
-abstract class ModuleDropShipping extends Module
+abstract class Module_Drop_Shipping extends Module
 {
     public function process($params = [])
     {
-
     }
-
-    public function prepareShippingTable()
+    public function prepare_shipping_table()
     {
         $migration = new \yii\db\Migration();
         if ($migration) {
-            if (Yii::$app->db->schema->getTableSchema('dropshipping_ships') === null) {
+            if (Yii::$app->db->schema->get_table_schema('dropshipping_ships') === null) {
                 tep_db_query('CREATE TABLE IF NOT EXISTS `dropshipping_ships` (
   `dropshipping_ships_id` int(11) NOT NULL AUTO_INCREMENT,
   `platform_id` int(11) NOT NULL,
@@ -41,24 +37,17 @@ abstract class ModuleDropShipping extends Module
             }
         }
     }
-
-    public function getShippingCode($code)
+    public function get_shipping_code($code)
     {
-        $platform_id = Yii::$app->get('platform')->config()->getId();
+        $platform_id = Yii::$app->get('platform')->config()->get_id();
         if (!$platform_id) {
-            $platform_id = \common\classes\platform::firstId();
+            $platform_id = \common\classes\platform::first_id();
         }
-        $ds = (new Query())->select('dropshipping_code')->from('dropshipping_ships')
-                ->where('platform_id =:plid and dropshipping_module = :dm and shipping_code = :sc', [
-                    ':plid' => $platform_id,
-                    ':dm' => $this->code,
-                    ':sc' => $code,
-                    ])->one();
+        $ds = (new Query())->select('dropshipping_code')->from('dropshipping_ships')->where('platform_id =:plid and dropshipping_module = :dm and shipping_code = :sc', [':plid' => $platform_id, ':dm' => $this->code, ':sc' => $code])->one();
         if ($ds) {
             return $ds['dropshipping_code'];
         } else {
             return false;
         }
     }
-
 }

@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,17 +11,13 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
-class ApiHelper
+class Api_Helper
 {
-    public static function generateApiKey()
+    public static function generate_api_key()
     {
-        $__server_part = tep_db_fetch_array(tep_db_query(
-            'SELECT UUID() AS server_part'
-        ));
-        return strtolower(str_replace('-', '', $__server_part['server_part']).\common\helpers\Password::create_random_value(16));
+        $__server_part = tep_db_fetch_array(tep_db_query('SELECT UUID() AS server_part'));
+        return strtolower(str_replace('-', '', $__server_part['server_part']) . \common\helpers\Password::create_random_value(16));
     }
-
 }

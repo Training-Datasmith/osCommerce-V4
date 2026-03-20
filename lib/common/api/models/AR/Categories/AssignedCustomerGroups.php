@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,55 +11,45 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\AR\Categories;
 
 use backend\models\EP\Tools;
-use common\api\models\AR\EPMap;
-
-class AssignedCustomerGroups extends EPMap
+use common\api\models\AR\Ep_Map;
+class Assigned_Customer_Groups extends Ep_Map
 {
-    protected $hideFields = [
-        'categories_id',
-    ];
-
-    public static function tableName()
+    protected $hide_fields = ['categories_id'];
+    public static function table_name()
     {
         return 'groups_categories';
     }
-
-    public static function primaryKey()
+    public static function primary_key()
     {
         return ['categories_id', 'groups_id'];
     }
-
-    public function parentEPMap(EPMap $parentObject)
+    public function parent_ep_map(Ep_Map $parent_object)
     {
-        $this->categories_id = $parentObject->categories_id;
-        parent::parentEPMap($parentObject);
+        $this->categories_id = $parent_object->categories_id;
+        parent::parent_ep_map($parent_object);
     }
-
-    public function matchIndexedValue(EPMap $importedObject)
+    public function match_indexed_value(Ep_Map $imported_object)
     {
-        if (!is_null($importedObject->groups_id) && !is_null($this->groups_id) && $importedObject->groups_id == $this->groups_id) {
-            $this->pendingRemoval = false;
+        if (!is_null($imported_object->groups_id) && !is_null($this->groups_id) && $imported_object->groups_id == $this->groups_id) {
+            $this->pending_removal = false;
             return true;
         }
         return false;
     }
-
-    public function exportArray(array $fields = [])
+    public function export_array(array $fields = [])
     {
-        $data = parent::exportArray($fields);
-        $data['groups_name'] = Tools::getInstance()->getCustomerGroupName($this->groups_id);
+        $data = parent::export_array($fields);
+        $data['groups_name'] = Tools::get_instance()->get_customer_group_name($this->groups_id);
         return $data;
     }
-
-    public function importArray($data)
+    public function import_array($data)
     {
         if (isset($data['groups_name'])) {
-            $data['groups_id'] = Tools::getInstance()->getCustomerGroupId($data['groups_name']);
+            $data['groups_id'] = Tools::get_instance()->get_customer_group_id($data['groups_name']);
         }
-        return parent::importArray($data);
+        return parent::import_array($data);
     }
 }

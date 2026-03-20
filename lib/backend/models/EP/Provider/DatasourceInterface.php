@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,19 +11,13 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Provider;
 
 use backend\models\EP\Messages;
-
-interface DatasourceInterface
+interface Datasource_Interface
 {
-    public function getProgress();
-
-    public function prepareProcess(Messages $message);
-
-    public function processRow(Messages $message);
-
-    public function postProcess(Messages $message);
-
+    public function get_progress();
+    public function prepare_process(Messages $message);
+    public function process_row(Messages $message);
+    public function post_process(Messages $message);
 }

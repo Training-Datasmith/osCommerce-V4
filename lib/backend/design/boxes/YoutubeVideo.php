@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,42 +11,28 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\boxes;
 
 use yii\base\Widget;
-
-class YoutubeVideo extends Widget
+class Youtube_Video extends Widget
 {
     public $id;
     public $params;
     public $settings;
     public $visibility;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
-
         global $languages_id;
-
         $languages = \common\helpers\Language::get_languages();
         $lang = [];
         for ($i = 0, $n = sizeof($languages); $i < $n; $i++) {
             $languages[$i]['video'] = $languages[$i]['image'];
             $lang[] = $languages[$i];
         }
-
-        return $this->render('youtube-video.tpl', [
-          'id' => $this->id,
-          'params' => $this->params,
-          'settings' => $this->settings,
-          'languages' => $lang,
-          'languages_id' => $languages_id,
-          'visibility' => $this->visibility,
-        ]);
+        return $this->render('youtube-video.tpl', ['id' => $this->id, 'params' => $this->params, 'settings' => $this->settings, 'languages' => $lang, 'languages_id' => $languages_id, 'visibility' => $this->visibility]);
     }
 }

@@ -10,11 +10,10 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-declare(strict_types=1);
+declare (strict_types=1);
+namespace common\components\Event_Dispatcher;
 
-namespace common\components\EventDispatcher;
-
-interface StoppableEventInterface
+interface Stoppable_Event_Interface
 {
-    public function isPropagationStopped(): bool;
+    public function is_propagation_stopped(): bool;
 }

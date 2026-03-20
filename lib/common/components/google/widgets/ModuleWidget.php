@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,29 +11,26 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components\google\widgets;
 
-class ModuleWidget extends \yii\base\Widget
+class Module_Widget extends \yii\base\Widget
 {
     public $module;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
         $elements = $this->module->config[$this->module->code];
         $controllers = [];
-        $only_selected = (isset($elements['pages_only']) && $elements['pages_only'] ? true : false);
+        $only_selected = isset($elements['pages_only']) && $elements['pages_only'] ? true : false;
         $controllers = $only_selected ? [] : ['all' => 'All'];
         $_excluded = ['Callback', 'EmailTemplate', 'GetWidget', 'ListDemo', 'Sitemap', 'Xmlsitemap', 'ApiPlatform', 'Api', 'AbstractCheckout', 'Cron', 'Image'];
-        $iterator = new \DirectoryIterator(\Yii::$aliases['@frontend'] . '/controllers/');
+        $iterator = new \Directory_Iterator(\Yii::$aliases['@frontend'] . '/controllers/');
         foreach ($iterator as $file) {
-            if ($file->isFile() && $file->getExtension() == 'php') {
-                $controller = substr($file->getBasename(), 0, strpos($file->getBasename(), 'Controller'));
+            if ($file->is_file() && $file->get_extension() == 'php') {
+                $controller = substr($file->get_basename(), 0, strpos($file->get_basename(), 'Controller'));
                 if (!in_array($controller, $_excluded) && tep_not_null($controller)) {
                     if ($only_selected && !in_array(strtolower($controller), $elements['pages'])) {
                         continue;
@@ -42,10 +39,6 @@ class ModuleWidget extends \yii\base\Widget
                 }
             }
         }
-        return $this->render('module-config', [
-            'elements' => $elements,
-            'example' => $elements['example'] ? $this->module->renderExample() : '',
-            'controllers' => $controllers,
-        ]);
+        return $this->render('module-config', ['elements' => $elements, 'example' => $elements['example'] ? $this->module->render_example() : '', 'controllers' => $controllers]);
     }
 }

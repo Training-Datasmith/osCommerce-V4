@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,14 +11,13 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\Json;
 
-class JsonParser
+class Json_Parser
 {
-    public function parse($jsonString, $asArray = true)
+    public function parse($json_string, $as_array = true)
     {
-        $jsonString = json_decode($jsonString, $asArray);
-        return ((is_array($jsonString) or is_object($jsonString)) ? $jsonString : false);
+        $json_string = json_decode($json_string, $as_array);
+        return (is_array($json_string) or is_object($json_string)) ? $json_string : false;
     }
 }

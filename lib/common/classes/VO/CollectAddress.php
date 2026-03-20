@@ -10,11 +10,10 @@
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-declare(strict_types=1);
-
+declare (strict_types=1);
 namespace common\classes\VO;
 
-final class CollectAddress
+final class Collect_Address
 {
     /** @var string */
     private $street_address;
@@ -25,102 +24,83 @@ final class CollectAddress
     /** @var string */
     private $postcode;
     /** @var string */
-    private $countryName;
+    private $country_name;
     /** @var string */
-    private $countryISO2;
+    private $country_iso2;
     /** @var string */
-    private $countryISO3;
+    private $country_iso3;
     /** @var string */
     private $warehouse;
-
     private function __construct()
     {
     }
-
-    public static function create(
-        string $street_address,
-        string $city,
-        string $state,
-        string $postcode,
-        string $countryName,
-        string $countryISO2,
-        string $countryISO3,
-        string $warehouse = ''
-    ): self {
+    public static function create(string $street_address, string $city, string $state, string $postcode, string $country_name, string $country_iso2, string $country_iso3, string $warehouse = ''): self
+    {
         $address = new self();
         $address->street_address = $street_address;
         $address->city = $city;
         $address->state = $state;
         $address->postcode = $postcode;
-        $address->countryName = $countryName;
-        $address->countryISO2 = $countryISO2;
-        $address->countryISO3 = $countryISO3;
+        $address->country_name = $country_name;
+        $address->country_iso2 = $country_iso2;
+        $address->country_iso3 = $country_iso3;
         $address->warehouse = $warehouse;
         return $address;
     }
-
     /**
      * @return string
      */
-    public function getStreetAddress(): string
+    public function get_street_address(): string
     {
         return $this->street_address;
     }
-
     /**
      * @return string
      */
-    public function getCity(): string
+    public function get_city(): string
     {
         return $this->city;
     }
-
     /**
      * @return string
      */
-    public function getState(): string
+    public function get_state(): string
     {
         return $this->state;
     }
-
     /**
      * @return string
      */
-    public function getCountryName(): string
+    public function get_country_name(): string
     {
-        return $this->countryName;
+        return $this->country_name;
     }
-
     /**
      * @return string
      */
-    public function getCountryISO2(): string
+    public function get_country_iso2(): string
     {
-        return $this->countryISO2;
+        return $this->country_iso2;
     }
-
     /**
      * @return string
      */
-    public function getCountryISO3(): string
+    public function get_country_iso3(): string
     {
-        return $this->countryISO3;
+        return $this->country_iso3;
     }
-
     /**
      * @return string
      */
-    public function getPostcode(): string
+    public function get_postcode(): string
     {
         return $this->postcode;
     }
-
     /**
      * @return string
      */
-    public function getWarehouse(): string
+    public function get_warehouse(): string
     {
         return $this->warehouse;
     }
-
 }

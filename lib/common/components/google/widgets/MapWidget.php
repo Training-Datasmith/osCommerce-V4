@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,26 +11,19 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\components\google\widgets;
 
-class MapWidget extends \yii\base\Widget
+class Map_Widget extends \yii\base\Widget
 {
     public $value;
     public $owner;
     public $description;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
-        return $this->render('map-config', [
-            'value' => $this->value,
-            'owner' => $this->owner,
-            'description' => $this->description,
-        ]);
+        return $this->render('map-config', ['value' => $this->value, 'owner' => $this->owner, 'description' => $this->description]);
     }
 }

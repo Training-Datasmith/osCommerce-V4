@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,84 +11,68 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\api\models\AR\Products;
 
 use backend\models\EP\Tools;
-use common\api\models\AR\EPMap;
-use common\helpers\PriceFormula;
+use common\api\models\AR\Ep_Map;
+use common\helpers\Price_Formula;
 use common\models\Suppliers;
 use yii\db\Expression;
-
-class SuppliersData extends EPMap
+class Suppliers_Data extends Ep_Map
 {
     public $suppliers_name;
-
-    protected $hideFields = [
-        'products_id',
-        //'uprid',
-    ];
-
-    protected $parentObject;
-
-    public static function primaryKey()
+    protected $hide_fields = ['products_id'];
+    protected $parent_object;
+    public static function primary_key()
     {
         return ['products_id', 'uprid', 'suppliers_id'];
     }
-
-    public static function tableName()
+    public static function table_name()
     {
         return 'suppliers_products';
     }
-
-    public function customFields()
+    public function custom_fields()
     {
-        $fields = parent::customFields();
+        $fields = parent::custom_fields();
         $fields[] = 'suppliers_name';
         return $fields;
     }
-
-    public function isModified()
+    public function is_modified()
     {
         // prevent product modify
         return false;
         //return parent::isModified();
     }
-
-    public function parentEPMap(EPMap $parentObject)
+    public function parent_ep_map(Ep_Map $parent_object)
     {
-        $this->products_id = $parentObject->products_id;
-        if (isset($parentObject->uprid)) {
-            $this->uprid = $parentObject->uprid;
+        $this->products_id = $parent_object->products_id;
+        if (isset($parent_object->uprid)) {
+            $this->uprid = $parent_object->uprid;
         } else {
             $this->uprid = $this->products_id;
         }
-        $this->parentObject = $parentObject;
-
-        parent::parentEPMap($parentObject);
+        $this->parent_object = $parent_object;
+        parent::parent_ep_map($parent_object);
     }
-
-    public function matchIndexedValue(EPMap $importedObject)
+    public function match_indexed_value(Ep_Map $imported_object)
     {
-        $objectMatch = ($importedObject->products_id == $this->products_id) && ($importedObject->uprid == $this->uprid) && ($importedObject->suppliers_id == $this->suppliers_id);
-
-        if ($objectMatch) {
-            $this->pendingRemoval = false;
+        $object_match = $imported_object->products_id == $this->products_id && $imported_object->uprid == $this->uprid && $imported_object->suppliers_id == $this->suppliers_id;
+        if ($object_match) {
+            $this->pending_removal = false;
             return true;
         }
         return false;
     }
-
-    public function exportArray(array $fields = [])
+    public function export_array(array $fields = [])
     {
-        $data = parent::exportArray($fields);
+        $data = parent::export_array($fields);
         if (count($fields) == 0 || array_key_exists('suppliers_name', $fields)) {
             static $fetched = [];
             if (!isset($fetched[$this->suppliers_id])) {
                 $fetched[$this->suppliers_id] = '';
-                $supplierName = Suppliers::find()->select('suppliers_name')->where(['suppliers_id' => $this->suppliers_id])->asArray(true)->one();
-                if (is_array($supplierName)) {
-                    $fetched[$this->suppliers_id] = $supplierName['suppliers_name'];
+                $supplier_name = Suppliers::find()->select('suppliers_name')->where(['suppliers_id' => $this->suppliers_id])->as_array(true)->one();
+                if (is_array($supplier_name)) {
+                    $fetched[$this->suppliers_id] = $supplier_name['suppliers_name'];
                 }
             }
             $this->suppliers_name = $fetched[$this->suppliers_id];
@@ -96,39 +80,33 @@ class SuppliersData extends EPMap
         }
         return $data;
     }
-
-    public function beforeSave($insert)
+    public function before_save($insert)
     {
         if ($insert) {
             if (empty($this->date_added)) {
                 $this->date_added = new Expression('NOW()');
             }
             if (is_null($this->suppliers_surcharge_amount) || is_null($this->suppliers_margin_percentage)) {
-                $supplierData = Tools::getInstance()->supplierData($this->suppliers_id);
-                if (is_array($supplierData)) {
-                    if (is_null($this->suppliers_surcharge_amount) && $supplierData['suppliers_surcharge_amount']) {
-                        $this->suppliers_surcharge_amount = $supplierData['suppliers_surcharge_amount'];
+                $supplier_data = Tools::get_instance()->supplier_data($this->suppliers_id);
+                if (is_array($supplier_data)) {
+                    if (is_null($this->suppliers_surcharge_amount) && $supplier_data['suppliers_surcharge_amount']) {
+                        $this->suppliers_surcharge_amount = $supplier_data['suppliers_surcharge_amount'];
                     }
-                    if (is_null($this->suppliers_margin_percentage) && $supplierData['suppliers_margin_percentage']) {
-                        $this->suppliers_margin_percentage = $supplierData['suppliers_margin_percentage'];
+                    if (is_null($this->suppliers_margin_percentage) && $supplier_data['suppliers_margin_percentage']) {
+                        $this->suppliers_margin_percentage = $supplier_data['suppliers_margin_percentage'];
                     }
                 }
             }
-        } else {
-            if ($this->isModified()) {
-                $this->last_modified = new Expression('NOW()');
-            }
+        } else if ($this->is_modified()) {
+            $this->last_modified = new Expression('NOW()');
         }
-        return parent::beforeSave($insert);
+        return parent::before_save($insert);
     }
-
-    public function afterSave($insert, $changedAttributes)
+    public function after_save($insert, $changed_attributes)
     {
-        parent::afterSave($insert, $changedAttributes);
-
-        if (count($changedAttributes) > 0) {
-            PriceFormula::applyDb($this->products_id);
+        parent::after_save($insert, $changed_attributes);
+        if (count($changed_attributes) > 0) {
+            Price_Formula::apply_db($this->products_id);
         }
     }
-
 }

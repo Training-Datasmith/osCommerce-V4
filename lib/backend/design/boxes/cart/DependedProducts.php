@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,30 +11,22 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\design\boxes\cart;
 
 use yii\base\Widget;
-
-class DependedProducts extends Widget
+class Depended_Products extends Widget
 {
     public $id;
     public $params;
     public $settings;
     public $visibility;
-
     public function init()
     {
         parent::init();
     }
-
     public function run()
     {
-        $platformList = \common\classes\platform::getList();
-        return $this->render('../../views/depended-products.tpl', [
-                    'id' => $this->id, 'params' => $this->params, 'settings' => $this->settings,
-                    'visibility' => $this->visibility,
-        ]);
+        $platform_list = \common\classes\platform::get_list();
+        return $this->render('../../views/depended-products.tpl', ['id' => $this->id, 'params' => $this->params, 'settings' => $this->settings, 'visibility' => $this->visibility]);
     }
-
 }

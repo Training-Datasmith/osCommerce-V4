@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,58 +11,48 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\controllers;
 
 use Yii;
-
 /**
  * default controller to handle user requests.
  */
-class InstallController extends Sceleton
+class Install_Controller extends Sceleton
 {
     public $acl = ['BOX_HEADING_INSTALL'];
-
-    private $deployLog = [];
-
-    private $doMigrations;
-    private $doSystem;
-    private $doSmarty;
-    private $doTheme;
-    private $doHooks;
-    private $doMenu;
-
+    private $deploy_log = [];
+    private $do_migrations;
+    private $do_system;
+    private $do_smarty;
+    private $do_theme;
+    private $do_hooks;
+    private $do_menu;
     private $show_ignore_field = false;
     private $dst_file_ignore = [];
-
-    private $extClass = null;
-
+    private $ext_class = null;
     public function __construct($id, $module = null)
     {
         \common\helpers\Translation::init('admin/install');
-
         parent::__construct($id, $module);
     }
-
-    private function checkSystemRequires()
+    private function check_system_requires()
     {
         if (!(PHP_VERSION_ID >= 70400)) {
             echo 'Further system upgrade requires a PHP version ">= 7.4.0". You are running ' . PHP_VERSION . '.';
-            die();
+            die;
         }
-        ini_set('memory_limit', '512M'); // for large updates
+        ini_set('memory_limit', '512M');
+        // for large updates
     }
-
-    private static function isKnownRequireModule($filename)
+    private static function is_known_require_module($filename)
     {
         return $filename === 'php_version_74';
     }
-
     private function basename($param, $suffix = null, $charset = 'utf-8')
     {
         if ($suffix) {
             $tmpstr = ltrim(mb_substr($param, mb_strrpos($param, DIRECTORY_SEPARATOR, 0, $charset), null, $charset), DIRECTORY_SEPARATOR);
-            if ((mb_strpos($param, $suffix, null, $charset) + mb_strlen($suffix, $charset))  ==  mb_strlen($param, $charset)) {
+            if (mb_strpos($param, $suffix, null, $charset) + mb_strlen($suffix, $charset) == mb_strlen($param, $charset)) {
                 return str_ireplace($suffix, '', $tmpstr);
             } else {
                 return ltrim(mb_substr($param, mb_strrpos($param, DIRECTORY_SEPARATOR, 0, $charset), null, $charset), DIRECTORY_SEPARATOR);
@@ -72,25 +61,23 @@ class InstallController extends Sceleton
             return ltrim(mb_substr($param, mb_strrpos($param, DIRECTORY_SEPARATOR, 0, $charset), null, $charset), DIRECTORY_SEPARATOR);
         }
     }
-
-    private function delTree($dir)
+    private function del_tree($dir)
     {
         if (is_dir($dir)) {
             $files = array_diff(scandir($dir), ['.', '..']);
             foreach ($files as $file) {
-                (is_dir("$dir/$file")) ? $this->delTree("$dir/$file") : @unlink("$dir/$file");
+                is_dir("{$dir}/{$file}") ? $this->del_tree("{$dir}/{$file}") : @unlink("{$dir}/{$file}");
             }
         }
         return @rmdir($dir);
     }
-
-    private function buildXMLTree($parent_id, $queryResponse)
+    private function build_xml_tree($parent_id, $query_response)
     {
         $tree = [];
-        foreach ($queryResponse as $response) {
+        foreach ($query_response as $response) {
             if ($response['parent_id'] == $parent_id) {
                 if ($response['box_type'] == 1) {
-                    $response['child'] = $this->buildXMLTree($response['box_id'], $queryResponse);
+                    $response['child'] = $this->build_xml_tree($response['box_id'], $query_response);
                 }
                 unset($response['box_id']);
                 unset($response['parent_id']);
@@ -99,82 +86,45 @@ class InstallController extends Sceleton
         }
         return $tree;
     }
-
-    private function resetReCacheFlags()
+    private function reset_re_cache_flags()
     {
-        $this->doMigrations = false;
-        $this->doSystem = false;
-        $this->doSmarty = false;
-        $this->doTheme = false;
-        $this->doHooks = false;
-        $this->doMenu = false;
+        $this->do_migrations = false;
+        $this->do_system = false;
+        $this->do_smarty = false;
+        $this->do_theme = false;
+        $this->do_hooks = false;
+        $this->do_menu = false;
     }
-
-    private function runSystemReCache($echo = false)
+    private function run_system_re_cache($echo = false)
     {
         set_time_limit(0);
         @ignore_user_abort(true);
-
-        $runtimePath = Yii::getAlias('@runtime');
+        $runtime_path = Yii::get_alias('@runtime');
         $all_runtime_directories = [];
-        $all_runtime_directories[] = $runtimePath;
-        $runtime_dir_name = str_replace(
-            Yii::getAlias('@backend'),
-            '',
-            Yii::getAlias('@runtime')
-        );
-        $other_apps_aliases = [
-            '@frontend',
-            '@console',
-            //'@pos',
-            //'@superadmin',
-            //'@rest',
-        ];
+        $all_runtime_directories[] = $runtime_path;
+        $runtime_dir_name = str_replace(Yii::get_alias('@backend'), '', Yii::get_alias('@runtime'));
+        $other_apps_aliases = ['@frontend', '@console'];
         foreach ($other_apps_aliases as $_apps_alias) {
-            $_app_runtime_dir = Yii::getAlias($_apps_alias . $runtime_dir_name, false);
+            $_app_runtime_dir = Yii::get_alias($_apps_alias . $runtime_dir_name, false);
             if (!$_app_runtime_dir || !is_dir($_app_runtime_dir)) {
                 continue;
             }
-
             $all_runtime_directories[] = $_app_runtime_dir;
         }
-
-        if ($this->doMigrations) {
+        if ($this->do_migrations) {
             if ($echo) {
                 echo TEXT_APPLY_MIGRATIONS . "<br>\n";
             }
-            $oldApp = \Yii::$app;
-            new \yii\console\Application([
-                'id' => 'Command runner',
-                'basePath' => '@site_root',
-                'components' => [
-                    'db' => $oldApp->db,
-                    'cache' => [
-                        'class' => 'yii\caching\FileCache',
-                        'cachePath' => '@frontend/runtime/cache',
-                    ],
-                    'log' => [
-                        'targets' => [
-                            [
-                                'class' => 'yii\log\FileTarget',
-                                'levels' => ['error', 'warning'],
-                            ],
-                        ],
-                    ],
-                    'errorHandler' => [
-                        'class' => '\common\classes\TlErrorHandlerConsole',
-                    ],
-                ],
-            ]);
-            \Yii::$app->runAction('migrate/up', ['migrationPath' => '@console/migrations/', 'interactive' => false, 'compact' => true]);
-            \Yii::$app = $oldApp;
+            $old_app = \Yii::$app;
+            new \yii\console\Application(['id' => 'Command runner', 'basePath' => '@site_root', 'components' => ['db' => $old_app->db, 'cache' => ['class' => 'yii\caching\FileCache', 'cachePath' => '@frontend/runtime/cache'], 'log' => ['targets' => [['class' => 'yii\log\FileTarget', 'levels' => ['error', 'warning']]]], 'errorHandler' => ['class' => '\common\classes\TlErrorHandlerConsole']]]);
+            \Yii::$app->run_action('migrate/up', ['migrationPath' => '@console/migrations/', 'interactive' => false, 'compact' => true]);
+            \Yii::$app = $old_app;
         }
-
-        if ($this->doSystem) {
+        if ($this->do_system) {
             if ($echo) {
                 echo TEXT_CLEAN_CACHE . "<br>\n";
             }
-            Yii::$app->getCache()->flush();
+            Yii::$app->get_cache()->flush();
             if (function_exists('opcache_reset')) {
                 opcache_reset();
                 if ($echo) {
@@ -182,79 +132,62 @@ class InstallController extends Sceleton
                 }
             }
         }
-
-        if ($this->doSmarty) {
+        if ($this->do_smarty) {
             if ($echo) {
                 echo TEXT_CLEAN_SMARTY . "<br>\n";
             }
             foreach ($all_runtime_directories as $runtime_directory) {
-                $smartyPath = $runtime_directory . DIRECTORY_SEPARATOR . 'Smarty' . DIRECTORY_SEPARATOR . 'compile' . DIRECTORY_SEPARATOR . '*.*';
-                array_map('unlink', glob($smartyPath));
+                $smarty_path = $runtime_directory . DIRECTORY_SEPARATOR . 'Smarty' . DIRECTORY_SEPARATOR . 'compile' . DIRECTORY_SEPARATOR . '*.*';
+                array_map('unlink', glob($smarty_path));
             }
-            $themesPath = DIR_FS_CATALOG . 'themes' . DIRECTORY_SEPARATOR;
-            $dir = scandir($themesPath);
+            $themes_path = DIR_FS_CATALOG . 'themes' . DIRECTORY_SEPARATOR;
+            $dir = scandir($themes_path);
             foreach ($dir as $theme) {
-                if (file_exists($themesPath . $theme . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR)) {
-                    \yii\helpers\FileHelper::removeDirectory($themesPath . $theme . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR);
+                if (file_exists($themes_path . $theme . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR)) {
+                    \yii\helpers\File_Helper::remove_directory($themes_path . $theme . DIRECTORY_SEPARATOR . 'cache' . DIRECTORY_SEPARATOR);
                 }
             }
         }
-
-        if ($this->doMenu) {
-            \common\helpers\MenuHelper::resetAdminMenu();
+        if ($this->do_menu) {
+            \common\helpers\Menu_Helper::reset_admin_menu();
         }
-
-        if ($this->doHooks) {
-            \common\helpers\Hooks::resetHooks();
+        if ($this->do_hooks) {
+            \common\helpers\Hooks::reset_hooks();
         }
-
-        if ($this->doTheme) {
-            \backend\design\Style::flushCacheAll();
+        if ($this->do_theme) {
+            \backend\design\Style::flush_cache_all();
         }
-
-        $this->resetReCacheFlags();
+        $this->reset_re_cache_flags();
     }
-
-    private function getFileWithDependencies($get_by, $filter)
+    private function get_file_with_dependencies($get_by, $filter)
     {
         $status = false;
         $filename = '';
         if ($request = curl_init()) {
-            $storageUrl = \Yii::$app->params['appStorage.url'];
-            $storageKey = $this->getStorageKey();
-            $secKeyGlobal = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
-            curl_setopt($request, CURLOPT_URL, $storageUrl . 'app-api-server/product');
-
+            $storage_url = \Yii::$app->params['appStorage.url'];
+            $storage_key = $this->get_storage_key();
+            $sec_key_global = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
+            curl_setopt($request, CURLOPT_URL, $storage_url . 'app-api-server/product');
             // for testing
             curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($request, CURLOPT_SSL_VERIFYHOST, false);
-            if (defined('CURLOPT_SSL_VERIFYSTATUS')) { // Added in cURL 7.41.0
+            if (defined('CURLOPT_SSL_VERIFYSTATUS')) {
+                // Added in cURL 7.41.0
                 curl_setopt($request, CURLOPT_SSL_VERIFYSTATUS, false);
             }
-
             curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
             curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'POST');
             curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($request, CURLOPT_HTTPHEADER, [
-                'Content-Type: application/json',
-                'Accept: application/json',
-                'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
-            ]);
-
-            $postFieldArray = [
-                'get_by' => $get_by,
-                'filter' => $filter,
-            ];
-            $postFieldArray = json_encode($postFieldArray);
-
-            curl_setopt($request, CURLOPT_POSTFIELDS, $postFieldArray);
+            curl_setopt($request, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: Bearer ' . $storage_key . ':' . $sec_key_global]);
+            $post_field_array = ['get_by' => $get_by, 'filter' => $filter];
+            $post_field_array = json_encode($post_field_array);
+            curl_setopt($request, CURLOPT_POSTFIELDS, $post_field_array);
             //$result = curl_exec($request);
             $result = json_decode(curl_exec($request), true);
             $response = curl_getinfo($request);
             curl_close($request);
-
             if ($response['http_code'] == 200 && isset($result['content'])) {
-                $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
+                $path = Yii::get_alias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
                 $filename = $result['filename'] ?? '';
                 if (!file_exists($path . $filename)) {
                     $content = base64_decode($result['content']);
@@ -266,9 +199,9 @@ class InstallController extends Sceleton
                 } else {
                     $status = true;
                 }
-                $zip = new \ZipArchive();
+                $zip = new \Zip_Archive();
                 if ($zip->open($path . $filename) === true) {
-                    $json = $zip->getFromName('distribution.json');
+                    $json = $zip->get_from_name('distribution.json');
                     $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
                     $zip->close();
                     if (!empty($json)) {
@@ -276,8 +209,8 @@ class InstallController extends Sceleton
                         if (isset($distribution->require->modules) && is_array($distribution->require->modules)) {
                             foreach ($distribution->require->modules as $subfile) {
                                 $record = \common\models\Installer::find()->where(['filename' => $subfile])->one();
-                                if (!($record instanceof \common\models\Installer)) {
-                                    $status = $status && $this->getFileWithDependencies('file', $subfile);
+                                if (!$record instanceof \common\models\Installer) {
+                                    $status = $status && $this->get_file_with_dependencies('file', $subfile);
                                 }
                             }
                         }
@@ -292,38 +225,31 @@ class InstallController extends Sceleton
         }
         return $status;
     }
-
-    private function installFileWithDependencies($filename, $settings = [], $echo = false)
+    private function install_file_with_dependencies($filename, $settings = [], $echo = false)
     {
-        $this->deployLog[] = TEXT_CHECKING . ' ' . $filename;
-
+        $this->deploy_log[] = TEXT_CHECKING . ' ' . $filename;
         $selected_platform_id = $settings['platform_id'] ?? 0;
         $locale = $settings['locale'] ?? 0;
-
-        $platformNames = [];
-        $toAssign = [];
+        $platform_names = [];
+        $to_assign = [];
         if ($selected_platform_id > 0) {
-            $toAssign[] = $selected_platform_id;
-            $pRow = \common\models\Platforms::find()->select(['platform_name'])
-                    ->where(['is_virtual' => 0, 'is_marketplace' => 0, 'platform_id' => $selected_platform_id])
-                    ->asArray()
-                    ->one();
-            $platformNames[$selected_platform_id] = $pRow['platform_name'] ?? '';
+            $to_assign[] = $selected_platform_id;
+            $p_row = \common\models\Platforms::find()->select(['platform_name'])->where(['is_virtual' => 0, 'is_marketplace' => 0, 'platform_id' => $selected_platform_id])->as_array()->one();
+            $platform_names[$selected_platform_id] = $p_row['platform_name'] ?? '';
         }
         if ($selected_platform_id < 0) {
-            foreach (\common\models\Platforms::find()->select(['platform_id', 'platform_name'])->where(['is_virtual' => 0, 'is_marketplace' => 0])->asArray()->all() as $pRow) {
-                $toAssign[] = $pRow['platform_id'];
-                $platformNames[$pRow['platform_id']] = $pRow['platform_name'];
+            foreach (\common\models\Platforms::find()->select(['platform_id', 'platform_name'])->where(['is_virtual' => 0, 'is_marketplace' => 0])->as_array()->all() as $p_row) {
+                $to_assign[] = $p_row['platform_id'];
+                $platform_names[$p_row['platform_id']] = $p_row['platform_name'];
             }
         }
-
         $force = $settings['force'] ?? 0;
         $selected_acl = $settings['acl'] ?? 0;
         $status = false;
-        $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR;
-        $zip = new \ZipArchive();
+        $path = Yii::get_alias('@site_root') . DIRECTORY_SEPARATOR;
+        $zip = new \Zip_Archive();
         if ($zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . $filename) === true) {
-            $json = $zip->getFromName('distribution.json');
+            $json = $zip->get_from_name('distribution.json');
             $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
             $zip->close();
             if (!empty($json)) {
@@ -336,129 +262,124 @@ class InstallController extends Sceleton
                     } else {
                         $version = '';
                     }
-                    $versionApplicable = $distribution->require->version_applicable ?? 'equal';
-                    switch ($versionApplicable) {
+                    $version_applicable = $distribution->require->version_applicable ?? 'equal';
+                    switch ($version_applicable) {
                         case 'equal':
                             if ($version != $distribution->require->version) {
                                 $status = false;
-                                $this->deployLog[] = 'Version required ' . $distribution->require->version;
+                                $this->deploy_log[] = 'Version required ' . $distribution->require->version;
                             }
                             break;
                         case 'greater-equal':
                             if (intval($version) < intval($distribution->require->version)) {
                                 $status = false;
-                                $this->deployLog[] = 'Version must be greater or equal to ' . $distribution->require->version;
+                                $this->deploy_log[] = 'Version must be greater or equal to ' . $distribution->require->version;
                             }
                             break;
                         case 'less-equal':
                             if (intval($version) > intval($distribution->require->version)) {
                                 $status = false;
-                                $this->deployLog[] = 'Version must be less or equal to ' . $distribution->require->version;
+                                $this->deploy_log[] = 'Version must be less or equal to ' . $distribution->require->version;
                             }
                             break;
                         default:
                             break;
                     }
-
                 }
                 if (isset($distribution->require->modules) && is_array($distribution->require->modules)) {
                     foreach ($distribution->require->modules as $subfile) {
-                        if (self::isKnownRequireModule($subfile)) {
+                        if (self::is_known_require_module($subfile)) {
                             continue;
                         }
                         $record = \common\models\Installer::find()->where(['filename' => $subfile])->one();
-                        if (!($record instanceof \common\models\Installer)) {
-                            $status = $status && $this->installFileWithDependencies($subfile, $settings, $echo);
+                        if (!$record instanceof \common\models\Installer) {
+                            $status = $status && $this->install_file_with_dependencies($subfile, $settings, $echo);
                         }
                     }
                 }
                 if (isset($distribution->require->classes) && is_array($distribution->require->classes)) {
                     foreach ($distribution->require->classes as $classversion) {
-                        $recordQuery = \common\models\Installer::find()->where(['archive_class' => $classversion->name]);
+                        $record_query = \common\models\Installer::find()->where(['archive_class' => $classversion->name]);
                         $cv = '';
                         if (isset($classversion->min)) {
-                            list($major, $minor, $patch) = array_pad(explode('.', (string)$classversion->min), 3, 0);
+                            list($major, $minor, $patch) = array_pad(explode('.', (string) $classversion->min), 3, 0);
                             $archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
-                            $recordQuery->andWhere(['>=', 'archive_version', $archive_version]);
+                            $record_query->and_where(['>=', 'archive_version', $archive_version]);
                             $cv .= ', v.' . $classversion->min . ' or greater';
                         }
                         if (isset($classversion->max)) {
-                            list($major, $minor, $patch) = array_pad(explode('.', (string)$classversion->max), 3, 0);
+                            list($major, $minor, $patch) = array_pad(explode('.', (string) $classversion->max), 3, 0);
                             $archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
-                            $recordQuery->andWhere(['<=', 'archive_version', $archive_version]);
+                            $record_query->and_where(['<=', 'archive_version', $archive_version]);
                             $cv .= ', v.' . $classversion->max . ' or less';
                         }
-                        $record = $recordQuery->one();
-                        if (!($record instanceof \common\models\Installer)) {
-                            $this->deployLog[] = 'Class '.$classversion->name.$cv.' must be installed';
+                        $record = $record_query->one();
+                        if (!$record instanceof \common\models\Installer) {
+                            $this->deploy_log[] = 'Class ' . $classversion->name . $cv . ' must be installed';
                             $status = false;
                         }
                         unset($record);
                     }
                 }
                 if ($status) {
-                    $moduleDir = '';
-                    $setParam = '';
+                    $module_dir = '';
+                    $set_param = '';
                     switch ($distribution->type) {
-                        case 'extension':// Extension
+                        case 'extension':
+                            // Extension
                             if (isset($distribution->class)) {
-                                $this->extClass = $distribution->class;
-                                $pathP = $path . 'lib' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'extensions';
-                                $check = \common\models\Installer::find()
-                                        ->select(['max(archive_version) as version'])
-                                        ->where(['archive_type' => (string)$distribution->type])
-                                        ->andWhere(['archive_class' => (string)$distribution->class])
-                                        ->asArray()
-                                        ->one();
+                                $this->ext_class = $distribution->class;
+                                $path_p = $path . 'lib' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'extensions';
+                                $check = \common\models\Installer::find()->select(['max(archive_version) as version'])->where(['archive_type' => (string) $distribution->type])->and_where(['archive_class' => (string) $distribution->class])->as_array()->one();
                                 if (isset($check['version'])) {
                                     $major = floor($check['version']);
                                     $minor = floor(($check['version'] - $major) * 100);
                                     $patch = ($check['version'] - $major - $minor / 100) * 10000;
-                                    $jsonFile = 'v-' . $major . '-' . $minor . '-' . $patch . '.json';
+                                    $json_file = 'v-' . $major . '-' . $minor . '-' . $patch . '.json';
                                     $zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . $filename);
-                                    $jsonString = $zip->getFromName($jsonFile);
+                                    $json_string = $zip->get_from_name($json_file);
                                     $zip->close();
-                                    if ($jsonString !== false) {
-                                        $checklist = json_decode($jsonString);
-                                        $pathC = $pathP . DIRECTORY_SEPARATOR . $distribution->class . DIRECTORY_SEPARATOR;
+                                    if ($json_string !== false) {
+                                        $checklist = json_decode($json_string);
+                                        $path_c = $path_p . DIRECTORY_SEPARATOR . $distribution->class . DIRECTORY_SEPARATOR;
                                         foreach ($checklist as $checkfile => $checksum) {
                                             $dst = str_replace('|', DIRECTORY_SEPARATOR, $checkfile);
-                                            if (empty($checksum) && !is_dir($pathC . $dst)) {
+                                            if (empty($checksum) && !is_dir($path_c . $dst)) {
                                                 $status = false;
-                                                $this->deployLog[] = "Directory $dst not found.";
+                                                $this->deploy_log[] = "Directory {$dst} not found.";
                                             }
-                                            if (!empty($checksum) && is_file($pathC . $dst)) {
-                                                $crc = crc32(file_get_contents($pathC . $dst));
+                                            if (!empty($checksum) && is_file($path_c . $dst)) {
+                                                $crc = crc32(file_get_contents($path_c . $dst));
                                                 if ($crc != $checksum) {
                                                     $status = false;
-                                                    $this->deployLog[] = "File $dst modified.";
+                                                    $this->deploy_log[] = "File {$dst} modified.";
                                                 }
                                             } elseif (!empty($checksum)) {
                                                 $status = false;
-                                                $this->deployLog[] = "File $dst not found.";
+                                                $this->deploy_log[] = "File {$dst} not found.";
                                             }
                                         }
                                     }
                                 }
                                 if ($status) {
-                                    $status = $this->checkFileDst($distribution->src, $filename, $pathP, $echo, $force);
+                                    $status = $this->check_file_dst($distribution->src, $filename, $path_p, $echo, $force);
                                 }
                                 if ($status) {
-                                    $this->runFileDst($distribution->src, $filename, $pathP, $echo);
-
-                                    $class = '\\common\\extensions\\' . (string)$distribution->class . '\\' . (string)$distribution->class;
-                                    $this->doInstallClass($class, 0, $selected_acl);
-                                    $this->doHooks = true;
-                                    $this->doMenu = false;
-                                    $this->doInstallRecord($filename, (string)$distribution->type, (string)$distribution->class, (string)$distribution->version, $distribution->src);
-                                    $this->doSystem = true;
+                                    $this->run_file_dst($distribution->src, $filename, $path_p, $echo);
+                                    $class = '\common\extensions\\' . (string) $distribution->class . '\\' . (string) $distribution->class;
+                                    $this->do_install_class($class, 0, $selected_acl);
+                                    $this->do_hooks = true;
+                                    $this->do_menu = false;
+                                    $this->do_install_record($filename, (string) $distribution->type, (string) $distribution->class, (string) $distribution->version, $distribution->src);
+                                    $this->do_system = true;
                                 }
                             }
                             break;
-                        case 'design':// Theme
+                        case 'design':
+                            // Theme
                             $theme = new \common\models\Themes();
-                            $theme->loadDefaultValues();
-                            $theme_name = \common\classes\design::pageName($distribution->name);
+                            $theme->load_default_values();
+                            $theme_name = \common\classes\design::page_name($distribution->name);
                             $theme->theme_name = $theme_name;
                             $theme->title = $distribution->name;
                             $theme->install = 1;
@@ -467,62 +388,56 @@ class InstallController extends Sceleton
                             $theme->parent_theme = '';
                             if ($theme->save()) {
                                 \backend\design\Theme::import($theme_name, $path . 'uploads' . DIRECTORY_SEPARATOR . $filename);
-                                $oldData = [
-                                    'id' => $theme->id,
-                                ];
+                                $old_data = ['id' => $theme->id];
                                 if ($theme->id > 0) {
-                                    foreach ($toAssign as $toId) {
-                                        $oldData['platforms_to_themes'][$toId] = \common\models\PlatformsToThemes::find()->where(['platform_id' => $toId])->asArray()->all();
-                                        \common\models\PlatformsToThemes::deleteAll(['platform_id' => $toId]);
-                                        $p2t = new \common\models\PlatformsToThemes();
-                                        $p2t->loadDefaultValues();
-                                        $p2t->platform_id = $toId;
+                                    foreach ($to_assign as $to_id) {
+                                        $old_data['platforms_to_themes'][$to_id] = \common\models\Platforms_To_Themes::find()->where(['platform_id' => $to_id])->as_array()->all();
+                                        \common\models\Platforms_To_Themes::delete_all(['platform_id' => $to_id]);
+                                        $p2t = new \common\models\Platforms_To_Themes();
+                                        $p2t->load_default_values();
+                                        $p2t->platform_id = $to_id;
                                         $p2t->theme_id = $theme->id;
                                         $p2t->is_default = 1;
                                         $p2t->save(false);
                                     }
                                 }
-
-                                $this->doSystem = true;
-                                $this->doSmarty = true;
+                                $this->do_system = true;
+                                $this->do_smarty = true;
                                 //$this->doTheme = true;
-                                $this->doInstallRecord($filename, (string)$distribution->type, (string)($distribution->class ?? ''), (string)$distribution->version, $oldData);
+                                $this->do_install_record($filename, (string) $distribution->type, (string) ($distribution->class ?? ''), (string) $distribution->version, $old_data);
                                 $status = true;
                             } else {
                                 $status = false;
-
                             }
                             break;
-                        case 'translate':// Translations
+                        case 'translate':
+                            // Translations
                             $languages = \common\helpers\Language::get_languages(true);
                             $override = $addnew = true;
                             $zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . $filename);
-                            $localejson = $zip->getFromName('locale.json');
+                            $localejson = $zip->get_from_name('locale.json');
                             $localejson = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $localejson);
-                            $oldData = [];
+                            $old_data = [];
                             if (!empty($json)) {
                                 $localejson = json_decode($localejson, JSON_OBJECT_AS_ARRAY);
-                                $lang = \common\models\Languages::find()->where(['code' => (string)$localejson['code']])->one();
+                                $lang = \common\models\Languages::find()->where(['code' => (string) $localejson['code']])->one();
                                 if ($lang instanceof \common\models\Languages) {
                                     if ($locale == 1) {
                                         // update language settings
                                         $update_language_id = $lang->languages_id;
                                         if ($update_language_id > 0 && isset($localejson['formats']) && is_array($localejson['formats'])) {
                                             foreach ($localejson['formats'] as $configuration_key => $configuration_value) {
-                                                $lFormats = \common\models\LanguagesFormats::find()
-                                                        ->where(['configuration_key' => $configuration_key])
-                                                        ->andWhere(['language_id' => $update_language_id])
-                                                        ->one();
-                                                if ($lFormats instanceof \common\models\LanguagesFormats) {
-                                                    $lFormats->configuration_value = $configuration_value;
-                                                    $lFormats->save(false);
+                                                $l_formats = \common\models\Languages_Formats::find()->where(['configuration_key' => $configuration_key])->and_where(['language_id' => $update_language_id])->one();
+                                                if ($l_formats instanceof \common\models\Languages_Formats) {
+                                                    $l_formats->configuration_value = $configuration_value;
+                                                    $l_formats->save(false);
                                                 } else {
-                                                    $lFormats = new \common\models\LanguagesFormats();
-                                                    $lFormats->loadDefaultValues();
-                                                    $lFormats->configuration_key = $configuration_key;
-                                                    $lFormats->configuration_value = $configuration_value;
-                                                    $lFormats->language_id = $update_language_id;
-                                                    $lFormats->save(false);
+                                                    $l_formats = new \common\models\Languages_Formats();
+                                                    $l_formats->load_default_values();
+                                                    $l_formats->configuration_key = $configuration_key;
+                                                    $l_formats->configuration_value = $configuration_value;
+                                                    $l_formats->language_id = $update_language_id;
+                                                    $l_formats->save(false);
                                                 }
                                             }
                                         }
@@ -531,107 +446,72 @@ class InstallController extends Sceleton
                                 } else {
                                     // install new language and settings
                                     $max = tep_db_fetch_array(tep_db_query('select max(sort_order)+1 as sort_order from languages where 1'));
-                                    $sql_array = [
-                                        'name' => $localejson['name'],
-                                        'code' => strtolower((string)$localejson['code']),
-                                        'image_svg' => $localejson['icon'],
-                                        'locale' => (string)$localejson['locale'],
-                                        'sort_order' => $max['sort_order'],
-                                        'languages_status' => 0,
-                                    ];
+                                    $sql_array = ['name' => $localejson['name'], 'code' => strtolower((string) $localejson['code']), 'image_svg' => $localejson['icon'], 'locale' => (string) $localejson['locale'], 'sort_order' => $max['sort_order'], 'languages_status' => 0];
                                     $lang = new \common\models\Languages();
-                                    $lang->loadDefaultValues();
-                                    $lang->setAttributes($sql_array, false);
+                                    $lang->load_default_values();
+                                    $lang->set_attributes($sql_array, false);
                                     if ($lang->save(false)) {
                                         $insert_id = $lang->languages_id;
                                         if ($insert_id > 0 && isset($localejson['formats']) && is_array($localejson['formats'])) {
                                             foreach ($localejson['formats'] as $configuration_key => $configuration_value) {
-                                                $lFormats = new \common\models\LanguagesFormats();
-                                                $lFormats->loadDefaultValues();
-                                                $lFormats->configuration_key = $configuration_key;
-                                                $lFormats->configuration_value = $configuration_value;
-                                                $lFormats->language_id = $insert_id;
-                                                $lFormats->save(false);
+                                                $l_formats = new \common\models\Languages_Formats();
+                                                $l_formats->load_default_values();
+                                                $l_formats->configuration_key = $configuration_key;
+                                                $l_formats->configuration_value = $configuration_value;
+                                                $l_formats->language_id = $insert_id;
+                                                $l_formats->save(false);
                                             }
-                                            $oldData[] = [
-                                                'action' => 'deletelanguage',
-                                                'language_id' => $insert_id,
-                                            ];
+                                            $old_data[] = ['action' => 'deletelanguage', 'language_id' => $insert_id];
                                         }
                                     }
                                     $languages = \common\helpers\Language::get_languages(true);
                                 }
                                 // update or create from default language
-                                \common\helpers\Language::copyLanguage((int) \common\helpers\Language::get_default_language_id(), (int) $insert_id);
+                                \common\helpers\Language::copy_language((int) \common\helpers\Language::get_default_language_id(), (int) $insert_id);
                             }
-                            foreach ((array)$distribution->files as $file) {
-                                $CsvString = $zip->getFromName($file);
-
-                                $bom = substr($CsvString, 0, 2);
-                                if ($bom === chr(0xff).chr(0xfe) || $bom === chr(0xfe).chr(0xff)) {
+                            foreach ((array) $distribution->files as $file) {
+                                $csv_string = $zip->get_from_name($file);
+                                $bom = substr($csv_string, 0, 2);
+                                if ($bom === chr(0xff) . chr(0xfe) || $bom === chr(0xfe) . chr(0xff)) {
                                     $encoding = 'UTF-16';
                                 } else {
-                                    $encoding = mb_detect_encoding($CsvString, 'auto', true);
+                                    $encoding = mb_detect_encoding($csv_string, 'auto', true);
                                 }
                                 if ($encoding) {
-                                    $CsvString = iconv($encoding, 'UTF-8', $CsvString);
+                                    $csv_string = iconv($encoding, 'UTF-8', $csv_string);
                                 } else {
-                                    $CsvString = iconv('CP850', 'UTF-8', $CsvString);
+                                    $csv_string = iconv('CP850', 'UTF-8', $csv_string);
                                 }
-                                $Data = str_getcsv($CsvString, "\n");
-                                $uploadedKeys = false;
+                                $Data = str_getcsv($csv_string, "\n");
+                                $uploaded_keys = false;
                                 foreach ($Data as &$data) {
                                     $data = str_getcsv($data, "\t");
-                                    if ($uploadedKeys === false) {
-                                        $uploadedKeys = array_flip($data);
+                                    if ($uploaded_keys === false) {
+                                        $uploaded_keys = array_flip($data);
                                         continue;
                                     }
-                                    if (isset($data[$uploadedKeys['HASH']]) && !empty($data[$uploadedKeys['HASH']])) {
+                                    if (isset($data[$uploaded_keys['HASH']]) && !empty($data[$uploaded_keys['HASH']])) {
                                         foreach ($languages as $_lang) {
-                                            if (isset($uploadedKeys[$_lang['code']])) {
-
-                                                $check_hash_query = tep_db_query('SELECT * FROM ' . TABLE_TRANSLATION . " WHERE language_id='" . (int)$_lang['id'] . "' and hash = '" . tep_db_input($data[$uploadedKeys['HASH']]) . "'");
+                                            if (isset($uploaded_keys[$_lang['code']])) {
+                                                $check_hash_query = tep_db_query('SELECT * FROM ' . TABLE_TRANSLATION . " WHERE language_id='" . (int) $_lang['id'] . "' and hash = '" . tep_db_input($data[$uploaded_keys['HASH']]) . "'");
                                                 if (tep_db_num_rows($check_hash_query) > 0) {
                                                     if ($override) {
                                                         $check_hash = tep_db_fetch_array($check_hash_query);
-                                                        $oldData[] = [
-                                                            'action' => 'update',
-                                                            'translation_value' => $check_hash['translation_value'],
-                                                            'translated' => $check_hash['translated'],
-                                                            'language_id' => $check_hash['language_id'],
-                                                            'hash' => $check_hash['hash'],
-                                                        ];
-                                                        tep_db_query('update ' . TABLE_TRANSLATION . " set translation_value = '" . tep_db_input($data[$uploadedKeys[$_lang['code']]]) . "', translated = '" . tep_db_input($data[$uploadedKeys[$_lang['code'] . '_TSL']]) . "' where language_id = '" . (int)$_lang['id'] . "' and hash = '" . tep_db_input($data[$uploadedKeys['HASH']]) . "'");
+                                                        $old_data[] = ['action' => 'update', 'translation_value' => $check_hash['translation_value'], 'translated' => $check_hash['translated'], 'language_id' => $check_hash['language_id'], 'hash' => $check_hash['hash']];
+                                                        tep_db_query('update ' . TABLE_TRANSLATION . " set translation_value = '" . tep_db_input($data[$uploaded_keys[$_lang['code']]]) . "', translated = '" . tep_db_input($data[$uploaded_keys[$_lang['code'] . '_TSL']]) . "' where language_id = '" . (int) $_lang['id'] . "' and hash = '" . tep_db_input($data[$uploaded_keys['HASH']]) . "'");
                                                     }
-                                                } elseif (isset($data[$uploadedKeys['Entity']]) && isset($data[$uploadedKeys['Key']])) {
-                                                    $check_hash_query = tep_db_query('SELECT * FROM ' . TABLE_TRANSLATION . " WHERE language_id='" . (int)$_lang['id'] . "' and translation_key = '" . tep_db_input($data[$uploadedKeys['Key']]) . "' and translation_entity = '" . tep_db_input($data[$uploadedKeys['Entity']]) . "'");
+                                                } elseif (isset($data[$uploaded_keys['Entity']]) && isset($data[$uploaded_keys['Key']])) {
+                                                    $check_hash_query = tep_db_query('SELECT * FROM ' . TABLE_TRANSLATION . " WHERE language_id='" . (int) $_lang['id'] . "' and translation_key = '" . tep_db_input($data[$uploaded_keys['Key']]) . "' and translation_entity = '" . tep_db_input($data[$uploaded_keys['Entity']]) . "'");
                                                     if (tep_db_num_rows($check_hash_query) > 0) {
                                                         if ($override) {
                                                             $check_hash = tep_db_fetch_array($check_hash_query);
-                                                            $oldData[] = [
-                                                                'action' => 'update',
-                                                                'translation_value' => $check_hash['translation_value'],
-                                                                'translated' => $check_hash['translated'],
-                                                                'language_id' => $check_hash['language_id'],
-                                                                'hash' => $check_hash['hash'],
-                                                            ];
-                                                            tep_db_query('update ' . TABLE_TRANSLATION . " set translation_value = '" . tep_db_input($data[$uploadedKeys[$_lang['code']]]) . "', translated = '" . tep_db_input($data[$uploadedKeys[$_lang['code'] . '_TSL']]) . "' where language_id = '" . (int)$_lang['id'] . "' and hash = '" . tep_db_input($data[$uploadedKeys['HASH']]) . "'");
+                                                            $old_data[] = ['action' => 'update', 'translation_value' => $check_hash['translation_value'], 'translated' => $check_hash['translated'], 'language_id' => $check_hash['language_id'], 'hash' => $check_hash['hash']];
+                                                            tep_db_query('update ' . TABLE_TRANSLATION . " set translation_value = '" . tep_db_input($data[$uploaded_keys[$_lang['code']]]) . "', translated = '" . tep_db_input($data[$uploaded_keys[$_lang['code'] . '_TSL']]) . "' where language_id = '" . (int) $_lang['id'] . "' and hash = '" . tep_db_input($data[$uploaded_keys['HASH']]) . "'");
                                                         }
-                                                    } elseif ($addnew && !empty($data[$uploadedKeys['Key']]) && !empty($data[$uploadedKeys['Entity']])) {
-                                                        $hash = md5($data[$uploadedKeys['Key']] . '-' . $data[$uploadedKeys['Entity']]);
-                                                        $sql_data_array = [
-                                                            'language_id' => (int)$_lang['id'],
-                                                            'translation_key' => $data[$uploadedKeys['Key']],
-                                                            'translation_entity' => $data[$uploadedKeys['Entity']],
-                                                            'translation_value' => $data[$uploadedKeys[$_lang['code']]],
-                                                            'hash' => $hash,
-                                                            'translated' => $data[$uploadedKeys[$_lang['code'] . '_TSL']],
-                                                        ];
-                                                        $oldData[] = [
-                                                            'action' => 'delete',
-                                                            'language_id' => (int)$_lang['id'],
-                                                            'hash' => $hash,
-                                                        ];
+                                                    } elseif ($addnew && !empty($data[$uploaded_keys['Key']]) && !empty($data[$uploaded_keys['Entity']])) {
+                                                        $hash = md5($data[$uploaded_keys['Key']] . '-' . $data[$uploaded_keys['Entity']]);
+                                                        $sql_data_array = ['language_id' => (int) $_lang['id'], 'translation_key' => $data[$uploaded_keys['Key']], 'translation_entity' => $data[$uploaded_keys['Entity']], 'translation_value' => $data[$uploaded_keys[$_lang['code']]], 'hash' => $hash, 'translated' => $data[$uploaded_keys[$_lang['code'] . '_TSL']]];
+                                                        $old_data[] = ['action' => 'delete', 'language_id' => (int) $_lang['id'], 'hash' => $hash];
                                                         tep_db_perform(TABLE_TRANSLATION, $sql_data_array);
                                                     }
                                                 }
@@ -642,234 +522,191 @@ class InstallController extends Sceleton
                                     }
                                 }
                             }
-                            $this->doInstallRecord($filename, (string)$distribution->type, (string)($distribution->class ?? ''), (string)$distribution->version, $oldData);
-                            $this->doSystem = true;
-                            $this->doTheme = true;
+                            $this->do_install_record($filename, (string) $distribution->type, (string) ($distribution->class ?? ''), (string) $distribution->version, $old_data);
+                            $this->do_system = true;
+                            $this->do_theme = true;
                             $zip->close();
                             break;
-                        case 'payment':// Payment
-                            $moduleDir = 'orderPayment';
-                            $setParam = 'payment';
-                            // no break
-                        case 'shipping':// Shipping
-                            if (empty($moduleDir)) {
-                                $moduleDir = 'orderShipping';
-                                $setParam = 'shipping';
+                        case 'payment':
+                            // Payment
+                            $module_dir = 'orderPayment';
+                            $set_param = 'payment';
+                        // no break
+                        case 'shipping':
+                            // Shipping
+                            if (empty($module_dir)) {
+                                $module_dir = 'orderShipping';
+                                $set_param = 'shipping';
                             }
-                            // no break
-                        case 'totals':// Order structure
-                            if (empty($moduleDir)) {
-                                $moduleDir = 'orderTotal';
-                                $setParam = 'ordertotal';
+                        // no break
+                        case 'totals':
+                            // Order structure
+                            if (empty($module_dir)) {
+                                $module_dir = 'orderTotal';
+                                $set_param = 'ordertotal';
                             }
-                            // no break
-                        case 'analytic':// Google analytic
-                            if (empty($moduleDir)) {
-                                $moduleDir = 'analytic';
+                        // no break
+                        case 'analytic':
+                            // Google analytic
+                            if (empty($module_dir)) {
+                                $module_dir = 'analytic';
                             }
-                            // no break
-                        case 'label':// Shipping label
-                            if (empty($moduleDir)) {
-                                $moduleDir = 'label';
-                                $setParam = 'label';
+                        // no break
+                        case 'label':
+                            // Shipping label
+                            if (empty($module_dir)) {
+                                $module_dir = 'label';
+                                $set_param = 'label';
                             }
-                            $pathP = $path . 'lib' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'modules' . DIRECTORY_SEPARATOR . $moduleDir;
-                            $status = $this->checkFileDst($distribution->src, $filename, $pathP, $echo, $force);
+                            $path_p = $path . 'lib' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'modules' . DIRECTORY_SEPARATOR . $module_dir;
+                            $status = $this->check_file_dst($distribution->src, $filename, $path_p, $echo, $force);
                             if ($status) {
-                                $this->runFileDst($distribution->src, $filename, $pathP, $echo);
+                                $this->run_file_dst($distribution->src, $filename, $path_p, $echo);
                                 if (isset($distribution->class)) {
-                                    $class = '\\common\\modules\\' . $moduleDir . '\\' . (string)$distribution->class;
-                                    foreach ($toAssign as $toId) {
-                                        $this->doInstallClass($class, $toId);
-                                        $this->doRecalcModuleSort('add', $class, $distribution->type, $toId);
-                                        if (!empty($setParam)) {
-                                            $this->deployLog[] =  'This ' . $distribution->type . ' installed automatically.' . 'Dont forget <a target="_blank" href="' . Yii::$app->urlManager->createUrl(['modules/edit', 'set' => $setParam, 'module' => (string)$distribution->class, 'platform_id' => $toId]) . '">check settings for platform '.$platformNames[$toId].'</a>.';
+                                    $class = '\common\modules\\' . $module_dir . '\\' . (string) $distribution->class;
+                                    foreach ($to_assign as $to_id) {
+                                        $this->do_install_class($class, $to_id);
+                                        $this->do_recalc_module_sort('add', $class, $distribution->type, $to_id);
+                                        if (!empty($set_param)) {
+                                            $this->deploy_log[] = 'This ' . $distribution->type . ' installed automatically.' . 'Dont forget <a target="_blank" href="' . Yii::$app->url_manager->create_url(['modules/edit', 'set' => $set_param, 'module' => (string) $distribution->class, 'platform_id' => $to_id]) . '">check settings for platform ' . $platform_names[$to_id] . '</a>.';
                                         }
                                     }
                                 }
-                                $this->doInstallRecord($filename, (string)$distribution->type, (string)($distribution->class ?? ''), (string)$distribution->version, $distribution->src);
-                                $this->doSystem = true;
+                                $this->do_install_record($filename, (string) $distribution->type, (string) ($distribution->class ?? ''), (string) $distribution->version, $distribution->src);
+                                $this->do_system = true;
                             }
                             break;
-                        case 'samples':// Sample data
+                        case 'samples':
+                            // Sample data
                             $status = true;
                             \common\helpers\Translation::init('admin/easypopulate');
                             \common\helpers\Translation::init('admin/main');
                             try {
-
                                 copy($path . 'uploads' . DIRECTORY_SEPARATOR . $filename, $path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR . $filename);
-
                                 ob_start();
-                                $messages = new \backend\models\EP\Messages([
-                                    'output' => 'null',
-                                ]);
-
-                                $importJob = new \backend\models\EP\JobZipFile([
-                                    'directory_id' => 2, //manual import
+                                $messages = new \backend\models\EP\Messages(['output' => 'null']);
+                                $import_job = new \backend\models\EP\Job_Zip_File([
+                                    'directory_id' => 2,
+                                    //manual import
                                     'file_name' => $filename,
                                     'direction' => 'import',
                                     'job_provider' => 'auto',
                                 ]);
-                                $importJob->tryAutoConfigure();
-                                $importJob->run($messages);
+                                $import_job->try_auto_configure();
+                                $import_job->run($messages);
                                 ob_flush();
-
                                 if ($zip->open($path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR . $filename) === true) {
-
                                     $catalog_categories = [];
-                                    $zip->extractTo($path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR, 'catalog_categories.csv');
-                                    $reader = new \backend\models\EP\Reader\CSV([
-                                        'filename' => $path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR . 'catalog_categories.csv',
-                                    ]);
+                                    $zip->extract_to($path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR, 'catalog_categories.csv');
+                                    $reader = new \backend\models\EP\Reader\CSV(['filename' => $path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR . 'catalog_categories.csv']);
                                     while ($Columns = $reader->read()) {
                                         $catalog_categories[] = $Columns['Categories SEO page name (URL) en'];
                                     }
                                     @unlink($path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR . 'catalog_categories.csv');
                                     unset($reader);
-
                                     $catalog_products = [];
-                                    $zip->extractTo($path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR, 'catalog_products.csv');
-                                    $reader = new \backend\models\EP\Reader\CSV([
-                                        'filename' => $path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR . 'catalog_products.csv',
-                                    ]);
+                                    $zip->extract_to($path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR, 'catalog_products.csv');
+                                    $reader = new \backend\models\EP\Reader\CSV(['filename' => $path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR . 'catalog_products.csv']);
                                     while ($Columns = $reader->read()) {
                                         $catalog_products[] = $Columns['Products Model'];
                                     }
                                     @unlink($path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR . 'catalog_products.csv');
                                     unset($reader);
-
                                     $zip->close();
-
-                                    foreach ($toAssign as $toId) {
-
+                                    foreach ($to_assign as $to_id) {
                                         foreach ($catalog_categories as $catalog_cat) {
-                                            $cat = \common\models\CategoriesDescription::find()->where(['categories_seo_page_name' => $catalog_cat])->one();
-                                            if ($cat instanceof \common\models\CategoriesDescription) {
-                                                tep_db_query("INSERT IGNORE INTO platforms_categories (platform_id, categories_id) VALUES ($toId, ".$cat->categories_id.');');
+                                            $cat = \common\models\Categories_Description::find()->where(['categories_seo_page_name' => $catalog_cat])->one();
+                                            if ($cat instanceof \common\models\Categories_Description) {
+                                                tep_db_query("INSERT IGNORE INTO platforms_categories (platform_id, categories_id) VALUES ({$to_id}, " . $cat->categories_id . ');');
                                             }
                                         }
-
                                         foreach (\common\models\Products::find()->where(['IN', 'products_model', $catalog_products])->all() as $product) {
-                                            tep_db_query("INSERT IGNORE INTO platforms_products (platform_id, products_id) VALUES ($toId, ".$product->products_id.');');
-                                            \common\helpers\Product::doCache($product->products_id);
+                                            tep_db_query("INSERT IGNORE INTO platforms_products (platform_id, products_id) VALUES ({$to_id}, " . $product->products_id . ');');
+                                            \common\helpers\Product::do_cache($product->products_id);
                                         }
-
                                     }
-
                                 }
-                                $oldData = [
-                                    'catalog_categories' => $catalog_categories,
-                                    'catalog_products' => $catalog_products,
-                                ];
-                                $this->doInstallRecord($filename, (string)$distribution->type, (string)($distribution->class ?? ''), (string)$distribution->version, $oldData);
+                                $old_data = ['catalog_categories' => $catalog_categories, 'catalog_products' => $catalog_products];
+                                $this->do_install_record($filename, (string) $distribution->type, (string) ($distribution->class ?? ''), (string) $distribution->version, $old_data);
                                 @unlink($path . 'ep_files' . DIRECTORY_SEPARATOR . 'manual_import' . DIRECTORY_SEPARATOR . $filename);
-
                             } catch (\Exception $ex) {
                                 //echo "err:".$ex->getMessage()."\n".$ex->getTraceAsString()."\n";die();
                                 $status = false;
-                                $this->sendEcho("<font color='red'>Exception: " . $ex->getMessage() . ".</font><br>\n");
+                                $this->send_echo("<font color='red'>Exception: " . $ex->get_message() . ".</font><br>\n");
                             }
                             break;
                         case 'system':
-                        case 'update':// System update
-                            $status = $this->checkFileDst($distribution->src, $filename, $path, ($force ? false : $echo), $force);
+                        case 'update':
+                            // System update
+                            $status = $this->check_file_dst($distribution->src, $filename, $path, $force ? false : $echo, $force);
                             if ($status) {
-                                $this->runFileDst($distribution->src, $filename, $path, $echo);
-                                $this->doInstallRecord($filename, (string)$distribution->type, (string)($distribution->class ?? ''), (string)$distribution->version, $distribution->src);
-                                $this->doMigrations = true;
-                                $this->doSystem = true;
-                                $this->doSmarty = true;
-                                $this->doTheme = true;
-                                $this->doHooks = true;
-                                $this->doMenu = true;
+                                $this->run_file_dst($distribution->src, $filename, $path, $echo);
+                                $this->do_install_record($filename, (string) $distribution->type, (string) ($distribution->class ?? ''), (string) $distribution->version, $distribution->src);
+                                $this->do_migrations = true;
+                                $this->do_system = true;
+                                $this->do_smarty = true;
+                                $this->do_theme = true;
+                                $this->do_hooks = true;
+                                $this->do_menu = true;
                                 if ($distribution->type == 'update') {
-                                    \common\models\Configuration::updateAll(['configuration_value' => (string) $distribution->version], ['configuration_key' => 'MIGRATIONS_DB_REVISION']);
+                                    \common\models\Configuration::update_all(['configuration_value' => (string) $distribution->version], ['configuration_key' => 'MIGRATIONS_DB_REVISION']);
                                 }
                             }
                             break;
                         case 'configuration':
-                            $oldData = [];
+                            $old_data = [];
                             $zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . $filename);
-                            foreach ((array)$distribution->files as $file) {
-                                $CsvString = $zip->getFromName($file);
-
-                                $bom = substr($CsvString, 0, 2);
-                                if ($bom === chr(0xff).chr(0xfe) || $bom === chr(0xfe).chr(0xff)) {
+                            foreach ((array) $distribution->files as $file) {
+                                $csv_string = $zip->get_from_name($file);
+                                $bom = substr($csv_string, 0, 2);
+                                if ($bom === chr(0xff) . chr(0xfe) || $bom === chr(0xfe) . chr(0xff)) {
                                     $encoding = 'UTF-16';
                                 } else {
-                                    $encoding = mb_detect_encoding($CsvString, 'auto', true);
+                                    $encoding = mb_detect_encoding($csv_string, 'auto', true);
                                 }
                                 if ($encoding) {
-                                    $CsvString = iconv($encoding, 'UTF-8', $CsvString);
+                                    $csv_string = iconv($encoding, 'UTF-8', $csv_string);
                                 } else {
-                                    $CsvString = iconv('CP850', 'UTF-8', $CsvString);
+                                    $csv_string = iconv('CP850', 'UTF-8', $csv_string);
                                 }
-                                $Data = str_getcsv($CsvString, "\n");
-                                $uploadedKeys = false;
+                                $Data = str_getcsv($csv_string, "\n");
+                                $uploaded_keys = false;
                                 foreach ($Data as &$data) {
                                     $data = str_getcsv($data, "\t");
-                                    if ($uploadedKeys === false) {
-                                        $uploadedKeys = array_flip($data);
+                                    if ($uploaded_keys === false) {
+                                        $uploaded_keys = array_flip($data);
                                         continue;
                                     }
                                     // Key Group Operation Value
-                                    if (
-                                        isset($data[$uploadedKeys['Key']]) && !empty($data[$uploadedKeys['Key']]) &&
-                                        isset($data[$uploadedKeys['Operation']]) && !empty($data[$uploadedKeys['Operation']])
-                                    ) {
-                                        switch ($data[$uploadedKeys['Operation']]) {
+                                    if (isset($data[$uploaded_keys['Key']]) && !empty($data[$uploaded_keys['Key']]) && isset($data[$uploaded_keys['Operation']]) && !empty($data[$uploaded_keys['Operation']])) {
+                                        switch ($data[$uploaded_keys['Operation']]) {
                                             case 'add':
-                                                $conf = \common\models\Configuration::find()->where(['configuration_key' => (string) $data[$uploadedKeys['Key']]])->one();
+                                                $conf = \common\models\Configuration::find()->where(['configuration_key' => (string) $data[$uploaded_keys['Key']]])->one();
                                                 if ($conf instanceof \common\models\Configuration) {
-                                                    $oldData[] = [
-                                                        'action' => 'update',
-                                                        'configuration_key' => $conf->configuration_key,
-                                                        'configuration_value' => $conf->configuration_value,
-                                                        'configuration_group_id' => $conf->configuration_group_id,
-                                                    ];
+                                                    $old_data[] = ['action' => 'update', 'configuration_key' => $conf->configuration_key, 'configuration_value' => $conf->configuration_value, 'configuration_group_id' => $conf->configuration_group_id];
                                                 } else {
-                                                    $oldData[] = [
-                                                        'action' => 'delete',
-                                                        'configuration_key' => (string) $data[$uploadedKeys['Key']],
-                                                    ];
+                                                    $old_data[] = ['action' => 'delete', 'configuration_key' => (string) $data[$uploaded_keys['Key']]];
                                                     $conf = new \common\models\Configuration();
-                                                    $conf->loadDefaultValues();
-                                                    $conf->configuration_key = (string) $data[$uploadedKeys['Key']];
+                                                    $conf->load_default_values();
+                                                    $conf->configuration_key = (string) $data[$uploaded_keys['Key']];
                                                 }
-                                                $conf->configuration_value = (string) $data[$uploadedKeys['Value']];
-                                                $conf->configuration_group_id = (string) $data[$uploadedKeys['Group']];
+                                                $conf->configuration_value = (string) $data[$uploaded_keys['Value']];
+                                                $conf->configuration_group_id = (string) $data[$uploaded_keys['Group']];
                                                 $conf->save(false);
                                                 break;
                                             case 'delete':
-                                                $conf = \common\models\Configuration::find()->where(['configuration_key' => (string) $data[$uploadedKeys['Key']]])->one();
+                                                $conf = \common\models\Configuration::find()->where(['configuration_key' => (string) $data[$uploaded_keys['Key']]])->one();
                                                 if ($conf instanceof \common\models\Configuration) {
-                                                    $oldData[] = [
-                                                        'action' => 'add',
-                                                        'configuration_title' => $conf->configuration_title,
-                                                        'configuration_key' => $conf->configuration_key,
-                                                        'configuration_value' => $conf->configuration_value,
-                                                        'configuration_description' => $conf->configuration_description,
-                                                        'configuration_group_id' => $conf->configuration_group_id,
-                                                        'sort_order' => $conf->sort_order,
-                                                        'last_modified' => $conf->last_modified,
-                                                        'date_added' => $conf->date_added,
-                                                        'use_function' => $conf->use_function,
-                                                        'set_function' => $conf->set_function,
-                                                    ];
+                                                    $old_data[] = ['action' => 'add', 'configuration_title' => $conf->configuration_title, 'configuration_key' => $conf->configuration_key, 'configuration_value' => $conf->configuration_value, 'configuration_description' => $conf->configuration_description, 'configuration_group_id' => $conf->configuration_group_id, 'sort_order' => $conf->sort_order, 'last_modified' => $conf->last_modified, 'date_added' => $conf->date_added, 'use_function' => $conf->use_function, 'set_function' => $conf->set_function];
                                                     $conf->delete();
                                                 }
                                                 break;
                                             case 'modify':
-                                                $conf = \common\models\Configuration::find()->where(['configuration_key' => (string) $data[$uploadedKeys['Key']]])->one();
+                                                $conf = \common\models\Configuration::find()->where(['configuration_key' => (string) $data[$uploaded_keys['Key']]])->one();
                                                 if ($conf instanceof \common\models\Configuration) {
-                                                    $oldData[] = [
-                                                        'action' => 'update',
-                                                        'configuration_key' => $conf->configuration_key,
-                                                        'configuration_value' => $conf->configuration_value,
-                                                        'configuration_group_id' => $conf->configuration_group_id,
-                                                    ];
-                                                    $conf->configuration_value = (string) $data[$uploadedKeys['Value']];
-                                                    $conf->configuration_group_id = (string) $data[$uploadedKeys['Group']];
+                                                    $old_data[] = ['action' => 'update', 'configuration_key' => $conf->configuration_key, 'configuration_value' => $conf->configuration_value, 'configuration_group_id' => $conf->configuration_group_id];
+                                                    $conf->configuration_value = (string) $data[$uploaded_keys['Value']];
+                                                    $conf->configuration_group_id = (string) $data[$uploaded_keys['Group']];
                                                     $conf->save(false);
                                                 }
                                                 break;
@@ -877,8 +714,8 @@ class InstallController extends Sceleton
                                     }
                                 }
                             }
-                            $this->doInstallRecord($filename, (string)$distribution->type, (string)($distribution->class ?? ''), (string)$distribution->version, $oldData);
-                            $this->doSystem = true;
+                            $this->do_install_record($filename, (string) $distribution->type, (string) ($distribution->class ?? ''), (string) $distribution->version, $old_data);
+                            $this->do_system = true;
                             $zip->close();
                             break;
                         default:
@@ -887,25 +724,23 @@ class InstallController extends Sceleton
                     }
                 }
             }
-
         }
         if ($status) {
-            $this->deployLog[] = $filename . ' ' . TEXT_PACK_INSTALLED . '.';
+            $this->deploy_log[] = $filename . ' ' . TEXT_PACK_INSTALLED . '.';
         } else {
-            $this->deployLog[] = $filename . ' ' . TEXT_PACK_ABORTED . '.';
+            $this->deploy_log[] = $filename . ' ' . TEXT_PACK_ABORTED . '.';
         }
         return $status;
     }
-
-    private function checkFileDst($rules, $zipFile, $pathP, $echo = false, $force = 0)
+    private function check_file_dst($rules, $zip_file, $path_p, $echo = false, $force = 0)
     {
-        $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR;
+        $path = Yii::get_alias('@site_root') . DIRECTORY_SEPARATOR;
         $checked = true;
-        $forceBackup = false;
+        $force_backup = false;
         if ($force == 1) {
-            $zipForce = new \ZipArchive();
-            if ($zipForce->open($path . 'uploads' . DIRECTORY_SEPARATOR . 'backups' . DIRECTORY_SEPARATOR . 'force.'.$zipFile, \ZipArchive::CREATE) === true) {
-                $forceBackup = true;
+            $zip_force = new \Zip_Archive();
+            if ($zip_force->open($path . 'uploads' . DIRECTORY_SEPARATOR . 'backups' . DIRECTORY_SEPARATOR . 'force.' . $zip_file, \Zip_Archive::CREATE) === true) {
+                $force_backup = true;
             }
         }
         foreach ((array) $rules as $src) {
@@ -918,9 +753,9 @@ class InstallController extends Sceleton
                 default:
                     //                    if ($echo) echo "<font color='red'>".TEXT_ACTION_ERROR.".</font><br>\n";
                     if ($echo) {
-                        $this->sendEchoForUpdate(TEXT_ACTION_ERROR, 'error');
+                        $this->send_echo_for_update(TEXT_ACTION_ERROR, 'error');
                     }
-                    $this->deployLog[] = "<font color='red'>".TEXT_ACTION_ERROR.".</font><br>\n";
+                    $this->deploy_log[] = "<font color='red'>" . TEXT_ACTION_ERROR . ".</font><br>\n";
                     $checked = false;
                     break;
             }
@@ -931,67 +766,68 @@ class InstallController extends Sceleton
                 default:
                     //                    if ($echo) echo "<font color='red'>".TEXT_TYPE_ERROR.".</font><br>\n";
                     if ($echo) {
-                        $this->sendEchoForUpdate(TEXT_TYPE_ERROR, 'error');
+                        $this->send_echo_for_update(TEXT_TYPE_ERROR, 'error');
                     }
-                    $this->deployLog[] = "<font color='red'>".TEXT_TYPE_ERROR.".</font><br>\n";
+                    $this->deploy_log[] = "<font color='red'>" . TEXT_TYPE_ERROR . ".</font><br>\n";
                     $checked = false;
                     break;
             }
             if (isset($src->crc32)) {
                 $dst = str_replace('|', DIRECTORY_SEPARATOR, $src->path);
-                if (!is_file($pathP . DIRECTORY_SEPARATOR . $dst)) {
+                if (!is_file($path_p . DIRECTORY_SEPARATOR . $dst)) {
                     //                    if ($echo) echo "<font color='red'>File $dst not found.</font><br>\n";
                     if ($echo) {
-                        $this->sendEchoForUpdate("File \"$dst\" not found.", 'error');
+                        $this->send_echo_for_update("File \"{$dst}\" not found.", 'error');
                     }
-                    $this->deployLog[] = "<font color='red'>File $dst not found.</font><br>\n";
+                    $this->deploy_log[] = "<font color='red'>File {$dst} not found.</font><br>\n";
                     $checked = false;
                 } else {
-                    $oldItemCrc = crc32(file_get_contents($pathP . DIRECTORY_SEPARATOR . $dst));
-                    if ($src->crc32 != $oldItemCrc) {
+                    $old_item_crc = crc32(file_get_contents($path_p . DIRECTORY_SEPARATOR . $dst));
+                    if ($src->crc32 != $old_item_crc) {
                         //                        if ($echo) echo "<font color='red'>" . TEXT_FILE . " " . $dst . " " . TEXT_CHECKSUM_ERROR . ".</font>".($this->show_ignore_field ? '<label><input type="checkbox" name="dst_file_ignore[]" class="dst_file_ignore" value="'.$dst.'">Ignore</label>' : '')."<br>\n";
                         if ($echo) {
-                            $this->sendEchoForUpdate(TEXT_FILE . ' ' . $dst . ' ' . TEXT_CHECKSUM_ERROR . ($this->show_ignore_field ? '<label style="color: #000"><input type="checkbox" name="dst_file_ignore[]" class="dst_file_ignore" value="'.$dst.'">Ignore</label>' : ''), 'warning');
+                            $this->send_echo_for_update(TEXT_FILE . ' ' . $dst . ' ' . TEXT_CHECKSUM_ERROR . ($this->show_ignore_field ? '<label style="color: #000"><input type="checkbox" name="dst_file_ignore[]" class="dst_file_ignore" value="' . $dst . '">Ignore</label>' : ''), 'warning');
                         }
-                        $this->deployLog[] = "<font color='red'>" . TEXT_FILE . ' ' . $dst . ' ' . TEXT_CHECKSUM_ERROR . ".</font><br>\n";
+                        $this->deploy_log[] = "<font color='red'>" . TEXT_FILE . ' ' . $dst . ' ' . TEXT_CHECKSUM_ERROR . ".</font><br>\n";
                         $checked = false;
-                        if ($forceBackup) {
-                            $zipForce->addFile($pathP . DIRECTORY_SEPARATOR . $dst, $dst);
+                        if ($force_backup) {
+                            $zip_force->add_file($path_p . DIRECTORY_SEPARATOR . $dst, $dst);
                         }
                     } else {
                         //                        if ($echo) echo "<font color='green'>" . TEXT_FILE . " " . $dst . " " . TEXT_CHECKSUM_PASSED . ".</font><br>\n";
                         if ($echo) {
-                            $this->sendEchoForUpdate(TEXT_FILE . ' ' . $dst . ' ' . TEXT_CHECKSUM_PASSED, 'success');
+                            $this->send_echo_for_update(TEXT_FILE . ' ' . $dst . ' ' . TEXT_CHECKSUM_PASSED, 'success');
                         }
-                        $this->deployLog[] = "<font color='green'>" . TEXT_FILE . ' ' . $dst . ' ' . TEXT_CHECKSUM_PASSED . ".</font><br>\n";
+                        $this->deploy_log[] = "<font color='green'>" . TEXT_FILE . ' ' . $dst . ' ' . TEXT_CHECKSUM_PASSED . ".</font><br>\n";
                     }
                 }
             }
         }
         if ($force == 1) {
-            if ($forceBackup) {
-                $zipForce->close();
+            if ($force_backup) {
+                $zip_force->close();
             }
-            unset($zipForce);
+            unset($zip_force);
             $checked = true;
         }
         if ($checked) {
-            $zip = new \ZipArchive();
-            if ($zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . 'backups' . DIRECTORY_SEPARATOR . $zipFile, \ZipArchive::CREATE) === true) {// $zipFile must contain path to new backup file
+            $zip = new \Zip_Archive();
+            if ($zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . 'backups' . DIRECTORY_SEPARATOR . $zip_file, \Zip_Archive::CREATE) === true) {
+                // $zipFile must contain path to new backup file
                 foreach ($rules as $src) {
                     $dst = str_replace('|', DIRECTORY_SEPARATOR, $src->path);
                     switch ($src->action) {
                         case 'copy':
-                            if ($src->type == 'dir' && is_dir($pathP . DIRECTORY_SEPARATOR . $dst)) {
-                                $zip->addEmptyDir($dst);
-                                $scanner = new \common\classes\DirScanner($pathP . DIRECTORY_SEPARATOR . $dst);
+                            if ($src->type == 'dir' && is_dir($path_p . DIRECTORY_SEPARATOR . $dst)) {
+                                $zip->add_empty_dir($dst);
+                                $scanner = new \common\classes\Dir_Scanner($path_p . DIRECTORY_SEPARATOR . $dst);
                                 $result = $scanner->run();
-                                foreach ($result as $pathSub => $crc) {
-                                    $dstSub = str_replace('|', DIRECTORY_SEPARATOR, $pathSub);
-                                    if (is_dir($pathP . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR . $dstSub)) {
-                                        $zip->addEmptyDir($dst . DIRECTORY_SEPARATOR . $dstSub);
-                                    } elseif (is_file($pathP . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR . $dstSub)) {
-                                        $zip->addFile($pathP . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR . $dstSub, $dst . DIRECTORY_SEPARATOR . $dstSub);
+                                foreach ($result as $path_sub => $crc) {
+                                    $dst_sub = str_replace('|', DIRECTORY_SEPARATOR, $path_sub);
+                                    if (is_dir($path_p . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR . $dst_sub)) {
+                                        $zip->add_empty_dir($dst . DIRECTORY_SEPARATOR . $dst_sub);
+                                    } elseif (is_file($path_p . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR . $dst_sub)) {
+                                        $zip->add_file($path_p . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR . $dst_sub, $dst . DIRECTORY_SEPARATOR . $dst_sub);
                                     }
                                 }
                                 unset($scanner);
@@ -1000,14 +836,13 @@ class InstallController extends Sceleton
                         case 'add':
                         case 'modify':
                         case 'delete':
-                            if ($src->type == 'file' && is_file($pathP . DIRECTORY_SEPARATOR . $dst)) {
-                                $zip->addFile($pathP . DIRECTORY_SEPARATOR . $dst, $dst);
+                            if ($src->type == 'file' && is_file($path_p . DIRECTORY_SEPARATOR . $dst)) {
+                                $zip->add_file($path_p . DIRECTORY_SEPARATOR . $dst, $dst);
                             }
                             break;
                         default:
                             break;
                     }
-
                 }
                 $zip->close();
             }
@@ -1015,108 +850,101 @@ class InstallController extends Sceleton
         }
         return $checked;
     }
-
-    private function runFileDst($rules, $zipFile, $pathP, $echo = false)
+    private function run_file_dst($rules, $zip_file, $path_p, $echo = false)
     {
         //        $pathP = \yii\helpers\BaseFileHelper::normalizePath($pathP, '/');
-        $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR;
-        $zip = new \ZipArchive();
-        if ($zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . $zipFile) === true) {
+        $path = Yii::get_alias('@site_root') . DIRECTORY_SEPARATOR;
+        $zip = new \Zip_Archive();
+        if ($zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . $zip_file) === true) {
             foreach ($rules as $src) {
-                $dst = str_replace('|', '/', $src->path); // don't use DIRECTORY_SEPARATOR here
+                $dst = str_replace('|', '/', $src->path);
+                // don't use DIRECTORY_SEPARATOR here
                 if (in_array($dst, $this->dst_file_ignore)) {
                     if ($echo) {
-                        echo "<font color='red'>$dst ignored.</font><br>\n";
+                        echo "<font color='red'>{$dst} ignored.</font><br>\n";
                     }
                     continue;
                 }
                 switch ($src->action) {
                     case 'add':
                         if ($src->type == 'dir') {
-                            if (!is_dir($pathP . DIRECTORY_SEPARATOR . $dst)) {
-                                @mkdir($pathP . DIRECTORY_SEPARATOR . $dst);
+                            if (!is_dir($path_p . DIRECTORY_SEPARATOR . $dst)) {
+                                @mkdir($path_p . DIRECTORY_SEPARATOR . $dst);
                                 if ($echo) {
-                                    echo "<font color='blue'>" . TEXT_DIRECTORY . " $dst " . TEXT_ADDED . ".</font><br>\n";
+                                    echo "<font color='blue'>" . TEXT_DIRECTORY . " {$dst} " . TEXT_ADDED . ".</font><br>\n";
                                 }
                             }
                         }
                         if ($src->type == 'file') {
-                            if (!$zip->extractTo($pathP, $dst)) {
-                                $errorMsg = sprintf('Error extracting %s: %s', $dst, $zip->getStatusString());
-                                \Yii::warning($errorMsg);
+                            if (!$zip->extract_to($path_p, $dst)) {
+                                $error_msg = sprintf('Error extracting %s: %s', $dst, $zip->get_status_string());
+                                \Yii::warning($error_msg);
                                 if ($echo) {
-                                    echo "<font color='red'>$errorMsg</font><br>\n";
+                                    echo "<font color='red'>{$error_msg}</font><br>\n";
                                 }
-                            } else {
-                                if ($echo) {
-                                    echo "<font color='blue'>" . TEXT_FILE . " $dst " . TEXT_ADDED . ".</font><br>\n";
-                                }
+                            } else if ($echo) {
+                                echo "<font color='blue'>" . TEXT_FILE . " {$dst} " . TEXT_ADDED . ".</font><br>\n";
                             }
                         }
                         break;
                     case 'modify':
                         if ($src->type == 'file') {
-                            $fileName = $pathP . DIRECTORY_SEPARATOR . $dst;
-                            @rename($fileName, $fileName . '_old'); // to avoid 'Failed to open stream: Permission denied' under Windows
-                            @unlink($fileName . '_old');
-                            if (!$zip->extractTo($pathP, $dst)) {
-                                $errorMsg = sprintf('Error extracting %s: %s', $dst, $zip->getStatusString());
-                                \Yii::warning($errorMsg);
+                            $file_name = $path_p . DIRECTORY_SEPARATOR . $dst;
+                            @rename($file_name, $file_name . '_old');
+                            // to avoid 'Failed to open stream: Permission denied' under Windows
+                            @unlink($file_name . '_old');
+                            if (!$zip->extract_to($path_p, $dst)) {
+                                $error_msg = sprintf('Error extracting %s: %s', $dst, $zip->get_status_string());
+                                \Yii::warning($error_msg);
                                 if ($echo) {
-                                    echo "<font color='red'>$errorMsg</font><br>\n";
+                                    echo "<font color='red'>{$error_msg}</font><br>\n";
                                 }
-                            } else {
-                                if ($echo) {
-                                    echo "<font color='blue'>" . TEXT_FILE . " $dst " . TEXT_MODIFIED . ".</font><br>\n";
-                                }
+                            } else if ($echo) {
+                                echo "<font color='blue'>" . TEXT_FILE . " {$dst} " . TEXT_MODIFIED . ".</font><br>\n";
                             }
                         }
                         break;
                     case 'copy':
                         if ($src->type == 'dir') {
-                            for ($i = 0; $i < $zip->numFiles; $i++) {
-                                $entry = $zip->getNameIndex($i);
+                            for ($i = 0; $i < $zip->num_files; $i++) {
+                                $entry = $zip->get_name_index($i);
                                 if (strpos($entry, $dst) === 0) {
-                                    if (!$zip->extractTo($pathP, $entry)) {
-                                        $errorMsg = sprintf('Error extracting %s: %s', $entry, $zip->getStatusString());
-                                        \Yii::warning($errorMsg);
+                                    if (!$zip->extract_to($path_p, $entry)) {
+                                        $error_msg = sprintf('Error extracting %s: %s', $entry, $zip->get_status_string());
+                                        \Yii::warning($error_msg);
                                         if ($echo) {
-                                            echo "<font color='red'>$errorMsg</font><br>\n";
+                                            echo "<font color='red'>{$error_msg}</font><br>\n";
                                         }
                                     }
                                 }
                             }
                             if ($echo) {
-                                echo "<font color='blue'>" . TEXT_DIRECTORY . " $dst " . TEXT_COPIED . ".</font><br>\n";
+                                echo "<font color='blue'>" . TEXT_DIRECTORY . " {$dst} " . TEXT_COPIED . ".</font><br>\n";
                             }
                         }
                         break;
                     case 'delete':
-                        $fn = $pathP . DIRECTORY_SEPARATOR . $dst;
+                        $fn = $path_p . DIRECTORY_SEPARATOR . $dst;
                         if ($src->type == 'dir' && is_dir($fn)) {
                             if (!@rmdir($fn)) {
-                                $errorMsg = "Can't remove dir $fn: " . error_get_last()['message'] ?? 'unknown';
-                                \Yii::warning($errorMsg . 'Dir contains: ' . implode("\n", glob($fn . '/*')) . "\n" . implode("\n", glob($fn . '/.*')));
+                                $error_msg = "Can't remove dir {$fn}: " . error_get_last()['message'] ?? 'unknown';
+                                \Yii::warning($error_msg . 'Dir contains: ' . implode("\n", glob($fn . '/*')) . "\n" . implode("\n", glob($fn . '/.*')));
                                 if ($echo) {
-                                    echo "<font color='red'>$errorMsg</font><br>\n";
+                                    echo "<font color='red'>{$error_msg}</font><br>\n";
                                 }
-                            } else {
-                                if ($echo) {
-                                    echo "<font color='blue'>" . TEXT_DIRECTORY . " $dst " . TEXT_DELETED . ".</font><br>\n";
-                                }
+                            } else if ($echo) {
+                                echo "<font color='blue'>" . TEXT_DIRECTORY . " {$dst} " . TEXT_DELETED . ".</font><br>\n";
                             }
                         }
                         if ($src->type == 'file' && is_file($fn)) {
                             if (!@unlink($fn)) {
-                                $errorMsg = "Can't remove file $fn: " . error_get_last()['message'] ?? 'unknown';
-                                \Yii::warning($errorMsg);
+                                $error_msg = "Can't remove file {$fn}: " . error_get_last()['message'] ?? 'unknown';
+                                \Yii::warning($error_msg);
                                 if ($echo) {
-                                    echo "<font color='red'>$errorMsg</font><br>\n";
+                                    echo "<font color='red'>{$error_msg}</font><br>\n";
                                 }
-                            } else {
-                                if ($echo) {
-                                    echo "<font color='blue'>" . TEXT_FILE . " $dst " . TEXT_DELETED . ".</font><br>\n";
-                                }
+                            } else if ($echo) {
+                                echo "<font color='blue'>" . TEXT_FILE . " {$dst} " . TEXT_DELETED . ".</font><br>\n";
                             }
                         }
                         break;
@@ -1125,80 +953,86 @@ class InstallController extends Sceleton
                 }
             }
             if (!@$zip->close()) {
-                $errorMsg = sprintf('Error closing zip: %s', $zip->getStatusString());
-                \Yii::warning($errorMsg);
+                $error_msg = sprintf('Error closing zip: %s', $zip->get_status_string());
+                \Yii::warning($error_msg);
             }
         }
         unset($zip);
     }
-
-    private function revertFileDst($rules, $zipFile, $pathP, $echo = false)
+    private function revert_file_dst($rules, $zip_file, $path_p, $echo = false)
     {
-        $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR;
-        $zip = new \ZipArchive();
-        $canUseZipForRevert = ($zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . 'backups' . DIRECTORY_SEPARATOR . $zipFile) === true);// $zipFile must contain deleted files
+        $path = Yii::get_alias('@site_root') . DIRECTORY_SEPARATOR;
+        $zip = new \Zip_Archive();
+        $can_use_zip_for_revert = $zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . 'backups' . DIRECTORY_SEPARATOR . $zip_file) === true;
+        // $zipFile must contain deleted files
         $rules = array_reverse($rules);
         foreach ($rules as $src) {
             $dst = str_replace('|', DIRECTORY_SEPARATOR, $src->path);
             switch ($src->action) {
                 case 'add':
-                    if ($src->type == 'dir') {//delete
-                        if (is_dir($pathP . DIRECTORY_SEPARATOR . $dst)) {
-                            @rmdir($pathP . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR);
+                    if ($src->type == 'dir') {
+                        //delete
+                        if (is_dir($path_p . DIRECTORY_SEPARATOR . $dst)) {
+                            @rmdir($path_p . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR);
                             if ($echo) {
-                                echo TEXT_DIRECTORY . " $dst deleted.<br>\n";
+                                echo TEXT_DIRECTORY . " {$dst} deleted.<br>\n";
                             }
                         }
                     }
-                    if ($src->type == 'file') {//delete
-                        @unlink($pathP . DIRECTORY_SEPARATOR . $dst);
+                    if ($src->type == 'file') {
+                        //delete
+                        @unlink($path_p . DIRECTORY_SEPARATOR . $dst);
                         if ($echo) {
-                            echo TEXT_FILE . " $dst deleted.<br>\n";
+                            echo TEXT_FILE . " {$dst} deleted.<br>\n";
                         }
                     }
                     break;
                 case 'modify':
-                    if ($src->type == 'file') {//restore from backup
-                        @unlink($pathP . DIRECTORY_SEPARATOR . $dst);
-                        if ($canUseZipForRevert) {
-                            $zip->extractTo($pathP, $dst);
+                    if ($src->type == 'file') {
+                        //restore from backup
+                        @unlink($path_p . DIRECTORY_SEPARATOR . $dst);
+                        if ($can_use_zip_for_revert) {
+                            $zip->extract_to($path_p, $dst);
                             if ($echo) {
-                                echo TEXT_FILE . " $dst restored.<br>\n";
+                                echo TEXT_FILE . " {$dst} restored.<br>\n";
                             }
                         }
                     }
                     break;
                 case 'copy':
-                    if ($src->type == 'dir') {//delete
-                        $this->delTree($pathP . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR);
+                    if ($src->type == 'dir') {
+                        //delete
+                        $this->del_tree($path_p . DIRECTORY_SEPARATOR . $dst . DIRECTORY_SEPARATOR);
                         if ($echo) {
-                            echo TEXT_DIRECTORY . " $dst deleted.<br>\n";
+                            echo TEXT_DIRECTORY . " {$dst} deleted.<br>\n";
                         }
-                        if ($canUseZipForRevert) {
-                            for ($i = 0; $i < $zip->numFiles; $i++) {
-                                $entry = $zip->getNameIndex($i);
+                        if ($can_use_zip_for_revert) {
+                            for ($i = 0; $i < $zip->num_files; $i++) {
+                                $entry = $zip->get_name_index($i);
                                 if (strpos($entry, $dst) === 0) {
-                                    $zip->extractTo($pathP, $entry);
+                                    $zip->extract_to($path_p, $entry);
                                 }
                             }
                             if ($echo) {
-                                echo TEXT_DIRECTORY . " $dst copied.<br>\n";
+                                echo TEXT_DIRECTORY . " {$dst} copied.<br>\n";
                             }
                         }
                     }
                     break;
                 case 'delete':
-                    if ($src->type == 'dir' && !is_dir($pathP . DIRECTORY_SEPARATOR . $dst)) {//add
-                        @mkdir($pathP . DIRECTORY_SEPARATOR . $dst);
+                    if ($src->type == 'dir' && !is_dir($path_p . DIRECTORY_SEPARATOR . $dst)) {
+                        //add
+                        @mkdir($path_p . DIRECTORY_SEPARATOR . $dst);
                         if ($echo) {
-                            echo TEXT_DIRECTORY . " $dst added.<br>\n";
+                            echo TEXT_DIRECTORY . " {$dst} added.<br>\n";
                         }
                     }
-                    if ($src->type == 'file' && !is_file($pathP . DIRECTORY_SEPARATOR . $dst)) {//restore from backup
-                        if ($canUseZipForRevert) {
-                            $zip->extractTo($pathP, $dst);
+                    if ($src->type == 'file' && !is_file($path_p . DIRECTORY_SEPARATOR . $dst)) {
+                        //restore from backup
+                        if ($can_use_zip_for_revert) {
+                            $zip->extract_to($path_p, $dst);
                             if ($echo) {
-                                echo TEXT_FILE . " $dst added.<br>\n";
+                                echo TEXT_FILE . " {$dst} added.<br>\n";
                             }
                         }
                     }
@@ -1206,54 +1040,45 @@ class InstallController extends Sceleton
                 default:
                     break;
             }
-
         }
-        if ($canUseZipForRevert) {
+        if ($can_use_zip_for_revert) {
             $zip->close();
-            @unlink($path . 'uploads' . DIRECTORY_SEPARATOR . 'backups' . DIRECTORY_SEPARATOR . $zipFile);
+            @unlink($path . 'uploads' . DIRECTORY_SEPARATOR . 'backups' . DIRECTORY_SEPARATOR . $zip_file);
         }
         unset($zip);
     }
-
-    public function actionInstallClass()
+    public function action_install_class()
     {
         $class = Yii::$app->request->get('class');
         $platform_id = Yii::$app->request->get('platform_id');
         $acl = Yii::$app->request->get('acl');
-
-        $this->doInstallClassInternal($class, $platform_id, $acl);
+        $this->do_install_class_internal($class, $platform_id, $acl);
     }
-
-    private function doInstallClass($class, $selected_platform_id = 0, $acl = 0)
+    private function do_install_class($class, $selected_platform_id = 0, $acl = 0)
     {
-        $url = \Yii::$app->UrlManager->createAbsoluteUrl(['install/install-class', 'class' => $class, 'platform_id' => $selected_platform_id, 'acl' => $acl]);
-        $res = \common\helpers\Curl::runSafe($url, 'GET', null, null, ['verify' => false, CURLOPT_COOKIE => 'tlAdminID=' . \Yii::$app->session->id]);
+        $url = \Yii::$app->url_manager->create_absolute_url(['install/install-class', 'class' => $class, 'platform_id' => $selected_platform_id, 'acl' => $acl]);
+        $res = \common\helpers\Curl::run_safe($url, 'GET', null, null, ['verify' => false, CURLOPT_COOKIE => 'tlAdminID=' . \Yii::$app->session->id]);
         if (!($res['success'] ?? false)) {
             \Yii::warning(sprintf('Internal install class "%s" is failed (safe method will be used): %s', $class, $res['error'] ?? var_export($res, true)));
-            $this->doInstallClassInternal($class, $selected_platform_id, $acl);
+            $this->do_install_class_internal($class, $selected_platform_id, $acl);
         }
     }
-
-    private function doInstallClassInternal($class, $selected_platform_id = 0, $acl = 0)
+    private function do_install_class_internal($class, $selected_platform_id = 0, $acl = 0)
     {
         if (class_exists($class)) {
             $module = new $class();
-            $exportSettings = [];
+            $export_settings = [];
             if (method_exists($module, 'remove')) {
                 if (method_exists($module, 'keys')) {
                     $keys = $module->keys();
-                    $rows = \common\models\PlatformsConfiguration::find()
-                        ->select(['configuration_value', 'configuration_key'])
-                        ->where(['platform_id' => $selected_platform_id])
-                        ->andWhere(['IN', 'configuration_key', $keys])
-                        ->all();
+                    $rows = \common\models\Platforms_Configuration::find()->select(['configuration_value', 'configuration_key'])->where(['platform_id' => $selected_platform_id])->and_where(['IN', 'configuration_key', $keys])->all();
                     foreach ($rows as $row) {
-                        $exportSettings['keys'][$row['configuration_key']] = $row['configuration_value'];
+                        $export_settings['keys'][$row['configuration_key']] = $row['configuration_value'];
                     }
                     if (method_exists($module, 'get_extra_params')) {
                         $extra_params = $module->get_extra_params($selected_platform_id);
                         if (count($extra_params) > 0) {
-                            $exportSettings['extra_params'] = $extra_params;
+                            $export_settings['extra_params'] = $extra_params;
                         }
                     }
                 }
@@ -1261,11 +1086,11 @@ class InstallController extends Sceleton
             }
             if (method_exists($module, 'install')) {
                 if ($acl > 0) {
-                    if (isset($module->isExtension)) {
+                    if (isset($module->is_extension)) {
                         switch ($acl) {
                             case 'all':
                                 $access_levels = [];
-                                foreach (\common\models\AccessLevels::find()->select(['access_levels_id'])->asArray()->all() as $al) {
+                                foreach (\common\models\Access_Levels::find()->select(['access_levels_id'])->as_array()->all() as $al) {
                                     $access_levels[] = $al['access_levels_id'];
                                 }
                                 $module->assign_to_access_levels = $access_levels;
@@ -1281,37 +1106,33 @@ class InstallController extends Sceleton
                     }
                 }
                 $module->install($selected_platform_id);
-                if (method_exists($module, 'save_config') && is_array($exportSettings['keys'] ?? null)) {
-                    $module->save_config($selected_platform_id, $exportSettings['keys']);
-                    if (method_exists($module, 'set_extra_params') && isset($exportSettings['extra_params'])) {
-                        $module->set_extra_params($selected_platform_id, $exportSettings['extra_params']);
+                if (method_exists($module, 'save_config') && is_array($export_settings['keys'] ?? null)) {
+                    $module->save_config($selected_platform_id, $export_settings['keys']);
+                    if (method_exists($module, 'set_extra_params') && isset($export_settings['extra_params'])) {
+                        $module->set_extra_params($selected_platform_id, $export_settings['extra_params']);
                     }
                 }
                 if (method_exists($module, 'enable_module')) {
                     $module->enable_module($selected_platform_id, true);
                 }
             }
-            unset($exportSettings);
+            unset($export_settings);
         }
     }
-
-    private function doUninstallClass($class, $selected_platform_id = 0, $prevVer = null)
+    private function do_uninstall_class($class, $selected_platform_id = 0, $prev_ver = null)
     {
         if (class_exists($class)) {
             $module = new $class();
-            if (is_null($prevVer)) {
+            if (is_null($prev_ver)) {
                 if (method_exists($module, 'remove')) {
                     $module->remove($selected_platform_id);
                 }
-            } else {
-                if (method_exists($module, 'downgrade')) {
-                    $module->downgrade($prevVer);
-                }
+            } else if (method_exists($module, 'downgrade')) {
+                $module->downgrade($prev_ver);
             }
         }
     }
-
-    private function doRecalcModuleSort($action, $module, $type, $selected_platform_id)
+    private function do_recalc_module_sort($action, $module, $type, $selected_platform_id)
     {
         switch ($type) {
             case 'payment':
@@ -1332,7 +1153,7 @@ class InstallController extends Sceleton
         }
         if (!empty($module)) {
             $module = \common\helpers\Output::mb_basename($module);
-            $conf = \common\models\PlatformsConfiguration::findOne(['configuration_key' => tep_db_input($module_key), 'platform_id' => intval($selected_platform_id)]);
+            $conf = \common\models\Platforms_Configuration::find_one(['configuration_key' => tep_db_input($module_key), 'platform_id' => intval($selected_platform_id)]);
             if (!empty($conf)) {
                 $sorted = explode(';', $conf->configuration_value);
                 if ($action == 'add') {
@@ -1341,20 +1162,19 @@ class InstallController extends Sceleton
                     }
                 }
                 if ($action == 'delete') {
-                    if ($key = array_search($module. '.php', $sorted) !== false) {
+                    if ($key = array_search($module . '.php', $sorted) !== false) {
                         unset($sorted[$key]);
                     }
                 }
-                $newSort = implode(';', $sorted);
-                if ($newSort != $conf->configuration_value) {
-                    $conf->configuration_value = $newSort;
+                $new_sort = implode(';', $sorted);
+                if ($new_sort != $conf->configuration_value) {
+                    $conf->configuration_value = $new_sort;
                     $conf->save(false);
                 }
             }
         }
     }
-
-    private function doInstallRecord($filename, $type, $class, $version, $data)
+    private function do_install_record($filename, $type, $class, $version, $data)
     {
         $record = new \common\models\Installer();
         $record->data = serialize($data);
@@ -1366,41 +1186,32 @@ class InstallController extends Sceleton
         $record->archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
         return $record->save(false);
     }
-
-    private function getStorageKey()
+    private function get_storage_key()
     {
         global $login_id;
-        $admin = \common\models\Admin::findOne($login_id);
+        $admin = \common\models\Admin::find_one($login_id);
         //$storageKey = \Yii::$app->params['appStorage.key'];
         return $admin->storage_key ?? '';
     }
-
-    public function actionIndex()
+    public function action_index()
     {
-
         \common\helpers\Translation::init('admin/easypopulate');
-
         defined('TEXT_CLEANUP_INTRO') or define('TEXT_CLEANUP_INTRO', 'Are you sure you want to cleanup? All backups and unused archives will be deleted. Also deletion will make it impossible to revert to the previous version.');
-
-        $this->selectedMenu = ['settings', 'logging'];
-        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('install/'), 'title' => BOX_HEADING_INSTALL];
-        $this->topButtons[] = '<a href="' . Yii::$app->urlManager->createUrl(['install/add-storage-key']) . '" class="create_item create_item_popup">' . TEXT_STORE_KEY . '</a>';
-        $this->topButtons[] = '<a href="'.Yii::$app->urlManager->createUrl('install/reset-storage-key').'" onclick="return confirm(\'' . TEXT_RESET_STORAGE_KEY . '\')" class="create_item"><i class="icon-refresh"></i>' . TEXT_RESET . '</a>';
-
-        $this->view->headingTitle = BOX_HEADING_INSTALL;
-
+        $this->selected_menu = ['settings', 'logging'];
+        $this->navigation[] = ['link' => Yii::$app->url_manager->create_url('install/'), 'title' => BOX_HEADING_INSTALL];
+        $this->top_buttons[] = '<a href="' . Yii::$app->url_manager->create_url(['install/add-storage-key']) . '" class="create_item create_item_popup">' . TEXT_STORE_KEY . '</a>';
+        $this->top_buttons[] = '<a href="' . Yii::$app->url_manager->create_url('install/reset-storage-key') . '" onclick="return confirm(\'' . TEXT_RESET_STORAGE_KEY . '\')" class="create_item"><i class="icon-refresh"></i>' . TEXT_RESET . '</a>';
+        $this->view->heading_title = BOX_HEADING_INSTALL;
         $messages = [];
-
-        if (Yii::$app->request->isPost) {
+        if (Yii::$app->request->is_post) {
             if (isset($_FILES['data_file']['name'])) {
-                $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
+                $path = Yii::get_alias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
                 $uploadfile = $path . $this->basename($_FILES['data_file']['name']);
-
                 $ext = substr(basename($uploadfile), strrpos(basename($uploadfile), '.') + 1);
                 if ($ext != 'zip') {
                     $messages[] = 'Wrong file format';
                 } elseif (!is_writeable(dirname($uploadfile))) {
-                    $messages[] = 'Directory "'.$path.'" not writeable';
+                    $messages[] = 'Directory "' . $path . '" not writeable';
                 } elseif (!is_uploaded_file($_FILES['data_file']['tmp_name']) || filesize($_FILES['data_file']['tmp_name']) == 0) {
                     $messages[] = 'File upload error';
                 } elseif (move_uploaded_file($_FILES['data_file']['tmp_name'], $uploadfile)) {
@@ -1408,298 +1219,187 @@ class InstallController extends Sceleton
                 } else {
                     $messages[] = 'Cant upload file';
                 }
-
             }
         }
-
         $this->view->filters = new \stdClass();
-
         $this->view->filters->search = Yii::$app->request->get('search', '');
-
         $this->view->filters->type = Yii::$app->request->get('type', '');
-        ;
-
-        $selectedRootDirectoryId = Yii::$app->request->get('set', 'selection');
+        $selected_root_directory_id = Yii::$app->request->get('set', 'selection');
         $directories = [];
-
-        $directories[] = [
-            'id' => 'selection',
-            'text' => TEXT_SELECTION,
-            'link' => Yii::$app->urlManager->createUrl(['install/','set' => 'selection']),
-        ];
-        $directories[] = [
-            'id' => 'library',
-            'text' => TEXT_MY_LIB,
-            'link' => Yii::$app->urlManager->createUrl(['install/','set' => 'library']),
-        ];
-        $directories[] = [
-            'id' => 'modules',
-            'text' => TEXT_INSTALLED,
-            'link' => Yii::$app->urlManager->createUrl(['install/','set' => 'modules']),
-        ];
+        $directories[] = ['id' => 'selection', 'text' => TEXT_SELECTION, 'link' => Yii::$app->url_manager->create_url(['install/', 'set' => 'selection'])];
+        $directories[] = ['id' => 'library', 'text' => TEXT_MY_LIB, 'link' => Yii::$app->url_manager->create_url(['install/', 'set' => 'library'])];
+        $directories[] = ['id' => 'modules', 'text' => TEXT_INSTALLED, 'link' => Yii::$app->url_manager->create_url(['install/', 'set' => 'modules'])];
         /*$directories[] = [
-            'id' => 'settings',
-            'text' => TEXT_MY_SETTINGS,
-            'link' => Yii::$app->urlManager->createUrl(['install/','set'=> 'settings']),
-        ];*/
-        $directories[] = [
-            'id' => 'updates',
-            'text' => TEXT_SYSTEM_UPDATE,
-            'link' => Yii::$app->urlManager->createUrl(['install/','set' => 'updates']),
-        ];
-
-        $storageUrl = \Yii::$app->params['appStorage.url'];
-        $storageKey = $this->getStorageKey();
-        $secKeyGlobal = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
-        if (!isset(\Yii::$app->params['secKey.global']) or (\Yii::$app->params['secKey.global'] != $secKeyGlobal)) {
-            $message = (
-                defined('MESSAGE_KEY_DOMAIN_WANING')
-                ? constant('MESSAGE_KEY_DOMAIN_WANING')
-                : 'Warning: Security keys were generated for a different domain! Update required. Please change \'security store key\' to the actual value: %s.'
-            );
+              'id' => 'settings',
+              'text' => TEXT_MY_SETTINGS,
+              'link' => Yii::$app->urlManager->createUrl(['install/','set'=> 'settings']),
+          ];*/
+        $directories[] = ['id' => 'updates', 'text' => TEXT_SYSTEM_UPDATE, 'link' => Yii::$app->url_manager->create_url(['install/', 'set' => 'updates'])];
+        $storage_url = \Yii::$app->params['appStorage.url'];
+        $storage_key = $this->get_storage_key();
+        $sec_key_global = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
+        if (!isset(\Yii::$app->params['secKey.global']) or \Yii::$app->params['secKey.global'] != $sec_key_global) {
+            $message = defined('MESSAGE_KEY_DOMAIN_WANING') ? constant('MESSAGE_KEY_DOMAIN_WANING') : 'Warning: Security keys were generated for a different domain! Update required. Please change \'security store key\' to the actual value: %s.';
             if (strpos($message, '%s') === false) {
                 $message .= ' (%s)';
             }
-            $message = sprintf($message, $secKeyGlobal);
+            $message = sprintf($message, $sec_key_global);
             $messages[] = $message;
-        } elseif (empty($storageKey)) {
-
-            $showEmptyKeyIntro = true;
+        } elseif (empty($storage_key)) {
+            $show_empty_key_intro = true;
             if ($request = curl_init()) {
-                curl_setopt($request, CURLOPT_URL, $storageUrl . 'app-api-server');
-
+                curl_setopt($request, CURLOPT_URL, $storage_url . 'app-api-server');
                 // for testing
                 curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($request, CURLOPT_SSL_VERIFYHOST, false);
-                if (defined('CURLOPT_SSL_VERIFYSTATUS')) { // Added in cURL 7.41.0
+                if (defined('CURLOPT_SSL_VERIFYSTATUS')) {
+                    // Added in cURL 7.41.0
                     curl_setopt($request, CURLOPT_SSL_VERIFYSTATUS, false);
                 }
-
                 curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
                 curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($request, CURLOPT_HTTPHEADER, [
-                    'Content-Type: application/json',
-                    'Accept: application/json',
-                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
-                ]);
-
+                curl_setopt($request, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: Bearer ' . $storage_key . ':' . $sec_key_global]);
                 $return = curl_exec($request);
                 $response = curl_getinfo($request);
                 curl_close($request);
-
                 if ($response['http_code'] == 406) {
                     $result = json_decode($return, true);
                     if (isset($result['code']) && $result['code'] == 428) {
-                        $ownerName = $result['message'];
-                        $message = (
-                            defined('MESSAGE_KEY_DOMAIN_INFO2')
-                            ? constant('MESSAGE_KEY_DOMAIN_INFO2')
-                            : 'This shop is already registered to %3$s and is not shared key to all administrators. You need to connect it using your own credentials.<br>
+                        $owner_name = $result['message'];
+                        $message = defined('MESSAGE_KEY_DOMAIN_INFO2') ? constant('MESSAGE_KEY_DOMAIN_INFO2') : 'This shop is already registered to %3$s and is not shared key to all administrators. You need to connect it using your own credentials.<br>
                                 If your already registered with us and %3$s, approved your storage key, please insert \'storage\' key value. If you do not remember your \'storage\' key - please login at <a target="_blank" href="%1$s">application shop</a> with your credentials and copy it from there.<br>
                                 If you not registered with us, please visit <a target="_blank" href="%1$s">application shop</a>, register your account and put there your \'security store key\'.<br>
                                 You \'secutiry store key\' for this shop is [%2$s].<br>
-                                After registration, wait for confirmation by %3$s. If this approve take a lot, you may e-mail him directly. After confirmation insert the received \'storage\' key (<a href="javascript:void(0);" onclick="$(\'.create_item_popup\').click();">use button on this page</a>) value.'
-                        );
-                        $messages[] = sprintf($message, $storageUrl . 'account?return', $secKeyGlobal, $ownerName);
-                        $showEmptyKeyIntro = false;
+                                After registration, wait for confirmation by %3$s. If this approve take a lot, you may e-mail him directly. After confirmation insert the received \'storage\' key (<a href="javascript:void(0);" onclick="$(\'.create_item_popup\').click();">use button on this page</a>) value.';
+                        $messages[] = sprintf($message, $storage_url . 'account?return', $sec_key_global, $owner_name);
+                        $show_empty_key_intro = false;
                     }
                 }
             }
-
-            if ($showEmptyKeyIntro) {
-                $message = (
-                    defined('MESSAGE_KEY_DOMAIN_INFO')
-                    ? constant('MESSAGE_KEY_DOMAIN_INFO')
-                    : 'It is looks like your store is not connected to our <a target="_blank" href="%1$s">application shop</a>.<br>If your already registered with us, please insert \'storage\' key value. If you do not remember your \'storage\' key - please login at <a target="_blank" href="%1$s">application shop</a> with your credentials and copy it from there.<br>If you not registered with us, please visit <a target="_blank" href="%1$s">application shop</a>, register your account and put there your \'security store key\'.<br>You \'secutiry store key\' for this shop is [%2$s].<br>After registration insert the received \'storage\' key (<a href="javascript:void(0);" onclick="$(\'.create_item_popup\').click();">use button on this page</a>) value.'
-                );
-                $messages[] = sprintf($message, $storageUrl . 'account?return', $secKeyGlobal);
+            if ($show_empty_key_intro) {
+                $message = defined('MESSAGE_KEY_DOMAIN_INFO') ? constant('MESSAGE_KEY_DOMAIN_INFO') : 'It is looks like your store is not connected to our <a target="_blank" href="%1$s">application shop</a>.<br>If your already registered with us, please insert \'storage\' key value. If you do not remember your \'storage\' key - please login at <a target="_blank" href="%1$s">application shop</a> with your credentials and copy it from there.<br>If you not registered with us, please visit <a target="_blank" href="%1$s">application shop</a>, register your account and put there your \'security store key\'.<br>You \'secutiry store key\' for this shop is [%2$s].<br>After registration insert the received \'storage\' key (<a href="javascript:void(0);" onclick="$(\'.create_item_popup\').click();">use button on this page</a>) value.';
+                $messages[] = sprintf($message, $storage_url . 'account?return', $sec_key_global);
             }
-        } else {
-            if ($request = curl_init()) {
-                curl_setopt($request, CURLOPT_URL, $storageUrl . 'app-api-server');
-
-                // for testing
-                curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
-                curl_setopt($request, CURLOPT_SSL_VERIFYHOST, false);
-                if (defined('CURLOPT_SSL_VERIFYSTATUS')) { // Added in cURL 7.41.0
-                    curl_setopt($request, CURLOPT_SSL_VERIFYSTATUS, false);
-                }
-
-                curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
-                curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($request, CURLOPT_HTTPHEADER, [
-                    'Content-Type: application/json',
-                    'Accept: application/json',
-                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
-                ]);
-
-                curl_exec($request);
-                $response = curl_getinfo($request);
-                curl_close($request);
-
-                if ($response['http_code'] != 200) {
-                    $message = (
-                        defined('MESSAGE_KEY_DOMAIN_ERROR')
-                        ? constant('MESSAGE_KEY_DOMAIN_ERROR')
-                        : 'Error: Your \'storage\' key is wrong. Please login at <a target="_blank" href="%1$s">application shop</a> with your credentials and copy it from there. You \'secutiry store key\' for this shop is [%2$s].'
-                    );
-                    $messages[] = sprintf($message, $storageUrl . 'account?return', $secKeyGlobal);
-                }
+        } else if ($request = curl_init()) {
+            curl_setopt($request, CURLOPT_URL, $storage_url . 'app-api-server');
+            // for testing
+            curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
+            curl_setopt($request, CURLOPT_SSL_VERIFYHOST, false);
+            if (defined('CURLOPT_SSL_VERIFYSTATUS')) {
+                // Added in cURL 7.41.0
+                curl_setopt($request, CURLOPT_SSL_VERIFYSTATUS, false);
+            }
+            curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
+            curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($request, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: Bearer ' . $storage_key . ':' . $sec_key_global]);
+            curl_exec($request);
+            $response = curl_getinfo($request);
+            curl_close($request);
+            if ($response['http_code'] != 200) {
+                $message = defined('MESSAGE_KEY_DOMAIN_ERROR') ? constant('MESSAGE_KEY_DOMAIN_ERROR') : 'Error: Your \'storage\' key is wrong. Please login at <a target="_blank" href="%1$s">application shop</a> with your credentials and copy it from there. You \'secutiry store key\' for this shop is [%2$s].';
+                $messages[] = sprintf($message, $storage_url . 'account?return', $sec_key_global);
             }
         }
-
         $success = '';
         $types = [];
-        if (($selectedRootDirectoryId == 'library' || $selectedRootDirectoryId == 'selection') && count($messages) == 0) {
-
-            $message = (
-                defined('MESSAGE_KEY_DOMAIN_OK')
-                ? constant('MESSAGE_KEY_DOMAIN_OK')
-                : 'Your store successfully connected to our <a target="_blank" href="%1$s">application shop</a>. You \'secutiry store key\' for this shop is [%2$s].'
-            );
-            $success = sprintf($message, $storageUrl, $secKeyGlobal);
+        if (($selected_root_directory_id == 'library' || $selected_root_directory_id == 'selection') && count($messages) == 0) {
+            $message = defined('MESSAGE_KEY_DOMAIN_OK') ? constant('MESSAGE_KEY_DOMAIN_OK') : 'Your store successfully connected to our <a target="_blank" href="%1$s">application shop</a>. You \'secutiry store key\' for this shop is [%2$s].';
+            $success = sprintf($message, $storage_url, $sec_key_global);
         }
-
-        if (!empty($storageUrl)) {
+        if (!empty($storage_url)) {
             $context = null;
-            if (\common\helpers\System::isDevelopment()) {
+            if (\common\helpers\System::is_development()) {
                 $context = stream_context_create(['ssl' => ['verify_peer' => false, 'verify_peer_name' => false, 'allow_self_signed' => true]]);
             }
-            $response = @file_get_contents($storageUrl . 'app-api-types.json', false, $context);
+            $response = @file_get_contents($storage_url . 'app-api-types.json', false, $context);
             $result = json_decode($response, true);
         }
         if (isset($result['types'])) {
             $types = $result['types'];
         }
-
-        $platforms = [0 => TEXT_NONE, -1 => TEXT_ALL_PLATFORMS] + \yii\helpers\ArrayHelper::map(
-            \common\models\Platforms::find()->select(['platform_id', 'platform_name'])->where(['is_virtual' => 0, 'is_marketplace' => 0])->asArray()->all(),
-            'platform_id',
-            'platform_name'
-        );
-
-        return $this->render('index', [
-            'messages' => $messages,
-            'success' => $success,
-            'directories' => $directories,
-            'selectedRootDirectoryId' => $selectedRootDirectoryId,
-            'job_list_url' => Yii::$app->urlManager->createUrl(['install/files-list']),
-            'store_list_url' => Yii::$app->urlManager->createUrl(['install/store-list']),
-            'types' => $types,
-            'platforms' => $platforms,
-        ]);
+        $platforms = [0 => TEXT_NONE, -1 => TEXT_ALL_PLATFORMS] + \yii\helpers\Array_Helper::map(\common\models\Platforms::find()->select(['platform_id', 'platform_name'])->where(['is_virtual' => 0, 'is_marketplace' => 0])->as_array()->all(), 'platform_id', 'platform_name');
+        return $this->render('index', ['messages' => $messages, 'success' => $success, 'directories' => $directories, 'selectedRootDirectoryId' => $selected_root_directory_id, 'job_list_url' => Yii::$app->url_manager->create_url(['install/files-list']), 'store_list_url' => Yii::$app->url_manager->create_url(['install/store-list']), 'types' => $types, 'platforms' => $platforms]);
     }
-
-    public function actionAddStorageKey()
+    public function action_add_storage_key()
     {
         $this->layout = false;
-        return $this->render('add-storage-key.tpl', [
-            'storageKey' => $this->getStorageKey(),
-        ]);
+        return $this->render('add-storage-key.tpl', ['storageKey' => $this->get_storage_key()]);
     }
-
-    public function actionResetStorageKey()
+    public function action_reset_storage_key()
     {
         global $login_id;
-        $admin = \common\models\Admin::findOne($login_id);
+        $admin = \common\models\Admin::find_one($login_id);
         if ($admin instanceof \common\models\Admin) {
             $admin->storage_key = '';
             $admin->save(false);
         }
-        return $this->redirect(Yii::$app->urlManager->createUrl('install/'));
+        return $this->redirect(Yii::$app->url_manager->create_url('install/'));
     }
-
-    public function actionSubmitStorageKey()
+    public function action_submit_storage_key()
     {
         $storekey = Yii::$app->request->post('storekey', '');
         $button = Yii::$app->request->post('button', '');
         if ($button == 'all') {
-            \common\models\Admin::updateAll(['storage_key' => $storekey]);
+            \common\models\Admin::update_all(['storage_key' => $storekey]);
         } else {
             global $login_id;
-            $admin = \common\models\Admin::findOne($login_id);
+            $admin = \common\models\Admin::find_one($login_id);
             if ($admin instanceof \common\models\Admin) {
                 $admin->storage_key = $storekey;
                 $admin->save(false);
             }
         }
-        return $this->redirect(Yii::$app->urlManager->createUrl('install/'));
+        return $this->redirect(Yii::$app->url_manager->create_url('install/'));
     }
-
-    public function actionStoreList()
+    public function action_store_list()
     {
-        $start = (int)Yii::$app->request->post('start', 0);
-        $length = (int)Yii::$app->request->post('length', 9);
-
+        $start = (int) Yii::$app->request->post('start', 0);
+        $length = (int) Yii::$app->request->post('length', 9);
         $type = \Yii::$app->request->post('type', '');
         $search = \Yii::$app->request->post('search', '');
         $sort = \Yii::$app->request->post('sort_by', '');
-
         $this->layout = false;
-        $recordsTotal = 0;
-        $recordsFiltered = 0;
-
+        $records_total = 0;
+        $records_filtered = 0;
         $items = [];
-
         global $login_id;
-        $secKeyGlobal = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
-        $storageUrl = \Yii::$app->params['appStorage.url'];
-        $storageKey = $this->getStorageKey();
-        if (!isset(\Yii::$app->params['secKey.global']) or (\Yii::$app->params['secKey.global'] != $secKeyGlobal)) {
+        $sec_key_global = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
+        $storage_url = \Yii::$app->params['appStorage.url'];
+        $storage_key = $this->get_storage_key();
+        if (!isset(\Yii::$app->params['secKey.global']) or \Yii::$app->params['secKey.global'] != $sec_key_global) {
             // wrong security store key
-        } elseif (empty($storageKey) || empty($storageUrl)) {
+        } elseif (empty($storage_key) || empty($storage_url)) {
             // wrong storage key or url
         } else {
-            \common\models\InstallListCache::deleteAll('date_added <= :date_added', [':date_added' => date('Y-m-d H:i:s', strtotime('- 1 hour'))]);
+            \common\models\Install_List_Cache::delete_all('date_added <= :date_added', [':date_added' => date('Y-m-d H:i:s', strtotime('- 1 hour'))]);
             $result = false;
-            $cache = \common\models\InstallListCache::find()
-                    ->where(['admin_id' => $login_id])
-                    ->andWhere(['offset' => $start])
-                    ->andWhere(['limit' => $length])
-                    ->andWhere(['type' => $type])
-                    ->andWhere(['search' => $search])
-                    ->andWhere(['sort' => $sort])
-                    ->one();
-            if ($cache instanceof \common\models\InstallListCache) {
+            $cache = \common\models\Install_List_Cache::find()->where(['admin_id' => $login_id])->and_where(['offset' => $start])->and_where(['limit' => $length])->and_where(['type' => $type])->and_where(['search' => $search])->and_where(['sort' => $sort])->one();
+            if ($cache instanceof \common\models\Install_List_Cache) {
                 $result = json_decode(stripslashes($cache->return), true);
             } elseif ($request = curl_init()) {
-                curl_setopt($request, CURLOPT_URL, $storageUrl . 'app-api-server/products');
-
+                curl_setopt($request, CURLOPT_URL, $storage_url . 'app-api-server/products');
                 // for testing
                 curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($request, CURLOPT_SSL_VERIFYHOST, false);
-                if (defined('CURLOPT_SSL_VERIFYSTATUS')) { // Added in cURL 7.41.0
+                if (defined('CURLOPT_SSL_VERIFYSTATUS')) {
+                    // Added in cURL 7.41.0
                     curl_setopt($request, CURLOPT_SSL_VERIFYSTATUS, false);
                 }
-
                 curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
                 curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'POST');
                 curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($request, CURLOPT_HTTPHEADER, [
-                    'Content-Type: application/json',
-                    'Accept: application/json',
-                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
-                ]);
-
-                $postField = [
-                    'offset' => $start,
-                    'limit' => $length,
-                    'type' => $type,
-                    'search' => $search,
-                    'sort' => $sort,
-                ];
-                $postFieldArray = json_encode($postField);
-
-                curl_setopt($request, CURLOPT_POSTFIELDS, $postFieldArray);
+                curl_setopt($request, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: Bearer ' . $storage_key . ':' . $sec_key_global]);
+                $post_field = ['offset' => $start, 'limit' => $length, 'type' => $type, 'search' => $search, 'sort' => $sort];
+                $post_field_array = json_encode($post_field);
+                curl_setopt($request, CURLOPT_POSTFIELDS, $post_field_array);
                 $return = curl_exec($request);
                 $response = curl_getinfo($request);
                 curl_close($request);
-
                 if ($response['http_code'] == 200) {
                     if ($sort != 'installed') {
-                        $cache = new \common\models\InstallListCache();
-                        $cache->loadDefaultValues();
-                        $cache->setAttributes($postField, false);
+                        $cache = new \common\models\Install_List_Cache();
+                        $cache->load_default_values();
+                        $cache->set_attributes($post_field, false);
                         $cache->admin_id = $login_id;
                         $cache->return = tep_db_input($return);
                         $cache->date_added = date('Y-m-d H:i:s');
@@ -1708,238 +1408,170 @@ class InstallController extends Sceleton
                     $result = json_decode($return, true);
                 }
             }
-
             if (isset($result['products'])) {
-                $recordsTotal = $result['total'];
-                $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
+                $records_total = $result['total'];
+                $path = Yii::get_alias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
                 foreach ($result['products'] as $product) {
-                    $deployed = 0;// Install or Discover
+                    $deployed = 0;
+                    // Install or Discover
                     if (!empty($product['filename']) && file_exists($path . $product['filename'])) {
-                        $deployed = 1;// Downloaded (Not installed)
+                        $deployed = 1;
+                        // Downloaded (Not installed)
                     }
-                    $archive_version = (float)$product['archive_version'];
-                    $archive_type = (string)$product['archive_type'];
-                    $archive_class = (string)$product['archive_class'];
-                    $check = \common\models\Installer::find()
-                            ->select(['max(archive_version) as version'])
-                            ->where(['archive_type' => $archive_type])
-                            ->andWhere(['archive_class' => $archive_class])
-                            ->asArray()
-                            ->one();
-
+                    $archive_version = (float) $product['archive_version'];
+                    $archive_type = (string) $product['archive_type'];
+                    $archive_class = (string) $product['archive_class'];
+                    $check = \common\models\Installer::find()->select(['max(archive_version) as version'])->where(['archive_type' => $archive_type])->and_where(['archive_class' => $archive_class])->as_array()->one();
                     if (isset($check['version']) && $check['version'] == $archive_version) {
-                        $deployed = 2;// Installed
+                        $deployed = 2;
+                        // Installed
                     }
                     if (isset($check['version']) && $check['version'] < $archive_version) {
-                        $deployed = 3;// Update
+                        $deployed = 3;
+                        // Update
                     }
-
-                    $recordsFiltered++;
+                    $records_filtered++;
                     $product['deployed'] = $deployed;
                     $items[] = $product;
                 }
             }
-
         }
-
         $pages = [];
-        if ($recordsTotal > $recordsFiltered) {
-            for ($p = 0;$p < ceil($recordsTotal / $length);$p++) {
+        if ($records_total > $records_filtered) {
+            for ($p = 0; $p < ceil($records_total / $length); $p++) {
                 $pages[] = $p;
             }
         }
-
-        return $this->render('store-list', [
-            'items' => $items,
-            'module_list_url' => Yii::$app->urlManager->createUrl(['install/', 'set' => 'modules']),
-            'pages' => $pages,
-            'start' => $start,
-            'length' => $length,
-        ]);
+        return $this->render('store-list', ['items' => $items, 'module_list_url' => Yii::$app->url_manager->create_url(['install/', 'set' => 'modules']), 'pages' => $pages, 'start' => $start, 'length' => $length]);
     }
-
-    public function actionUploadFileInfo()
+    public function action_upload_file_info()
     {
         $this->layout = false;
         $id = (int) Yii::$app->request->get('id', 0);
         if ($id > 0) {
-
             if ($request = curl_init()) {
-                $storageUrl = \Yii::$app->params['appStorage.url'];
-                $storageKey = $this->getStorageKey();
-                $secKeyGlobal = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
-                curl_setopt($request, CURLOPT_URL, $storageUrl . 'app-api-server/product-info');
-
+                $storage_url = \Yii::$app->params['appStorage.url'];
+                $storage_key = $this->get_storage_key();
+                $sec_key_global = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
+                curl_setopt($request, CURLOPT_URL, $storage_url . 'app-api-server/product-info');
                 // for testing
                 curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($request, CURLOPT_SSL_VERIFYHOST, false);
-                if (defined('CURLOPT_SSL_VERIFYSTATUS')) { // Added in cURL 7.41.0
+                if (defined('CURLOPT_SSL_VERIFYSTATUS')) {
+                    // Added in cURL 7.41.0
                     curl_setopt($request, CURLOPT_SSL_VERIFYSTATUS, false);
                 }
-
                 curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
                 curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'POST');
                 curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($request, CURLOPT_HTTPHEADER, [
-                    'Content-Type: application/json',
-                    'Accept: application/json',
-                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
-                ]);
-
-                $postFieldArray = [
-                    'id' => $id,
-                ];
-                $postFieldArray = json_encode($postFieldArray);
-
-                curl_setopt($request, CURLOPT_POSTFIELDS, $postFieldArray);
+                curl_setopt($request, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: Bearer ' . $storage_key . ':' . $sec_key_global]);
+                $post_field_array = ['id' => $id];
+                $post_field_array = json_encode($post_field_array);
+                curl_setopt($request, CURLOPT_POSTFIELDS, $post_field_array);
                 //$result = curl_exec($request);
                 $result = json_decode(curl_exec($request), true);
                 $response = curl_getinfo($request);
                 curl_close($request);
-
                 if ($response['http_code'] == 200) {
-
-                    $packagesSelectedList = $result['packagesSelectedList'];
-                    $readyForInstall = $result['readyForInstall'];
-                    $platformSelection = $result['platformSelection'];
-                    $aclSelection = $result['aclSelection'];
-                    $packagesDependedList = $result['packagesDependedList'];
-
+                    $packages_selected_list = $result['packagesSelectedList'];
+                    $ready_for_install = $result['readyForInstall'];
+                    $platform_selection = $result['platformSelection'];
+                    $acl_selection = $result['aclSelection'];
+                    $packages_depended_list = $result['packagesDependedList'];
                     \common\helpers\Translation::init('admin/modules');
-
-                    $platforms = [0 => TEXT_NONE, -1 => TEXT_ALL_PLATFORMS] + \yii\helpers\ArrayHelper::map(
-                        \common\models\Platforms::find()->select(['platform_id', 'platform_name'])->where(['is_virtual' => 0, 'is_marketplace' => 0])->asArray()->all(),
-                        'platform_id',
-                        'platform_name'
-                    );
-
-                    return $this->render('upload-file-info', [
-                        'id' => $id,
-                        'packagesSelectedList' => $packagesSelectedList,
-                        'readyForInstall' => $readyForInstall,
-                        'platformSelection' => $platformSelection,
-                        'aclSelection' => $aclSelection,
-                        'packagesDependedList' => $packagesDependedList,
-                        'platforms' => $platforms,
-                    ]);
+                    $platforms = [0 => TEXT_NONE, -1 => TEXT_ALL_PLATFORMS] + \yii\helpers\Array_Helper::map(\common\models\Platforms::find()->select(['platform_id', 'platform_name'])->where(['is_virtual' => 0, 'is_marketplace' => 0])->as_array()->all(), 'platform_id', 'platform_name');
+                    return $this->render('upload-file-info', ['id' => $id, 'packagesSelectedList' => $packages_selected_list, 'readyForInstall' => $ready_for_install, 'platformSelection' => $platform_selection, 'aclSelection' => $acl_selection, 'packagesDependedList' => $packages_depended_list, 'platforms' => $platforms]);
                 }
             }
         }
         echo 'Failed to download application.';
     }
-
-    public function actionUploadFile()
+    public function action_upload_file()
     {
         $this->layout = false;
         $status = 'fail';
-        $id = (int)Yii::$app->request->post('id', 0);
-        $this->deployLog = [];
+        $id = (int) Yii::$app->request->post('id', 0);
+        $this->deploy_log = [];
         if ($id > 0) {
-            $this->resetReCacheFlags();
-            if ($file = $this->getFileWithDependencies('id', $id)) {
-                $platform_id = (int)Yii::$app->request->post('platform', 0);
-                $acl = (string)Yii::$app->request->post('acl', '');
-                $readyForInstall = (int)Yii::$app->request->post('readyForInstall', 0);
-                if ($readyForInstall) {
-                    if ($this->installFileWithDependencies($file, ['platform_id' => $platform_id, 'acl' => $acl])) {
+            $this->reset_re_cache_flags();
+            if ($file = $this->get_file_with_dependencies('id', $id)) {
+                $platform_id = (int) Yii::$app->request->post('platform', 0);
+                $acl = (string) Yii::$app->request->post('acl', '');
+                $ready_for_install = (int) Yii::$app->request->post('readyForInstall', 0);
+                if ($ready_for_install) {
+                    if ($this->install_file_with_dependencies($file, ['platform_id' => $platform_id, 'acl' => $acl])) {
                         $status = 'success';
                     }
-                    $depended = (array)Yii::$app->request->post('depended', []);
+                    $depended = (array) Yii::$app->request->post('depended', []);
                     if (is_array($depended)) {
                         foreach ($depended as $depid) {
-                            if ($subfile = $this->getFileWithDependencies('id', $depid)) {
-                                $this->installFileWithDependencies($subfile, ['platform_id' => $platform_id, 'acl' => $acl]);
+                            if ($subfile = $this->get_file_with_dependencies('id', $depid)) {
+                                $this->install_file_with_dependencies($subfile, ['platform_id' => $platform_id, 'acl' => $acl]);
                             }
                         }
                     }
-
                 }
-                $this->runSystemReCache();
+                $this->run_system_re_cache();
             }
         }
-        $uploadInfo = implode('<br>', $this->deployLog);
+        $upload_info = implode('<br>', $this->deploy_log);
         if ($status == 'success') {
-            $packagesSynergyList = [];
+            $packages_synergy_list = [];
             if ($request = curl_init()) {
-                $storageUrl = \Yii::$app->params['appStorage.url'];
-                $storageKey = $this->getStorageKey();
-                $secKeyGlobal = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
-                curl_setopt($request, CURLOPT_URL, $storageUrl . 'app-api-server/product-synergy');
-
+                $storage_url = \Yii::$app->params['appStorage.url'];
+                $storage_key = $this->get_storage_key();
+                $sec_key_global = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
+                curl_setopt($request, CURLOPT_URL, $storage_url . 'app-api-server/product-synergy');
                 // for testing
                 curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
                 curl_setopt($request, CURLOPT_SSL_VERIFYHOST, false);
-                if (defined('CURLOPT_SSL_VERIFYSTATUS')) { // Added in cURL 7.41.0
+                if (defined('CURLOPT_SSL_VERIFYSTATUS')) {
+                    // Added in cURL 7.41.0
                     curl_setopt($request, CURLOPT_SSL_VERIFYSTATUS, false);
                 }
-
                 curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
                 curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'POST');
                 curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-                curl_setopt($request, CURLOPT_HTTPHEADER, [
-                    'Content-Type: application/json',
-                    'Accept: application/json',
-                    'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
-                ]);
-
-                $postFieldArray = [
-                    'id' => $id,
-                ];
-                $postFieldArray = json_encode($postFieldArray);
-
-                curl_setopt($request, CURLOPT_POSTFIELDS, $postFieldArray);
+                curl_setopt($request, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: Bearer ' . $storage_key . ':' . $sec_key_global]);
+                $post_field_array = ['id' => $id];
+                $post_field_array = json_encode($post_field_array);
+                curl_setopt($request, CURLOPT_POSTFIELDS, $post_field_array);
                 //$result = curl_exec($request);
                 $result = json_decode(curl_exec($request), true);
                 $response = curl_getinfo($request);
                 curl_close($request);
-
                 if ($response['http_code'] == 200) {
-
-                    $packagesSynergyList = $result['packagesSynergyList'];
-
+                    $packages_synergy_list = $result['packagesSynergyList'];
                 }
             }
-
-            $extClass = $this->extClass;
-            unset($this->extClass);
-
-            return $this->render('upload-file-success', [
-                    'message' => APP_INSTALL_OK,
-                    'uploadInfo' => $uploadInfo,
-                    'packagesSynergyList' => $packagesSynergyList,
-                    'extClass' => $extClass ?? null,
-                ]);
-
+            $ext_class = $this->ext_class;
+            unset($this->ext_class);
+            return $this->render('upload-file-success', ['message' => APP_INSTALL_OK, 'uploadInfo' => $upload_info, 'packagesSynergyList' => $packages_synergy_list, 'extClass' => $ext_class ?? null]);
         } else {
-            echo $uploadInfo . '<br>';
+            echo $upload_info . '<br>';
             echo APP_INSTALL_FAIL;
         }
-
         /*Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-        Yii::$app->response->data = [
-            'status' => $status,
-        ];*/
+          Yii::$app->response->data = [
+              'status' => $status,
+          ];*/
     }
-
-    public function actionFilesList()
+    public function action_files_list()
     {
         $this->layout = false;
         $formatter = new \yii\i18n\Formatter();
-
-        $version = (defined('MIGRATIONS_DB_REVISION') ? MIGRATIONS_DB_REVISION : '');
-        $recordsTotal = 0;
-        $recordsFiltered = 0;
-        $start = (int)Yii::$app->request->get('start', 0);
-        $length = (int)Yii::$app->request->get('length', 25);
-
+        $version = defined('MIGRATIONS_DB_REVISION') ? MIGRATIONS_DB_REVISION : '';
+        $records_total = 0;
+        $records_filtered = 0;
+        $start = (int) Yii::$app->request->get('start', 0);
+        $length = (int) Yii::$app->request->get('length', 25);
         $search_word = '';
         $search_array = Yii::$app->request->get('search');
         if (is_array($search_array) && isset($search_array['value']) && !empty($search_array['value'])) {
             $search_word = tep_db_prepare_input($search_array['value']);
         }
         $files = [];
-
-        $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
+        $path = Yii::get_alias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
         if ($dir = @dir($path)) {
             while ($file = $dir->read()) {
                 if (!empty($search_word)) {
@@ -1947,50 +1579,37 @@ class InstallController extends Sceleton
                         continue;
                     }
                 }
-
                 $ext = substr($file, strrpos($file, '.') + 1);
                 if ($ext == 'zip') {
-
                     $deployed = false;
-                    $canDeploy = true;
+                    $can_deploy = true;
                     $type = 'unknown';
                     $dclass = '';
                     $dtype = '';
-                    $appName = '';
+                    $app_name = '';
                     $req = '';
-                    $choosePlatform = 0;
-
-                    $canRevert = false;
-                    $canDelete = true;
-
-                    $zip = new \ZipArchive();
+                    $choose_platform = 0;
+                    $can_revert = false;
+                    $can_delete = true;
+                    $zip = new \Zip_Archive();
                     if ($zip->open($path . $file) === true) {
-                        $json = $zip->getFromName('distribution.json');
+                        $json = $zip->get_from_name('distribution.json');
                         $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
                         if (!empty($json)) {
                             $distribution = json_decode($json);
-                            $dtype = (string)($distribution->type ?? '');
-                            $dclass = (string)($distribution->class ?? '');
-                            $appName = (string)($distribution->name ?? '');
-                            $type = '<div class="ord-location">'
-                                    . $distribution->type
-                                    . '<div class="ord-total-info ord-location-info"><div class="ord-box-img"></div><b>'
-                                    . \yii\helpers\Html::encode($distribution->name)
-                                    . '</b>'
-                                    . \yii\helpers\Html::encode($distribution->description)
-                                    . '<br>Vesion: '
-                                    . \yii\helpers\Html::encode($distribution->version)
-                                    . '<br>'
-                                    . '</div></div>';
+                            $dtype = (string) ($distribution->type ?? '');
+                            $dclass = (string) ($distribution->class ?? '');
+                            $app_name = (string) ($distribution->name ?? '');
+                            $type = '<div class="ord-location">' . $distribution->type . '<div class="ord-total-info ord-location-info"><div class="ord-box-img"></div><b>' . \yii\helpers\Html::encode($distribution->name) . '</b>' . \yii\helpers\Html::encode($distribution->description) . '<br>Vesion: ' . \yii\helpers\Html::encode($distribution->version) . '<br>' . '</div></div>';
                             if (isset($distribution->require->version)) {
-                                $versionApplicable = $distribution->require->version_applicable ?? 'equal';
-                                switch ($versionApplicable) {
+                                $version_applicable = $distribution->require->version_applicable ?? 'equal';
+                                switch ($version_applicable) {
                                     case 'equal':
                                         if ($version == $distribution->require->version) {
                                             $req .= '<p style="color:green">Version: ' . \yii\helpers\Html::encode($distribution->require->version) . '</p>';
                                         } else {
                                             $req .= '<p style="color:red">Version: ' . \yii\helpers\Html::encode($distribution->require->version) . '</p>';
-                                            $canDeploy = false;
+                                            $can_deploy = false;
                                         }
                                         break;
                                     case 'greater-equal':
@@ -1998,7 +1617,7 @@ class InstallController extends Sceleton
                                             $req .= '<p style="color:green">Version: ' . \yii\helpers\Html::encode($distribution->require->version) . ' or greater</p>';
                                         } else {
                                             $req .= '<p style="color:red">Version: ' . \yii\helpers\Html::encode($distribution->require->version) . ' or greater</p>';
-                                            $canDeploy = false;
+                                            $can_deploy = false;
                                         }
                                         break;
                                     case 'less-equal':
@@ -2006,85 +1625,79 @@ class InstallController extends Sceleton
                                             $req .= '<p style="color:green">Version: ' . \yii\helpers\Html::encode($distribution->require->version) . ' or less</p>';
                                         } else {
                                             $req .= '<p style="color:red">Version: ' . \yii\helpers\Html::encode($distribution->require->version) . ' or less</p>';
-                                            $canDeploy = false;
+                                            $can_deploy = false;
                                         }
                                         break;
                                     default:
                                         break;
                                 }
-
                             }
                             if (isset($distribution->require->modules) && is_array($distribution->require->modules)) {
                                 foreach ($distribution->require->modules as $subfile) {
                                     $record = \common\models\Installer::find()->where(['filename' => $subfile])->one();
-                                    if ($record instanceof \common\models\Installer || self::isKnownRequireModule($subfile)) {
-                                        $req .= '<p style="color:green">'.$subfile.'</p>';
+                                    if ($record instanceof \common\models\Installer || self::is_known_require_module($subfile)) {
+                                        $req .= '<p style="color:green">' . $subfile . '</p>';
                                     } elseif (is_file($path . $subfile)) {
-                                        $req .= '<p style="color:yellow">'.$subfile.'</p>';
+                                        $req .= '<p style="color:yellow">' . $subfile . '</p>';
                                     } else {
-                                        $req .= '<p style="color:red">'.$subfile.'</p>';
-                                        $canDeploy = false;
+                                        $req .= '<p style="color:red">' . $subfile . '</p>';
+                                        $can_deploy = false;
                                     }
                                     unset($record);
                                 }
                             }
                             if (isset($distribution->require->classes) && is_array($distribution->require->classes)) {
                                 foreach ($distribution->require->classes as $classversion) {
-                                    $recordQuery = \common\models\Installer::find()->where(['archive_class' => $classversion->name]);
+                                    $record_query = \common\models\Installer::find()->where(['archive_class' => $classversion->name]);
                                     $cv = '';
                                     if (isset($classversion->min)) {
-                                        list($major, $minor, $patch) = array_pad(explode('.', (string)$classversion->min), 3, 0);
+                                        list($major, $minor, $patch) = array_pad(explode('.', (string) $classversion->min), 3, 0);
                                         $archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
-                                        $recordQuery->andWhere(['>=', 'archive_version', $archive_version]);
+                                        $record_query->and_where(['>=', 'archive_version', $archive_version]);
                                         $cv .= ', v.' . $classversion->min . ' or greater';
                                     }
                                     if (isset($classversion->max)) {
-                                        list($major, $minor, $patch) = array_pad(explode('.', (string)$classversion->max), 3, 0);
+                                        list($major, $minor, $patch) = array_pad(explode('.', (string) $classversion->max), 3, 0);
                                         $archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
-                                        $recordQuery->andWhere(['<=', 'archive_version', $archive_version]);
+                                        $record_query->and_where(['<=', 'archive_version', $archive_version]);
                                         $cv .= ', v.' . $classversion->max . ' or less';
                                     }
-                                    $record = $recordQuery->one();
+                                    $record = $record_query->one();
                                     if ($record instanceof \common\models\Installer) {
-                                        $req .= '<p style="color:green">'.$classversion->name.$cv.'</p>';
+                                        $req .= '<p style="color:green">' . $classversion->name . $cv . '</p>';
                                     } else {
-                                        $req .= '<p style="color:red">'.$classversion->name.$cv.'</p>';
-                                        $canDeploy = false;
+                                        $req .= '<p style="color:red">' . $classversion->name . $cv . '</p>';
+                                        $can_deploy = false;
                                     }
                                     unset($record);
                                 }
                             }
-                            if (isset($distribution->require->platform) && (string)$distribution->require->platform == 'True') {
-                                $choosePlatform = 1;
+                            if (isset($distribution->require->platform) && (string) $distribution->require->platform == 'True') {
+                                $choose_platform = 1;
                             }
                         }
-
                         if ($dtype == 'translate') {
-                            $choosePlatform = 0;
-                            $json = $zip->getFromName('locale.json');
+                            $choose_platform = 0;
+                            $json = $zip->get_from_name('locale.json');
                             $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
                             if (!empty($json)) {
                                 $locale = json_decode($json);
-                                $lang = \common\models\Languages::find()->andWhere(['code' => (string)$locale->code])->one();
+                                $lang = \common\models\Languages::find()->and_where(['code' => (string) $locale->code])->one();
                                 if ($lang instanceof \common\models\Languages) {
-                                    $choosePlatform = 3;
+                                    $choose_platform = 3;
                                 } else {
-                                    $choosePlatform = 2;
+                                    $choose_platform = 2;
                                 }
                             }
                         }
-
                         //$zip->extractTo($path);
                         $zip->close();
                     }
-
                     $record = \common\models\Installer::find()->where(['filename' => $file])->one();
                     if ($record instanceof \common\models\Installer) {
                         $deployed = true;
                     }
-
-                    $fileNameCell = '<div style="white-space: nowrap"><a href="' . Yii::$app->urlManager->createUrl(['install/download-file', 'name' => $file]) . '" target="_blank"><i class="' . 'icon-upload' . '"></i></a> ' . $file . '</div>';
-
+                    $file_name_cell = '<div style="white-space: nowrap"><a href="' . Yii::$app->url_manager->create_url(['install/download-file', 'name' => $file]) . '" target="_blank"><i class="' . 'icon-upload' . '"></i></a> ' . $file . '</div>';
                     switch ($dtype) {
                         case 'extension':
                         case 'design':
@@ -2099,163 +1712,137 @@ class InstallController extends Sceleton
                         case 'system':
                             //                            $canDeploy = true;
                             if ($deployed) {
-                                $canRevert = true;
-                                $canDelete = false;
+                                $can_revert = true;
+                                $can_delete = false;
                             }
                             break;
                         case 'update':
                             //                            $canDeploy = true;
                             if ($deployed) {
-                                if ((string)$distribution->version == MIGRATIONS_DB_REVISION) {
-                                    $canRevert = true;
-                                    $canDelete = false;
+                                if ((string) $distribution->version == MIGRATIONS_DB_REVISION) {
+                                    $can_revert = true;
+                                    $can_delete = false;
                                 }
                             }
                             break;
                         default:
-                            $canDeploy = false;
+                            $can_deploy = false;
                             break;
                     }
-
-                    if ($canDeploy) {
-                        list($major, $minor, $patch) = array_pad(explode('.', (string)$distribution->version), 3, 0);
+                    if ($can_deploy) {
+                        list($major, $minor, $patch) = array_pad(explode('.', (string) $distribution->version), 3, 0);
                         $archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
-                        $check = \common\models\Installer::find()
-                                ->select(['max(archive_version) as version'])
-                                ->where(['archive_type' => $dtype])
-                                ->andWhere(['archive_class' => $dclass])
-                                ->asArray()
-                                ->one();
-
+                        $check = \common\models\Installer::find()->select(['max(archive_version) as version'])->where(['archive_type' => $dtype])->and_where(['archive_class' => $dclass])->as_array()->one();
                         if (isset($check['version']) && $check['version'] > $archive_version) {
-                            $canDeploy = false;
+                            $can_deploy = false;
                         }
                         if (isset($check['version']) && $check['version'] != $archive_version) {
-                            $canRevert = false;
+                            $can_revert = false;
                         }
                     }
-
                     $file_row = [
                         \common\helpers\Date::datetime_short(date('Y-m-d H:i:s', filemtime($path . $file))),
-                        $fileNameCell,
+                        $file_name_cell,
                         //$formatter->asShortSize(filesize($path . $file), 3),
-                        $appName,
+                        $app_name,
                         $type,
                         $req,
-                        ($deployed ? '<span style="color:green;">deployed</span>' : '<span style="white-space: nowrap;color:red;">not deployed</span>'),
-                        '<div class="job-actions">' .
-                        //remove archive
-                        ($canDelete ? '<a class="job-button" href="javascript:void(0);" onclick="return file_remove(\'' . $file . '\');"><i class="icon-trash iconTrash"></i></a>' : '') .
-                        // deploy/revert
-                        (!$deployed && $canDeploy ? '<a class="job-button" href="javascript:void(0);" onclick="return file_deploy(\'' . $file . '\', \'' . $choosePlatform . '\');"><i class="icon-plus-sign iconPlusSign"></i></a>' : '') .
-                        ($canRevert ? '<a class="job-button" href="javascript:void(0);" onclick="return file_revert(\'' . $file . '\');"><i class="icon-remove-sign iconRemoveSign"></i></a>' : '') .
-                        '</div>',
+                        $deployed ? '<span style="color:green;">deployed</span>' : '<span style="white-space: nowrap;color:red;">not deployed</span>',
+                        '<div class="job-actions">' . ($can_delete ? '<a class="job-button" href="javascript:void(0);" onclick="return file_remove(\'' . $file . '\');"><i class="icon-trash iconTrash"></i></a>' : '') . (!$deployed && $can_deploy ? '<a class="job-button" href="javascript:void(0);" onclick="return file_deploy(\'' . $file . '\', \'' . $choose_platform . '\');"><i class="icon-plus-sign iconPlusSign"></i></a>' : '') . ($can_revert ? '<a class="job-button" href="javascript:void(0);" onclick="return file_revert(\'' . $file . '\');"><i class="icon-remove-sign iconRemoveSign"></i></a>' : '') . '</div>',
                     ];
-
-                    $files[filemtime($path . $file).'_'.$recordsTotal] = $file_row;
-
-                    $recordsTotal++;
-                    $recordsFiltered++;
+                    $files[filemtime($path . $file) . '_' . $records_total] = $file_row;
+                    $records_total++;
+                    $records_filtered++;
                 }
             }
         }
         krsort($files);
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-        Yii::$app->response->data = [
-            'data' => array_values($files),
-            'recordsTotal' => $recordsTotal,
-            'recordsFiltered' => $recordsFiltered,
-        ];
+        Yii::$app->response->data = ['data' => array_values($files), 'recordsTotal' => $records_total, 'recordsFiltered' => $records_filtered];
     }
-
-    public function actionDeployFile()
+    public function action_deploy_file()
     {
-        $this->deployLog = [];
+        $this->deploy_log = [];
         $this->layout = false;
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         $status = 'error';
         $filename = Yii::$app->request->post('name', '');
-        $platform_id = (int)Yii::$app->request->post('platform', 0);
-        $locale = (int)Yii::$app->request->post('locale', 0);
-        $this->resetReCacheFlags();
-        if ($this->installFileWithDependencies($filename, ['platform_id' => $platform_id, 'locale' => $locale])) {
+        $platform_id = (int) Yii::$app->request->post('platform', 0);
+        $locale = (int) Yii::$app->request->post('locale', 0);
+        $this->reset_re_cache_flags();
+        if ($this->install_file_with_dependencies($filename, ['platform_id' => $platform_id, 'locale' => $locale])) {
             $status = 'ok';
-            $this->runSystemReCache();
+            $this->run_system_re_cache();
         }
-        $message = implode('<br>', $this->deployLog);
-        if (!empty($this->extClass)) {
-            if ($menu = \common\helpers\MenuHelper::getExtensionHtmlMenu($this->extClass, false, 'extension-menu-item mt-1')) {
-                $message .= '<br><br><div class="extensions-menu-title"><b>'.TEXT_MENU_STRUCTURE.':</b></div>'.$menu;
+        $message = implode('<br>', $this->deploy_log);
+        if (!empty($this->ext_class)) {
+            if ($menu = \common\helpers\Menu_Helper::get_extension_html_menu($this->ext_class, false, 'extension-menu-item mt-1')) {
+                $message .= '<br><br><div class="extensions-menu-title"><b>' . TEXT_MENU_STRUCTURE . ':</b></div>' . $menu;
             }
         }
-        unset($this->extClass);
+        unset($this->ext_class);
         Yii::$app->response->data = ['status' => $status, 'text' => $message];
     }
-
-    public function actionRevertFile()
+    public function action_revert_file()
     {
         $this->layout = false;
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-        $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR;
+        $path = Yii::get_alias('@site_root') . DIRECTORY_SEPARATOR;
         $filename = Yii::$app->request->post('name', '');
-
         ob_start();
-
-        $zip = new \ZipArchive();
+        $zip = new \Zip_Archive();
         if ($zip->open($path . 'uploads' . DIRECTORY_SEPARATOR . $filename) === true) {
-            $json = $zip->getFromName('distribution.json');
+            $json = $zip->get_from_name('distribution.json');
             $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
             if (!empty($json)) {
                 $distribution = json_decode($json);
-                $this->resetReCacheFlags();
+                $this->reset_re_cache_flags();
                 $status = 'fail';
                 switch ($distribution->type) {
-                    case 'extension':// Extension
+                    case 'extension':
+                        // Extension
                         $record = \common\models\Installer::find()->where(['filename' => $filename])->one();
                         if ($record instanceof \common\models\Installer) {
-                            $oldData = unserialize($record->data);
-                            $pathP = $path . 'lib' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'extensions';
+                            $old_data = unserialize($record->data);
+                            $path_p = $path . 'lib' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'extensions';
                             if (isset($distribution->class)) {
-                                $class = (string)$distribution->class;
-                                $twoRecs = \common\models\Installer::find()->where(['archive_class' => $record->archive_class])->orderBy(['archive_version' => SORT_DESC])->limit(2)->all();
-                                $prevVer = (count($twoRecs) == 2) ? $twoRecs[1]->archive_version : null;
+                                $class = (string) $distribution->class;
+                                $two_recs = \common\models\Installer::find()->where(['archive_class' => $record->archive_class])->order_by(['archive_version' => SORT_DESC])->limit(2)->all();
+                                $prev_ver = count($two_recs) == 2 ? $two_recs[1]->archive_version : null;
                                 if (!class_exists($class)) {
-                                    if ($ext = \common\helpers\Acl::checkExtension($class, 'always')) {
+                                    if ($ext = \common\helpers\Acl::check_extension($class, 'always')) {
                                         $class = $ext;
                                     }
                                 }
-                                $this->doUninstallClass($class, 0, $prevVer);
+                                $this->do_uninstall_class($class, 0, $prev_ver);
                             }
-                            $this->revertFileDst($oldData, $filename, $pathP, true);
-
+                            $this->revert_file_dst($old_data, $filename, $path_p, true);
                             $record->delete();
-                            $this->doSystem = true;
-                            $this->doHooks = true;
-                            $this->doMenu = true;
+                            $this->do_system = true;
+                            $this->do_hooks = true;
+                            $this->do_menu = true;
                             $status = 'success';
                         }
                         break;
-                    case 'design':// Design
+                    case 'design':
+                        // Design
                         $record = \common\models\Installer::find()->where(['filename' => $filename])->one();
                         if ($record instanceof \common\models\Installer) {
-                            $theme_name = \common\classes\design::pageName($distribution->name);
-                            \backend\design\Theme::themeRemove($theme_name, true);
-                            $oldData = unserialize($record->data);
-                            if (isset($oldData['id'])) {
-                                \common\models\PlatformsToThemes::deleteAll(['platform_id' => (int) $oldData['id']]);
+                            $theme_name = \common\classes\design::page_name($distribution->name);
+                            \backend\design\Theme::theme_remove($theme_name, true);
+                            $old_data = unserialize($record->data);
+                            if (isset($old_data['id'])) {
+                                \common\models\Platforms_To_Themes::delete_all(['platform_id' => (int) $old_data['id']]);
                             }
-                            if (isset($oldData['platforms_to_themes'])) {
-                                foreach ($oldData['platforms_to_themes'] as $platforms_to_themes) {
-                                    $p2t = \common\models\PlatformsToThemes::find()
-                                            ->where(['platform_id' => $platforms_to_themes['platform_id'], 'theme_id' => $platforms_to_themes['theme_id']])
-                                            ->one();
-                                    if ($p2t instanceof \common\models\PlatformsToThemes) {
+                            if (isset($old_data['platforms_to_themes'])) {
+                                foreach ($old_data['platforms_to_themes'] as $platforms_to_themes) {
+                                    $p2t = \common\models\Platforms_To_Themes::find()->where(['platform_id' => $platforms_to_themes['platform_id'], 'theme_id' => $platforms_to_themes['theme_id']])->one();
+                                    if ($p2t instanceof \common\models\Platforms_To_Themes) {
                                         $p2t->is_default = $platforms_to_themes['is_default'] ?? 0;
                                     } else {
-                                        $p2t = new \common\models\PlatformsToThemes();
-                                        $p2t->loadDefaultValues();
-                                        $p2t->setAttributes($platforms_to_themes, false);
+                                        $p2t = new \common\models\Platforms_To_Themes();
+                                        $p2t->load_default_values();
+                                        $p2t->set_attributes($platforms_to_themes, false);
                                     }
                                     $p2t->save(false);
                                 }
@@ -2264,26 +1851,24 @@ class InstallController extends Sceleton
                             $status = 'success';
                         }
                         break;
-                    case 'translate':// Translations
+                    case 'translate':
+                        // Translations
                         $record = \common\models\Installer::find()->where(['filename' => $filename])->one();
                         if ($record instanceof \common\models\Installer) {
-                            $oldData = unserialize($record->data);
-                            if (is_array($oldData)) {
-                                foreach ($oldData as $old) {
+                            $old_data = unserialize($record->data);
+                            if (is_array($old_data)) {
+                                foreach ($old_data as $old) {
                                     switch ($old['action']) {
                                         case 'deletelanguage':
                                             if (isset($old['language_id'])) {
-                                                \common\helpers\Language::dropLanguage($old['language_id']);
+                                                \common\helpers\Language::drop_language($old['language_id']);
                                             }
                                             break;
                                         case 'update':
-                                            \common\models\Translation::updateAll(
-                                                ['translation_value' => $old['translation_value'], 'translated' => $old['translated']],
-                                                ['hash' => $old['hash'], 'language_id' => $old['language_id']]
-                                            );
+                                            \common\models\Translation::update_all(['translation_value' => $old['translation_value'], 'translated' => $old['translated']], ['hash' => $old['hash'], 'language_id' => $old['language_id']]);
                                             break;
                                         case 'delete':
-                                            \common\models\Translation::deleteAll(['hash' => $old['hash'], 'language_id' => $old['language_id']]);
+                                            \common\models\Translation::delete_all(['hash' => $old['hash'], 'language_id' => $old['language_id']]);
                                             break;
                                         default:
                                             break;
@@ -2291,70 +1876,76 @@ class InstallController extends Sceleton
                                 }
                             }
                             $record->delete();
-                            $this->doSystem = true;
+                            $this->do_system = true;
                             $status = 'success';
                         }
                         break;
-                    case 'payment':// Payment
-                        $moduleDir = 'orderPayment';
-                        // no break
-                    case 'shipping':// Shipping
-                        if (empty($moduleDir)) {
-                            $moduleDir = 'orderShipping';
+                    case 'payment':
+                        // Payment
+                        $module_dir = 'orderPayment';
+                    // no break
+                    case 'shipping':
+                        // Shipping
+                        if (empty($module_dir)) {
+                            $module_dir = 'orderShipping';
                         }
-                        // no break
-                    case 'analytic':// Payment
-                        if (empty($moduleDir)) {
-                            $moduleDir = 'analytic';
+                    // no break
+                    case 'analytic':
+                        // Payment
+                        if (empty($module_dir)) {
+                            $module_dir = 'analytic';
                         }
-                        // no break
-                    case 'totals':// Order structure
-                        if (empty($moduleDir)) {
-                            $moduleDir = 'orderTotal';
+                    // no break
+                    case 'totals':
+                        // Order structure
+                        if (empty($module_dir)) {
+                            $module_dir = 'orderTotal';
                         }
-                        // no break
-                    case 'label':// Shipping label
-                        if (empty($moduleDir)) {
-                            $moduleDir = 'label';
+                    // no break
+                    case 'label':
+                        // Shipping label
+                        if (empty($module_dir)) {
+                            $module_dir = 'label';
                         }
                         $record = \common\models\Installer::find()->where(['filename' => $filename])->one();
                         if ($record instanceof \common\models\Installer) {
-                            $oldData = unserialize($record->data);
-                            $pathP = $path . 'lib' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'modules' . DIRECTORY_SEPARATOR . $moduleDir;
+                            $old_data = unserialize($record->data);
+                            $path_p = $path . 'lib' . DIRECTORY_SEPARATOR . 'common' . DIRECTORY_SEPARATOR . 'modules' . DIRECTORY_SEPARATOR . $module_dir;
                             if (isset($distribution->class)) {
                                 $class = (string) $distribution->class;
-                                foreach (\common\models\Platforms::find()->select(['platform_id'])->asArray()->all() as $_platform) {
-                                    $this->doUninstallClass($class, $_platform['platform_id']);
-                                    $this->doRecalcModuleSort('delete', $class, $distribution->type, $_platform['platform_id']);
+                                foreach (\common\models\Platforms::find()->select(['platform_id'])->as_array()->all() as $_platform) {
+                                    $this->do_uninstall_class($class, $_platform['platform_id']);
+                                    $this->do_recalc_module_sort('delete', $class, $distribution->type, $_platform['platform_id']);
                                 }
                             }
-                            $this->revertFileDst($oldData, $filename, $pathP, true);
+                            $this->revert_file_dst($old_data, $filename, $path_p, true);
                             $record->delete();
-                            $this->doSystem = true;
+                            $this->do_system = true;
                             $status = 'success';
                         }
                         break;
-                    case 'samples':// Sample data
+                    case 'samples':
+                        // Sample data
                         $record = \common\models\Installer::find()->where(['filename' => $filename])->one();
                         if ($record instanceof \common\models\Installer) {
-                            $oldData = unserialize($record->data);
-                            foreach ($oldData as $action => $old) {
+                            $old_data = unserialize($record->data);
+                            foreach ($old_data as $action => $old) {
                                 switch ($action) {
                                     case 'catalog_categories':
-                                        $sdn = \common\helpers\Acl::checkExtensionAllowed('SeoRedirectsNamed', 'allowed');
-                                        foreach (\common\models\CategoriesDescription::find()->select('categories_id')->where(['IN','categories_seo_page_name', $old])->groupBy('categories_id')->asArray()->all() as $category) {
+                                        $sdn = \common\helpers\Acl::check_extension_allowed('SeoRedirectsNamed', 'allowed');
+                                        foreach (\common\models\Categories_Description::find()->select('categories_id')->where(['IN', 'categories_seo_page_name', $old])->group_by('categories_id')->as_array()->all() as $category) {
                                             \common\helpers\Categories::remove_category($category['categories_id'], false);
                                             if ($sdn) {
-                                                $sdn::deleteCategoryLinks($category['categories_id']);
+                                                $sdn::delete_category_links($category['categories_id']);
                                             }
                                         }
                                         break;
                                     case 'catalog_products':
-                                        $sdn = \common\helpers\Acl::checkExtensionAllowed('SeoRedirectsNamed', 'allowed');
-                                        foreach (\common\models\Products::find()->select('products_id')->where(['IN', 'products_model', $old])->asArray()->all() as $product) {
+                                        $sdn = \common\helpers\Acl::check_extension_allowed('SeoRedirectsNamed', 'allowed');
+                                        foreach (\common\models\Products::find()->select('products_id')->where(['IN', 'products_model', $old])->as_array()->all() as $product) {
                                             \common\helpers\Product::remove_product($product['products_id']);
                                             if ($sdn) {
-                                                $sdn::deleteProductLinks($product['products_id']);
+                                                $sdn::delete_product_links($product['products_id']);
                                             }
                                         }
                                         break;
@@ -2371,36 +1962,37 @@ class InstallController extends Sceleton
                         }
                         break;
                     case 'system':
-                    case 'update':// System update
+                    case 'update':
+                        // System update
                         $record = \common\models\Installer::find()->where(['filename' => $filename])->one();
                         if ($record instanceof \common\models\Installer) {
-                            $oldData = unserialize($record->data);
-                            $this->revertFileDst($oldData, $filename, $path, true);
+                            $old_data = unserialize($record->data);
+                            $this->revert_file_dst($old_data, $filename, $path, true);
                             $record->delete();
-                            $this->doMigrations = true;
-                            $this->doSystem = true;
-                            $this->doSmarty = true;
+                            $this->do_migrations = true;
+                            $this->do_system = true;
+                            $this->do_smarty = true;
                             //$this->doTheme = true;
-                            $this->doHooks = true;
-                            $this->doMenu = true;
+                            $this->do_hooks = true;
+                            $this->do_menu = true;
                             $status = 'success';
                             if ($distribution->type == 'update') {
-                                \common\models\Configuration::updateAll(['configuration_value' => (string) $distribution->require->version], ['configuration_key' => 'MIGRATIONS_DB_REVISION']);
+                                \common\models\Configuration::update_all(['configuration_value' => (string) $distribution->require->version], ['configuration_key' => 'MIGRATIONS_DB_REVISION']);
                             }
                         }
                         break;
                     case 'configuration':
                         $record = \common\models\Installer::find()->where(['filename' => $filename])->one();
                         if ($record instanceof \common\models\Installer) {
-                            $oldData = unserialize($record->data);
-                            if (is_array($oldData)) {
-                                foreach ($oldData as $old) {
+                            $old_data = unserialize($record->data);
+                            if (is_array($old_data)) {
+                                foreach ($old_data as $old) {
                                     switch ($old['action']) {
                                         case 'add':
                                             $conf = \common\models\Configuration::find()->where(['configuration_key' => $old['configuration_key']])->one();
-                                            if (!($conf instanceof \common\models\Configuration)) {
+                                            if (!$conf instanceof \common\models\Configuration) {
                                                 $conf = new \common\models\Configuration();
-                                                $conf->loadDefaultValues();
+                                                $conf->load_default_values();
                                                 $conf->configuration_title = $old['configuration_title'];
                                                 $conf->configuration_key = $old['configuration_key'];
                                                 $conf->configuration_value = $old['configuration_value'];
@@ -2434,7 +2026,7 @@ class InstallController extends Sceleton
                                 }
                             }
                             $record->delete();
-                            $this->doSystem = true;
+                            $this->do_system = true;
                             $status = 'success';
                         }
                         break;
@@ -2442,86 +2034,75 @@ class InstallController extends Sceleton
                         $status = 'fail';
                         break;
                 }
-                $this->runSystemReCache();
+                $this->run_system_re_cache();
             }
             $zip->close();
         }
         $output = ob_get_clean();
         if ($status == 'success') {
-            Yii::$app->response->data = ['status' => 'ok', 'text' => $output . "<br>File $filename reverted."];
+            Yii::$app->response->data = ['status' => 'ok', 'text' => $output . "<br>File {$filename} reverted."];
         } else {
-            Yii::$app->response->data = ['status' => 'error', 'text' => $output . "<br>Can't revert file $filename."];
+            Yii::$app->response->data = ['status' => 'error', 'text' => $output . "<br>Can't revert file {$filename}."];
         }
     }
-
-    public function actionRemoveFile()
+    public function action_remove_file()
     {
         $this->layout = false;
         Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
-
-        $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
+        $path = Yii::get_alias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
         $filename = Yii::$app->request->post('name', '');
         $filename = \common\helpers\Output::mb_basename($filename);
-
         if (is_file($path . $filename)) {
             @unlink($path . $filename);
-            Yii::$app->response->data = ['status' => 'ok', 'text' => "File $filename removed."];
+            Yii::$app->response->data = ['status' => 'ok', 'text' => "File {$filename} removed."];
         } else {
-            Yii::$app->response->data = ['status' => 'error', 'text' => "Can't remove file $filename."];
+            Yii::$app->response->data = ['status' => 'error', 'text' => "Can't remove file {$filename}."];
         }
     }
-
-    public function actionDownloadFile()
+    public function action_download_file()
     {
         $this->layout = false;
-
-        $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
+        $path = Yii::get_alias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
         $filename = Yii::$app->request->get('name', '');
         $filename = \common\helpers\Output::mb_basename($filename);
-
-        $mime_type = \yii\helpers\FileHelper::getMimeTypeByExtension($path . $filename);
-
+        $mime_type = \yii\helpers\File_Helper::get_mime_type_by_extension($path . $filename);
         header('Content-Type: ' . $mime_type);
         header('Expires: ' . gmdate('D, d M Y H:i:s') . ' GMT');
         header('Content-Disposition: attachment; filename="' . urlencode($filename) . '"');
         header('Pragma: no-cache');
-
         readfile($path . $filename);
         die;
     }
-
     /**
      * Settings
      */
-
-    public function actionUpload()
+    public function action_upload()
     {
         if (isset($_FILES['file']['tmp_name'])) {
-
             $xmlfile = file_get_contents($_FILES['file']['tmp_name']);
             $ob = simplexml_load_string($xmlfile);
             if (isset($ob->Menu)) {
-                $obPrepared = \common\helpers\MenuHelper::prepareAdminTree($ob->Menu, []);
+                $ob_prepared = \common\helpers\Menu_Helper::prepare_admin_tree($ob->Menu, []);
                 tep_db_query('TRUNCATE TABLE admin_boxes;');
-                \common\helpers\MenuHelper::importAdminTree($obPrepared);
+                \common\helpers\Menu_Helper::import_admin_tree($ob_prepared);
             }
             if (isset($ob->Groups->item)) {
                 foreach ($ob->Groups->item as $item) {
-                    $al = \common\models\AccessLevels::find()->select(['access_levels_id'])->where(['access_levels_name' => (string)$item->Name])->one();
+                    $al = \common\models\Access_Levels::find()->select(['access_levels_id'])->where(['access_levels_name' => (string) $item->Name])->one();
                     if (!is_object($al)) {
-                        $al = new \common\models\AccessLevels();
-                        $al->access_levels_name = (string)$item->Name;
+                        $al = new \common\models\Access_Levels();
+                        $al->access_levels_name = (string) $item->Name;
                     }
                     if (is_object($al)) {
-                        $selectedIds = [];
+                        $selected_ids = [];
                         foreach ($item->Acl->item as $key) {
-                            $acl = \common\models\AccessControlList::find()->where(['access_control_list_key' => (string) $key])->one();
+                            $acl = \common\models\Access_Control_List::find()->where(['access_control_list_key' => (string) $key])->one();
                             if (is_object($acl)) {
-                                $selectedIds[] = $acl->access_control_list_id;
+                                $selected_ids[] = $acl->access_control_list_id;
                             }
                         }
-                        if (count($selectedIds) > 0) {
-                            $access_levels_persmissions = implode(',', $selectedIds);
+                        if (count($selected_ids) > 0) {
+                            $access_levels_persmissions = implode(',', $selected_ids);
                         } else {
                             $access_levels_persmissions = '';
                         }
@@ -2534,32 +2115,32 @@ class InstallController extends Sceleton
                 foreach ($ob->Members->item as $item) {
                     $admin = false;
                     if (isset($item->id)) {
-                        $admin = \common\models\Admin::find()->where(['admin_id' => (int)$item->id])->one();
+                        $admin = \common\models\Admin::find()->where(['admin_id' => (int) $item->id])->one();
                     }
                     if (!is_object($admin)) {
                         $admin = new \common\models\Admin();
                     }
-                    $admin->admin_username = (string)$item->username;
-                    $admin->admin_firstname = (string)$item->firstname;
-                    $admin->admin_lastname = (string)$item->lastname;
-                    $admin->admin_email_address = (string)$item->email;
-                    $admin->admin_phone_number = (string)$item->phone;
-                    $admin->languages = (string)$item->languages;
-                    $admin->access_levels_id = (int)$item->group;
+                    $admin->admin_username = (string) $item->username;
+                    $admin->admin_firstname = (string) $item->firstname;
+                    $admin->admin_lastname = (string) $item->lastname;
+                    $admin->admin_email_address = (string) $item->email;
+                    $admin->admin_phone_number = (string) $item->phone;
+                    $admin->languages = (string) $item->languages;
+                    $admin->access_levels_id = (int) $item->group;
                     $persmissions = [];
                     if (isset($item->persmissions->include)) {
                         foreach ($item->persmissions->include as $key) {
-                            $aclItem = \common\models\AccessControlList::find()->select(['access_control_list_id'])->where(['access_control_list_key' => (string)$key])->asArray()->one();
-                            if (isset($aclItem['access_control_list_id'])) {
-                                $persmissions[] = $aclItem['access_control_list_id'];
+                            $acl_item = \common\models\Access_Control_List::find()->select(['access_control_list_id'])->where(['access_control_list_key' => (string) $key])->as_array()->one();
+                            if (isset($acl_item['access_control_list_id'])) {
+                                $persmissions[] = $acl_item['access_control_list_id'];
                             }
                         }
                     }
                     if (isset($item->persmissions->exclude)) {
                         foreach ($item->persmissions->exclude as $key) {
-                            $aclItem = \common\models\AccessControlList::find()->select(['access_control_list_id'])->where(['access_control_list_key' => (string)$key])->asArray()->one();
-                            if (isset($aclItem['access_control_list_id'])) {
-                                $persmissions[] = ($aclItem['access_control_list_id'] * -1);
+                            $acl_item = \common\models\Access_Control_List::find()->select(['access_control_list_id'])->where(['access_control_list_key' => (string) $key])->as_array()->one();
+                            if (isset($acl_item['access_control_list_id'])) {
+                                $persmissions[] = $acl_item['access_control_list_id'] * -1;
                             }
                         }
                     }
@@ -2574,150 +2155,99 @@ class InstallController extends Sceleton
             unlink($_FILES['file']['tmp_name']);
         }
     }
-
-    public function actionDownload()
+    public function action_download()
     {
         $this->layout = false;
         $response = [];
-
-        $xml = new \yii\web\XmlResponseFormatter();
-        $xml->rootTag = 'Install';
+        $xml = new \yii\web\Xml_Response_Formatter();
+        $xml->root_tag = 'Install';
         Yii::$app->response->format = 'custom_xml';
         Yii::$app->response->formatters['custom_xml'] = $xml;
-
         $headers = Yii::$app->response->headers;
         $headers->add('Content-Type', 'text/xml; charset=utf-8');
         $headers->add('Content-Disposition', 'attachment; filename="install.xml"');
         $headers->add('Pragma', 'no-cache');
-
         $menu = (int) Yii::$app->request->post('menu');
         $groups = (int) Yii::$app->request->post('groups');
         $members = (int) Yii::$app->request->post('members');
-
         if ($menu == 1) {
-            $queryResponse = \common\models\AdminBoxes::find()
-                ->orderBy(['sort_order' => SORT_ASC])
-                ->asArray()
-                ->all();
-
-            $response['Menu'] = $this->buildXMLTree(0, $queryResponse, []);
+            $query_response = \common\models\Admin_Boxes::find()->order_by(['sort_order' => SORT_ASC])->as_array()->all();
+            $response['Menu'] = $this->build_xml_tree(0, $query_response, []);
         }
-
         if ($groups == 1) {
             $Groups = [];
-            foreach (\common\models\AccessLevels::find()->all() as $acl) {
-                $selectedIds = [];
+            foreach (\common\models\Access_Levels::find()->all() as $acl) {
+                $selected_ids = [];
                 if (is_string($acl->access_levels_persmissions)) {
-                    $selectedIds = explode(',', $acl->access_levels_persmissions);
+                    $selected_ids = explode(',', $acl->access_levels_persmissions);
                 }
-                if (!is_array($selectedIds)) {
-                    $selectedIds = [];
+                if (!is_array($selected_ids)) {
+                    $selected_ids = [];
                 }
-                $aclList = \common\models\AccessControlList::find()
-                        ->select(['access_control_list_key'])
-                        ->where(['IN', 'access_control_list_id', $selectedIds])
-                        ->orderBy('sort_order')
-                        ->asArray()
-                        ->all();
-
-                $aclRules = [];
-                foreach ($aclList as $item) {
-                    $aclRules[] = $item['access_control_list_key'];
+                $acl_list = \common\models\Access_Control_List::find()->select(['access_control_list_key'])->where(['IN', 'access_control_list_id', $selected_ids])->order_by('sort_order')->as_array()->all();
+                $acl_rules = [];
+                foreach ($acl_list as $item) {
+                    $acl_rules[] = $item['access_control_list_key'];
                 }
-
-                $Groups[] = [
-                    'Name' => $acl->access_levels_name,
-                    'Acl' => $aclRules,
-                ];
+                $Groups[] = ['Name' => $acl->access_levels_name, 'Acl' => $acl_rules];
             }
             $response['Groups'] = $Groups;
         }
-
         if ($members == 1) {
-            $membersList = \common\models\Admin::find()
-                       ->asArray()
-                       ->all();
+            $members_list = \common\models\Admin::find()->as_array()->all();
             $Members = [];
-            foreach ($membersList as $item) {
-                $persmissions = [
-                    'include' => [],
-                    'exclude' => [],
-                ];
-                $adminPersmissions = explode(',', $item['admin_persmissions']);
-                foreach ($adminPersmissions as $ap) {
+            foreach ($members_list as $item) {
+                $persmissions = ['include' => [], 'exclude' => []];
+                $admin_persmissions = explode(',', $item['admin_persmissions']);
+                foreach ($admin_persmissions as $ap) {
                     if ($ap > 0) {
-                        $aclItem = \common\models\AccessControlList::find()->select(['access_control_list_key'])->where(['access_control_list_id' => $ap])->asArray()->one();
-                        if (isset($aclItem['access_control_list_key'])) {
-                            $persmissions['include'][] = $aclItem['access_control_list_key'];
+                        $acl_item = \common\models\Access_Control_List::find()->select(['access_control_list_key'])->where(['access_control_list_id' => $ap])->as_array()->one();
+                        if (isset($acl_item['access_control_list_key'])) {
+                            $persmissions['include'][] = $acl_item['access_control_list_key'];
                         }
                     } elseif ($ap < 0) {
-                        $aclItem = \common\models\AccessControlList::find()->select(['access_control_list_key'])->where(['access_control_list_id' => ($ap * -1)])->asArray()->one();
-                        if (isset($aclItem['access_control_list_key'])) {
-                            $persmissions['exclude'][] = $aclItem['access_control_list_key'];
+                        $acl_item = \common\models\Access_Control_List::find()->select(['access_control_list_key'])->where(['access_control_list_id' => $ap * -1])->as_array()->one();
+                        if (isset($acl_item['access_control_list_key'])) {
+                            $persmissions['exclude'][] = $acl_item['access_control_list_key'];
                         }
                     }
                 }
-
-                $Members[] = [
-                    'id' => $item['admin_id'],
-                    'username' => $item['admin_username'],
-                    'firstname' => $item['admin_firstname'],
-                    'lastname' => $item['admin_lastname'],
-                    'email' => $item['admin_email_address'],
-                    'phone' => $item['admin_phone_number'],
-                    'languages' => $item['languages'],
-                    'group' => $item['access_levels_id'],
-                    'persmissions' => $persmissions,
-                ];
+                $Members[] = ['id' => $item['admin_id'], 'username' => $item['admin_username'], 'firstname' => $item['admin_firstname'], 'lastname' => $item['admin_lastname'], 'email' => $item['admin_email_address'], 'phone' => $item['admin_phone_number'], 'languages' => $item['languages'], 'group' => $item['access_levels_id'], 'persmissions' => $persmissions];
             }
             $response['Members'] = $Members;
         }
-
         return $response;
     }
-
-    public function actionUpdates()
+    public function action_updates()
     {
         \common\helpers\Translation::init('admin/install');
         $this->layout = false;
-
-        $this->checkSystemRequires();
-
+        $this->check_system_requires();
         $updates = [];
-        $version = (defined('MIGRATIONS_DB_REVISION') ? MIGRATIONS_DB_REVISION : '');
-
-        $secKeyGlobal = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
-        $storageUrl = \Yii::$app->params['appStorage.url'];
-        $storageKey = $this->getStorageKey();
-        if (!isset(\Yii::$app->params['secKey.global']) or (\Yii::$app->params['secKey.global'] != $secKeyGlobal)) {
+        $version = defined('MIGRATIONS_DB_REVISION') ? MIGRATIONS_DB_REVISION : '';
+        $sec_key_global = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
+        $storage_url = \Yii::$app->params['appStorage.url'];
+        $storage_key = $this->get_storage_key();
+        if (!isset(\Yii::$app->params['secKey.global']) or \Yii::$app->params['secKey.global'] != $sec_key_global) {
             // wrong security store key
-        } elseif (empty($storageKey) || empty($storageUrl)) {
+        } elseif (empty($storage_key) || empty($storage_url)) {
             // wrong storage key or url
         } elseif ($request = curl_init()) {
-            curl_setopt($request, CURLOPT_URL, $storageUrl . 'app-api-server/system-updates');
-
+            curl_setopt($request, CURLOPT_URL, $storage_url . 'app-api-server/system-updates');
             // for testing
             curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
             curl_setopt($request, CURLOPT_SSL_VERIFYHOST, false);
-            if (defined('CURLOPT_SSL_VERIFYSTATUS')) { // Added in cURL 7.41.0
+            if (defined('CURLOPT_SSL_VERIFYSTATUS')) {
+                // Added in cURL 7.41.0
                 curl_setopt($request, CURLOPT_SSL_VERIFYSTATUS, false);
             }
-
             curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
             curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'POST');
             curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-            curl_setopt($request, CURLOPT_HTTPHEADER, [
-                'Content-Type: application/json',
-                'Accept: application/json',
-                'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
-            ]);
-
-            $postFieldArray = [
-                'version' => $version,
-            ];
-            $postFieldArray = json_encode($postFieldArray);
-
-            curl_setopt($request, CURLOPT_POSTFIELDS, $postFieldArray);
+            curl_setopt($request, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: Bearer ' . $storage_key . ':' . $sec_key_global]);
+            $post_field_array = ['version' => $version];
+            $post_field_array = json_encode($post_field_array);
+            curl_setopt($request, CURLOPT_POSTFIELDS, $post_field_array);
             $result = json_decode(curl_exec($request), true);
             $response = curl_getinfo($request);
             curl_close($request);
@@ -2727,63 +2257,41 @@ class InstallController extends Sceleton
                 }
             }
         }
-
-        $updatesCount = \common\models\Installer::find()
-                ->where(['archive_type' => 'update'])
-                ->count();
-
-        $installed = (defined('INSTALLED_DATE') ? INSTALLED_DATE : '');
-        $updated = (defined('UPDATED_DATE') ? UPDATED_DATE : '');
-
-        return $this->render('update-list', [
-            'installed' => $installed,
-            'version' => PROJECT_VERSION_MAJOR. '.' . PROJECT_VERSION_MINOR . '.' . $version . (!empty($updated) ? ' updated at ' . $updated : ''),
-            'updates' => $updates,
-            'updatesCount' => $updatesCount,
-        ]);
+        $updates_count = \common\models\Installer::find()->where(['archive_type' => 'update'])->count();
+        $installed = defined('INSTALLED_DATE') ? INSTALLED_DATE : '';
+        $updated = defined('UPDATED_DATE') ? UPDATED_DATE : '';
+        return $this->render('update-list', ['installed' => $installed, 'version' => PROJECT_VERSION_MAJOR . '.' . PROJECT_VERSION_MINOR . '.' . $version . (!empty($updated) ? ' updated at ' . $updated : ''), 'updates' => $updates, 'updatesCount' => $updates_count]);
     }
-
-    public function actionUpdateLog()
+    public function action_update_log()
     {
         \common\helpers\Translation::init('admin/install');
         $this->layout = false;
-        $responseLog = [];
-        foreach (\common\models\Installer::find()
-                ->select(['filename', 'date_added', 'archive_version', 'data'])
-                ->where(['archive_type' => 'update'])
-                ->orderBy('archive_version ASC')
-                ->asArray()
-                ->all() as $update) {
-            $responseLog[] = $update['date_added'] . " <font color='green'>" . TEXT_UPDATE_APPLIED . ' ' . $update['filename'] . "</font><br>\n";
+        $response_log = [];
+        foreach (\common\models\Installer::find()->select(['filename', 'date_added', 'archive_version', 'data'])->where(['archive_type' => 'update'])->order_by('archive_version ASC')->as_array()->all() as $update) {
+            $response_log[] = $update['date_added'] . " <font color='green'>" . TEXT_UPDATE_APPLIED . ' ' . $update['filename'] . "</font><br>\n";
             $data = unserialize($update['data']);
             if (is_array($data)) {
                 foreach ($data as $item) {
-                    $responseLog[] = $update['date_added'] . ' ' . $item->action . ' ' . $item->type . ' ' . str_replace('|', DIRECTORY_SEPARATOR, $item->path);
+                    $response_log[] = $update['date_added'] . ' ' . $item->action . ' ' . $item->type . ' ' . str_replace('|', DIRECTORY_SEPARATOR, $item->path);
                 }
             }
-
         }
-
-        return $this->render('update-log', [
-            'responseLog' => $responseLog,
-        ]);
+        return $this->render('update-log', ['responseLog' => $response_log]);
     }
-
-    private function sendEcho($string)
+    private function send_echo($string)
     {
         echo $string;
         ob_flush();
         flush();
     }
-
-    public function actionSaveIgnoreList()
+    public function action_save_ignore_list()
     {
-        \common\models\InstallIgnoreList::deleteAll();
+        \common\models\Install_Ignore_List::delete_all();
         $dst_file_ignore = Yii::$app->request->post('dst_file_ignore');
         if (is_array($dst_file_ignore)) {
             foreach ($dst_file_ignore as $index => $value) {
                 if (!empty($value)) {
-                    $file = new \common\models\InstallIgnoreList();
+                    $file = new \common\models\Install_Ignore_List();
                     $file->id = $index;
                     $file->path = $value;
                     $file->save(false);
@@ -2793,114 +2301,95 @@ class InstallController extends Sceleton
         \Yii::$app->response->format = \yii\web\Response::FORMAT_JSON;
         return ['status' => 'ok'];
     }
-
-    public function actionUpdateNow()
+    public function action_update_now()
     {
-        $this->checkSystemRequires();
-
+        $this->check_system_requires();
         @set_time_limit(0);
         @ignore_user_abort(true);
-
         $force = (int) Yii::$app->request->get('force');
-
         if ($force) {
             $this->dst_file_ignore = [];
-            foreach (\common\models\InstallIgnoreList::find()->asArray()->all() as $file) {
+            foreach (\common\models\Install_Ignore_List::find()->as_array()->all() as $file) {
                 $this->dst_file_ignore[] = $file['path'];
             }
         } else {
             $this->show_ignore_field = true;
         }
         try {
-            \common\models\InstallIgnoreList::deleteAll();
+            \common\models\Install_Ignore_List::delete_all();
         } catch (\Exception $exc) {
-            $this->sendEchoForUpdate('Exception: ' . $exc->getMessage(), 'error');
+            $this->send_echo_for_update('Exception: ' . $exc->get_message(), 'error');
         }
-
         $this->layout = false;
-
         header('Content-Type: text/html');
         header('Content-Transfer-Encoding: utf-8');
         header('Pragma: no-cache');
-
         $conf = \common\models\Configuration::find()->where(['configuration_key' => 'MIGRATIONS_DB_REVISION'])->one();
         if ($conf instanceof \common\models\Configuration) {
             $version = $conf->configuration_value;
         } else {
             $version = '';
         }
-
-        $secKeyGlobal = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
-        $storageUrl = \Yii::$app->params['appStorage.url'];
-        $storageKey = $this->getStorageKey();
-        if (!isset(\Yii::$app->params['secKey.global']) or (\Yii::$app->params['secKey.global'] != $secKeyGlobal)) {
+        $sec_key_global = md5(\Yii::$app->db->dsn . (defined('INSTALLED_MICROTIME') ? INSTALLED_MICROTIME : ''));
+        $storage_url = \Yii::$app->params['appStorage.url'];
+        $storage_key = $this->get_storage_key();
+        if (!isset(\Yii::$app->params['secKey.global']) or \Yii::$app->params['secKey.global'] != $sec_key_global) {
             // wrong security store key
-        } elseif (empty($storageKey) || empty($storageUrl)) {
+        } elseif (empty($storage_key) || empty($storage_url)) {
             // wrong storage key or url
         } else {
-            $needReCache = false;
+            $need_re_cache = false;
             while (!empty($version)) {
                 if ($request = curl_init()) {
-                    $this->sendEchoForUpdate(TEXT_CHECK_UPDATES . " $version");
-
-                    curl_setopt($request, CURLOPT_URL, $storageUrl . 'app-api-server/get-update');
-
+                    $this->send_echo_for_update(TEXT_CHECK_UPDATES . " {$version}");
+                    curl_setopt($request, CURLOPT_URL, $storage_url . 'app-api-server/get-update');
                     // for testing
                     curl_setopt($request, CURLOPT_SSL_VERIFYPEER, false);
                     curl_setopt($request, CURLOPT_SSL_VERIFYHOST, false);
-                    if (defined('CURLOPT_SSL_VERIFYSTATUS')) { // Added in cURL 7.41.0
+                    if (defined('CURLOPT_SSL_VERIFYSTATUS')) {
+                        // Added in cURL 7.41.0
                         curl_setopt($request, CURLOPT_SSL_VERIFYSTATUS, false);
                     }
-
                     curl_setopt($request, CURLOPT_TIMEOUT_MS, 30000);
                     curl_setopt($request, CURLOPT_CUSTOMREQUEST, 'POST');
                     curl_setopt($request, CURLOPT_RETURNTRANSFER, true);
-                    curl_setopt($request, CURLOPT_HTTPHEADER, [
-                        'Content-Type: application/json',
-                        'Accept: application/json',
-                        'Authorization: Bearer ' . $storageKey . ':' . $secKeyGlobal,
-                    ]);
-
-                    $postFieldArray = [
-                        'version' => $version,
-                    ];
-                    $postFieldArray = json_encode($postFieldArray);
-
-                    curl_setopt($request, CURLOPT_POSTFIELDS, $postFieldArray);
+                    curl_setopt($request, CURLOPT_HTTPHEADER, ['Content-Type: application/json', 'Accept: application/json', 'Authorization: Bearer ' . $storage_key . ':' . $sec_key_global]);
+                    $post_field_array = ['version' => $version];
+                    $post_field_array = json_encode($post_field_array);
+                    curl_setopt($request, CURLOPT_POSTFIELDS, $post_field_array);
                     $result = json_decode(curl_exec($request), true);
                     $response = curl_getinfo($request);
                     curl_close($request);
-
                     //$version = '';
                     if ($response['http_code'] == 200 && isset($result['content'])) {
-                        $path = Yii::getAlias('@site_root');
+                        $path = Yii::get_alias('@site_root');
                         $filename = $result['filename'] ?? '';
                         if (!file_exists($path . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $filename)) {
                             $content = base64_decode($result['content']);
                             $size = $result['size'] ?? 0;
                             if (strlen($content) == $size) {
                                 file_put_contents($path . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $filename, $content);
-                                $this->sendEchoForUpdate(TEXT_FOUND_UPDATE . '. ' . TEXT_FILE . " $filename " . TEXT_DOWNLOADED);
+                                $this->send_echo_for_update(TEXT_FOUND_UPDATE . '. ' . TEXT_FILE . " {$filename} " . TEXT_DOWNLOADED);
                             }
                             unset($content);
                         } else {
-                            $this->sendEchoForUpdate(TEXT_FOUND_UPDATE . '. ' . TEXT_FILE . " $filename " . TEXT_ALREADY_DOWNLOADED);
+                            $this->send_echo_for_update(TEXT_FOUND_UPDATE . '. ' . TEXT_FILE . " {$filename} " . TEXT_ALREADY_DOWNLOADED);
                         }
                         unset($result);
                         try {
-                            $status = $this->installFileWithDependencies($filename, ['force' => $force], true);
+                            $status = $this->install_file_with_dependencies($filename, ['force' => $force], true);
                         } catch (\Exception $exc) {
                             $status = false;
-                            $this->sendEchoForUpdate('Exception: ' . $exc->getMessage(), 'error');
+                            $this->send_echo_for_update('Exception: ' . $exc->get_message(), 'error');
                         }
                         $force = 0;
                         ob_flush();
                         flush();
                         if ($status) {
-                            $this->sendEchoForUpdate("\"$filename\" " . TEXT_PACK_INSTALLED, 'success');
-                            $zip = new \ZipArchive();
+                            $this->send_echo_for_update("\"{$filename}\" " . TEXT_PACK_INSTALLED, 'success');
+                            $zip = new \Zip_Archive();
                             if ($zip->open($path . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $filename) === true) {
-                                $json = $zip->getFromName('distribution.json');
+                                $json = $zip->get_from_name('distribution.json');
                                 $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
                                 $distribution = json_decode($json);
                                 $version = (string) $distribution->version;
@@ -2908,53 +2397,50 @@ class InstallController extends Sceleton
                             } else {
                                 $version = '';
                             }
-                            $updatedDate = \common\models\Configuration::find()->where(['configuration_key' => 'UPDATED_DATE'])->one();
-                            if ($updatedDate instanceof \common\models\Configuration) {
-                                $updatedDate->last_modified = date('Y-m-d H:i:s');
+                            $updated_date = \common\models\Configuration::find()->where(['configuration_key' => 'UPDATED_DATE'])->one();
+                            if ($updated_date instanceof \common\models\Configuration) {
+                                $updated_date->last_modified = date('Y-m-d H:i:s');
                             } else {
-                                $updatedDate = new \common\models\Configuration();
-                                $updatedDate->loadDefaultValues();
-                                $updatedDate->configuration_title = 'Date of last update';
-                                $updatedDate->configuration_key = 'UPDATED_DATE';
-                                $updatedDate->date_added = date('Y-m-d H:i:s');
+                                $updated_date = new \common\models\Configuration();
+                                $updated_date->load_default_values();
+                                $updated_date->configuration_title = 'Date of last update';
+                                $updated_date->configuration_key = 'UPDATED_DATE';
+                                $updated_date->date_added = date('Y-m-d H:i:s');
                             }
-                            $updatedDate->configuration_value = date('Y-m-d H:i:s');
-                            $updatedDate->save(false);
-                            $needReCache = true;
+                            $updated_date->configuration_value = date('Y-m-d H:i:s');
+                            $updated_date->save(false);
+                            $need_re_cache = true;
                             try {
-                                $this->runSystemReCache(true);
+                                $this->run_system_re_cache(true);
                             } catch (\Exception $exc) {
-                                $this->sendEchoForUpdate('Exception: ' . $exc->getMessage(), 'error');
+                                $this->send_echo_for_update('Exception: ' . $exc->get_message(), 'error');
                             }
                             ob_flush();
                             flush();
                             //@unlink($path . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR . $filename);
                         } else {
-                            $this->sendEchoForUpdate("\"$filename\" " . TEXT_PACK_ABORTED, 'error');
+                            $this->send_echo_for_update("\"{$filename}\" " . TEXT_PACK_ABORTED, 'error');
                             $version = '';
                             echo TEXT_USE . ' <a style="font-size: 30px;" class="btn" href="javascript:void(0)" onclick="return parent.runQuery(1);">' . TEXT_FORCE_UPDATE . '</a>. ' . TEXT_FORCE_UPDATE_INTRO . '.<br>';
                         }
-
                     } else {
                         if ($response['http_code'] != 400) {
-                            $this->sendEchoForUpdate('Status response: ' . $response['http_code'], 'error');
+                            $this->send_echo_for_update('Status response: ' . $response['http_code'], 'error');
                         }
-                        $this->sendEchoForUpdate(TEXT_NO_UPDATES);
+                        $this->send_echo_for_update(TEXT_NO_UPDATES);
                         $version = '';
                     }
                 }
             }
-
-            if ($needReCache) {
+            if ($need_re_cache) {
                 ob_flush();
                 flush();
-                $this->sendEchoForUpdate(TEXT_UPDATE_FINISH);
+                $this->send_echo_for_update(TEXT_UPDATE_FINISH);
             }
         }
         echo '<br><a class="btn" href="javascript:void(0)" onclick="return parent.checkActualStatus();">' . IMAGE_BACK . '</a>';
     }
-
-    private function sendEchoForUpdate($message, $type = 'default')
+    private function send_echo_for_update($message, $type = 'default')
     {
         $class = $style = '';
         switch ($type) {
@@ -2981,13 +2467,11 @@ class InstallController extends Sceleton
                 $style = '';
                 break;
         }
-
-        $this->sendEcho(sprintf('<div class="%s" style="%s">%s</div>', $class, $style, $message));
+        $this->send_echo(sprintf('<div class="%s" style="%s">%s</div>', $class, $style, $message));
     }
-
-    public function actionCleanupLocalStorage()
+    public function action_cleanup_local_storage()
     {
-        $path = Yii::getAlias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
+        $path = Yii::get_alias('@site_root') . DIRECTORY_SEPARATOR . 'uploads' . DIRECTORY_SEPARATOR;
         $backup_path = $path . 'backups' . DIRECTORY_SEPARATOR;
         if ($dir = @dir($path)) {
             while ($file = $dir->read()) {
@@ -2999,34 +2483,24 @@ class InstallController extends Sceleton
                 $record = \common\models\Installer::find()->where(['filename' => $file])->one();
                 if ($record instanceof \common\models\Installer) {
                     $deployed = true;
-                    $zip = new \ZipArchive();
+                    $zip = new \Zip_Archive();
                     if ($zip->open($path . $file) === true) {
-                        $json = $zip->getFromName('distribution.json');
+                        $json = $zip->get_from_name('distribution.json');
                         $json = preg_replace('#/\*(?:[^*]*(?:\*(?!/))*)*\*/#', '', $json);
                         if (!empty($json)) {
                             $distribution = json_decode($json);
-                            list($major, $minor, $patch) = explode('.', (string)$distribution->version);
+                            list($major, $minor, $patch) = explode('.', (string) $distribution->version);
                             $archive_version = intval($major) + intval($minor) / 100 + intval($patch) / 10000;
-                            $check = \common\models\Installer::find()
-                                    ->select(['max(archive_version) as version'])
-                                    ->where(['archive_type' => (string)$distribution->type])
-                                    ->andWhere(['archive_class' => (string)$distribution->class])
-                                    ->asArray()
-                                    ->one();
+                            $check = \common\models\Installer::find()->select(['max(archive_version) as version'])->where(['archive_type' => (string) $distribution->type])->and_where(['archive_class' => (string) $distribution->class])->as_array()->one();
                             if (isset($check['version']) && $check['version'] > $archive_version) {
                                 $deployed = false;
                                 $record->delete();
                                 //delete backup for latest version
-                                $checkLatest = \common\models\Installer::find()
-                                    ->select(['filename'])
-                                    ->where(['archive_type' => (string)$distribution->type])
-                                    ->andWhere(['archive_class' => (string)$distribution->class])
-                                    ->andWhere(['archive_version' => $check['version']])
-                                    ->asArray()
-                                    ->one();//filename
-                                if (isset($checkLatest['filename'])) {
-                                    if (is_file($backup_path . $checkLatest['filename'])) {
-                                        @unlink($backup_path . $checkLatest['filename']);
+                                $check_latest = \common\models\Installer::find()->select(['filename'])->where(['archive_type' => (string) $distribution->type])->and_where(['archive_class' => (string) $distribution->class])->and_where(['archive_version' => $check['version']])->as_array()->one();
+                                //filename
+                                if (isset($check_latest['filename'])) {
+                                    if (is_file($backup_path . $check_latest['filename'])) {
+                                        @unlink($backup_path . $check_latest['filename']);
                                     }
                                 }
                             }
@@ -3043,7 +2517,6 @@ class InstallController extends Sceleton
                 }
             }
         }
-        return $this->redirect(Yii::$app->urlManager->createUrl(['install/', 'set' => 'modules']));
+        return $this->redirect(Yii::$app->url_manager->create_url(['install/', 'set' => 'modules']));
     }
-
 }

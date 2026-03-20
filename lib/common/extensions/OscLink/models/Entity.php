@@ -1,8 +1,7 @@
 <?php
 
-declare(strict_types=1);
-
-namespace common\extensions\OscLink\models;
+declare (strict_types=1);
+namespace common\extensions\Osc_Link\models;
 
 /**
  * This is the model class for table "connector_osclink_entity".
@@ -11,71 +10,55 @@ namespace common\extensions\OscLink\models;
  * @property int $project_id
  * @property string $entity_name
  */
-class Entity extends \yii\db\ActiveRecord
+class Entity extends \yii\db\Active_Record
 {
     /**
      * {@inheritdoc}
      */
-    public static function tableName()
+    public static function table_name()
     {
         return 'connector_osclink_entity';
     }
-
     /**
      * {@inheritdoc}
      */
     public function rules()
     {
-        return [
-            [['project_id', 'entity_name'], 'required'],
-            [['project_id'], 'integer'],
-            [['entity_name'], 'string', 'max' => 128],
-        ];
+        return [[['project_id', 'entity_name'], 'required'], [['project_id'], 'integer'], [['entity_name'], 'string', 'max' => 128]];
     }
-
     /**
      * {@inheritdoc}
      */
-    public function attributeLabels()
+    public function attribute_labels()
     {
-        return [
-            'id' => 'ID',
-            'project_id' => 'Project ID',
-            'entity_name' => 'Entity Name',
-        ];
+        return ['id' => 'ID', 'project_id' => 'Project ID', 'entity_name' => 'Entity Name'];
     }
-
-    public function getMapping()
+    public function get_mapping()
     {
-        return $this->hasMany(Mapping::class, ['entity_id' => 'id']);
+        return $this->has_many(Mapping::class, ['entity_id' => 'id']);
     }
-
-    public static function cleanMapping()
+    public static function clean_mapping()
     {
-        $statusId = self::returnEntityId('@order_status');
-        $condition_mapping = empty($statusId) ? '' : "entity_id <> $statusId";
-        $condition_entity = empty($statusId) ? '' : "id <> $statusId";
-
-        \common\extensions\OscLink\models\Mapping::deleteAll($condition_mapping);
-        \common\extensions\OscLink\models\Entity::deleteAll($condition_entity);
+        $status_id = self::return_entity_id('@order_status');
+        $condition_mapping = empty($status_id) ? '' : "entity_id <> {$status_id}";
+        $condition_entity = empty($status_id) ? '' : "id <> {$status_id}";
+        \common\extensions\Osc_Link\models\Mapping::delete_all($condition_mapping);
+        \common\extensions\Osc_Link\models\Entity::delete_all($condition_entity);
     }
-
-    public static function isMappedExist()
+    public static function is_mapped_exist()
     {
-        $statusId = self::returnEntityId('@order_status');
-        $condition_mapping = empty($statusId) ? '' : "entity_id <> $statusId";
+        $status_id = self::return_entity_id('@order_status');
+        $condition_mapping = empty($status_id) ? '' : "entity_id <> {$status_id}";
         return !empty(Mapping::find()->where($condition_mapping)->one());
     }
-
-    public static function returnEntityId($name, $project_id = 1)
+    public static function return_entity_id($name, $project_id = 1)
     {
-        $row = self::findOne(['project_id' => $project_id, 'entity_name' => $name]);
+        $row = self::find_one(['project_id' => $project_id, 'entity_name' => $name]);
         return empty($row) ? null : $row->id;
     }
-
-    public static function forceEntityId($name, $project_id = 1)
+    public static function force_entity_id($name, $project_id = 1)
     {
-        $res = self::returnEntityId($name, $project_id);
+        $res = self::return_entity_id($name, $project_id);
         if (empty($res)) {
             $row = new self();
             $row->project_id = $project_id;
@@ -86,5 +69,4 @@ class Entity extends \yii\db\ActiveRecord
         }
         return $res;
     }
-
 }

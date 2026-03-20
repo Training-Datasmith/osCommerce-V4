@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,115 +11,104 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Reader;
 
 use backend\models\EP\Exception;
-use Box\Spout\Reader\Common\Creator\ReaderEntityFactory;
-use yii\base\BaseObject; //extends BaseObject
-
-class XLSX extends BaseObject implements ReaderInterface
+use Box\Spout\Reader\Common\Creator\Reader_Entity_Factory;
+use yii\base\Base_Object;
+//extends BaseObject
+class XLSX extends Base_Object implements Reader_Interface
 {
     protected $file_header;
     private $file_start_pointer = 0;
-    private $file_header_rows = 15; ///search headers in first file_header_rows rows (max number of filled in cells)
+    private $file_header_rows = 15;
+    ///search headers in first file_header_rows rows (max number of filled in cells)
     private $file_data_start_pointer;
     //    private $currow=1; //excel style ->key()
     protected $currow;
-
     public $filename = 'ep.xls';
-    public $sheetIndex = 0;
+    public $sheet_index = 0;
     public $sheet_name = '';
     public $without_header = false;
-
     protected $file_handle;
     //protected $maxColumn; //A,B,C ...
-    protected $maxColumnIndex = 0; //1,2,3 ...
-    protected $maxRow; //1,2,3 ....
+    protected $max_column_index = 0;
+    //1,2,3 ...
+    protected $max_row;
+    //1,2,3 ....
     //protected $maxColumnToCheck = 'CZ';
     protected $reader;
-
     public function __set($name, $value)
     {
         try {
             parent::__set($name, $value);
         } catch (\Exception $ex) {
-            \Yii::warning(' #### ' . print_r($ex->getMessage(), true), 'TLDEBUG-EP');
+            \Yii::warning(' #### ' . print_r($ex->get_message(), true), 'TLDEBUG-EP');
         }
     }
-
-    protected function openFile()
+    protected function open_file()
     {
         $this->file_header = null;
         $this->file_start_pointer = 0;
         /*        $this->file_handle = fopen($this->filename,'r');
-                if ( !$this->file_handle ) {
-                    throw new Exception('Can\'t open file', 20);
-                }
-        */
-        $this->reader = ReaderEntityFactory::createXLSXReader();
+                        if ( !$this->file_handle ) {
+                            throw new Exception('Can\'t open file', 20);
+                        }
+                */
+        $this->reader = Reader_Entity_Factory::create_xlsx_reader();
         $this->reader->open($this->filename);
-
         $cnt = 1;
-        foreach ($this->reader->getSheetIterator() as $sheet) {
-            $this->file_handle = $sheet->getRowIterator();
-            if ((empty($this->sheet_name) && empty($this->sheetIndex)) ||
-                (!empty($this->sheet_name) && $this->sheet_name == $sheet->getName()) ||
-                (!empty($this->sheet_name) && $this->sheet_name == $cnt . '_' . $sheet->getName()) ||
-                (!empty($this->sheetIndex) && $this->sheetIndex == $cnt)
-            ) {
-                break; // no need to read more sheets
+        foreach ($this->reader->get_sheet_iterator() as $sheet) {
+            $this->file_handle = $sheet->get_row_iterator();
+            if (empty($this->sheet_name) && empty($this->sheet_index) || !empty($this->sheet_name) && $this->sheet_name == $sheet->get_name() || !empty($this->sheet_name) && $this->sheet_name == $cnt . '_' . $sheet->get_name() || !empty($this->sheet_index) && $this->sheet_index == $cnt) {
+                break;
+                // no need to read more sheets
             }
             $cnt++;
         }
-        $this->readColumns();
+        $this->read_columns();
         $this->currow = $this->file_data_start_pointer;
-        $this->maxRow = 10000; //dummy as as SPOUT don't read all the file Required for progress only
-
+        $this->max_row = 10000;
+        //dummy as as SPOUT don't read all the file Required for progress only
     }
-    public function currentPosition()
+    public function current_position()
     {
         return $this->file_handle->key();
     }
-
-    public function setDataPosition($position)
+    public function set_data_position($position)
     {
         $this->currow = $position;
     }
-
     /**
-     * @return [sheetName => [
-                        'columns' => $fileColumns,
-                    ] ];
-     */
-    public function readSheets()
+    * @return [sheetName => [
+                       'columns' => $fileColumns,
+                   ] ];
+    */
+    public function read_sheets()
     {
         $ret = [];
-        $sheetsCnt = 0;
-        $this->reader =   ReaderEntityFactory::createXLSXReader();
+        $sheets_cnt = 0;
+        $this->reader = Reader_Entity_Factory::create_xlsx_reader();
         $this->reader->open($this->filename);
-
-        foreach ($this->reader->getSheetIterator() as $sheet) {
+        foreach ($this->reader->get_sheet_iterator() as $sheet) {
             $this->file_header = null;
             $this->file_start_pointer = 0;
-            $this->maxColumnIndex = 0;
-            $this->file_handle = $sheet->getRowIterator();
-            $headers = $this->readColumns();
-            $sheetsCnt++;
-            $name = $sheet->getName();
+            $this->max_column_index = 0;
+            $this->file_handle = $sheet->get_row_iterator();
+            $headers = $this->read_columns();
+            $sheets_cnt++;
+            $name = $sheet->get_name();
             if (!empty($headers)) {
-                $ret[$sheetsCnt . '_' . $name] = ['columns' => $headers];
+                $ret[$sheets_cnt . '_' . $name] = ['columns' => $headers];
             }
         }
-
         return $ret;
     }
-
-    public function readColumns()
+    public function read_columns()
     {
         if (is_null($this->file_header)) {
             if (!$this->file_handle) {
-                $this->openFile();
+                $this->open_file();
             }
             $data_start = 0;
             if (is_null($this->file_header)) {
@@ -137,10 +126,11 @@ class XLSX extends BaseObject implements ReaderInterface
                         $tmp = $this->read();
                         if (is_array($tmp)) {
                             $u = array_unique($tmp);
-                            if (ceil(0.8 * count($u)) > $this->maxColumnIndex) {
-                                $this->maxColumnIndex = count($u);
-                                $data_start = $this->currentPosition() - 1;
-                                $_file_header = array_filter($u, 'strlen'); /// strip empty and Null headers
+                            if (ceil(0.8 * count($u)) > $this->max_column_index) {
+                                $this->max_column_index = count($u);
+                                $data_start = $this->current_position() - 1;
+                                $_file_header = array_filter($u, 'strlen');
+                                /// strip empty and Null headers
                             }
                         }
                     }
@@ -151,7 +141,6 @@ class XLSX extends BaseObject implements ReaderInterface
                     }
                 }
             }
-
             if (is_null($this->file_data_start_pointer) || $this->file_data_start_pointer < $data_start) {
                 $this->file_data_start_pointer = $data_start;
                 $this->file_handle->rewind();
@@ -160,28 +149,24 @@ class XLSX extends BaseObject implements ReaderInterface
                 }
             }
         }
-
         return array_values($this->file_header);
     }
-
-    public function getProgress()
+    public function get_progress()
     {
-        $percentDone = min(100, ($this->currentPosition() / $this->maxRow) * 100);
-        return number_format($percentDone, 1, '.', '');
+        $percent_done = min(100, $this->current_position() / $this->max_row * 100);
+        return number_format($percent_done, 1, '.', '');
     }
-
     public function read()
     {
         if (!$this->file_handle) {
-            $this->openFile();
+            $this->open_file();
         }
-
         $data = false;
         if ($this->file_handle->valid()) {
             $data = $this->file_handle->current();
             $this->file_handle->next();
             if (is_object($data) && $data instanceof \Box\Spout\Common\Entity\Row) {
-                $data = $data->toArray();
+                $data = $data->to_array();
             }
             if (is_array($data)) {
                 foreach ($data as $k => $v) {
@@ -194,7 +179,6 @@ class XLSX extends BaseObject implements ReaderInterface
                         }
                     }
                 }
-
                 if (is_array($this->file_header)) {
                     $named_data = [];
                     foreach ($this->file_header as $idx => $key_name) {
@@ -204,42 +188,36 @@ class XLSX extends BaseObject implements ReaderInterface
                 }
             }
         }
-
         return $data;
     }
-
-    protected function detectEncoding()
+    protected function detect_encoding()
     {
         // check UTF encoding
         rewind($this->file_handle);
-        $utfMap = $this->getUtfBomMap();
-        if (isset($utfMap[ $this->use_config['input_encoding'] ])) {
-            $this->file_start_pointer = strlen($utfMap[ $this->use_config['input_encoding'] ]);
+        $utf_map = $this->get_utf_bom_map();
+        if (isset($utf_map[$this->use_config['input_encoding']])) {
+            $this->file_start_pointer = strlen($utf_map[$this->use_config['input_encoding']]);
         }
-
         if ($this->use_config['input_encoding'] == 'auto') {
-            $readLength = array_reduce($utfMap, function ($initial, $signature) {
+            $read_length = array_reduce($utf_map, function ($initial, $signature) {
                 return max($initial, strlen($signature));
             }, 0);
-            $checkSignature = fread($this->file_handle, $readLength);
-
+            $check_signature = fread($this->file_handle, $read_length);
             rewind($this->file_handle);
-            foreach ($utfMap as $utfEncoding => $utfSignature) {
-                if (substr($checkSignature, 0, strlen($utfSignature)) == $utfSignature) {
-                    $this->use_config['input_encoding'] = $utfEncoding;
-                    $this->file_start_pointer = strlen($utfSignature);
+            foreach ($utf_map as $utf_encoding => $utf_signature) {
+                if (substr($check_signature, 0, strlen($utf_signature)) == $utf_signature) {
+                    $this->use_config['input_encoding'] = $utf_encoding;
+                    $this->file_start_pointer = strlen($utf_signature);
                     break;
                 }
             }
         }
-
         fseek($this->file_handle, $this->file_start_pointer, SEEK_SET);
     }
-
-    private function deEncode($dataArray)
+    private function de_encode($data_array)
     {
-        static $preferredEncodingOrder = false;
-        if (!is_array($preferredEncodingOrder)) {
+        static $preferred_encoding_order = false;
+        if (!is_array($preferred_encoding_order)) {
             $encoding_list = mb_list_encodings();
             $encoding_list = preg_grep('/(-Mobile|auto)/i', $encoding_list, PREG_GREP_INVERT);
             $prefer3_order = 'UTF,ISO,WIN,CP8';
@@ -256,17 +234,16 @@ class XLSX extends BaseObject implements ReaderInterface
                 }
                 return $cmp_res;
             });
-            $preferredEncodingOrder = $encoding_list;
+            $preferred_encoding_order = $encoding_list;
         }
-
-        foreach ($dataArray as $key => $file_data) {
+        foreach ($data_array as $key => $file_data) {
             if (!empty($file_data) && !is_numeric($file_data)) {
-                $cellEncoding = mb_detect_encoding($file_data, $preferredEncodingOrder, true);
-                if ($cellEncoding != 'UTF-8') {
-                    $dataArray[$key] = mb_convert_encoding($file_data, 'UTF-8', $cellEncoding);
+                $cell_encoding = mb_detect_encoding($file_data, $preferred_encoding_order, true);
+                if ($cell_encoding != 'UTF-8') {
+                    $data_array[$key] = mb_convert_encoding($file_data, 'UTF-8', $cell_encoding);
                 }
             }
         }
-        return $dataArray;
+        return $data_array;
     }
 }

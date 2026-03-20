@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,35 +11,30 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
-namespace backend\models\ProductEdit;
+namespace backend\models\Product_Edit;
 
 use backend\models\EP\Directory;
 use common\models\Products;
-
-class SaveImportExport
+class Save_Import_Export
 {
     protected $product;
-
     public function __construct(Products $product)
     {
         $this->product = $product;
     }
-
     public function save()
     {
-        $directories = Directory::getAll();
+        $directories = Directory::get_all();
         foreach ($directories as $directory) {
             /**
              * @var Directory $directory
              */
-            if ($directory->directory_type == 'datasource' && $datasource = $directory->getDatasource()) {
-                if (!$datasource->allowProductView()) {
+            if ($directory->directory_type == 'datasource' && $datasource = $directory->get_datasource()) {
+                if (!$datasource->allow_product_view()) {
                     continue;
                 }
-                $datasource->productSave($directory, $this->product);
+                $datasource->product_save($directory, $this->product);
             }
         }
     }
-
 }

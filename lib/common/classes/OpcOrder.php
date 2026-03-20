@@ -1,7 +1,6 @@
 <?php
 
-declare(strict_types=1);
-
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -12,13 +11,11 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\classes;
 
-class OpcOrder extends \common\classes\extended\OrderAbstract
+class Opc_Order extends \common\classes\extended\Order_Abstract
 {
     public $_store;
-
     public function __construct()
     {
         $this->info = [];
@@ -27,7 +24,6 @@ class OpcOrder extends \common\classes\extended\OrderAbstract
         $this->customer = [];
         $this->delivery = [];
         $this->tax_address = [];
-
         $this->cart();
         // store values
         $this->_store = [];
@@ -38,10 +34,8 @@ class OpcOrder extends \common\classes\extended\OrderAbstract
         }
         $this->_store['tax_groups'] = $this->info['tax_groups'];
         $this->_store['tax'] = $this->info['tax'];
-
         $this->info['total'] = $this->_store['total'];
     }
-
     // recalc stubs
     public function _billing_address()
     {
@@ -59,7 +53,6 @@ class OpcOrder extends \common\classes\extended\OrderAbstract
         }
         return false;
     }
-
     public function _shipping_address()
     {
         global $opc_sendto;
@@ -73,7 +66,6 @@ class OpcOrder extends \common\classes\extended\OrderAbstract
         }
         return false;
     }
-
     public function change_shipping($new_shipping)
     {
         $this->info['total'] = $this->_store['total'];
@@ -97,6 +89,5 @@ class OpcOrder extends \common\classes\extended\OrderAbstract
         }
         return false;
     }
-
     //\ recalc stubs
 }

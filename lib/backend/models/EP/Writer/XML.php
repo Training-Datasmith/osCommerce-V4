@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,90 +11,76 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\models\EP\Writer;
 
-use backend\models\EP\ArrayTransform;
+use backend\models\EP\Array_Transform;
 use backend\models\EP\Exception;
-use DOMDocument;
-use DOMElement;
-use DOMText;
-use SimpleXMLElement;
+use Dom_Document;
+use Dom_Element;
+use Dom_Text;
+use Simple_Xml_Element;
 use yii\base\Arrayable;
-use yii\helpers\StringHelper;
-
-class XML implements WriterInterface
+use yii\helpers\String_Helper;
+class XML implements Writer_Interface
 {
     public $filename;
-
     protected $file_handle;
     protected $_first_write = true;
-
-    protected $useTraversableAsArray = true;
-
+    protected $use_traversable_as_array = true;
     public $Header = [];
     public $header = [];
-    public $rootTag = 'data';
-    public $rowsTag = 'records';
-    public $rowTag = 'record';
-
+    public $root_tag = 'data';
+    public $rows_tag = 'records';
+    public $row_tag = 'record';
     protected $columns = [];
-    protected $columnsMulti = [];
-
-    public function setColumns(array $columns)
+    protected $columns_multi = [];
+    public function set_columns(array $columns)
     {
         $this->columns = $columns;
     }
-
-    protected function cutSelectedColumns($data)
+    protected function cut_selected_columns($data)
     {
-        $newData = [];
-        $flatData = ArrayTransform::convertMultiDimensionalToFlat($data);
-        foreach (array_keys($this->columns) as $needPath) {
-            if (strpos($needPath, '*') !== false) {
-                $regExp = str_replace('.', '\.', $needPath);
-                $regExp = str_replace('*', '[^\.]+', $regExp);
-                foreach (preg_grep('#'.$regExp.'#', array_keys($flatData)) as $needKey) {
-                    $newData[$needKey] = $flatData[$needKey];
+        $new_data = [];
+        $flat_data = Array_Transform::convert_multi_dimensional_to_flat($data);
+        foreach (array_keys($this->columns) as $need_path) {
+            if (strpos($need_path, '*') !== false) {
+                $reg_exp = str_replace('.', '\.', $need_path);
+                $reg_exp = str_replace('*', '[^\.]+', $reg_exp);
+                foreach (preg_grep('#' . $reg_exp . '#', array_keys($flat_data)) as $need_key) {
+                    $new_data[$need_key] = $flat_data[$need_key];
                 }
-            } else {
-                if (array_key_exists($needPath, $flatData)) {
-                    $newData[$needPath] = $flatData[$needPath];
-                }
+            } else if (array_key_exists($need_path, $flat_data)) {
+                $new_data[$need_path] = $flat_data[$need_path];
             }
         }
-        $newData = ArrayTransform::convertFlatToMultiDimensional($newData);
-        return $newData;
+        $new_data = Array_Transform::convert_flat_to_multi_dimensional($new_data);
+        return $new_data;
     }
-
-    public function write(array $writeData)
+    public function write(array $write_data)
     {
-        if (substr(strval(key($writeData)), 0, 1) == ':') {
-            if (isset($writeData[':xmlConfig'])) {
-                if (is_array($writeData[':xmlConfig'])) {
-                    foreach ($writeData[':xmlConfig'] as $confKey => $confValue) {
-                        if (isset($this->{$confKey})) {
-                            $this->{$confKey} = $confValue;
+        if (substr(strval(key($write_data)), 0, 1) == ':') {
+            if (isset($write_data[':xmlConfig'])) {
+                if (is_array($write_data[':xmlConfig'])) {
+                    foreach ($write_data[':xmlConfig'] as $conf_key => $conf_value) {
+                        if (isset($this->{$conf_key})) {
+                            $this->{$conf_key} = $conf_value;
                         }
                     }
                 }
             }
-            if (isset($writeData[':feed_data'])) {
-                $writeData = $writeData[':feed_data'];
+            if (isset($write_data[':feed_data'])) {
+                $write_data = $write_data[':feed_data'];
             } else {
                 return;
             }
         }
-
         if ($this->_first_write) {
             $this->_first_write = false;
-
             if (strpos($this->filename, 'php://') === false) {
                 if (!is_dir(dirname($this->filename))) {
                     try {
-                        \yii\helpers\FileHelper::createDirectory(dirname($this->filename), 0777, true);
+                        \yii\helpers\File_Helper::create_directory(dirname($this->filename), 0777, true);
                     } catch (\yii\base\Exception $ex) {
-
                     }
                 }
             }
@@ -102,119 +88,110 @@ class XML implements WriterInterface
             if (!$this->file_handle) {
                 throw new Exception('Can\'t open file', 21);
             }
-            fwrite($this->file_handle, '<?xml version="1.0" encoding="UTF-8"?>'."\n");
-            fwrite($this->file_handle, '<'.$this->rootTag.'>'."\n");
+            fwrite($this->file_handle, '<?xml version="1.0" encoding="UTF-8"?>' . "\n");
+            fwrite($this->file_handle, '<' . $this->root_tag . '>' . "\n");
             if (!empty($this->header)) {
                 fwrite($this->file_handle, $this->array2xml($this->header, 'header') . "\n");
             } elseif (!empty($this->Header)) {
                 fwrite($this->file_handle, $this->array2xml($this->Header, 'Header') . "\n");
             }
-            fwrite($this->file_handle, '<'.$this->rowsTag.'>'."\n");
+            fwrite($this->file_handle, '<' . $this->rows_tag . '>' . "\n");
         }
-
-        if (substr(strval(key($writeData)), 0, 1) == ':') {
-            if (isset($writeData[':feed_data'])) {
-                $writeData = $writeData[':feed_data'];
+        if (substr(strval(key($write_data)), 0, 1) == ':') {
+            if (isset($write_data[':feed_data'])) {
+                $write_data = $write_data[':feed_data'];
             } else {
                 return;
             }
         }
-        if (count($writeData) == 1 && is_object($writeData[0]) && $writeData[0] instanceof DOMDocument) {
-            fwrite($this->file_handle, preg_replace('#<\?xml.*\?>#', '', $writeData[0]->saveXML()) . "\n");
-        } elseif (count($writeData) == 1 && is_object($writeData[0]) && $writeData[0] instanceof SimpleXMLElement) {
-            $xml = $writeData[0]->saveXML();
-            $headPos = strpos($xml, "?>\n");
-            if ($headPos !== false) {
-                $xml = substr($xml, $headPos + 3);
+        if (count($write_data) == 1 && is_object($write_data[0]) && $write_data[0] instanceof Dom_Document) {
+            fwrite($this->file_handle, preg_replace('#<\?xml.*\?>#', '', $write_data[0]->save_xml()) . "\n");
+        } elseif (count($write_data) == 1 && is_object($write_data[0]) && $write_data[0] instanceof Simple_Xml_Element) {
+            $xml = $write_data[0]->save_xml();
+            $head_pos = strpos($xml, "?>\n");
+            if ($head_pos !== false) {
+                $xml = substr($xml, $head_pos + 3);
             } else {
-                $headPos = strpos($xml, '?>');
-                if ($headPos !== false) {
-                    $xml = substr($xml, $headPos + 2);
+                $head_pos = strpos($xml, '?>');
+                if ($head_pos !== false) {
+                    $xml = substr($xml, $head_pos + 2);
                 }
             }
-            fwrite($this->file_handle, $xml /*. "\n"*/);
+            fwrite($this->file_handle, $xml);
         } else {
-            $writeData = $this->cutSelectedColumns($writeData);
-            fwrite($this->file_handle, $this->array2xml($writeData) . "\n");
+            $write_data = $this->cut_selected_columns($write_data);
+            fwrite($this->file_handle, $this->array2xml($write_data) . "\n");
         }
         fflush($this->file_handle);
     }
-
     public function close()
     {
         if ($this->file_handle) {
-            fwrite($this->file_handle, '</' . $this->rowsTag . '>' . "\n");
-            fwrite($this->file_handle, '</' . $this->rootTag . '>' . "\n");
+            fwrite($this->file_handle, '</' . $this->rows_tag . '>' . "\n");
+            fwrite($this->file_handle, '</' . $this->root_tag . '>' . "\n");
             if (strpos($this->filename, 'php://') === false) {
                 fclose($this->file_handle);
                 $this->file_handle = null;
             }
         }
     }
-
     protected function array2xml($array, $tag = '')
     {
-        $dom = new DOMDocument('1.0', 'UTF-8');
-        $root = new DOMElement(empty($tag) ? $this->rowTag : $tag);
-        $dom->appendChild($root);
-        $this->buildXml($root, $array);
-        return $dom->saveXML($root);
-
+        $dom = new Dom_Document('1.0', 'UTF-8');
+        $root = new Dom_Element(empty($tag) ? $this->row_tag : $tag);
+        $dom->append_child($root);
+        $this->build_xml($root, $array);
+        return $dom->save_xml($root);
     }
-
     /**
      * @param DOMElement $element
      * @param mixed $data
      */
-    protected function buildXml($element, $data, $numericKeyFormat = 'item%s')
+    protected function build_xml($element, $data, $numeric_key_format = 'item%s')
     {
-        if (is_array($data) ||
-            ($data instanceof \Traversable && $this->useTraversableAsArray && !$data instanceof Arrayable)
-        ) {
+        if (is_array($data) || $data instanceof \Traversable && $this->use_traversable_as_array && !$data instanceof Arrayable) {
             foreach ($data as $name => $value) {
-                $itemTag = $name;
+                $item_tag = $name;
                 if (is_int($name)) {
-                    $itemTag = sprintf($numericKeyFormat, $name);
+                    $item_tag = sprintf($numeric_key_format, $name);
                 }
-                $itemTag = preg_replace('/[^\w|\d|:|_|\.|-]/i', '_', $itemTag);
-
+                $item_tag = preg_replace('/[^\w|\d|:|_|\.|-]/i', '_', $item_tag);
                 if (is_int($name) && is_object($value)) {
-                    $this->buildXml($element, $value);
+                    $this->build_xml($element, $value);
                 } elseif (is_array($value) || is_object($value)) {
-                    if (empty($itemTag)) {
+                    if (empty($item_tag)) {
                         continue;
                     }
-                    $child = new DOMElement($itemTag);
-                    $element->appendChild($child);
+                    $child = new Dom_Element($item_tag);
+                    $element->append_child($child);
                     if (substr($name, -1) == 's' && strlen($name) > 2) {
-                        $this->buildXml($child, $value, substr($name, 0, -1));
+                        $this->build_xml($child, $value, substr($name, 0, -1));
                     } else {
-                        $this->buildXml($child, $value);
+                        $this->build_xml($child, $value);
                     }
                 } else {
-                    if (empty($itemTag)) {
+                    if (empty($item_tag)) {
                         continue;
                     }
-                    $child = new DOMElement($itemTag);
-                    $element->appendChild($child);
-                    $child->appendChild(new DOMText((string) $value));
+                    $child = new Dom_Element($item_tag);
+                    $element->append_child($child);
+                    $child->append_child(new Dom_Text((string) $value));
                 }
             }
         } elseif (is_object($data)) {
-            $child = new DOMElement(StringHelper::basename(get_class($data)));
-            $element->appendChild($child);
+            $child = new Dom_Element(String_Helper::basename(get_class($data)));
+            $element->append_child($child);
             if ($data instanceof Arrayable) {
-                $this->buildXml($child, $data->toArray());
+                $this->build_xml($child, $data->to_array());
             } else {
                 $array = [];
                 foreach ($data as $name => $value) {
                     $array[$name] = $value;
                 }
-                $this->buildXml($child, $array);
+                $this->build_xml($child, $array);
             }
         } else {
-            $element->appendChild(new DOMText((string) $data));
+            $element->append_child(new Dom_Text((string) $data));
         }
     }
-
 }

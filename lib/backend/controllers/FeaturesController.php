@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,30 +11,24 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace backend\controllers;
 
 use common\helpers\Translation;
 use Yii;
-
-class FeaturesController extends Sceleton
+class Features_Controller extends Sceleton
 {
     public $acl = ['TEXT_SETTINGS', 'BOX_HEADING_FEATURES'];
-
     public function __construct($id, $module = null)
     {
         Translation::init('admin/features');
         parent::__construct($id, $module);
     }
-
-    public function actionIndex()
+    public function action_index()
     {
         $currencies = Yii::$container->get('currencies');
-
-        $this->selectedMenu = ['settings', 'features'];
-        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('features/index'), 'title' => HEADING_TITLE];
-        $this->view->headingTitle = HEADING_TITLE;
-
+        $this->selected_menu = ['settings', 'features'];
+        $this->navigation[] = ['link' => Yii::$app->url_manager->create_url('features/index'), 'title' => HEADING_TITLE];
+        $this->view->heading_title = HEADING_TITLE;
         $search = '';
         if (isset($_GET['search']) && tep_not_null($_GET['search'])) {
             $keywords = tep_db_prepare_input($_GET['search']);
@@ -43,16 +37,15 @@ class FeaturesController extends Sceleton
         if ($_GET['ftID'] > 0) {
             $search .= " and f.features_types_id = '" . (int) $_GET['ftID'] . "'";
         }
-
         $params = [];
-        $this->view->featuresArray = [];
-        $this->view->featuresTypesArray = [];
+        $this->view->features_array = [];
+        $this->view->features_types_array = [];
         $features_types_pulldown_array = [['id' => '', 'text' => TEXT_ALL_FEATURES_TYPES]];
         $features_types_query = tep_db_query('select features_types_id, features_types_title from ' . TABLE_FEATURES_TYPES . ' where 1');
         while ($features_types = tep_db_fetch_array($features_types_query)) {
-            $this->view->featuresTypesArray[$features_types['features_types_id']] = $features_types;
+            $this->view->features_types_array[$features_types['features_types_id']] = $features_types;
             $features_types_pulldown_array[] = ['id' => $features_types['features_types_id'], 'text' => $features_types['features_types_title']];
-            $features_query = tep_db_query('select f.features_id, f.features_title, f.features_image, f.features_description, f.features_monthly_price, f.features_setup_price, count(d2f.features_id) as feature_enabled from ' . TABLE_FEATURES . ' f left join ' . TABLE_DEPARTMENTS_TO_FEATURES . " d2f on f.features_id = d2f.features_id and d2f.departments_id = '" . (int)DEPARTMENTS_ID . "' where f.features_types_id = '" . (int)$features_types['features_types_id'] . "' and f.always_included = 0 " . $search . ' group by f.features_id order by f.sort_order, f.features_title');
+            $features_query = tep_db_query('select f.features_id, f.features_title, f.features_image, f.features_description, f.features_monthly_price, f.features_setup_price, count(d2f.features_id) as feature_enabled from ' . TABLE_FEATURES . ' f left join ' . TABLE_DEPARTMENTS_TO_FEATURES . " d2f on f.features_id = d2f.features_id and d2f.departments_id = '" . (int) DEPARTMENTS_ID . "' where f.features_types_id = '" . (int) $features_types['features_types_id'] . "' and f.always_included = 0 " . $search . ' group by f.features_id order by f.sort_order, f.features_title');
             while ($features = tep_db_fetch_array($features_query)) {
                 if (tep_not_null($features['features_image'])) {
                     $features['features_image'] = SUPERADMIN_HTTP_IMAGES . $features['features_image'];
@@ -67,26 +60,22 @@ class FeaturesController extends Sceleton
                 } else {
                     $features['features_monthly_price'] = '';
                 }
-                $this->view->featuresArray[$features_types['features_types_id']][$features['features_id']] = $features;
+                $this->view->features_array[$features_types['features_types_id']][$features['features_id']] = $features;
             }
         }
-        $this->view->filterFeaturesTypes = tep_draw_pull_down_menu('ftID', $features_types_pulldown_array, $_GET['ftID'], 'class="form-control" onchange="this.form.submit();"');
-        $this->view->filterSearch = tep_draw_input_field('search', $_GET['search'], 'class="form-control"');
-
+        $this->view->filter_features_types = tep_draw_pull_down_menu('ftID', $features_types_pulldown_array, $_GET['ftID'], 'class="form-control" onchange="this.form.submit();"');
+        $this->view->filter_search = tep_draw_input_field('search', $_GET['search'], 'class="form-control"');
         return $this->render('index');
     }
-
-    public function actionView()
+    public function action_view()
     {
-        $messageStack = \Yii::$container->get('message_stack');
+        $message_stack = \Yii::$container->get('message_stack');
         $currencies = Yii::$container->get('currencies');
-
-        $this->selectedMenu = ['settings', 'features'];
-        $this->navigation[] = ['link' => Yii::$app->urlManager->createUrl('features/index'), 'title' => HEADING_TITLE];
-        $this->view->headingTitle = HEADING_TITLE;
-
+        $this->selected_menu = ['settings', 'features'];
+        $this->navigation[] = ['link' => Yii::$app->url_manager->create_url('features/index'), 'title' => HEADING_TITLE];
+        $this->view->heading_title = HEADING_TITLE;
         $features_id = Yii::$app->request->get('fID', 0);
-        $features = tep_db_fetch_array(tep_db_query('select f.features_id, f.features_title, f.features_image, f.features_description, f.features_monthly_price, f.features_setup_price, count(d2f.features_id) as feature_enabled from ' . TABLE_FEATURES . ' f left join ' . TABLE_DEPARTMENTS_TO_FEATURES . " d2f on f.features_id = d2f.features_id and d2f.departments_id = '" . (int)DEPARTMENTS_ID . "' where f.features_id = '" . (int) $features_id . "' group by f.features_id"));
+        $features = tep_db_fetch_array(tep_db_query('select f.features_id, f.features_title, f.features_image, f.features_description, f.features_monthly_price, f.features_setup_price, count(d2f.features_id) as feature_enabled from ' . TABLE_FEATURES . ' f left join ' . TABLE_DEPARTMENTS_TO_FEATURES . " d2f on f.features_id = d2f.features_id and d2f.departments_id = '" . (int) DEPARTMENTS_ID . "' where f.features_id = '" . (int) $features_id . "' group by f.features_id"));
         if (tep_not_null($features['features_image'])) {
             $features['features_image'] = SUPERADMIN_HTTP_IMAGES . $features['features_image'];
         }
@@ -100,71 +89,66 @@ class FeaturesController extends Sceleton
         } else {
             $features['features_monthly_price'] = '';
         }
-        $fInfo = new \objectInfo($features, false);
-        if ($fInfo->features_id > 0) {
-            if ($messageStack->size() > 0) {
-                $this->view->errorMessage = $messageStack->output(true);
-                $this->view->errorMessageType = $messageStack->messageType;
+        $f_info = new \Object_Info($features, false);
+        if ($f_info->features_id > 0) {
+            if ($message_stack->size() > 0) {
+                $this->view->error_message = $message_stack->output(true);
+                $this->view->error_message_type = $message_stack->message_type;
             }
-            return $this->render('view', ['fInfo' => $fInfo]);
+            return $this->render('view', ['fInfo' => $f_info]);
         } else {
-            $messageStack->add_session('Wrong feature ID!');
-            return $this->redirect(Yii::$app->urlManager->createUrl('features/index'));
+            $message_stack->add_session('Wrong feature ID!');
+            return $this->redirect(Yii::$app->url_manager->create_url('features/index'));
         }
     }
-
-    public function actionInstall()
+    public function action_install()
     {
-        $messageStack = \Yii::$container->get('message_stack');
-
+        $message_stack = \Yii::$container->get('message_stack');
         $features_id = Yii::$app->request->get('fID', 0);
-        $features = tep_db_fetch_array(tep_db_query('select f.features_id, f.features_title, f.features_image, f.features_description, f.features_monthly_price, f.features_setup_price, count(d2f.features_id) as feature_enabled from ' . TABLE_FEATURES . ' f left join ' . TABLE_DEPARTMENTS_TO_FEATURES . " d2f on f.features_id = d2f.features_id and d2f.departments_id = '" . (int)DEPARTMENTS_ID . "' where f.features_id = '" . (int) $features_id . "' group by f.features_id"));
-        $fInfo = new \objectInfo($features, false);
-        if ($fInfo->features_id > 0) {
-            if (!$fInfo->feature_enabled) {
-                $response = $this->call_http_url(SUPERADMIN_HTTP_URL . 'rest?dID=' . (int)DEPARTMENTS_ID . '&fID=' . (int)$features_id . '&action=install&http=' . str_replace('http://', '', HTTP_SERVER));
+        $features = tep_db_fetch_array(tep_db_query('select f.features_id, f.features_title, f.features_image, f.features_description, f.features_monthly_price, f.features_setup_price, count(d2f.features_id) as feature_enabled from ' . TABLE_FEATURES . ' f left join ' . TABLE_DEPARTMENTS_TO_FEATURES . " d2f on f.features_id = d2f.features_id and d2f.departments_id = '" . (int) DEPARTMENTS_ID . "' where f.features_id = '" . (int) $features_id . "' group by f.features_id"));
+        $f_info = new \Object_Info($features, false);
+        if ($f_info->features_id > 0) {
+            if (!$f_info->feature_enabled) {
+                $response = $this->call_http_url(SUPERADMIN_HTTP_URL . 'rest?dID=' . (int) DEPARTMENTS_ID . '&fID=' . (int) $features_id . '&action=install&http=' . str_replace('http://', '', HTTP_SERVER));
                 if ($response == 'OK') {
-                    $messageStack->add_session($fInfo->features_title . ' has been successfully installed!', 'header', 'success');
+                    $message_stack->add_session($f_info->features_title . ' has been successfully installed!', 'header', 'success');
                 } else {
-                    $messageStack->add_session($response);
+                    $message_stack->add_session($response);
                 }
-                return $this->redirect(Yii::$app->urlManager->createUrl(['features/view', 'fID' => $features_id]));
+                return $this->redirect(Yii::$app->url_manager->create_url(['features/view', 'fID' => $features_id]));
             } else {
-                $messageStack->add_session($fInfo->features_title . ' is already installed!');
-                return $this->redirect(Yii::$app->urlManager->createUrl(['features/view', 'fID' => $features_id]));
+                $message_stack->add_session($f_info->features_title . ' is already installed!');
+                return $this->redirect(Yii::$app->url_manager->create_url(['features/view', 'fID' => $features_id]));
             }
         } else {
-            $messageStack->add_session('Wrong feature ID!');
-            return $this->redirect(Yii::$app->urlManager->createUrl('features/index'));
+            $message_stack->add_session('Wrong feature ID!');
+            return $this->redirect(Yii::$app->url_manager->create_url('features/index'));
         }
     }
-
-    public function actionUninstall()
+    public function action_uninstall()
     {
-        $messageStack = \Yii::$container->get('message_stack');
-
+        $message_stack = \Yii::$container->get('message_stack');
         $features_id = Yii::$app->request->get('fID', 0);
-        $features = tep_db_fetch_array(tep_db_query('select f.features_id, f.features_title, f.features_image, f.features_description, f.features_monthly_price, f.features_setup_price, count(d2f.features_id) as feature_enabled from ' . TABLE_FEATURES . ' f left join ' . TABLE_DEPARTMENTS_TO_FEATURES . " d2f on f.features_id = d2f.features_id and d2f.departments_id = '" . (int)DEPARTMENTS_ID . "' where f.features_id = '" . (int) $features_id . "' group by f.features_id"));
-        $fInfo = new \objectInfo($features, false);
-        if ($fInfo->features_id > 0) {
-            if ($fInfo->feature_enabled) {
-                $response = $this->call_http_url(SUPERADMIN_HTTP_URL . 'rest?dID=' . (int)DEPARTMENTS_ID . '&fID=' . (int)$features_id . '&action=uninstall&http=' . str_replace('http://', '', HTTP_SERVER));
+        $features = tep_db_fetch_array(tep_db_query('select f.features_id, f.features_title, f.features_image, f.features_description, f.features_monthly_price, f.features_setup_price, count(d2f.features_id) as feature_enabled from ' . TABLE_FEATURES . ' f left join ' . TABLE_DEPARTMENTS_TO_FEATURES . " d2f on f.features_id = d2f.features_id and d2f.departments_id = '" . (int) DEPARTMENTS_ID . "' where f.features_id = '" . (int) $features_id . "' group by f.features_id"));
+        $f_info = new \Object_Info($features, false);
+        if ($f_info->features_id > 0) {
+            if ($f_info->feature_enabled) {
+                $response = $this->call_http_url(SUPERADMIN_HTTP_URL . 'rest?dID=' . (int) DEPARTMENTS_ID . '&fID=' . (int) $features_id . '&action=uninstall&http=' . str_replace('http://', '', HTTP_SERVER));
                 if ($response == 'OK') {
-                    $messageStack->add_session($fInfo->features_title . ' has been successfully uninstalled!', 'header', 'success');
+                    $message_stack->add_session($f_info->features_title . ' has been successfully uninstalled!', 'header', 'success');
                 } else {
-                    $messageStack->add_session($response);
+                    $message_stack->add_session($response);
                 }
-                return $this->redirect(Yii::$app->urlManager->createUrl(['features/view', 'fID' => $features_id]));
+                return $this->redirect(Yii::$app->url_manager->create_url(['features/view', 'fID' => $features_id]));
             } else {
-                $messageStack->add_session($fInfo->features_title . ' is already uninstalled!');
-                return $this->redirect(Yii::$app->urlManager->createUrl(['features/view', 'fID' => $features_id]));
+                $message_stack->add_session($f_info->features_title . ' is already uninstalled!');
+                return $this->redirect(Yii::$app->url_manager->create_url(['features/view', 'fID' => $features_id]));
             }
         } else {
-            $messageStack->add_session('Wrong feature ID!');
-            return $this->redirect(Yii::$app->urlManager->createUrl('features/index'));
+            $message_stack->add_session('Wrong feature ID!');
+            return $this->redirect(Yii::$app->url_manager->create_url('features/index'));
         }
     }
-
     public static function call_http_url($url, $username = '', $password = '', $postfields = [])
     {
         if ($ch = curl_init()) {

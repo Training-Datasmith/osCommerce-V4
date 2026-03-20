@@ -1,6 +1,6 @@
 <?php
 
-declare(strict_types=1);
+declare (strict_types=1);
 /**
  * This file is part of osCommerce ecommerce platform.
  * osCommerce the ecommerce
@@ -11,32 +11,27 @@ declare(strict_types=1);
  * Released under the GNU General Public License
  * For the full copyright and license information, please view the LICENSE.TXT file that was distributed with this source code.
  */
-
 namespace common\helpers;
 
 class Affiliate
 {
-    public static function isLogged()
+    public static function is_logged()
     {
-        return tep_session_is_registered('login_affiliate') && \common\helpers\Acl::checkExtensionAllowed('Affiliate');
+        return tep_session_is_registered('login_affiliate') && \common\helpers\Acl::check_extension_allowed('Affiliate');
     }
-
     public static function id()
     {
-        return (isset($_SESSION['affiliate_ref']) && \common\helpers\Acl::checkExtensionAllowed('Affiliate')) ? (int)$_SESSION['affiliate_ref'] : 0;
+        return isset($_SESSION['affiliate_ref']) && \common\helpers\Acl::check_extension_allowed('Affiliate') ? (int) $_SESSION['affiliate_ref'] : 0;
     }
-
-    public static function where($aliasTable = '', $insertStrBefore = ' ')
+    public static function where($alias_table = '', $insert_str_before = ' ')
     {
         if (!empty($alias)) {
             $alias .= '.';
         }
-        return $insertStrBefore . $aliasTable . 'affiliate_id = ' . self::id();
+        return $insert_str_before . $alias_table . 'affiliate_id = ' . self::id();
     }
-
-    public static function whereIfExists($aliasTable = '', $insertStrBefore = ' ')
+    public static function where_if_exists($alias_table = '', $insert_str_before = ' ')
     {
-        return self::isLogged() ? self::where($aliasTable, $insertStrBefore) : '';
+        return self::is_logged() ? self::where($alias_table, $insert_str_before) : '';
     }
-
 }
